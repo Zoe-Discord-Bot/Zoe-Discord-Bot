@@ -1,5 +1,6 @@
 package ch.kalunight.zoe;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -17,17 +18,26 @@ import com.google.gson.JsonParser;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import ch.kalunight.zoe.model.Champion;
 import ch.kalunight.zoe.model.CustomEmote;
+import ch.kalunight.zoe.model.Player;
+import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.util.Ressources;
 import ch.kalunight.zoe.util.SleeperRateLimitHandler;
 import net.dv8tion.jda.core.AccountType;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.JDABuilder;
 import net.dv8tion.jda.core.OnlineStatus;
+import net.dv8tion.jda.core.entities.Guild;
+import net.dv8tion.jda.core.entities.User;
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.RiotApi;
+import net.rithms.riot.api.RiotApiException;
+import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.api.request.ratelimit.RateLimitHandler;
+import net.rithms.riot.constant.Platform;
 
 public class ZoeMain {
+  
+  private static final File SAVE_TXT_FILE = new File("ressources/save.txt");
 
   private static RiotApi riotApi;
   
@@ -97,7 +107,42 @@ public class ZoeMain {
     Ressources.setChampions(champions);
     }
   }
-
+  
+  public static void loadDataTxt() throws IOException, RiotApiException {
+    
+    try(BufferedReader reader = new BufferedReader(new FileReader(SAVE_TXT_FILE));) {
+      String line;
+      
+      while((line = reader.readLine()) != null) {
+        
+        if(line.equalsIgnoreCase("--server")) {
+          String guildId = reader.readLine();
+          Guild guild = jda.getGuildById(guildId);
+          Server server = new Server(guild);
+          
+          Long nbrPlayers = Long.parseLong(reader.readLine());
+          
+          List<Player> players = new ArrayList<>();
+          
+          for(Long i = 0L; i < nbrPlayers; i++) {
+            String discordId = reader.readLine();
+            String summonerId = reader.readLine();
+            String summonerRegion = reader.readLine();
+            String mentionableString = reader.readLine();
+            
+            User user = jda.getUserById(discordId);
+            Summoner summoner = riotApi.getSummoner(Platform.getPlatformByName(summonerRegion), summonerId);
+            boolean mentionable = Boolean.getBoolean(mentionableString);
+            
+            players.add(new Player(user, summoner, mentionable));
+          }
+        }
+        
+      }
+    }
+      
+  }
+  
   public static RiotApi getRiotApi() {
     return riotApi;
   }

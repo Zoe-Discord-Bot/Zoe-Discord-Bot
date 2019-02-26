@@ -27,7 +27,7 @@ public class EventListenerUtil {
     assigneCustomEmotesToData();
   }
 
-  private List<CustomEmote> getEmoteAlreadyUploaded(List<CustomEmote> picturesInFile) {
+  private static List<CustomEmote> getEmoteAlreadyUploaded(List<CustomEmote> picturesInFile) {
     List<CustomEmote> emoteAlreadyUploded = new ArrayList<>();
 
     for(CustomEmote customEmote : picturesInFile) {
@@ -38,7 +38,7 @@ public class EventListenerUtil {
     return emoteAlreadyUploded;
   }
 
-  private List<CustomEmote> getEmoteNeedToBeUploaded(List<CustomEmote> picturesInFile) {
+  private static List<CustomEmote> getEmoteNeedToBeUploaded(List<CustomEmote> picturesInFile) {
     List<CustomEmote> emotesNeedToBeUploaded = new ArrayList<>();
 
     for(CustomEmote customEmote : picturesInFile) {
@@ -49,7 +49,7 @@ public class EventListenerUtil {
     return emotesNeedToBeUploaded;
   }
 
-  private void assigneAlreadyUploadedEmoteToPicturesInFile(List<Emote> uploadedEmotes, List<CustomEmote> picturesInFile) {
+  private static void assigneAlreadyUploadedEmoteToPicturesInFile(List<Emote> uploadedEmotes, List<CustomEmote> picturesInFile) {
     for(CustomEmote customeEmote : picturesInFile) {
       for(Emote emote : uploadedEmotes) {
         if(emote.getName().equalsIgnoreCase(customeEmote.getName())) {
@@ -59,7 +59,7 @@ public class EventListenerUtil {
     }
   }
 
-  private List<Emote> getAllGuildCustomEmotes() {
+  private static List<Emote> getAllGuildCustomEmotes() {
     List<Emote> uploadedEmotes = new ArrayList<>();
     List<Guild> listGuild = ZoeMain.getJda().getGuilds();
 

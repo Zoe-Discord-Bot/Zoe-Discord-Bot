@@ -2,6 +2,7 @@ package ch.kalunight.zoe.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.joda.time.DateTime;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.TextChannel;
 
@@ -11,13 +12,24 @@ public class Server {
   private List<Player> players;
   private List<Team> teams;
   private TextChannel infoChannel;
+  private ControlPannel controlePannel;
   private SpellingLangage langage;
+  private DateTime lastRefresh;
   
   public Server(Guild guild, SpellingLangage langage) {
     this.guild = guild;
     this.langage = langage;
     players = new ArrayList<>();
     players = new ArrayList<>();
+  }
+  
+  public synchronized boolean isNeedToBeRefreshed() {
+    boolean needToBeRefreshed = false;
+    if(lastRefresh == null || lastRefresh.isBefore(DateTime.now().minusMinutes(3))) {
+      needToBeRefreshed = true;
+      lastRefresh = DateTime.now();
+    }
+    return needToBeRefreshed;
   }
 
   public List<Player> getPlayers() {
@@ -54,5 +66,13 @@ public class Server {
 
   public void setLangage(SpellingLangage langage) {
     this.langage = langage;
+  }
+
+  public DateTime getLastRefresh() {
+    return lastRefresh;
+  }
+
+  public void setLastRefresh(DateTime lastRefresh) {
+    this.lastRefresh = lastRefresh;
   }
 }

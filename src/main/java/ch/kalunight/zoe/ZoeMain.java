@@ -2,8 +2,11 @@ package ch.kalunight.zoe;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -121,6 +124,53 @@ public class ZoeMain {
     return null;
   }
 
+  public static synchronized void saveDataTxt() throws FileNotFoundException, UnsupportedEncodingException {
+    final StringBuilder strBuilder = new StringBuilder();
+    
+    final Map<String, Server> servers = ServerData.getServers();
+    final List<Guild> guilds = ZoeMain.getJda().getGuilds();
+    
+    for(Guild guild : guilds) {
+      Server server = servers.get(guild.getId());
+      if(server != null) {
+        strBuilder.append("--server\n");
+        strBuilder.append(guild.getId() + "\n");
+        strBuilder.append(server.getLangage().toString() + "\n");
+        
+        strBuilder.append(server.getPlayers().size() + "\n");
+        
+        for(Player player : server.getPlayers()) {
+          strBuilder.append(player.getDiscordUser().getId() + "\n");
+          strBuilder.append(player.getSummoner().getId() + "\n");
+          strBuilder.append(player.getServer() + "\n");
+          strBuilder.append(player.isMentionnable() + "\n");
+        }
+        
+        strBuilder.append(server.getTeams().size() + "\n");
+        
+        for(Team team : server.getTeams()) {
+          strBuilder.append(team.getName() + "\n");
+          
+          strBuilder.append(team.getPlayers().size() + "\n");
+          
+          for(Player player : team.getPlayers()) {
+            strBuilder.append(player.getDiscordUser().getId() + "\n");
+          }
+        }
+        
+        if(server.getInfoChannel() != null) {
+          strBuilder.append(server.getInfoChannel().getId() + "\n");
+        }else {
+          strBuilder.append("-1\n");
+        }
+      }
+    }
+
+    try (PrintWriter writer = new PrintWriter(SAVE_TXT_FILE, "UTF-8");){
+      writer.write(strBuilder.toString());
+    } 
+  }
+  
   public static void loadDataTxt() throws IOException, RiotApiException {
 
     try(final BufferedReader reader = new BufferedReader(new FileReader(SAVE_TXT_FILE));) {
@@ -149,22 +199,20 @@ public class ZoeMain {
 
           final List<Team> teams = createTeams(reader, players, nbrTeams);
 
-          final TextChannel pannel = guild.getTextChannelById(Long.parseLong(reader.readLine()));
+          final TextChannel pannel = guild.getTextChannelById(reader.readLine());
 
           if(pannel != null) {
             server.setInfoChannel(pannel);
           }else {
-            sendInfoMessageToAdmin(guild);
+            sendInfoMessageToAdminAboutTheInitializePhase(guild);
           }
           
           server.setPlayers(players);
           server.setTeams(teams);
           ServerData.getServers().put(guildId, server);
         }
-
       }
     }
-
   }
 
   private static List<Team> createTeams(BufferedReader reader, List<Player> players, Long nbrTeams) throws IOException {
@@ -208,7 +256,7 @@ public class ZoeMain {
     return players;
   }
 
-  private static void sendInfoMessageToAdmin(Guild guild) {
+  private static void sendInfoMessageToAdminAboutTheInitializePhase(Guild guild) {
     List<TextChannel> textChannels = guild.getTextChannels();
     
     boolean messageSended = false;

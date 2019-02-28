@@ -9,7 +9,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.model.CustomEmote;
-import ch.kalunight.zoe.util.CustomEmoteUtil;
 import ch.kalunight.zoe.util.EventListenerUtil;
 import ch.kalunight.zoe.util.Ressources;
 import net.dv8tion.jda.core.OnlineStatus;
@@ -18,6 +17,7 @@ import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Icon;
 import net.dv8tion.jda.core.events.ReadyEvent;
 import net.dv8tion.jda.core.events.guild.GuildJoinEvent;
+import net.dv8tion.jda.core.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
 import net.dv8tion.jda.core.managers.GuildController;
 import net.rithms.riot.api.RiotApiException;
@@ -28,14 +28,25 @@ public class EventListener extends ListenerAdapter {
 
   @Override
   public void onReady(ReadyEvent event) {
-    ZoeMain.loadChampions();
-      
+    logger.info("Chargements des champions ...");
+    try {
+      ZoeMain.loadChampions();
+    } catch(IOException e1) {
+      logger.error("Erreur lors du chargement des champions !");
+      System.exit(1);
+    }
+    
+    logger.info("Chargements des champions terminé !");
+    
+    logger.info("Chargements des emotes ...");
     try {
       EventListenerUtil.loadCustomEmotes();
+      logger.info("Chargements des emotes terminé !");
     } catch(IOException e) {
       logger.error("Erreur lors du chargment des emotes : {}", e.getMessage());
     }
     
+    logger.info("Chargement des sauvegardes détaillés ...");
     try {
       ZoeMain.loadDataTxt();
     } catch(IOException e) {
@@ -55,6 +66,10 @@ public class EventListener extends ListenerAdapter {
 
     ZoeMain.getJda().getPresence().setStatus(OnlineStatus.ONLINE);
     logger.info("Démarrage terminés !");
+  }
+
+  private void setupContinousRefreshThread() {
+    
   }
 
   @Override
@@ -100,6 +115,11 @@ public class EventListener extends ListenerAdapter {
       
       logger.info("New emote Guild \"{}\" initialized !", event.getGuild().getName());
     }
+  }
+  
+  @Override
+  public void onGuildLeave(GuildLeaveEvent event) {
+    ServerData.getServers().put(event.getGuild().getId(), null);
   }
 
   private synchronized void updateFileSave(Guild guildToAdd) throws IOException {

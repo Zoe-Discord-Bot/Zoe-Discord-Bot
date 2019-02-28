@@ -16,7 +16,8 @@ public class GameChecker implements Runnable {
         Server server = ServerData.getServers().get(guild.getId());
         
         if(server.isNeedToBeRefreshed() && server.getInfoChannel() != null) {
-          
+          Runnable task = new InfoPannelRefresher(server);
+          ServerData.getTaskExecutor().submit(task);
         }
       }
     }

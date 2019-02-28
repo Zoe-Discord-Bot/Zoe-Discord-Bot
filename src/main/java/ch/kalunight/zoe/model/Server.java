@@ -75,4 +75,12 @@ public class Server {
   public void setLastRefresh(DateTime lastRefresh) {
     this.lastRefresh = lastRefresh;
   }
+
+  public ControlPannel getControlePannel() {
+    return controlePannel;
+  }
+
+  public void setControlePannel(ControlPannel controlePannel) {
+    this.controlePannel = controlePannel;
+  }
 }

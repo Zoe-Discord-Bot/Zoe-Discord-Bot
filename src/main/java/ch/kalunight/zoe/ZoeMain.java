@@ -32,6 +32,7 @@ import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.JDABuilder;
 import net.dv8tion.jda.core.OnlineStatus;
 import net.dv8tion.jda.core.entities.Guild;
+import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.PrivateChannel;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.entities.User;
@@ -205,6 +206,12 @@ public class ZoeMain {
             server.setInfoChannel(pannel);
           }else {
             sendInfoMessageToAdminAboutTheInitializePhase(guild);
+          }
+          
+          int nbrMessageControlPannel = server.getControlePannel().getMessagesList().size();
+          
+          for(Message message : server.getControlePannel().getMessagesList()) {
+            
           }
           
           server.setPlayers(players);

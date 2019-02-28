@@ -20,6 +20,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import ch.kalunight.zoe.model.Champion;
+import ch.kalunight.zoe.model.ControlPannel;
 import ch.kalunight.zoe.model.CustomEmote;
 import ch.kalunight.zoe.model.Player;
 import ch.kalunight.zoe.model.Server;
@@ -164,6 +165,12 @@ public class ZoeMain {
         }else {
           strBuilder.append("-1\n");
         }
+        
+        strBuilder.append(server.getControlePannel().getMessagesList().size() + "\n");
+        
+        for(Message message : server.getControlePannel().getMessagesList()) {
+          strBuilder.append(message.getId() + "\n");
+        }
       }
     }
 
@@ -202,23 +209,39 @@ public class ZoeMain {
 
           final TextChannel pannel = guild.getTextChannelById(reader.readLine());
 
-          if(pannel != null) {
-            server.setInfoChannel(pannel);
-          }else {
-            sendInfoMessageToAdminAboutTheInitializePhase(guild);
-          }
+          setInfoPannel(guild, server, pannel);
           
-          int nbrMessageControlPannel = server.getControlePannel().getMessagesList().size();
-          
-          for(Message message : server.getControlePannel().getMessagesList()) {
-            
-          }
+          int nbrMessageControlPannel = Integer.parseInt(reader.readLine());
+          ControlPannel controlPannel = getControlePannel(reader, server, nbrMessageControlPannel);
           
           server.setPlayers(players);
           server.setTeams(teams);
+          server.setControlePannel(controlPannel);
           ServerData.getServers().put(guildId, server);
         }
       }
+    }
+  }
+
+  private static ControlPannel getControlePannel(final BufferedReader reader, final Server server, int nbrMessageControlPannel)
+      throws IOException {
+    ControlPannel controlPannel = new ControlPannel();
+    
+    for(int i = 0; i < nbrMessageControlPannel; i++) {
+      String messageId = reader.readLine();
+      
+      if(server.getInfoChannel() != null) {
+        controlPannel.getMessagesList().add(server.getInfoChannel().getMessageById(messageId).complete());
+      }
+    }
+    return controlPannel;
+  }
+
+  private static void setInfoPannel(final Guild guild, final Server server, final TextChannel pannel) {
+    if(pannel != null) {
+      server.setInfoChannel(pannel);
+    }else {
+      sendInfoMessageToAdminAboutTheInitializePhase(guild);
     }
   }
 

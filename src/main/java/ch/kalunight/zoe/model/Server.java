@@ -11,9 +11,11 @@ public class Server {
   private List<Player> players;
   private List<Team> teams;
   private TextChannel infoChannel;
+  private SpellingLangage langage;
   
-  public Server(Guild guild) {
+  public Server(Guild guild, SpellingLangage langage) {
     this.guild = guild;
+    this.langage = langage;
     players = new ArrayList<>();
     players = new ArrayList<>();
   }
@@ -44,5 +46,13 @@ public class Server {
 
   public void setInfoChannel(TextChannel infoChannel) {
     this.infoChannel = infoChannel;
+  }
+
+  public SpellingLangage getLangage() {
+    return langage;
+  }
+
+  public void setLangage(SpellingLangage langage) {
+    this.langage = langage;
   }
 }

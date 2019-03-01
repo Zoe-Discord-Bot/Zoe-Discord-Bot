@@ -1,13 +1,17 @@
 package ch.kalunight.zoe.model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.joda.time.DateTime;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.TextChannel;
+import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 
 public class Server {
 
+  private final Map<String, CurrentGameInfo> currentGames = new HashMap<>();
   private Guild guild;
   private List<Player> players;
   private List<Team> teams;
@@ -44,6 +48,23 @@ public class Server {
 
   public List<Team> getTeams() {
     return teams;
+  }
+  
+  public List<Team> getAllPlayerTeams(){
+    List<Player> playerWithNoTeam = new ArrayList<>();
+    playerWithNoTeam.addAll(players);
+    
+    for(Team team : teams) {
+      for(Player player : team.getPlayers()) {
+        playerWithNoTeam.remove(player);
+      }
+    }
+    
+    List<Team> allTeams = new ArrayList<>();
+    allTeams.addAll(teams);
+    allTeams.add(new Team("No Team", playerWithNoTeam));
+    
+    return allTeams;
   }
 
   public void setTeams(List<Team> teams) {
@@ -84,5 +105,9 @@ public class Server {
 
   public void setControlePannel(ControlPannel controlePannel) {
     this.controlePannel = controlePannel;
+  }
+
+  public Map<String, CurrentGameInfo> getCurrentGames() {
+    return currentGames;
   }
 }

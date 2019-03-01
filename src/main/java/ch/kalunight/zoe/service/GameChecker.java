@@ -28,14 +28,24 @@ public class GameChecker implements Runnable {
           }
 
           if(server.isNeedToBeRefreshed() && server.getInfoChannel() != null) {
-            Runnable task = new InfoPannelRefresher(server);
+            Runnable task = new InfoPanelRefresher(server);
             ServerData.getTaskExecutor().submit(task);
           }
         }
+        Thread.sleep(1000);
       }
+    } catch(InterruptedException e) {
+      threadRecover();
+      Thread.currentThread().interrupt();
     }finally {
       setShutdown(true);
     }
+  }
+  
+  private void threadRecover() {
+    Runnable gameChecker = new GameChecker();
+    Thread thread = new Thread(gameChecker, "Game-Checker-Thread");
+    thread.start();
   }
 
   public static boolean isNeedToBeShutDown() {

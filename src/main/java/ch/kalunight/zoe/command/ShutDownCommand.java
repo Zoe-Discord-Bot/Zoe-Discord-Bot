@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ZoeMain;
+import ch.kalunight.zoe.service.GameChecker;
 import net.dv8tion.jda.core.JDA.Status;
 
 public class ShutDownCommand extends Command {
@@ -18,11 +19,18 @@ public class ShutDownCommand extends Command {
     this.help = "Safely shutdown the bot";
     this.hidden = true;
     this.ownerCommand = true;
+    this.guildOnly = false;
   }
 
   @Override
   protected void execute(CommandEvent event) {
+    
+    event.reply("I shut down my self ...");
 
+    GameChecker.setNeedToBeShutDown(true);
+    
+    while(!GameChecker.isShutdown());
+    
     ZoeMain.getJda().shutdown();
     
     while(!ZoeMain.getJda().getStatus().equals(Status.SHUTDOWN));
@@ -33,5 +41,6 @@ public class ShutDownCommand extends Command {
       logger.error("La sauvegarde n'a pas pu être effectué !");
     }
     
+    System.exit(0);
   }
 }

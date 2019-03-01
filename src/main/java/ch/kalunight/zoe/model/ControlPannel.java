@@ -6,18 +6,28 @@ import net.dv8tion.jda.core.entities.Message;
 
 public class ControlPannel {
   
-  private List<Message> messagesList;
+  private List<Message> infoPanel;
+  private List<InfoCard> infoCards;
 
   public ControlPannel() {
-    messagesList = new ArrayList<>();
+    this.infoPanel = new ArrayList<>();
+    this.infoCards = new ArrayList<>();
   }
 
-  public List<Message> getMessagesList() {
-    return messagesList;
+  public List<Message> getInfoPanel() {
+    return infoPanel;
   }
 
-  public void setMessagesList(List<Message> messagesList) {
-    this.messagesList = messagesList;
+  public void setInfoPanel(List<Message> infoPanel) {
+    this.infoPanel = infoPanel;
+  }
+
+  public List<InfoCard> getInfoCards() {
+    return infoCards;
+  }
+
+  public void setInfoCards(List<InfoCard> infoCards) {
+    this.infoCards = infoCards;
   }
   
 }

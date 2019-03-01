@@ -64,6 +64,9 @@ public class EventListenerUtil {
     List<Guild> listGuild = ZoeMain.getJda().getGuilds();
 
     for(Guild guild : listGuild) {
+      /*
+       * if(guild.getOwnerId().equals(ZoeMain.getJda().getSelfUser().getId())) { guild.delete().queue(); }
+       */
       uploadedEmotes.addAll(guild.getEmotes());
     }
     return uploadedEmotes;

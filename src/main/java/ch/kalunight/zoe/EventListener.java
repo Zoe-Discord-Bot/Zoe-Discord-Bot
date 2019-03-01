@@ -9,10 +9,14 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.model.CustomEmote;
+import ch.kalunight.zoe.model.Server;
+import ch.kalunight.zoe.model.SpellingLangage;
+import ch.kalunight.zoe.service.GameChecker;
 import ch.kalunight.zoe.util.EventListenerUtil;
 import ch.kalunight.zoe.util.Ressources;
 import net.dv8tion.jda.core.OnlineStatus;
 import net.dv8tion.jda.core.entities.Emote;
+import net.dv8tion.jda.core.entities.Game;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Icon;
 import net.dv8tion.jda.core.events.ReadyEvent;
@@ -28,6 +32,8 @@ public class EventListener extends ListenerAdapter {
 
   @Override
   public void onReady(ReadyEvent event) {
+    ZoeMain.getJda().getPresence().setStatus(OnlineStatus.DO_NOT_DISTURB);
+    ZoeMain.getJda().getPresence().setGame(Game.playing("Booting ..."));
     logger.info("Chargements des champions ...");
     try {
       ZoeMain.loadChampions();
@@ -65,17 +71,21 @@ public class EventListener extends ListenerAdapter {
     logger.info("Démarrage des tâches continues terminés !");
 
     ZoeMain.getJda().getPresence().setStatus(OnlineStatus.ONLINE);
+    ZoeMain.getJda().getPresence().setGame(Game.playing("For help type \">help\""));
     logger.info("Démarrage terminés !");
   }
 
   private void setupContinousRefreshThread() {
-    
+    Runnable gameChecker = new GameChecker();
+    Thread thread = new Thread(gameChecker, "Game-Checker-Thread");
+    thread.start();
   }
 
   @Override
   public void onGuildJoin(GuildJoinEvent event) {
     
     if(!event.getGuild().getOwner().getUser().getId().equals(ZoeMain.getJda().getSelfUser().getId())) {
+      ServerData.getServers().put(event.getGuild().getId(), new Server(event.getGuild(), SpellingLangage.EN));
       return;
     }
 

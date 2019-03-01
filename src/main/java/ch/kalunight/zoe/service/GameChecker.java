@@ -3,23 +3,38 @@ package ch.kalunight.zoe.service;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.ZoeMain;
 import ch.kalunight.zoe.model.Server;
+import ch.kalunight.zoe.model.SpellingLangage;
 import net.dv8tion.jda.core.entities.Guild;
 
 public class GameChecker implements Runnable {
 
   private static boolean needToBeShutDown = false;
-  
+
+  private static boolean shutdown = false;
+
   @Override
   public void run() {
-    while(!needToBeShutDown) {
-      for(Guild guild : ZoeMain.getJda().getGuilds()) {
-        Server server = ServerData.getServers().get(guild.getId());
-        
-        if(server.isNeedToBeRefreshed() && server.getInfoChannel() != null) {
-          Runnable task = new InfoPannelRefresher(server);
-          ServerData.getTaskExecutor().submit(task);
+    try {
+      while(!needToBeShutDown) {
+        for(Guild guild : ZoeMain.getJda().getGuilds()) {
+          if(guild.getOwnerId().equals(ZoeMain.getJda().getSelfUser().getId())) {
+            continue;
+          }
+          Server server = ServerData.getServers().get(guild.getId());
+
+          if(server == null) {
+            server = new Server(guild, SpellingLangage.EN);
+            ServerData.getServers().put(guild.getId(), server);
+          }
+
+          if(server.isNeedToBeRefreshed() && server.getInfoChannel() != null) {
+            Runnable task = new InfoPannelRefresher(server);
+            ServerData.getTaskExecutor().submit(task);
+          }
         }
       }
+    }finally {
+      setShutdown(true);
     }
   }
 
@@ -31,4 +46,11 @@ public class GameChecker implements Runnable {
     GameChecker.needToBeShutDown = needToBeShutDown;
   }
 
+  public static boolean isShutdown() {
+    return shutdown;
+  }
+
+  private static void setShutdown(boolean shutdown) {
+    GameChecker.shutdown = shutdown;
+  }
 }

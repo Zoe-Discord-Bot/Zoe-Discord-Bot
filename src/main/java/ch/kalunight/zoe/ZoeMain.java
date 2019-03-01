@@ -19,6 +19,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
+import ch.kalunight.zoe.command.ShutDownCommand;
 import ch.kalunight.zoe.model.Champion;
 import ch.kalunight.zoe.model.ControlPannel;
 import ch.kalunight.zoe.model.CustomEmote;
@@ -69,7 +70,7 @@ public class ZoeMain {
 
     client.setOwnerId(args[2]);
 
-    client.addCommands();
+    client.addCommands(new ShutDownCommand());
 
     ApiConfig config = new ApiConfig().setKey(riotTocken);
 
@@ -83,6 +84,7 @@ public class ZoeMain {
           .setToken(discordTocken)//
           .setStatus(OnlineStatus.DO_NOT_DISTURB)//
           .addEventListener(client.build())//
+          .addEventListener(new EventListener())
           .build();//
     } catch(IndexOutOfBoundsException e) {
       logger.error("You must provide a token.");
@@ -133,6 +135,9 @@ public class ZoeMain {
     final List<Guild> guilds = ZoeMain.getJda().getGuilds();
     
     for(Guild guild : guilds) {
+      if(guild.getOwnerId().equals(ZoeMain.getJda().getSelfUser().getId())) {
+        continue;
+      }
       Server server = servers.get(guild.getId());
       if(server != null) {
         strBuilder.append("--server\n");
@@ -166,9 +171,9 @@ public class ZoeMain {
           strBuilder.append("-1\n");
         }
         
-        strBuilder.append(server.getControlePannel().getMessagesList().size() + "\n");
+        strBuilder.append(server.getControlePannel().getInfoPanel().size() + "\n");
         
-        for(Message message : server.getControlePannel().getMessagesList()) {
+        for(Message message : server.getControlePannel().getInfoPanel()) {
           strBuilder.append(message.getId() + "\n");
         }
       }
@@ -231,7 +236,7 @@ public class ZoeMain {
       String messageId = reader.readLine();
       
       if(server.getInfoChannel() != null) {
-        controlPannel.getMessagesList().add(server.getInfoChannel().getMessageById(messageId).complete());
+        controlPannel.getInfoPanel().add(server.getInfoChannel().getMessageById(messageId).complete());
       }
     }
     return controlPannel;

@@ -20,7 +20,9 @@ public class Server {
     this.guild = guild;
     this.langage = langage;
     players = new ArrayList<>();
-    players = new ArrayList<>();
+    teams = new ArrayList<>();
+    controlePannel = new ControlPannel();
+    lastRefresh = DateTime.now();
   }
   
   public synchronized boolean isNeedToBeRefreshed() {

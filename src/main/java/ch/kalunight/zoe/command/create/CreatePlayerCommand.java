@@ -1,5 +1,6 @@
-package ch.kalunight.zoe.command;
+package ch.kalunight.zoe.command.create;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.regex.Matcher;
@@ -9,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
-import ch.kalunight.zoe.ZoeMain;
+import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.Player;
 import ch.kalunight.zoe.model.Server;
 import net.dv8tion.jda.core.Permission;
@@ -39,32 +40,38 @@ public class CreatePlayerCommand extends Command{
     List<Member> members = event.getMessage().getMentionedMembers();
 
     if(members.size() != 1) {
-      event.reply("Please mention 1 member of the server (e.g. `>create player " + event.getMember().getAsMention() + "\" (Region) (SummonerName)`");
+      event.reply("Please mention 1 member of the server "
+          + "(e.g. `>create player @" + event.getMember().getUser().getName() + " (Region) (SummonerName)`)");
       return;
     }
 
     User user = members.get(0).getUser();
 
     Matcher matcher = PARENTHESES_PATTERN.matcher(event.getArgs());
-    if(matcher.groupCount() != 2) {
+    List<String> listArgs = new ArrayList<>();
+    while(matcher.find()) {
+      listArgs.add(matcher.group(1));
+    }
+    
+    if(listArgs.size() != 2) {
       event.reply("The command is malformed. Please respect this pattern : `>create player *@DiscordPlayerMention* (*Region*) (*SummonerName*)`");
       return;
     }
 
-    String regionName = matcher.group(1);
-    String summonerName = matcher.group(2);
+    String regionName = listArgs.get(0);
+    String summonerName = listArgs.get(1);
 
     Platform region;
     try {
       region = Platform.getPlatformByName(regionName);
     } catch(NoSuchElementException e) {
-      event.reply("The region tag is invalid. (Valid tag : EUW, EUNE, NA, BR, JP, KR, LAN, LAS, OCE, RU, TR");
+      event.reply("The region tag is invalid. (Valid tag : EUW, EUNE, NA, BR, JP, KR, LAN, LAS, OCE, RU, TR)");
       return;
     }
 
     Summoner summoner;
     try {
-      summoner = ZoeMain.getRiotApi().getSummonerByName(region, summonerName);
+      summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);
     }catch(RiotApiException e) {
       if(e.getErrorCode() == RiotApiException.SERVER_ERROR || e.getErrorCode() == RiotApiException.UNAVAILABLE) {
         event.reply("Riot server occured a issue, please retry later");
@@ -80,7 +87,7 @@ public class CreatePlayerCommand extends Command{
     Player player = new Player(user, summoner, region, false);
     Server server = ServerData.getServers().get(event.getGuild().getId());
     server.getPlayers().add(player);
-    event.reply("The player " + user.getName() + " has been added with the account \"" + player.getSummoner() + "\".");
+    event.reply("The player " + user.getName() + " has been added with the account \"" + player.getSummoner().getName() + "\".");
   }
 
 }

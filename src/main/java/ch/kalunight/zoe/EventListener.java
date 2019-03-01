@@ -34,11 +34,11 @@ public class EventListener extends ListenerAdapter {
 
   @Override
   public void onReady(ReadyEvent event) {
-    ZoeMain.getJda().getPresence().setStatus(OnlineStatus.DO_NOT_DISTURB);
-    ZoeMain.getJda().getPresence().setGame(Game.playing("Booting ..."));
+    Zoe.getJda().getPresence().setStatus(OnlineStatus.DO_NOT_DISTURB);
+    Zoe.getJda().getPresence().setGame(Game.playing("Booting ..."));
     logger.info("Chargements des champions ...");
     try {
-      ZoeMain.loadChampions();
+      Zoe.loadChampions();
     } catch(IOException e1) {
       logger.error("Erreur lors du chargement des champions !");
       System.exit(1);
@@ -56,7 +56,7 @@ public class EventListener extends ListenerAdapter {
     
     logger.info("Chargement des sauvegardes détaillés ...");
     try {
-      ZoeMain.loadDataTxt();
+      Zoe.loadDataTxt();
     } catch(IOException e) {
       logger.error(e.getMessage());
       logger.info("Une erreur est survenu lors du chargement des sauvegardes détaillés !");
@@ -72,8 +72,8 @@ public class EventListener extends ListenerAdapter {
 
     logger.info("Démarrage des tâches continues terminés !");
 
-    ZoeMain.getJda().getPresence().setStatus(OnlineStatus.ONLINE);
-    ZoeMain.getJda().getPresence().setGame(Game.playing("For help type \">help\""));
+    Zoe.getJda().getPresence().setStatus(OnlineStatus.ONLINE);
+    Zoe.getJda().getPresence().setGame(Game.playing("For help type \">help\""));
     logger.info("Démarrage terminés !");
   }
 
@@ -86,17 +86,17 @@ public class EventListener extends ListenerAdapter {
   @Override
   public void onGuildJoin(GuildJoinEvent event) {
     
-    if(!event.getGuild().getOwner().getUser().getId().equals(ZoeMain.getJda().getSelfUser().getId())) {
+    if(!event.getGuild().getOwner().getUser().getId().equals(Zoe.getJda().getSelfUser().getId())) {
       ServerData.getServers().put(event.getGuild().getId(), new Server(event.getGuild(), SpellingLangage.EN));
       return;
     }
 
-    List<CustomEmote> customeEmotesList = ZoeMain.getEmotesNeedToBeUploaded().poll();
+    List<CustomEmote> customeEmotesList = Zoe.getEmotesNeedToBeUploaded().poll();
 
     if(customeEmotesList == null) {
       logger.error("Pas d'emote à envoyer ! Suppression de la guild ...");
 
-      if(event.getGuild().getOwner().getUser().equals(ZoeMain.getJda().getSelfUser())) {
+      if(event.getGuild().getOwner().getUser().equals(Zoe.getJda().getSelfUser())) {
         event.getGuild().delete().queue();
       }
 
@@ -151,7 +151,7 @@ public class EventListener extends ListenerAdapter {
       numberOfGuild = Integer.parseInt(reader.readLine());
 
       for(int i = 0; i < numberOfGuild; i++) {
-        emotesGuild.add(ZoeMain.getJda().getGuildById(reader.readLine()));
+        emotesGuild.add(Zoe.getJda().getGuildById(reader.readLine()));
       }
     }
 

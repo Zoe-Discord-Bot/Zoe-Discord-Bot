@@ -20,9 +20,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import com.jagrosh.jdautilities.examples.command.PingCommand;
-import ch.kalunight.zoe.command.CreateInfoChannel;
-import ch.kalunight.zoe.command.CreatePlayerCommand;
 import ch.kalunight.zoe.command.ShutDownCommand;
+import ch.kalunight.zoe.command.create.CreateCommand;
 import ch.kalunight.zoe.model.Champion;
 import ch.kalunight.zoe.model.ControlPannel;
 import ch.kalunight.zoe.model.CustomEmote;
@@ -48,7 +47,7 @@ import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.api.request.ratelimit.RateLimitHandler;
 import net.rithms.riot.constant.Platform;
 
-public class ZoeMain {
+public class Zoe {
 
   private static final File SAVE_TXT_FILE = new File("ressources/save.txt");
 
@@ -58,7 +57,7 @@ public class ZoeMain {
 
   private static final ConcurrentLinkedQueue<List<CustomEmote>> emotesNeedToBeUploaded = new ConcurrentLinkedQueue<>();
 
-  private static final Logger logger = LoggerFactory.getLogger(ZoeMain.class);
+  private static final Logger logger = LoggerFactory.getLogger(Zoe.class);
 
   public static void main(String[] args) {
 
@@ -72,8 +71,8 @@ public class ZoeMain {
     client.setPrefix(">");
 
     client.setOwnerId(args[2]);
-
-    client.addCommands(new ShutDownCommand(), new CreateInfoChannel(), new CreatePlayerCommand(), new PingCommand());
+    
+    client.addCommands(new ShutDownCommand(), new CreateCommand(), new PingCommand());
 
     ApiConfig config = new ApiConfig().setKey(riotTocken);
 
@@ -135,10 +134,10 @@ public class ZoeMain {
     final StringBuilder strBuilder = new StringBuilder();
     
     final Map<String, Server> servers = ServerData.getServers();
-    final List<Guild> guilds = ZoeMain.getJda().getGuilds();
+    final List<Guild> guilds = Zoe.getJda().getGuilds();
     
     for(Guild guild : guilds) {
-      if(guild.getOwnerId().equals(ZoeMain.getJda().getSelfUser().getId())) {
+      if(guild.getOwnerId().equals(Zoe.getJda().getSelfUser().getId())) {
         continue;
       }
       Server server = servers.get(guild.getId());
@@ -322,7 +321,7 @@ public class ZoeMain {
   }
 
   public static void setRiotApi(RiotApi riotApi) {
-    ZoeMain.riotApi = riotApi;
+    Zoe.riotApi = riotApi;
   }
 
   public static JDA getJda() {
@@ -330,7 +329,7 @@ public class ZoeMain {
   }
 
   public static void setJda(JDA jda) {
-    ZoeMain.jda = jda;
+    Zoe.jda = jda;
   }
 
   public static ConcurrentLinkedQueue<List<CustomEmote>> getEmotesNeedToBeUploaded() {

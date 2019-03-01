@@ -1,4 +1,4 @@
-package ch.kalunight.zoe.command;
+package ch.kalunight.zoe.command.create;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
@@ -12,7 +12,7 @@ import net.dv8tion.jda.core.exceptions.InsufficientPermissionException;
 public class CreateInfoChannel extends Command {
 
   public CreateInfoChannel() {
-    this.name = "createInfoChannel";
+    this.name = "InfoChannel";
     this.arguments = "*nameOfTheNewChannel";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;

@@ -1,7 +1,7 @@
 package ch.kalunight.zoe.service;
 
 import ch.kalunight.zoe.ServerData;
-import ch.kalunight.zoe.ZoeMain;
+import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.SpellingLangage;
 import net.dv8tion.jda.core.entities.Guild;
@@ -16,8 +16,8 @@ public class GameChecker implements Runnable {
   public void run() {
     try {
       while(!needToBeShutDown) {
-        for(Guild guild : ZoeMain.getJda().getGuilds()) {
-          if(guild.getOwnerId().equals(ZoeMain.getJda().getSelfUser().getId())) {
+        for(Guild guild : Zoe.getJda().getGuilds()) {
+          if(guild.getOwnerId().equals(Zoe.getJda().getSelfUser().getId())) {
             continue;
           }
           Server server = ServerData.getServers().get(guild.getId());

@@ -6,7 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import ch.kalunight.zoe.ZoeMain;
+import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.Champion;
 import ch.kalunight.zoe.model.CustomEmote;
 import ch.kalunight.zoe.model.Mastery;
@@ -54,7 +54,7 @@ public class CustomEmoteUtil {
     int j = 0;
 
     while(!customEmotes.isEmpty()) {
-      ZoeMain.getJda().createGuild("Zoe Emotes Guild " + (emoteGuilds.size() + j)).complete();
+      Zoe.getJda().createGuild("Zoe Emotes Guild " + (emoteGuilds.size() + j)).complete();
       j++;
 
       List<CustomEmote> listEmoteForCreatedGuild = new ArrayList<>();
@@ -67,7 +67,7 @@ public class CustomEmoteUtil {
         numberOfEmoteForNewGuild++;
       }
 
-      ZoeMain.getEmotesNeedToBeUploaded().add(listEmoteForCreatedGuild);
+      Zoe.getEmotesNeedToBeUploaded().add(listEmoteForCreatedGuild);
     }
   }
 
@@ -115,7 +115,7 @@ public class CustomEmoteUtil {
       int numberOfGuild = Integer.parseInt(reader.readLine());
 
       for(int i = 0; i < numberOfGuild; i++) {
-        emoteGuild.add(ZoeMain.getJda().getGuildById(reader.readLine()));
+        emoteGuild.add(Zoe.getJda().getGuildById(reader.readLine()));
       }
     }
     return emoteGuild;

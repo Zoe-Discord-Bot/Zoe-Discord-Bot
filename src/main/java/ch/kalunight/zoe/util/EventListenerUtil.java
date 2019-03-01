@@ -3,7 +3,7 @@ package ch.kalunight.zoe.util;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import ch.kalunight.zoe.ZoeMain;
+import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.CustomEmote;
 import net.dv8tion.jda.core.entities.Emote;
 import net.dv8tion.jda.core.entities.Guild;
@@ -61,7 +61,7 @@ public class EventListenerUtil {
 
   private static List<Emote> getAllGuildCustomEmotes() {
     List<Emote> uploadedEmotes = new ArrayList<>();
-    List<Guild> listGuild = ZoeMain.getJda().getGuilds();
+    List<Guild> listGuild = Zoe.getJda().getGuilds();
 
     for(Guild guild : listGuild) {
       /*

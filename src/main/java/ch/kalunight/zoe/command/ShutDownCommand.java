@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import ch.kalunight.zoe.ZoeMain;
+import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.service.GameChecker;
 import net.dv8tion.jda.core.JDA.Status;
 
@@ -31,12 +31,12 @@ public class ShutDownCommand extends Command {
     
     while(!GameChecker.isShutdown());
     
-    ZoeMain.getJda().shutdown();
+    Zoe.getJda().shutdown();
     
-    while(!ZoeMain.getJda().getStatus().equals(Status.SHUTDOWN));
+    while(!Zoe.getJda().getStatus().equals(Status.SHUTDOWN));
     
     try {
-      ZoeMain.saveDataTxt();
+      Zoe.saveDataTxt();
     } catch(FileNotFoundException | UnsupportedEncodingException e) {
       logger.error("La sauvegarde n'a pas pu être effectué !");
     }

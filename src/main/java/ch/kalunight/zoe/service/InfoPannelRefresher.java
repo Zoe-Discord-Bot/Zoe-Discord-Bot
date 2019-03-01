@@ -12,7 +12,9 @@ public class InfoPannelRefresher implements Runnable {
 
   @Override
   public void run() {
-
+    if(server.getInfoChannel() != null) {
+      
+    }
   }
 
 }

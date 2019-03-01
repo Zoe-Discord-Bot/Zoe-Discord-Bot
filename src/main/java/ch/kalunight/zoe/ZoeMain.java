@@ -19,6 +19,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
+import ch.kalunight.zoe.command.CreateInfoChannel;
 import ch.kalunight.zoe.command.ShutDownCommand;
 import ch.kalunight.zoe.model.Champion;
 import ch.kalunight.zoe.model.ControlPannel;
@@ -70,7 +71,7 @@ public class ZoeMain {
 
     client.setOwnerId(args[2]);
 
-    client.addCommands(new ShutDownCommand());
+    client.addCommands(new ShutDownCommand(), new CreateInfoChannel());
 
     ApiConfig config = new ApiConfig().setKey(riotTocken);
 

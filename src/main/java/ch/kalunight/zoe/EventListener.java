@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ch.kalunight.zoe.model.ControlPannel;
 import ch.kalunight.zoe.model.CustomEmote;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.SpellingLangage;
@@ -20,6 +21,7 @@ import net.dv8tion.jda.core.entities.Game;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Icon;
 import net.dv8tion.jda.core.events.ReadyEvent;
+import net.dv8tion.jda.core.events.channel.text.TextChannelDeleteEvent;
 import net.dv8tion.jda.core.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.core.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
@@ -124,6 +126,15 @@ public class EventListener extends ListenerAdapter {
       EventListenerUtil.assigneCustomEmotesToData();
       
       logger.info("New emote Guild \"{}\" initialized !", event.getGuild().getName());
+    }
+  }
+  
+  @Override
+  public void onTextChannelDelete(TextChannelDeleteEvent event) {
+    Server server = ServerData.getServers().get(event.getGuild().getId());
+    if(server.getInfoChannel() != null && server.getInfoChannel().getId().equals(event.getChannel().getId())) {
+      server.setControlePannel(new ControlPannel());
+      server.setInfoChannel(null);
     }
   }
   

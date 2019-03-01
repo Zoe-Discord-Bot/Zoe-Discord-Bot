@@ -1,7 +1,7 @@
 package ch.kalunight.zoe;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -11,7 +11,7 @@ public class ServerData {
 
   private ServerData() {}
   
-  private static final HashMap<String, Server> servers = new HashMap<>();
+  private static final ConcurrentHashMap<String, Server> servers = new ConcurrentHashMap<>();
   
   private static int nbProcs = Runtime.getRuntime().availableProcessors();
   

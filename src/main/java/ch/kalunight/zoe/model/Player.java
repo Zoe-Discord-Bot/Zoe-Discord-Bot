@@ -7,12 +7,13 @@ import net.rithms.riot.constant.Platform;
 public class Player {
   private User discordUser;
   private Summoner summoner;
-  private Platform server;
+  private Platform region;
   private boolean mentionnable;
 
-  public Player(User discordUser, Summoner summoner, boolean mentionnable) {
+  public Player(User discordUser, Summoner summoner, Platform region, boolean mentionnable) {
     this.discordUser = discordUser;
     this.summoner = summoner;
+    this.region = region;
     this.mentionnable = mentionnable;
   }
 
@@ -40,12 +41,11 @@ public class Player {
     this.mentionnable = mentionned;
   }
 
-  public Platform getServer() {
-    return server;
+  public Platform getRegion() {
+    return region;
   }
 
-  public void setServer(Platform server) {
-    this.server = server;
+  public void setRegion(Platform region) {
+    this.region = region;
   }
-
 }

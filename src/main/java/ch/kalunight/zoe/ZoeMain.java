@@ -19,7 +19,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
+import com.jagrosh.jdautilities.examples.command.PingCommand;
 import ch.kalunight.zoe.command.CreateInfoChannel;
+import ch.kalunight.zoe.command.CreatePlayerCommand;
 import ch.kalunight.zoe.command.ShutDownCommand;
 import ch.kalunight.zoe.model.Champion;
 import ch.kalunight.zoe.model.ControlPannel;
@@ -71,7 +73,7 @@ public class ZoeMain {
 
     client.setOwnerId(args[2]);
 
-    client.addCommands(new ShutDownCommand(), new CreateInfoChannel());
+    client.addCommands(new ShutDownCommand(), new CreateInfoChannel(), new CreatePlayerCommand(), new PingCommand());
 
     ApiConfig config = new ApiConfig().setKey(riotTocken);
 
@@ -150,7 +152,7 @@ public class ZoeMain {
         for(Player player : server.getPlayers()) {
           strBuilder.append(player.getDiscordUser().getId() + "\n");
           strBuilder.append(player.getSummoner().getId() + "\n");
-          strBuilder.append(player.getServer() + "\n");
+          strBuilder.append(player.getRegion() + "\n");
           strBuilder.append(player.isMentionnable() + "\n");
         }
         
@@ -284,10 +286,11 @@ public class ZoeMain {
       String mentionableString = reader.readLine();
 
       User user = jda.getUserById(discordId);
-      Summoner summoner = riotApi.getSummoner(Platform.getPlatformByName(summonerRegion), summonerId);
+      Platform region = Platform.getPlatformByName(summonerRegion);
+      Summoner summoner = riotApi.getSummoner(region, summonerId);
       boolean mentionable = Boolean.getBoolean(mentionableString);
 
-      players.add(new Player(user, summoner, mentionable));
+      players.add(new Player(user, summoner, region, mentionable));
     }
     return players;
   }

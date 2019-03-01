@@ -23,44 +23,19 @@ public class SleeperRateLimitHandler extends DefaultRateLimitHandler {
   @Override
   public void onRequestAboutToFire(Request request) throws RespectedRateLimitException {
 
-    synchronized(this) {
+    synchronized(secondList) {
       DateTime actualTime = DateTime.now();
-
-      secondList.add(actualTime);
-      minuteList.add(actualTime);
 
       boolean fireableRequest = false;
       while(!fireableRequest) {
 
         fireableRequest = true;
-        ArrayList<Integer> listToDelete = new ArrayList<>();
-
-        for(int i = 0; i < secondList.size(); i++) {
-          if(secondList.get(i).isBefore(actualTime.plusSeconds(-1))) {
-            listToDelete.add(i);
-          }
-        }
-
-        for(int i = listToDelete.size(); i > 0; i--) {
-          secondList.remove((int) listToDelete.get(i - 1));
-        }
-
-        listToDelete = new ArrayList<>();
-
-        for(int i = 0; i < minuteList.size(); i++) {
-          if(minuteList.get(i).isBefore(actualTime.plusMinutes(-1))) {
-            listToDelete.add(i);
-          }
-        }
-
-        for(int i = listToDelete.size(); i > 0; i--) {
-          minuteList.remove((int) listToDelete.get(i - 1));
-        }
+        deleteOutOfRateLimiteTime(actualTime);
 
         if(minuteList.size() >= MAX_REQUEST_BY_MINUTES || secondList.size() >= MAX_REQUEST_BY_SECONDS) {
           fireableRequest = false;
           try {
-            Thread.sleep(100);
+            secondList.wait();
           } catch(InterruptedException e) {
             logger.error(e.getMessage());
             Thread.currentThread().interrupt();
@@ -68,6 +43,8 @@ public class SleeperRateLimitHandler extends DefaultRateLimitHandler {
         }
         actualTime = DateTime.now();
       }
+      secondList.add(actualTime);
+      minuteList.add(actualTime);
     }
 
     logger.info("Request Launch : {}", request.getObject().getUrl());
@@ -75,25 +52,29 @@ public class SleeperRateLimitHandler extends DefaultRateLimitHandler {
     super.onRequestAboutToFire(request);
   }
 
-  @Override
-  public void onRequestDone(Request request) {
+  private void deleteOutOfRateLimiteTime(DateTime actualTime) {
+    ArrayList<Integer> listToDelete = new ArrayList<>();
 
-    if(request.isFailed()) {
-      if(request.getResponse().getCode() == Request.CODE_ERROR_SERVICE_UNAVAILABLE) {
-        logger.info("Service Unavailable error code got, Retry...");
-        try {
-          Thread.sleep(1000);
-        } catch(InterruptedException e) {
-          logger.error(e.getMessage());
-          Thread.currentThread().interrupt();
-        }
-        try {
-          onRequestAboutToFire(request);
-        } catch(RespectedRateLimitException e) {
-          logger.error(e.getMessage());
-        }
+    for(int i = 0; i < secondList.size(); i++) {
+      if(secondList.get(i).isBefore(actualTime.plusSeconds(-1))) {
+        listToDelete.add(i);
       }
     }
-    super.onRequestDone(request);
+
+    for(int i = listToDelete.size(); i > 0; i--) {
+      secondList.remove((int) listToDelete.get(i - 1));
+    }
+
+    listToDelete = new ArrayList<>();
+
+    for(int i = 0; i < minuteList.size(); i++) {
+      if(minuteList.get(i).isBefore(actualTime.plusMinutes(-1))) {
+        listToDelete.add(i);
+      }
+    }
+
+    for(int i = listToDelete.size(); i > 0; i--) {
+      minuteList.remove((int) listToDelete.get(i - 1));
+    }
   }
 }

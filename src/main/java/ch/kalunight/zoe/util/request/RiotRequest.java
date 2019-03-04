@@ -8,8 +8,14 @@ import java.util.Set;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.FullTier;
+import ch.kalunight.zoe.model.Mastery;
+import ch.kalunight.zoe.model.Rank;
+import ch.kalunight.zoe.model.Tier;
 import ch.kalunight.zoe.util.NameConversion;
+import ch.kalunight.zoe.util.Ressources;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.champion_mastery.dto.ChampionMastery;
 import net.rithms.riot.api.endpoints.league.dto.LeaguePosition;
@@ -36,9 +42,9 @@ public class RiotRequest {
 
     Set<LeaguePosition> listLeague;
     try {
-      listLeague = Ressources.getRiotApi().getLeaguePositionsBySummonerId(Platform.EUW, summonerID);
+      listLeague = Zoe.getRiotApi().getLeaguePositionsBySummonerId(Platform.EUW, summonerID);
     } catch(RiotApiException e) {
-      logger.warn("Impossible d'obtenir le rank de la personne : {}", e.getMessage(), e);
+      logger.warn("Error with riot api : {}", e.getMessage());
       return new FullTier(Tier.UNKNOWN, Rank.UNKNOWN, 0);
     }
 
@@ -66,7 +72,7 @@ public class RiotRequest {
 
     Summoner summoner;
     try {
-      summoner = Ressources.getRiotApi().getSummoner(Platform.EUW, summonerId);
+      summoner = Zoe.getRiotApi().getSummoner(Platform.EUW, summonerId);
     } catch(RiotApiException e) {
       logger.warn("Impossible d'obtenir le summoner : {}", e.getMessage());
       return "Aucune donnés";
@@ -79,7 +85,7 @@ public class RiotRequest {
     MatchList matchList = null;
 
     try {
-      matchList = Ressources.getRiotApi().getMatchListByAccountId(Platform.EUW, summoner.getAccountId(), null, null, null,
+      matchList = Zoe.getRiotApi().getMatchListByAccountId(Platform.EUW, summoner.getAccountId(), null, null, null,
           beginTime.getMillis(), actualTime.getMillis(), -1, -1);
     } catch(RiotApiException e) {
       logger.warn("Impossible d'obtenir la list de match : {}", e.getMessage());
@@ -105,7 +111,7 @@ public class RiotRequest {
 
       Match match = null;
       try {
-        match = Ressources.getRiotApi().getMatch(Platform.EUW, matchReference.getGameId());
+        match = Zoe.getRiotApi().getMatch(Platform.EUW, matchReference.getGameId());
       } catch(RiotApiException e) {
         logger.warn("Match ungetable from api : {}", e.getMessage());
       }
@@ -139,7 +145,7 @@ public class RiotRequest {
   public static String getMasterysScore(String summonerId, int championId) {
     ChampionMastery mastery = null;
     try {
-      mastery = Ressources.getRiotApi().getChampionMasteriesBySummonerByChampion(Platform.EUW, summonerId, championId);
+      mastery = Zoe.getRiotApi().getChampionMasteriesBySummonerByChampion(Platform.EUW, summonerId, championId);
     } catch(RiotApiException e) {
       logger.warn("Impossible d'obtenir le score de mastery : {}", e.getMessage());
       return "0";
@@ -164,83 +170,6 @@ public class RiotRequest {
     }
     
     return masteryString.toString();
-  }
-
-  public static String getMood(String summonerId) {
-    DateTime actualTime = DateTime.now();
-
-    Summoner summoner;
-    try {
-      summoner = Ressources.getRiotApi().getSummoner(Platform.EUW, summonerId);
-    } catch(RiotApiException e) {
-      logger.warn("Impossible d'obtenir le summoner : {}", e.getMessage());
-      return "Aucune donnés";
-    }
-
-    List<MatchReference> matchesReferences = new ArrayList<>();
-
-    DateTime beginTime = actualTime.minusHours(3);
-
-    MatchList matchList = null;
-
-    try {
-      matchList = Ressources.getRiotApi().getMatchListByAccountId(Platform.EUW, summoner.getAccountId(), null, null, null,
-          beginTime.getMillis(), actualTime.getMillis(), -1, -1);
-    } catch(RiotApiException e) {
-      logger.warn("Impossible d'obtenir la list de match : {}", e.getMessage());
-    }
-
-    if(matchList != null) {
-      matchesReferences.addAll(matchList.getMatches());
-    }
-
-    int nbrGames = 0;
-    int nbrWin = 0;
-
-    for(int i = 0; i < matchesReferences.size(); i++) {
-      MatchReference matchReference = matchesReferences.get(i);
-
-      Match match = null;
-      try {
-        match = Ressources.getRiotApi().getMatch(Platform.EUW, matchReference.getGameId());
-      } catch(RiotApiException e) {
-        logger.warn("Match ungetable from api : {}", e.getMessage());
-      }
-
-      if(match != null) {
-        Participant participant = match.getParticipantByAccountId(summoner.getAccountId());
-
-        if(participant != null && participant.getTimeline().getCreepsPerMinDeltas() != null) {
-
-          String result = match.getTeamByTeamId(participant.getTeamId()).getWin();
-          if(result.equalsIgnoreCase("Win") || result.equalsIgnoreCase("Fail")) {
-            nbrGames++;
-          }
-
-          if(result.equalsIgnoreCase("Win")) {
-            nbrWin++;
-          }
-        }
-      }
-    }
-
-    if(nbrGames == 0) {
-      return "Inconnu";
-    } else if(nbrWin == 0 && nbrGames >= 3) {
-      return "Très mauvais";
-    }
-
-    double winrate = (nbrWin / (double) nbrGames) * 100;
-
-    if(winrate == 100 && nbrGames >= 2) {
-      return "Excellent";
-    } else if(winrate < 50) {
-      return "Mauvais";
-    } else if(winrate > 50) {
-      return "Bon";
-    }
-
-    return "Inconnu";
   }
 
   public static String getActualGameStatus(CurrentGameInfo currentGameInfo) {

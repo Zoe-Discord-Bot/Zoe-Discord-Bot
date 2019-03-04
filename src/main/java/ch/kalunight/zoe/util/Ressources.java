@@ -27,6 +27,15 @@ public class Ressources {
   
   private static Map<Mastery, CustomEmote> masteryEmote = Collections.synchronizedMap(new EnumMap<Mastery, CustomEmote>(Mastery.class));
 
+  public static Champion getChampionDataById(int id) {
+    for(Champion champion : champions) {
+      if(champion.getKey() == id) {
+        return champion;
+      }
+    }
+    return null;
+  }
+  
   public static List<CustomEmote> getCustomEmotes() {
     return customEmotes;
   }

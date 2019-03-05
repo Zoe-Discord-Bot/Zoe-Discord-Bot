@@ -2,9 +2,11 @@ package ch.kalunight.zoe.util.request;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,11 +40,11 @@ public class RiotRequest {
 
   private RiotRequest() {}
 
-  public static FullTier getSoloqRank(String summonerID) {
+  public static FullTier getSoloqRank(String summonerId, Platform region) {
 
     Set<LeaguePosition> listLeague;
     try {
-      listLeague = Zoe.getRiotApi().getLeaguePositionsBySummonerId(Platform.EUW, summonerID);
+      listLeague = Zoe.getRiotApi().getLeaguePositionsBySummonerId(region, summonerId);
     } catch(RiotApiException e) {
       logger.warn("Error with riot api : {}", e.getMessage());
       return new FullTier(Tier.UNKNOWN, Rank.UNKNOWN, 0);
@@ -65,6 +67,77 @@ public class RiotRequest {
     }
 
     return new FullTier(rank, tier, leaguePoints);
+  }
+  
+  public static String getWinrateLateMonthWithGivenChampion(String summonerId, Platform region, int championKey) {
+    DateTime actualTime = DateTime.now();
+    DateTime beginTime = actualTime.minusMonths(1);
+    
+    Summoner summoner;
+    try {
+      summoner = Zoe.getRiotApi().getSummoner(Platform.EUW, summonerId);
+    } catch(RiotApiException e) {
+      logger.warn("Impossible to get the summoner : {}", e.getMessage());
+      return "Any data";
+    }
+    
+    MatchList matchList = null;
+    
+    Set<Integer> championToFilter = new HashSet<>();
+    championToFilter.add(championKey);
+    
+    try {
+      matchList = Zoe.getRiotApi().getMatchListByAccountId(region, summoner.getAccountId(), championToFilter, null, null,
+          beginTime.getMillis(), actualTime.getMillis(), -1, -1);
+    } catch(RiotApiException e) {
+      logger.warn("Impossible to get matchs history : {}", e.getMessage());
+      
+      if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+        return "Any game";
+      }else {
+        return "Unknown";
+      }
+    }
+    
+    if(matchList == null) {
+      return "Unknown";
+    }
+    
+    int nbrGames = 0;
+    int nbrWins = 0;
+    
+    for(MatchReference matchReference : matchList.getMatches()) {
+      
+      Match match;
+      try {
+        match = Zoe.getRiotApi().getMatch(region, matchReference.getGameId());
+      } catch(RiotApiException e) {
+        logger.warn("Match ungetable from api : {}", e.getMessage());
+        continue;
+      }
+      
+      Participant participant = match.getParticipantByAccountId(summoner.getAccountId());
+      
+      if(participant != null && participant.getTimeline().getCreepsPerMinDeltas() != null) {
+
+        String result = match.getTeamByTeamId(participant.getTeamId()).getWin();
+        if(result.equalsIgnoreCase("Win") || result.equalsIgnoreCase("Fail")) {
+          nbrGames++;
+        }
+
+        if(result.equalsIgnoreCase("Win")) {
+          nbrWins++;
+        }
+      }
+    }
+    
+    if(nbrGames == 0) {
+      return "First game";
+    } else if(nbrWins == 0) {
+      return "0% (" + nbrGames + " games)";
+    }
+
+    return df.format((nbrWins / (double) nbrGames) * 100) + "% (" + nbrGames + " games)";
   }
 
   public static String getWinrateLast20Games(String summonerId) {

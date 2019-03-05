@@ -8,6 +8,8 @@ import net.dv8tion.jda.core.entities.Guild;
 
 public class GameChecker implements Runnable {
 
+  private static final int WAIT_TIME_BETWEEN_EACH_REFRESH_IN_MS = 10000;
+
   private static boolean needToBeShutDown = false;
 
   private static boolean shutdown = false;
@@ -32,7 +34,7 @@ public class GameChecker implements Runnable {
             ServerData.getTaskExecutor().submit(task);
           }
         }
-        Thread.sleep(1000);
+        Thread.sleep(WAIT_TIME_BETWEEN_EACH_REFRESH_IN_MS);
       }
     } catch(InterruptedException e) {
       threadRecover();

@@ -21,7 +21,6 @@ import net.dv8tion.jda.core.entities.MessageEmbed;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
-import net.rithms.riot.constant.Platform;
 
 public class InfoPanelRefresher implements Runnable {
 
@@ -120,12 +119,12 @@ public class InfoPanelRefresher implements Runnable {
 
           if(listOfPlayerInTheGame.size() == 1) {
             MessageEmbed messageCard =
-                MessageBuilderRequest.createInfoCard1summoner(player.getDiscordUser(), player.getSummoner(), currentGameInfo);
+                MessageBuilderRequest.createInfoCard1summoner(player.getDiscordUser(), player.getSummoner(), currentGameInfo, player.getRegion());
             if(messageCard != null) {
               card = new InfoCard(listOfPlayerInTheGame, messageCard);
             }
           } else if(listOfPlayerInTheGame.size() > 1) {
-            MessageEmbed messageCard = MessageBuilderRequest.createInfoCardsMultipleSummoner(listOfPlayerInTheGame, currentGameInfo);
+            MessageEmbed messageCard = MessageBuilderRequest.createInfoCardsMultipleSummoner(listOfPlayerInTheGame, currentGameInfo, player.getRegion());
 
             if(messageCard != null) {
               card = new InfoCard(listOfPlayerInTheGame, messageCard);
@@ -190,7 +189,7 @@ public class InfoPanelRefresher implements Runnable {
     for(Player player : server.getPlayers()) {
       CurrentGameInfo actualGame = null;
       try {
-        actualGame = Zoe.getRiotApi().getActiveGameBySummoner(Platform.EUW, player.getSummoner().getId());
+        actualGame = Zoe.getRiotApi().getActiveGameBySummoner(player.getRegion(), player.getSummoner().getId());
       } catch(RiotApiException e) {
         logger.info(e.getMessage());
       }

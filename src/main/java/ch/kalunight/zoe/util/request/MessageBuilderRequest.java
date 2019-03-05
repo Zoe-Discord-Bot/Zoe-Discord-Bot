@@ -15,6 +15,7 @@ import net.dv8tion.jda.core.entities.User;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
+import net.rithms.riot.constant.Platform;
 
 public class MessageBuilderRequest {
 
@@ -22,7 +23,7 @@ public class MessageBuilderRequest {
 
   private MessageBuilderRequest() {}
 
-  public static MessageEmbed createInfoCard1summoner(User user, Summoner summoner, CurrentGameInfo match) {
+  public static MessageEmbed createInfoCard1summoner(User user, Summoner summoner, CurrentGameInfo match, Platform region) {
 
     EmbedBuilder message = new EmbedBuilder();
 
@@ -48,7 +49,7 @@ public class MessageBuilderRequest {
     StringBuilder blueTeamRankString = new StringBuilder();
     StringBuilder blueTeamWinRateLastMonth = new StringBuilder();
 
-    MessageBuilderRequestUtil.createTeamData1Summoner(summoner, blueTeam, blueTeamString, blueTeamRankString, blueTeamWinRateLastMonth);
+    MessageBuilderRequestUtil.createTeamData1Summoner(summoner, blueTeam, blueTeamString, blueTeamRankString, blueTeamWinRateLastMonth, region);
 
     message.addField("Équipe Bleu", blueTeamString.toString(), true);
     message.addField("Grades", blueTeamRankString.toString(), true);
@@ -58,7 +59,7 @@ public class MessageBuilderRequest {
     StringBuilder redTeamRankString = new StringBuilder();
     StringBuilder redTeamWinrateString = new StringBuilder();
 
-    MessageBuilderRequestUtil.createTeamData1Summoner(summoner, redTeam, redTeamString, redTeamRankString, redTeamWinrateString);
+    MessageBuilderRequestUtil.createTeamData1Summoner(summoner, redTeam, redTeamString, redTeamRankString, redTeamWinrateString, region);
 
     message.addField("Équipe Rouge", redTeamString.toString(), true);
     message.addField("Grades", redTeamRankString.toString(), true);
@@ -79,7 +80,7 @@ public class MessageBuilderRequest {
     return message.build();
   }
 
-  public static MessageEmbed createInfoCardsMultipleSummoner(List<Player> players, CurrentGameInfo currentGameInfo) {
+  public static MessageEmbed createInfoCardsMultipleSummoner(List<Player> players, CurrentGameInfo currentGameInfo, Platform region) {
 
     EmbedBuilder message = new EmbedBuilder();
 
@@ -112,7 +113,7 @@ public class MessageBuilderRequest {
     StringBuilder blueTeamRankString = new StringBuilder();
     StringBuilder blueTeamWinrateString = new StringBuilder();
 
-    MessageBuilderRequestUtil.createTeamDataMultipleSummoner(blueTeam, listIdPlayers, blueTeamString, blueTeamRankString, blueTeamWinrateString);
+    MessageBuilderRequestUtil.createTeamDataMultipleSummoner(blueTeam, listIdPlayers, blueTeamString, blueTeamRankString, blueTeamWinrateString, region);
 
     message.addField("Équipe Bleu", blueTeamString.toString(), true);
     message.addField("Grades", blueTeamRankString.toString(), true);
@@ -122,7 +123,7 @@ public class MessageBuilderRequest {
     StringBuilder redTeamRankString = new StringBuilder();
     StringBuilder redTeamWinrateString = new StringBuilder();
 
-    MessageBuilderRequestUtil.createTeamDataMultipleSummoner(redTeam, listIdPlayers, redTeamString, redTeamRankString, redTeamWinrateString);
+    MessageBuilderRequestUtil.createTeamDataMultipleSummoner(redTeam, listIdPlayers, redTeamString, redTeamRankString, redTeamWinrateString, region);
 
     message.addField("Équipe Rouge", redTeamString.toString(), true);
     message.addField("Grades", redTeamRankString.toString(), true);

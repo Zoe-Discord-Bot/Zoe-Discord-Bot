@@ -94,11 +94,11 @@ public class MessageBuilderRequestUtil {
   }
 
   public static void createTitle(List<Player> players, CurrentGameInfo currentGameInfo, StringBuilder title) {
-    title.append("Info sur la partie de");
+    title.append("Info on the game of");
 
     for(int i = 0; i < players.size(); i++) {
       if(i + 1 == players.size()) {
-        title.append(" et de " + players.get(i).getDiscordUser().getName());
+        title.append(" and of " + players.get(i).getDiscordUser().getName());
       } else if(i + 2 == players.size()) {
         title.append(" " + players.get(i).getDiscordUser().getName());
       } else {

@@ -68,11 +68,11 @@ public class RiotRequest {
 
     return new FullTier(rank, tier, leaguePoints);
   }
-  
+
   public static String getWinrateLateMonthWithGivenChampion(String summonerId, Platform region, int championKey) {
     DateTime actualTime = DateTime.now();
-    DateTime beginTime = actualTime.minusMonths(1);
-    
+    DateTime beginTime = actualTime.minusWeeks(1);
+
     Summoner summoner;
     try {
       summoner = Zoe.getRiotApi().getSummoner(Platform.EUW, summonerId);
@@ -80,34 +80,37 @@ public class RiotRequest {
       logger.warn("Impossible to get the summoner : {}", e.getMessage());
       return "Any data";
     }
-    
-    MatchList matchList = null;
+
+    final List<MatchReference> referencesMatchList = new ArrayList<>();
     
     Set<Integer> championToFilter = new HashSet<>();
     championToFilter.add(championKey);
-    
-    try {
-      matchList = Zoe.getRiotApi().getMatchListByAccountId(region, summoner.getAccountId(), championToFilter, null, null,
-          beginTime.getMillis(), actualTime.getMillis(), -1, -1);
-    } catch(RiotApiException e) {
-      logger.warn("Impossible to get matchs history : {}", e.getMessage());
-      
-      if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
-        return "Any game";
-      }else {
-        return "Unknown";
+
+    for(int i = 0; i < 3; i++) {
+
+      MatchList matchList = null;
+
+      try {
+        matchList = Zoe.getRiotApi().getMatchListByAccountId(region, summoner.getAccountId(), championToFilter, null, null,
+            beginTime.getMillis(), actualTime.getMillis(), -1, -1);
+        referencesMatchList.addAll(matchList.getMatches());
+      } catch(RiotApiException e) {
+        logger.warn("Impossible to get matchs history : {}", e.getMessage());
       }
+      
+      actualTime = actualTime.minusWeeks(1);
+      beginTime = actualTime.minusWeeks(1);
     }
-    
-    if(matchList == null) {
+
+    if(referencesMatchList.isEmpty()) {
       return "Unknown";
     }
-    
+
     int nbrGames = 0;
     int nbrWins = 0;
-    
-    for(MatchReference matchReference : matchList.getMatches()) {
-      
+
+    for(MatchReference matchReference : referencesMatchList) {
+
       Match match;
       try {
         match = Zoe.getRiotApi().getMatch(region, matchReference.getGameId());
@@ -115,9 +118,9 @@ public class RiotRequest {
         logger.warn("Match ungetable from api : {}", e.getMessage());
         continue;
       }
-      
+
       Participant participant = match.getParticipantByAccountId(summoner.getAccountId());
-      
+
       if(participant != null && participant.getTimeline().getCreepsPerMinDeltas() != null) {
 
         String result = match.getTeamByTeamId(participant.getTeamId()).getWin();
@@ -130,7 +133,7 @@ public class RiotRequest {
         }
       }
     }
-    
+
     if(nbrGames == 0) {
       return "First game";
     } else if(nbrWins == 0) {
@@ -223,7 +226,7 @@ public class RiotRequest {
       logger.warn("Impossible d'obtenir le score de mastery : {}", e.getMessage());
       return "0";
     }
-    
+
     StringBuilder masteryString = new StringBuilder();
 
     long points = mastery.getChampionPoints();
@@ -234,14 +237,14 @@ public class RiotRequest {
     } else {
       masteryString.append(Long.toString(points));
     }
-    
+
     try {
       Mastery masteryLevel = Mastery.getEnum(mastery.getChampionLevel());
       masteryString.append(Ressources.getMasteryEmote().get(masteryLevel).getEmote().getAsMention());
     }catch(NullPointerException | IllegalArgumentException e) {
       masteryString.append("");
     }
-    
+
     return masteryString.toString();
   }
 

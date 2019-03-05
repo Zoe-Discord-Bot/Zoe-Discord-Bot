@@ -17,6 +17,10 @@ import net.dv8tion.jda.core.entities.Icon;
 import net.dv8tion.jda.core.managers.GuildController;
 
 public class CustomEmoteUtil {
+  
+  private CustomEmoteUtil() {
+    //Hide default public constructor
+  }
 
   private static final int MAX_EMOTE_BY_GUILD = 50;
 

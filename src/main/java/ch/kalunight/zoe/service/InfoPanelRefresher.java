@@ -138,7 +138,7 @@ public class InfoPanelRefresher implements Runnable {
             List<Player> players = card.getPlayers();
 
             StringBuilder title = new StringBuilder();
-            title.append("Info sur la partie de");
+            title.append("Info on the game of");
 
             List<String> playersName = NameConversion.getListNameOfPlayers(players);
 
@@ -146,7 +146,7 @@ public class InfoPanelRefresher implements Runnable {
               if(playersName.size() == 1) {
                 title.append(" " + playersName.get(j));
               } else if(j + 1 == playersName.size()) {
-                title.append(" et de " + playersName.get(j));
+                title.append(" and of " + playersName.get(j));
               } else if(j + 2 == playersName.size()) {
                 title.append(" " + playersName.get(j));
               } else {

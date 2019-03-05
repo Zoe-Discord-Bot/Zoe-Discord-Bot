@@ -36,6 +36,9 @@ public class EventListener extends ListenerAdapter {
   public void onReady(ReadyEvent event) {
     Zoe.getJda().getPresence().setStatus(OnlineStatus.DO_NOT_DISTURB);
     Zoe.getJda().getPresence().setGame(Game.playing("Booting ..."));
+    
+    setupNonInitializedGuild();
+    
     logger.info("Chargements des champions ...");
     try {
       Zoe.loadChampions();
@@ -75,6 +78,18 @@ public class EventListener extends ListenerAdapter {
     Zoe.getJda().getPresence().setStatus(OnlineStatus.ONLINE);
     Zoe.getJda().getPresence().setGame(Game.playing("For help type \">help\""));
     logger.info("Démarrage terminés !");
+  }
+
+  private void setupNonInitializedGuild() {
+    for(Guild guild : Zoe.getJda().getGuilds()) {
+      if(!guild.getOwnerId().equals(Zoe.getJda().getSelfUser().getId())) {
+        Server server = ServerData.getServers().get(guild.getId());
+        
+        if(server == null) {
+          ServerData.getServers().put(guild.getId(), new Server(guild, SpellingLangage.EN));
+        }
+      }
+    }
   }
 
   private void setupContinousRefreshThread() {

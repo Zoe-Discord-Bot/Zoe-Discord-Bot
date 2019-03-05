@@ -30,7 +30,7 @@ public class MessageBuilderRequest {
     message.setAuthor(user.getName(), null, user.getAvatarUrl());
 
     message.setTitle(
-        "Info sur la partie de " + user.getName() + " : " + NameConversion.convertGameQueueIdToString(match.getGameQueueConfigId()));
+        "Info on the game of " + user.getName() + " : " + NameConversion.convertGameQueueIdToString(match.getGameQueueConfigId()));
 
     int blueTeamID = 0;
 
@@ -51,9 +51,9 @@ public class MessageBuilderRequest {
 
     MessageBuilderRequestUtil.createTeamData1Summoner(summoner, blueTeam, blueTeamString, blueTeamRankString, blueTeamWinRateLastMonth, region);
 
-    message.addField("Équipe Bleu", blueTeamString.toString(), true);
-    message.addField("Grades", blueTeamRankString.toString(), true);
-    message.addField("Maitrise | *États d'esprit*", blueTeamWinRateLastMonth.toString(), true);
+    message.addField("Blue Team", blueTeamString.toString(), true);
+    message.addField("SoloQ Rank", blueTeamRankString.toString(), true);
+    message.addField("Masteries | WR this month", blueTeamWinRateLastMonth.toString(), true);
 
     StringBuilder redTeamString = new StringBuilder();
     StringBuilder redTeamRankString = new StringBuilder();
@@ -61,9 +61,9 @@ public class MessageBuilderRequest {
 
     MessageBuilderRequestUtil.createTeamData1Summoner(summoner, redTeam, redTeamString, redTeamRankString, redTeamWinrateString, region);
 
-    message.addField("Équipe Rouge", redTeamString.toString(), true);
-    message.addField("Grades", redTeamRankString.toString(), true);
-    message.addField("Maitrise | *États d'esprit*", redTeamWinrateString.toString(), true);
+    message.addField("Red Team", redTeamString.toString(), true);
+    message.addField("SoloQ Rank", redTeamRankString.toString(), true);
+    message.addField("Masteries | WR this month", redTeamWinrateString.toString(), true);
 
     double minutesOfGames = (match.getGameLength() + 180.0) / 60.0;
     String[] stringMinutesSecondes = Double.toString(minutesOfGames).split("\\.");
@@ -72,8 +72,8 @@ public class MessageBuilderRequest {
 
     String gameLenght = String.format("%02d", minutesGameLength) + ":" + String.format("%02d", secondesGameLength);
 
-    message.setFooter("Heure de création du message : " + DateTime.now().plusHours(1).toString(dateFormatter)
-        + " | Durée actuel de la partie : " + gameLenght, null);
+    message.setFooter("Time of message creation : " + DateTime.now().plusHours(1).toString(dateFormatter)
+        + " | Current duration of the game : " + gameLenght, null);
 
     message.setColor(Color.GREEN);
 
@@ -115,9 +115,9 @@ public class MessageBuilderRequest {
 
     MessageBuilderRequestUtil.createTeamDataMultipleSummoner(blueTeam, listIdPlayers, blueTeamString, blueTeamRankString, blueTeamWinrateString, region);
 
-    message.addField("Équipe Bleu", blueTeamString.toString(), true);
-    message.addField("Grades", blueTeamRankString.toString(), true);
-    message.addField("Maitrise | *États d'esprit*", blueTeamWinrateString.toString(), true);
+    message.addField("Blue Team", blueTeamString.toString(), true);
+    message.addField("SoloQ Rank", blueTeamRankString.toString(), true);
+    message.addField("Masteries | WR this month", blueTeamWinrateString.toString(), true);
 
     StringBuilder redTeamString = new StringBuilder();
     StringBuilder redTeamRankString = new StringBuilder();
@@ -125,9 +125,9 @@ public class MessageBuilderRequest {
 
     MessageBuilderRequestUtil.createTeamDataMultipleSummoner(redTeam, listIdPlayers, redTeamString, redTeamRankString, redTeamWinrateString, region);
 
-    message.addField("Équipe Rouge", redTeamString.toString(), true);
-    message.addField("Grades", redTeamRankString.toString(), true);
-    message.addField("Maitrises | *États d'esprit*", redTeamWinrateString.toString(), true);
+    message.addField("Red Team", redTeamString.toString(), true);
+    message.addField("SoloQ Rank", redTeamRankString.toString(), true);
+    message.addField("Masteries | WR this month", redTeamWinrateString.toString(), true);
 
     double minutesOfGames = (currentGameInfo.getGameLength() + 180.0) / 60.0;
     String[] stringMinutesSecondes = Double.toString(minutesOfGames).split("\\.");
@@ -136,8 +136,8 @@ public class MessageBuilderRequest {
 
     String gameLenght = String.format("%02d", minutesGameLength) + ":" + String.format("%02d", secondesGameLength);
 
-    message.setFooter("Heure de création du message : " + DateTime.now().plusHours(1).toString(dateFormatter)
-        + " | Durée actuel de la partie : " + gameLenght, null);
+    message.setFooter("Time of message creation : " + DateTime.now().plusHours(1).toString(dateFormatter)
+        + " | Current duration of the game : " + gameLenght, null);
 
     message.setColor(Color.GREEN);
 

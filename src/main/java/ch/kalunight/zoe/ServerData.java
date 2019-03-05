@@ -26,4 +26,9 @@ public class ServerData {
     return TASK_EXECUTOR;
   }
   
+  public static void shutDownTaskExecutor() throws InterruptedException {
+    TASK_EXECUTOR.shutdown();
+    
+    TASK_EXECUTOR.awaitTermination(10, TimeUnit.MINUTES);
+  }
 }

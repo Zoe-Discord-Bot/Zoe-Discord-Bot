@@ -12,6 +12,10 @@ import ch.kalunight.zoe.model.Mastery;
 import ch.kalunight.zoe.model.Tier;
 
 public class Ressources {
+  
+  private Ressources() {
+    //Hide default public constructor
+  }
 
   public static final String FOLDER_TO_TIER_SAVE = "ressources/tierData/";
   

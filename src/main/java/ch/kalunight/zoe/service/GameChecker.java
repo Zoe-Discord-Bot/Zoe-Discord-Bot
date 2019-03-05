@@ -1,5 +1,7 @@
 package ch.kalunight.zoe.service;
 
+import org.joda.time.DateTime;
+
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.Server;
@@ -13,6 +15,12 @@ public class GameChecker implements Runnable {
   private static boolean needToBeShutDown = false;
 
   private static boolean shutdown = false;
+  
+  private static DateTime nextRefreshDate = DateTime.now();
+
+  public static void setNextRefreshDate(DateTime nextRefreshDate) {
+    GameChecker.nextRefreshDate = nextRefreshDate;
+  }
 
   @Override
   public void run() {
@@ -35,6 +43,11 @@ public class GameChecker implements Runnable {
           }
         }
         Thread.sleep(WAIT_TIME_BETWEEN_EACH_REFRESH_IN_MS);
+      }
+      
+      if(nextRefreshDate.isAfterNow()) {
+        ServerData.getTaskExecutor().submit(new DataSaver());
+        setNextRefreshDate(DateTime.now().plusMinutes(10));
       }
     } catch(InterruptedException e) {
       threadRecover();

@@ -13,7 +13,7 @@ public class CreateInfoChannel extends Command {
 
   public CreateInfoChannel() {
     this.name = "InfoChannel";
-    this.arguments = "*nameOfTheNewChannel";
+    this.arguments = "*nameOfTheNewChannel*";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
     this.help = "Create a new InfoChannel where Zoe can send info about players";

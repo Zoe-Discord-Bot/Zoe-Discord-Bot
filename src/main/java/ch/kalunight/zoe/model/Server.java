@@ -2,8 +2,11 @@ package ch.kalunight.zoe.model;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+
 import org.joda.time.DateTime;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.TextChannel;
@@ -12,12 +15,14 @@ import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 public class Server {
 
   private final Map<String, CurrentGameInfo> currentGames = new HashMap<>();
+  private final List<Long> currentGamesIdAlreadySended = new ArrayList<>();
+  
   private Guild guild;
   private List<Player> players;
   private List<Team> teams;
   private TextChannel infoChannel;
   private ControlPannel controlePannel;
-  private SpellingLangage langage;
+  private SpellingLangage langage; //Not implement
   private DateTime lastRefresh;
   
   public Server(Guild guild, SpellingLangage langage) {
@@ -37,18 +42,6 @@ public class Server {
     }
     return needToBeRefreshed;
   }
-
-  public List<Player> getPlayers() {
-    return players;
-  }
-
-  public void setPlayers(List<Player> players) {
-    this.players = players;
-  }
-
-  public List<Team> getTeams() {
-    return teams;
-  }
   
   public List<Team> getAllPlayerTeams(){
     List<Player> playerWithNoTeam = new ArrayList<>();
@@ -65,6 +58,40 @@ public class Server {
     allTeams.add(new Team("No Team", playerWithNoTeam));
     
     return allTeams;
+  }
+
+  public void clearOldMatchOfSendedGamesIdList() {
+    final Iterator<Entry<String, CurrentGameInfo>> iterator = currentGames.entrySet().iterator();
+    
+    final List<Long> gameIdToSave = new ArrayList<>();
+    
+    while(iterator.hasNext()) {
+      final Entry<String, CurrentGameInfo> currentGameInfoEntry = iterator.next();
+      
+      final CurrentGameInfo currentGameInfo = currentGameInfoEntry.getValue();
+      
+      if(currentGameInfo != null) {
+        gameIdToSave.add(currentGameInfo.getGameId());
+      }
+    }
+    
+    for(Long idCurrentGamesSaved : currentGamesIdAlreadySended) {
+      if(!gameIdToSave.contains(idCurrentGamesSaved)) {
+        currentGamesIdAlreadySended.remove(idCurrentGamesSaved);
+      }
+    }
+  }
+
+  public List<Player> getPlayers() {
+    return players;
+  }
+
+  public void setPlayers(List<Player> players) {
+    this.players = players;
+  }
+
+  public List<Team> getTeams() {
+    return teams;
   }
 
   public void setTeams(List<Team> teams) {
@@ -109,5 +136,9 @@ public class Server {
 
   public Map<String, CurrentGameInfo> getCurrentGames() {
     return currentGames;
+  }
+
+  public List<Long> getCurrentGamesIdAlreadySended() {
+    return currentGamesIdAlreadySended;
   }
 }

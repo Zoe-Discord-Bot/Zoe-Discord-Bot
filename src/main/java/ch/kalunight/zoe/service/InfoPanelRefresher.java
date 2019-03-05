@@ -13,7 +13,8 @@ import ch.kalunight.zoe.model.InfoCard;
 import ch.kalunight.zoe.model.Player;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.Team;
-import ch.kalunight.zoe.util.Ressources;
+import ch.kalunight.zoe.util.NameConversion;
+import ch.kalunight.zoe.util.request.MessageBuilderRequest;
 import ch.kalunight.zoe.util.request.RiotRequest;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageEmbed;
@@ -23,6 +24,8 @@ import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.constant.Platform;
 
 public class InfoPanelRefresher implements Runnable {
+
+  private static final int INFO_CARDS_MINUTES_LIVE_TIME = 30;
 
   private static final DateTimeFormatter timeFormatter = DateTimeFormat.forPattern("HH:mm");
   
@@ -68,11 +71,11 @@ public class InfoPanelRefresher implements Runnable {
   
   
   private void manageInfoCards() {
-    TextChannel controlPannel = Main.getGuild().getTextChannelById(ID_PANNEAU_DE_CONTROLE);
+    TextChannel controlPannel = server.getInfoChannel();
 
     List<InfoCard> messageSended = createInfoCards(controlPannel);
 
-    infoCards.addAll(messageSended);
+    server.getControlePannel().getInfoCards().addAll(messageSended);
 
     deleteOlderInfoCards();
   }
@@ -80,10 +83,10 @@ public class InfoPanelRefresher implements Runnable {
   private void deleteOlderInfoCards() {
     List<InfoCard> cardsToRemove = new ArrayList<>();
 
-    for(int i = 0; i < infoCards.size(); i++) {
-      InfoCard card = infoCards.get(i);
+    for(int i = 0; i < server.getControlePannel().getInfoCards().size(); i++) {
+      InfoCard card = server.getControlePannel().getInfoCards().get(i);
 
-      if(card.getCreationTime().plusMinutes(30).isBeforeNow()) {
+      if(card.getCreationTime().plusMinutes(INFO_CARDS_MINUTES_LIVE_TIME).isBeforeNow()) {
         cardsToRemove.add(card);
       }
     }
@@ -92,7 +95,7 @@ public class InfoPanelRefresher implements Runnable {
       try {
         cardsToRemove.get(i).getMessage().delete().complete();
         cardsToRemove.get(i).getTitle().delete().complete();
-        infoCards.remove(cardsToRemove.get(i));
+        server.getControlePannel().getInfoCards().remove(cardsToRemove.get(i));
       } catch(Exception e) {
         logger.warn("Impossible de delete message : {}", e.getMessage(), e);
       }
@@ -104,14 +107,14 @@ public class InfoPanelRefresher implements Runnable {
     ArrayList<InfoCard> cards = new ArrayList<>();
     ArrayList<Player> playersAlreadyGenerated = new ArrayList<>();
 
-    for(int i = 0; i < Main.getPlayerList().size(); i++) {
-      Player player = Main.getPlayerList().get(i);
+    for(int i = 0; i < server.getPlayers().size(); i++) {
+      Player player = server.getPlayers().get(i);
 
       if(!playersAlreadyGenerated.contains(player)) {
 
-        CurrentGameInfo currentGameInfo = currentGames.get(player.getSummoner().getId());
+        CurrentGameInfo currentGameInfo = server.getCurrentGames().get(player.getSummoner().getId());
 
-        if(currentGameInfo != null && !gamesIdAlreadySended.contains(currentGameInfo.getGameId())) {
+        if(currentGameInfo != null && !server.getCurrentGamesIdAlreadySended().contains(currentGameInfo.getGameId())) {
           List<Player> listOfPlayerInTheGame = checkIfOthersPlayersIsKnowInTheMatch(currentGameInfo);
           InfoCard card = null;
 
@@ -130,7 +133,7 @@ public class InfoPanelRefresher implements Runnable {
           }
 
           playersAlreadyGenerated.addAll(listOfPlayerInTheGame);
-          gamesIdAlreadySended.add(currentGameInfo.getGameId());
+          server.getCurrentGamesIdAlreadySended().add(currentGameInfo.getGameId());
 
           if(card != null) {
             List<Player> players = card.getPlayers();
@@ -160,6 +163,8 @@ public class InfoPanelRefresher implements Runnable {
         }
       }
     }
+    
+    server.clearOldMatchOfSendedGamesIdList();
     return cards;
   }
 
@@ -167,10 +172,10 @@ public class InfoPanelRefresher implements Runnable {
 
     ArrayList<Player> listOfPlayers = new ArrayList<>();
 
-    for(int i = 0; i < Main.getPlayerList().size(); i++) {
+    for(int i = 0; i < server.getPlayers().size(); i++) {
       for(int j = 0; j < currentGameInfo.getParticipants().size(); j++) {
-        if(currentGameInfo.getParticipants().get(j).getSummonerId().equals(Main.getPlayerList().get(i).getSummoner().getId())) {
-          listOfPlayers.add(Main.getPlayerList().get(i));
+        if(currentGameInfo.getParticipants().get(j).getSummonerId().equals(server.getPlayers().get(i).getSummoner().getId())) {
+          listOfPlayers.add(server.getPlayers().get(i));
         }
       }
     }

@@ -54,7 +54,7 @@ public class CreatePlayerCommand extends Command{
     }
     
     if(listArgs.size() != 2) {
-      event.reply("The command is malformed. Please respect this pattern : `>create player *@DiscordPlayerMention* (*Region*) (*SummonerName*)`");
+      event.reply("The command is malformed. Please respect this pattern : `>create player @DiscordPlayerMention (Region) (SummonerName)`");
       return;
     }
 

@@ -22,7 +22,7 @@ public class Server {
   private List<Team> teams;
   private TextChannel infoChannel;
   private ControlPannel controlePannel;
-  private SpellingLangage langage; //Not implement
+  private SpellingLangage langage; //Not implement yet
   private DateTime lastRefresh;
   
   public Server(Guild guild, SpellingLangage langage) {
@@ -59,6 +59,14 @@ public class Server {
     
     return allTeams;
   }
+  
+  public void deletePlayer(Player player) {
+    players.remove(player);
+    
+    for(Team team : teams) {
+      team.getPlayers().remove(player);
+    }
+  }
 
   public void clearOldMatchOfSendedGamesIdList() {
     final Iterator<Entry<String, CurrentGameInfo>> iterator = currentGames.entrySet().iterator();
@@ -80,6 +88,15 @@ public class Server {
         currentGamesIdAlreadySended.remove(idCurrentGamesSaved);
       }
     }
+  }
+  
+  public Player getPlayerByDiscordId(String discordId) {
+    for(Player player : players) {
+      if(player.getDiscordUser().getId().equals(discordId)) {
+        return player;
+      }
+    }
+    return null;
   }
 
   public List<Player> getPlayers() {

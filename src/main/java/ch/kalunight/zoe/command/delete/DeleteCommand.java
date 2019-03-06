@@ -1,24 +1,25 @@
-package ch.kalunight.zoe.command.create;
+package ch.kalunight.zoe.command.delete;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
+
 import net.dv8tion.jda.core.Permission;
 
-public class CreateCommand extends Command {
+public class DeleteCommand extends Command {
 
-  public CreateCommand() {
-    this.name = "create";
-    this.aliases = new String[] {"c"};
+  public DeleteCommand() {
+    this.name = "delete";
+    this.aliases = new String[] {"d"};
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
-    this.help = "Send info about create commands";
-    Command[] commandsChildren = {new CreateInfoChannel(), new CreatePlayerCommand()};
+    this.help = "Send info about delete Command";
+    Command[] commandsChildren = {new DeletePlayerCommand()};
     this.children = commandsChildren;
   }
   
   @Override
   protected void execute(CommandEvent event) {
-    //TODO Write info
+    // TODO Give info about Delete Command
 
   }
 

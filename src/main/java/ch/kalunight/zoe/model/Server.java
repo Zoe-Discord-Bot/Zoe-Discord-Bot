@@ -98,6 +98,15 @@ public class Server {
     }
     return null;
   }
+  
+  public Team getTeamByName(String teamName) {
+    for(Team team : teams) {
+      if(team.getName().equals(teamName)) {
+        return team;
+      }
+    }
+    return null;
+  }
 
   public List<Player> getPlayers() {
     return players;

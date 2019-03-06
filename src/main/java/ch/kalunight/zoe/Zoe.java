@@ -22,6 +22,7 @@ import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import com.jagrosh.jdautilities.examples.command.PingCommand;
 import ch.kalunight.zoe.command.ShutDownCommand;
 import ch.kalunight.zoe.command.create.CreateCommand;
+import ch.kalunight.zoe.command.delete.DeleteCommand;
 import ch.kalunight.zoe.model.Champion;
 import ch.kalunight.zoe.model.ControlPannel;
 import ch.kalunight.zoe.model.CustomEmote;
@@ -72,7 +73,7 @@ public class Zoe {
 
     client.setOwnerId(args[2]);
     
-    client.addCommands(new ShutDownCommand(), new CreateCommand(), new PingCommand());
+    client.addCommands(new ShutDownCommand(), new CreateCommand(), new DeleteCommand(), new PingCommand());
 
     ApiConfig config = new ApiConfig().setKey(riotTocken);
 
@@ -151,7 +152,7 @@ public class Zoe {
         for(Player player : server.getPlayers()) {
           strBuilder.append(player.getDiscordUser().getId() + "\n");
           strBuilder.append(player.getSummoner().getId() + "\n");
-          strBuilder.append(player.getRegion() + "\n");
+          strBuilder.append(player.getRegion().getName() + "\n");
           strBuilder.append(player.isMentionnable() + "\n");
         }
         

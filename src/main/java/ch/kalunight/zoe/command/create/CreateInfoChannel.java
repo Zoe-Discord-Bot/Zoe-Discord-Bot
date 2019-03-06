@@ -4,6 +4,7 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.model.Server;
+import ch.kalunight.zoe.service.InfoPanelRefresher;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Channel;
 import net.dv8tion.jda.core.entities.TextChannel;
@@ -21,7 +22,7 @@ public class CreateInfoChannel extends Command {
 
   @Override
   protected void execute(CommandEvent event) {
-    event.getTextChannel().sendTyping().queue();
+    event.getTextChannel().sendTyping().complete();
     Server server = ServerData.getServers().get(event.getGuild().getId());
 
     String nameChannel = event.getArgs();
@@ -46,10 +47,14 @@ public class CreateInfoChannel extends Command {
       String id = infoChannel.getId();
       TextChannel textChannel = event.getGuild().getTextChannelById(id);
       server.setInfoChannel(textChannel);
+      
+      Runnable task = new InfoPanelRefresher(server);
+      ServerData.getTaskExecutor().submit(task);
+      
       event.reply("The channel got created !");
     }catch(InsufficientPermissionException e) {
       event.reply("Impossible to create the infoChannel ! "
-          + "I don't have the permission to do that. Give me the Manage Channel Permission or use `>defineInfoChannel *#MentionOfTheChannel*`.");
+          + "I don't have the permission to do that. Give me the Manage Channel Permission or use `>defineInfoChannel #MentionOfTheChannel`.");
     }
 
   }

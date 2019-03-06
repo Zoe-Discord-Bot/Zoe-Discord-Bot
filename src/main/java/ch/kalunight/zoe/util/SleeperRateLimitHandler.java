@@ -23,9 +23,12 @@ public class SleeperRateLimitHandler extends DefaultRateLimitHandler {
   @Override
   public void onRequestAboutToFire(Request request) throws RespectedRateLimitException {
 
-    synchronized(secondList) {
+    synchronized(this) {
       DateTime actualTime = DateTime.now();
 
+      secondList.add(actualTime);
+      minuteList.add(actualTime);
+      
       boolean fireableRequest = false;
       while(!fireableRequest) {
 
@@ -35,7 +38,7 @@ public class SleeperRateLimitHandler extends DefaultRateLimitHandler {
         if(minuteList.size() >= MAX_REQUEST_BY_MINUTES || secondList.size() >= MAX_REQUEST_BY_SECONDS) {
           fireableRequest = false;
           try {
-            secondList.wait();
+            Thread.sleep(1000); //NOSONAR
           } catch(InterruptedException e) {
             logger.error(e.getMessage());
             Thread.currentThread().interrupt();
@@ -43,8 +46,6 @@ public class SleeperRateLimitHandler extends DefaultRateLimitHandler {
         }
         actualTime = DateTime.now();
       }
-      secondList.add(actualTime);
-      minuteList.add(actualTime);
     }
 
     logger.info("Request Launch : {}", request.getObject().getUrl());

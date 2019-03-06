@@ -36,7 +36,7 @@ public class CreatePlayerCommand extends Command{
 
   @Override
   protected void execute(CommandEvent event) {
-    event.getTextChannel().sendTyping().queue();
+    event.getTextChannel().sendTyping().complete();
     List<Member> members = event.getMessage().getMentionedMembers();
 
     if(members.size() != 1) {
@@ -44,9 +44,15 @@ public class CreatePlayerCommand extends Command{
           + "(e.g. `>create player @" + event.getMember().getUser().getName() + " (Region) (SummonerName)`)");
       return;
     }
-
     User user = members.get(0).getUser();
-
+    
+    Server server = ServerData.getServers().get(event.getGuild().getId());
+    Player actualPlayer = server.getPlayerByDiscordId(user.getId());
+    if(actualPlayer != null) {
+      event.reply("The mentioned member is already register. If you want to modify the LoL account please delete it first.");
+      return;
+    }
+    
     Matcher matcher = PARENTHESES_PATTERN.matcher(event.getArgs());
     List<String> listArgs = new ArrayList<>();
     while(matcher.find()) {
@@ -85,7 +91,6 @@ public class CreatePlayerCommand extends Command{
     }
     
     Player player = new Player(user, summoner, region, false);
-    Server server = ServerData.getServers().get(event.getGuild().getId());
     server.getPlayers().add(player);
     event.reply("The player " + user.getName() + " has been added with the account \"" + player.getSummoner().getName() + "\".");
   }

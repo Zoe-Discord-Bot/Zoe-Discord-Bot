@@ -25,6 +25,7 @@ public class DeletePlayerCommand extends Command{
   
   @Override
   protected void execute(CommandEvent event) {
+    event.getTextChannel().sendTyping().complete();
     Server server = ServerData.getServers().get(event.getGuild().getId());
     
     if(server == null) {

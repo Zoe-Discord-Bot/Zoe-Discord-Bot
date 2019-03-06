@@ -11,6 +11,7 @@ import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.service.GameChecker;
 import net.dv8tion.jda.core.JDA.Status;
+import net.dv8tion.jda.core.entities.TextChannel;
 
 public class ShutDownCommand extends Command {
 
@@ -26,8 +27,11 @@ public class ShutDownCommand extends Command {
 
   @Override
   protected void execute(CommandEvent event) {
+    TextChannel channel = event.getTextChannel();
     
-    event.reply("I shut down my self ...");
+    channel.sendTyping().complete();
+    
+    channel.sendMessage("I shutdown my self ...").complete();
 
     GameChecker.setNeedToBeShutDown(true);
     
@@ -39,9 +43,12 @@ public class ShutDownCommand extends Command {
       }
     }
     
+    channel.sendMessage("The game checker thread has safely stop ...").complete();
+    
     try {
       ServerData.shutDownTaskExecutor();
     } catch (InterruptedException e) {
+      event.reply("Task executor got a error : " + e.getMessage());
       logger.error("Error in shutDownTaskExecutor : {}", e.getMessage(), e);
       Zoe.getJda().shutdownNow();
       try {
@@ -52,6 +59,8 @@ public class ShutDownCommand extends Command {
       System.exit(1);
       Thread.currentThread().interrupt();
     }
+    
+    channel.sendMessage("Task executor has safely stop, now shutdown discord and save data. (ShutDown is complete)").complete();
     
     Zoe.getJda().shutdown();
     

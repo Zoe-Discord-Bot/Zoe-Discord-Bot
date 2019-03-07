@@ -227,6 +227,7 @@ public class Zoe {
           server.setTeams(teams);
           server.setControlePannel(controlPannel);
           ServerData.getServers().put(guildId, server);
+          ServerData.getServersIsInTreatment().put(guildId, false);
         }
       }
     }

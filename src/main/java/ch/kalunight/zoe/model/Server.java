@@ -31,7 +31,7 @@ public class Server {
     players = new ArrayList<>();
     teams = new ArrayList<>();
     controlePannel = new ControlPannel();
-    lastRefresh = DateTime.now();
+    lastRefresh = DateTime.now().minusMinutes(3);
   }
   
   public synchronized boolean isNeedToBeRefreshed() {

@@ -1,6 +1,7 @@
 package ch.kalunight.zoe;
 
 import java.util.Map;
+import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -14,6 +15,8 @@ public class ServerData {
   private static final ConcurrentHashMap<String, Server> servers = new ConcurrentHashMap<>();
   
   private static final ConcurrentHashMap<String, Boolean> serversIsInTreatment = new ConcurrentHashMap<>();
+  
+  private static final Timer mainThreadTimer = new Timer();
   
   private static int nbProcs = Runtime.getRuntime().availableProcessors();
   
@@ -34,6 +37,10 @@ public class ServerData {
 
   public static ThreadPoolExecutor getTaskExecutor() {
     return TASK_EXECUTOR;
+  }
+  
+  public static Timer getMainThreadTimer() {
+    return mainThreadTimer;
   }
   
   public static void shutDownTaskExecutor() throws InterruptedException {

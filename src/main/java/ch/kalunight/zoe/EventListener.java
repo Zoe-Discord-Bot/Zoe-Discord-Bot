@@ -2,8 +2,11 @@ package ch.kalunight.zoe;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.TimerTask;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import ch.kalunight.zoe.model.ControlPannel;
 import ch.kalunight.zoe.model.CustomEmote;
 import ch.kalunight.zoe.model.Server;
@@ -27,6 +30,8 @@ import net.rithms.riot.api.RiotApiException;
 public class EventListener extends ListenerAdapter {
 
   private static Logger logger = LoggerFactory.getLogger(EventListener.class);
+  
+  private static final int WAIT_TIME_BETWEEN_EACH_REFRESH_IN_MS = 10000;
 
   @Override
   public void onReady(ReadyEvent event) {
@@ -89,6 +94,9 @@ public class EventListener extends ListenerAdapter {
   }
 
   private void setupContinousRefreshThread() {
+    TimerTask mainThread = new GameChecker();
+    ServerData.getMainThreadTimer().schedule(mainThread, 0, WAIT_TIME_BETWEEN_EACH_REFRESH_IN_MS);
+    
     Runnable gameChecker = new GameChecker();
     Thread thread = new Thread(gameChecker, "Game-Checker-Thread");
     thread.start();
@@ -99,6 +107,7 @@ public class EventListener extends ListenerAdapter {
     
     if(!event.getGuild().getOwner().getUser().getId().equals(Zoe.getJda().getSelfUser().getId())) {
       ServerData.getServers().put(event.getGuild().getId(), new Server(event.getGuild(), SpellingLangage.EN));
+      ServerData.getServersIsInTreatment().put(event.getGuild().getId(), false);
       return;
     }
 

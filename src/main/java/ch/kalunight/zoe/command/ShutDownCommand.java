@@ -2,11 +2,13 @@ package ch.kalunight.zoe.command;
 
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
-import java.util.Map.Entry;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 
@@ -14,7 +16,6 @@ import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.InfoCard;
 import ch.kalunight.zoe.model.Server;
-import ch.kalunight.zoe.service.GameChecker;
 import net.dv8tion.jda.core.JDA.Status;
 import net.dv8tion.jda.core.entities.TextChannel;
 
@@ -37,16 +38,8 @@ public class ShutDownCommand extends Command {
     channel.sendTyping().complete();
     
     channel.sendMessage("I will be shutdown ...").complete();
-
-    GameChecker.setNeedToBeShutDown(true);
     
-    while(!GameChecker.isShutdown()) {
-      try {
-        Thread.sleep(100);
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-      }
-    }
+    ServerData.getMainThreadTimer().cancel();
     
     channel.sendMessage("The game checker thread has been safely stopped ...").complete();
     

@@ -48,7 +48,7 @@ public class SleeperRateLimitHandler extends DefaultRateLimitHandler {
       }
     }
 
-    logger.info("Request Launch : {}", request.getObject().getUrl());
+    logger.debug("Request Launch : {}", request.getObject().getUrl());
 
     super.onRequestAboutToFire(request);
   }

@@ -8,6 +8,8 @@ import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.command.CommandEvent;
+
+import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.InfoCard;
 import ch.kalunight.zoe.model.Player;
@@ -38,6 +40,7 @@ public class InfoPanelRefresher implements Runnable {
 
   @Override
   public void run() {
+    ServerData.getServersIsInTreatment().put(server.getGuild().getId(), true);
     try {
       if(server.getInfoChannel() != null) {
         if(server.getControlePannel().getInfoPanel().isEmpty()) {
@@ -71,6 +74,8 @@ public class InfoPanelRefresher implements Runnable {
       logger.info("The Thread has crashed normally because of deletion of infoChannel : {}", e.getMessage());
     }catch (Exception e) {
       logger.warn("The tread got a unexpected error : {}", e.getMessage());
+    }finally {
+      ServerData.getServersIsInTreatment().put(server.getGuild().getId(), );
     }
   }
 

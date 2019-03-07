@@ -13,10 +13,12 @@ public class ServerData {
   
   private static final ConcurrentHashMap<String, Server> servers = new ConcurrentHashMap<>();
   
+  private static final ConcurrentHashMap<String, Boolean> serversIsInTreatment = new ConcurrentHashMap<>();
+  
   private static int nbProcs = Runtime.getRuntime().availableProcessors();
   
   private static final ThreadPoolExecutor TASK_EXECUTOR =
-      new ThreadPoolExecutor(1, nbProcs, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+      new ThreadPoolExecutor(nbProcs, nbProcs, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
   
   static {
     TASK_EXECUTOR.prestartAllCoreThreads();
@@ -24,6 +26,10 @@ public class ServerData {
 
   public static Map<String, Server> getServers() {
     return servers;
+  }
+  
+  public static Map<String, Boolean> getServersIsInTreatment() {
+    return serversIsInTreatment;
   }
 
   public static ThreadPoolExecutor getTaskExecutor() {

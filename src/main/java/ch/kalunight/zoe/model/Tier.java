@@ -3,14 +3,14 @@ package ch.kalunight.zoe.model;
 public enum Tier {
   UNKNOWN("Inconnu", -1),
   UNRANKED("Unranked", -1),
-  IRON("Fer", 1000),
+  IRON("Iron", 1000),
   BRONZE("Bronze", 1400),
-  SILVER("Argent", 1800),
-  GOLD("Or", 2200),
-  PLATINUM("Platine", 2600),
-  DIAMOND("Diamant", 3000),
-  MASTER("Maitre", 3400),
-  GRANDMASTER("Grand Maitre", 3400),
+  SILVER("Silver", 1800),
+  GOLD("Gold", 2200),
+  PLATINUM("Platinum", 2600),
+  DIAMOND("Diamond", 3000),
+  MASTER("Master", 3400),
+  GRANDMASTER("Grand Master", 3400),
   CHALLENGER("Challenger", 3400);
   
   private String name;

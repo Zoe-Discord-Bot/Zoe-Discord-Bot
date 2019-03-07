@@ -15,7 +15,7 @@ public class GameChecker implements Runnable {
   private static boolean needToBeShutDown = false;
 
   private static boolean shutdown = false;
-  
+
   private static DateTime nextRefreshDate = DateTime.now();
 
   public static void setNextRefreshDate(DateTime nextRefreshDate) {
@@ -37,14 +37,16 @@ public class GameChecker implements Runnable {
             ServerData.getServers().put(guild.getId(), server);
           }
 
-          if(server.isNeedToBeRefreshed() && server.getInfoChannel() != null) {
+          if(server.isNeedToBeRefreshed() && server.getInfoChannel() != null 
+              && ServerData.getServersIsInTreatment().get(guild.getId()).equals(false)) {
+            
             Runnable task = new InfoPanelRefresher(server);
             ServerData.getTaskExecutor().submit(task);
           }
         }
         Thread.sleep(WAIT_TIME_BETWEEN_EACH_REFRESH_IN_MS);
       }
-      
+
       if(nextRefreshDate.isAfterNow()) {
         ServerData.getTaskExecutor().submit(new DataSaver());
         setNextRefreshDate(DateTime.now().plusMinutes(10));
@@ -56,7 +58,7 @@ public class GameChecker implements Runnable {
       setShutdown(true);
     }
   }
-  
+
   private void threadRecover() {
     Runnable gameChecker = new GameChecker();
     Thread thread = new Thread(gameChecker, "Game-Checker-Thread");

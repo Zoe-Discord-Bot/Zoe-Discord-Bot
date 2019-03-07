@@ -75,7 +75,7 @@ public class InfoPanelRefresher implements Runnable {
     }catch (Exception e) {
       logger.warn("The tread got a unexpected error : {}", e.getMessage());
     }finally {
-      ServerData.getServersIsInTreatment().put(server.getGuild().getId(), );
+      ServerData.getServersIsInTreatment().put(server.getGuild().getId(), false);
     }
   }
 

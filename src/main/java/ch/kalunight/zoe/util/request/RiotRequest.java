@@ -29,14 +29,11 @@ import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.constant.Platform;
 
-
 public class RiotRequest {
 
   private static final Logger logger = LoggerFactory.getLogger(RiotRequest.class);
 
   private static final DecimalFormat df = new DecimalFormat("###.##");
-
-  private static final int MAX_GAME_FOR_WINRATE = 20 - 1;
 
   private RiotRequest() {}
 
@@ -70,8 +67,6 @@ public class RiotRequest {
   }
 
   public static String getWinrateLateMonthWithGivenChampion(String summonerId, Platform region, int championKey) {
-    DateTime actualTime = DateTime.now();
-    DateTime beginTime = actualTime.minusWeeks(1);
 
     Summoner summoner;
     try {
@@ -81,26 +76,7 @@ public class RiotRequest {
       return "Any data";
     }
 
-    final List<MatchReference> referencesMatchList = new ArrayList<>();
-    
-    Set<Integer> championToFilter = new HashSet<>();
-    championToFilter.add(championKey);
-
-    for(int i = 0; i < 3; i++) {
-
-      MatchList matchList = null;
-
-      try {
-        matchList = Zoe.getRiotApi().getMatchListByAccountId(region, summoner.getAccountId(), championToFilter, null, null,
-            beginTime.getMillis(), actualTime.getMillis(), -1, -1);
-        referencesMatchList.addAll(matchList.getMatches());
-      } catch(RiotApiException e) {
-        logger.warn("Impossible to get matchs history : {}", e.getMessage());
-      }
-      
-      actualTime = actualTime.minusWeeks(1);
-      beginTime = actualTime.minusWeeks(1);
-    }
+    final List<MatchReference> referencesMatchList = getMatchHistoryOfLastMonthWithTheGivenChampion(region, championKey, summoner);
 
     if(referencesMatchList.isEmpty()) {
       return "Unknown";
@@ -121,7 +97,7 @@ public class RiotRequest {
 
       Participant participant = match.getParticipantByAccountId(summoner.getAccountId());
 
-      if(participant != null && participant.getTimeline().getCreepsPerMinDeltas() != null) {
+      if(participant != null && participant.getTimeline().getCreepsPerMinDeltas() != null) { //Check if the game has been canceled
 
         String result = match.getTeamByTeamId(participant.getTeamId()).getWin();
         if(result.equalsIgnoreCase("Win") || result.equalsIgnoreCase("Fail")) {
@@ -137,85 +113,37 @@ public class RiotRequest {
     if(nbrGames == 0) {
       return "First game";
     } else if(nbrWins == 0) {
-      return "0% (" + nbrGames + " games)";
+      return "0% (" + nbrWins + "W/" + (nbrGames - nbrWins) + "L)";
     }
 
-    return df.format((nbrWins / (double) nbrGames) * 100) + "% (" + nbrGames + " games)";
+    return df.format((nbrWins / (double) nbrGames) * 100) + "% (" + nbrWins + "W/" + (nbrGames - nbrWins) + "L)";
   }
 
-  public static String getWinrateLast20Games(String summonerId) {
+  private static List<MatchReference> getMatchHistoryOfLastMonthWithTheGivenChampion(Platform region, int championKey, Summoner summoner) {
+    final List<MatchReference> referencesMatchList = new ArrayList<>();
+    
     DateTime actualTime = DateTime.now();
-
-    Summoner summoner;
-    try {
-      summoner = Zoe.getRiotApi().getSummoner(Platform.EUW, summonerId);
-    } catch(RiotApiException e) {
-      logger.warn("Impossible d'obtenir le summoner : {}", e.getMessage());
-      return "Aucune donnés";
-    }
-
-    List<MatchReference> matchesReferences = new ArrayList<>();
-
     DateTime beginTime = actualTime.minusWeeks(1);
+    
+    Set<Integer> championToFilter = new HashSet<>();
+    championToFilter.add(championKey);
 
-    MatchList matchList = null;
+    for(int i = 0; i < 3; i++) {
 
-    try {
-      matchList = Zoe.getRiotApi().getMatchListByAccountId(Platform.EUW, summoner.getAccountId(), null, null, null,
-          beginTime.getMillis(), actualTime.getMillis(), -1, -1);
-    } catch(RiotApiException e) {
-      logger.warn("Impossible d'obtenir la list de match : {}", e.getMessage());
-    }
+      MatchList matchList = null;
 
-    if(matchList != null) {
-      matchesReferences.addAll(matchList.getMatches());
-    }
-
-    if(matchesReferences.size() > MAX_GAME_FOR_WINRATE) {
-      int size = matchesReferences.size();
-
-      for(int i = size - 1; i > MAX_GAME_FOR_WINRATE; i--) {
-        matchesReferences.remove(i);
-      }
-    }
-
-    int nbrGames = 0;
-    int nbrWin = 0;
-
-    for(int i = 0; i < matchesReferences.size(); i++) {
-      MatchReference matchReference = matchesReferences.get(i);
-
-      Match match = null;
       try {
-        match = Zoe.getRiotApi().getMatch(Platform.EUW, matchReference.getGameId());
+        matchList = Zoe.getRiotApi().getMatchListByAccountId(region, summoner.getAccountId(), championToFilter, null, null,
+            beginTime.getMillis(), actualTime.getMillis(), -1, -1);
+        referencesMatchList.addAll(matchList.getMatches());
       } catch(RiotApiException e) {
-        logger.warn("Match ungetable from api : {}", e.getMessage());
+        logger.warn("Impossible to get matchs history : {}", e.getMessage());
       }
-
-      if(match != null) {
-        Participant participant = match.getParticipantByAccountId(summoner.getAccountId());
-
-        if(participant != null && participant.getTimeline().getCreepsPerMinDeltas() != null) {
-
-          String result = match.getTeamByTeamId(participant.getTeamId()).getWin();
-          if(result.equalsIgnoreCase("Win") || result.equalsIgnoreCase("Fail")) {
-            nbrGames++;
-          }
-
-          if(result.equalsIgnoreCase("Win")) {
-            nbrWin++;
-          }
-        }
-      }
+      
+      actualTime = actualTime.minusWeeks(1);
+      beginTime = actualTime.minusWeeks(1);
     }
-
-    if(nbrGames == 0) {
-      return "Première game de ce mois";
-    } else if(nbrWin == 0) {
-      return "0% (" + nbrGames + " parties)";
-    }
-
-    return df.format((nbrWin / (double) nbrGames) * 100) + "% (" + nbrGames + " parties)";
+    return referencesMatchList;
   }
 
   public static String getMasterysScore(String summonerId, int championId) {

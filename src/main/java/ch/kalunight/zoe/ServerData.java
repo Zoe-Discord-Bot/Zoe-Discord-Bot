@@ -16,7 +16,11 @@ public class ServerData {
   private static int nbProcs = Runtime.getRuntime().availableProcessors();
   
   private static final ThreadPoolExecutor TASK_EXECUTOR =
-      new ThreadPoolExecutor(1, nbProcs, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+      new ThreadPoolExecutor(1, nbProcs, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+  
+  static {
+    TASK_EXECUTOR.prestartAllCoreThreads();
+  }
 
   public static Map<String, Server> getServers() {
     return servers;

@@ -13,7 +13,7 @@ public class DeleteCommand extends Command {
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
     this.help = "Send info about delete Command";
-    Command[] commandsChildren = {new DeletePlayerCommand()};
+    Command[] commandsChildren = {new DeletePlayerCommand(), new DeleteInfoChannelCommand()};
     this.children = commandsChildren;
   }
   

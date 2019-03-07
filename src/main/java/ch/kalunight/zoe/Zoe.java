@@ -20,6 +20,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import com.jagrosh.jdautilities.examples.command.PingCommand;
+import ch.kalunight.zoe.command.ResetEmotesCommand;
 import ch.kalunight.zoe.command.ShutDownCommand;
 import ch.kalunight.zoe.command.create.CreateCommand;
 import ch.kalunight.zoe.command.delete.DeleteCommand;
@@ -73,7 +74,7 @@ public class Zoe {
 
     client.setOwnerId(args[2]);
     
-    client.addCommands(new ShutDownCommand(), new CreateCommand(), new DeleteCommand(), new PingCommand());
+    client.addCommands(new ShutDownCommand(), new ResetEmotesCommand(), new CreateCommand(), new DeleteCommand(), new PingCommand());
 
     ApiConfig config = new ApiConfig().setKey(riotTocken);
 

@@ -10,9 +10,9 @@ import net.dv8tion.jda.core.entities.Channel;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.exceptions.InsufficientPermissionException;
 
-public class CreateInfoChannel extends Command {
+public class CreateInfoChannelCommand extends Command {
 
-  public CreateInfoChannel() {
+  public CreateInfoChannelCommand() {
     this.name = "InfoChannel";
     this.arguments = "*nameOfTheNewChannel*";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};

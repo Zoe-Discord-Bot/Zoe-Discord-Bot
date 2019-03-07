@@ -27,7 +27,7 @@ public class InfoPanelRefresher implements Runnable {
   private static final int INFO_CARDS_MINUTES_LIVE_TIME = 30;
 
   private static final DateTimeFormatter timeFormatter = DateTimeFormat.forPattern("HH:mm");
-  
+
   private static final Logger logger = LoggerFactory.getLogger(InfoPanelRefresher.class);
 
   private Server server;
@@ -38,37 +38,43 @@ public class InfoPanelRefresher implements Runnable {
 
   @Override
   public void run() {
-    if(server.getInfoChannel() != null) {
-      if(server.getControlePannel().getInfoPanel().isEmpty()) {
-        server.getControlePannel().getInfoPanel().add(server.getInfoChannel().sendMessage("__**Control Panel**__\n \n*Loading...*").complete());
-      }
-
-      ArrayList<String> infoPanels = CommandEvent.splitMessage(refreshPannel());
-      
-      if(infoPanels.size() < server.getControlePannel().getInfoPanel().size()) {
-        int nbrMessageToDelete = server.getControlePannel().getInfoPanel().size() - infoPanels.size();
-        for(int i = 0; i < nbrMessageToDelete; i++) {
-          Message message = server.getControlePannel().getInfoPanel().get(i);
-          message.delete().queue();
-          server.getControlePannel().getInfoPanel().remove(message);
+    try {
+      if(server.getInfoChannel() != null) {
+        if(server.getControlePannel().getInfoPanel().isEmpty()) {
+          server.getControlePannel().getInfoPanel().add(server.getInfoChannel().sendMessage("__**Control Panel**__\n \n*Loading...*").complete());
         }
-        
-      }else {
-        int nbrMessageToAdd = infoPanels.size() - server.getControlePannel().getInfoPanel().size();
-        for(int i = 0; i < nbrMessageToAdd; i++) {
-          server.getControlePannel().getInfoPanel().add(server.getInfoChannel().sendMessage("loading ...").complete());
-        }
-      }
-      
-      for(int i = 0; i < infoPanels.size(); i++) {
-        server.getControlePannel().getInfoPanel().get(i).editMessage(infoPanels.get(i)).queue();
-      }
 
-      manageInfoCards();
+        ArrayList<String> infoPanels = CommandEvent.splitMessage(refreshPannel());
+
+        if(infoPanels.size() < server.getControlePannel().getInfoPanel().size()) {
+          int nbrMessageToDelete = server.getControlePannel().getInfoPanel().size() - infoPanels.size();
+          for(int i = 0; i < nbrMessageToDelete; i++) {
+            Message message = server.getControlePannel().getInfoPanel().get(i);
+            message.delete().queue();
+            server.getControlePannel().getInfoPanel().remove(message);
+          }
+
+        }else {
+          int nbrMessageToAdd = infoPanels.size() - server.getControlePannel().getInfoPanel().size();
+          for(int i = 0; i < nbrMessageToAdd; i++) {
+            server.getControlePannel().getInfoPanel().add(server.getInfoChannel().sendMessage("loading ...").complete());
+          }
+        }
+
+        for(int i = 0; i < infoPanels.size(); i++) {
+          server.getControlePannel().getInfoPanel().get(i).editMessage(infoPanels.get(i)).queue();
+        }
+
+        manageInfoCards();
+      }
+    }catch (NullPointerException e){
+      logger.info("The Thread has crashed normally because of deletion of infoChannel : {}", e.getMessage());
+    }catch (Exception e) {
+      logger.warn("The tread got a unexpected error : {}", e.getMessage());
     }
   }
-  
-  
+
+
   private void manageInfoCards() {
     TextChannel controlPannel = server.getInfoChannel();
 
@@ -162,7 +168,7 @@ public class InfoPanelRefresher implements Runnable {
         }
       }
     }
-    
+
     server.clearOldMatchOfSendedGamesIdList();
     return cards;
   }
@@ -206,7 +212,7 @@ public class InfoPanelRefresher implements Runnable {
 
       for(Player player : playersList) {
         stringMessage
-            .append(player.getSummoner().getName() + " (" + player.getDiscordUser().getAsMention() + ") : ");
+        .append(player.getSummoner().getName() + " (" + player.getDiscordUser().getAsMention() + ") : ");
 
         CurrentGameInfo actualGame = server.getCurrentGames().get(player.getSummoner().getId());
 

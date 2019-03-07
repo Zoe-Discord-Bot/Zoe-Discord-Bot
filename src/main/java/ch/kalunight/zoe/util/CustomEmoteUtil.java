@@ -1,8 +1,6 @@
 package ch.kalunight.zoe.util;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -115,11 +113,9 @@ public class CustomEmoteUtil {
   private static List<Guild> getEmoteGuilds() throws IOException {
     List<Guild> emoteGuild = new ArrayList<>();
 
-    try(BufferedReader reader = new BufferedReader(new FileReader(Ressources.GUILD_EMOTES_FILE));){
-      int numberOfGuild = Integer.parseInt(reader.readLine());
-
-      for(int i = 0; i < numberOfGuild; i++) {
-        emoteGuild.add(Zoe.getJda().getGuildById(reader.readLine()));
+    for(Guild guild : Zoe.getJda().getGuilds()) {
+      if(guild.getOwnerId().equals(Zoe.getJda().getSelfUser().getId())) {
+        emoteGuild.add(guild);
       }
     }
     return emoteGuild;

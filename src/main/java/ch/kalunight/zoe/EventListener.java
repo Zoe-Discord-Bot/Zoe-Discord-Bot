@@ -1,10 +1,6 @@
 package ch.kalunight.zoe;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -127,15 +123,6 @@ public class EventListener extends ListenerAdapter {
         return;
       }
 
-      try {
-        updateFileSave(event.getGuild());
-      } catch(IOException e) {
-        logger.warn("Impossible to save the new Guild ! Guild will be deleted");
-        logger.info("Some of emotes will be probably disable");
-        event.getGuild().delete().queue();
-        return;
-      }
-
       Ressources.getCustomEmotes().addAll(customeEmotesList);
       
       EventListenerUtil.assigneCustomEmotesToData();
@@ -156,32 +143,6 @@ public class EventListener extends ListenerAdapter {
   @Override
   public void onGuildLeave(GuildLeaveEvent event) {
     ServerData.getServers().put(event.getGuild().getId(), null);
-  }
-
-  private synchronized void updateFileSave(Guild guildToAdd) throws IOException {
-    List<Guild> emotesGuild = new ArrayList<>();
-
-    try(BufferedReader reader = new BufferedReader(new FileReader(Ressources.GUILD_EMOTES_FILE));){
-      int numberOfGuild;
-      numberOfGuild = Integer.parseInt(reader.readLine());
-
-      for(int i = 0; i < numberOfGuild; i++) {
-        emotesGuild.add(Zoe.getJda().getGuildById(reader.readLine()));
-      }
-    }
-
-    emotesGuild.add(guildToAdd);
-
-    StringBuilder saveString = new StringBuilder();
-    saveString.append(Integer.toString(emotesGuild.size()) + "\n");
-
-    for(Guild guild : emotesGuild) {
-      saveString.append(guild.getId() + "\n");
-    }
-
-    try(PrintWriter writer = new PrintWriter(Ressources.GUILD_EMOTES_FILE, "UTF-8");){
-      writer.write(saveString.toString());
-    }
   }
 
   private void sendAllEmotesInGuild(GuildJoinEvent event, List<CustomEmote> customeEmotesList) {

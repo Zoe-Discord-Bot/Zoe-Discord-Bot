@@ -2,6 +2,9 @@ package ch.kalunight.zoe.command;
 
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
+import java.util.Map.Entry;
+import java.util.List;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.command.Command;
@@ -9,6 +12,8 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
+import ch.kalunight.zoe.model.InfoCard;
+import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.service.GameChecker;
 import net.dv8tion.jda.core.JDA.Status;
 import net.dv8tion.jda.core.entities.TextChannel;
@@ -31,7 +36,7 @@ public class ShutDownCommand extends Command {
     
     channel.sendTyping().complete();
     
-    channel.sendMessage("I shutdown my self ...").complete();
+    channel.sendMessage("I will be shutdown ...").complete();
 
     GameChecker.setNeedToBeShutDown(true);
     
@@ -43,7 +48,7 @@ public class ShutDownCommand extends Command {
       }
     }
     
-    channel.sendMessage("The game checker thread has safely stop ...").complete();
+    channel.sendMessage("The game checker thread has been safely stopped ...").complete();
     
     try {
       ServerData.shutDownTaskExecutor();
@@ -60,7 +65,23 @@ public class ShutDownCommand extends Command {
       Thread.currentThread().interrupt();
     }
     
-    channel.sendMessage("Task executor has safely stop, now shutdown discord and save data. (ShutDown is complete)").complete();
+    channel.sendMessage("Task executor has safely stop ...").complete();
+    
+    Set<Entry<String, Server>> serversEntry = ServerData.getServers().entrySet();
+    
+    for(Entry<String, Server> serverEntry : serversEntry) {
+      Server server = serverEntry.getValue();
+      
+      if(server != null) {
+        List<InfoCard> infoCards = server.getControlePannel().getInfoCards();
+        for(InfoCard infoCard : infoCards) {
+          infoCard.getMessage().delete().queue();
+          infoCard.getTitle().delete().queue();
+        }
+      }
+    }
+    
+    channel.sendMessage("All info cards has been deleted, now shutdown discord and save data. (ShutDown is complete)").complete();
     
     Zoe.getJda().shutdown();
     

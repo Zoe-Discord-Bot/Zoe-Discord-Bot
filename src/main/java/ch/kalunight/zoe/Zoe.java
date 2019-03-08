@@ -23,6 +23,8 @@ import com.jagrosh.jdautilities.examples.command.PingCommand;
 import ch.kalunight.zoe.command.ResetEmotesCommand;
 import ch.kalunight.zoe.command.ShutDownCommand;
 import ch.kalunight.zoe.command.create.CreateCommand;
+import ch.kalunight.zoe.command.define.DefineCommand;
+import ch.kalunight.zoe.command.define.UndefineCommand;
 import ch.kalunight.zoe.command.delete.DeleteCommand;
 import ch.kalunight.zoe.model.Champion;
 import ch.kalunight.zoe.model.ControlPannel;
@@ -51,6 +53,10 @@ import net.rithms.riot.constant.Platform;
 
 public class Zoe {
 
+  private static final String ANY_INFO_CHANNEL_INFO_TEXT = "Hey ! You don't have create yet a info channel with players informations (and i want to do my work :p), "
+      + "admins can create one with the command `>create infoChannel nameOfTheChannel` or define a channel already existent with "
+      + "`>define infoChannel #mentionOfTextChannel`.\nHave a good day !";
+
   private static final File SAVE_TXT_FILE = new File("ressources/save.txt");
 
   private static RiotApi riotApi;
@@ -74,7 +80,9 @@ public class Zoe {
 
     client.setOwnerId(args[2]);
     
-    client.addCommands(new ShutDownCommand(), new ResetEmotesCommand(), new CreateCommand(), new DeleteCommand(), new PingCommand());
+    client.addCommands(
+        new ShutDownCommand(), new ResetEmotesCommand(),
+        new CreateCommand(), new DeleteCommand(), new DefineCommand(), new UndefineCommand(), new PingCommand());
 
     ApiConfig config = new ApiConfig().setKey(riotTocken);
 
@@ -303,9 +311,7 @@ public class Zoe {
     boolean messageSended = false;
     for(TextChannel textChannel : textChannels) {
       if(textChannel.canTalk()) {
-        textChannel.sendMessage("Hey ! You don't have create yet a info channel with players informations (and i want to do my work :p), "
-            + "admins can create one with the command `>createInfoChannel *nameOfTheChannel*` or define a channel already existent with "
-            + "`>defineInfoChannel *#nameOfTextChannel*`.\nHave a good day !").queue();
+        textChannel.sendMessage(ANY_INFO_CHANNEL_INFO_TEXT).queue();
         messageSended = true;
         break;
       }
@@ -313,9 +319,7 @@ public class Zoe {
     
     if(!messageSended) {
       PrivateChannel privateChannel = guild.getOwner().getUser().openPrivateChannel().complete();
-      privateChannel.sendMessage("Hey ! You don't have create yet a info channel with players informations (and i want to do my work :p), "
-            + "admins can create one with the command `>createInfoChannel *nameOfTheChannel*` or define a channel already existent with "
-            + "`>defineInfoChannel *#nameOfTextChannel*`.\nHave a good day !").queue();
+      privateChannel.sendMessage(ANY_INFO_CHANNEL_INFO_TEXT).queue();
     }
   }
 

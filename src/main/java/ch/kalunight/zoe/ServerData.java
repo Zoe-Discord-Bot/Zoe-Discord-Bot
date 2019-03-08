@@ -6,11 +6,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.model.Server;
 
 public class ServerData {
 
   private ServerData() {}
+  
+  private static final Logger logger = LoggerFactory.getLogger(ServerData.class);
   
   private static final ConcurrentHashMap<String, Server> servers = new ConcurrentHashMap<>();
   
@@ -25,6 +29,7 @@ public class ServerData {
   
   static {
     TASK_EXECUTOR.prestartAllCoreThreads();
+    logger.info("Task executor lauched with {} threads", nbProcs);
   }
 
   public static Map<String, Server> getServers() {

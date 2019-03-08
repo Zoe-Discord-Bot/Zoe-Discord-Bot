@@ -3,10 +3,6 @@ package ch.kalunight.zoe.util.request;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-
 import ch.kalunight.zoe.model.Player;
 import ch.kalunight.zoe.util.NameConversion;
 import net.dv8tion.jda.core.EmbedBuilder;
@@ -19,7 +15,6 @@ import net.rithms.riot.constant.Platform;
 
 public class MessageBuilderRequest {
 
-  private static final DateTimeFormatter dateFormatter = DateTimeFormat.forPattern("HH:mm");
 
   private MessageBuilderRequest() {}
 
@@ -72,8 +67,7 @@ public class MessageBuilderRequest {
 
     String gameLenght = String.format("%02d", minutesGameLength) + ":" + String.format("%02d", secondesGameLength);
 
-    message.setFooter("Time of message creation : " + DateTime.now().plusHours(1).toString(dateFormatter)
-        + " | Current duration of the game : " + gameLenght, null);
+    message.setFooter("Current duration of the game : " + gameLenght, null);
 
     message.setColor(Color.GREEN);
 
@@ -136,8 +130,7 @@ public class MessageBuilderRequest {
 
     String gameLenght = String.format("%02d", minutesGameLength) + ":" + String.format("%02d", secondesGameLength);
 
-    message.setFooter("Time of message creation : " + DateTime.now().plusHours(1).toString(dateFormatter)
-        + " | Current duration of the game : " + gameLenght, null);
+    message.setFooter("Current duration of the game : " + gameLenght, null);
 
     message.setColor(Color.GREEN);
 

@@ -16,7 +16,7 @@ public class Server {
 
   private final Map<String, CurrentGameInfo> currentGames = new HashMap<>();
   private final List<Long> currentGamesIdAlreadySended = new ArrayList<>();
-  
+
   private Guild guild;
   private List<Player> players;
   private List<Team> teams;
@@ -24,7 +24,7 @@ public class Server {
   private ControlPannel controlePannel;
   private SpellingLangage langage; //Not implement yet
   private DateTime lastRefresh;
-  
+
   public Server(Guild guild, SpellingLangage langage) {
     this.guild = guild;
     this.langage = langage;
@@ -33,7 +33,7 @@ public class Server {
     controlePannel = new ControlPannel();
     lastRefresh = DateTime.now().minusMinutes(3);
   }
-  
+
   public synchronized boolean isNeedToBeRefreshed() {
     boolean needToBeRefreshed = false;
     if(lastRefresh == null || lastRefresh.isBefore(DateTime.now().minusMinutes(3))) {
@@ -42,27 +42,27 @@ public class Server {
     }
     return needToBeRefreshed;
   }
-  
+
   public List<Team> getAllPlayerTeams(){
     List<Player> playerWithNoTeam = new ArrayList<>();
     playerWithNoTeam.addAll(players);
-    
+
     for(Team team : teams) {
       for(Player player : team.getPlayers()) {
         playerWithNoTeam.remove(player);
       }
     }
-    
+
     List<Team> allTeams = new ArrayList<>();
     allTeams.addAll(teams);
     allTeams.add(new Team("No Team", playerWithNoTeam));
-    
+
     return allTeams;
   }
-  
+
   public void deletePlayer(Player player) {
     players.remove(player);
-    
+
     for(Team team : teams) {
       team.getPlayers().remove(player);
     }
@@ -70,26 +70,26 @@ public class Server {
 
   public void clearOldMatchOfSendedGamesIdList() {
     final Iterator<Entry<String, CurrentGameInfo>> iterator = currentGames.entrySet().iterator();
-    
+
     final List<Long> gameIdToSave = new ArrayList<>();
-    
+
     while(iterator.hasNext()) {
       final Entry<String, CurrentGameInfo> currentGameInfoEntry = iterator.next();
-      
+
       final CurrentGameInfo currentGameInfo = currentGameInfoEntry.getValue();
-      
+
       if(currentGameInfo != null) {
         gameIdToSave.add(currentGameInfo.getGameId());
       }
     }
-    
+
     for(Long idCurrentGamesSaved : currentGamesIdAlreadySended) {
       if(!gameIdToSave.contains(idCurrentGamesSaved)) {
         currentGamesIdAlreadySended.remove(idCurrentGamesSaved);
       }
     }
   }
-  
+
   public Player getPlayerByDiscordId(String discordId) {
     for(Player player : players) {
       if(player.getDiscordUser().getId().equals(discordId)) {
@@ -98,11 +98,20 @@ public class Server {
     }
     return null;
   }
-  
+
   public Team getTeamByName(String teamName) {
     for(Team team : teams) {
       if(team.getName().equals(teamName)) {
         return team;
+      }
+    }
+    return null;
+  }
+
+  public Team getTeamByPlayer(Player player) {
+    for(Team team : teams) {
+      if(team.getPlayers().contains(player)) {
+         return team;
       }
     }
     return null;

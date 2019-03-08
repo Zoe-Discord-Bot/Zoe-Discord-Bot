@@ -22,6 +22,7 @@ import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import com.jagrosh.jdautilities.examples.command.PingCommand;
 import ch.kalunight.zoe.command.ResetEmotesCommand;
 import ch.kalunight.zoe.command.ShutDownCommand;
+import ch.kalunight.zoe.command.add.AddCommand;
 import ch.kalunight.zoe.command.create.CreateCommand;
 import ch.kalunight.zoe.command.define.DefineCommand;
 import ch.kalunight.zoe.command.define.UndefineCommand;
@@ -44,6 +45,7 @@ import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.PrivateChannel;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.core.exceptions.ErrorResponseException;
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.RiotApi;
 import net.rithms.riot.api.RiotApiException;
@@ -82,7 +84,8 @@ public class Zoe {
     
     client.addCommands(
         new ShutDownCommand(), new ResetEmotesCommand(),
-        new CreateCommand(), new DeleteCommand(), new DefineCommand(), new UndefineCommand(), new PingCommand());
+        new CreateCommand(), new DeleteCommand(), new DefineCommand(), new UndefineCommand(), new AddCommand(),
+        new PingCommand());
 
     ApiConfig config = new ApiConfig().setKey(riotTocken);
 
@@ -249,7 +252,12 @@ public class Zoe {
       String messageId = reader.readLine();
       
       if(server.getInfoChannel() != null) {
-        controlPannel.getInfoPanel().add(server.getInfoChannel().getMessageById(messageId).complete());
+        try {
+          Message message = server.getInfoChannel().getMessageById(messageId).complete();
+          controlPannel.getInfoPanel().add(message);
+        }catch (ErrorResponseException e) {
+          logger.debug("The message got delete : {}", e.getMessage());
+        }
       }
     }
     return controlPannel;

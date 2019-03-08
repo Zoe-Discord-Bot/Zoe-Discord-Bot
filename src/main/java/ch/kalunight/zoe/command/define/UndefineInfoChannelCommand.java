@@ -41,7 +41,7 @@ public class UndefineInfoChannelCommand extends Command {
       }
       server.setInfoChannel(null);
       server.setControlePannel(new ControlPannel());
-      event.reply("I have undefine the channel !");
+      event.reply("I have undefine the info channel ! I have deleted all message related to my activity");
     }
   }
 

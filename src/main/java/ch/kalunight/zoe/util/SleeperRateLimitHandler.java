@@ -1,12 +1,13 @@
 package ch.kalunight.zoe.util;
 
-import net.rithms.riot.api.request.ratelimit.DefaultRateLimitHandler;
-import net.rithms.riot.api.request.ratelimit.RespectedRateLimitException;
 import java.util.ArrayList;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.rithms.riot.api.request.Request;
+import net.rithms.riot.api.request.RequestResponse;
+import net.rithms.riot.api.request.ratelimit.DefaultRateLimitHandler;
+import net.rithms.riot.api.request.ratelimit.RespectedRateLimitException;
 
 public class SleeperRateLimitHandler extends DefaultRateLimitHandler {
 
@@ -76,6 +77,27 @@ public class SleeperRateLimitHandler extends DefaultRateLimitHandler {
 
     for(int i = listToDelete.size(); i > 0; i--) {
       minuteList.remove((int) listToDelete.get(i - 1));
+    }
+  }
+  
+  @Override
+  public void onRequestDone(Request request) {
+    super.onRequestDone(request);
+    
+    if(request.getResponse().getCode() == Request.CODE_ERROR_RATE_LIMITED) {
+      RequestResponse response = request.getResponse();
+      String retryAfterString = response.getHeaderField("Retry-After");
+
+      if (retryAfterString != null) {
+        int retryAfter = Integer.parseInt(retryAfterString);
+        logger.warn("Got rate limit error ! Wait ... : {} s", retryAfter);
+        try {
+          Thread.sleep(retryAfter * 1000l);
+        } catch(InterruptedException e) {
+          logger.error("Thread got interupt in onRequestDone : {}", e.getMessage());
+          Thread.currentThread().interrupt();
+        }
+      }
     }
   }
 }

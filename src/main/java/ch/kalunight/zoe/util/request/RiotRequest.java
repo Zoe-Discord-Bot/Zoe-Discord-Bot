@@ -33,7 +33,7 @@ public class RiotRequest {
 
   private static final Logger logger = LoggerFactory.getLogger(RiotRequest.class);
 
-  private static final DecimalFormat df = new DecimalFormat("###.##");
+  private static final DecimalFormat df = new DecimalFormat("###.#");
 
   private RiotRequest() {}
 

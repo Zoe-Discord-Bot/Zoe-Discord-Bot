@@ -12,8 +12,8 @@ public class DeleteCommand extends Command {
     this.aliases = new String[] {"d"};
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
-    this.help = "Send info about delete Command";
-    Command[] commandsChildren = {new DeletePlayerCommand(), new DeleteInfoChannelCommand()};
+    this.help = "Send info about delete command";
+    Command[] commandsChildren = {new DeletePlayerCommand(), new DeleteInfoChannelCommand(), new DeleteTeamCommand()};
     this.children = commandsChildren;
   }
   

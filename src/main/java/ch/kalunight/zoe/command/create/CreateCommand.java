@@ -12,7 +12,7 @@ public class CreateCommand extends Command {
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
     this.help = "Send info about create commands";
-    Command[] commandsChildren = {new CreateInfoChannelCommand(), new CreatePlayerCommand()};
+    Command[] commandsChildren = {new CreateInfoChannelCommand(), new CreatePlayerCommand(), new CreateTeamCommand()};
     this.children = commandsChildren;
   }
   

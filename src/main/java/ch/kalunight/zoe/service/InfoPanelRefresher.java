@@ -2,13 +2,9 @@ package ch.kalunight.zoe.service;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.command.CommandEvent;
-
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.InfoCard;
@@ -27,8 +23,6 @@ import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 public class InfoPanelRefresher implements Runnable {
 
   private static final int INFO_CARDS_MINUTES_LIVE_TIME = 30;
-
-  private static final DateTimeFormatter timeFormatter = DateTimeFormat.forPattern("HH:mm");
 
   private static final Logger logger = LoggerFactory.getLogger(InfoPanelRefresher.class);
 
@@ -231,8 +225,7 @@ public class InfoPanelRefresher implements Runnable {
       stringMessage.append(" \n");
     }
 
-    stringMessage.append(
-        "\nThe last refreshment was at " + DateTime.now().plusHours(1).toString(timeFormatter) + " | *Refreshed every 3 minutes*");
+    stringMessage.append("*Refreshed every 3 minutes*");
 
     return stringMessage.toString();
   }

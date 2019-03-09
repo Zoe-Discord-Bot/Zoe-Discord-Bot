@@ -64,5 +64,4 @@ public class AddPlayerToTeam extends Command {
       }
     }
   }
-
 }

@@ -1,23 +1,27 @@
-package ch.kalunight.zoe.command.add;
+package ch.kalunight.zoe.command.remove;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
+
 import net.dv8tion.jda.core.Permission;
 
-public class AddCommand extends Command {
+public class RemoveCommand extends Command {
 
-  public AddCommand() {
-    this.name = "add";
+  public RemoveCommand() {
+    this.name = "remove";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
-    this.help = "Send info about add commands";
-    Command[] commandsChildren = {new AddPlayerToTeam()};
+    this.help = "Send info about remove commands";
+    Command[] commandsChildren = {};
     this.children = commandsChildren;
   }
   
+  
   @Override
   protected void execute(CommandEvent event) {
-    //TODO: Add info to add command
+    // TODO Auto-generated method stub
+    
   }
-
+  
+  
 }

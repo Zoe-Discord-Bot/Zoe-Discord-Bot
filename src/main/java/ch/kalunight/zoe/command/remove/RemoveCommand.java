@@ -19,7 +19,7 @@ public class RemoveCommand extends Command {
   
   @Override
   protected void execute(CommandEvent event) {
-    // TODO Auto-generated method stub
+    // TODO: Give info about Remove Command
     
   }
   

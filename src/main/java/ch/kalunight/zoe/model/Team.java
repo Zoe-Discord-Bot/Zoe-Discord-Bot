@@ -18,6 +18,15 @@ public class Team {
     players = new ArrayList<>();
   }
 
+  public boolean isPlayerInTheTeam(Player playerToCheck) {
+    for(Player player : players) {
+      if(player.equals(playerToCheck)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
   public String getName() {
     return name;
   }

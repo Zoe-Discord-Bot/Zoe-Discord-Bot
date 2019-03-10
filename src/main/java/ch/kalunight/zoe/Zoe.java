@@ -27,6 +27,7 @@ import ch.kalunight.zoe.command.create.CreateCommand;
 import ch.kalunight.zoe.command.define.DefineCommand;
 import ch.kalunight.zoe.command.define.UndefineCommand;
 import ch.kalunight.zoe.command.delete.DeleteCommand;
+import ch.kalunight.zoe.command.remove.RemoveCommand;
 import ch.kalunight.zoe.model.Champion;
 import ch.kalunight.zoe.model.ControlPannel;
 import ch.kalunight.zoe.model.CustomEmote;
@@ -84,7 +85,7 @@ public class Zoe {
     
     client.addCommands(
         new ShutDownCommand(), new ResetEmotesCommand(),
-        new CreateCommand(), new DeleteCommand(), new DefineCommand(), new UndefineCommand(), new AddCommand(),
+        new CreateCommand(), new DeleteCommand(), new DefineCommand(), new UndefineCommand(), new AddCommand(), new RemoveCommand(),
         new PingCommand());
 
     ApiConfig config = new ApiConfig().setKey(riotTocken);

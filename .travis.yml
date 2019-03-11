@@ -1,7 +1,8 @@
 language: java
 after_success:
  - mvn org.jacoco:jacoco-maven-plugin:report
+ - cd target/site/jacoco
  - ls
- - mvn com.gavinmogan:codacy-maven-plugin:coverage -DcoverageReportFile=target/site/jacoco/jacoco.xml -DprojectToken=${CODACY_PROJECT_TOKEN} -DapiToken=${CODACY_API_TOKEN}
+ - mvn com.gavinmogan:codacy-maven-plugin:coverage -DcoverageReportFile=jacoco.xml -DprojectToken=${CODACY_PROJECT_TOKEN} -DapiToken=${CODACY_API_TOKEN}
 jdk:
  - openjdk11

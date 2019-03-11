@@ -60,7 +60,11 @@ public class Server {
 
     List<Team> allTeams = new ArrayList<>();
     allTeams.addAll(teams);
+    System.out.println("Players : " + players);
+    System.out.println("Nbr players with no team : " + playerWithNoTeam.size());
+    System.out.println("teams nbr :" + allTeams.size());
     if(!playerWithNoTeam.isEmpty()) {
+      System.out.println("Inside boucle");
       allTeams.add(new Team("No Team", playerWithNoTeam));
     }
 

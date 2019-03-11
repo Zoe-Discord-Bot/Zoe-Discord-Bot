@@ -11,8 +11,6 @@ import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.model.Server;
 
 public class ServerData {
-
-  private ServerData() {}
   
   private static final Logger logger = LoggerFactory.getLogger(ServerData.class);
   
@@ -26,6 +24,10 @@ public class ServerData {
   
   private static final ThreadPoolExecutor TASK_EXECUTOR =
       new ThreadPoolExecutor(nbProcs, nbProcs, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+  
+  private ServerData() {
+    //Hide public default constructor
+  }
   
   static {
     TASK_EXECUTOR.prestartAllCoreThreads();

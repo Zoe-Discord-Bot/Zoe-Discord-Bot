@@ -14,6 +14,11 @@ import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 
 public class Server {
 
+  /**
+   * Default time to force refresh of channel
+   */
+  private static final int DEFAULT_INIT_TIME = 3;
+  
   private final Map<String, CurrentGameInfo> currentGames = new HashMap<>();
   private final List<Long> currentGamesIdAlreadySended = new ArrayList<>();
 
@@ -31,12 +36,12 @@ public class Server {
     players = new ArrayList<>();
     teams = new ArrayList<>();
     controlePannel = new ControlPannel();
-    lastRefresh = DateTime.now().minusMinutes(3);
+    lastRefresh = DateTime.now().minusMinutes(DEFAULT_INIT_TIME);
   }
 
   public synchronized boolean isNeedToBeRefreshed() {
     boolean needToBeRefreshed = false;
-    if(lastRefresh == null || lastRefresh.isBefore(DateTime.now().minusMinutes(3))) {
+    if(lastRefresh == null || lastRefresh.isBefore(DateTime.now().minusMinutes(DEFAULT_INIT_TIME))) {
       needToBeRefreshed = true;
       lastRefresh = DateTime.now();
     }
@@ -55,7 +60,9 @@ public class Server {
 
     List<Team> allTeams = new ArrayList<>();
     allTeams.addAll(teams);
-    allTeams.add(new Team("No Team", playerWithNoTeam));
+    if(!playerWithNoTeam.isEmpty()) {
+      allTeams.add(new Team("No Team", playerWithNoTeam));
+    }
 
     return allTeams;
   }

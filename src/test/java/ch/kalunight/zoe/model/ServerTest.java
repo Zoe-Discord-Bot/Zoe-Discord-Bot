@@ -24,12 +24,13 @@ public class ServerTest {
     expectedPlayers.add(player1);
     expectedPlayers.add(player2);
     expectedTeam.setPlayers(expectedPlayers);
+    expectedTeamsList.add(expectedTeam);
     
     // WHEN
     List<Team> resultTeam = server.getAllPlayerTeams();
     
     // THEN
-    assertEquals(resultTeam.size(), expectedTeamsList.size());
+    assertEquals(expectedTeamsList.size(), resultTeam.size());
     assertEquals(expectedTeam.getName(), resultTeam.get(0).getName());
     assertEquals(expectedPlayers.size(), resultTeam.get(0).getPlayers().size());
   }

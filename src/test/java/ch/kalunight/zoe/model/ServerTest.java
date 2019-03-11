@@ -29,6 +29,7 @@ public class ServerTest {
     List<Team> resultTeam = server.getAllPlayerTeams();
     
     // THEN
+    assertEquals(resultTeam.size(), expectedTeamsList.size());
     assertEquals(expectedTeam.getName(), resultTeam.get(0).getName());
     assertEquals(expectedPlayers.size(), resultTeam.get(0).getPlayers().size());
   }

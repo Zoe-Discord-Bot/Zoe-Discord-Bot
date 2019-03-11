@@ -53,41 +53,43 @@
 			</plugin>
 		</plugins>
 	</build>
-	
+
 	<profiles>
-      <profile>
-          <id>codecoverage</id>
-          <activation>
-              <property><name>env.TRAVIS</name></property>
-          </activation>
-          <build>
-              <plugins>
-                  <plugin>
-                      <groupId>com.gavinmogan</groupId>
-                      <artifactId>codacy-maven-plugin</artifactId>
-                      <version>1.0.3</version>
-                      <configuration>
-                          <apiToken>${env.CODACY_API_TOKEN}</apiToken>
-                          <projectToken>${env.CODACY_PROJECT_TOKEN}</projectToken>
-                          <coverageReportFile>${project.reporting.outputDirectory}/jacoco.xml</coverageReportFile>
-                          <commit>${env.TRAVIS_COMMIT}</commit>
-                          <codacyApiBaseUrl>https://api.codacy.com</codacyApiBaseUrl>
-                          <failOnMissingReportFile>false</failOnMissingReportFile>
-                      </configuration>
-                      <executions>
-                          <execution>
-                              <id>post-test</id>
-                              <phase>post-integration-test</phase>
-                              <goals>
-                                  <goal>coverage</goal>
-                              </goals>
-                          </execution>
-                      </executions>
-                  </plugin>
-              </plugins>
-          </build>
-      </profile>
-  </profiles>
+		<profile>
+			<id>codecoverage</id>
+			<activation>
+				<property>
+					<name>env.TRAVIS</name>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>com.gavinmogan</groupId>
+						<artifactId>codacy-maven-plugin</artifactId>
+						<version>1.1.0</version>
+						<configuration>
+							<apiToken>${env.CODACY_API_TOKEN}</apiToken>
+							<projectToken>${env.CODACY_PROJECT_TOKEN}</projectToken>
+							<coverageReportFile>${project.reporting.outputDirectory}/jacoco.xml</coverageReportFile>
+							<commit>${env.TRAVIS_COMMIT}</commit>
+							<codacyApiBaseUrl>https://api.codacy.com</codacyApiBaseUrl>
+							<failOnMissingReportFile>false</failOnMissingReportFile>
+						</configuration>
+						<executions>
+							<execution>
+								<id>post-test</id>
+								<phase>post-integration-test</phase>
+								<goals>
+									<goal>coverage</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -138,18 +140,18 @@
 			<version>27.1-jre</version>
 		</dependency>
 
-		<dependency>
-			<groupId>com.gavinmogan</groupId>
-			<artifactId>codacy-maven-plugin</artifactId>
-			<version>1.1.0</version>
-		</dependency>
-
 		<!-- Test libs -->
 		<dependency>
 			<groupId>org.testng</groupId>
 			<artifactId>testng</artifactId>
 			<version>6.14.3</version>
 			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.gavinmogan</groupId>
+			<artifactId>codacy-maven-plugin</artifactId>
+			<version>1.1.0</version>
 		</dependency>
 	</dependencies>
 

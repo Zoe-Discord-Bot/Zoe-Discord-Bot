@@ -1,9 +1,3 @@
 language: java
-before_install:
-  - sudo apt-get install jq
-  - wget -O ~/.codacy/reporter/codacy-reporter-latest.jar https://oss.sonatype.org/service/local/repositories/releases/content/com/codacy/codacy-coverage-reporter/4.0.5/codacy-coverage-reporter-4.0.5-assembly.jar
-after_success:
- - org.jacoco:jacoco-maven-plugin:report
- - java -cp ~/.codacy/reporter/codacy-reporter-latest.jar com.codacy.CodacyCoverageReporter report -l Java -r target/site/jacoco/jacoco.xml
 jdk:
  - openjdk11

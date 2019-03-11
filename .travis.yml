@@ -1,6 +1,1 @@
 language: java
-jdk:
-   - oraclejdk11
-env:
-  global:
-    - JAVA_HOME=/home/travis/oraclejdk11

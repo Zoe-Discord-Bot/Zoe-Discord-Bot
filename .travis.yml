@@ -1,3 +1,6 @@
 language: java
 jdk:
    - oraclejdk11
+env:
+  global:
+    - JAVA_HOME=/usr/lib/jvm/java-11-oracle

@@ -1,6 +1,6 @@
 language: java
 after_success:
  - mvn org.jacoco:jacoco-maven-plugin:report
- - mvn com.gavinmogan:codacy-maven-plugin:coverage -DcoverageReportFile=/home/travis/build/KaluNight/Zoe-Discord-Bot/target/site/jacoco/jacoco.xml -DprojectToken=${CODACY_PROJECT_TOKEN} -DapiToken=${CODACY_API_TOKEN}
+ - mvn com.gavinmogan:codacy-maven-plugin:coverage -DcoverageReportFile=~/home/travis/build/KaluNight/Zoe-Discord-Bot/target/site/jacoco/jacoco.xml -DprojectToken=${CODACY_PROJECT_TOKEN} -DapiToken=${CODACY_API_TOKEN}
 jdk:
  - openjdk11

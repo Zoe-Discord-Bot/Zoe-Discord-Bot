@@ -22,74 +22,8 @@
 					<target>11</target>
 				</configuration>
 			</plugin>
-			<plugin>
-				<groupId>org.jacoco</groupId>
-				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>0.8.3</version>
-				<executions>
-					<execution>
-						<id>default-prepare-agent</id>
-						<goals>
-							<goal>prepare-agent</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>default-report</id>
-						<goals>
-							<goal>report</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>default-check</id>
-						<goals>
-							<goal>check</goal>
-						</goals>
-						<configuration>
-							<rules>
-							</rules>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
 		</plugins>
 	</build>
-
-	<profiles>
-		<profile>
-			<id>codecoverage</id>
-			<activation>
-				<property>
-					<name>env.TRAVIS</name>
-				</property>
-			</activation>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>com.gavinmogan</groupId>
-						<artifactId>codacy-maven-plugin</artifactId>
-						<version>1.1.0</version>
-						<configuration>
-							<apiToken>${env.CODACY_API_TOKEN}</apiToken>
-							<projectToken>${env.CODACY_PROJECT_TOKEN}</projectToken>
-							<coverageReportFile>${project.reporting.outputDirectory}/jacoco.xml</coverageReportFile>
-							<commit>${env.TRAVIS_COMMIT}</commit>
-							<codacyApiBaseUrl>https://api.codacy.com</codacyApiBaseUrl>
-							<failOnMissingReportFile>false</failOnMissingReportFile>
-						</configuration>
-						<executions>
-							<execution>
-								<id>post-test</id>
-								<phase>post-integration-test</phase>
-								<goals>
-									<goal>coverage</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -146,12 +80,6 @@
 			<artifactId>testng</artifactId>
 			<version>6.14.3</version>
 			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>com.gavinmogan</groupId>
-			<artifactId>codacy-maven-plugin</artifactId>
-			<version>1.1.0</version>
 		</dependency>
 	</dependencies>
 

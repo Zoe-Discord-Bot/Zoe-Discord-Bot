@@ -15,6 +15,7 @@ public class ServerTest {
     Server server = new Server(null, SpellingLangage.EN);
     Player player1 = new Player(null, null, Platform.EUW, false);
     Player player2 = new Player(null, null, Platform.EUW, false);
+    Player player3 = new Player(null, null, Platform.EUW, false);
     server.getPlayers().add(player1);
     server.getPlayers().add(player2);
     

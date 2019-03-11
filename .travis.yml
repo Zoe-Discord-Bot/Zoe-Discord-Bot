@@ -1,8 +1,8 @@
 language: java
+before_install:
+  - sudo apt-get install jq
+  - wget -O ~/codacy-coverage-reporter-assembly-latest.jar $(curl https://api.github.com/repos/codacy/codacy-coverage-reporter/releases/latest | jq -r '.assets[0].browser_download_url')
 after_success:
- - mvn org.jacoco:jacoco-maven-plugin:report
- - cd target/site/jacoco
- - ls
- - mvn com.gavinmogan:codacy-maven-plugin:coverage -DcoverageReportFile=jacoco.xml -DprojectToken=${CODACY_PROJECT_TOKEN} -DapiToken=${CODACY_API_TOKEN}
+ - java -jar ~/codacy-coverage-reporter-assembly-latest.jar report -l Java -r target/site/jacoco/jacoco.xml
 jdk:
  - openjdk11

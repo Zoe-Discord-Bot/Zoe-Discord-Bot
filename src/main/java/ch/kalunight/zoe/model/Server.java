@@ -67,6 +67,7 @@ public class Server {
       System.out.println("Inside boucle");
       allTeams.add(new Team("No Team", playerWithNoTeam));
     }
+    System.out.println("nbrteam :" + allTeams.size());
 
     return allTeams;
   }

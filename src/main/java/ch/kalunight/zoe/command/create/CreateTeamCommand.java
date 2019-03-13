@@ -13,7 +13,7 @@ public class CreateTeamCommand extends Command {
 
   public CreateTeamCommand() {
     this.name = "team";
-    this.arguments = "*nameOfTheTeam*";
+    this.arguments = "nameOfTheTeam";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
     this.help = "Create a new team";

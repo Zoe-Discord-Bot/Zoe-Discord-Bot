@@ -19,8 +19,8 @@ public class RemovePlayerToTeam extends Command {
 
   public RemovePlayerToTeam() {
     this.name = "playerToTeam";
-    this.help = "Delete the given player from the given Team";
-    this.arguments = "*MentionOfPlayer* (*teamName*)";
+    this.help = "Delete the given player from the given team";
+    this.arguments = "@MentionOfPlayer (teamName)";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
   }

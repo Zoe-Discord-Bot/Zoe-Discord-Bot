@@ -13,7 +13,7 @@ public class DeleteTeamCommand extends Command {
   public DeleteTeamCommand() {
     this.name = "team";
     this.help = "Delete the given team";
-    this.arguments = "*teamName*";
+    this.arguments = "teamName";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
   }

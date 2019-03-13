@@ -18,9 +18,9 @@ public class AddPlayerToTeam extends Command {
   public AddPlayerToTeam() {
     this.name = "playerToTeam";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
-    this.arguments = "*@MentionPlayer* (*teamName*)";
+    this.arguments = "@MentionPlayer (teamName)";
     this.userPermissions = permissionRequired;
-    this.help = "Add the mentioned player to team";
+    this.help = "Add the mentioned player to the given team";
   }
   
   @Override

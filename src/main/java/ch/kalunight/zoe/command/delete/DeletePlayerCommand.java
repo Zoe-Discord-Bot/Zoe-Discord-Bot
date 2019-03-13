@@ -18,7 +18,7 @@ public class DeletePlayerCommand extends Command{
   public DeletePlayerCommand() {
     this.name = "player";
     this.help = "Delete the given player";
-    this.arguments = "*@DiscordMentionOfPlayer*";
+    this.arguments = "@DiscordMentionOfPlayer";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
   }

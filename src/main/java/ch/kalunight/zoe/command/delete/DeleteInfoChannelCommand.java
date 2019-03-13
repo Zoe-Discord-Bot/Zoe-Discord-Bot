@@ -13,6 +13,7 @@ public class DeleteInfoChannelCommand extends Command {
   
   public DeleteInfoChannelCommand() {
     this.name = "infoChannel";
+    this.arguments = "";
     this.help = "Delete the infoChannel after the refresh";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;

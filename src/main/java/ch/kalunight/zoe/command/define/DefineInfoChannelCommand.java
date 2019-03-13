@@ -14,7 +14,7 @@ public class DefineInfoChannelCommand extends Command {
 
   public DefineInfoChannelCommand() {
     this.name = "InfoChannel";
-    this.arguments = "*#mentionOfTheChannel*";
+    this.arguments = "#mentionOfTheChannel";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
     this.help = "Define a new InfoChannel where Zoe can send info about players";

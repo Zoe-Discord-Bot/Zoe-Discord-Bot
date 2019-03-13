@@ -14,6 +14,7 @@ public class UndefineInfoChannelCommand extends Command {
 
   public UndefineInfoChannelCommand() {
     this.name = "InfoChannel";
+    this.arguments = "";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
     this.help = "Undefine the actual InfoChannel. This will **NOT** delete the channel, I will just stop to do my work in.";

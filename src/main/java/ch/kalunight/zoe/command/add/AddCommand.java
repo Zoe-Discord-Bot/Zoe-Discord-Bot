@@ -22,17 +22,27 @@ public class AddCommand extends Command {
   
   @Override
   protected void execute(CommandEvent event) {
+    event.reply("If you need help for add commands, type `>add help`");
   }
   
   private BiConsumer<CommandEvent, Command> getHelpMethod() {
     return new BiConsumer<CommandEvent, Command>() {
       @Override
       public void accept(CommandEvent event, Command command) {
-        event.getTextChannel().sendTyping().complete();
+        switch(event.getChannelType()) {
+        case PRIVATE:
+          event.getPrivateChannel().sendTyping().complete();
+          break;
+        case TEXT:
+          event.getTextChannel().sendTyping().complete();
+          break;
+        default:
+          //Error
+        }
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("Add commands :\n");
+        stringBuilder.append("Add command :\n");
         for(Command commandChildren : children) {
-          stringBuilder.append("`>" + name + " " + commandChildren.getName() + " " + commandChildren.getArguments() + "` : " + commandChildren.getHelp());
+          stringBuilder.append("--> `>" + name + " " + commandChildren.getName() + " " + commandChildren.getArguments() + "` : " + commandChildren.getHelp());
         }
         
         event.reply(stringBuilder.toString());

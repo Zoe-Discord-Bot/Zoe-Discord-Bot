@@ -1,9 +1,12 @@
 package ch.kalunight.zoe.command.create;
 
+import java.util.function.BiConsumer;
+
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 
 import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.SpellingLangage;
 import ch.kalunight.zoe.model.Team;
@@ -16,7 +19,8 @@ public class CreateTeamCommand extends Command {
     this.arguments = "nameOfTheTeam";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
-    this.help = "Create a new team";
+    this.help = "Create a new team. Allows you to group players together";
+    this.helpBiConsumer = getHelpMethod();
   }
   
   @Override
@@ -44,5 +48,18 @@ public class CreateTeamCommand extends Command {
     }
     
   }
-
+  
+  private BiConsumer<CommandEvent, Command> getHelpMethod() {
+    return new BiConsumer<CommandEvent, Command>() {
+      @Override
+      public void accept(CommandEvent event, Command command) {
+        CommandUtil.sendTypingInFonctionOfChannelType(event);
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("Create Team command :\n");
+        stringBuilder.append("--> `>create " + name + " " + arguments + "` : " + help);
+        
+        event.reply(stringBuilder.toString());
+      }
+    };
+  }
 }

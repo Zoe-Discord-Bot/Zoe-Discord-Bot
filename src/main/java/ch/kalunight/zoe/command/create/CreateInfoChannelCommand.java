@@ -20,7 +20,7 @@ public class CreateInfoChannelCommand extends Command {
     this.arguments = "nameOfTheNewChannel";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
-    this.help = "Create a new InfoChannel where Zoe can send info about players";
+    this.help = "Create a new InfoChannel where i can send info about players";
     this.helpBiConsumer = getHelpMethod();
   }
 
@@ -75,5 +75,4 @@ public class CreateInfoChannelCommand extends Command {
       }
     };
   }
-
 }

@@ -23,6 +23,7 @@ public class CommandUtil {
       break;
     default:
       logger.warn("event.getChannelType() return a unexpected type : " + event.getChannelType().toString());
+      break;
     }
   }
 }

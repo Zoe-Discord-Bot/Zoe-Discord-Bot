@@ -1,8 +1,11 @@
 package ch.kalunight.zoe.command.create;
 
+import java.util.function.BiConsumer;
+
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.service.InfoPanelRefresher;
 import net.dv8tion.jda.core.Permission;
@@ -18,6 +21,7 @@ public class CreateInfoChannelCommand extends Command {
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
     this.help = "Create a new InfoChannel where Zoe can send info about players";
+    this.helpBiConsumer = getHelpMethod();
   }
 
   @Override
@@ -56,7 +60,20 @@ public class CreateInfoChannelCommand extends Command {
       event.reply("Impossible to create the infoChannel ! "
           + "I don't have the permission to do that. Give me the Manage Channel Permission or use `>defineInfoChannel #MentionOfTheChannel`.");
     }
-
+  }
+  
+  private BiConsumer<CommandEvent, Command> getHelpMethod() {
+    return new BiConsumer<CommandEvent, Command>() {
+      @Override
+      public void accept(CommandEvent event, Command command) {
+        CommandUtil.sendTypingInFonctionOfChannelType(event);
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("Create infoChannel command :\n");
+        stringBuilder.append("--> `>create " + name + " " + arguments + "` : " + help);
+        
+        event.reply(stringBuilder.toString());
+      }
+    };
   }
 
 }

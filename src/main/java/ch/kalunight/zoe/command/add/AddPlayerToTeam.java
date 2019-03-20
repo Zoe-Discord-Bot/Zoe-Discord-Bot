@@ -76,7 +76,7 @@ public class AddPlayerToTeam extends Command {
         CommandUtil.sendTypingInFonctionOfChannelType(event);
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("Add playerToTeam command :\n");
-        stringBuilder.append("--> `>add " + getName() + " " + getArguments() + "` : " + getHelp());
+        stringBuilder.append("--> `>add " + name + " " + arguments + "` : " + help);
         
         event.reply(stringBuilder.toString());
       }

@@ -34,7 +34,8 @@ public class AddCommand extends Command {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("Add command :\n");
         for(Command commandChildren : children) {
-          stringBuilder.append("--> `>" + name + " " + commandChildren.getName() + " " + commandChildren.getArguments() + "` : " + commandChildren.getHelp());
+          stringBuilder.append("--> `>" + name + " " + commandChildren.getName() + " " + commandChildren.getArguments()
+          + "` : " + commandChildren.getHelp() + "\n");
         }
         
         event.reply(stringBuilder.toString());

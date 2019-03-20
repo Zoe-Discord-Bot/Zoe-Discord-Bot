@@ -30,7 +30,7 @@ public class CreatePlayerCommand extends Command{
 
   public CreatePlayerCommand() {
     this.name = "player";
-    this.help = "Create a player with the given information";
+    this.help = "Create a player with the given information. Manage Channel permission needed.";
     this.arguments = "@DiscordMentionOfPlayer (Region) (SummonerName)";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;

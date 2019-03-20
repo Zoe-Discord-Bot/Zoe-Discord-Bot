@@ -23,7 +23,7 @@ public class AddPlayerToTeam extends Command {
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.arguments = "@MentionPlayer (teamName)";
     this.userPermissions = permissionRequired;
-    this.help = "Add the mentioned player to the given team";
+    this.help = "Add the mentioned player to the given team. Manage Channel permission needed.";
     this.helpBiConsumer = getHelpMethod();
   }
   

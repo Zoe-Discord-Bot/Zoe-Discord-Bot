@@ -1,8 +1,11 @@
 package ch.kalunight.zoe.command.delete;
 
+import java.util.function.BiConsumer;
+
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.SpellingLangage;
 import ch.kalunight.zoe.model.Team;
@@ -12,10 +15,11 @@ public class DeleteTeamCommand extends Command {
 
   public DeleteTeamCommand() {
     this.name = "team";
-    this.help = "Delete the given team";
+    this.help = "Delete the given team. Manage Channel permission needed.";
     this.arguments = "teamName";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
+    this.helpBiConsumer = getHelpMethod();
   }
   
   @Override
@@ -38,4 +42,17 @@ public class DeleteTeamCommand extends Command {
     }
   }
 
+  private BiConsumer<CommandEvent, Command> getHelpMethod() {
+    return new BiConsumer<CommandEvent, Command>() {
+      @Override
+      public void accept(CommandEvent event, Command command) {
+        CommandUtil.sendTypingInFonctionOfChannelType(event);
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("Delete team command :\n");
+        stringBuilder.append("--> `>delete " + name + " " + arguments + "` : " + help);
+        
+        event.reply(stringBuilder.toString());
+      }
+    };
+  }
 }

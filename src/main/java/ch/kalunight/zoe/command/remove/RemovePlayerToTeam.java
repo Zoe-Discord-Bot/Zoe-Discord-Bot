@@ -1,5 +1,6 @@
 package ch.kalunight.zoe.command.remove;
 
+import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -7,6 +8,7 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 
 import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.model.Player;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.SpellingLangage;
@@ -19,10 +21,11 @@ public class RemovePlayerToTeam extends Command {
 
   public RemovePlayerToTeam() {
     this.name = "playerToTeam";
-    this.help = "Delete the given player from the given team";
+    this.help = "Delete the given player from the given team. Manage Channel permission needed.";
     this.arguments = "@MentionOfPlayer (teamName)";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
+    this.helpBiConsumer = getHelpMethod();
   }
   
   @Override
@@ -68,4 +71,19 @@ public class RemovePlayerToTeam extends Command {
     teamWhereRemove.getPlayers().remove(player);
     event.reply("The player has been deleted from the team !");
   }
+  
+  private BiConsumer<CommandEvent, Command> getHelpMethod() {
+    return new BiConsumer<CommandEvent, Command>() {
+      @Override
+      public void accept(CommandEvent event, Command command) {
+        CommandUtil.sendTypingInFonctionOfChannelType(event);
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("Remove playerToTeam command :\n");
+        stringBuilder.append("--> `>remove " + name + " " + arguments + "` : " + help);
+        
+        event.reply(stringBuilder.toString());
+      }
+    };
+  }
+  
 }

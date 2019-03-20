@@ -1,7 +1,11 @@
 package ch.kalunight.zoe.command.define;
 
+import java.util.function.BiConsumer;
+
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
+
+import ch.kalunight.zoe.command.CommandUtil;
 import net.dv8tion.jda.core.Permission;
 
 public class UndefineCommand extends Command {
@@ -11,15 +15,32 @@ public class UndefineCommand extends Command {
     this.aliases = new String[] {"undef"};
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
-    this.help = "Send info about undefine commands";
+    this.help = "Send info about undefine commands. Manage Channel permission needed.";
     Command[] commandsChildren = {new UndefineInfoChannelCommand()};
     this.children = commandsChildren;
+    this.helpBiConsumer = getHelpMethod();
   }
   
   @Override
   protected void execute(CommandEvent event) {
-    //TODO: send info about undefine command
-    
+    event.reply("If you need help for undefine command, type `>undefine help`");
   }
-
+  
+  private BiConsumer<CommandEvent, Command> getHelpMethod() {
+    return new BiConsumer<CommandEvent, Command>() {
+      @Override
+      public void accept(CommandEvent event, Command command) {
+        CommandUtil.sendTypingInFonctionOfChannelType(event);
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("Undefine command :\n");
+        for(Command commandChildren : children) {
+          stringBuilder.append("--> `>" + name + " " + commandChildren.getName() + " " + commandChildren.getArguments()
+          + "` : " + commandChildren.getHelp() + "\n");
+        }
+        
+        stringBuilder.append("**NOTE : This command need the permission to manage channel !**");
+        event.reply(stringBuilder.toString());
+      }
+    };
+  }
 }

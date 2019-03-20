@@ -1,8 +1,11 @@
 package ch.kalunight.zoe.command.define;
 
+import java.util.function.BiConsumer;
+
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.model.ControlPannel;
 import ch.kalunight.zoe.model.InfoCard;
 import ch.kalunight.zoe.model.Server;
@@ -17,7 +20,9 @@ public class UndefineInfoChannelCommand extends Command {
     this.arguments = "";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
-    this.help = "Undefine the actual InfoChannel. This will **NOT** delete the channel, I will just stop to do my work in.";
+    this.help = "Undefine the actual InfoChannel. This will **NOT** delete the channel, "
+        + "i will just stop to do my work in. Manage Channel permission needed.";
+    this.helpBiConsumer = getHelpMethod();
   }
   
   @Override
@@ -45,5 +50,18 @@ public class UndefineInfoChannelCommand extends Command {
       event.reply("I have undefine the info channel ! I have deleted all message related to my activity");
     }
   }
-
+  
+  private BiConsumer<CommandEvent, Command> getHelpMethod() {
+    return new BiConsumer<CommandEvent, Command>() {
+      @Override
+      public void accept(CommandEvent event, Command command) {
+        CommandUtil.sendTypingInFonctionOfChannelType(event);
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("Undefine infoChannel command :\n");
+        stringBuilder.append("--> `>define " + name + " " + arguments + "` : " + help);
+        
+        event.reply(stringBuilder.toString());
+      }
+    };
+  }
 }

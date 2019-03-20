@@ -23,8 +23,7 @@ public class CreateCommand extends Command {
   
   @Override
   protected void execute(CommandEvent event) {
-    //TODO Write info
-
+    event.reply("If you need help for create commands, type `>create help`");
   }
 
   private BiConsumer<CommandEvent, Command> getHelpMethod() {
@@ -39,7 +38,6 @@ public class CreateCommand extends Command {
           + "` : " + commandChildren.getHelp() + "\n");
         }
         
-        stringBuilder.append("**NOTE : All these commands need the permission to manage channel !**");
         event.reply(stringBuilder.toString());
       }
     };

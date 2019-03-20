@@ -4,12 +4,10 @@ import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.model.Player;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.SpellingLangage;
@@ -17,8 +15,6 @@ import ch.kalunight.zoe.model.Team;
 import net.dv8tion.jda.core.Permission;
 
 public class AddPlayerToTeam extends Command {
-  
-  private static final Logger logger = LoggerFactory.getLogger(AddPlayerToTeam.class);
   
   private static final Pattern PARENTHESES_PATTERN = Pattern.compile("\\(([^)]+)\\)");
 
@@ -77,16 +73,7 @@ public class AddPlayerToTeam extends Command {
     return new BiConsumer<CommandEvent, Command>() {
       @Override
       public void accept(CommandEvent event, Command command) {
-        switch(event.getChannelType()) {
-        case PRIVATE:
-          event.getPrivateChannel().sendTyping().complete();
-          break;
-        case TEXT:
-          event.getTextChannel().sendTyping().complete();
-          break;
-        default:
-          logger.warn("event.getChannelType() return a unexpected type : " + event.getChannelType().toString());
-        }
+        CommandUtil.sendTypingInFonctionOfChannelType(event);
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("Add playerToTeam command :\n");
         stringBuilder.append("--> `>add " + getName() + " " + getArguments() + "` : " + getHelp());

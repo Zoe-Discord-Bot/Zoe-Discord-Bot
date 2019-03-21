@@ -25,6 +25,7 @@ import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.examples.command.PingCommand;
 
+import ch.kalunight.zoe.command.AboutCommand;
 import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.command.ResetEmotesCommand;
 import ch.kalunight.zoe.command.SetupCommand;
@@ -132,6 +133,10 @@ public class Zoe {
         Command setupCommand = new SetupCommand();
         stringBuilder.append("Command **" + setupCommand.getName() +"** :\n");
         stringBuilder.append("--> `>" + setupCommand.getName() + "` : " + setupCommand.getHelp() + "\n\n");
+        
+        Command aboutCommand = new AboutCommand();
+        stringBuilder.append("Command **" + aboutCommand.getName() +"** :\n");
+        stringBuilder.append("--> `>" + aboutCommand.getName() + "` : " + aboutCommand.getHelp() + "\n\n");
 
         for(Command command : getMainCommands()) {
           if(!command.isHidden() && !(command instanceof PingCommand)) {
@@ -174,6 +179,8 @@ public class Zoe {
     commands.add(new PingCommand());
 
     //Basic commands
+    commands.add(new AboutCommand());
+    commands.add(new SetupCommand());
     commands.add(new CreateCommand());
     commands.add(new DeleteCommand());
     commands.add(new DefineCommand());

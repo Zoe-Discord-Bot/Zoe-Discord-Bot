@@ -35,7 +35,7 @@ public class DefineInfoChannelCommand extends Command {
     }
     
     if(server.getInfoChannel() != null) {
-      event.reply("A channel (" + server.getInfoChannel().getAsMention() + ") is already set. "
+      event.reply("The channel " + server.getInfoChannel().getAsMention() + " is already set. "
           + "Please undefine or delete it first if you want to set another.");
     }else {
       if(event.getMessage().getMentionedChannels().size() != 1) {

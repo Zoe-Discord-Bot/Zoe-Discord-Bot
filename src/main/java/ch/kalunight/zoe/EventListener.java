@@ -77,7 +77,7 @@ public class EventListener extends ListenerAdapter {
     logger.info("Démarrage des tâches continues terminés !");
 
     Zoe.getJda().getPresence().setStatus(OnlineStatus.ONLINE);
-    Zoe.getJda().getPresence().setGame(Game.playing("For help type \">help\""));
+    Zoe.getJda().getPresence().setGame(Game.playing("type \">help\""));
     logger.info("Démarrage terminés !");
   }
 

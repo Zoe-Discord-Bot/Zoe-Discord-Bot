@@ -58,7 +58,7 @@ public class UndefineInfoChannelCommand extends Command {
         CommandUtil.sendTypingInFonctionOfChannelType(event);
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("Undefine infoChannel command :\n");
-        stringBuilder.append("--> `>define " + name + " " + arguments + "` : " + help);
+        stringBuilder.append("--> `>undefine " + name + " " + arguments + "` : " + help);
         
         event.reply(stringBuilder.toString());
       }

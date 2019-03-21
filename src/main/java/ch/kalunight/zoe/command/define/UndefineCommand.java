@@ -38,7 +38,6 @@ public class UndefineCommand extends Command {
           + "` : " + commandChildren.getHelp() + "\n");
         }
         
-        stringBuilder.append("**NOTE : This command need the permission to manage channel !**");
         event.reply(stringBuilder.toString());
       }
     };

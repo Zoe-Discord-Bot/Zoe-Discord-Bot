@@ -19,7 +19,7 @@ public class CreateTeamCommand extends Command {
     this.arguments = "nameOfTheTeam";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
-    this.help = "Create a new team. Allows you to group players together. Manage Channel permission needed.";
+    this.help = "Create a new team. Allows you to group players together on the Info Panel. Manage Channel permission needed.";
     this.helpBiConsumer = getHelpMethod();
   }
   

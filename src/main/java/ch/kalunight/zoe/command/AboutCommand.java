@@ -33,7 +33,9 @@ public class AboutCommand extends Command {
         + "game directly in a Discord channel while giving various information about the current games. "
         + "You can contribute to my development on my Github [here](https://github.com/KaluNight/Zoe-Discord-Bot).\n" + 
         "Official Server Discord: <https://discord.gg/whc5PrC>\n\n"
-        + "*I like butterflies, unicorns, and watching the end of finite realities!*";
+        + "*I like butterflies, unicorns, and watching the end of finite realities!*\n\n"
+        + event.getSelfUser().getName() + " isn't endorsed by Riot Games and doesn't reflect the views or opinions of"
+        + " Riot Games or anyone officially involved in producing or managing League of Legends.";
 
     builder.setDescription(desc);
     if (event.getJDA().getShardInfo() == null) {

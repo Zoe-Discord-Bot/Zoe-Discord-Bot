@@ -3,6 +3,7 @@ package ch.kalunight.zoe.command.create;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
@@ -11,6 +12,7 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
+import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.model.Player;
 import ch.kalunight.zoe.model.Server;
 import net.dv8tion.jda.core.Permission;
@@ -28,10 +30,11 @@ public class CreatePlayerCommand extends Command{
 
   public CreatePlayerCommand() {
     this.name = "player";
-    this.help = "Create a player with the given information";
-    this.arguments = "*@DiscordMentionOfPlayer* (*Region*) (*SummonerName*)";
+    this.help = "Create a player with the given information. Manage Channel permission needed.";
+    this.arguments = "@DiscordMentionOfPlayer (Region) (SummonerName)";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
+    this.helpBiConsumer = getHelpMethod();
   }
 
   @Override
@@ -95,4 +98,17 @@ public class CreatePlayerCommand extends Command{
     event.reply("The player " + user.getName() + " has been added with the account \"" + player.getSummoner().getName() + "\".");
   }
 
+  private BiConsumer<CommandEvent, Command> getHelpMethod() {
+    return new BiConsumer<CommandEvent, Command>() {
+      @Override
+      public void accept(CommandEvent event, Command command) {
+        CommandUtil.sendTypingInFonctionOfChannelType(event);
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("Create player command :\n");
+        stringBuilder.append("--> `>create " + name + " " + arguments + "` : " + help);
+        
+        event.reply(stringBuilder.toString());
+      }
+    };
+  }
 }

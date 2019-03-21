@@ -1,11 +1,13 @@
 package ch.kalunight.zoe.command.delete;
 
 import java.util.List;
+import java.util.function.BiConsumer;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 
 import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.model.Player;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.SpellingLangage;
@@ -17,10 +19,11 @@ public class DeletePlayerCommand extends Command{
 
   public DeletePlayerCommand() {
     this.name = "player";
-    this.help = "Delete the given player";
-    this.arguments = "*@DiscordMentionOfPlayer*";
+    this.help = "Delete the given player. Manage Channel permission needed.";
+    this.arguments = "@DiscordMentionOfPlayer";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
+    this.helpBiConsumer = getHelpMethod();
   }
   
   @Override
@@ -48,5 +51,18 @@ public class DeletePlayerCommand extends Command{
       }
     }
   }
-
+  
+  private BiConsumer<CommandEvent, Command> getHelpMethod() {
+    return new BiConsumer<CommandEvent, Command>() {
+      @Override
+      public void accept(CommandEvent event, Command command) {
+        CommandUtil.sendTypingInFonctionOfChannelType(event);
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("Delete player command :\n");
+        stringBuilder.append("--> `>delete " + name + " " + arguments + "` : " + help);
+        
+        event.reply(stringBuilder.toString());
+      }
+    };
+  }
 }

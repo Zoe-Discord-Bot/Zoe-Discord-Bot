@@ -1,10 +1,13 @@
 package ch.kalunight.zoe.command.add;
 
+import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.model.Player;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.SpellingLangage;
@@ -18,9 +21,10 @@ public class AddPlayerToTeam extends Command {
   public AddPlayerToTeam() {
     this.name = "playerToTeam";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
-    this.arguments = "*@MentionPlayer* (*teamName*)";
+    this.arguments = "@MentionPlayer (teamName)";
     this.userPermissions = permissionRequired;
-    this.help = "Add the mentioned player to team";
+    this.help = "Add the mentioned player to the given team. Manage Channel permission needed.";
+    this.helpBiConsumer = getHelpMethod();
   }
   
   @Override
@@ -63,5 +67,19 @@ public class AddPlayerToTeam extends Command {
         }
       }
     }
+  }
+  
+  private BiConsumer<CommandEvent, Command> getHelpMethod() {
+    return new BiConsumer<CommandEvent, Command>() {
+      @Override
+      public void accept(CommandEvent event, Command command) {
+        CommandUtil.sendTypingInFonctionOfChannelType(event);
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("Add playerToTeam command :\n");
+        stringBuilder.append("--> `>add " + name + " " + arguments + "` : " + help);
+        
+        event.reply(stringBuilder.toString());
+      }
+    };
   }
 }

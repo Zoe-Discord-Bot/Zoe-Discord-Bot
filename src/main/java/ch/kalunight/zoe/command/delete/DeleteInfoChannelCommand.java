@@ -1,8 +1,11 @@
 package ch.kalunight.zoe.command.delete;
 
+import java.util.function.BiConsumer;
+
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.model.ControlPannel;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.SpellingLangage;
@@ -13,11 +16,12 @@ public class DeleteInfoChannelCommand extends Command {
   
   public DeleteInfoChannelCommand() {
     this.name = "infoChannel";
-    this.help = "Delete the infoChannel after the refresh";
+    this.arguments = "";
+    this.help = "Delete the infoChannel after the refresh. Manage Channel permission needed.";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
+    this.helpBiConsumer = getHelpMethod();
   }
-  
 
   @Override
   protected void execute(CommandEvent event) {
@@ -47,4 +51,17 @@ public class DeleteInfoChannelCommand extends Command {
     }
   }
 
+  private BiConsumer<CommandEvent, Command> getHelpMethod() {
+    return new BiConsumer<CommandEvent, Command>() {
+      @Override
+      public void accept(CommandEvent event, Command command) {
+        CommandUtil.sendTypingInFonctionOfChannelType(event);
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("Delete infoChannel command :\n");
+        stringBuilder.append("--> `>delete " + name + " " + arguments + "` : " + help);
+        
+        event.reply(stringBuilder.toString());
+      }
+    };
+  }
 }

@@ -1,8 +1,11 @@
 package ch.kalunight.zoe.command.define;
 
+import java.util.function.BiConsumer;
+
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.model.ControlPannel;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.SpellingLangage;
@@ -14,10 +17,11 @@ public class DefineInfoChannelCommand extends Command {
 
   public DefineInfoChannelCommand() {
     this.name = "InfoChannel";
-    this.arguments = "*#mentionOfTheChannel*";
+    this.arguments = "#mentionOfTheChannel";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
-    this.help = "Define a new InfoChannel where Zoe can send info about players";
+    this.help = "Define a new InfoChannel where i can send info about players. Manage Channel permission needed.";
+    this.helpBiConsumer = getHelpMethod();
   }
   
   @Override
@@ -31,7 +35,7 @@ public class DefineInfoChannelCommand extends Command {
     }
     
     if(server.getInfoChannel() != null) {
-      event.reply("A channel (" + server.getInfoChannel().getAsMention() + ") is already set. "
+      event.reply("The channel " + server.getInfoChannel().getAsMention() + " is already set. "
           + "Please undefine or delete it first if you want to set another.");
     }else {
       if(event.getMessage().getMentionedChannels().size() != 1) {
@@ -55,5 +59,19 @@ public class DefineInfoChannelCommand extends Command {
         }
       }
     }
+  }
+  
+  private BiConsumer<CommandEvent, Command> getHelpMethod() {
+    return new BiConsumer<CommandEvent, Command>() {
+      @Override
+      public void accept(CommandEvent event, Command command) {
+        CommandUtil.sendTypingInFonctionOfChannelType(event);
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("Define infoChannel command :\n");
+        stringBuilder.append("--> `>define " + name + " " + arguments + "` : " + help);
+        
+        event.reply(stringBuilder.toString());
+      }
+    };
   }
 }

@@ -13,14 +13,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Consumer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
+import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.examples.command.PingCommand;
+
+import ch.kalunight.zoe.command.AboutCommand;
+import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.command.ResetEmotesCommand;
+import ch.kalunight.zoe.command.SetupCommand;
 import ch.kalunight.zoe.command.ShutDownCommand;
 import ch.kalunight.zoe.command.add.AddCommand;
 import ch.kalunight.zoe.command.create.CreateCommand;
@@ -43,7 +51,6 @@ import net.dv8tion.jda.core.JDABuilder;
 import net.dv8tion.jda.core.OnlineStatus;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.PrivateChannel;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.exceptions.ErrorResponseException;
@@ -58,9 +65,11 @@ public class Zoe {
 
   private static final String ANY_INFO_CHANNEL_INFO_TEXT = "Hey ! You don't have create yet a info channel with players informations (and i want to do my work :p), "
       + "admins can create one with the command `>create infoChannel nameOfTheChannel` or define a channel already existent with "
-      + "`>define infoChannel #mentionOfTextChannel`.\nHave a good day !";
+      + "`>define infoChannel #mentionOfTextChannel`. (If you need help, you can do the command `>setup`)\nHave a good day !";
 
   private static final File SAVE_TXT_FILE = new File("ressources/save.txt");
+
+  private static final List<Command> mainCommands = getMainCommands();
 
   private static RiotApi riotApi;
 
@@ -81,12 +90,15 @@ public class Zoe {
 
     client.setPrefix(">");
 
+    Consumer<CommandEvent> helpCommand = getHelpCommand();
+
+    client.setHelpConsumer(helpCommand);
+
     client.setOwnerId(args[2]);
-    
-    client.addCommands(
-        new ShutDownCommand(), new ResetEmotesCommand(),
-        new CreateCommand(), new DeleteCommand(), new DefineCommand(), new UndefineCommand(), new AddCommand(), new RemoveCommand(),
-        new PingCommand());
+
+    for(Command command : getMainCommands()) {
+      client.addCommand(command);
+    }
 
     ApiConfig config = new ApiConfig().setKey(riotTocken);
 
@@ -109,6 +121,74 @@ public class Zoe {
       logger.error(e.getMessage());
       System.exit(1);
     }
+  }
+
+  private static Consumer<CommandEvent> getHelpCommand() {
+    return new Consumer<CommandEvent>() {
+      @Override
+      public void accept(CommandEvent event) {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("Here is my commands :\n");
+        
+        Command setupCommand = new SetupCommand();
+        stringBuilder.append("Command **" + setupCommand.getName() +"** :\n");
+        stringBuilder.append("--> `>" + setupCommand.getName() + "` : " + setupCommand.getHelp() + "\n\n");
+        
+        Command aboutCommand = new AboutCommand();
+        stringBuilder.append("Command **" + aboutCommand.getName() +"** :\n");
+        stringBuilder.append("--> `>" + aboutCommand.getName() + "` : " + aboutCommand.getHelp() + "\n\n");
+
+        for(Command command : getMainCommands()) {
+          if(!command.isHidden() && !(command instanceof PingCommand)) {
+            stringBuilder.append("Commands **" + command.getName() + "** : \n");
+
+            for(Command commandChild : command.getChildren()) {
+              stringBuilder.append("--> `>" + command.getName() + " " + commandChild.getName() + " " + commandChild.getArguments()
+              + "` : " + commandChild.getHelp() + "\n");
+            }
+            stringBuilder.append(" \n");
+          }
+        }
+
+        stringBuilder.append("For additional help, you can join our official server : https://discord.gg/whc5PrC");
+
+        switch(event.getChannelType()) {
+        case PRIVATE:
+          event.getPrivateChannel().sendMessage(stringBuilder.toString()).queue();
+          break;
+        case TEXT:
+          event.getTextChannel().sendMessage(stringBuilder.toString()).queue();
+          break;
+        default:
+          logger.warn("The help command has been triger in a no-sendable channel");
+          break;
+        }
+      }
+    };
+  }
+
+  private static List<Command> getMainCommands() {
+    if(mainCommands != null) {
+      return mainCommands;
+    }
+    List<Command> commands = new ArrayList<>();
+
+    //Admin commands
+    commands.add(new ShutDownCommand());
+    commands.add(new ResetEmotesCommand());
+    commands.add(new PingCommand());
+
+    //Basic commands
+    commands.add(new AboutCommand());
+    commands.add(new SetupCommand());
+    commands.add(new CreateCommand());
+    commands.add(new DeleteCommand());
+    commands.add(new DefineCommand());
+    commands.add(new UndefineCommand());
+    commands.add(new AddCommand());
+    commands.add(new RemoveCommand());
+
+    return commands;
   }
 
   public static void loadChampions() throws IOException {
@@ -146,10 +226,10 @@ public class Zoe {
 
   public static synchronized void saveDataTxt() throws FileNotFoundException, UnsupportedEncodingException {
     final StringBuilder strBuilder = new StringBuilder();
-    
+
     final Map<String, Server> servers = ServerData.getServers();
     final List<Guild> guilds = Zoe.getJda().getGuilds();
-    
+
     for(Guild guild : guilds) {
       if(guild.getOwnerId().equals(Zoe.getJda().getSelfUser().getId())) {
         continue;
@@ -159,36 +239,36 @@ public class Zoe {
         strBuilder.append("--server\n");
         strBuilder.append(guild.getId() + "\n");
         strBuilder.append(server.getLangage().toString() + "\n");
-        
+
         strBuilder.append(server.getPlayers().size() + "\n");
-        
+
         for(Player player : server.getPlayers()) {
           strBuilder.append(player.getDiscordUser().getId() + "\n");
           strBuilder.append(player.getSummoner().getId() + "\n");
           strBuilder.append(player.getRegion().getName() + "\n");
           strBuilder.append(player.isMentionnable() + "\n");
         }
-        
+
         strBuilder.append(server.getTeams().size() + "\n");
-        
+
         for(Team team : server.getTeams()) {
           strBuilder.append(team.getName() + "\n");
-          
+
           strBuilder.append(team.getPlayers().size() + "\n");
-          
+
           for(Player player : team.getPlayers()) {
             strBuilder.append(player.getDiscordUser().getId() + "\n");
           }
         }
-        
+
         if(server.getInfoChannel() != null) {
           strBuilder.append(server.getInfoChannel().getId() + "\n");
         }else {
           strBuilder.append("-1\n");
         }
-        
+
         strBuilder.append(server.getControlePannel().getInfoPanel().size() + "\n");
-        
+
         for(Message message : server.getControlePannel().getInfoPanel()) {
           strBuilder.append(message.getId() + "\n");
         }
@@ -199,7 +279,7 @@ public class Zoe {
       writer.write(strBuilder.toString());
     } 
   }
-  
+
   public static void loadDataTxt() throws IOException, RiotApiException {
 
     try(final BufferedReader reader = new BufferedReader(new FileReader(SAVE_TXT_FILE));) {
@@ -217,7 +297,7 @@ public class Zoe {
           if(langage == null) {
             langage = SpellingLangage.EN;
           }
-          
+
           final Server server = new Server(guild, langage);
 
           final Long nbrPlayers = Long.parseLong(reader.readLine());
@@ -231,10 +311,10 @@ public class Zoe {
           final TextChannel pannel = guild.getTextChannelById(reader.readLine());
 
           setInfoPannel(guild, server, pannel);
-          
+
           int nbrMessageControlPannel = Integer.parseInt(reader.readLine());
           ControlPannel controlPannel = getControlePannel(reader, server, nbrMessageControlPannel);
-          
+
           server.setPlayers(players);
           server.setTeams(teams);
           server.setControlePannel(controlPannel);
@@ -248,10 +328,10 @@ public class Zoe {
   private static ControlPannel getControlePannel(final BufferedReader reader, final Server server, int nbrMessageControlPannel)
       throws IOException {
     ControlPannel controlPannel = new ControlPannel();
-    
+
     for(int i = 0; i < nbrMessageControlPannel; i++) {
       String messageId = reader.readLine();
-      
+
       if(server.getInfoChannel() != null) {
         try {
           Message message = server.getInfoChannel().getMessageById(messageId).complete();
@@ -268,7 +348,7 @@ public class Zoe {
     if(pannel != null) {
       server.setInfoChannel(pannel);
     }else {
-      sendInfoMessageToAdminAboutTheInitializePhase(guild);
+      CommandUtil.sendMessageInGuildOrAtOwner(guild, ANY_INFO_CHANNEL_INFO_TEXT);
     }
   }
 
@@ -297,7 +377,7 @@ public class Zoe {
 
   private static List<Player> createPlayers(BufferedReader reader, Long nbrPlayers) throws IOException, RiotApiException {
     List<Player> players = new ArrayList<>();
-    
+
     for(Long i = 0L; i < nbrPlayers; i++) {
       String discordId = reader.readLine();
       String summonerId = reader.readLine();
@@ -312,24 +392,6 @@ public class Zoe {
       players.add(new Player(user, summoner, region, mentionable));
     }
     return players;
-  }
-
-  private static void sendInfoMessageToAdminAboutTheInitializePhase(Guild guild) {
-    List<TextChannel> textChannels = guild.getTextChannels();
-    
-    boolean messageSended = false;
-    for(TextChannel textChannel : textChannels) {
-      if(textChannel.canTalk()) {
-        textChannel.sendMessage(ANY_INFO_CHANNEL_INFO_TEXT).queue();
-        messageSended = true;
-        break;
-      }
-    }
-    
-    if(!messageSended) {
-      PrivateChannel privateChannel = guild.getOwner().getUser().openPrivateChannel().complete();
-      privateChannel.sendMessage(ANY_INFO_CHANNEL_INFO_TEXT).queue();
-    }
   }
 
   public static RiotApi getRiotApi() {

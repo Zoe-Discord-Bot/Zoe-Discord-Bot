@@ -7,6 +7,7 @@ import java.util.TimerTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.model.ControlPannel;
 import ch.kalunight.zoe.model.CustomEmote;
 import ch.kalunight.zoe.model.Server;
@@ -22,16 +23,18 @@ import net.dv8tion.jda.core.entities.Icon;
 import net.dv8tion.jda.core.events.ReadyEvent;
 import net.dv8tion.jda.core.events.channel.text.TextChannelDeleteEvent;
 import net.dv8tion.jda.core.events.guild.GuildJoinEvent;
-import net.dv8tion.jda.core.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
 import net.dv8tion.jda.core.managers.GuildController;
 import net.rithms.riot.api.RiotApiException;
 
 public class EventListener extends ListenerAdapter {
 
-  private static Logger logger = LoggerFactory.getLogger(EventListener.class);
-  
   private static final int WAIT_TIME_BETWEEN_EACH_REFRESH_IN_MS = 10000;
+  
+  private static final String WELCOME_MESSAGE = "Hi! Thank you for adding me! To get help on my configuration type the command `>setup`. "
+      + "If you want to see all commands i have, type >`help`";
+  
+  private static Logger logger = LoggerFactory.getLogger(EventListener.class);
 
   @Override
   public void onReady(ReadyEvent event) {
@@ -77,7 +80,7 @@ public class EventListener extends ListenerAdapter {
     logger.info("Démarrage des tâches continues terminés !");
 
     Zoe.getJda().getPresence().setStatus(OnlineStatus.ONLINE);
-    Zoe.getJda().getPresence().setGame(Game.playing("For help type \">help\""));
+    Zoe.getJda().getPresence().setGame(Game.playing("type \">help\""));
     logger.info("Démarrage terminés !");
   }
 
@@ -108,6 +111,7 @@ public class EventListener extends ListenerAdapter {
     if(!event.getGuild().getOwner().getUser().getId().equals(Zoe.getJda().getSelfUser().getId())) {
       ServerData.getServers().put(event.getGuild().getId(), new Server(event.getGuild(), SpellingLangage.EN));
       ServerData.getServersIsInTreatment().put(event.getGuild().getId(), false);
+      CommandUtil.sendMessageInGuildOrAtOwner(event.getGuild(), WELCOME_MESSAGE);
       return;
     }
 
@@ -147,11 +151,6 @@ public class EventListener extends ListenerAdapter {
       server.setControlePannel(new ControlPannel());
       server.setInfoChannel(null);
     }
-  }
-  
-  @Override
-  public void onGuildLeave(GuildLeaveEvent event) {
-    ServerData.getServers().put(event.getGuild().getId(), null);
   }
 
   private void sendAllEmotesInGuild(GuildJoinEvent event, List<CustomEmote> customeEmotesList) {

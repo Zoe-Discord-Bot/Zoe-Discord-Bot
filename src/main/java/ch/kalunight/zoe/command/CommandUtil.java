@@ -1,9 +1,15 @@
 package ch.kalunight.zoe.command;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.jagrosh.jdautilities.command.CommandEvent;
+
+import net.dv8tion.jda.core.entities.Guild;
+import net.dv8tion.jda.core.entities.PrivateChannel;
+import net.dv8tion.jda.core.entities.TextChannel;
 
 public class CommandUtil {
   
@@ -24,6 +30,24 @@ public class CommandUtil {
     default:
       logger.warn("event.getChannelType() return a unexpected type : " + event.getChannelType().toString());
       break;
+    }
+  }
+  
+  public static void sendMessageInGuildOrAtOwner(Guild guild, String messageToSend) {
+    List<TextChannel> textChannels = guild.getTextChannels();
+
+    boolean messageSended = false;
+    for(TextChannel textChannel : textChannels) {
+      if(textChannel.canTalk()) {
+        textChannel.sendMessage(messageToSend).queue();
+        messageSended = true;
+        break;
+      }
+    }
+
+    if(!messageSended) {
+      PrivateChannel privateChannel = guild.getOwner().getUser().openPrivateChannel().complete();
+      privateChannel.sendMessage(messageToSend).queue();
     }
   }
 }

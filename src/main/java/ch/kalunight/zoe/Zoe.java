@@ -24,6 +24,8 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.examples.command.PingCommand;
+
+import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.command.ResetEmotesCommand;
 import ch.kalunight.zoe.command.SetupCommand;
 import ch.kalunight.zoe.command.ShutDownCommand;
@@ -48,7 +50,6 @@ import net.dv8tion.jda.core.JDABuilder;
 import net.dv8tion.jda.core.OnlineStatus;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.PrivateChannel;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.exceptions.ErrorResponseException;
@@ -63,7 +64,7 @@ public class Zoe {
 
   private static final String ANY_INFO_CHANNEL_INFO_TEXT = "Hey ! You don't have create yet a info channel with players informations (and i want to do my work :p), "
       + "admins can create one with the command `>create infoChannel nameOfTheChannel` or define a channel already existent with "
-      + "`>define infoChannel #mentionOfTextChannel`.\nHave a good day !";
+      + "`>define infoChannel #mentionOfTextChannel`. (If you need help, you can do the command `>setup`)\nHave a good day !";
 
   private static final File SAVE_TXT_FILE = new File("ressources/save.txt");
 
@@ -127,6 +128,10 @@ public class Zoe {
       public void accept(CommandEvent event) {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("Here is my commands :\n");
+        
+        Command setupCommand = new SetupCommand();
+        stringBuilder.append("Command **" + setupCommand.getName() +"** :\n");
+        stringBuilder.append("--> `>" + setupCommand.getName() + "` : " + setupCommand.getHelp() + "\n\n");
 
         for(Command command : getMainCommands()) {
           if(!command.isHidden() && !(command instanceof PingCommand)) {
@@ -169,7 +174,6 @@ public class Zoe {
     commands.add(new PingCommand());
 
     //Basic commands
-    commands.add(new SetupCommand());
     commands.add(new CreateCommand());
     commands.add(new DeleteCommand());
     commands.add(new DefineCommand());
@@ -337,7 +341,7 @@ public class Zoe {
     if(pannel != null) {
       server.setInfoChannel(pannel);
     }else {
-      sendInfoMessageToAdminAboutTheInitializePhase(guild);
+      CommandUtil.sendMessageInGuildOrAtOwner(guild, ANY_INFO_CHANNEL_INFO_TEXT);
     }
   }
 
@@ -381,24 +385,6 @@ public class Zoe {
       players.add(new Player(user, summoner, region, mentionable));
     }
     return players;
-  }
-
-  private static void sendInfoMessageToAdminAboutTheInitializePhase(Guild guild) {
-    List<TextChannel> textChannels = guild.getTextChannels();
-
-    boolean messageSended = false;
-    for(TextChannel textChannel : textChannels) {
-      if(textChannel.canTalk()) {
-        textChannel.sendMessage(ANY_INFO_CHANNEL_INFO_TEXT).queue();
-        messageSended = true;
-        break;
-      }
-    }
-
-    if(!messageSended) {
-      PrivateChannel privateChannel = guild.getOwner().getUser().openPrivateChannel().complete();
-      privateChannel.sendMessage(ANY_INFO_CHANNEL_INFO_TEXT).queue();
-    }
   }
 
   public static RiotApi getRiotApi() {

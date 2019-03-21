@@ -25,6 +25,7 @@ import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.examples.command.PingCommand;
 import ch.kalunight.zoe.command.ResetEmotesCommand;
+import ch.kalunight.zoe.command.SetupCommand;
 import ch.kalunight.zoe.command.ShutDownCommand;
 import ch.kalunight.zoe.command.add.AddCommand;
 import ch.kalunight.zoe.command.create.CreateCommand;
@@ -149,7 +150,7 @@ public class Zoe {
           event.getTextChannel().sendMessage(stringBuilder.toString()).queue();
           break;
         default:
-          logger.warn("The help command has been triger in a no-sendable command");
+          logger.warn("The help command has been triger in a no-sendable channel");
           break;
         }
       }
@@ -168,6 +169,7 @@ public class Zoe {
     commands.add(new PingCommand());
 
     //Basic commands
+    commands.add(new SetupCommand());
     commands.add(new CreateCommand());
     commands.add(new DeleteCommand());
     commands.add(new DefineCommand());

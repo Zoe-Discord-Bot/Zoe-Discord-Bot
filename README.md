@@ -17,4 +17,4 @@ Your help is always welcome! You can find here a guide to setup a development ve
 
 ## License 
 
-This project is licensed under the GPL-3.0 - see the [LICENSE.md](https://github.com/KaluNight/Zoe-Discord-Bot/blob/dev/README.md) file for details
+This project is licensed under the GPL-3.0 - see the [LICENSE.md](https://github.com/KaluNight/Zoe-Discord-Bot/blob/master/LICENSE) file for details

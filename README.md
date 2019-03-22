@@ -12,3 +12,10 @@ Your help is always welcome! You can find here a guide to setup a development ve
 
 ## Built with
 
+[Riot Api Java](https://github.com/taycaldwell/riot-api-java)
+
+[JDA](https://github.com/DV8FromTheWorld/JDA)
+
+## License 
+
+This project is licensed under the GPL-3.0 - see the [LICENSE.md](LICENSE.md) file for details

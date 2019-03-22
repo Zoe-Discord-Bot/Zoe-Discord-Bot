@@ -12,9 +12,8 @@ Your help is always welcome! You can find here a guide to setup a development ve
 
 ## Built with
 
-[Riot Api Java](https://github.com/taycaldwell/riot-api-java)
-
-[JDA](https://github.com/DV8FromTheWorld/JDA)
+*[Riot Api Java](https://github.com/taycaldwell/riot-api-java)
+*[JDA](https://github.com/DV8FromTheWorld/JDA)
 
 ## License 
 

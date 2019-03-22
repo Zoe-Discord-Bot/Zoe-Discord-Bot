@@ -85,15 +85,9 @@ public class Zoe {
 
     CommandClientBuilder client = new CommandClientBuilder();
     
-    String discordTocken = System.getenv("DISCORD_TOCKEN");
-    String riotTocken = System.getenv("RIOT_TOCKEN");
-    client.setOwnerId(System.getenv("OWNER_ID"));
-    
-    if(discordTocken.isEmpty() || riotTocken.isEmpty()) {
-      discordTocken = args[0];
-      riotTocken = args[1];
-      client.setOwnerId(args[2]);
-    }
+    String discordTocken = args[0];
+    String riotTocken = args[1];
+    client.setOwnerId(args[2]);
 
     client.setPrefix(">");
 

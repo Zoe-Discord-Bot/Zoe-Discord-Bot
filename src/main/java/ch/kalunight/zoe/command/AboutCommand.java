@@ -4,8 +4,9 @@ import java.awt.Color;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-
+import net.dv8tion.jda.bot.entities.ApplicationInfo;
 import net.dv8tion.jda.core.EmbedBuilder;
+import net.dv8tion.jda.core.Permission;
 
 public class AboutCommand extends Command {
   
@@ -27,12 +28,16 @@ public class AboutCommand extends Command {
     EmbedBuilder builder = new EmbedBuilder();
     
     builder.setAuthor("Hi guys ! I'm " + event.getSelfUser().getName() + " !", null, event.getSelfUser().getAvatarUrl());
+    
+    ApplicationInfo info = event.getJDA().asBot().getApplicationInfo().complete();
+    String inviteLink = info.getInviteUrl(0L, Permission.MANAGE_CHANNEL);
 
     String desc = "Hi, I'm a League Of Legends bot written in Java by KaluNight#0001. "
         + "I offer the possibility to create an information panel that allows you to know if your friends are in "
         + "game directly in a Discord channel while giving various information about the current games. "
-        + "You can contribute to my development on my Github [here](https://github.com/KaluNight/Zoe-Discord-Bot).\n" + 
-        "Official Server Discord: <https://discord.gg/whc5PrC>\n\n"
+        + "You can contribute to my development on my Github [here](https://github.com/KaluNight/Zoe-Discord-Bot).\n"
+        + "Official Server Discord: <https://discord.gg/whc5PrC>\n"
+        + "To add me to your server click [here](" + inviteLink + ")!\n\n"
         + "*I like butterflies, unicorns, and watching the end of finite realities!*\n\n"
         + event.getSelfUser().getName() + " isn't endorsed by Riot Games and doesn't reflect the views or opinions of"
         + " Riot Games or anyone officially involved in producing or managing League of Legends.";

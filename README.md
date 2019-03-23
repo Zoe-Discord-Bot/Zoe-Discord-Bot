@@ -8,7 +8,7 @@ Link comming soon :D
 
 ## Help the Project
 
-Your help is always welcome! You can find here a guide to setup a development version of the bot and help in the development.
+Your help is always welcome! You can find [here](https://github.com/KaluNight/Zoe-Discord-Bot/wiki/Setup-a-development-environment-on-Windows-with-Eclipse) a guide to setup a development version of the bot and help in the development.
 
 ## Built with
 

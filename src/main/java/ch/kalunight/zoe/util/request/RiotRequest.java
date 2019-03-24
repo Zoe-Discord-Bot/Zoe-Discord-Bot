@@ -137,7 +137,7 @@ public class RiotRequest {
             beginTime.getMillis(), actualTime.getMillis(), -1, -1);
         referencesMatchList.addAll(matchList.getMatches());
       } catch(RiotApiException e) {
-        logger.warn("Impossible to get matchs history : {}", e.getMessage());
+        logger.debug("Impossible to get matchs history : {}", e.getMessage());
       }
       
       actualTime = actualTime.minusWeeks(1);
@@ -151,7 +151,7 @@ public class RiotRequest {
     try {
       mastery = Zoe.getRiotApi().getChampionMasteriesBySummonerByChampion(Platform.EUW, summonerId, championId);
     } catch(RiotApiException e) {
-      logger.warn("Impossible d'obtenir le score de mastery : {}", e.getMessage());
+      logger.debug("Impossible to get mastery score : {}", e.getMessage());
       return "0";
     }
 
@@ -179,7 +179,7 @@ public class RiotRequest {
   public static String getActualGameStatus(CurrentGameInfo currentGameInfo) {
 
     if(currentGameInfo == null) {
-      return "Pas en game";
+      return "Not in game";
     }
 
     String gameStatus = NameConversion.convertGameQueueIdToString(currentGameInfo.getGameQueueConfigId()) + " ";

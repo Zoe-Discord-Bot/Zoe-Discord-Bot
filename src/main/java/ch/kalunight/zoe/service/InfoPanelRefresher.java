@@ -103,7 +103,7 @@ public class InfoPanelRefresher implements Runnable {
     for(int i = 0; i < cardsToRemove.size(); i++) {
       try {
         try {
-        cardsToRemove.get(i).getMessage().delete().complete();
+          cardsToRemove.get(i).getMessage().delete().complete();
         }catch(ErrorResponseException  e) {
           if(e.getErrorResponse() == ErrorResponse.UNKNOWN_MESSAGE) {
             logger.info("Message already deleted : {}", e.getMessage());
@@ -112,9 +112,9 @@ public class InfoPanelRefresher implements Runnable {
             throw e;
           }
         }
-        
+
         try {
-        cardsToRemove.get(i).getTitle().delete().complete();
+          cardsToRemove.get(i).getTitle().delete().complete();
         }catch(ErrorResponseException  e) {
           if(e.getErrorResponse() == ErrorResponse.UNKNOWN_MESSAGE) {
             logger.info("Message already deleted : {}", e.getMessage());

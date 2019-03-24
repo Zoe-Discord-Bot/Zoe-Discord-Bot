@@ -184,7 +184,13 @@ public class RiotRequest {
 
     String gameStatus = NameConversion.convertGameQueueIdToString(currentGameInfo.getGameQueueConfigId()) + " ";
 
-    double minutesOfGames = (currentGameInfo.getGameLength() + 180.0) / 60.0;
+    double minutesOfGames = 0.0;
+    
+    if(currentGameInfo.getGameLength() != 0l) {
+      minutesOfGames = currentGameInfo.getGameLength() + 180.0;
+    }
+    
+    minutesOfGames = minutesOfGames / 60.0;
     String[] stringMinutesSecondes = Double.toString(minutesOfGames).split("\\.");
     int minutesGameLength = Integer.parseInt(stringMinutesSecondes[0]);
     int secondesGameLength = (int) (Double.parseDouble("0." + stringMinutesSecondes[1]) * 60.0);

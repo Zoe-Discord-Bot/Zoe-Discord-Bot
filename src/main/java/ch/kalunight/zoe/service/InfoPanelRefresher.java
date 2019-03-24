@@ -2,9 +2,12 @@ package ch.kalunight.zoe.service;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.jagrosh.jdautilities.command.CommandEvent;
+
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.InfoCard;
@@ -17,6 +20,8 @@ import ch.kalunight.zoe.util.request.RiotRequest;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageEmbed;
 import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.core.exceptions.ErrorResponseException;
+import net.dv8tion.jda.core.requests.ErrorResponse;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 
@@ -97,11 +102,30 @@ public class InfoPanelRefresher implements Runnable {
 
     for(int i = 0; i < cardsToRemove.size(); i++) {
       try {
+        try {
         cardsToRemove.get(i).getMessage().delete().complete();
+        }catch(ErrorResponseException  e) {
+          if(e.getErrorResponse() == ErrorResponse.UNKNOWN_MESSAGE) {
+            logger.info("Message already deleted : {}", e.getMessage());
+          }else {
+            logger.warn("Unhandle error : {}", e.getMessage());
+            throw e;
+          }
+        }
+        
+        try {
         cardsToRemove.get(i).getTitle().delete().complete();
+        }catch(ErrorResponseException  e) {
+          if(e.getErrorResponse() == ErrorResponse.UNKNOWN_MESSAGE) {
+            logger.info("Message already deleted : {}", e.getMessage());
+          }else {
+            logger.warn("Unhandle error : {}", e.getMessage());
+            throw e;
+          }
+        }
         server.getControlePannel().getInfoCards().remove(cardsToRemove.get(i));
       } catch(Exception e) {
-        logger.warn("Impossible de delete message : {}", e.getMessage(), e);
+        logger.warn("Impossible de delete message, retry next time : {}", e.getMessage(), e);
       }
     }
   }

@@ -60,7 +60,13 @@ public class MessageBuilderRequest {
     message.addField("SoloQ Rank", redTeamRankString.toString(), true);
     message.addField("Masteries | WR this month", redTeamWinrateString.toString(), true);
 
-    double minutesOfGames = (match.getGameLength() + 180.0) / 60.0;
+    double minutesOfGames = 0.0;
+    
+    if(match.getGameLength() != 0l) {
+      minutesOfGames = match.getGameLength() + 180.0;
+    }
+    
+    minutesOfGames = minutesOfGames / 60.0;
     String[] stringMinutesSecondes = Double.toString(minutesOfGames).split("\\.");
     int minutesGameLength = Integer.parseInt(stringMinutesSecondes[0]);
     int secondesGameLength = (int) (Double.parseDouble("0." + stringMinutesSecondes[1]) * 60.0);
@@ -123,7 +129,13 @@ public class MessageBuilderRequest {
     message.addField("SoloQ Rank", redTeamRankString.toString(), true);
     message.addField("Masteries | WR this month", redTeamWinrateString.toString(), true);
 
-    double minutesOfGames = (currentGameInfo.getGameLength() + 180.0) / 60.0;
+    double minutesOfGames = 0.0;
+    
+    if(currentGameInfo.getGameLength() != 0l) {
+      minutesOfGames = currentGameInfo.getGameLength() + 180.0;
+    }
+    
+    minutesOfGames = minutesOfGames / 60.0;
     String[] stringMinutesSecondes = Double.toString(minutesOfGames).split("\\.");
     int minutesGameLength = Integer.parseInt(stringMinutesSecondes[0]);
     int secondesGameLength = (int) (Double.parseDouble("0." + stringMinutesSecondes[1]) * 60.0);

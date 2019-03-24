@@ -70,9 +70,9 @@ public class InfoPanelRefresher implements Runnable {
         manageInfoCards();
       }
     }catch (NullPointerException e){
-      logger.info("The Thread has crashed normally because of deletion of infoChannel : {}", e.getMessage());
+      logger.info("The Thread has crashed normally because of deletion of infoChannel : {}", e);
     }catch (Exception e) {
-      logger.warn("The tread got a unexpected error : {}", e.getMessage());
+      logger.warn("The tread got a unexpected error : {}", e);
     }finally {
       ServerData.getServersIsInTreatment().put(server.getGuild().getId(), false);
     }

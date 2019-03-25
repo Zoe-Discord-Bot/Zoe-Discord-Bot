@@ -50,6 +50,7 @@ import net.dv8tion.jda.core.JDABuilder;
 import net.dv8tion.jda.core.OnlineStatus;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Message;
+import net.dv8tion.jda.core.entities.PrivateChannel;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.exceptions.ErrorResponseException;
@@ -61,6 +62,8 @@ import net.rithms.riot.api.request.ratelimit.RateLimitHandler;
 import net.rithms.riot.constant.Platform;
 
 public class Zoe {
+
+  private static final String BOT_PREFIX = "!";
 
   private static final File SAVE_TXT_FILE = new File("ressources/save.txt");
 
@@ -79,12 +82,12 @@ public class Zoe {
     System.setProperty("logback.configurationFile", "logback.xml");
 
     CommandClientBuilder client = new CommandClientBuilder();
-    
+
     String discordTocken = args[0];
     String riotTocken = args[1];
     client.setOwnerId(args[2]);
 
-    client.setPrefix(">");
+    client.setPrefix(BOT_PREFIX);
 
     Consumer<CommandEvent> helpCommand = getHelpCommand();
 
@@ -123,11 +126,11 @@ public class Zoe {
       public void accept(CommandEvent event) {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("Here is my commands :\n");
-        
+
         Command setupCommand = new SetupCommand();
         stringBuilder.append("Command **" + setupCommand.getName() +"** :\n");
         stringBuilder.append("--> `>" + setupCommand.getName() + "` : " + setupCommand.getHelp() + "\n\n");
-        
+
         Command aboutCommand = new AboutCommand();
         stringBuilder.append("Command **" + aboutCommand.getName() +"** :\n");
         stringBuilder.append("--> `>" + aboutCommand.getName() + "` : " + aboutCommand.getHelp() + "\n\n");
@@ -146,17 +149,9 @@ public class Zoe {
 
         stringBuilder.append("For additional help, you can join our official server : https://discord.gg/whc5PrC");
 
-        switch(event.getChannelType()) {
-        case PRIVATE:
-          event.getPrivateChannel().sendMessage(stringBuilder.toString()).queue();
-          break;
-        case TEXT:
-          event.getTextChannel().sendMessage(stringBuilder.toString()).queue();
-          break;
-        default:
-          logger.warn("The help command has been triger in a no-sendable channel");
-          break;
-        }
+        PrivateChannel privateChannel = event.getAuthor().openPrivateChannel().complete();
+        privateChannel.sendMessage(stringBuilder.toString()).queue();
+        event.reply("I send you all the commands in a private message.");
       }
     };
   }

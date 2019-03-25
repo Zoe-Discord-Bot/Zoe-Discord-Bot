@@ -18,6 +18,7 @@ import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.InfoCard;
 import ch.kalunight.zoe.model.Server;
 import net.dv8tion.jda.core.JDA.Status;
+import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.TextChannel;
 
@@ -36,15 +37,15 @@ public class ShutDownCommand extends Command {
   @Override
   protected void execute(CommandEvent event) {
     TextChannel channel = event.getTextChannel();
-    
+
     channel.sendTyping().complete();
-    
+
     channel.sendMessage("I will be shutdown ...").complete();
-    
+
     ServerData.getMainThreadTimer().cancel();
-    
+
     channel.sendMessage("The game checker thread has been safely stopped ...").complete();
-    
+
     try {
       ServerData.shutDownTaskExecutor();
     } catch (InterruptedException e) {
@@ -59,14 +60,14 @@ public class ShutDownCommand extends Command {
       System.exit(1);
       Thread.currentThread().interrupt();
     }
-    
+
     channel.sendMessage("Task executor has safely stop ...").complete();
-    
+
     Set<Entry<String, Server>> serversEntry = ServerData.getServers().entrySet();
-    
+
     for(Entry<String, Server> serverEntry : serversEntry) {
       Server server = serverEntry.getValue();
-      
+
       if(server != null) {
         List<InfoCard> infoCards = server.getControlePannel().getInfoCards();
         ArrayList<Message> messageToDelete = new ArrayList<>();
@@ -74,14 +75,24 @@ public class ShutDownCommand extends Command {
           messageToDelete.add(infoCard.getMessage());
           messageToDelete.add(infoCard.getTitle());
         }
-        server.getInfoChannel().deleteMessages(messageToDelete).complete();
+        try {
+          if(server.getGuild().getMember(Zoe.getJda().getSelfUser()).hasPermission(Permission.MESSAGE_MANAGE)) {
+            server.getInfoChannel().purgeMessages(messageToDelete);
+          }else {
+            for(Message message : messageToDelete) {
+              message.delete().complete();
+            }
+          }
+        }catch(NullPointerException e) {
+          logger.info("Zoe go kicked from a guild, have no impact");
+        }
       }
     }
-    
+
     channel.sendMessage("All info cards has been deleted, now shutdown discord and save data. (ShutDown is complete)").complete();
-    
+
     Zoe.getJda().shutdown();
-    
+
     while(!Zoe.getJda().getStatus().equals(Status.SHUTDOWN)) {
       try {
         Thread.sleep(100);
@@ -89,13 +100,13 @@ public class ShutDownCommand extends Command {
         Thread.currentThread().interrupt();
       }
     }
-    
+
     try {
       Zoe.saveDataTxt();
     } catch(FileNotFoundException | UnsupportedEncodingException e) {
       logger.error("La sauvegarde n'a pas pu être effectué !");
     }
-    
+
     System.exit(0);
   }
 }

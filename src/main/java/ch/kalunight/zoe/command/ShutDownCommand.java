@@ -2,6 +2,7 @@ package ch.kalunight.zoe.command;
 
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -17,6 +18,7 @@ import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.InfoCard;
 import ch.kalunight.zoe.model.Server;
 import net.dv8tion.jda.core.JDA.Status;
+import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.TextChannel;
 
 public class ShutDownCommand extends Command {
@@ -67,10 +69,12 @@ public class ShutDownCommand extends Command {
       
       if(server != null) {
         List<InfoCard> infoCards = server.getControlePannel().getInfoCards();
+        ArrayList<Message> messageToDelete = new ArrayList<>();
         for(InfoCard infoCard : infoCards) {
-          infoCard.getMessage().delete().queue();
-          infoCard.getTitle().delete().queue();
+          messageToDelete.add(infoCard.getMessage());
+          messageToDelete.add(infoCard.getTitle());
         }
+        server.getInfoChannel().deleteMessages(messageToDelete).complete();
       }
     }
     

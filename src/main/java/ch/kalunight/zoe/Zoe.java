@@ -26,7 +26,6 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.examples.command.PingCommand;
 
 import ch.kalunight.zoe.command.AboutCommand;
-import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.command.ResetEmotesCommand;
 import ch.kalunight.zoe.command.SetupCommand;
 import ch.kalunight.zoe.command.ShutDownCommand;
@@ -62,10 +61,6 @@ import net.rithms.riot.api.request.ratelimit.RateLimitHandler;
 import net.rithms.riot.constant.Platform;
 
 public class Zoe {
-
-  private static final String ANY_INFO_CHANNEL_INFO_TEXT = "Hey ! You don't have create yet a info channel with players informations (and i want to do my work :p), "
-      + "admins can create one with the command `>create infoChannel nameOfTheChannel` or define a channel already existent with "
-      + "`>define infoChannel #mentionOfTextChannel`. (If you need help, you can do the command `>setup`)\nHave a good day !";
 
   private static final File SAVE_TXT_FILE = new File("ressources/save.txt");
 
@@ -346,8 +341,6 @@ public class Zoe {
   private static void setInfoPannel(final Guild guild, final Server server, final TextChannel pannel) {
     if(pannel != null) {
       server.setInfoChannel(pannel);
-    }else {
-      CommandUtil.sendMessageInGuildOrAtOwner(guild, ANY_INFO_CHANNEL_INFO_TEXT);
     }
   }
 

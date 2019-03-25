@@ -63,7 +63,7 @@ import net.rithms.riot.constant.Platform;
 
 public class Zoe {
 
-  private static final String BOT_PREFIX = "!";
+  private static final String BOT_PREFIX = ">";
 
   private static final File SAVE_TXT_FILE = new File("ressources/save.txt");
 

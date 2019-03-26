@@ -79,7 +79,7 @@ public class RiotRequest {
     final List<MatchReference> referencesMatchList = getMatchHistoryOfLastMonthWithTheGivenChampion(region, championKey, summoner);
 
     if(referencesMatchList.isEmpty()) {
-      return "Unknown";
+      return "First game";
     }
 
     int nbrGames = 0;
@@ -89,24 +89,28 @@ public class RiotRequest {
 
       Match match;
       try {
-        match = Zoe.getRiotApi().getMatch(region, matchReference.getGameId());
-      } catch(RiotApiException e) {
-        logger.warn("Match ungetable from api : {}", e.getMessage());
-        continue;
-      }
-
-      Participant participant = match.getParticipantByAccountId(summoner.getAccountId());
-
-      if(participant != null && participant.getTimeline().getCreepsPerMinDeltas() != null) { //Check if the game has been canceled
-
-        String result = match.getTeamByTeamId(participant.getTeamId()).getWin();
-        if(result.equalsIgnoreCase("Win") || result.equalsIgnoreCase("Fail")) {
-          nbrGames++;
+        try {
+          match = Zoe.getRiotApi().getMatch(region, matchReference.getGameId());
+        } catch(RiotApiException e) {
+          logger.warn("Match ungetable from api : {}", e.getMessage());
+          continue;
         }
 
-        if(result.equalsIgnoreCase("Win")) {
-          nbrWins++;
+        Participant participant = match.getParticipantByAccountId(summoner.getAccountId());
+
+        if(participant != null && participant.getTimeline().getCreepsPerMinDeltas() != null) { //Check if the game has been canceled
+
+          String result = match.getTeamByTeamId(participant.getTeamId()).getWin();
+          if(result.equalsIgnoreCase("Win") || result.equalsIgnoreCase("Fail")) {
+            nbrGames++;
+          }
+
+          if(result.equalsIgnoreCase("Win")) {
+            nbrWins++;
+          }
         }
+      }catch(NullPointerException e) {
+        logger.warn("Error catched in match (some value are null, NullPointerException : {}", e);
       }
     }
 
@@ -121,10 +125,10 @@ public class RiotRequest {
 
   private static List<MatchReference> getMatchHistoryOfLastMonthWithTheGivenChampion(Platform region, int championKey, Summoner summoner) {
     final List<MatchReference> referencesMatchList = new ArrayList<>();
-    
+
     DateTime actualTime = DateTime.now();
     DateTime beginTime = actualTime.minusWeeks(1);
-    
+
     Set<Integer> championToFilter = new HashSet<>();
     championToFilter.add(championKey);
 
@@ -135,11 +139,13 @@ public class RiotRequest {
       try {
         matchList = Zoe.getRiotApi().getMatchListByAccountId(region, summoner.getAccountId(), championToFilter, null, null,
             beginTime.getMillis(), actualTime.getMillis(), -1, -1);
-        referencesMatchList.addAll(matchList.getMatches());
+        if(matchList.getMatches() != null) {
+          referencesMatchList.addAll(matchList.getMatches());
+        }
       } catch(RiotApiException e) {
         logger.debug("Impossible to get matchs history : {}", e.getMessage());
       }
-      
+
       actualTime = actualTime.minusWeeks(1);
       beginTime = actualTime.minusWeeks(1);
     }
@@ -185,11 +191,11 @@ public class RiotRequest {
     String gameStatus = NameConversion.convertGameQueueIdToString(currentGameInfo.getGameQueueConfigId()) + " ";
 
     double minutesOfGames = 0.0;
-    
+
     if(currentGameInfo.getGameLength() != 0l) {
       minutesOfGames = currentGameInfo.getGameLength() + 180.0;
     }
-    
+
     minutesOfGames = minutesOfGames / 60.0;
     String[] stringMinutesSecondes = Double.toString(minutesOfGames).split("\\.");
     int minutesGameLength = Integer.parseInt(stringMinutesSecondes[0]);

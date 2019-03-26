@@ -90,9 +90,12 @@ public class Server {
       }
     }
 
-    for(Long idCurrentGamesSaved : currentGamesIdAlreadySended) {
-      if(!gameIdToSave.contains(idCurrentGamesSaved)) {
-        currentGamesIdAlreadySended.remove(idCurrentGamesSaved);
+    Iterator<Long> idCurrentGamesIterator = currentGamesIdAlreadySended.iterator();
+    
+    while(idCurrentGamesIterator.hasNext()) {
+      Long actualCurrentGamesId = idCurrentGamesIterator.next();
+      if(!gameIdToSave.contains(actualCurrentGamesId)) {
+        idCurrentGamesIterator.remove();
       }
     }
   }

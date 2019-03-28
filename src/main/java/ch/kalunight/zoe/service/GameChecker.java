@@ -8,14 +8,22 @@ import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.SpellingLangage;
+import net.dv8tion.jda.core.OnlineStatus;
+import net.dv8tion.jda.core.entities.Game;
 import net.dv8tion.jda.core.entities.Guild;
 
 public class GameChecker extends TimerTask {
 
-  private static DateTime nextRefreshDate = DateTime.now();
+  private static final int TIME_BETWEEN_EACH_SAVE_IN_MINUTES = 10;
+  
+  private static final int TIME_BETWEEN_EACH_STATUS_REFRESH_IN_HOURS = 12;
+  
+  private static DateTime nextSaveTime = DateTime.now().plusMinutes(TIME_BETWEEN_EACH_SAVE_IN_MINUTES);
+  
+  private static DateTime nextStatusRefresh = DateTime.now();
 
-  public static void setNextRefreshDate(DateTime nextRefreshDate) {
-    GameChecker.nextRefreshDate = nextRefreshDate;
+  public static void setNextSaveTime(DateTime nextRefreshDate) {
+    GameChecker.nextSaveTime = nextRefreshDate;
   }
 
   @Override
@@ -39,9 +47,19 @@ public class GameChecker extends TimerTask {
       }
     }
 
-    if(nextRefreshDate.isAfterNow()) {
+    if(nextSaveTime.isAfterNow()) {
       ServerData.getTaskExecutor().submit(new DataSaver());
-      setNextRefreshDate(DateTime.now().plusMinutes(10));
+      setNextSaveTime(DateTime.now().plusMinutes(TIME_BETWEEN_EACH_SAVE_IN_MINUTES));
     }
+    
+    if(nextStatusRefresh.isAfterNow()) {
+      Zoe.getJda().getPresence().setStatus(OnlineStatus.ONLINE);
+      Zoe.getJda().getPresence().setGame(Game.playing("type \">help\""));
+      setNextStatusRefresh(nextStatusRefresh.plusHours(TIME_BETWEEN_EACH_STATUS_REFRESH_IN_HOURS));
+    }
+  }
+
+  public static void setNextStatusRefresh(DateTime nextStatusRefresh) {
+    GameChecker.nextStatusRefresh = nextStatusRefresh;
   }
 }

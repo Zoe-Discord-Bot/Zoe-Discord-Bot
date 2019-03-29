@@ -1,7 +1,6 @@
 package ch.kalunight.zoe.util.request;
 
 import java.util.List;
-
 import ch.kalunight.zoe.model.Champion;
 import ch.kalunight.zoe.model.FullTier;
 import ch.kalunight.zoe.model.Player;

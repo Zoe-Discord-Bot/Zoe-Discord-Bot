@@ -53,7 +53,7 @@ public class CreateInfoChannelCommand extends Command {
       server.setInfoChannel(textChannel);
       
       Runnable task = new InfoPanelRefresher(server);
-      ServerData.getTaskExecutor().submit(task);
+      ServerData.getTaskExecutor().execute(task);
       
       event.reply("The channel got created !");
     }catch(InsufficientPermissionException e) {

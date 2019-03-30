@@ -5,6 +5,7 @@ import java.util.function.BiConsumer;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 
+import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.CommandUtil;
 
 public class HelpUsVoteCommand extends Command {
@@ -17,7 +18,12 @@ public class HelpUsVoteCommand extends Command {
   
   @Override
   protected void execute(CommandEvent event) {
-    
+    if(Zoe.getBotListApi() != null) {
+      
+    }else {
+      event.reply("Not implement yet D:");
+    }
+    //TODO: Implement
   }
   
   private BiConsumer<CommandEvent, Command> getHelpMethod() {

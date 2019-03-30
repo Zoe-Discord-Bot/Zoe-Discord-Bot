@@ -89,6 +89,15 @@ public class Zoe {
     String discordTocken = args[0];
     String riotTocken = args[1];
     client.setOwnerId(args[2]);
+    
+    try {
+    Zoe.setBotListApi(new DiscordBotListAPI.Builder()
+        .botId(Zoe.getJda().getSelfUser().getId())
+        .token(args[3])
+        .build());
+    }catch(Exception e) {
+      logger.info("Tocken Discord Api List not Implemented, will work normally...");
+    }
 
     client.setPrefix(BOT_PREFIX);
 

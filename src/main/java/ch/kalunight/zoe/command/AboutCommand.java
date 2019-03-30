@@ -30,7 +30,7 @@ public class AboutCommand extends Command {
     builder.setAuthor("Hi guys ! I'm " + event.getSelfUser().getName() + " !", null, event.getSelfUser().getAvatarUrl());
     
     ApplicationInfo info = event.getJDA().asBot().getApplicationInfo().complete();
-    String inviteLink = info.getInviteUrl(0L, Permission.MANAGE_CHANNEL);
+    String inviteLink = info.getInviteUrl(0L, Permission.MANAGE_CHANNEL, Permission.MESSAGE_MANAGE, Permission.MESSAGE_READ, Permission.MESSAGE_WRITE);
 
     String desc = "Hi, I'm a League Of Legends bot written in Java by KaluNight#0001. "
         + "I offer the possibility to create an information panel that allows you to know if your friends are in "

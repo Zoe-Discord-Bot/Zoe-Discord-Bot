@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
 
+import org.discordbots.api.client.DiscordBotListAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.gson.JsonElement;
@@ -72,6 +73,8 @@ public class Zoe {
   private static RiotApi riotApi;
 
   private static JDA jda;
+  
+  private static DiscordBotListAPI botListApi;
 
   private static final ConcurrentLinkedQueue<List<CustomEmote>> emotesNeedToBeUploaded = new ConcurrentLinkedQueue<>();
 
@@ -399,5 +402,13 @@ public class Zoe {
 
   public static ConcurrentLinkedQueue<List<CustomEmote>> getEmotesNeedToBeUploaded() {
     return emotesNeedToBeUploaded;
+  }
+
+  public static DiscordBotListAPI getBotListApi() {
+    return botListApi;
+  }
+
+  public static void setBotListApi(DiscordBotListAPI botListApi) {
+    Zoe.botListApi = botListApi;
   }
 }

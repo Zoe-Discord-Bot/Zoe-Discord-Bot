@@ -73,6 +73,8 @@ public class Zoe {
   private static RiotApi riotApi;
 
   private static JDA jda;
+
+  private static String discordBotListTocken = "";
   
   private static DiscordBotListAPI botListApi;
 
@@ -91,12 +93,9 @@ public class Zoe {
     client.setOwnerId(args[2]);
     
     try {
-    Zoe.setBotListApi(new DiscordBotListAPI.Builder()
-        .botId(Zoe.getJda().getSelfUser().getId())
-        .token(args[3])
-        .build());
+      discordBotListTocken = args[3];
     }catch(Exception e) {
-      logger.info("Tocken Discord Api List not Implemented, will work normally...");
+      logger.info("Discord api list tocken not implement");
     }
 
     client.setPrefix(BOT_PREFIX);
@@ -419,5 +418,13 @@ public class Zoe {
 
   public static void setBotListApi(DiscordBotListAPI botListApi) {
     Zoe.botListApi = botListApi;
+  }
+
+  public static String getDiscordBotListTocken() {
+    return discordBotListTocken;
+  }
+
+  public static void setDiscordBotListTocken(String discordBotListTocken) {
+    Zoe.discordBotListTocken = discordBotListTocken;
   }
 }

@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.TimerTask;
 
-import org.discordbots.api.client.DiscordBotListAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,19 +73,6 @@ public class EventListener extends ListenerAdapter {
     }
 
     logger.info("Chargement des sauvegardes détaillés terminé !");
-    
-    logger.info("Loading of DiscordBotList API ...");
-    
-    try {
-    Zoe.setBotListApi(new DiscordBotListAPI.Builder()
-        .botId(Zoe.getJda().getSelfUser().getId())
-        .token("Tocken") //SET TOCKEN
-        .build());
-    }catch(Exception e) {
-      //Tocken not implement
-    }
-    
-    logger.info("Loading of DiscordBotList API finished !");
     
     logger.info("Démarrage des tâches continue...");
 

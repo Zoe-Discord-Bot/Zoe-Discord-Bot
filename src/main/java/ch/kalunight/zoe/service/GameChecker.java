@@ -15,11 +15,11 @@ import net.dv8tion.jda.core.entities.Guild;
 public class GameChecker extends TimerTask {
 
   private static final int TIME_BETWEEN_EACH_SAVE_IN_MINUTES = 10;
-  
+
   private static final int TIME_BETWEEN_EACH_STATUS_REFRESH_IN_HOURS = 12;
-  
+
   private static DateTime nextSaveTime = DateTime.now().plusMinutes(TIME_BETWEEN_EACH_SAVE_IN_MINUTES);
-  
+
   private static DateTime nextStatusRefresh = DateTime.now();
 
   public static void setNextSaveTime(DateTime nextRefreshDate) {
@@ -48,13 +48,22 @@ public class GameChecker extends TimerTask {
     }
 
     if(nextSaveTime.isAfterNow()) {
+      //Save data
       ServerData.getTaskExecutor().submit(new DataSaver());
+
+      if(Zoe.getBotListApi() != null) {
+        //Discord bot list status
+        Zoe.getBotListApi().setStats(Zoe.getJda().getGuilds().size());
+      }
+
       setNextSaveTime(DateTime.now().plusMinutes(TIME_BETWEEN_EACH_SAVE_IN_MINUTES));
     }
-    
+
     if(nextStatusRefresh.isAfterNow()) {
+      //Discord status
       Zoe.getJda().getPresence().setStatus(OnlineStatus.ONLINE);
       Zoe.getJda().getPresence().setGame(Game.playing("type \">help\""));
+
       setNextStatusRefresh(nextStatusRefresh.plusHours(TIME_BETWEEN_EACH_STATUS_REFRESH_IN_HOURS));
     }
   }

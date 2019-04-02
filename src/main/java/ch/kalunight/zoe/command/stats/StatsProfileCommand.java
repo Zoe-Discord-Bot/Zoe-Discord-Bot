@@ -2,21 +2,22 @@ package ch.kalunight.zoe.command.stats;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BiConsumer;
 
-import javax.jws.soap.SOAPBinding.Style;
-
 import org.knowm.xchart.BitmapEncoder;
-import org.knowm.xchart.PieChart;
-import org.knowm.xchart.PieChartBuilder;
+import org.knowm.xchart.CategoryChart;
 import org.knowm.xchart.BitmapEncoder.BitmapFormat;
-import org.knowm.xchart.style.Styler;
+import org.knowm.xchart.CategoryChartBuilder;
 import org.knowm.xchart.style.Styler.ChartTheme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
+
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.CommandUtil;
@@ -24,12 +25,14 @@ import ch.kalunight.zoe.model.Champion;
 import ch.kalunight.zoe.model.Player;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.util.Ressources;
+import net.dv8tion.jda.core.MessageBuilder;
 import net.dv8tion.jda.core.entities.User;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.champion_mastery.dto.ChampionMastery;
 
 public class StatsProfileCommand extends Command {
 
+  private static final int NUMBER_OF_CHAMPIONS_IN_GRAPH = 6;
   private static final Logger logger = LoggerFactory.getLogger(StatsProfileCommand.class);
 
   public StatsProfileCommand() {
@@ -73,9 +76,9 @@ public class StatsProfileCommand extends Command {
       return;
     }
 
-    List<ChampionMastery> listHeigherChampion = new ArrayList<ChampionMastery>();
+    List<ChampionMastery> listHeigherChampion = new ArrayList<>();
 
-    for(int i = 0; i < 6; i++) { //TODO : Define const
+    for(int i = 0; i < NUMBER_OF_CHAMPIONS_IN_GRAPH; i++) {
 
       ChampionMastery heigherActual = null;
 
@@ -94,29 +97,42 @@ public class StatsProfileCommand extends Command {
       championsMasteries.remove(heigherActual);
     }
     
-    PieChartBuilder masteriesGraphBuilder = new PieChartBuilder();
+    CategoryChartBuilder masteriesGraphBuilder = new CategoryChartBuilder();
     
     masteriesGraphBuilder.chartTheme = ChartTheme.XChart;
     masteriesGraphBuilder.title("Test : Best Champion Masteries of " + event.getAuthor().getName());
-    PieChart masteriesGraph = masteriesGraphBuilder.build();
+    CategoryChart masteriesGraph = masteriesGraphBuilder.build();
     
+    Map<Double, Object> mappingXChart = new HashMap<>();
+    
+    double inc = 0;
     for(ChampionMastery championMastery : listHeigherChampion) {
       Champion actualSeriesChampion = Ressources.getChampionDataById(championMastery.getChampionId());
       
       String championName = "Champion Unknown";
       if(actualSeriesChampion != null) {
-        championName = actualSeriesChampion.getDisplayName();
+        championName = actualSeriesChampion.getName();
       }
       
-      masteriesGraph.addSeries(championName, championMastery.getChampionPoints());
+      double[] points = {championMastery.getChampionPoints()};
+      double[] valueChartMapping = {inc};
+      mappingXChart.put(Double.valueOf(inc), championName);
+      masteriesGraph.addSeries(championName, valueChartMapping, points);
+      inc++;
     }
     
+    masteriesGraph.setXAxisLabelOverrideMap(mappingXChart);
+    
+    byte[] imageBytes;
     try {
-      BitmapEncoder.getBitmapBytes(masteriesGraph, BitmapFormat.PNG);
+      imageBytes = BitmapEncoder.getBitmapBytes(masteriesGraph, BitmapFormat.PNG);
     } catch (IOException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      logger.warn("Got a error in encoding bytesMap image", e);
+      event.reply("I got an unexpected error when i creating the graph, please retry.");
+      return;
     }
+    event.getTextChannel().sendFile(imageBytes, event.getAuthor().getName() + "ChampionGraph.png",
+        new MessageBuilder("Here your masteries (Test)").build()).queue();
   }
 
   private BiConsumer<CommandEvent, Command> getHelpMethod() {

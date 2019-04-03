@@ -8,8 +8,8 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 
 import org.knowm.xchart.BitmapEncoder;
-import org.knowm.xchart.CategoryChart;
 import org.knowm.xchart.BitmapEncoder.BitmapFormat;
+import org.knowm.xchart.CategoryChart;
 import org.knowm.xchart.CategoryChartBuilder;
 import org.knowm.xchart.style.Styler.ChartTheme;
 import org.slf4j.Logger;
@@ -33,8 +33,30 @@ import net.rithms.riot.api.endpoints.champion_mastery.dto.ChampionMastery;
 public class StatsProfileCommand extends Command {
 
   private static final int NUMBER_OF_CHAMPIONS_IN_GRAPH = 6;
+  private static final Map<Double, Object> MASTERIES_TABLE_OF_VALUE_Y_AXIS = new HashMap<>();
+  
   private static final Logger logger = LoggerFactory.getLogger(StatsProfileCommand.class);
 
+  static {
+    MASTERIES_TABLE_OF_VALUE_Y_AXIS.put(10000.0, "10K");
+    MASTERIES_TABLE_OF_VALUE_Y_AXIS.put(25000.0, "25K");
+    MASTERIES_TABLE_OF_VALUE_Y_AXIS.put(50000.0, "50K");
+    MASTERIES_TABLE_OF_VALUE_Y_AXIS.put(100000.0, "100K");
+    MASTERIES_TABLE_OF_VALUE_Y_AXIS.put(200000.0, "200K");
+    MASTERIES_TABLE_OF_VALUE_Y_AXIS.put(300000.0, "300K");
+    MASTERIES_TABLE_OF_VALUE_Y_AXIS.put(400000.0, "400K");
+    MASTERIES_TABLE_OF_VALUE_Y_AXIS.put(500000.0, "500K");
+    MASTERIES_TABLE_OF_VALUE_Y_AXIS.put(600000.0, "600K");
+    MASTERIES_TABLE_OF_VALUE_Y_AXIS.put(700000.0, "700K");
+    MASTERIES_TABLE_OF_VALUE_Y_AXIS.put(800000.0, "800K");
+    MASTERIES_TABLE_OF_VALUE_Y_AXIS.put(900000.0, "900K");
+    MASTERIES_TABLE_OF_VALUE_Y_AXIS.put(1000000.0, "1M");
+    MASTERIES_TABLE_OF_VALUE_Y_AXIS.put(1500000.0, "1.5M");
+    MASTERIES_TABLE_OF_VALUE_Y_AXIS.put(2000000.0, "2M");
+    MASTERIES_TABLE_OF_VALUE_Y_AXIS.put(2500000.0, "2.5M");
+    MASTERIES_TABLE_OF_VALUE_Y_AXIS.put(3000000.0, "3M");
+  }
+  
   public StatsProfileCommand() {
     this.name = "profile";
     this.arguments = "@playerMention";
@@ -100,28 +122,31 @@ public class StatsProfileCommand extends Command {
     CategoryChartBuilder masteriesGraphBuilder = new CategoryChartBuilder();
     
     masteriesGraphBuilder.chartTheme = ChartTheme.XChart;
-    masteriesGraphBuilder.title("Test : Best Champion Masteries of " + event.getAuthor().getName());
+    masteriesGraphBuilder.title("Best Champions by Masteries of " + event.getAuthor().getName());
+    
     CategoryChart masteriesGraph = masteriesGraphBuilder.build();
+    masteriesGraph.getStyler().setAntiAlias(true);
+    masteriesGraph.getStyler().setLegendVisible(false);
+    masteriesGraph.setYAxisLabelOverrideMap(MASTERIES_TABLE_OF_VALUE_Y_AXIS);
+    masteriesGraph.setXAxisTitle("Best Champions by Masteries");
+    masteriesGraph.setYAxisTitle("Masteries points");
     
-    Map<Double, Object> mappingXChart = new HashMap<>();
+    List<Double> xPointsMasteries = new ArrayList<>();
+    List<Object> yName = new ArrayList<>();
     
-    double inc = 0;
-    for(ChampionMastery championMastery : listHeigherChampion) {
-      Champion actualSeriesChampion = Ressources.getChampionDataById(championMastery.getChampionId());
+    for(int i = 0; i < listHeigherChampion.size(); i++) {
+      Champion actualSeriesChampion = Ressources.getChampionDataById(listHeigherChampion.get(i).getChampionId());
       
       String championName = "Champion Unknown";
       if(actualSeriesChampion != null) {
         championName = actualSeriesChampion.getName();
       }
       
-      double[] points = {championMastery.getChampionPoints()};
-      double[] valueChartMapping = {inc};
-      mappingXChart.put(Double.valueOf(inc), championName);
-      masteriesGraph.addSeries(championName, valueChartMapping, points);
-      inc++;
+      xPointsMasteries.add((double) listHeigherChampion.get(i).getChampionPoints());
+      yName.add(championName);
     }
     
-    masteriesGraph.setXAxisLabelOverrideMap(mappingXChart);
+    masteriesGraph.addSeries("Champions", yName, xPointsMasteries);
     
     byte[] imageBytes;
     try {

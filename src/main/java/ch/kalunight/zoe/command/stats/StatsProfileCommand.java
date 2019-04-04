@@ -34,6 +34,7 @@ public class StatsProfileCommand extends Command {
 
   private static final int NUMBER_OF_CHAMPIONS_IN_GRAPH = 6;
   private static final Map<Double, Object> MASTERIES_TABLE_OF_VALUE_Y_AXIS = new HashMap<>();
+  private static final byte[] valueError = {};
   
   private static final Logger logger = LoggerFactory.getLogger(StatsProfileCommand.class);
 
@@ -90,38 +91,27 @@ public class StatsProfileCommand extends Command {
     } catch(RiotApiException e) {
       if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
         event.reply("Please retry, I got a minor internal error. Sorry about that :/");
+        
         return;
       }
-
       logger.warn("Got a unexpected error : ", e);
       event.reply("I got a unexpected error, please retry.");
       return;
     }
-
-    List<ChampionMastery> listHeigherChampion = new ArrayList<>();
-
-    for(int i = 0; i < NUMBER_OF_CHAMPIONS_IN_GRAPH; i++) {
-
-      ChampionMastery heigherActual = null;
-
-      for(ChampionMastery championMastery : championsMasteries) {
-        if(heigherActual == null) {
-          heigherActual = championMastery;
-          continue;
-        }
-
-        if(championMastery.getChampionPoints() > heigherActual.getChampionPoints()) {
-          heigherActual = championMastery;
-        }
-      }
-
-      listHeigherChampion.add(heigherActual);
-      championsMasteries.remove(heigherActual);
-    }
     
+    byte[] imageBytes = generateMasteriesChart(event, championsMasteries);
+    
+    //TODO: Implement Embended
+    
+    event.getTextChannel().sendFile(imageBytes, event.getAuthor().getName() + "ChampionGraph.png",
+        new MessageBuilder("Here your masteries (Test)").build()).queue();
+  }
+
+  private byte[] generateMasteriesChart(CommandEvent event, List<ChampionMastery> championsMasteries) {
+    List<ChampionMastery> listHeigherChampion = getBestMasteries(championsMasteries, NUMBER_OF_CHAMPIONS_IN_GRAPH);
     CategoryChartBuilder masteriesGraphBuilder = new CategoryChartBuilder();
     
-    masteriesGraphBuilder.chartTheme = ChartTheme.XChart;
+    masteriesGraphBuilder.chartTheme = ChartTheme.GGPlot2;
     masteriesGraphBuilder.title("Best Champions by Masteries of " + event.getAuthor().getName());
     
     CategoryChart masteriesGraph = masteriesGraphBuilder.build();
@@ -154,10 +144,32 @@ public class StatsProfileCommand extends Command {
     } catch (IOException e) {
       logger.warn("Got a error in encoding bytesMap image", e);
       event.reply("I got an unexpected error when i creating the graph, please retry.");
-      return;
+      return valueError;
     }
-    event.getTextChannel().sendFile(imageBytes, event.getAuthor().getName() + "ChampionGraph.png",
-        new MessageBuilder("Here your masteries (Test)").build()).queue();
+    return imageBytes;
+  }
+
+  private List<ChampionMastery> getBestMasteries(List<ChampionMastery> championsMasteries, int nbrTop) {
+    List<ChampionMastery> listHeigherChampion = new ArrayList<>();
+    
+    for(int i = 0; i < nbrTop; i++) {
+
+      ChampionMastery heigherActual = null;
+
+      for(ChampionMastery championMastery : championsMasteries) {
+        if(heigherActual == null) {
+          heigherActual = championMastery;
+          continue;
+        }
+
+        if(championMastery.getChampionPoints() > heigherActual.getChampionPoints() && !listHeigherChampion.contains(heigherActual)) {
+          heigherActual = championMastery;
+        }
+      }
+
+      listHeigherChampion.add(heigherActual);
+    }
+    return listHeigherChampion;
   }
 
   private BiConsumer<CommandEvent, Command> getHelpMethod() {

@@ -10,6 +10,10 @@ import net.dv8tion.jda.core.entities.Guild;
 
 public class EventListenerUtil {
 
+  private EventListenerUtil() {
+    //Hide public constructor
+  }
+  
   public static void loadCustomEmotes() throws IOException {
     List<Emote> uploadedEmotes = getAllGuildCustomEmotes();
     List<CustomEmote> picturesInFile = CustomEmoteUtil.loadPicturesInFile();

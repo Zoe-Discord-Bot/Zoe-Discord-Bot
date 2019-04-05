@@ -3,18 +3,24 @@ package ch.kalunight.zoe.util.request;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
+import ch.kalunight.zoe.Zoe;
+import ch.kalunight.zoe.model.CustomEmote;
+import ch.kalunight.zoe.model.Mastery;
 import ch.kalunight.zoe.model.Player;
 import ch.kalunight.zoe.util.NameConversion;
+import ch.kalunight.zoe.util.Ressources;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.entities.MessageEmbed;
+import net.dv8tion.jda.core.entities.MessageEmbed.Field;
 import net.dv8tion.jda.core.entities.User;
+import net.rithms.riot.api.RiotApiException;
+import net.rithms.riot.api.endpoints.champion_mastery.dto.ChampionMastery;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.constant.Platform;
 
 public class MessageBuilderRequest {
-
 
   private MessageBuilderRequest() {}
 
@@ -148,4 +154,49 @@ public class MessageBuilderRequest {
 
     return message.build();
   }
+  
+  public static MessageEmbed createProfileMessage(byte[] graph, Player player, List<ChampionMastery> masteries) {
+    
+    EmbedBuilder message = new EmbedBuilder();
+
+    message.setAuthor(player.getDiscordUser().getName(), null, player.getDiscordUser().getAvatarUrl());
+    
+    Summoner summoner;
+    try {
+      summoner = Zoe.getRiotApi().getSummoner(player.getRegion(), player.getSummoner().getId());
+    } catch(RiotApiException e) {
+      summoner = player.getSummoner();
+    }
+    
+    Field field = new Field("Level", "level " + summoner.getSummonerLevel(), true);
+    
+    message.addField(field);
+    
+    int nbrMastery7 = 0;
+    int nbrMastery6 = 0;
+    int nbrMastery5 = 0;
+    
+    for(ChampionMastery championMastery : masteries) {
+      switch(championMastery.getChampionLevel()) {
+        case 5: nbrMastery5++; break;
+        case 6: nbrMastery6++; break;
+        case 7: nbrMastery7++; break;
+        default: break;
+      }
+    }
+    
+    CustomEmote masteryEmote7 = Ressources.getMasteryEmote().get(Mastery.getEnum(7));
+    CustomEmote masteryEmote6 = Ressources.getMasteryEmote().get(Mastery.getEnum(6));
+    CustomEmote masteryEmote5 = Ressources.getMasteryEmote().get(Mastery.getEnum(5));
+    
+    field = new Field("Number of masteries by level",
+      masteryEmote7.getUsableEmote() + " : " + nbrMastery7 + "\n"
+    + masteryEmote6.getUsableEmote() + " : " + nbrMastery6 + "\n"
+    + masteryEmote5.getUsableEmote() + " : " + nbrMastery5 + "\n", true);
+    
+    message.addField(field);
+    
+    return null;
+  }
+  
 }

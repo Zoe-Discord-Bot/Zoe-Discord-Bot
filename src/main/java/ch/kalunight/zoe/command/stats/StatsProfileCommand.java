@@ -25,6 +25,7 @@ import ch.kalunight.zoe.model.Champion;
 import ch.kalunight.zoe.model.Player;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.util.Ressources;
+import ch.kalunight.zoe.util.request.MessageBuilderRequest;
 import net.dv8tion.jda.core.MessageBuilder;
 import net.dv8tion.jda.core.entities.User;
 import net.rithms.riot.api.RiotApiException;
@@ -39,8 +40,6 @@ public class StatsProfileCommand extends Command {
   private static final Logger logger = LoggerFactory.getLogger(StatsProfileCommand.class);
 
   static {
-    MASTERIES_TABLE_OF_VALUE_Y_AXIS.put(10000.0, "10K");
-    MASTERIES_TABLE_OF_VALUE_Y_AXIS.put(25000.0, "25K");
     MASTERIES_TABLE_OF_VALUE_Y_AXIS.put(50000.0, "50K");
     MASTERIES_TABLE_OF_VALUE_Y_AXIS.put(100000.0, "100K");
     MASTERIES_TABLE_OF_VALUE_Y_AXIS.put(200000.0, "200K");
@@ -101,7 +100,7 @@ public class StatsProfileCommand extends Command {
     
     byte[] imageBytes = generateMasteriesChart(event, championsMasteries);
     
-    //TODO: Implement Embended
+    MessageBuilderRequest.createProfileMessage(imageBytes, player, championsMasteries);
     
     event.getTextChannel().sendFile(imageBytes, event.getAuthor().getName() + "ChampionGraph.png",
         new MessageBuilder("Here your masteries (Test)").build()).queue();

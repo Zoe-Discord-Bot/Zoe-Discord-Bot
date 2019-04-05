@@ -13,6 +13,13 @@ public class CustomEmote {
     this.name = name;
     this.file = file;
   }
+  
+  public String getUsableEmote() {
+    if(emote != null) {
+      return emote.getAsMention();
+    }
+    return name;
+  }
 
   public String getName() {
     return name.replaceAll(" ", "");

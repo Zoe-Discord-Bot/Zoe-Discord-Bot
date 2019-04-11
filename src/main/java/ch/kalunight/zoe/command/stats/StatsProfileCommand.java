@@ -90,7 +90,6 @@ public class StatsProfileCommand extends Command {
     } catch(RiotApiException e) {
       if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
         event.reply("Please retry, I got a minor internal error. Sorry about that :/");
-        
         return;
       }
       logger.warn("Got a unexpected error : ", e);

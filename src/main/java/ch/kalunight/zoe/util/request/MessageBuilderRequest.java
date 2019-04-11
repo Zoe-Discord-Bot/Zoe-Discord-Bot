@@ -189,7 +189,7 @@ public class MessageBuilderRequest {
     CustomEmote masteryEmote6 = Ressources.getMasteryEmote().get(Mastery.getEnum(6));
     CustomEmote masteryEmote5 = Ressources.getMasteryEmote().get(Mastery.getEnum(5));
     
-    field = new Field("Number of masteries by level",
+    field = new Field("Number of masteries by level\n",
       masteryEmote7.getUsableEmote() + " : " + nbrMastery7 + "\n"
     + masteryEmote6.getUsableEmote() + " : " + nbrMastery6 + "\n"
     + masteryEmote5.getUsableEmote() + " : " + nbrMastery5 + "\n", true);

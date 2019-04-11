@@ -10,29 +10,30 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.PrivateChannel;
 import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.core.exceptions.ErrorResponseException;
 
 public class CommandUtil {
-  
+
   private static final Logger logger = LoggerFactory.getLogger(CommandUtil.class);
 
   private CommandUtil() {
     //Hide public constructor
   }
-  
+
   public static void sendTypingInFonctionOfChannelType(CommandEvent event) {
     switch(event.getChannelType()) {
-    case PRIVATE:
-      event.getPrivateChannel().sendTyping().complete();
-      break;
-    case TEXT:
-      event.getTextChannel().sendTyping().complete();
-      break;
-    default:
-      logger.warn("event.getChannelType() return a unexpected type : " + event.getChannelType().toString());
-      break;
+      case PRIVATE:
+        event.getPrivateChannel().sendTyping().complete();
+        break;
+      case TEXT:
+        event.getTextChannel().sendTyping().complete();
+        break;
+      default:
+        logger.warn("event.getChannelType() return a unexpected type : " + event.getChannelType().toString());
+        break;
     }
   }
-  
+
   public static void sendMessageInGuildOrAtOwner(Guild guild, String messageToSend) {
     List<TextChannel> textChannels = guild.getTextChannels();
 
@@ -45,9 +46,13 @@ public class CommandUtil {
       }
     }
 
-    if(!messageSended) {
-      PrivateChannel privateChannel = guild.getOwner().getUser().openPrivateChannel().complete();
-      privateChannel.sendMessage(messageToSend).queue();
+    try {
+      if(!messageSended) {
+        PrivateChannel privateChannel = guild.getOwner().getUser().openPrivateChannel().complete();
+        privateChannel.sendMessage(messageToSend).queue();
+      }
+    }catch(ErrorResponseException e) {
+      logger.info("Impossible to send the annonce to a owner (Could be a error because i send a message to myself).");
     }
   }
 }

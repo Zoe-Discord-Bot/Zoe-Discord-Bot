@@ -11,9 +11,9 @@ import net.rithms.riot.api.request.ratelimit.RespectedRateLimitException;
 
 public class SleeperRateLimitHandler extends DefaultRateLimitHandler {
 
-  private static final int MAX_REQUEST_BY_SECONDS = 100; //Production api key got no seconds limits, Change the value with the rate of api dev key (10/50)
+  private static final int MAX_REQUEST_BY_SECONDS = 25; //Production api key got no seconds limits, Change the value with the rate of api dev key (10/50)
 
-  private static final int MAX_REQUEST_BY_MINUTES = 100;
+  private static final int MAX_REQUEST_BY_MINUTES = 1500;
 
   private static final ArrayList<DateTime> secondList = new ArrayList<>();
 

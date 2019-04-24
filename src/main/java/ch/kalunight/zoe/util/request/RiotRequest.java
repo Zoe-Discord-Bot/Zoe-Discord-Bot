@@ -133,7 +133,7 @@ public class RiotRequest {
     Set<Integer> championToFilter = new HashSet<>();
     championToFilter.add(championKey);
 
-    for(int i = 0; i < 3; i++) {
+    for(int i = 0; i < 4; i++) {
 
       MatchList matchList = null;
 

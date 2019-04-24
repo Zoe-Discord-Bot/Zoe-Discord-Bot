@@ -30,7 +30,6 @@ public class ServerData {
   }
   
   static {
-    TASK_EXECUTOR.prestartAllCoreThreads();
     logger.info("Task executor lauched with {} threads", nbProcs);
   }
 

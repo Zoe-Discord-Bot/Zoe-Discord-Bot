@@ -27,6 +27,7 @@ import net.rithms.riot.api.endpoints.match.dto.MatchReference;
 import net.rithms.riot.api.endpoints.match.dto.Participant;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
+import net.rithms.riot.constant.CallPriority;
 import net.rithms.riot.constant.Platform;
 
 public class RiotRequest {
@@ -41,7 +42,7 @@ public class RiotRequest {
 
     Set<LeaguePosition> listLeague;
     try {
-      listLeague = Zoe.getRiotApi().getLeaguePositionsBySummonerId(region, summonerId);
+      listLeague = Zoe.getRiotApi().getLeaguePositionsBySummonerId(region, summonerId, CallPriority.NORMAL);
     } catch(RiotApiException e) {
       logger.warn("Error with riot api : {}", e.getMessage());
       return new FullTier(Tier.UNKNOWN, Rank.UNKNOWN, 0);
@@ -70,7 +71,7 @@ public class RiotRequest {
 
     Summoner summoner;
     try {
-      summoner = Zoe.getRiotApi().getSummoner(Platform.EUW, summonerId);
+      summoner = Zoe.getRiotApi().getSummoner(region, summonerId, CallPriority.NORMAL);
     } catch(RiotApiException e) {
       logger.warn("Impossible to get the summoner : {}", e.getMessage());
       return "Any data";
@@ -90,7 +91,7 @@ public class RiotRequest {
       Match match;
       try {
         try {
-          match = Zoe.getRiotApi().getMatch(region, matchReference.getGameId());
+          match = Zoe.getRiotApi().getMatch(region, matchReference.getGameId(), CallPriority.NORMAL);
         } catch(RiotApiException e) {
           logger.warn("Match ungetable from api : {}", e.getMessage());
           continue;
@@ -132,13 +133,13 @@ public class RiotRequest {
     Set<Integer> championToFilter = new HashSet<>();
     championToFilter.add(championKey);
 
-    for(int i = 0; i < 3; i++) {
+    for(int i = 0; i < 4; i++) {
 
       MatchList matchList = null;
 
       try {
         matchList = Zoe.getRiotApi().getMatchListByAccountId(region, summoner.getAccountId(), championToFilter, null, null,
-            beginTime.getMillis(), actualTime.getMillis(), -1, -1);
+            beginTime.getMillis(), actualTime.getMillis(), -1, -1, CallPriority.NORMAL);
         if(matchList.getMatches() != null) {
           referencesMatchList.addAll(matchList.getMatches());
         }
@@ -152,10 +153,10 @@ public class RiotRequest {
     return referencesMatchList;
   }
 
-  public static String getMasterysScore(String summonerId, int championId) {
+  public static String getMasterysScore(String summonerId, int championId, Platform platform) {
     ChampionMastery mastery = null;
     try {
-      mastery = Zoe.getRiotApi().getChampionMasteriesBySummonerByChampion(Platform.EUW, summonerId, championId);
+      mastery = Zoe.getRiotApi().getChampionMasteriesBySummonerByChampion(platform, summonerId, championId, CallPriority.NORMAL);
     } catch(RiotApiException e) {
       logger.debug("Impossible to get mastery score : {}", e.getMessage());
       return "0";

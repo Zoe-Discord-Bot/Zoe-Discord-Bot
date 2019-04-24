@@ -75,16 +75,18 @@ public class ShutDownCommand extends Command {
           messageToDelete.add(infoCard.getMessage());
           messageToDelete.add(infoCard.getTitle());
         }
-        try {
-          if(server.getGuild().getMember(Zoe.getJda().getSelfUser()).hasPermission(Permission.MESSAGE_MANAGE)) {
-            server.getInfoChannel().purgeMessages(messageToDelete);
-          }else {
-            for(Message message : messageToDelete) {
-              message.delete().complete();
+        if(server.getInfoChannel() != null) {
+          try {
+            if(server.getGuild().getMember(Zoe.getJda().getSelfUser()).hasPermission(Permission.MESSAGE_MANAGE)) {
+              server.getInfoChannel().purgeMessages(messageToDelete);
+            }else {
+              for(Message message : messageToDelete) {
+                message.delete().complete();
+              }
             }
+          }catch(NullPointerException e) {
+            logger.info("Zoe go kicked from a guild, have no impact");
           }
-        }catch(NullPointerException e) {
-          logger.info("Zoe go kicked from a guild, have no impact");
         }
       }
     }

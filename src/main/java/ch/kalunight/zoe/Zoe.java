@@ -18,6 +18,7 @@ import java.util.function.Consumer;
 import org.discordbots.api.client.DiscordBotListAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -45,7 +46,6 @@ import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.SpellingLangage;
 import ch.kalunight.zoe.model.Team;
 import ch.kalunight.zoe.util.Ressources;
-import ch.kalunight.zoe.util.SleeperRateLimitHandler;
 import net.dv8tion.jda.core.AccountType;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.JDABuilder;
@@ -60,7 +60,10 @@ import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.RiotApi;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
+import net.rithms.riot.api.request.ratelimit.PriorityManagerRateLimitHandler;
+import net.rithms.riot.api.request.ratelimit.PriorityRateLimit;
 import net.rithms.riot.api.request.ratelimit.RateLimitHandler;
+import net.rithms.riot.api.request.ratelimit.RateLimitRequestTank;
 import net.rithms.riot.constant.Platform;
 
 public class Zoe {
@@ -109,13 +112,8 @@ public class Zoe {
       client.addCommand(command);
     }
 
-    ApiConfig config = new ApiConfig().setKey(riotTocken);
-
-    RateLimitHandler defaultLimite = new SleeperRateLimitHandler();
-
-    config.setRateLimitHandler(defaultLimite);
-    riotApi = new RiotApi(config);
-
+    initRiotApi(riotTocken);
+    
     try {
       jda = new JDABuilder(AccountType.BOT)//
           .setToken(discordTocken)//
@@ -130,6 +128,25 @@ public class Zoe {
       logger.error(e.getMessage());
       System.exit(1);
     }
+  }
+
+  private static void initRiotApi(String riotTocken) {
+    ApiConfig config = new ApiConfig().setKey(riotTocken);
+
+    PriorityRateLimit secondsLimit = new PriorityRateLimit(50, 25);
+    RateLimitRequestTank requestSecondsTank = new RateLimitRequestTank(10, 250, secondsLimit);
+
+    PriorityRateLimit minuteLimit = new PriorityRateLimit(500, 100);
+    RateLimitRequestTank requestMinutesTank = new RateLimitRequestTank(600, 15000, minuteLimit);
+    
+    List<RateLimitRequestTank> priorityList = new ArrayList<>();
+    priorityList.add(requestSecondsTank);
+    priorityList.add(requestMinutesTank);
+
+    RateLimitHandler defaultLimite = new PriorityManagerRateLimitHandler(); // delete the list from parameter for dev setup
+    
+    config.setRateLimitHandler(defaultLimite);
+    riotApi = new RiotApi(config);
   }
 
   private static Consumer<CommandEvent> getHelpCommand() {

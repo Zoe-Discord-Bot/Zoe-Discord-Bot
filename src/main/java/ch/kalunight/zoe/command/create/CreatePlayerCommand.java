@@ -20,6 +20,7 @@ import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.User;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
+import net.rithms.riot.constant.CallPriority;
 import net.rithms.riot.constant.Platform;
 
 public class CreatePlayerCommand extends Command{
@@ -80,7 +81,7 @@ public class CreatePlayerCommand extends Command{
 
     Summoner summoner;
     try {
-      summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);
+      summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName, CallPriority.HIGH);
     }catch(RiotApiException e) {
       if(e.getErrorCode() == RiotApiException.SERVER_ERROR || e.getErrorCode() == RiotApiException.UNAVAILABLE) {
         event.reply("Riot server occured a issue, please retry later");

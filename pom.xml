@@ -39,7 +39,7 @@
 		<dependency>
 			<groupId>net.dv8tion</groupId>
 			<artifactId>JDA</artifactId>
-			<version>3.8.3_462</version>
+			<version>3.8.3_463</version>
 		</dependency>
 
 		<dependency>
@@ -73,6 +73,12 @@
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
 			<version>27.1-jre</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.github.DiscordBotList</groupId>
+			<artifactId>DBL-Java-Library</artifactId>
+			<version>2.0.1</version>
 		</dependency>
 
 		<!-- Test libs -->

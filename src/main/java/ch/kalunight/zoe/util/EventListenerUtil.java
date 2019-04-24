@@ -68,7 +68,9 @@ public class EventListenerUtil {
        * if(guild.getOwnerId().equals(Zoe.getJda().getSelfUser().getId())) { guild.delete().queue(); }
        */
       
-      uploadedEmotes.addAll(guild.getEmotes());
+      if(guild.getOwnerId().equals(Zoe.getJda().getSelfUser().getId())){
+        uploadedEmotes.addAll(guild.getEmotes());
+      }
     }
     return uploadedEmotes;
   }

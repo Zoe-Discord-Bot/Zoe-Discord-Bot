@@ -71,7 +71,7 @@ public class RiotRequest {
 
     Summoner summoner;
     try {
-      summoner = Zoe.getRiotApi().getSummoner(Platform.EUW, summonerId, CallPriority.NORMAL);
+      summoner = Zoe.getRiotApi().getSummoner(region, summonerId, CallPriority.NORMAL);
     } catch(RiotApiException e) {
       logger.warn("Impossible to get the summoner : {}", e.getMessage());
       return "Any data";
@@ -153,10 +153,10 @@ public class RiotRequest {
     return referencesMatchList;
   }
 
-  public static String getMasterysScore(String summonerId, int championId) {
+  public static String getMasterysScore(String summonerId, int championId, Platform platform) {
     ChampionMastery mastery = null;
     try {
-      mastery = Zoe.getRiotApi().getChampionMasteriesBySummonerByChampion(Platform.EUW, summonerId, championId, CallPriority.NORMAL);
+      mastery = Zoe.getRiotApi().getChampionMasteriesBySummonerByChampion(platform, summonerId, championId, CallPriority.NORMAL);
     } catch(RiotApiException e) {
       logger.debug("Impossible to get mastery score : {}", e.getMessage());
       return "0";

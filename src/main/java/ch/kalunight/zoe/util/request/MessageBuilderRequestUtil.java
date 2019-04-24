@@ -43,7 +43,7 @@ public class MessageBuilderRequestUtil {
 
       teamRankString.append(rank + "\n");
 
-      teamWinRateLastMonth.append(RiotRequest.getMasterysScore(participant.getSummonerId(), participant.getChampionId()) + " | "
+      teamWinRateLastMonth.append(RiotRequest.getMasterysScore(participant.getSummonerId(), participant.getChampionId(), platform) + " | "
           + RiotRequest.getWinrateLateMonthWithGivenChampion(participant.getSummonerId(), platform, participant.getChampionId()) + "\n");
     }
   }
@@ -87,7 +87,7 @@ public class MessageBuilderRequestUtil {
 
       teamRankString.append(rank + "\n");
       
-      teamWinrateString.append(RiotRequest.getMasterysScore(participant.getSummonerId(), participant.getChampionId()) + " | "
+      teamWinrateString.append(RiotRequest.getMasterysScore(participant.getSummonerId(), participant.getChampionId(), platform) + " | "
           + RiotRequest.getWinrateLateMonthWithGivenChampion(participant.getSummonerId(), platform, participant.getChampionId()) + "\n");
     }
   }

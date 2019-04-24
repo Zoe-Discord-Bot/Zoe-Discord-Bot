@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
 
+import org.discordbots.api.client.DiscordBotListAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +32,7 @@ import ch.kalunight.zoe.command.ResetEmotesCommand;
 import ch.kalunight.zoe.command.SetupCommand;
 import ch.kalunight.zoe.command.ShutDownCommand;
 import ch.kalunight.zoe.command.add.AddCommand;
+import ch.kalunight.zoe.command.admin.AdminCommand;
 import ch.kalunight.zoe.command.create.CreateCommand;
 import ch.kalunight.zoe.command.define.DefineCommand;
 import ch.kalunight.zoe.command.define.UndefineCommand;
@@ -76,6 +78,10 @@ public class Zoe {
 
   private static JDA jda;
 
+  private static String discordBotListTocken = "";
+  
+  private static DiscordBotListAPI botListApi;
+
   private static final ConcurrentLinkedQueue<List<CustomEmote>> emotesNeedToBeUploaded = new ConcurrentLinkedQueue<>();
 
   private static final Logger logger = LoggerFactory.getLogger(Zoe.class);
@@ -89,6 +95,12 @@ public class Zoe {
     String discordTocken = args[0];
     String riotTocken = args[1];
     client.setOwnerId(args[2]);
+    
+    try {
+      discordBotListTocken = args[3];
+    }catch(Exception e) {
+      logger.info("Discord api list tocken not implement");
+    }
 
     client.setPrefix(BOT_PREFIX);
 
@@ -183,6 +195,7 @@ public class Zoe {
     commands.add(new ShutDownCommand());
     commands.add(new ResetEmotesCommand());
     commands.add(new PingCommand());
+    commands.add(new AdminCommand());
 
     //Basic commands
     commands.add(new AboutCommand());
@@ -416,5 +429,21 @@ public class Zoe {
 
   public static ConcurrentLinkedQueue<List<CustomEmote>> getEmotesNeedToBeUploaded() {
     return emotesNeedToBeUploaded;
+  }
+
+  public static DiscordBotListAPI getBotListApi() {
+    return botListApi;
+  }
+
+  public static void setBotListApi(DiscordBotListAPI botListApi) {
+    Zoe.botListApi = botListApi;
+  }
+
+  public static String getDiscordBotListTocken() {
+    return discordBotListTocken;
+  }
+
+  public static void setDiscordBotListTocken(String discordBotListTocken) {
+    Zoe.discordBotListTocken = discordBotListTocken;
   }
 }

@@ -65,7 +65,7 @@ import net.rithms.riot.constant.Platform;
 
 public class Zoe {
 
-  private static final String BOT_PREFIX = ">";
+  public static final String BOT_PREFIX = ">";
 
   private static final File SAVE_TXT_FILE = new File("ressources/save.txt");
 
@@ -181,7 +181,7 @@ public class Zoe {
     };
   }
 
-  private static List<Command> getMainCommands() {
+  public static List<Command> getMainCommands() {
     if(mainCommands != null) {
       return mainCommands;
     }

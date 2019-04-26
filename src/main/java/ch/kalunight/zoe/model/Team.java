@@ -26,7 +26,7 @@ public class Team {
     }
     return false;
   }
-  
+
   public String getName() {
     return name;
   }

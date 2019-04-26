@@ -2,14 +2,12 @@ package ch.kalunight.zoe.service;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.jagrosh.jdautilities.command.CommandEvent;
-
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
+import ch.kalunight.zoe.model.ControlPannel;
 import ch.kalunight.zoe.model.InfoCard;
 import ch.kalunight.zoe.model.Player;
 import ch.kalunight.zoe.model.Server;
@@ -43,37 +41,44 @@ public class InfoPanelRefresher implements Runnable {
     try {
       if(server.getInfoChannel() != null) {
         if(server.getControlePannel().getInfoPanel().isEmpty()) {
-          server.getControlePannel().getInfoPanel().add(server.getInfoChannel().sendMessage("__**Control Panel**__\n \n*Loading...*").complete());
+          server.getControlePannel().getInfoPanel()
+              .add(server.getInfoChannel().sendMessage("__**Control Panel**__\n \n*Loading...*").complete());
         }
 
         ArrayList<String> infoPanels = CommandEvent.splitMessage(refreshPannel());
 
-        if(infoPanels.size() < server.getControlePannel().getInfoPanel().size()) {
-          int nbrMessageToDelete = server.getControlePannel().getInfoPanel().size() - infoPanels.size();
-          for(int i = 0; i < nbrMessageToDelete; i++) {
-            Message message = server.getControlePannel().getInfoPanel().get(i);
-            message.delete().queue();
-            server.getControlePannel().getInfoPanel().remove(message);
+        if(server.getInfoChannel() != null || server.getGuild().getTextChannelById(server.getInfoChannel().getId()) != null) {
+
+          if(infoPanels.size() < server.getControlePannel().getInfoPanel().size()) {
+            int nbrMessageToDelete = server.getControlePannel().getInfoPanel().size() - infoPanels.size();
+            for(int i = 0; i < nbrMessageToDelete; i++) {
+              Message message = server.getControlePannel().getInfoPanel().get(i);
+              message.delete().queue();
+              server.getControlePannel().getInfoPanel().remove(message);
+            }
+
+          } else {
+            int nbrMessageToAdd = infoPanels.size() - server.getControlePannel().getInfoPanel().size();
+            for(int i = 0; i < nbrMessageToAdd; i++) {
+              server.getControlePannel().getInfoPanel().add(server.getInfoChannel().sendMessage("loading ...").complete());
+            }
           }
 
-        }else {
-          int nbrMessageToAdd = infoPanels.size() - server.getControlePannel().getInfoPanel().size();
-          for(int i = 0; i < nbrMessageToAdd; i++) {
-            server.getControlePannel().getInfoPanel().add(server.getInfoChannel().sendMessage("loading ...").complete());
+          for(int i = 0; i < infoPanels.size(); i++) {
+            server.getControlePannel().getInfoPanel().get(i).editMessage(infoPanels.get(i)).queue();
           }
-        }
 
-        for(int i = 0; i < infoPanels.size(); i++) {
-          server.getControlePannel().getInfoPanel().get(i).editMessage(infoPanels.get(i)).queue();
+          manageInfoCards();
+        } else {
+          server.setInfoChannel(null);
+          server.setControlePannel(new ControlPannel());
         }
-
-        manageInfoCards();
       }
-    }catch (NullPointerException e){
+    } catch(NullPointerException e) {
       logger.info("The Thread has crashed normally because of deletion of infoChannel : {}", e);
-    }catch (Exception e) {
+    } catch(Exception e) {
       logger.warn("The thread got a unexpected error : {}", e);
-    }finally {
+    } finally {
       ServerData.getServersIsInTreatment().put(server.getGuild().getId(), false);
     }
   }
@@ -104,10 +109,10 @@ public class InfoPanelRefresher implements Runnable {
       try {
         try {
           cardsToRemove.get(i).getMessage().delete().complete();
-        }catch(ErrorResponseException  e) {
+        } catch(ErrorResponseException e) {
           if(e.getErrorResponse() == ErrorResponse.UNKNOWN_MESSAGE) {
             logger.info("Message already deleted : {}", e.getMessage());
-          }else {
+          } else {
             logger.warn("Unhandle error : {}", e.getMessage());
             throw e;
           }
@@ -115,10 +120,10 @@ public class InfoPanelRefresher implements Runnable {
 
         try {
           cardsToRemove.get(i).getTitle().delete().complete();
-        }catch(ErrorResponseException  e) {
+        } catch(ErrorResponseException e) {
           if(e.getErrorResponse() == ErrorResponse.UNKNOWN_MESSAGE) {
             logger.info("Message already deleted : {}", e.getMessage());
-          }else {
+          } else {
             logger.warn("Unhandle error : {}", e.getMessage());
             throw e;
           }
@@ -147,13 +152,14 @@ public class InfoPanelRefresher implements Runnable {
           InfoCard card = null;
 
           if(listOfPlayerInTheGame.size() == 1) {
-            MessageEmbed messageCard =
-                MessageBuilderRequest.createInfoCard1summoner(player.getDiscordUser(), player.getSummoner(), currentGameInfo, player.getRegion());
+            MessageEmbed messageCard = MessageBuilderRequest.createInfoCard1summoner(player.getDiscordUser(), player.getSummoner(),
+                currentGameInfo, player.getRegion());
             if(messageCard != null) {
               card = new InfoCard(listOfPlayerInTheGame, messageCard);
             }
           } else if(listOfPlayerInTheGame.size() > 1) {
-            MessageEmbed messageCard = MessageBuilderRequest.createInfoCardsMultipleSummoner(listOfPlayerInTheGame, currentGameInfo, player.getRegion());
+            MessageEmbed messageCard =
+                MessageBuilderRequest.createInfoCardsMultipleSummoner(listOfPlayerInTheGame, currentGameInfo, player.getRegion());
 
             if(messageCard != null) {
               card = new InfoCard(listOfPlayerInTheGame, messageCard);
@@ -234,8 +240,7 @@ public class InfoPanelRefresher implements Runnable {
       List<Player> playersList = team.getPlayers();
 
       for(Player player : playersList) {
-        stringMessage
-        .append(player.getSummoner().getName() + " (" + player.getDiscordUser().getAsMention() + ") : ");
+        stringMessage.append(player.getSummoner().getName() + " (" + player.getDiscordUser().getAsMention() + ") : ");
 
         CurrentGameInfo actualGame = server.getCurrentGames().get(player.getSummoner().getId());
 

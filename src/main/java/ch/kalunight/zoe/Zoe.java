@@ -14,11 +14,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
-
 import org.discordbots.api.client.DiscordBotListAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -26,7 +24,6 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.examples.command.PingCommand;
-
 import ch.kalunight.zoe.command.AboutCommand;
 import ch.kalunight.zoe.command.ResetEmotesCommand;
 import ch.kalunight.zoe.command.SetupCommand;
@@ -79,7 +76,7 @@ public class Zoe {
   private static JDA jda;
 
   private static String discordBotListTocken = "";
-  
+
   private static DiscordBotListAPI botListApi;
 
   private static final ConcurrentLinkedQueue<List<CustomEmote>> emotesNeedToBeUploaded = new ConcurrentLinkedQueue<>();
@@ -95,10 +92,10 @@ public class Zoe {
     String discordTocken = args[0];
     String riotTocken = args[1];
     client.setOwnerId(args[2]);
-    
+
     try {
       discordBotListTocken = args[3];
-    }catch(Exception e) {
+    } catch(Exception e) {
       logger.info("Discord api list tocken not implement");
     }
 
@@ -113,14 +110,13 @@ public class Zoe {
     }
 
     initRiotApi(riotTocken);
-    
+
     try {
       jda = new JDABuilder(AccountType.BOT)//
           .setToken(discordTocken)//
           .setStatus(OnlineStatus.DO_NOT_DISTURB)//
           .addEventListener(client.build())//
-          .addEventListener(new EventListener())
-          .build();//
+          .addEventListener(new EventListener()).build();//
     } catch(IndexOutOfBoundsException e) {
       logger.error("You must provide a token.");
       System.exit(1);
@@ -138,13 +134,13 @@ public class Zoe {
 
     PriorityRateLimit minuteLimit = new PriorityRateLimit(500, 100);
     RateLimitRequestTank requestMinutesTank = new RateLimitRequestTank(600, 15000, minuteLimit);
-    
+
     List<RateLimitRequestTank> priorityList = new ArrayList<>();
     priorityList.add(requestSecondsTank);
     priorityList.add(requestMinutesTank);
 
-    RateLimitHandler defaultLimite = new PriorityManagerRateLimitHandler(); // delete the list from parameter for dev setup
-    
+    RateLimitHandler defaultLimite = new PriorityManagerRateLimitHandler(); // create default priority with dev api key rate limit
+
     config.setRateLimitHandler(defaultLimite);
     riotApi = new RiotApi(config);
   }
@@ -157,11 +153,11 @@ public class Zoe {
         stringBuilder.append("Here is my commands :\n");
 
         Command setupCommand = new SetupCommand();
-        stringBuilder.append("Command **" + setupCommand.getName() +"** :\n");
+        stringBuilder.append("Command **" + setupCommand.getName() + "** :\n");
         stringBuilder.append("--> `>" + setupCommand.getName() + "` : " + setupCommand.getHelp() + "\n\n");
 
         Command aboutCommand = new AboutCommand();
-        stringBuilder.append("Command **" + aboutCommand.getName() +"** :\n");
+        stringBuilder.append("Command **" + aboutCommand.getName() + "** :\n");
         stringBuilder.append("--> `>" + aboutCommand.getName() + "` : " + aboutCommand.getHelp() + "\n\n");
 
         for(Command command : getMainCommands()) {
@@ -169,8 +165,8 @@ public class Zoe {
             stringBuilder.append("Commands **" + command.getName() + "** : \n");
 
             for(Command commandChild : command.getChildren()) {
-              stringBuilder.append("--> `>" + command.getName() + " " + commandChild.getName() + " " + commandChild.getArguments()
-              + "` : " + commandChild.getHelp() + "\n");
+              stringBuilder.append("--> `>" + command.getName() + " " + commandChild.getName() + " " + commandChild.getArguments() + "` : "
+                  + commandChild.getHelp() + "\n");
             }
             stringBuilder.append(" \n");
           }
@@ -191,13 +187,13 @@ public class Zoe {
     }
     List<Command> commands = new ArrayList<>();
 
-    //Admin commands
+    // Admin commands
     commands.add(new ShutDownCommand());
     commands.add(new ResetEmotesCommand());
     commands.add(new PingCommand());
     commands.add(new AdminCommand());
 
-    //Basic commands
+    // Basic commands
     commands.add(new AboutCommand());
     commands.add(new SetupCommand());
     commands.add(new CreateCommand());
@@ -282,7 +278,7 @@ public class Zoe {
 
         if(server.getInfoChannel() != null) {
           strBuilder.append(server.getInfoChannel().getId() + "\n");
-        }else {
+        } else {
           strBuilder.append("-1\n");
         }
 
@@ -294,9 +290,9 @@ public class Zoe {
       }
     }
 
-    try (PrintWriter writer = new PrintWriter(SAVE_TXT_FILE, "UTF-8");){
+    try(PrintWriter writer = new PrintWriter(SAVE_TXT_FILE, "UTF-8");) {
       writer.write(strBuilder.toString());
-    } 
+    }
   }
 
   public static void loadDataTxt() throws IOException, RiotApiException {
@@ -355,7 +351,7 @@ public class Zoe {
         try {
           Message message = server.getInfoChannel().getMessageById(messageId).complete();
           controlPannel.getInfoPanel().add(message);
-        }catch (ErrorResponseException e) {
+        } catch(ErrorResponseException e) {
           logger.debug("The message got delete : {}", e.getMessage());
         }
       }

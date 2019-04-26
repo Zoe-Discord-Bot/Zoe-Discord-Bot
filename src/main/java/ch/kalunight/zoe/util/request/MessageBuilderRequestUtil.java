@@ -12,9 +12,9 @@ import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.constant.Platform;
 
 public class MessageBuilderRequestUtil {
-  
+
   private MessageBuilderRequestUtil() {
-    //Hide default public constructor
+    // Hide default public constructor
   }
 
   public static void createTeamData1Summoner(Summoner summoner, List<CurrentGameParticipant> teamParticipant, StringBuilder teamString,
@@ -29,16 +29,16 @@ public class MessageBuilderRequestUtil {
       String rank;
       try {
         rank = Ressources.getTierEmote().get(fullTier.getTier()).getEmote().getAsMention() + " " + fullTier.toString();
-      }catch(NullPointerException e) {
+      } catch(NullPointerException e) {
         rank = fullTier.toString();
       }
-      
+
       if(summoner.getName().equals(participant.getSummonerName())) {
-        teamString.append(
-            champion.getDisplayName() + " | __**" + NameConversion.convertStringToTinyString(participant.getSummonerName()) + "**__" + "\n");
+        teamString.append(champion.getDisplayName() + " | __**" + NameConversion.convertStringToTinyString(participant.getSummonerName())
+            + "**__" + "\n");
       } else {
         teamString
-        .append(champion.getDisplayName() + " | " + NameConversion.convertStringToTinyString(participant.getSummonerName()) + "\n");
+            .append(champion.getDisplayName() + " | " + NameConversion.convertStringToTinyString(participant.getSummonerName()) + "\n");
       }
 
       teamRankString.append(rank + "\n");
@@ -62,10 +62,10 @@ public class MessageBuilderRequestUtil {
 
   public static void createTeamDataMultipleSummoner(List<CurrentGameParticipant> teamParticipant, List<String> listIdPlayers,
       StringBuilder teamString, StringBuilder teamRankString, StringBuilder teamWinrateString, Platform platform) {
-    
+
     for(int i = 0; i < teamParticipant.size(); i++) {
       CurrentGameParticipant participant = teamParticipant.get(i);
-      
+
       Champion champion = null;
       champion = Ressources.getChampionDataById(participant.getChampionId());
 
@@ -73,20 +73,20 @@ public class MessageBuilderRequestUtil {
       String rank;
       try {
         rank = Ressources.getTierEmote().get(fullTier.getTier()).getEmote().getAsMention() + " " + fullTier.toString();
-      }catch(NullPointerException e) {
+      } catch(NullPointerException e) {
         rank = fullTier.toString();
       }
 
       if(listIdPlayers.contains(participant.getSummonerId())) {
-        teamString.append(
-            champion.getDisplayName() + " | __**" + NameConversion.convertStringToTinyString(participant.getSummonerName()) + "**__" + "\n");
+        teamString.append(champion.getDisplayName() + " | __**" + NameConversion.convertStringToTinyString(participant.getSummonerName())
+            + "**__" + "\n");
       } else {
         teamString
-        .append(champion.getDisplayName() + " | " + NameConversion.convertStringToTinyString(participant.getSummonerName()) + "\n");
+            .append(champion.getDisplayName() + " | " + NameConversion.convertStringToTinyString(participant.getSummonerName()) + "\n");
       }
 
       teamRankString.append(rank + "\n");
-      
+
       teamWinrateString.append(RiotRequest.getMasterysScore(participant.getSummonerId(), participant.getChampionId(), platform) + " | "
           + RiotRequest.getWinrateLateMonthWithGivenChampion(participant.getSummonerId(), platform, participant.getChampionId()) + "\n");
     }

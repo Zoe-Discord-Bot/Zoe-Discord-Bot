@@ -5,7 +5,7 @@ import java.util.List;
 import net.dv8tion.jda.core.entities.Message;
 
 public class ControlPannel {
-  
+
   private List<Message> infoPanel;
   private List<InfoCard> infoCards;
 
@@ -29,5 +29,5 @@ public class ControlPannel {
   public void setInfoCards(List<InfoCard> infoCards) {
     this.infoCards = infoCards;
   }
-  
+
 }

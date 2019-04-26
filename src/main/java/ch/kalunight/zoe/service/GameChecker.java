@@ -1,9 +1,7 @@
 package ch.kalunight.zoe.service;
 
 import java.util.TimerTask;
-
 import org.joda.time.DateTime;
-
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.Server;
@@ -16,7 +14,7 @@ public class GameChecker extends TimerTask {
 
   private static final int TIME_BETWEEN_EACH_SAVE_IN_MINUTES = 10;
 
-  private static final int TIME_BETWEEN_EACH_STATUS_REFRESH_IN_HOURS = 12;
+  private static final int TIME_BETWEEN_EACH_STATUS_REFRESH_IN_HOURS = 1;
 
   private static DateTime nextSaveTime = DateTime.now().plusMinutes(TIME_BETWEEN_EACH_SAVE_IN_MINUTES);
 
@@ -42,9 +40,8 @@ public class GameChecker extends TimerTask {
       if(ServerData.getServersIsInTreatment().get(guild.getId()) == null) {
         ServerData.getServersIsInTreatment().put(guild.getId(), false);
       }
-      
-      if(server.isNeedToBeRefreshed() && server.getInfoChannel() != null 
-          && !ServerData.getServersIsInTreatment().get(guild.getId())) {
+
+      if(server.isNeedToBeRefreshed() && server.getInfoChannel() != null && !ServerData.getServersIsInTreatment().get(guild.getId())) {
 
         Runnable task = new InfoPanelRefresher(server);
         ServerData.getTaskExecutor().execute(task);
@@ -52,11 +49,11 @@ public class GameChecker extends TimerTask {
     }
 
     if(nextSaveTime.isAfterNow()) {
-      //Save data
+      // Save data
       ServerData.getTaskExecutor().submit(new DataSaver());
 
       if(Zoe.getBotListApi() != null) {
-        //Discord bot list status
+        // Discord bot list status
         Zoe.getBotListApi().setStats(Zoe.getJda().getGuilds().size());
       }
 
@@ -64,7 +61,7 @@ public class GameChecker extends TimerTask {
     }
 
     if(nextStatusRefresh.isAfterNow()) {
-      //Discord status
+      // Discord status
       Zoe.getJda().getPresence().setStatus(OnlineStatus.ONLINE);
       Zoe.getJda().getPresence().setGame(Game.playing("type \">help\""));
 

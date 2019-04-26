@@ -23,10 +23,10 @@ import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.constant.CallPriority;
 import net.rithms.riot.constant.Platform;
 
-public class CreatePlayerCommand extends Command{
+public class CreatePlayerCommand extends Command {
 
   private static final Pattern PARENTHESES_PATTERN = Pattern.compile("\\(([^)]+)\\)");
-  
+
   private static final Logger logger = LoggerFactory.getLogger(CreatePlayerCommand.class);
 
   public CreatePlayerCommand() {
@@ -44,25 +44,25 @@ public class CreatePlayerCommand extends Command{
     List<Member> members = event.getMessage().getMentionedMembers();
 
     if(members.size() != 1) {
-      event.reply("Please mention 1 member of the server "
-          + "(e.g. `>create player @" + event.getMember().getUser().getName() + " (Region) (SummonerName)`)");
+      event.reply("Please mention 1 member of the server " + "(e.g. `>create player @" + event.getMember().getUser().getName()
+          + " (Region) (SummonerName)`)");
       return;
     }
     User user = members.get(0).getUser();
-    
+
     Server server = ServerData.getServers().get(event.getGuild().getId());
     Player actualPlayer = server.getPlayerByDiscordId(user.getId());
     if(actualPlayer != null) {
       event.reply("The mentioned member is already register. If you want to modify the LoL account please delete it first.");
       return;
     }
-    
+
     Matcher matcher = PARENTHESES_PATTERN.matcher(event.getArgs());
     List<String> listArgs = new ArrayList<>();
     while(matcher.find()) {
       listArgs.add(matcher.group(1));
     }
-    
+
     if(listArgs.size() != 2) {
       event.reply("The command is malformed. Please respect this pattern : `>create player @DiscordPlayerMention (Region) (SummonerName)`");
       return;
@@ -82,18 +82,20 @@ public class CreatePlayerCommand extends Command{
     Summoner summoner;
     try {
       summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName, CallPriority.HIGH);
-    }catch(RiotApiException e) {
-      if(e.getErrorCode() == RiotApiException.SERVER_ERROR || e.getErrorCode() == RiotApiException.UNAVAILABLE) {
-        event.reply("Riot server occured a issue, please retry later");
-      }else if(e.getErrorCode() == RiotApiException.FORBIDDEN || e.getErrorCode() == RiotApiException.RATE_LIMITED) {
-        event.reply("I have some little problem with my acces to riot server. Please retry later.");
-        logger.warn("Receive a {} error code : {}", e.getErrorCode(), e.getMessage());
-      }else {
+    } catch(RiotApiException e) {
+      if(e.getErrorCode() == RiotApiException.SERVER_ERROR) {
+        event.reply("Riot server occured a issue. Please retry");
+      } else if(e.getErrorCode() == RiotApiException.UNAVAILABLE) {
+        event.reply("Riot server are actually unavailable. Please retry later.");
+      } else if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
+        event.reply("I can't access now to riot server. Please retry later.");
+        logger.info("Receive a {} error code : {}", e.getErrorCode(), e.getMessage());
+      } else {
         event.reply("The summonerName is incorrect. Please verify the SummonerName and retry.");
       }
       return;
     }
-    
+
     Player player = new Player(user, summoner, region, false);
     server.getPlayers().add(player);
     event.reply("The player " + user.getName() + " has been added with the account \"" + player.getSummoner().getName() + "\".");
@@ -107,7 +109,7 @@ public class CreatePlayerCommand extends Command{
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("Create player command :\n");
         stringBuilder.append("--> `>create " + name + " " + arguments + "` : " + help);
-        
+
         event.reply(stringBuilder.toString());
       }
     };

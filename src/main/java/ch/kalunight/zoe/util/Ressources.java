@@ -12,23 +12,23 @@ import ch.kalunight.zoe.model.Mastery;
 import ch.kalunight.zoe.model.Tier;
 
 public class Ressources {
-  
+
   private Ressources() {
-    //Hide default public constructor
+    // Hide default public constructor
   }
 
   public static final String FOLDER_TO_TIER_SAVE = "ressources/tierData/";
-  
+
   public static final String FOLDER_TO_EMOTES = "ressources/images";
-  
+
   public static final File GUILD_EMOTES_FILE = new File("ressources/guilds.txt");
-  
+
   private static List<Champion> champions = new ArrayList<>();
-  
+
   private static List<CustomEmote> customEmotes = new ArrayList<>();
-  
+
   private static Map<Tier, CustomEmote> tierEmote = Collections.synchronizedMap(new EnumMap<Tier, CustomEmote>(Tier.class));
-  
+
   private static Map<Mastery, CustomEmote> masteryEmote = Collections.synchronizedMap(new EnumMap<Mastery, CustomEmote>(Mastery.class));
 
   public static Champion getChampionDataById(int id) {
@@ -39,7 +39,7 @@ public class Ressources {
     }
     return null;
   }
-  
+
   public static List<CustomEmote> getCustomEmotes() {
     return customEmotes;
   }

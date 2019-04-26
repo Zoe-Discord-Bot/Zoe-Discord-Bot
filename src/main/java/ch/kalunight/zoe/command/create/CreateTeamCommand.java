@@ -1,10 +1,8 @@
 package ch.kalunight.zoe.command.create;
 
 import java.util.function.BiConsumer;
-
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.model.Server;
@@ -22,33 +20,33 @@ public class CreateTeamCommand extends Command {
     this.help = "Create a new team. Allows you to group players together on the Info Panel. Manage Channel permission needed.";
     this.helpBiConsumer = getHelpMethod();
   }
-  
+
   @Override
   protected void execute(CommandEvent event) {
     event.getTextChannel().sendTyping().complete();
     String nameTeam = event.getArgs();
     Server server = ServerData.getServers().get(event.getGuild().getId());
-    
+
     if(server == null) {
       server = new Server(event.getGuild(), SpellingLangage.EN);
       ServerData.getServers().put(event.getGuild().getId(), server);
     }
-    
+
     if(nameTeam.equals("")) {
       event.reply("Please give me a team name. (E.g. : `>create team Fnatic`)");
-    }else {
+    } else {
       Team team = server.getTeamByName(nameTeam);
-      
+
       if(team != null) {
         event.reply("A team with the given name already exist !");
-      }else {
+      } else {
         server.getTeams().add(new Team(event.getArgs()));
         event.reply("The team \"" + event.getArgs() + "\" has been created !");
       }
     }
-    
+
   }
-  
+
   private BiConsumer<CommandEvent, Command> getHelpMethod() {
     return new BiConsumer<CommandEvent, Command>() {
       @Override
@@ -57,7 +55,7 @@ public class CreateTeamCommand extends Command {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("Create Team command :\n");
         stringBuilder.append("--> `>create " + name + " " + arguments + "` : " + help);
-        
+
         event.reply(stringBuilder.toString());
       }
     };

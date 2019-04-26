@@ -11,24 +11,24 @@ import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.model.Server;
 
 public class ServerData {
-  
+
   private static final Logger logger = LoggerFactory.getLogger(ServerData.class);
-  
+
   private static final ConcurrentHashMap<String, Server> servers = new ConcurrentHashMap<>();
-  
+
   private static final ConcurrentHashMap<String, Boolean> serversIsInTreatment = new ConcurrentHashMap<>();
-  
+
   private static final Timer mainThreadTimer = new Timer();
-  
+
   private static int nbProcs = Runtime.getRuntime().availableProcessors();
-  
+
   private static final ThreadPoolExecutor TASK_EXECUTOR =
       new ThreadPoolExecutor(nbProcs, nbProcs, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
-  
+
   private ServerData() {
-    //Hide public default constructor
+    // Hide public default constructor
   }
-  
+
   static {
     logger.info("Task executor lauched with {} threads", nbProcs);
   }
@@ -36,7 +36,7 @@ public class ServerData {
   public static Map<String, Server> getServers() {
     return servers;
   }
-  
+
   public static Map<String, Boolean> getServersIsInTreatment() {
     return serversIsInTreatment;
   }
@@ -44,14 +44,14 @@ public class ServerData {
   public static ThreadPoolExecutor getTaskExecutor() {
     return TASK_EXECUTOR;
   }
-  
+
   public static Timer getMainThreadTimer() {
     return mainThreadTimer;
   }
-  
+
   public static void shutDownTaskExecutor() throws InterruptedException {
     TASK_EXECUTOR.shutdown();
-    
+
     TASK_EXECUTOR.awaitTermination(10, TimeUnit.MINUTES);
   }
 }

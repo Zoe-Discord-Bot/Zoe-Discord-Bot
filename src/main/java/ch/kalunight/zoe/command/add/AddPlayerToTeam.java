@@ -3,7 +3,6 @@ package ch.kalunight.zoe.command.add;
 import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
@@ -15,7 +14,7 @@ import ch.kalunight.zoe.model.Team;
 import net.dv8tion.jda.core.Permission;
 
 public class AddPlayerToTeam extends Command {
-  
+
   private static final Pattern PARENTHESES_PATTERN = Pattern.compile("\\(([^)]+)\\)");
 
   public AddPlayerToTeam() {
@@ -26,41 +25,41 @@ public class AddPlayerToTeam extends Command {
     this.help = "Add the mentioned player to the given team. Manage Channel permission needed.";
     this.helpBiConsumer = getHelpMethod();
   }
-  
+
   @Override
   protected void execute(CommandEvent event) {
     event.getTextChannel().sendTyping().complete();
     Server server = ServerData.getServers().get(event.getGuild().getId());
-    
+
     if(server == null) {
       server = new Server(event.getGuild(), SpellingLangage.EN);
       ServerData.getServers().put(event.getGuild().getId(), server);
     }
-    
+
     if(event.getMessage().getMentionedMembers().size() != 1) {
       event.reply("Please mention one player !");
-    }else {
+    } else {
       Player player = server.getPlayerByDiscordId(event.getMessage().getMentionedMembers().get(0).getUser().getId());
-      
+
       if(player == null) {
         event.reply("The mentioned poeple is not a player !");
-      }else {
-        
+      } else {
+
         Team team = server.getTeamByPlayer(player);
         if(team != null) {
           event.reply("The mentioned player have already another team (" + team.getName() + ") !");
-        }else {
+        } else {
           Matcher matcher = PARENTHESES_PATTERN.matcher(event.getArgs());
           String teamName = "";
           while(matcher.find()) {
             teamName = matcher.group(1);
           }
-          
+
           Team teamToAdd = server.getTeamByName(teamName);
           if(teamToAdd == null) {
             event.reply("The given team does not exist ! "
                 + "(Hint: The team name need to be in parantheses like this : `>add playerToTeam @PlayerMentioned (TeamName)`)");
-          }else {
+          } else {
             teamToAdd.getPlayers().add(player);
             event.reply("The player has been added !");
           }
@@ -68,7 +67,7 @@ public class AddPlayerToTeam extends Command {
       }
     }
   }
-  
+
   private BiConsumer<CommandEvent, Command> getHelpMethod() {
     return new BiConsumer<CommandEvent, Command>() {
       @Override
@@ -77,7 +76,7 @@ public class AddPlayerToTeam extends Command {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("Add playerToTeam command :\n");
         stringBuilder.append("--> `>add " + name + " " + arguments + "` : " + help);
-        
+
         event.reply(stringBuilder.toString());
       }
     };

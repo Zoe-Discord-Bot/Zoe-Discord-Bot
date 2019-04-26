@@ -50,7 +50,7 @@ public class GameChecker extends TimerTask {
 
     if(nextSaveTime.isAfterNow()) {
       // Save data
-      ServerData.getTaskExecutor().submit(new DataSaver());
+      ServerData.getTaskExecutor().execute(new DataSaver());
 
       if(Zoe.getBotListApi() != null) {
         // Discord bot list status

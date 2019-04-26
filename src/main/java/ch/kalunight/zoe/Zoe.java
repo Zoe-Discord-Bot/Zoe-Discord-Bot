@@ -240,58 +240,68 @@ public class Zoe {
   }
 
   public static synchronized void saveDataTxt() throws FileNotFoundException, UnsupportedEncodingException {
-    final StringBuilder strBuilder = new StringBuilder();
+    final StringBuilder strMainBuilder = new StringBuilder();
 
     final Map<String, Server> servers = ServerData.getServers();
     final List<Guild> guilds = Zoe.getJda().getGuilds();
 
     for(Guild guild : guilds) {
-      if(guild.getOwnerId().equals(Zoe.getJda().getSelfUser().getId())) {
-        continue;
-      }
-      Server server = servers.get(guild.getId());
-      if(server != null) {
-        strBuilder.append("--server\n");
-        strBuilder.append(guild.getId() + "\n");
-        strBuilder.append(server.getLangage().toString() + "\n");
-
-        strBuilder.append(server.getPlayers().size() + "\n");
-
-        for(Player player : server.getPlayers()) {
-          strBuilder.append(player.getDiscordUser().getId() + "\n");
-          strBuilder.append(player.getSummoner().getId() + "\n");
-          strBuilder.append(player.getRegion().getName() + "\n");
-          strBuilder.append(player.isMentionnable() + "\n");
+      try {
+        if(guild.getOwnerId().equals(Zoe.getJda().getSelfUser().getId())) {
+          continue;
         }
+        Server server = servers.get(guild.getId());
+        StringBuilder strBuilder = new StringBuilder();
+        
+        if(server != null) {
+          strBuilder.append("--server\n");
+          strBuilder.append(guild.getId() + "\n");
+          strBuilder.append(server.getLangage().toString() + "\n");
 
-        strBuilder.append(server.getTeams().size() + "\n");
+          strBuilder.append(server.getPlayers().size() + "\n");
 
-        for(Team team : server.getTeams()) {
-          strBuilder.append(team.getName() + "\n");
-
-          strBuilder.append(team.getPlayers().size() + "\n");
-
-          for(Player player : team.getPlayers()) {
+          for(Player player : server.getPlayers()) {
             strBuilder.append(player.getDiscordUser().getId() + "\n");
+            strBuilder.append(player.getSummoner().getId() + "\n");
+            strBuilder.append(player.getRegion().getName() + "\n");
+            strBuilder.append(player.isMentionnable() + "\n");
+          }
+
+          strBuilder.append(server.getTeams().size() + "\n");
+
+          for(Team team : server.getTeams()) {
+            strBuilder.append(team.getName() + "\n");
+
+            strBuilder.append(team.getPlayers().size() + "\n");
+
+            for(Player player : team.getPlayers()) {
+              strBuilder.append(player.getDiscordUser().getId() + "\n");
+            }
+          }
+
+          if(server.getInfoChannel() != null) {
+            strBuilder.append(server.getInfoChannel().getId() + "\n");
+          } else {
+            strBuilder.append("-1\n");
+          }
+
+          if(server.getControlePannel() != null) {
+            strBuilder.append(server.getControlePannel().getInfoPanel().size() + "\n");
+            for(Message message : server.getControlePannel().getInfoPanel()) {
+              strBuilder.append(message.getId() + "\n");
+            }
+          }else {
+            strBuilder.append("0\n");
           }
         }
-
-        if(server.getInfoChannel() != null) {
-          strBuilder.append(server.getInfoChannel().getId() + "\n");
-        } else {
-          strBuilder.append("-1\n");
-        }
-
-        strBuilder.append(server.getControlePannel().getInfoPanel().size() + "\n");
-
-        for(Message message : server.getControlePannel().getInfoPanel()) {
-          strBuilder.append(message.getId() + "\n");
-        }
+        strMainBuilder.append(strBuilder.toString());
+      }catch(Exception e) {
+        logger.warn("A guild occured a error, it hasn't been saved.", e);
       }
     }
 
     try(PrintWriter writer = new PrintWriter(SAVE_TXT_FILE, "UTF-8");) {
-      writer.write(strBuilder.toString());
+      writer.write(strMainBuilder.toString());
     }
   }
 

@@ -86,7 +86,9 @@ public class RecoveryCommand extends Command {
           }
           
           
-          
+          if(message.startsWith(Zoe.BOT_PREFIX) && isDeletePlayerCommand(message)) {
+            
+          }
           
         }
         
@@ -147,10 +149,10 @@ public class RecoveryCommand extends Command {
   }
 
   private boolean isCreatePlayerCommand(String command) {
-    if(command.substring(1).split(" ").length < 4) {
+    if(command.split(" ").length < 4) { // Minimum 4 bloc of command
       return false;
     }
-
+    
     String messageInTreatment = command.substring(1).split(" ")[0];
 
     return messageInTreatment.equalsIgnoreCase(CreateCommand.USAGE_NAME)
@@ -162,6 +164,11 @@ public class RecoveryCommand extends Command {
         .substring(CreateCommand.USAGE_NAME.length() + 1)
         .substring(CreatePlayerCommand.USAGE_NAME.length() + 1)
         .substring(1);
+  }
+  
+  private boolean isDeletePlayerCommand(String message) {
+    //TODO: impl
+    return false;
   }
 
   private void cancelRecovery(MessageReceivedEvent event) {

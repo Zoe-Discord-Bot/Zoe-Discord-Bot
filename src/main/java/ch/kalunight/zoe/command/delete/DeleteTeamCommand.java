@@ -12,8 +12,10 @@ import net.dv8tion.jda.core.Permission;
 
 public class DeleteTeamCommand extends Command {
 
+  public static final String USAGE_NAME = "team";
+
   public DeleteTeamCommand() {
-    this.name = "team";
+    this.name = USAGE_NAME;
     this.help = "Delete the given team. Manage Channel permission needed.";
     this.arguments = "teamName";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};

@@ -10,6 +10,7 @@ import ch.kalunight.zoe.model.Player;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.SpellingLangage;
 import net.dv8tion.jda.core.Permission;
+import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.User;
 
@@ -27,11 +28,7 @@ public class DeletePlayerCommand extends Command {
   @Override
   protected void execute(CommandEvent event) {
     event.getTextChannel().sendTyping().complete();
-    Server server = ServerData.getServers().get(event.getGuild().getId());
-
-    if(server == null) {
-      server = new Server(event.getGuild(), SpellingLangage.EN);
-    }
+    Server server = checkServer(event.getGuild());
 
     List<Member> members = event.getMessage().getMentionedMembers();
 
@@ -48,6 +45,15 @@ public class DeletePlayerCommand extends Command {
         event.reply("This people has been deleted !");
       }
     }
+  }
+
+  public static Server checkServer(Guild guild) {
+    Server server = ServerData.getServers().get(guild.getId());
+
+    if(server == null) {
+      server = new Server(guild, SpellingLangage.EN);
+    }
+    return server;
   }
 
   private BiConsumer<CommandEvent, Command> getHelpMethod() {

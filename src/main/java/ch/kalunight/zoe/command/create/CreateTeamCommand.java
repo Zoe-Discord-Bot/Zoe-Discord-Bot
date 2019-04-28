@@ -12,8 +12,10 @@ import net.dv8tion.jda.core.Permission;
 
 public class CreateTeamCommand extends Command {
 
+  public static final String USAGE_NAME = "team";
+
   public CreateTeamCommand() {
-    this.name = "team";
+    this.name = USAGE_NAME;
     this.arguments = "nameOfTheTeam";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;

@@ -15,10 +15,16 @@ import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.create.CreateCommand;
 import ch.kalunight.zoe.command.create.CreatePlayerCommand;
+import ch.kalunight.zoe.command.create.CreateTeamCommand;
+import ch.kalunight.zoe.command.delete.DeleteCommand;
+import ch.kalunight.zoe.command.delete.DeletePlayerCommand;
+import ch.kalunight.zoe.command.delete.DeleteTeamCommand;
 import ch.kalunight.zoe.model.Player;
 import ch.kalunight.zoe.model.Server;
+import ch.kalunight.zoe.model.SpellingLangage;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Guild;
+import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
@@ -52,7 +58,7 @@ public class RecoveryCommand extends Command {
     if(event.getMessage().getMentionedMembers().size() == 1 
         && event.getMessage().getMentionedMembers().get(0).getPermissions().contains(Permission.MANAGE_CHANNEL)) {
 
-      event.reply("**WARNING**: This command will relauch all create players commands in this channel (and spam a lot) ! "
+      event.reply("**WARNING**: This command will relauch all config commands existing in this channel ! "
           + "Your actual configuration will be drastically modified! "
           + "It's only recommanded to use it if Zoe have forgot your save.\n\n Say **YES** if you want to do that.");
 
@@ -82,12 +88,16 @@ public class RecoveryCommand extends Command {
           String message = potentialCreatePlayer.getContentRaw();
           
           if(message.startsWith(Zoe.BOT_PREFIX) && isCreatePlayerCommand(message)) {
-            executeCreatePlayerCommand(e.getGuild(), user, potentialCreatePlayer, message);
+            executeCreatePlayerCommand(potentialCreatePlayer.getGuild(), user, potentialCreatePlayer, message);
           }
           
-          
           if(message.startsWith(Zoe.BOT_PREFIX) && isDeletePlayerCommand(message)) {
-            
+            executeDeletePlayerCommand(potentialCreatePlayer);
+          }
+          
+
+          if(message.startsWith(Zoe.BOT_PREFIX) && isCreateTeamCommand(message)) {
+            //TODO: implement
           }
           
         }
@@ -107,6 +117,20 @@ public class RecoveryCommand extends Command {
       }
     }else {
       e.getTextChannel().sendMessage("Right, so i do nothing.").queue();
+    }
+  }
+
+  private void executeDeletePlayerCommand(Message potentialCreatePlayer) {
+    Server server = DeletePlayerCommand.checkServer(potentialCreatePlayer.getGuild());
+    List<Member> members = potentialCreatePlayer.getMentionedMembers();
+    
+    if(members.size() == 1) {
+      User userToDelete = members.get(0).getUser();
+      Player player = server.getPlayerByDiscordId(userToDelete.getId());
+      
+      if(player != null) {
+        server.deletePlayer(player);
+      }
     }
   }
 
@@ -149,12 +173,34 @@ public class RecoveryCommand extends Command {
   }
 
   private boolean isCreatePlayerCommand(String command) {
-    if(command.split(" ").length < 4) { // Minimum 4 bloc of command
+    if(command.split(" ").length < 4) { // Minimum 4 bloc of text
       return false;
     }
     
     String messageInTreatment = command.substring(1).split(" ")[0];
 
+    return messageInTreatment.equalsIgnoreCase(CreateCommand.USAGE_NAME)
+        && command.substring(1).split(" ")[1].equals(CreatePlayerCommand.USAGE_NAME);
+  }
+  
+  private boolean isCreateTeamCommand(String command) {
+    if(command.split(" ").length < 4) { // Minimum 4 bloc of text
+      return false;
+    }
+    
+    String messageInTreatment = command.substring(1).split(" ")[0];
+
+    return messageInTreatment.equalsIgnoreCase(CreateCommand.USAGE_NAME)
+        && command.substring(1).split(" ")[1].equals(CreateTeamCommand.USAGE_NAME);
+  }
+  
+  private boolean isDeletePlayerCommand(String command) {
+    if(command.split(" ").length < 3) { // Minimum 4 bloc of text
+      return false;
+    }
+    
+    String messageInTreatment = command.substring(1).split(" ")[0];
+    
     return messageInTreatment.equalsIgnoreCase(CreateCommand.USAGE_NAME)
         && command.substring(1).split(" ")[1].equals(CreatePlayerCommand.USAGE_NAME);
   }
@@ -166,11 +212,6 @@ public class RecoveryCommand extends Command {
         .substring(1);
   }
   
-  private boolean isDeletePlayerCommand(String message) {
-    //TODO: impl
-    return false;
-  }
-
   private void cancelRecovery(MessageReceivedEvent event) {
     event.getTextChannel().sendMessage("Recovery has been canceled.");
   }

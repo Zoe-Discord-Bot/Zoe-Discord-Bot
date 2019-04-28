@@ -8,8 +8,10 @@ import net.dv8tion.jda.core.Permission;
 
 public class DeleteCommand extends Command {
 
+  public static final String USAGE_NAME = "delete";
+
   public DeleteCommand() {
-    this.name = "delete";
+    this.name = USAGE_NAME;
     this.aliases = new String[] {"d"};
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;

@@ -22,6 +22,7 @@ import ch.kalunight.zoe.command.delete.DeleteTeamCommand;
 import ch.kalunight.zoe.model.Player;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.SpellingLangage;
+import ch.kalunight.zoe.model.Team;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Member;
@@ -86,23 +87,22 @@ public class RecoveryCommand extends Command {
       try {
         for(Message potentialCreatePlayer : messages) {
           String message = potentialCreatePlayer.getContentRaw();
-          
+
           if(message.startsWith(Zoe.BOT_PREFIX) && isCreatePlayerCommand(message)) {
             executeCreatePlayerCommand(potentialCreatePlayer.getGuild(), user, potentialCreatePlayer, message);
           }
-          
+
           if(message.startsWith(Zoe.BOT_PREFIX) && isDeletePlayerCommand(message)) {
             executeDeletePlayerCommand(potentialCreatePlayer);
           }
-          
 
           if(message.startsWith(Zoe.BOT_PREFIX) && isCreateTeamCommand(message)) {
-            //TODO: implement
+            executeCreateTeamCommand(potentialCreatePlayer);
           }
-          
+
         }
-        
-        
+
+
       }catch(RiotApiException e1) {
         if(e1.getErrorCode() == RiotApiException.SERVER_ERROR) {
           e.getTextChannel().sendMessage("Riot server occured a issue. Please retry after doing a `>reset`.").queue();
@@ -120,101 +120,115 @@ public class RecoveryCommand extends Command {
     }
   }
 
-  private void executeDeletePlayerCommand(Message potentialCreatePlayer) {
-    Server server = DeletePlayerCommand.checkServer(potentialCreatePlayer.getGuild());
-    List<Member> members = potentialCreatePlayer.getMentionedMembers();
-    
-    if(members.size() == 1) {
-      User userToDelete = members.get(0).getUser();
-      Player player = server.getPlayerByDiscordId(userToDelete.getId());
-      
-      if(player != null) {
-        server.deletePlayer(player);
+  private void executeCreateTeamCommand(Message message) {
+
+    String nameTeam = getArgsCommand(message.getContentRaw(), CreateCommand.USAGE_NAME, CreateTeamCommand.USAGE_NAME);
+    Server server = ServerData.getServers().get(message.getGuild().getId());
+
+    if(!nameTeam.equals("")) {
+      Team team = server.getTeamByName(nameTeam);
+
+      if(team == null) {
+        server.getTeams().add(new Team(nameTeam));
       }
     }
   }
 
-  private void executeCreatePlayerCommand(Guild guild, User user, Message potentialCreatePlayer, String message) throws RiotApiException {
-    User playerUser = CreatePlayerCommand.getMentionedUser(potentialCreatePlayer.getMentionedMembers());
-    if(playerUser == null) {
-      return;
-    }
+    private void executeDeletePlayerCommand(Message potentialCreatePlayer) {
+      Server server = DeletePlayerCommand.checkServer(potentialCreatePlayer.getGuild());
+      List<Member> members = potentialCreatePlayer.getMentionedMembers();
 
-    Server server = ServerData.getServers().get(guild.getId());
-    if(CreatePlayerCommand.isTheGivenUserAlreadyRegister(user, server)) {
-      return;
-    }
+      if(members.size() == 1) {
+        User userToDelete = members.get(0).getUser();
+        Player player = server.getPlayerByDiscordId(userToDelete.getId());
 
-    List<String> listArgs = CreatePlayerCommand.getParameterInParenteses(getCreatePlayerArgsCommand(message));
-    if(listArgs.size() != 2) {
-      return;
-    }
-
-    String regionName = listArgs.get(0);
-    String summonerName = listArgs.get(1);
-
-    Platform region = CreatePlayerCommand.getPlatform(regionName);
-    if(region == null) {
-      return;
-    }
-
-    Summoner summoner;
-    try {
-      summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName, CallPriority.NORMAL);
-    }catch(RiotApiException e1) {
-      if(e1.getErrorCode() != RiotApiException.DATA_NOT_FOUND) {
-        throw e1;
+        if(player != null) {
+          server.deletePlayer(player);
+        }
       }
-      return;
     }
-    
-    Player player = new Player(user, summoner, region, false);
-    server.getPlayers().add(player);
-  }
 
-  private boolean isCreatePlayerCommand(String command) {
-    if(command.split(" ").length < 4) { // Minimum 4 bloc of text
-      return false;
+    private void executeCreatePlayerCommand(Guild guild, User user, Message potentialCreatePlayer, String message) throws RiotApiException {
+      User playerUser = CreatePlayerCommand.getMentionedUser(potentialCreatePlayer.getMentionedMembers());
+      if(playerUser == null) {
+        return;
+      }
+
+      Server server = ServerData.getServers().get(guild.getId());
+      if(CreatePlayerCommand.isTheGivenUserAlreadyRegister(user, server)) {
+        return;
+      }
+
+      List<String> listArgs = CreatePlayerCommand.getParameterInParenteses(getArgsCommand(message, CreateCommand.USAGE_NAME, CreatePlayerCommand.USAGE_NAME));
+      if(listArgs.size() != 2) {
+        return;
+      }
+
+      String regionName = listArgs.get(0);
+      String summonerName = listArgs.get(1);
+
+      Platform region = CreatePlayerCommand.getPlatform(regionName);
+      if(region == null) {
+        return;
+      }
+
+      Summoner summoner;
+      try {
+        summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName, CallPriority.NORMAL);
+      }catch(RiotApiException e1) {
+        if(e1.getErrorCode() != RiotApiException.DATA_NOT_FOUND) {
+          throw e1;
+        }
+        return;
+      }
+
+      Player player = new Player(user, summoner, region, false);
+      server.getPlayers().add(player);
     }
-    
-    String messageInTreatment = command.substring(1).split(" ")[0];
 
-    return messageInTreatment.equalsIgnoreCase(CreateCommand.USAGE_NAME)
-        && command.substring(1).split(" ")[1].equals(CreatePlayerCommand.USAGE_NAME);
-  }
-  
-  private boolean isCreateTeamCommand(String command) {
-    if(command.split(" ").length < 4) { // Minimum 4 bloc of text
-      return false;
+    private boolean isCreatePlayerCommand(String command) {
+      if(command.split(" ").length < 4) { // Minimum 4 bloc of text
+        return false;
+      }
+
+      String messageInTreatment = command.substring(1).split(" ")[0];
+
+      return messageInTreatment.equalsIgnoreCase(CreateCommand.USAGE_NAME)
+          && command.substring(1).split(" ")[1].equals(CreatePlayerCommand.USAGE_NAME);
     }
-    
-    String messageInTreatment = command.substring(1).split(" ")[0];
 
-    return messageInTreatment.equalsIgnoreCase(CreateCommand.USAGE_NAME)
-        && command.substring(1).split(" ")[1].equals(CreateTeamCommand.USAGE_NAME);
-  }
-  
-  private boolean isDeletePlayerCommand(String command) {
-    if(command.split(" ").length < 3) { // Minimum 4 bloc of text
-      return false;
+    private boolean isCreateTeamCommand(String command) {
+      if(command.split(" ").length < 4) { // Minimum 4 bloc of text
+        return false;
+      }
+
+      String messageInTreatment = command.substring(1).split(" ")[0];
+
+      return messageInTreatment.equalsIgnoreCase(CreateCommand.USAGE_NAME)
+          && command.substring(1).split(" ")[1].equals(CreateTeamCommand.USAGE_NAME);
     }
-    
-    String messageInTreatment = command.substring(1).split(" ")[0];
-    
-    return messageInTreatment.equalsIgnoreCase(CreateCommand.USAGE_NAME)
-        && command.substring(1).split(" ")[1].equals(CreatePlayerCommand.USAGE_NAME);
-  }
 
-  private String getCreatePlayerArgsCommand(String command) {
-    return command.substring(1)
-        .substring(CreateCommand.USAGE_NAME.length() + 1)
-        .substring(CreatePlayerCommand.USAGE_NAME.length() + 1)
-        .substring(1);
-  }
-  
-  private void cancelRecovery(MessageReceivedEvent event) {
-    event.getTextChannel().sendMessage("Recovery has been canceled.");
-  }
+    private boolean isDeletePlayerCommand(String command) {
+      if(command.split(" ").length < 3) { // Minimum 3 bloc of text
+        return false;
+      }
+
+      String messageInTreatment = command.substring(1).split(" ")[0];
+
+      return messageInTreatment.equalsIgnoreCase(DeleteCommand.USAGE_NAME)
+          && command.substring(1).split(" ")[1].equals(DeletePlayerCommand.USAGE_NAME);
+    }
+
+    private String getArgsCommand(String command, String mainName, String usage) {
+      return command.substring(1)
+          .substring(mainName.length() + 1)
+          .substring(usage.length() + 1)
+          .substring(1);
+    }
+
+    private void cancelRecovery(MessageReceivedEvent event) {
+      event.getTextChannel().sendMessage("Recovery has been canceled.");
+    }
 
 
-}
+  }

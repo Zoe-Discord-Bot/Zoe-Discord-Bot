@@ -16,8 +16,10 @@ import net.dv8tion.jda.core.entities.User;
 
 public class DeletePlayerCommand extends Command {
 
+  public static final String USAGE_NAME = "player";
+
   public DeletePlayerCommand() {
-    this.name = "player";
+    this.name = USAGE_NAME;
     this.help = "Delete the given player. Manage Channel permission needed.";
     this.arguments = "@DiscordMentionOfPlayer";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};

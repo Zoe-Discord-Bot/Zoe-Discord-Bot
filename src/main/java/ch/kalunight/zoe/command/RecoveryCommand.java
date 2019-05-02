@@ -116,7 +116,7 @@ public class RecoveryCommand extends Command {
             }
             
             if(isRemovePlayerToTeamCommand(message)) {
-              //Impl
+              //Impl executeRemovePlayerToTeam
             }
         }
 

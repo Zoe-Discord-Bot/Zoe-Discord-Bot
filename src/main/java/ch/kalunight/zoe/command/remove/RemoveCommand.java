@@ -8,8 +8,10 @@ import net.dv8tion.jda.core.Permission;
 
 public class RemoveCommand extends Command {
 
+  public static final String USAGE_NAME = "remove";
+
   public RemoveCommand() {
-    this.name = "remove";
+    this.name = USAGE_NAME;
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
     this.help = "Send info about remove commands";

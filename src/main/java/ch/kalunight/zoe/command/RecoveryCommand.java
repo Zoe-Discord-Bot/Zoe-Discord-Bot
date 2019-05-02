@@ -3,6 +3,7 @@ package ch.kalunight.zoe.command;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +20,8 @@ import ch.kalunight.zoe.command.create.CreateTeamCommand;
 import ch.kalunight.zoe.command.delete.DeleteCommand;
 import ch.kalunight.zoe.command.delete.DeletePlayerCommand;
 import ch.kalunight.zoe.command.delete.DeleteTeamCommand;
+import ch.kalunight.zoe.command.remove.RemoveCommand;
+import ch.kalunight.zoe.command.remove.RemovePlayerToTeam;
 import ch.kalunight.zoe.model.Player;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.Team;
@@ -57,9 +60,9 @@ public class RecoveryCommand extends Command {
     if(!event.getMessage().getMentionedMembers().isEmpty() 
         && event.getMessage().getMentionedMembers().get(0).getPermissions().contains(Permission.MANAGE_CHANNEL)) {
 
-      event.reply("**WARNING**: This command will relauch all config commands existing in this channel ! "
+      event.reply("**WARNING**: This command will relauch all configuration commands existing in this channel ! "
           + "Your actual configuration will be drastically modified! "
-          + "It's only recommanded to use it if Zoe have forgot your save.\n\n Say **YES** if you want to do that.");
+          + "It's only recommanded to use it if Zoe have forgot your save.\n\nSay **YES** if you want to do that.");
 
       List<String> users = new ArrayList<>();
 
@@ -77,14 +80,14 @@ public class RecoveryCommand extends Command {
     }
   }
 
-  private void recover(MessageReceivedEvent e, List<String> usersId) {
-    if(e.getMessage().getContentRaw().equals("YES")) {
+  private void recover(MessageReceivedEvent messageReceivedEvent, List<String> usersId) {
+    if(messageReceivedEvent.getMessage().getContentRaw().equals("YES")) {
 
-      e.getTextChannel().sendMessage("Alright, i start now ...").queue();
-      e.getTextChannel().sendMessage("By the power of chocolate moon cake ! Restore all theses lost things !").queueAfter(1, TimeUnit.SECONDS);
+      messageReceivedEvent.getTextChannel().sendMessage("Alright, i start now ...").queue();
+      messageReceivedEvent.getTextChannel().sendMessage("By the power of chocolate moon cake ! Restore all theses lost things !").queueAfter(1, TimeUnit.SECONDS);
 
-      List<Message> messages = e.getTextChannel().getIterableHistory().stream()
-          .filter(m-> usersId.contains(m.getAuthor().getId()))
+      List<Message> messages = messageReceivedEvent.getTextChannel().getIterableHistory().stream()
+          .filter(m-> usersId.contains(m.getAuthor().getId()) && m.getContentRaw().startsWith(Zoe.BOT_PREFIX))
           .limit(1000)
           .collect(Collectors.toList());
 
@@ -92,10 +95,8 @@ public class RecoveryCommand extends Command {
         for(Message potentialCommand : messages) {
           String message = potentialCommand.getContentRaw();
 
-          if(message.startsWith(Zoe.BOT_PREFIX)) {
-
             if(isCreatePlayerCommand(message)) {
-              executeCreatePlayerCommand(potentialCommand, message);
+              executeCreatePlayerCommand(potentialCommand);
             }
 
             if(isDeletePlayerCommand(message)) {
@@ -111,26 +112,57 @@ public class RecoveryCommand extends Command {
             }
 
             if(isAddPlayerToTeamCommand(message)) {
-              //TODO Impl
+              executeAddPlayerToTeamCommand(potentialCommand);
             }
-          }
+            
+            if(isRemovePlayerToTeamCommand(message)) {
+              //Impl
+            }
         }
 
 
-      }catch(RiotApiException e1) {
-        if(e1.getErrorCode() == RiotApiException.SERVER_ERROR) {
-          e.getTextChannel().sendMessage("Riot server occured a issue. Please retry after doing a `>reset`.").queue();
-          logger.info("Riot api got an error : {}", e1.getMessage(), e1);
-        }else if(e1.getErrorCode() == RiotApiException.UNAVAILABLE) {
-          e.getTextChannel().sendMessage("Riot server are actually unavailable. Please retry later. (And make a `>reset` before.)").queue();
-          logger.info("Riot api is actually unavailable : {}", e1.getMessage(), e1);
+      }catch(RiotApiException e) {
+        if(e.getErrorCode() == RiotApiException.SERVER_ERROR) {
+          messageReceivedEvent.getTextChannel().sendMessage("Riot server occured a issue. Please retry after doing a `>reset`.").queue();
+          logger.info("Riot api got an error : {}", e.getMessage(), e);
+        }else if(e.getErrorCode() == RiotApiException.UNAVAILABLE) {
+          messageReceivedEvent.getTextChannel().sendMessage("Riot server are actually unavailable. Please retry later. (And make a `>reset` before.)").queue();
+          logger.info("Riot api is actually unavailable : {}", e.getMessage(), e);
         }else {
-          e.getTextChannel().sendMessage("I got an unexpected error, Please retry later after doing a `>reset`.").queue();
-          logger.warn("Got an unexpected error : {}", e1.getMessage(), e1);
+          messageReceivedEvent.getTextChannel().sendMessage("I got an unexpected error, Please retry later after doing a `>reset`."
+              + " If it doesn't resolve your issue ask for help to the support server.").queue();
+          logger.error("Got an unexpected error : {}", e.getMessage(), e);
         }
       }
     }else {
-      e.getTextChannel().sendMessage("Right, so i do nothing.").queue();
+      messageReceivedEvent.getTextChannel().sendMessage("Right, so i do nothing.").queue();
+    }
+  }
+
+  private void executeAddPlayerToTeamCommand(Message potentialCommand) {
+    
+    Server server = ServerData.getServers().get(potentialCommand.getId());
+    if(potentialCommand.getMentionedMembers().size() == 1) {
+      Player player = server.getPlayerByDiscordId(potentialCommand.getMentionedMembers().get(0).getUser().getId());
+      
+      if(player != null) {
+        Team team = server.getTeamByPlayer(player);
+        
+        if(team == null) {
+          Matcher matcher = AddPlayerToTeam.PARENTHESES_PATTERN.matcher(
+              getArgsCommand(potentialCommand.getContentRaw(), AddCommand.USAGE_NAME, AddPlayerToTeam.USAGE_NAME));
+          String teamName = "";
+          while(matcher.find()) {
+            teamName = matcher.group(1);
+          }
+
+          Team teamToAdd = server.getTeamByName(teamName);
+          
+          if(teamToAdd != null) {
+            teamToAdd.getPlayers().add(player);
+          }
+        }
+      }
     }
   }
 
@@ -172,7 +204,7 @@ public class RecoveryCommand extends Command {
     }
   }
 
-  private void executeCreatePlayerCommand(Message potentialCreatePlayer, String message) throws RiotApiException {
+  private void executeCreatePlayerCommand(Message potentialCreatePlayer) throws RiotApiException {
     User playerUser = CreatePlayerCommand.getMentionedUser(potentialCreatePlayer.getMentionedMembers());
     if(playerUser == null) {
       return;
@@ -183,7 +215,8 @@ public class RecoveryCommand extends Command {
       return;
     }
 
-    List<String> listArgs = CreatePlayerCommand.getParameterInParenteses(getArgsCommand(message, CreateCommand.USAGE_NAME, CreatePlayerCommand.USAGE_NAME));
+    List<String> listArgs = CreatePlayerCommand.getParameterInParenteses(
+        getArgsCommand(potentialCreatePlayer.getContentRaw(), CreateCommand.USAGE_NAME, CreatePlayerCommand.USAGE_NAME));
     if(listArgs.size() != 2) {
       return;
     }
@@ -219,6 +252,16 @@ public class RecoveryCommand extends Command {
 
     return messageInTreatment.equalsIgnoreCase(AddCommand.USAGE_NAME)
         && command.substring(Zoe.BOT_PREFIX.length()).split(" ")[1].equalsIgnoreCase(AddPlayerToTeam.USAGE_NAME);
+  }
+  
+  private boolean isRemovePlayerToTeamCommand(String command) {
+    if(command.split(" ").length < 4) { // Minimum 4 bloc of text
+      return false;
+    }
+    String messageInTreatment = command.substring(Zoe.BOT_PREFIX.length()).split(" ")[0];
+
+    return messageInTreatment.equalsIgnoreCase(RemoveCommand.USAGE_NAME)
+        && command.substring(Zoe.BOT_PREFIX.length()).split(" ")[1].equalsIgnoreCase(RemovePlayerToTeam.USAGE_NAME);
   }
   
   private boolean isCreatePlayerCommand(String command) {

@@ -16,7 +16,7 @@ import net.dv8tion.jda.core.Permission;
 public class AddPlayerToTeam extends Command {
 
   public static final String USAGE_NAME = "playerToTeam";
-  private static final Pattern PARENTHESES_PATTERN = Pattern.compile("\\(([^)]+)\\)");
+  public static final Pattern PARENTHESES_PATTERN = Pattern.compile("\\(([^)]+)\\)");
   
   public AddPlayerToTeam() {
     this.name = USAGE_NAME;

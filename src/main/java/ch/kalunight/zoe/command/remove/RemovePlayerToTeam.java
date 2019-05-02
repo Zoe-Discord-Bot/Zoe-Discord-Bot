@@ -16,9 +16,10 @@ import net.dv8tion.jda.core.Permission;
 public class RemovePlayerToTeam extends Command {
 
   private static final Pattern PARENTHESES_PATTERN = Pattern.compile("\\(([^)]+)\\)");
+  public static final String USAGE_NAME = "playerToTeam";
 
   public RemovePlayerToTeam() {
-    this.name = "playerToTeam";
+    this.name = USAGE_NAME;
     this.help = "Delete the given player from the given team. Manage Channel permission needed.";
     this.arguments = "@MentionOfPlayer (teamName)";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};

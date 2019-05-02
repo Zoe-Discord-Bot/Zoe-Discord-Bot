@@ -8,8 +8,10 @@ import net.dv8tion.jda.core.Permission;
 
 public class AddCommand extends Command {
 
+  public static final String USAGE_NAME = "add";
+
   public AddCommand() {
-    this.name = "add";
+    this.name = USAGE_NAME;
     this.arguments = "";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;

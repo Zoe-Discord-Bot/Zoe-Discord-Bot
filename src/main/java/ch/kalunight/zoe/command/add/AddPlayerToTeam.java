@@ -15,10 +15,11 @@ import net.dv8tion.jda.core.Permission;
 
 public class AddPlayerToTeam extends Command {
 
+  public static final String USAGE_NAME = "playerToTeam";
   private static final Pattern PARENTHESES_PATTERN = Pattern.compile("\\(([^)]+)\\)");
-
+  
   public AddPlayerToTeam() {
-    this.name = "playerToTeam";
+    this.name = USAGE_NAME;
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.arguments = "@MentionPlayer (teamName)";
     this.userPermissions = permissionRequired;

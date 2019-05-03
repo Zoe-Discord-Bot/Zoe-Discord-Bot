@@ -15,7 +15,7 @@ import net.dv8tion.jda.core.Permission;
 
 public class RemovePlayerToTeam extends Command {
 
-  private static final Pattern PARENTHESES_PATTERN = Pattern.compile("\\(([^)]+)\\)");
+  public static final Pattern PARENTHESES_PATTERN = Pattern.compile("\\(([^)]+)\\)");
   public static final String USAGE_NAME = "playerToTeam";
 
   public RemovePlayerToTeam() {

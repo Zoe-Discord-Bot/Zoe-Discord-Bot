@@ -84,6 +84,7 @@ public class EventListener extends ListenerAdapter {
       logger.info("Loading of DiscordBotList API finished !");
     } catch(Exception e) {
       logger.info("Discord bot list api not loaded normally ! Working of the bot not affected");
+      Zoe.setBotListApi(null);
     }
 
     logger.info("Démarrage des tâches continue...");

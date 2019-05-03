@@ -3,6 +3,7 @@ package ch.kalunight.zoe.command;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -43,14 +44,14 @@ public class RecoveryCommand extends Command {
   public RecoveryCommand(EventWaiter waiter) {
     this.name = "recover";
     this.help = "Remake all config command of a channel from mentioned user.";
-    this.arguments = "@mentionOfConfigurator (You can mention multiple poeple)";
+    this.arguments = "@mentionOfConfigurator (You can mention multiple people)";
     this.hidden = false;
     this.ownerCommand = false;
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
     this.guildOnly = true;
     this.waiter = waiter;
-    this.cooldown = 120;
+    this.helpBiConsumer = getHelpMethod();
   }
 
   @Override
@@ -60,9 +61,9 @@ public class RecoveryCommand extends Command {
     if(!event.getMessage().getMentionedMembers().isEmpty() 
         && event.getMessage().getMentionedMembers().get(0).getPermissions().contains(Permission.MANAGE_CHANNEL)) {
 
-      event.reply("**WARNING**: This command will relauch all configuration commands existing in this channel ! "
-          + "Your actual configuration will be drastically modified! "
-          + "It's only recommanded to use it if Zoe have forgot your save.\n\nSay **YES** if you want to do that.");
+      event.getEvent().getTextChannel().sendMessage("**WARNING**: This command will relauch all configuration commands existing in this channel ! "
+          + "Your actual configuration will be drastically modified! This command will take a long time to be execute. "
+          + "It's only recommanded to use it if Zoe have forgot your save.\n\nSay **YES** if you want to do that.").complete();
 
       List<String> users = new ArrayList<>();
 
@@ -71,12 +72,12 @@ public class RecoveryCommand extends Command {
       }
 
       waiter.waitForEvent(MessageReceivedEvent.class,
-          e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel()),
-          e -> recover(e, users), 1,
-          TimeUnit.MINUTES,
+          e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel())
+            && !e.getMessage().getId().equals(event.getMessage().getId()),
+          e -> recover(e, users), 1, TimeUnit.MINUTES,
           () -> cancelRecovery(event.getEvent()));
     }else {
-      event.reply("Please mention one people who has the Permission to manage channel");
+      event.reply("Please mention at least one people who has the Permission to manage channel");
     }
   }
 
@@ -92,56 +93,92 @@ public class RecoveryCommand extends Command {
           .collect(Collectors.toList());
 
       try {
+        Server server = ServerData.getServers().get(messageReceivedEvent.getGuild().getId());
         for(Message potentialCommand : messages) {
           String message = potentialCommand.getContentRaw();
 
             if(isCreatePlayerCommand(message)) {
-              executeCreatePlayerCommand(potentialCommand);
+              executeCreatePlayerCommand(potentialCommand, server);
             }
 
             if(isDeletePlayerCommand(message)) {
-              executeDeletePlayerCommand(potentialCommand);
+              executeDeletePlayerCommand(potentialCommand, server);
             }
 
             if(isCreateTeamCommand(message)) {
-              executeCreateTeamCommand(potentialCommand);
+              executeCreateTeamCommand(potentialCommand, server);
             }
 
             if(isDeleteTeamCommand(message)) {
-              executeDeleteTeamCommand(potentialCommand);
+              executeDeleteTeamCommand(potentialCommand, server);
             }
 
             if(isAddPlayerToTeamCommand(message)) {
-              executeAddPlayerToTeamCommand(potentialCommand);
+              executeAddPlayerToTeamCommand(potentialCommand, server);
             }
             
             if(isRemovePlayerToTeamCommand(message)) {
-              //Impl executeRemovePlayerToTeam
+              executeRemovePlayerToTeamCommand(potentialCommand, server);
             }
         }
-
-
+        
+        messageReceivedEvent.getTextChannel().sendMessage("Recovery finished !").queue();
+        
       }catch(RiotApiException e) {
         if(e.getErrorCode() == RiotApiException.SERVER_ERROR) {
-          messageReceivedEvent.getTextChannel().sendMessage("Riot server occured a issue. Please retry after doing a `>reset`.").queue();
           logger.info("Riot api got an error : {}", e.getMessage(), e);
+          messageReceivedEvent.getTextChannel().sendMessage("Riot server occured a issue. Please retry after doing a `>reset`.").queue();
         }else if(e.getErrorCode() == RiotApiException.UNAVAILABLE) {
-          messageReceivedEvent.getTextChannel().sendMessage("Riot server are actually unavailable. Please retry later. (And make a `>reset` before.)").queue();
           logger.info("Riot api is actually unavailable : {}", e.getMessage(), e);
+          messageReceivedEvent.getTextChannel().sendMessage("Riot server are actually unavailable. Please retry later. (And make a `>reset` before.)").queue();
         }else {
+          logger.error("Got an unexpected error : {}", e.getMessage(), e);
           messageReceivedEvent.getTextChannel().sendMessage("I got an unexpected error, Please retry later after doing a `>reset`."
               + " If it doesn't resolve your issue ask for help to the support server.").queue();
-          logger.error("Got an unexpected error : {}", e.getMessage(), e);
         }
+      } catch(Exception e) {
+        logger.error("Unexpected error : {}", e.getMessage(), e);
+        messageReceivedEvent.getTextChannel().sendMessage("I got a unexpected issue, please retry. "
+            + "If the error remain, please contact the support server.").queue();
       }
     }else {
       messageReceivedEvent.getTextChannel().sendMessage("Right, so i do nothing.").queue();
     }
   }
 
-  private void executeAddPlayerToTeamCommand(Message potentialCommand) {
+  private void executeRemovePlayerToTeamCommand(Message potentialCommand, Server server) {
     
-    Server server = ServerData.getServers().get(potentialCommand.getId());
+    if(potentialCommand.getMentionedMembers().size() != 1) {
+      return;
+    }
+    
+    Player player = server.getPlayerByDiscordId(potentialCommand.getMentionedMembers().get(0).getUser().getId());
+
+    if(player == null) {
+      return;
+    }
+    
+    Matcher matcher = RemovePlayerToTeam.PARENTHESES_PATTERN.matcher(
+        getArgsCommand(potentialCommand.getContentRaw(), RemoveCommand.USAGE_NAME, RemovePlayerToTeam.USAGE_NAME));
+    String teamName = "";
+    while(matcher.find()) {
+      teamName = matcher.group(1);
+    }
+
+    Team teamWhereRemove = server.getTeamByName(teamName);
+    if(teamWhereRemove == null) {
+      return;
+    }
+
+    if(!teamWhereRemove.isPlayerInTheTeam(player)) {
+      return;
+    }
+
+    teamWhereRemove.getPlayers().remove(player);
+  }
+
+  private void executeAddPlayerToTeamCommand(Message potentialCommand, Server server) {
+    
     if(potentialCommand.getMentionedMembers().size() == 1) {
       Player player = server.getPlayerByDiscordId(potentialCommand.getMentionedMembers().get(0).getUser().getId());
       
@@ -166,9 +203,8 @@ public class RecoveryCommand extends Command {
     }
   }
 
-  private void executeDeleteTeamCommand(Message potentialCommand) {
+  private void executeDeleteTeamCommand(Message potentialCommand, Server server) {
     String teamName = getArgsCommand(potentialCommand.getContentRaw(), DeleteCommand.USAGE_NAME, DeleteTeamCommand.USAGE_NAME);
-    Server server = ServerData.getServers().get(potentialCommand.getGuild().getId());
 
     Team team = server.getTeamByName(teamName);
     if(team != null) {
@@ -176,10 +212,9 @@ public class RecoveryCommand extends Command {
     }
   }
 
-  private void executeCreateTeamCommand(Message message) {
+  private void executeCreateTeamCommand(Message message, Server server) {
 
     String nameTeam = getArgsCommand(message.getContentRaw(), CreateCommand.USAGE_NAME, CreateTeamCommand.USAGE_NAME);
-    Server server = ServerData.getServers().get(message.getGuild().getId());
 
     if(!nameTeam.equals("")) {
       Team team = server.getTeamByName(nameTeam);
@@ -190,8 +225,7 @@ public class RecoveryCommand extends Command {
     }
   }
 
-  private void executeDeletePlayerCommand(Message potentialCreatePlayer) {
-    Server server = DeletePlayerCommand.checkServer(potentialCreatePlayer.getGuild());
+  private void executeDeletePlayerCommand(Message potentialCreatePlayer, Server server) {
     List<Member> members = potentialCreatePlayer.getMentionedMembers();
 
     if(members.size() == 1) {
@@ -204,13 +238,12 @@ public class RecoveryCommand extends Command {
     }
   }
 
-  private void executeCreatePlayerCommand(Message potentialCreatePlayer) throws RiotApiException {
+  private void executeCreatePlayerCommand(Message potentialCreatePlayer, Server server) throws RiotApiException {
     User playerUser = CreatePlayerCommand.getMentionedUser(potentialCreatePlayer.getMentionedMembers());
     if(playerUser == null) {
       return;
     }
 
-    Server server = ServerData.getServers().get(potentialCreatePlayer.getGuild().getId());
     if(CreatePlayerCommand.isTheGivenUserAlreadyRegister(potentialCreatePlayer.getAuthor(), server)) {
       return;
     }
@@ -319,5 +352,17 @@ public class RecoveryCommand extends Command {
     event.getTextChannel().sendMessage("Recovery has been canceled.");
   }
 
+  private BiConsumer<CommandEvent, Command> getHelpMethod() {
+    return new BiConsumer<CommandEvent, Command>() {
+      @Override
+      public void accept(CommandEvent event, Command command) {
+        CommandUtil.sendTypingInFonctionOfChannelType(event);
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("Recovery command :\n");
+        stringBuilder.append("--> `>" + name + " " + arguments + "` : " + help);
 
+        event.reply(stringBuilder.toString());
+      }
+    };
+  }
 }

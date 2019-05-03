@@ -23,8 +23,10 @@ import com.google.gson.JsonParser;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import com.jagrosh.jdautilities.command.CommandEvent;
+import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.examples.command.PingCommand;
 import ch.kalunight.zoe.command.AboutCommand;
+import ch.kalunight.zoe.command.RecoveryCommand;
 import ch.kalunight.zoe.command.ResetEmotesCommand;
 import ch.kalunight.zoe.command.SetupCommand;
 import ch.kalunight.zoe.command.ShutDownCommand;
@@ -69,7 +71,7 @@ public class Zoe {
 
   private static final File SAVE_TXT_FILE = new File("ressources/save.txt");
 
-  private static final List<Command> mainCommands = getMainCommands();
+  private static List<Command> mainCommands;
 
   private static RiotApi riotApi;
 
@@ -101,13 +103,15 @@ public class Zoe {
 
     client.setPrefix(BOT_PREFIX);
 
+    EventWaiter eventWaiter = new EventWaiter();
+    
+    for(Command command : getMainCommands(eventWaiter)) {
+      client.addCommand(command);
+    }
+    
     Consumer<CommandEvent> helpCommand = getHelpCommand();
 
     client.setHelpConsumer(helpCommand);
-
-    for(Command command : getMainCommands()) {
-      client.addCommand(command);
-    }
 
     initRiotApi(riotTocken);
 
@@ -116,6 +120,7 @@ public class Zoe {
           .setToken(discordTocken)//
           .setStatus(OnlineStatus.DO_NOT_DISTURB)//
           .addEventListener(client.build())//
+          .addEventListener(eventWaiter)//
           .addEventListener(new EventListener()).build();//
     } catch(IndexOutOfBoundsException e) {
       logger.error("You must provide a token.");
@@ -159,9 +164,13 @@ public class Zoe {
         Command aboutCommand = new AboutCommand();
         stringBuilder.append("Command **" + aboutCommand.getName() + "** :\n");
         stringBuilder.append("--> `>" + aboutCommand.getName() + "` : " + aboutCommand.getHelp() + "\n\n");
-
-        for(Command command : getMainCommands()) {
-          if(!command.isHidden() && !(command instanceof PingCommand)) {
+        
+        Command recoveryCommand = new RecoveryCommand(null);
+        stringBuilder.append("Command **" + recoveryCommand.getName() + "** :\n");
+        stringBuilder.append("--> `>" + recoveryCommand.getName() + " " + recoveryCommand.getArguments() + "` : " + recoveryCommand.getHelp() + "\n\n");
+        
+        for(Command command : getMainCommands(null)) {
+          if(!command.isHidden() && !(command instanceof PingCommand || command instanceof RecoveryCommand)) {
             stringBuilder.append("Commands **" + command.getName() + "** : \n");
 
             for(Command commandChild : command.getChildren()) {
@@ -181,7 +190,7 @@ public class Zoe {
     };
   }
 
-  public static List<Command> getMainCommands() {
+  public static List<Command> getMainCommands(EventWaiter eventWaiter) {
     if(mainCommands != null) {
       return mainCommands;
     }
@@ -202,6 +211,9 @@ public class Zoe {
     commands.add(new UndefineCommand());
     commands.add(new AddCommand());
     commands.add(new RemoveCommand());
+    commands.add(new RecoveryCommand(eventWaiter));
+    
+    mainCommands = commands;
 
     return commands;
   }

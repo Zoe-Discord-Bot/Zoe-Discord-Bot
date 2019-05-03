@@ -1,6 +1,7 @@
 package ch.kalunight.zoe.model;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Team {
@@ -10,7 +11,7 @@ public class Team {
 
   public Team(String name, List<Player> players) {
     this.name = name;
-    this.players = players;
+    this.players = Collections.synchronizedList(players);
   }
 
   public Team(String name) {

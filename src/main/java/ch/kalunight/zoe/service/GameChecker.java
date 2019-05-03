@@ -16,13 +16,9 @@ public class GameChecker extends TimerTask {
 
   private static final int TIME_BETWEEN_EACH_STATUS_REFRESH_IN_HOURS = 1;
 
-  private static DateTime nextSaveTime = DateTime.now().plusMinutes(TIME_BETWEEN_EACH_SAVE_IN_MINUTES);
+  private static DateTime nextSaveTime = DateTime.now().plusSeconds(TIME_BETWEEN_EACH_SAVE_IN_MINUTES);
 
   private static DateTime nextStatusRefresh = DateTime.now();
-
-  public static void setNextSaveTime(DateTime nextRefreshDate) {
-    GameChecker.nextSaveTime = nextRefreshDate;
-  }
 
   @Override
   public void run() {
@@ -48,7 +44,7 @@ public class GameChecker extends TimerTask {
       }
     }
 
-    if(nextSaveTime.isAfterNow()) {
+    if(nextSaveTime.isBeforeNow()) {
       // Save data
       ServerData.getTaskExecutor().execute(new DataSaver());
 
@@ -60,7 +56,7 @@ public class GameChecker extends TimerTask {
       setNextSaveTime(DateTime.now().plusMinutes(TIME_BETWEEN_EACH_SAVE_IN_MINUTES));
     }
 
-    if(nextStatusRefresh.isAfterNow()) {
+    if(nextStatusRefresh.isBeforeNow()) {
       // Discord status
       Zoe.getJda().getPresence().setStatus(OnlineStatus.ONLINE);
       Zoe.getJda().getPresence().setGame(Game.playing("type \">help\""));
@@ -71,5 +67,9 @@ public class GameChecker extends TimerTask {
 
   public static void setNextStatusRefresh(DateTime nextStatusRefresh) {
     GameChecker.nextStatusRefresh = nextStatusRefresh;
+  }
+  
+  public static void setNextSaveTime(DateTime nextRefreshDate) {
+    GameChecker.nextSaveTime = nextRefreshDate;
   }
 }

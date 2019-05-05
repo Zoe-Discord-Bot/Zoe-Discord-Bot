@@ -6,11 +6,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.Lists;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
+
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.add.AddCommand;
@@ -87,10 +91,12 @@ public class RecoveryCommand extends Command {
       messageReceivedEvent.getTextChannel().sendMessage("Alright, i start now ...").queue();
       messageReceivedEvent.getTextChannel().sendMessage("By the power of chocolate moon cake ! Restore all theses lost things !").queueAfter(1, TimeUnit.SECONDS);
 
-      List<Message> messages = messageReceivedEvent.getTextChannel().getIterableHistory().stream()
-          .filter(m-> usersId.contains(m.getAuthor().getId()) && m.getContentRaw().startsWith(Zoe.BOT_PREFIX))
+      List<Message> reverseMessages = messageReceivedEvent.getTextChannel().getIterableHistory().stream()
+          .filter(m-> usersId.contains(m.getAuthor().getId()) && m.getContentRaw().startsWith(Zoe.BOT_PREFIX)) //NEED TO REVERT THIS STREAM
           .limit(1000)
           .collect(Collectors.toList());
+      
+      List<Message> messages = Lists.reverse(reverseMessages);
 
       try {
         Server server = ServerData.getServers().get(messageReceivedEvent.getGuild().getId());

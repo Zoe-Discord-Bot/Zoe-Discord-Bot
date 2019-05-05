@@ -27,6 +27,7 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.examples.command.PingCommand;
 import ch.kalunight.zoe.command.AboutCommand;
 import ch.kalunight.zoe.command.RecoveryCommand;
+import ch.kalunight.zoe.command.ResetCommand;
 import ch.kalunight.zoe.command.ResetEmotesCommand;
 import ch.kalunight.zoe.command.SetupCommand;
 import ch.kalunight.zoe.command.ShutDownCommand;
@@ -169,8 +170,12 @@ public class Zoe {
         stringBuilder.append("Command **" + recoveryCommand.getName() + "** :\n");
         stringBuilder.append("--> `>" + recoveryCommand.getName() + " " + recoveryCommand.getArguments() + "` : " + recoveryCommand.getHelp() + "\n\n");
         
+        Command resetCommand = new ResetCommand(null);
+        stringBuilder.append("Command **" + resetCommand.getName() + "** :\n");
+        stringBuilder.append("--> `>" + resetCommand.getName() + "` : " + resetCommand.getHelp() + "\n\n");
+        
         for(Command command : getMainCommands(null)) {
-          if(!command.isHidden() && !(command instanceof PingCommand || command instanceof RecoveryCommand)) {
+          if(!command.isHidden() && !(command instanceof PingCommand || command instanceof RecoveryCommand || command instanceof ResetCommand)) {
             stringBuilder.append("Commands **" + command.getName() + "** : \n");
 
             for(Command commandChild : command.getChildren()) {
@@ -212,6 +217,7 @@ public class Zoe {
     commands.add(new AddCommand());
     commands.add(new RemoveCommand());
     commands.add(new RecoveryCommand(eventWaiter));
+    commands.add(new ResetCommand(eventWaiter));
     
     mainCommands = commands;
 

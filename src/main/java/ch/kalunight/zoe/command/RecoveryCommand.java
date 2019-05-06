@@ -89,7 +89,7 @@ public class RecoveryCommand extends Command {
     if(messageReceivedEvent.getMessage().getContentRaw().equals("YES")) {
 
       messageReceivedEvent.getTextChannel().sendMessage("Alright, i start now ...").queue();
-      messageReceivedEvent.getTextChannel().sendMessage("By the power of chocolate moon cake ! Restore all theses lost things !").queueAfter(1, TimeUnit.SECONDS);
+      messageReceivedEvent.getTextChannel().sendMessage("By the power of chocolate moon cake ! Restore all theses lost things !").queue();
 
       List<Message> reverseMessages = messageReceivedEvent.getTextChannel().getIterableHistory().stream()
           .filter(m-> usersId.contains(m.getAuthor().getId()) && m.getContentRaw().startsWith(Zoe.BOT_PREFIX))

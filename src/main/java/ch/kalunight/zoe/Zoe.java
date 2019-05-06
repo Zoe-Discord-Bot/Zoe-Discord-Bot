@@ -106,11 +106,11 @@ public class Zoe {
     client.setPrefix(BOT_PREFIX);
 
     EventWaiter eventWaiter = new EventWaiter();
-    
+
     for(Command command : getMainCommands(eventWaiter)) {
       client.addCommand(command);
     }
-    
+
     Consumer<CommandEvent> helpCommand = getHelpCommand();
 
     client.setHelpConsumer(helpCommand);
@@ -166,15 +166,15 @@ public class Zoe {
         Command aboutCommand = new AboutCommand();
         stringBuilder.append("Command **" + aboutCommand.getName() + "** :\n");
         stringBuilder.append("--> `>" + aboutCommand.getName() + "` : " + aboutCommand.getHelp() + "\n\n");
-        
+
         Command recoveryCommand = new RecoveryCommand(null);
         stringBuilder.append("Command **" + recoveryCommand.getName() + "** :\n");
         stringBuilder.append("--> `>" + recoveryCommand.getName() + " " + recoveryCommand.getArguments() + "` : " + recoveryCommand.getHelp() + "\n\n");
-        
+
         Command resetCommand = new ResetCommand(null);
         stringBuilder.append("Command **" + resetCommand.getName() + "** :\n");
         stringBuilder.append("--> `>" + resetCommand.getName() + "` : " + resetCommand.getHelp() + "\n\n");
-        
+
         for(Command command : getMainCommands(null)) {
           if(!command.isHidden() && !(command instanceof PingCommand || command instanceof RecoveryCommand || command instanceof ResetCommand)) {
             stringBuilder.append("Commands **" + command.getName() + "** : \n");
@@ -190,7 +190,12 @@ public class Zoe {
         stringBuilder.append("For additional help, you can join our official server : https://discord.gg/whc5PrC");
 
         PrivateChannel privateChannel = event.getAuthor().openPrivateChannel().complete();
-        privateChannel.sendMessage(stringBuilder.toString()).queue();
+
+        List<String> helpMessages = CommandEvent.splitMessage(stringBuilder.toString());
+
+        for(String helpMessage : helpMessages) {
+          privateChannel.sendMessage(helpMessage).queue();
+        }
         event.reply("I send you all the commands in a private message.");
       }
     };
@@ -220,7 +225,7 @@ public class Zoe {
     commands.add(new StatsCommand());
     commands.add(new RecoveryCommand(eventWaiter));
     commands.add(new ResetCommand(eventWaiter));
-    
+
     mainCommands = commands;
 
     return commands;
@@ -272,7 +277,7 @@ public class Zoe {
         }
         Server server = servers.get(guild.getId());
         StringBuilder strBuilder = new StringBuilder();
-        
+
         if(server != null) {
           strBuilder.append("--server\n");
           strBuilder.append(guild.getId() + "\n");

@@ -50,7 +50,7 @@
 			<type>pom</type>
 		</dependency>
 
-		<!-- We use a modified version oh this api, look here : https://github.com/KaluNight/riot-api-java -->
+		<!-- We use a modified version of riot-api-java, look here : https://github.com/KaluNight/riot-api-java -->
 		<dependency>
 			<groupId>com.github.KaluNight</groupId>
 			<artifactId>riot-api-java</artifactId>

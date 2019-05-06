@@ -27,7 +27,7 @@ public class EventListenerUtil {
     List<CustomEmote> emoteAlreadyUploded = getEmoteAlreadyUploaded(picturesInFile);
 
     Ressources.setCustomEmotes(emoteAlreadyUploded);
-    
+
     assigneCustomEmotesToData();
   }
 
@@ -68,11 +68,10 @@ public class EventListenerUtil {
     List<Guild> listGuild = Zoe.getJda().getGuilds();
 
     for(Guild guild : listGuild) {
-      /*
-       * if(guild.getOwnerId().equals(Zoe.getJda().getSelfUser().getId())) { guild.delete().queue(); }
-       */
-      
-      uploadedEmotes.addAll(guild.getEmotes());
+
+      if(guild.getOwnerId().equals(Zoe.getJda().getSelfUser().getId())) {
+        uploadedEmotes.addAll(guild.getEmotes());
+      }
     }
     return uploadedEmotes;
   }

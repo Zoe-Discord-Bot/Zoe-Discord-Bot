@@ -16,7 +16,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.8.0</version>
+				<version>3.8.1</version>
 				<configuration>
 					<source>11</source>
 					<target>11</target>
@@ -39,7 +39,7 @@
 		<dependency>
 			<groupId>net.dv8tion</groupId>
 			<artifactId>JDA</artifactId>
-			<version>3.8.3_462</version>
+			<version>3.8.3_463</version>
 		</dependency>
 
 		<dependency>
@@ -50,10 +50,11 @@
 			<type>pom</type>
 		</dependency>
 
+		<!-- We use a modified version oh this api, look here : https://github.com/KaluNight/riot-api-java -->
 		<dependency>
-			<groupId>com.github.taycaldwell</groupId>
+			<groupId>com.github.KaluNight</groupId>
 			<artifactId>riot-api-java</artifactId>
-			<version>4.2.0</version>
+			<version>4.3.5</version>
 		</dependency>
 
 		<dependency>

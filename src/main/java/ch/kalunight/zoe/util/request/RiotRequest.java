@@ -6,11 +6,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.FullTier;
 import ch.kalunight.zoe.model.Mastery;
@@ -27,6 +25,7 @@ import net.rithms.riot.api.endpoints.match.dto.MatchReference;
 import net.rithms.riot.api.endpoints.match.dto.Participant;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
+import net.rithms.riot.constant.CallPriority;
 import net.rithms.riot.constant.Platform;
 
 public class RiotRequest {
@@ -41,7 +40,7 @@ public class RiotRequest {
 
     Set<LeaguePosition> listLeague;
     try {
-      listLeague = Zoe.getRiotApi().getLeaguePositionsBySummonerId(region, summonerId);
+      listLeague = Zoe.getRiotApi().getLeaguePositionsBySummonerId(region, summonerId, CallPriority.NORMAL);
     } catch(RiotApiException e) {
       logger.warn("Error with riot api : {}", e.getMessage());
       return new FullTier(Tier.UNKNOWN, Rank.UNKNOWN, 0);
@@ -70,13 +69,19 @@ public class RiotRequest {
 
     Summoner summoner;
     try {
-      summoner = Zoe.getRiotApi().getSummoner(Platform.EUW, summonerId);
+      summoner = Zoe.getRiotApi().getSummoner(region, summonerId, CallPriority.NORMAL);
     } catch(RiotApiException e) {
       logger.warn("Impossible to get the summoner : {}", e.getMessage());
-      return "Any data";
+      return "Unknown";
     }
 
-    final List<MatchReference> referencesMatchList = getMatchHistoryOfLastMonthWithTheGivenChampion(region, championKey, summoner);
+    List<MatchReference> referencesMatchList;
+    try {
+      referencesMatchList = getMatchHistoryOfLastMonthWithTheGivenChampion(region, championKey, summoner);
+    } catch(RiotApiException e) {
+      logger.info("Can't acces to history : {}", e.getMessage());
+      return "Unknown";
+    }
 
     if(referencesMatchList.isEmpty()) {
       return "First game";
@@ -90,15 +95,15 @@ public class RiotRequest {
       Match match;
       try {
         try {
-          match = Zoe.getRiotApi().getMatch(region, matchReference.getGameId());
+          match = Zoe.getRiotApi().getMatch(region, matchReference.getGameId(), CallPriority.NORMAL);
         } catch(RiotApiException e) {
-          logger.warn("Match ungetable from api : {}", e.getMessage());
+          logger.debug("Match ungetable from api : {}", e.getMessage());
           continue;
         }
 
         Participant participant = match.getParticipantByAccountId(summoner.getAccountId());
 
-        if(participant != null && participant.getTimeline().getCreepsPerMinDeltas() != null) { //Check if the game has been canceled
+        if(participant != null && participant.getTimeline().getCreepsPerMinDeltas() != null) { // Check if the game has been canceled
 
           String result = match.getTeamByTeamId(participant.getTeamId()).getWin();
           if(result.equalsIgnoreCase("Win") || result.equalsIgnoreCase("Fail")) {
@@ -109,7 +114,7 @@ public class RiotRequest {
             nbrWins++;
           }
         }
-      }catch(NullPointerException e) {
+      } catch(NullPointerException e) {
         logger.warn("Error catched in match (some value are null, NullPointerException : {}", e);
       }
     }
@@ -123,7 +128,8 @@ public class RiotRequest {
     return df.format((nbrWins / (double) nbrGames) * 100) + "% (" + nbrWins + "W/" + (nbrGames - nbrWins) + "L)";
   }
 
-  private static List<MatchReference> getMatchHistoryOfLastMonthWithTheGivenChampion(Platform region, int championKey, Summoner summoner) {
+  private static List<MatchReference> getMatchHistoryOfLastMonthWithTheGivenChampion(Platform region, int championKey, Summoner summoner)
+      throws RiotApiException {
     final List<MatchReference> referencesMatchList = new ArrayList<>();
 
     DateTime actualTime = DateTime.now();
@@ -132,18 +138,21 @@ public class RiotRequest {
     Set<Integer> championToFilter = new HashSet<>();
     championToFilter.add(championKey);
 
-    for(int i = 0; i < 3; i++) {
+    for(int i = 0; i < 4; i++) {
 
       MatchList matchList = null;
 
       try {
         matchList = Zoe.getRiotApi().getMatchListByAccountId(region, summoner.getAccountId(), championToFilter, null, null,
-            beginTime.getMillis(), actualTime.getMillis(), -1, -1);
+            beginTime.getMillis(), actualTime.getMillis(), -1, -1, CallPriority.NORMAL);
         if(matchList.getMatches() != null) {
           referencesMatchList.addAll(matchList.getMatches());
         }
       } catch(RiotApiException e) {
         logger.debug("Impossible to get matchs history : {}", e.getMessage());
+        if(e.getErrorCode() != RiotApiException.DATA_NOT_FOUND) {
+          throw e;
+        }
       }
 
       actualTime = actualTime.minusWeeks(1);
@@ -152,13 +161,16 @@ public class RiotRequest {
     return referencesMatchList;
   }
 
-  public static String getMasterysScore(String summonerId, int championId) {
+  public static String getMasterysScore(String summonerId, int championId, Platform platform) {
     ChampionMastery mastery = null;
     try {
-      mastery = Zoe.getRiotApi().getChampionMasteriesBySummonerByChampion(Platform.EUW, summonerId, championId);
+      mastery = Zoe.getRiotApi().getChampionMasteriesBySummonerByChampion(platform, summonerId, championId, CallPriority.NORMAL);
     } catch(RiotApiException e) {
       logger.debug("Impossible to get mastery score : {}", e.getMessage());
-      return "0";
+      if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+        return "0";
+      }
+      return "?";
     }
 
     StringBuilder masteryString = new StringBuilder();
@@ -175,7 +187,7 @@ public class RiotRequest {
     try {
       Mastery masteryLevel = Mastery.getEnum(mastery.getChampionLevel());
       masteryString.append(Ressources.getMasteryEmote().get(masteryLevel).getEmote().getAsMention());
-    }catch(NullPointerException | IllegalArgumentException e) {
+    } catch(NullPointerException | IllegalArgumentException e) {
       masteryString.append("");
     }
 

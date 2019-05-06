@@ -6,13 +6,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.InfoCard;
@@ -48,13 +45,13 @@ public class ShutDownCommand extends Command {
 
     try {
       ServerData.shutDownTaskExecutor();
-    } catch (InterruptedException e) {
+    } catch(InterruptedException e) {
       event.reply("Task executor got a error : " + e.getMessage());
       logger.error("Error in shutDownTaskExecutor : {}", e.getMessage(), e);
       Zoe.getJda().shutdownNow();
       try {
         Zoe.saveDataTxt();
-      } catch (FileNotFoundException | UnsupportedEncodingException e1) {
+      } catch(FileNotFoundException | UnsupportedEncodingException e1) {
         logger.error("La sauvegarde n'a pas pu être effectué !");
       }
       System.exit(1);
@@ -75,16 +72,18 @@ public class ShutDownCommand extends Command {
           messageToDelete.add(infoCard.getMessage());
           messageToDelete.add(infoCard.getTitle());
         }
-        try {
-          if(server.getGuild().getMember(Zoe.getJda().getSelfUser()).hasPermission(Permission.MESSAGE_MANAGE)) {
-            server.getInfoChannel().purgeMessages(messageToDelete);
-          }else {
-            for(Message message : messageToDelete) {
-              message.delete().complete();
+        if(server.getInfoChannel() != null) {
+          try {
+            if(server.getGuild().getMember(Zoe.getJda().getSelfUser()).hasPermission(Permission.MESSAGE_MANAGE)) {
+              server.getInfoChannel().purgeMessages(messageToDelete);
+            } else {
+              for(Message message : messageToDelete) {
+                message.delete().complete();
+              }
             }
+          } catch(NullPointerException e) {
+            logger.info("Zoe go kicked from a guild, have no impact");
           }
-        }catch(NullPointerException e) {
-          logger.info("Zoe go kicked from a guild, have no impact");
         }
       }
     }
@@ -96,7 +95,7 @@ public class ShutDownCommand extends Command {
     while(!Zoe.getJda().getStatus().equals(Status.SHUTDOWN)) {
       try {
         Thread.sleep(100);
-      } catch (InterruptedException e) {
+      } catch(InterruptedException e) {
         Thread.currentThread().interrupt();
       }
     }

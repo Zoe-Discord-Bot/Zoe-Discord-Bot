@@ -14,7 +14,7 @@ import ch.kalunight.zoe.model.Server;
 public class AdminSendAnnonceMessageCommand extends Command {
 
   private static final Logger logger = LoggerFactory.getLogger(AdminSendAnnonceMessageCommand.class);
-  
+
   public AdminSendAnnonceMessageCommand() {
     this.name = "sendAnnonce";
     this.arguments = "Text to send";
@@ -23,30 +23,30 @@ public class AdminSendAnnonceMessageCommand extends Command {
     this.hidden = true;
     this.helpBiConsumer = getHelpMethod();
   }
-  
+
   @Override
   protected void execute(CommandEvent event) {
-    
+
     if(event.getArgs().length() >= 2000 || event.getArgs().isEmpty()) {
       event.reply("Message too long or empty ! Max 2000 caracters");
       return;
     }
-    
-    Iterator<Entry<String, Server>> servers =  ServerData.getServers().entrySet().iterator();
-    
+
+    Iterator<Entry<String, Server>> servers = ServerData.getServers().entrySet().iterator();
+
     while(servers.hasNext()) {
       Entry<String, Server> server = servers.next();
-      
+
       try {
-      CommandUtil.sendMessageInGuildOrAtOwner(server.getValue().getGuild(), event.getArgs());
-      }catch(Exception e) {
+        CommandUtil.sendMessageInGuildOrAtOwner(server.getValue().getGuild(), event.getArgs());
+      } catch(Exception e) {
         logger.warn("Error in sending of the annonce", e);
       }
     }
-    
+
     event.reply("The messsage has been sended !");
   }
-  
+
   private BiConsumer<CommandEvent, Command> getHelpMethod() {
     return new BiConsumer<CommandEvent, Command>() {
       @Override
@@ -55,7 +55,7 @@ public class AdminSendAnnonceMessageCommand extends Command {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("Admin SendUpdateMessage command :\n");
         stringBuilder.append("--> `>admin " + name + " " + arguments + "` : " + help);
-        
+
         event.reply(stringBuilder.toString());
       }
     };

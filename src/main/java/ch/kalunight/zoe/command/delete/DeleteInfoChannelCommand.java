@@ -1,7 +1,6 @@
 package ch.kalunight.zoe.command.delete;
 
 import java.util.function.BiConsumer;
-
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
@@ -13,7 +12,7 @@ import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.exceptions.InsufficientPermissionException;
 
 public class DeleteInfoChannelCommand extends Command {
-  
+
   public DeleteInfoChannelCommand() {
     this.name = "infoChannel";
     this.arguments = "";
@@ -26,19 +25,19 @@ public class DeleteInfoChannelCommand extends Command {
   @Override
   protected void execute(CommandEvent event) {
     event.getTextChannel().sendTyping().complete();
-    
+
     Server server = ServerData.getServers().get(event.getGuild().getId());
-    
+
     if(server == null) {
       server = new Server(event.getGuild(), SpellingLangage.EN);
     }
-    
+
     if(server.getInfoChannel() == null) {
       event.reply("The info channel is not defined!");
-    }else {
+    } else {
       try {
         server.getInfoChannel().delete().queue();
-      } catch (InsufficientPermissionException e) {
+      } catch(InsufficientPermissionException e) {
         server.setInfoChannel(null);
         server.setControlePannel(new ControlPannel());
         event.reply("The info channel has been deleted **INSIDE THE SYSTEME**! I don't have the permission to delete the text channel!");
@@ -59,7 +58,7 @@ public class DeleteInfoChannelCommand extends Command {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("Delete infoChannel command :\n");
         stringBuilder.append("--> `>delete " + name + " " + arguments + "` : " + help);
-        
+
         event.reply(stringBuilder.toString());
       }
     };

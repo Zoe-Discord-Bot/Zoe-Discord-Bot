@@ -15,6 +15,8 @@ import net.rithms.riot.constant.Platform;
 
 public class MessageBuilderRequest {
 
+  private static final String MASTERIES_WR_THIS_MONTH_STRING = "Masteries | WR this month";
+  private static final String SOLO_Q_RANK_STRING = "SoloQ Rank";
 
   private MessageBuilderRequest() {}
 
@@ -44,11 +46,12 @@ public class MessageBuilderRequest {
     StringBuilder blueTeamRankString = new StringBuilder();
     StringBuilder blueTeamWinRateLastMonth = new StringBuilder();
 
-    MessageBuilderRequestUtil.createTeamData1Summoner(summoner, blueTeam, blueTeamString, blueTeamRankString, blueTeamWinRateLastMonth, region);
+    MessageBuilderRequestUtil.createTeamData1Summoner(summoner, blueTeam, blueTeamString, blueTeamRankString, blueTeamWinRateLastMonth,
+        region);
 
     message.addField("Blue Team", blueTeamString.toString(), true);
-    message.addField("SoloQ Rank", blueTeamRankString.toString(), true);
-    message.addField("Masteries | WR this month", blueTeamWinRateLastMonth.toString(), true);
+    message.addField(SOLO_Q_RANK_STRING, blueTeamRankString.toString(), true);
+    message.addField(MASTERIES_WR_THIS_MONTH_STRING, blueTeamWinRateLastMonth.toString(), true);
 
     StringBuilder redTeamString = new StringBuilder();
     StringBuilder redTeamRankString = new StringBuilder();
@@ -57,15 +60,15 @@ public class MessageBuilderRequest {
     MessageBuilderRequestUtil.createTeamData1Summoner(summoner, redTeam, redTeamString, redTeamRankString, redTeamWinrateString, region);
 
     message.addField("Red Team", redTeamString.toString(), true);
-    message.addField("SoloQ Rank", redTeamRankString.toString(), true);
-    message.addField("Masteries | WR this month", redTeamWinrateString.toString(), true);
+    message.addField(SOLO_Q_RANK_STRING, redTeamRankString.toString(), true);
+    message.addField(MASTERIES_WR_THIS_MONTH_STRING, redTeamWinrateString.toString(), true);
 
     double minutesOfGames = 0.0;
-    
+
     if(match.getGameLength() != 0l) {
       minutesOfGames = match.getGameLength() + 180.0;
     }
-    
+
     minutesOfGames = minutesOfGames / 60.0;
     String[] stringMinutesSecondes = Double.toString(minutesOfGames).split("\\.");
     int minutesGameLength = Integer.parseInt(stringMinutesSecondes[0]);
@@ -113,28 +116,30 @@ public class MessageBuilderRequest {
     StringBuilder blueTeamRankString = new StringBuilder();
     StringBuilder blueTeamWinrateString = new StringBuilder();
 
-    MessageBuilderRequestUtil.createTeamDataMultipleSummoner(blueTeam, listIdPlayers, blueTeamString, blueTeamRankString, blueTeamWinrateString, region);
+    MessageBuilderRequestUtil.createTeamDataMultipleSummoner(blueTeam, listIdPlayers, blueTeamString, blueTeamRankString,
+        blueTeamWinrateString, region);
 
     message.addField("Blue Team", blueTeamString.toString(), true);
-    message.addField("SoloQ Rank", blueTeamRankString.toString(), true);
-    message.addField("Masteries | WR this month", blueTeamWinrateString.toString(), true);
+    message.addField(SOLO_Q_RANK_STRING, blueTeamRankString.toString(), true);
+    message.addField(MASTERIES_WR_THIS_MONTH_STRING, blueTeamWinrateString.toString(), true);
 
     StringBuilder redTeamString = new StringBuilder();
     StringBuilder redTeamRankString = new StringBuilder();
     StringBuilder redTeamWinrateString = new StringBuilder();
 
-    MessageBuilderRequestUtil.createTeamDataMultipleSummoner(redTeam, listIdPlayers, redTeamString, redTeamRankString, redTeamWinrateString, region);
+    MessageBuilderRequestUtil.createTeamDataMultipleSummoner(redTeam, listIdPlayers, redTeamString, redTeamRankString, redTeamWinrateString,
+        region);
 
     message.addField("Red Team", redTeamString.toString(), true);
-    message.addField("SoloQ Rank", redTeamRankString.toString(), true);
-    message.addField("Masteries | WR this month", redTeamWinrateString.toString(), true);
+    message.addField(SOLO_Q_RANK_STRING, redTeamRankString.toString(), true);
+    message.addField(MASTERIES_WR_THIS_MONTH_STRING, redTeamWinrateString.toString(), true);
 
     double minutesOfGames = 0.0;
-    
+
     if(currentGameInfo.getGameLength() != 0l) {
       minutesOfGames = currentGameInfo.getGameLength() + 180.0;
     }
-    
+
     minutesOfGames = minutesOfGames / 60.0;
     String[] stringMinutesSecondes = Double.toString(minutesOfGames).split("\\.");
     int minutesGameLength = Integer.parseInt(stringMinutesSecondes[0]);

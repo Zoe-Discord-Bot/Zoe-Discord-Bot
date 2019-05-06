@@ -1,14 +1,12 @@
 package ch.kalunight.zoe.command.define;
 
 import java.util.function.BiConsumer;
-
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-
 import ch.kalunight.zoe.command.CommandUtil;
 import net.dv8tion.jda.core.Permission;
 
-public class DefineCommand extends Command{
+public class DefineCommand extends Command {
 
   public DefineCommand() {
     this.name = "define";
@@ -20,12 +18,12 @@ public class DefineCommand extends Command{
     this.children = commandsChildren;
     this.helpBiConsumer = getHelpMethod();
   }
-  
+
   @Override
   protected void execute(CommandEvent event) {
     event.reply("If you need help for define command, type `>define help`");
   }
-  
+
   private BiConsumer<CommandEvent, Command> getHelpMethod() {
     return new BiConsumer<CommandEvent, Command>() {
       @Override
@@ -34,10 +32,10 @@ public class DefineCommand extends Command{
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("Define command :\n");
         for(Command commandChildren : children) {
-          stringBuilder.append("--> `>" + name + " " + commandChildren.getName() + " " + commandChildren.getArguments()
-          + "` : " + commandChildren.getHelp() + "\n");
+          stringBuilder.append("--> `>" + name + " " + commandChildren.getName() + " " + commandChildren.getArguments() + "` : "
+              + commandChildren.getHelp() + "\n");
         }
-        
+
         event.reply(stringBuilder.toString());
       }
     };

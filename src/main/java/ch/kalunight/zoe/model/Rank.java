@@ -1,13 +1,8 @@
 package ch.kalunight.zoe.model;
 
 public enum Rank {
-  UNKNOWN("", -1),
-  UNRANKED("", -1),
-  I("1", 300),
-  II("2", 200),
-  III("3", 100),
-  IV("4", 0);
-  
+  UNKNOWN("", -1), UNRANKED("", -1), I("1", 300), II("2", 200), III("3", 100), IV("4", 0);
+
   private String name;
   private int value;
 
@@ -19,7 +14,7 @@ public enum Rank {
   public int getValue() {
     return value;
   }
-  
+
   @Override
   public String toString() {
     return name;

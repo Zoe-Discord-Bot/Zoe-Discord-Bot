@@ -16,7 +16,7 @@ public class AdminCommand extends Command {
     this.children = commandsChildren;
     this.helpBiConsumer = getHelpMethod();
   }
-  
+
   @Override
   protected void execute(CommandEvent event) {
     event.reply("Admins command, type `>admin help` for help");
@@ -30,10 +30,10 @@ public class AdminCommand extends Command {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("Admins commands :\n");
         for(Command commandChildren : children) {
-          stringBuilder.append("--> `>" + name + " " + commandChildren.getName() + " " + commandChildren.getArguments()
-          + "` : " + commandChildren.getHelp() + "\n");
+          stringBuilder.append("--> `>" + name + " " + commandChildren.getName() + " " + commandChildren.getArguments() + "` : "
+              + commandChildren.getHelp() + "\n");
         }
-        
+
         event.reply(stringBuilder.toString());
       }
     };

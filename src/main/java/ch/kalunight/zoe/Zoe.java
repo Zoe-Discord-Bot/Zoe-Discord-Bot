@@ -14,20 +14,20 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
-
 import org.discordbots.api.client.DiscordBotListAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import com.jagrosh.jdautilities.command.CommandEvent;
+import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.examples.command.PingCommand;
-
 import ch.kalunight.zoe.command.AboutCommand;
+import ch.kalunight.zoe.command.RecoveryCommand;
+import ch.kalunight.zoe.command.ResetCommand;
 import ch.kalunight.zoe.command.ResetEmotesCommand;
 import ch.kalunight.zoe.command.SetupCommand;
 import ch.kalunight.zoe.command.ShutDownCommand;
@@ -68,18 +68,18 @@ import net.rithms.riot.constant.Platform;
 
 public class Zoe {
 
-  private static final String BOT_PREFIX = ">";
+  public static final String BOT_PREFIX = ">";
 
   private static final File SAVE_TXT_FILE = new File("ressources/save.txt");
 
-  private static final List<Command> mainCommands = getMainCommands();
+  private static List<Command> mainCommands;
 
   private static RiotApi riotApi;
 
   private static JDA jda;
 
   private static String discordBotListTocken = "";
-  
+
   private static DiscordBotListAPI botListApi;
 
   private static final ConcurrentLinkedQueue<List<CustomEmote>> emotesNeedToBeUploaded = new ConcurrentLinkedQueue<>();
@@ -95,32 +95,34 @@ public class Zoe {
     String discordTocken = args[0];
     String riotTocken = args[1];
     client.setOwnerId(args[2]);
-    
+
     try {
       discordBotListTocken = args[3];
-    }catch(Exception e) {
+    } catch(Exception e) {
       logger.info("Discord api list tocken not implement");
     }
 
     client.setPrefix(BOT_PREFIX);
 
+    EventWaiter eventWaiter = new EventWaiter();
+    
+    for(Command command : getMainCommands(eventWaiter)) {
+      client.addCommand(command);
+    }
+    
     Consumer<CommandEvent> helpCommand = getHelpCommand();
 
     client.setHelpConsumer(helpCommand);
 
-    for(Command command : getMainCommands()) {
-      client.addCommand(command);
-    }
-
     initRiotApi(riotTocken);
-    
+
     try {
       jda = new JDABuilder(AccountType.BOT)//
           .setToken(discordTocken)//
           .setStatus(OnlineStatus.DO_NOT_DISTURB)//
           .addEventListener(client.build())//
-          .addEventListener(new EventListener())
-          .build();//
+          .addEventListener(eventWaiter)//
+          .addEventListener(new EventListener()).build();//
     } catch(IndexOutOfBoundsException e) {
       logger.error("You must provide a token.");
       System.exit(1);
@@ -138,13 +140,13 @@ public class Zoe {
 
     PriorityRateLimit minuteLimit = new PriorityRateLimit(500, 100);
     RateLimitRequestTank requestMinutesTank = new RateLimitRequestTank(600, 15000, minuteLimit);
-    
+
     List<RateLimitRequestTank> priorityList = new ArrayList<>();
     priorityList.add(requestSecondsTank);
     priorityList.add(requestMinutesTank);
 
-    RateLimitHandler defaultLimite = new PriorityManagerRateLimitHandler(); // delete the list from parameter for dev setup
-    
+    RateLimitHandler defaultLimite = new PriorityManagerRateLimitHandler(); // create default priority with dev api key rate limit
+
     config.setRateLimitHandler(defaultLimite);
     riotApi = new RiotApi(config);
   }
@@ -157,20 +159,28 @@ public class Zoe {
         stringBuilder.append("Here is my commands :\n");
 
         Command setupCommand = new SetupCommand();
-        stringBuilder.append("Command **" + setupCommand.getName() +"** :\n");
+        stringBuilder.append("Command **" + setupCommand.getName() + "** :\n");
         stringBuilder.append("--> `>" + setupCommand.getName() + "` : " + setupCommand.getHelp() + "\n\n");
 
         Command aboutCommand = new AboutCommand();
-        stringBuilder.append("Command **" + aboutCommand.getName() +"** :\n");
+        stringBuilder.append("Command **" + aboutCommand.getName() + "** :\n");
         stringBuilder.append("--> `>" + aboutCommand.getName() + "` : " + aboutCommand.getHelp() + "\n\n");
-
-        for(Command command : getMainCommands()) {
-          if(!command.isHidden() && !(command instanceof PingCommand)) {
+        
+        Command recoveryCommand = new RecoveryCommand(null);
+        stringBuilder.append("Command **" + recoveryCommand.getName() + "** :\n");
+        stringBuilder.append("--> `>" + recoveryCommand.getName() + " " + recoveryCommand.getArguments() + "` : " + recoveryCommand.getHelp() + "\n\n");
+        
+        Command resetCommand = new ResetCommand(null);
+        stringBuilder.append("Command **" + resetCommand.getName() + "** :\n");
+        stringBuilder.append("--> `>" + resetCommand.getName() + "` : " + resetCommand.getHelp() + "\n\n");
+        
+        for(Command command : getMainCommands(null)) {
+          if(!command.isHidden() && !(command instanceof PingCommand || command instanceof RecoveryCommand || command instanceof ResetCommand)) {
             stringBuilder.append("Commands **" + command.getName() + "** : \n");
 
             for(Command commandChild : command.getChildren()) {
-              stringBuilder.append("--> `>" + command.getName() + " " + commandChild.getName() + " " + commandChild.getArguments()
-              + "` : " + commandChild.getHelp() + "\n");
+              stringBuilder.append("--> `>" + command.getName() + " " + commandChild.getName() + " " + commandChild.getArguments() + "` : "
+                  + commandChild.getHelp() + "\n");
             }
             stringBuilder.append(" \n");
           }
@@ -185,19 +195,19 @@ public class Zoe {
     };
   }
 
-  private static List<Command> getMainCommands() {
+  public static List<Command> getMainCommands(EventWaiter eventWaiter) {
     if(mainCommands != null) {
       return mainCommands;
     }
     List<Command> commands = new ArrayList<>();
 
-    //Admin commands
+    // Admin commands
     commands.add(new ShutDownCommand());
     commands.add(new ResetEmotesCommand());
     commands.add(new PingCommand());
     commands.add(new AdminCommand());
 
-    //Basic commands
+    // Basic commands
     commands.add(new AboutCommand());
     commands.add(new SetupCommand());
     commands.add(new CreateCommand());
@@ -206,6 +216,10 @@ public class Zoe {
     commands.add(new UndefineCommand());
     commands.add(new AddCommand());
     commands.add(new RemoveCommand());
+    commands.add(new RecoveryCommand(eventWaiter));
+    commands.add(new ResetCommand(eventWaiter));
+    
+    mainCommands = commands;
 
     return commands;
   }
@@ -244,59 +258,69 @@ public class Zoe {
   }
 
   public static synchronized void saveDataTxt() throws FileNotFoundException, UnsupportedEncodingException {
-    final StringBuilder strBuilder = new StringBuilder();
+    final StringBuilder strMainBuilder = new StringBuilder();
 
     final Map<String, Server> servers = ServerData.getServers();
     final List<Guild> guilds = Zoe.getJda().getGuilds();
 
     for(Guild guild : guilds) {
-      if(guild.getOwnerId().equals(Zoe.getJda().getSelfUser().getId())) {
-        continue;
-      }
-      Server server = servers.get(guild.getId());
-      if(server != null) {
-        strBuilder.append("--server\n");
-        strBuilder.append(guild.getId() + "\n");
-        strBuilder.append(server.getLangage().toString() + "\n");
-
-        strBuilder.append(server.getPlayers().size() + "\n");
-
-        for(Player player : server.getPlayers()) {
-          strBuilder.append(player.getDiscordUser().getId() + "\n");
-          strBuilder.append(player.getSummoner().getId() + "\n");
-          strBuilder.append(player.getRegion().getName() + "\n");
-          strBuilder.append(player.isMentionnable() + "\n");
+      try {
+        if(guild.getOwnerId().equals(Zoe.getJda().getSelfUser().getId())) {
+          continue;
         }
+        Server server = servers.get(guild.getId());
+        StringBuilder strBuilder = new StringBuilder();
+        
+        if(server != null) {
+          strBuilder.append("--server\n");
+          strBuilder.append(guild.getId() + "\n");
+          strBuilder.append(server.getLangage().toString() + "\n");
 
-        strBuilder.append(server.getTeams().size() + "\n");
+          strBuilder.append(server.getPlayers().size() + "\n");
 
-        for(Team team : server.getTeams()) {
-          strBuilder.append(team.getName() + "\n");
-
-          strBuilder.append(team.getPlayers().size() + "\n");
-
-          for(Player player : team.getPlayers()) {
+          for(Player player : server.getPlayers()) {
             strBuilder.append(player.getDiscordUser().getId() + "\n");
+            strBuilder.append(player.getSummoner().getId() + "\n");
+            strBuilder.append(player.getRegion().getName() + "\n");
+            strBuilder.append(player.isMentionnable() + "\n");
+          }
+
+          strBuilder.append(server.getTeams().size() + "\n");
+
+          for(Team team : server.getTeams()) {
+            strBuilder.append(team.getName() + "\n");
+
+            strBuilder.append(team.getPlayers().size() + "\n");
+
+            for(Player player : team.getPlayers()) {
+              strBuilder.append(player.getDiscordUser().getId() + "\n");
+            }
+          }
+
+          if(server.getInfoChannel() != null) {
+            strBuilder.append(server.getInfoChannel().getId() + "\n");
+          } else {
+            strBuilder.append("-1\n");
+          }
+
+          if(server.getControlePannel() != null) {
+            strBuilder.append(server.getControlePannel().getInfoPanel().size() + "\n");
+            for(Message message : server.getControlePannel().getInfoPanel()) {
+              strBuilder.append(message.getId() + "\n");
+            }
+          }else {
+            strBuilder.append("0\n");
           }
         }
-
-        if(server.getInfoChannel() != null) {
-          strBuilder.append(server.getInfoChannel().getId() + "\n");
-        }else {
-          strBuilder.append("-1\n");
-        }
-
-        strBuilder.append(server.getControlePannel().getInfoPanel().size() + "\n");
-
-        for(Message message : server.getControlePannel().getInfoPanel()) {
-          strBuilder.append(message.getId() + "\n");
-        }
+        strMainBuilder.append(strBuilder.toString());
+      }catch(Exception e) {
+        logger.warn("A guild occured a error, it hasn't been saved.", e);
       }
     }
 
-    try (PrintWriter writer = new PrintWriter(SAVE_TXT_FILE, "UTF-8");){
-      writer.write(strBuilder.toString());
-    } 
+    try(PrintWriter writer = new PrintWriter(SAVE_TXT_FILE, "UTF-8");) {
+      writer.write(strMainBuilder.toString());
+    }
   }
 
   public static void loadDataTxt() throws IOException, RiotApiException {
@@ -355,7 +379,7 @@ public class Zoe {
         try {
           Message message = server.getInfoChannel().getMessageById(messageId).complete();
           controlPannel.getInfoPanel().add(message);
-        }catch (ErrorResponseException e) {
+        } catch(ErrorResponseException e) {
           logger.debug("The message got delete : {}", e.getMessage());
         }
       }

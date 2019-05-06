@@ -1,9 +1,7 @@
 package ch.kalunight.zoe.service;
 
 import java.util.TimerTask;
-
 import org.joda.time.DateTime;
-
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.Server;
@@ -16,15 +14,11 @@ public class GameChecker extends TimerTask {
 
   private static final int TIME_BETWEEN_EACH_SAVE_IN_MINUTES = 10;
 
-  private static final int TIME_BETWEEN_EACH_STATUS_REFRESH_IN_HOURS = 12;
+  private static final int TIME_BETWEEN_EACH_STATUS_REFRESH_IN_HOURS = 1;
 
-  private static DateTime nextSaveTime = DateTime.now().plusMinutes(TIME_BETWEEN_EACH_SAVE_IN_MINUTES);
+  private static DateTime nextSaveTime = DateTime.now().plusSeconds(TIME_BETWEEN_EACH_SAVE_IN_MINUTES);
 
   private static DateTime nextStatusRefresh = DateTime.now();
-
-  public static void setNextSaveTime(DateTime nextRefreshDate) {
-    GameChecker.nextSaveTime = nextRefreshDate;
-  }
 
   @Override
   public void run() {
@@ -42,29 +36,28 @@ public class GameChecker extends TimerTask {
       if(ServerData.getServersIsInTreatment().get(guild.getId()) == null) {
         ServerData.getServersIsInTreatment().put(guild.getId(), false);
       }
-      
-      if(server.isNeedToBeRefreshed() && server.getInfoChannel() != null 
-          && !ServerData.getServersIsInTreatment().get(guild.getId())) {
+
+      if(server.isNeedToBeRefreshed() && server.getInfoChannel() != null && !ServerData.getServersIsInTreatment().get(guild.getId())) {
 
         Runnable task = new InfoPanelRefresher(server);
         ServerData.getTaskExecutor().execute(task);
       }
     }
 
-    if(nextSaveTime.isAfterNow()) {
-      //Save data
-      ServerData.getTaskExecutor().submit(new DataSaver());
+    if(nextSaveTime.isBeforeNow()) {
+      // Save data
+      ServerData.getTaskExecutor().execute(new DataSaver());
 
       if(Zoe.getBotListApi() != null) {
-        //Discord bot list status
+        // Discord bot list status
         Zoe.getBotListApi().setStats(Zoe.getJda().getGuilds().size());
       }
 
       setNextSaveTime(DateTime.now().plusMinutes(TIME_BETWEEN_EACH_SAVE_IN_MINUTES));
     }
 
-    if(nextStatusRefresh.isAfterNow()) {
-      //Discord status
+    if(nextStatusRefresh.isBeforeNow()) {
+      // Discord status
       Zoe.getJda().getPresence().setStatus(OnlineStatus.ONLINE);
       Zoe.getJda().getPresence().setGame(Game.playing("type \">help\""));
 
@@ -74,5 +67,9 @@ public class GameChecker extends TimerTask {
 
   public static void setNextStatusRefresh(DateTime nextStatusRefresh) {
     GameChecker.nextStatusRefresh = nextStatusRefresh;
+  }
+  
+  public static void setNextSaveTime(DateTime nextRefreshDate) {
+    GameChecker.nextSaveTime = nextRefreshDate;
   }
 }

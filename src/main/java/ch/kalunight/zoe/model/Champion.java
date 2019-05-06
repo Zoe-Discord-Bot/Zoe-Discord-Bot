@@ -16,7 +16,7 @@ public class Champion {
     this.name = name;
     this.championLogo = championLogo;
   }
-  
+
   public String getDisplayName() {
     if(emote != null) {
       return emote.getAsMention();

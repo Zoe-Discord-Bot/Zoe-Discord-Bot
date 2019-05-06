@@ -2,11 +2,11 @@ package ch.kalunight.zoe.util.request;
 
 import java.awt.Color;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.stats.StatsProfileCommand;
 import ch.kalunight.zoe.model.Champion;
@@ -190,7 +190,8 @@ public class MessageBuilderRequest {
 
     for(ChampionMastery championMastery : threeBestchampionMasteries) {
       Champion champion = Ressources.getChampionDataById(championMastery.getChampionId());
-      stringBuilder.append(champion.getDisplayName() + " " + champion.getDisplayName() + " - **" + championMastery.getChampionPoints() + "**\n");
+      stringBuilder.append(champion.getDisplayName() + " " + champion.getName() + " - **" + NumberFormat.getNumberInstance(Locale.ENGLISH)
+      .format(championMastery.getChampionPoints()) + "**\n");
     }
 
     Field field = new Field("Top Champions", stringBuilder.toString(), true);
@@ -211,7 +212,7 @@ public class MessageBuilderRequest {
       totalNbrMasteries += championMastery.getChampionPoints();
     }
 
-    double moyennePoints = totalNbrMasteries / masteries.size();
+    double moyennePoints = (double) totalNbrMasteries / masteries.size();
 
     CustomEmote masteryEmote7 = Ressources.getMasteryEmote().get(Mastery.getEnum(7));
     CustomEmote masteryEmote6 = Ressources.getMasteryEmote().get(Mastery.getEnum(6));
@@ -221,8 +222,8 @@ public class MessageBuilderRequest {
         nbrMastery7 + "x" + masteryEmote7.getUsableEmote() + " "
             + nbrMastery6 + "x" + masteryEmote6.getUsableEmote() + " "
             + nbrMastery5 + "x" + masteryEmote5.getUsableEmote() + "\n"
-            + totalNbrMasteries + " **Total Points**\n"
-            + moyennePoints + "**Average/Champ**", true);
+            + NumberFormat.getNumberInstance(Locale.ENGLISH).format(totalNbrMasteries) + " **Total Points**\n"
+            + NumberFormat.getNumberInstance(Locale.ENGLISH).format((long) moyennePoints) + " **Average/Champ**", true);
 
 
     message.addField(field);

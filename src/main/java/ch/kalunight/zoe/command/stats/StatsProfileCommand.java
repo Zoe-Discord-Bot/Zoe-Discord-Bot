@@ -1,6 +1,8 @@
 package ch.kalunight.zoe.command.stats;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,6 +26,7 @@ import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.util.Ressources;
 import ch.kalunight.zoe.util.request.MessageBuilderRequest;
 import net.dv8tion.jda.core.MessageBuilder;
+import net.dv8tion.jda.core.entities.MessageEmbed;
 import net.dv8tion.jda.core.entities.User;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.champion_mastery.dto.ChampionMastery;
@@ -102,10 +105,20 @@ public class StatsProfileCommand extends Command {
     
     byte[] imageBytes = generateMasteriesChart(event, championsMasteries);
     
-    MessageBuilderRequest.createProfileMessage(imageBytes, player, championsMasteries);
+    MessageEmbed embed;
+    try {
+      embed = MessageBuilderRequest.createProfileMessage(player, championsMasteries);
+    } catch(IOException e) {
+      event.reply("Please retry, i got a minor internal error. Sorry about that :/");
+      logger.warn("Got a unexpected error : ", e);
+      return;
+    }
     
-    event.getTextChannel().sendFile(imageBytes, event.getAuthor().getName() + "ChampionGraph.png",
-        new MessageBuilder("Here your masteries (Test)").build()).queue();
+    MessageBuilder messageBuilder = new MessageBuilder();
+    
+    messageBuilder.setEmbed(embed);
+    
+    event.getTextChannel().sendFile(imageBytes, player.getDiscordUser().getName() + ".png", messageBuilder.build()).queue();
   }
 
   private byte[] generateMasteriesChart(CommandEvent event, List<ChampionMastery> championsMasteries) {
@@ -168,7 +181,7 @@ public class StatsProfileCommand extends Command {
     return allMasteries / championsMasteries.size();
   }
 
-  private List<ChampionMastery> getBestMasteries(List<ChampionMastery> championsMasteries, int nbrTop) {
+  public static List<ChampionMastery> getBestMasteries(List<ChampionMastery> championsMasteries, int nbrTop) {
     List<ChampionMastery> listHeigherChampion = new ArrayList<>();
     
     for(int i = 0; i < nbrTop; i++) {

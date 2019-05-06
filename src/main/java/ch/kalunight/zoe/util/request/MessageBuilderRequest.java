@@ -1,9 +1,15 @@
 package ch.kalunight.zoe.util.request;
 
 import java.awt.Color;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import ch.kalunight.zoe.Zoe;
+import ch.kalunight.zoe.command.stats.StatsProfileCommand;
+import ch.kalunight.zoe.model.Champion;
 import ch.kalunight.zoe.model.CustomEmote;
 import ch.kalunight.zoe.model.Mastery;
 import ch.kalunight.zoe.model.Player;
@@ -161,28 +167,40 @@ public class MessageBuilderRequest {
 
     return message.build();
   }
-  
-  public static MessageEmbed createProfileMessage(byte[] graph, Player player, List<ChampionMastery> masteries) {
-    
+
+  public static MessageEmbed createProfileMessage(Player player, List<ChampionMastery> masteries) throws IOException {
+
     EmbedBuilder message = new EmbedBuilder();
 
     message.setAuthor(player.getDiscordUser().getName(), null, player.getDiscordUser().getAvatarUrl());
-    
+
     Summoner summoner;
     try {
       summoner = Zoe.getRiotApi().getSummoner(player.getRegion(), player.getSummoner().getId());
+      player.setSummoner(summoner);
     } catch(RiotApiException e) {
       summoner = player.getSummoner();
     }
-    
-    Field field = new Field("Level", "level " + summoner.getSummonerLevel(), true);
-    
+
+    message.setTitle(player.getDiscordUser().getName() + " : Lvl " + summoner.getSummonerLevel());
+
+    List<ChampionMastery> threeBestchampionMasteries = StatsProfileCommand.getBestMasteries(masteries, 3);
+
+    StringBuilder stringBuilder = new StringBuilder();
+
+    for(ChampionMastery championMastery : threeBestchampionMasteries) {
+      Champion champion = Ressources.getChampionDataById(championMastery.getChampionId());
+      stringBuilder.append(champion.getDisplayName() + " " + champion.getDisplayName() + " - **" + championMastery.getChampionPoints() + "**\n");
+    }
+
+    Field field = new Field("Top Champions", stringBuilder.toString(), true);
     message.addField(field);
-    
+
     int nbrMastery7 = 0;
     int nbrMastery6 = 0;
     int nbrMastery5 = 0;
-    
+    long totalNbrMasteries = 0;
+
     for(ChampionMastery championMastery : masteries) {
       switch(championMastery.getChampionLevel()) {
         case 5: nbrMastery5++; break;
@@ -190,20 +208,28 @@ public class MessageBuilderRequest {
         case 7: nbrMastery7++; break;
         default: break;
       }
+      totalNbrMasteries += championMastery.getChampionPoints();
     }
-    
+
+    double moyennePoints = totalNbrMasteries / masteries.size();
+
     CustomEmote masteryEmote7 = Ressources.getMasteryEmote().get(Mastery.getEnum(7));
     CustomEmote masteryEmote6 = Ressources.getMasteryEmote().get(Mastery.getEnum(6));
     CustomEmote masteryEmote5 = Ressources.getMasteryEmote().get(Mastery.getEnum(5));
-    
+
     field = new Field("Number of masteries by level\n",
-      masteryEmote7.getUsableEmote() + " : " + nbrMastery7 + "\n"
-    + masteryEmote6.getUsableEmote() + " : " + nbrMastery6 + "\n"
-    + masteryEmote5.getUsableEmote() + " : " + nbrMastery5 + "\n", true);
-    
+        nbrMastery7 + "x" + masteryEmote7.getUsableEmote() + " "
+            + nbrMastery6 + "x" + masteryEmote6.getUsableEmote() + " "
+            + nbrMastery5 + "x" + masteryEmote5.getUsableEmote() + "\n"
+            + totalNbrMasteries + " **Total Points**\n"
+            + moyennePoints + "**Average/Champ**", true);
+
+
     message.addField(field);
-    
-    return null;
+
+    message.setImage("attachment://" + player.getDiscordUser().getName() + ".png")
+      .setDescription("Champion mastery Graph of " + player.getDiscordUser().getName());
+
+    return message.build();
   }
-  
 }

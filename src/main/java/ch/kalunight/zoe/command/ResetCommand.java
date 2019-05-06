@@ -34,7 +34,8 @@ public class ResetCommand extends Command {
     CommandUtil.sendTypingInFonctionOfChannelType(event);
     
     event.getEvent().getTextChannel().sendMessage("**WARNING**: This command will reset the configuration of this server ! "
-        + "Are you sure to do that ?\n\nIf you want to do that say **YES**.").queue();
+        + "Discord related stuff won't be deleted (Zoe's messages and channels) "
+        + "Are you sure to do that ?\n\nIf it's really what you want to do say **YES**.").queue();
     
     waiter.waitForEvent(MessageReceivedEvent.class,
         e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel())

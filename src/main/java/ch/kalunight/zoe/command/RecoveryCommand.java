@@ -66,7 +66,7 @@ public class RecoveryCommand extends Command {
         && event.getMessage().getMentionedMembers().get(0).getPermissions().contains(Permission.MANAGE_CHANNEL)) {
 
       event.getEvent().getTextChannel().sendMessage("**WARNING**: This command will relauch all configuration commands existing in this channel ! "
-          + "Your actual configuration will be drastically modified! This command will take a long time to be execute. "
+          + "Your actual configuration will be drastically modified! This command can take a long time to be fully execute. "
           + "It's only recommanded to use it if Zoe have forgot your save.\n\nSay **YES** if you want to do that.").complete();
 
       List<String> users = new ArrayList<>();
@@ -92,7 +92,7 @@ public class RecoveryCommand extends Command {
       messageReceivedEvent.getTextChannel().sendMessage("By the power of chocolate moon cake ! Restore all theses lost things !").queueAfter(1, TimeUnit.SECONDS);
 
       List<Message> reverseMessages = messageReceivedEvent.getTextChannel().getIterableHistory().stream()
-          .filter(m-> usersId.contains(m.getAuthor().getId()) && m.getContentRaw().startsWith(Zoe.BOT_PREFIX)) //NEED TO REVERT THIS STREAM
+          .filter(m-> usersId.contains(m.getAuthor().getId()) && m.getContentRaw().startsWith(Zoe.BOT_PREFIX))
           .limit(1000)
           .collect(Collectors.toList());
       
@@ -219,7 +219,7 @@ public class RecoveryCommand extends Command {
   }
 
   private void executeCreateTeamCommand(Message message, Server server) {
-
+ 
     String nameTeam = getArgsCommand(message.getContentRaw(), CreateCommand.USAGE_NAME, CreateTeamCommand.USAGE_NAME);
 
     if(!nameTeam.equals("")) {
@@ -315,7 +315,7 @@ public class RecoveryCommand extends Command {
   }
 
   private boolean isCreateTeamCommand(String command) {
-    if(command.split(" ").length < 4) { // Minimum 4 bloc of text
+    if(command.split(" ").length < 3) { // Minimum 4 bloc of text
       return false;
     }
 
@@ -350,8 +350,7 @@ public class RecoveryCommand extends Command {
   private String getArgsCommand(String command, String mainName, String usage) {
     return command.substring(Zoe.BOT_PREFIX.length())
         .substring(mainName.length() + 1)
-        .substring(usage.length() + 1)
-        .substring(1);
+        .substring(usage.length() + 1);
   }
 
   private void cancelRecovery(MessageReceivedEvent event) {

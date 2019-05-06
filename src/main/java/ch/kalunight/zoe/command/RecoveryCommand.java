@@ -222,7 +222,7 @@ public class RecoveryCommand extends Command {
  
     String nameTeam = getArgsCommand(message.getContentRaw(), CreateCommand.USAGE_NAME, CreateTeamCommand.USAGE_NAME);
 
-    if(!nameTeam.equals("")) {
+    if(!nameTeam.isEmpty()) {
       Team team = server.getTeamByName(nameTeam);
 
       if(team == null) {

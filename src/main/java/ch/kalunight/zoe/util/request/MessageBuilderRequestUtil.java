@@ -1,5 +1,6 @@
 package ch.kalunight.zoe.util.request;
 
+import java.text.DecimalFormat;
 import java.util.List;
 import ch.kalunight.zoe.model.Champion;
 import ch.kalunight.zoe.model.FullTier;
@@ -13,6 +14,8 @@ import net.rithms.riot.constant.Platform;
 
 public class MessageBuilderRequestUtil {
 
+  private static final DecimalFormat df = new DecimalFormat("#.##");
+  
   private MessageBuilderRequestUtil() {
     // Hide default public constructor
   }
@@ -35,10 +38,10 @@ public class MessageBuilderRequestUtil {
 
       if(summoner.getName().equals(participant.getSummonerName())) {
         teamString.append(champion.getDisplayName() + " | __**" + NameConversion.convertStringToTinyString(participant.getSummonerName())
-            + "**__" + "\n");
+        + "**__" + "\n");
       } else {
         teamString
-            .append(champion.getDisplayName() + " | " + NameConversion.convertStringToTinyString(participant.getSummonerName()) + "\n");
+        .append(champion.getDisplayName() + " | " + NameConversion.convertStringToTinyString(participant.getSummonerName()) + "\n");
       }
 
       teamRankString.append(rank + "\n");
@@ -79,10 +82,10 @@ public class MessageBuilderRequestUtil {
 
       if(listIdPlayers.contains(participant.getSummonerId())) {
         teamString.append(champion.getDisplayName() + " | __**" + NameConversion.convertStringToTinyString(participant.getSummonerName())
-            + "**__" + "\n");
+        + "**__" + "\n");
       } else {
         teamString
-            .append(champion.getDisplayName() + " | " + NameConversion.convertStringToTinyString(participant.getSummonerName()) + "\n");
+        .append(champion.getDisplayName() + " | " + NameConversion.convertStringToTinyString(participant.getSummonerName()) + "\n");
       }
 
       teamRankString.append(rank + "\n");
@@ -106,5 +109,14 @@ public class MessageBuilderRequestUtil {
     }
 
     title.append(" : " + NameConversion.convertGameQueueIdToString(currentGameInfo.getGameQueueConfigId()));
+  }
+
+  public static String getMasteryUnit(Long masteryPoints) {
+    if(masteryPoints > 1000 && masteryPoints < 1000000) {
+      return masteryPoints / 1000 + "k";
+    } else if(masteryPoints > 1000000) {
+      return df.format((double) masteryPoints / 1000000) + "m";
+    }
+    return masteryPoints.toString();
   }
 }

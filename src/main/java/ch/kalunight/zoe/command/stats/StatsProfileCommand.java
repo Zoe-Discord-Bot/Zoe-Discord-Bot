@@ -103,14 +103,7 @@ public class StatsProfileCommand extends Command {
     
     byte[] imageBytes = generateMasteriesChart(event, championsMasteries);
     
-    MessageEmbed embed;
-    try {
-      embed = MessageBuilderRequest.createProfileMessage(player, championsMasteries);
-    } catch(IOException e) {
-      event.reply("Please retry, i got a minor internal error. Sorry about that :/");
-      logger.warn("Got a unexpected error : ", e);
-      return;
-    }
+    MessageEmbed embed = MessageBuilderRequest.createProfileMessage(player, championsMasteries);
     
     MessageBuilder messageBuilder = new MessageBuilder();
     

@@ -102,7 +102,7 @@ public class StatsProfileCommand extends Command {
     
     byte[] imageBytes;
     try {
-      imageBytes = generateMasteriesChart(event, championsMasteries);
+      imageBytes = generateMasteriesChart(player, championsMasteries);
     } catch(IOException e) {
       logger.info("Got a error in encoding bytesMap image : {}", e);
       event.reply("I got an unexpected error when i creating the graph, please retry.");
@@ -130,12 +130,12 @@ public class StatsProfileCommand extends Command {
     event.getTextChannel().sendFile(imageBytes, player.getDiscordUser().getName() + ".png", messageBuilder.build()).queue();
   }
 
-  private byte[] generateMasteriesChart(CommandEvent event, List<ChampionMastery> championsMasteries) throws IOException {
+  private byte[] generateMasteriesChart(Player player, List<ChampionMastery> championsMasteries) throws IOException {
     List<ChampionMastery> listHeigherChampion = getBestMasteries(championsMasteries, NUMBER_OF_CHAMPIONS_IN_GRAPH);
     CategoryChartBuilder masteriesGraphBuilder = new CategoryChartBuilder();
     
     masteriesGraphBuilder.chartTheme = ChartTheme.GGPlot2;
-    masteriesGraphBuilder.title("Best Champions by Masteries of " + event.getAuthor().getName());
+    masteriesGraphBuilder.title("Best Champions by Masteries of " + player.getDiscordUser().getName());
     
     CategoryChart masteriesGraph = masteriesGraphBuilder.build();
     masteriesGraph.getStyler().setAntiAlias(true);

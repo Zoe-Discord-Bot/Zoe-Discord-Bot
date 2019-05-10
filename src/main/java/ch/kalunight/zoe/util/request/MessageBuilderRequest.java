@@ -6,7 +6,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +18,8 @@ import ch.kalunight.zoe.model.Champion;
 import ch.kalunight.zoe.model.CustomEmote;
 import ch.kalunight.zoe.model.Mastery;
 import ch.kalunight.zoe.model.Player;
+import ch.kalunight.zoe.model.Rank;
+import ch.kalunight.zoe.model.Tier;
 import ch.kalunight.zoe.util.NameConversion;
 import ch.kalunight.zoe.util.Ressources;
 import net.dv8tion.jda.core.EmbedBuilder;
@@ -24,6 +28,7 @@ import net.dv8tion.jda.core.entities.MessageEmbed.Field;
 import net.dv8tion.jda.core.entities.User;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.champion_mastery.dto.ChampionMastery;
+import net.rithms.riot.api.endpoints.league.dto.LeaguePosition;
 import net.rithms.riot.api.endpoints.match.dto.Match;
 import net.rithms.riot.api.endpoints.match.dto.MatchList;
 import net.rithms.riot.api.endpoints.match.dto.MatchReference;
@@ -181,8 +186,6 @@ public class MessageBuilderRequest {
 
     EmbedBuilder message = new EmbedBuilder();
 
-    message.setAuthor(player.getDiscordUser().getName(), null, player.getDiscordUser().getAvatarUrl());
-
     Summoner summoner;
     try {
       summoner = Zoe.getRiotApi().getSummoner(player.getRegion(), player.getSummoner().getId());
@@ -194,7 +197,8 @@ public class MessageBuilderRequest {
       }
     }
 
-    message.setTitle(player.getDiscordUser().getName() + " Profile" + " : Lvl " + summoner.getSummonerLevel());
+    message.setTitle(player.getDiscordUser().getName() + "'s Profile (" + player.getSummoner().getName()
+        + ") : Lvl " + summoner.getSummonerLevel());
 
     List<ChampionMastery> threeBestchampionMasteries = StatsProfileCommand.getBestMasteries(masteries, 3);
 
@@ -240,6 +244,7 @@ public class MessageBuilderRequest {
 
     message.addField(field);
 
+    boolean isRiotApiError = false;
     MatchList matchList = null;
 
     try {
@@ -248,10 +253,12 @@ public class MessageBuilderRequest {
     } catch(RiotApiException e) {
       if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
         throw e;
+      }else if (e.getErrorCode() == RiotApiException.UNAVAILABLE || e.getErrorCode() == RiotApiException.SERVER_ERROR) {
+        isRiotApiError = true;
       }
       logger.info("Impossible to get match history : {}", e);
     }
-    
+
     if(matchList != null) {
       List<MatchReference> matchsReference = matchList.getMatches();
 
@@ -292,16 +299,71 @@ public class MessageBuilderRequest {
           recentMatchsString.append(champion.getEmoteUsable() + " " + champion.getName() + " - **" + MessageBuilderRequestUtil.getPastMoment(matchTime) + "**\n");
         }
       }
-      field = new Field("Lastest played games", recentMatchsString.toString(), false);
+      field = new Field("Lastest played games", recentMatchsString.toString(), true);
     }else {
-      field = new Field("Lastest played games", "No game played this week", false);
+      if(isRiotApiError) {
+        field = new Field("Lastest played games", "Riot api unavailable", true);
+      }else {
+        field = new Field("Lastest played games", "No game played this week", true);
+      }
     }
 
     message.addField(field);
-    
+
+    Set<LeaguePosition> rankPosition = null;
+    try {
+      rankPosition = Zoe.getRiotApi().getLeaguePositionsBySummonerId(player.getRegion(), player.getSummoner().getId(), CallPriority.HIGH);
+    }catch (RiotApiException e) {
+      if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
+        throw e;
+      }
+      logger.info("Error with the api : ", e);
+    }
+
+    if(rankPosition != null) {
+
+      Iterator<LeaguePosition> iteratorPosition = rankPosition.iterator();
+
+      String soloqRank = "Soloq : **Unranked**";
+      String flexRank = "Flex : **Unranked**";
+      String twistedThreeLine = "3x3 : **Unranked**";
+
+      while(iteratorPosition.hasNext()) {
+        LeaguePosition leaguePosition = iteratorPosition.next();
+        Tier tier = Tier.valueOf(leaguePosition.getTier());
+        Rank rank = Rank.valueOf(leaguePosition.getRank());
+
+        if(leaguePosition.getQueueType().equals("RANKED_SOLO_5x5")) {
+          soloqRank = "Soloq : **" + Ressources.getTierEmote().get(tier).getUsableEmote() + " " + tier.toString() + " "
+              + rank.toString() + " " +  leaguePosition.getLeaguePoints() + " PL**";
+        } else if(leaguePosition.getQueueType().equals("RANKED_TEAM_5x5")) {
+          flexRank = "Flex : **" + Ressources.getTierEmote().get(tier).getUsableEmote() + " " + tier.toString() + " "
+              + rank.toString() + " " +  leaguePosition.getLeaguePoints() + " PL**";
+        }else if(leaguePosition.getQueueType().equals("RANKED_TEAM_3x3")) {
+          twistedThreeLine = "3x3 : **" + Ressources.getTierEmote().get(tier).getUsableEmote() + " " + tier.toString() + " "
+              + rank.toString() + " " +  leaguePosition.getLeaguePoints() + " PL**";
+        }
+      }
+
+      stringBuilder = new StringBuilder();
+
+      stringBuilder.append(soloqRank + "\n");
+      stringBuilder.append(flexRank + "\n");
+      stringBuilder.append(twistedThreeLine);
+
+      field = new Field("Ranked Stats", stringBuilder.toString(), true);
+    }else {
+      field = new Field("Ranked Stats", "Not ranked", true);
+    }
+
+    message.addField(field);
+
     message.setImage("attachment://" + player.getDiscordUser().getName() + ".png");
 
     message.setColor(new Color(206, 20, 221));
+
+    message.setFooter(player.getDiscordUser().getName() + "'s profile", player.getDiscordUser().getAvatarUrl());
+    message.setTimestamp(Instant.now());
 
     return message.build();
   }

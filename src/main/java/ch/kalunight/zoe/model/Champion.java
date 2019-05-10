@@ -23,6 +23,13 @@ public class Champion {
     }
     return name;
   }
+  
+  public String getEmoteUsable() {
+    if(emote == null) {
+      return "";
+    }
+    return emote.getAsMention();
+  }
 
   public int getKey() {
     return this.key;

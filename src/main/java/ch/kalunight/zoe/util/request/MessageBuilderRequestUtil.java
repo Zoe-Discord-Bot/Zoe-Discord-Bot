@@ -1,6 +1,7 @@
 package ch.kalunight.zoe.util.request;
 
 import java.text.DecimalFormat;
+import java.time.LocalDateTime;
 import java.util.List;
 import ch.kalunight.zoe.model.Champion;
 import ch.kalunight.zoe.model.FullTier;
@@ -118,5 +119,43 @@ public class MessageBuilderRequestUtil {
       return df.format((double) masteryPoints / 1000000) + "m";
     }
     return masteryPoints.toString();
+  }
+  
+  //TODO: Improve this method, make it automated adaptable
+  public static String getPastMoment(LocalDateTime pastMoment) {
+    LocalDateTime now = LocalDateTime.now();
+    if(pastMoment.isBefore(now.minusWeeks(1))) {
+      return "A week ago";
+    }else if(pastMoment.isBefore(now.minusDays(6))) {
+      return "6 days ago";
+    }else if(pastMoment.isBefore(now.minusDays(5))) {
+      return "5 days ago";
+    }else if(pastMoment.isBefore(now.minusDays(4))) {
+      return "4 days ago";
+    }else if(pastMoment.isBefore(now.minusDays(3))) {
+      return "3 days ago";
+    }else if(pastMoment.isBefore(now.minusDays(2))) {
+      return "2 days ago";
+    }else if(pastMoment.isBefore(now.minusDays(1))) {
+      return "Yesterday";
+    }else if(pastMoment.isBefore(now.minusHours(6))) {
+      return "Today";
+    }else if(pastMoment.isBefore(now.minusHours(5))) {
+      return "5 hours ago";
+    }else if(pastMoment.isBefore(now.minusHours(4))) {
+      return "4 hours ago";
+    }else if(pastMoment.isBefore(now.minusHours(3))) {
+      return "3 hours ago";
+    }else if(pastMoment.isBefore(now.minusHours(2))) {
+      return "2 hours ago";
+    }else if(pastMoment.isBefore(now.minusHours(1))) {
+      return "1 hour ago";
+    }else if(pastMoment.isBefore(now.minusMinutes(30))) {
+      return "30 minutes ago";
+    }else if(pastMoment.isBefore(now.minusMinutes(10))) {
+      return "fews minutes ago";
+    }else {
+      return "unkown";
+    }
   }
 }

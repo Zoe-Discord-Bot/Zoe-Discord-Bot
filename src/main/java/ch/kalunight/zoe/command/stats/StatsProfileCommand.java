@@ -35,7 +35,6 @@ public class StatsProfileCommand extends Command {
   private static final Map<Double, Object> MASTERIES_TABLE_OF_HIGH_VALUE_Y_AXIS = new HashMap<>();
   private static final Map<Double, Object> MASTERIES_TABLE_OF_CLASSIC_VALUE_Y_AXIS = new HashMap<>();
   private static final Map<Double, Object> MASTERIES_TABLE_OF_LOW_VALUE_Y_AXIS = new HashMap<>();
-  private static final byte[] valueError = {};
   
   private static final Logger logger = LoggerFactory.getLogger(StatsProfileCommand.class);
 
@@ -101,9 +100,28 @@ public class StatsProfileCommand extends Command {
       return;
     }
     
-    byte[] imageBytes = generateMasteriesChart(event, championsMasteries);
+    byte[] imageBytes;
+    try {
+      imageBytes = generateMasteriesChart(event, championsMasteries);
+    } catch(IOException e) {
+      logger.info("Got a error in encoding bytesMap image : {}", e);
+      event.reply("I got an unexpected error when i creating the graph, please retry.");
+      return;
+    }
     
-    MessageEmbed embed = MessageBuilderRequest.createProfileMessage(player, championsMasteries);
+    MessageEmbed embed;
+    try {
+      embed = MessageBuilderRequest.createProfileMessage(player, championsMasteries);
+    } catch(RiotApiException e) {
+      if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
+        logger.debug("Get rate limited : {}", e);
+        event.reply("I am actually rate limited by riot Api. Please retry in 5 minutes");
+        return;
+      }
+      logger.warn("Got a unexpected error : {}", e);
+      event.reply("Woops, i got an unexpexcted error. Please retry");
+      return;
+    }
     
     MessageBuilder messageBuilder = new MessageBuilder();
     
@@ -112,7 +130,7 @@ public class StatsProfileCommand extends Command {
     event.getTextChannel().sendFile(imageBytes, player.getDiscordUser().getName() + ".png", messageBuilder.build()).queue();
   }
 
-  private byte[] generateMasteriesChart(CommandEvent event, List<ChampionMastery> championsMasteries) {
+  private byte[] generateMasteriesChart(CommandEvent event, List<ChampionMastery> championsMasteries) throws IOException {
     List<ChampionMastery> listHeigherChampion = getBestMasteries(championsMasteries, NUMBER_OF_CHAMPIONS_IN_GRAPH);
     CategoryChartBuilder masteriesGraphBuilder = new CategoryChartBuilder();
     
@@ -153,16 +171,8 @@ public class StatsProfileCommand extends Command {
     
     masteriesGraph.addSeries("Champions", yName, xPointsMasteries);
     
-    byte[] imageBytes;
-    try {
-      imageBytes = BitmapEncoder.getBitmapBytes(masteriesGraph, BitmapFormat.PNG);
-    } catch (IOException e) {
-      logger.warn("Got a error in encoding bytesMap image", e);
-      event.reply("I got an unexpected error when i creating the graph, please retry.");
-      return valueError;
-    }
-    return imageBytes;
-  }
+     return BitmapEncoder.getBitmapBytes(masteriesGraph, BitmapFormat.PNG);
+     }
 
   private long getMoyenneMasteries(List<ChampionMastery> championsMasteries) {
     long allMasteries = 0;

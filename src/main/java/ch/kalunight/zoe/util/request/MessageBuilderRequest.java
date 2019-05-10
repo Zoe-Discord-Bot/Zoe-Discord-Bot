@@ -34,7 +34,7 @@ import net.rithms.riot.constant.CallPriority;
 import net.rithms.riot.constant.Platform;
 
 public class MessageBuilderRequest {
-  
+
   private static final Logger logger = LoggerFactory.getLogger(MessageBuilderRequest.class);
 
   private static final String BLUE_TEAM_STRING = "Blue Team";
@@ -177,7 +177,7 @@ public class MessageBuilderRequest {
     return message.build();
   }
 
-  public static MessageEmbed createProfileMessage(Player player, List<ChampionMastery> masteries) {
+  public static MessageEmbed createProfileMessage(Player player, List<ChampionMastery> masteries) throws RiotApiException {
 
     EmbedBuilder message = new EmbedBuilder();
 
@@ -189,6 +189,9 @@ public class MessageBuilderRequest {
       player.setSummoner(summoner);
     } catch(RiotApiException e) {
       summoner = player.getSummoner();
+      if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
+        throw e;
+      }
     }
 
     message.setTitle(player.getDiscordUser().getName() + " Profile" + " : Lvl " + summoner.getSummonerLevel());
@@ -200,7 +203,7 @@ public class MessageBuilderRequest {
     for(ChampionMastery championMastery : threeBestchampionMasteries) {
       Champion champion = Ressources.getChampionDataById(championMastery.getChampionId());
       stringBuilder.append(champion.getDisplayName() + " " + champion.getName() + " - **" 
-      + MessageBuilderRequestUtil.getMasteryUnit(championMastery.getChampionPoints()) +"**\n");
+          + MessageBuilderRequestUtil.getMasteryUnit(championMastery.getChampionPoints()) +"**\n");
     }
 
     Field field = new Field("Top Champions", stringBuilder.toString(), true);
@@ -226,7 +229,7 @@ public class MessageBuilderRequest {
     CustomEmote masteryEmote7 = Ressources.getMasteryEmote().get(Mastery.getEnum(7));
     CustomEmote masteryEmote6 = Ressources.getMasteryEmote().get(Mastery.getEnum(6));
     CustomEmote masteryEmote5 = Ressources.getMasteryEmote().get(Mastery.getEnum(5));
-    
+
     field = new Field("Mastery Stats",
         nbrMastery7 + "x" + masteryEmote7.getUsableEmote() + " "
             + nbrMastery6 + "x" + masteryEmote6.getUsableEmote() + " "
@@ -236,57 +239,70 @@ public class MessageBuilderRequest {
 
 
     message.addField(field);
-    
+
     MatchList matchList = null;
-    
+
     try {
       matchList = Zoe.getRiotApi().getMatchListByAccountId(player.getRegion(), player.getSummoner().getAccountId(), 
           null, null, null, DateTime.now().minusWeeks(1).getMillis(), DateTime.now().getMillis(), -1, -1, CallPriority.HIGH);
     } catch(RiotApiException e) {
+      if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
+        throw e;
+      }
       logger.info("Impossible to get match history : {}", e);
     }
-
+    
     if(matchList != null) {
       List<MatchReference> matchsReference = matchList.getMatches();
-      
+
       List<Match> threeMostRecentMatch = new ArrayList<>();
-      
+
       if(matchsReference.size() < 3) {
         for(MatchReference matchReference : matchsReference) {
           try {
             threeMostRecentMatch.add(Zoe.getRiotApi().getMatch(player.getRegion(), matchReference.getGameId(), CallPriority.HIGH));
           } catch(RiotApiException e) {
+            if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
+              throw e;
+            }
             logger.info("Riot api got an error : {}", e);
           }
         }
       }else {
         for(int i = 0; i < 3; i++) {
           MatchReference matchReference = matchsReference.get(i);
-          
+
           try {
             threeMostRecentMatch.add(Zoe.getRiotApi().getMatch(player.getRegion(), matchReference.getGameId(), CallPriority.HIGH));
           } catch(RiotApiException e) {
+            if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
+              throw e;
+            }
             logger.info("Riot api got an error : {}", e);
           }
         }
       }
-      
+
       StringBuilder recentMatchsString = new StringBuilder();
-      
+
       if(!threeMostRecentMatch.isEmpty()) {
         for(Match match : threeMostRecentMatch) {
           LocalDateTime matchTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(match.getGameCreation()), ZoneId.ofOffset("UTC", ZoneOffset.UTC));
           Champion champion = Ressources.getChampionDataById(match.getParticipantByAccountId(player.getSummoner().getAccountId()).getChampionId());
-          recentMatchsString.append(champion.getEmoteUsable() + " " + champion.getName() + " - ");
+          recentMatchsString.append(champion.getEmoteUsable() + " " + champion.getName() + " - **" + MessageBuilderRequestUtil.getPastMoment(matchTime) + "**\n");
         }
       }
-      
+      field = new Field("Lastest played games", recentMatchsString.toString(), false);
+    }else {
+      field = new Field("Lastest played games", "No game played this week", false);
     }
+
+    message.addField(field);
     
     message.setImage("attachment://" + player.getDiscordUser().getName() + ".png");
 
     message.setColor(new Color(206, 20, 221));
-    
+
     return message.build();
   }
 }

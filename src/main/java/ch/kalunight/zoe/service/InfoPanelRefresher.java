@@ -1,7 +1,9 @@
 package ch.kalunight.zoe.service;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.command.CommandEvent;
@@ -42,7 +44,7 @@ public class InfoPanelRefresher implements Runnable {
       if(server.getInfoChannel() != null) {
         if(server.getControlePannel().getInfoPanel().isEmpty()) {
           server.getControlePannel().getInfoPanel()
-              .add(server.getInfoChannel().sendMessage("__**Control Panel**__\n \n*Loading...*").complete());
+          .add(server.getInfoChannel().sendMessage("__**Control Panel**__\n \n*Loading...*").complete());
         }
 
         ArrayList<String> infoPanels = CommandEvent.splitMessage(refreshPannel());
@@ -69,20 +71,53 @@ public class InfoPanelRefresher implements Runnable {
           }
 
           manageInfoCards();
+
+          cleaningInfoChannel();
         } else {
           server.setInfoChannel(null);
           server.setControlePannel(new ControlPannel());
         }
       }
     } catch(NullPointerException e) {
-      logger.info("The Thread has crashed normally because of deletion of infoChannel : {}", e);
+      logger.info("The Thread has crashed normally because of deletion of infoChannel :", e);
     } catch(Exception e) {
-      logger.warn("The thread got a unexpected error : {}", e);
+      logger.warn("The thread got a unexpected error :", e);
     } finally {
       ServerData.getServersIsInTreatment().put(server.getGuild().getId(), false);
     }
   }
 
+
+  private void cleaningInfoChannel() {
+
+    List<Message> messagesToCheck = server.getInfoChannel().getIterableHistory().stream()
+        .limit(1000)
+        .filter(m-> m.getAuthor().getId().equals(Zoe.getJda().getSelfUser().getId()))
+        .collect(Collectors.toList());
+
+    List<Message> messagesToDelete = new ArrayList<>();
+    
+    for(Message messageToCheck : messagesToCheck) {
+      if(!messageToCheck.getCreationTime().isBefore(OffsetDateTime.now().minusHours(1)) || server.getControlePannel().getInfoPanel().contains(messageToCheck)) {
+        continue;
+      }
+      
+      messagesToDelete.add(messageToCheck);
+    }
+    
+    if(messagesToDelete.isEmpty()) {
+      return;
+    }
+    
+    if(messagesToDelete.size() > 1) {
+      server.getInfoChannel().purgeMessages(messagesToDelete);
+    }else {
+      for(Message messageToDelete : messagesToDelete) {
+        messageToDelete.delete().queue();
+      }
+    }
+    
+  }
 
   private void manageInfoCards() {
     TextChannel controlPannel = server.getInfoChannel();
@@ -130,7 +165,7 @@ public class InfoPanelRefresher implements Runnable {
         }
         server.getControlePannel().getInfoCards().remove(cardsToRemove.get(i));
       } catch(Exception e) {
-        logger.warn("Impossible de delete message, retry next time : {}", e.getMessage(), e);
+        logger.warn("Impossible to delete message, retry next time : {}", e.getMessage(), e);
       }
     }
   }

@@ -81,8 +81,6 @@ public class AdminSendAnnonceMessageCommand extends Command {
         CommandUtil.sendTypingInFonctionOfChannelType(event);
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("Admin SendUpdateMessage command :\n");
-        stringBuilder.append("--> `>admin " + name + " " + arguments + "` : " + help);
-
         event.reply(stringBuilder.toString());
       }
     };

@@ -3,11 +3,9 @@ package ch.kalunight.zoe;
 import java.io.IOException;
 import java.util.List;
 import java.util.TimerTask;
-
 import org.discordbots.api.client.DiscordBotListAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.model.ControlPannel;
 import ch.kalunight.zoe.model.CustomEmote;
@@ -68,9 +66,11 @@ public class EventListener extends ListenerAdapter {
     } catch(IOException e) {
       logger.error(e.getMessage());
       logger.info("Une erreur est survenu lors du chargement des sauvegardes détaillés !");
+      System.exit(1);
     } catch(RiotApiException e) {
       logger.error(e.getMessage());
       logger.info("Une erreur venant de l'api Riot est survenu lors du chargement des sauvegardes détaillés !");
+      System.exit(1);
     }
 
     logger.info("Chargement des sauvegardes détaillés terminé !");
@@ -78,13 +78,13 @@ public class EventListener extends ListenerAdapter {
     logger.info("Loading of DiscordBotList API ...");
 
     try {
-      Zoe.setBotListApi(new DiscordBotListAPI.Builder()
-          .botId(Zoe.getJda().getSelfUser().getId())
-          .token(Zoe.getDiscordBotListTocken()) //SET TOCKEN
+      Zoe.setBotListApi(new DiscordBotListAPI.Builder().botId(Zoe.getJda().getSelfUser().getId()).token(Zoe.getDiscordBotListTocken()) // SET
+                                                                                                                                       // TOCKEN
           .build());
       logger.info("Loading of DiscordBotList API finished !");
-    }catch(Exception e) {
+    } catch(Exception e) {
       logger.info("Discord bot list api not loaded normally ! Working of the bot not affected");
+      Zoe.setBotListApi(null);
     }
 
     logger.info("Démarrage des tâches continue...");
@@ -138,11 +138,11 @@ public class EventListener extends ListenerAdapter {
         event.getGuild().delete().queue();
       }
 
-    }else {
+    } else {
 
       try {
         sendAllEmotesInGuild(event, customeEmotesList);
-      }catch(Exception e) {
+      } catch(Exception e) {
         logger.warn("Error with emotes sending ! Guild will be deleted");
         logger.warn("Error : {}", e.getMessage());
         logger.info("Some of emotes will be probably disable");
@@ -178,7 +178,7 @@ public class EventListener extends ListenerAdapter {
         Emote emote = guildController.createEmote(customEmote.getName(), icon, event.getGuild().getPublicRole()).complete();
 
         customEmote.setEmote(emote);
-      } catch (IOException e) {
+      } catch(IOException e) {
         logger.warn("Impossible de charger l'image !");
       }
     }

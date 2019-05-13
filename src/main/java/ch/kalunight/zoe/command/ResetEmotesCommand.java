@@ -16,24 +16,24 @@ public class ResetEmotesCommand extends Command {
     this.guildOnly = false;
   }
 
-  
+
   @Override
   protected void execute(CommandEvent event) {
     TextChannel textChannel = event.getTextChannel();
-    
+
     textChannel.sendMessage("All custom Emotes managed by the bot will be deleted and the bot will shutdown after that."
         + " All emotes will be reupladed at my relaunch.").complete();
-    
+
     for(Guild guild : Zoe.getJda().getGuilds()) {
       if(guild.getOwnerId().equals(Zoe.getJda().getSelfUser().getId())) {
-        textChannel.sendMessage("The guild \""+ guild.getName() + "\" will be deleted...").complete();
+        textChannel.sendMessage("The guild \"" + guild.getName() + "\" will be deleted...").complete();
         guild.delete().complete();
         textChannel.sendMessage("Deleted !").complete();
       }
     }
-    
+
     textChannel.sendMessage("Emotes Reset ! Now will be shut down ...").complete();
-    
+
     new ShutDownCommand().execute(event);
   }
 

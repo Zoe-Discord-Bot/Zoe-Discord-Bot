@@ -15,9 +15,9 @@ import net.dv8tion.jda.core.entities.Icon;
 import net.dv8tion.jda.core.managers.GuildController;
 
 public class CustomEmoteUtil {
-  
+
   private CustomEmoteUtil() {
-    //Hide default public constructor
+    // Hide default public constructor
   }
 
   private static final int MAX_EMOTE_BY_GUILD = 50;
@@ -73,7 +73,8 @@ public class CustomEmoteUtil {
     }
   }
 
-  private static List<CustomEmote> uploadEmoteInGuildAlreadyExist(List<CustomEmote> customEmotes, List<Guild> emoteGuilds) throws IOException {
+  private static List<CustomEmote> uploadEmoteInGuildAlreadyExist(List<CustomEmote> customEmotes, List<Guild> emoteGuilds)
+      throws IOException {
     List<CustomEmote> emotesUploaded = new ArrayList<>();
 
     for(Guild guild : emoteGuilds) {
@@ -120,7 +121,7 @@ public class CustomEmoteUtil {
     }
     return emoteGuild;
   }
-  
+
   public static void addToMasteryIfIsSame(CustomEmote emote) {
     for(Mastery mastery : Mastery.values()) {
       if(mastery.getName().equalsIgnoreCase(emote.getName())) {

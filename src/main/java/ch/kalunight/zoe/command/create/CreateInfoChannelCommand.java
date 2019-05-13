@@ -1,7 +1,6 @@
 package ch.kalunight.zoe.command.create;
 
 import java.util.function.BiConsumer;
-
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
@@ -35,7 +34,7 @@ public class CreateInfoChannelCommand extends Command {
       event.reply("Please give a name for the channel in the command");
       return;
     }
-    
+
     if(nameChannel.length() > 100) {
       event.reply("Please give me a name smaller than 100 characters");
       return;
@@ -51,17 +50,17 @@ public class CreateInfoChannelCommand extends Command {
       String id = infoChannel.getId();
       TextChannel textChannel = event.getGuild().getTextChannelById(id);
       server.setInfoChannel(textChannel);
-      
+
       Runnable task = new InfoPanelRefresher(server);
-      ServerData.getTaskExecutor().submit(task);
-      
+      ServerData.getTaskExecutor().execute(task);
+
       event.reply("The channel got created !");
-    }catch(InsufficientPermissionException e) {
+    } catch(InsufficientPermissionException e) {
       event.reply("Impossible to create the infoChannel ! "
           + "I don't have the permission to do that. Give me the Manage Channel Permission or use `>defineInfoChannel #MentionOfTheChannel`.");
     }
   }
-  
+
   private BiConsumer<CommandEvent, Command> getHelpMethod() {
     return new BiConsumer<CommandEvent, Command>() {
       @Override
@@ -70,7 +69,7 @@ public class CreateInfoChannelCommand extends Command {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("Create infoChannel command :\n");
         stringBuilder.append("--> `>create " + name + " " + arguments + "` : " + help);
-        
+
         event.reply(stringBuilder.toString());
       }
     };

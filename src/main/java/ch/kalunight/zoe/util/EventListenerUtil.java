@@ -10,6 +10,10 @@ import net.dv8tion.jda.core.entities.Guild;
 
 public class EventListenerUtil {
 
+  private EventListenerUtil() {
+    //Hide public constructor
+  }
+  
   public static void loadCustomEmotes() throws IOException {
     List<Emote> uploadedEmotes = getAllGuildCustomEmotes();
     List<CustomEmote> picturesInFile = CustomEmoteUtil.loadPicturesInFile();
@@ -23,7 +27,7 @@ public class EventListenerUtil {
     List<CustomEmote> emoteAlreadyUploded = getEmoteAlreadyUploaded(picturesInFile);
 
     Ressources.setCustomEmotes(emoteAlreadyUploded);
-    
+
     assigneCustomEmotesToData();
   }
 
@@ -64,11 +68,8 @@ public class EventListenerUtil {
     List<Guild> listGuild = Zoe.getJda().getGuilds();
 
     for(Guild guild : listGuild) {
-      /*
-       * if(guild.getOwnerId().equals(Zoe.getJda().getSelfUser().getId())) { guild.delete().queue(); }
-       */
-      
-      if(guild.getOwnerId().equals(Zoe.getJda().getSelfUser().getId())){
+
+      if(guild.getOwnerId().equals(Zoe.getJda().getSelfUser().getId())) {
         uploadedEmotes.addAll(guild.getEmotes());
       }
     }

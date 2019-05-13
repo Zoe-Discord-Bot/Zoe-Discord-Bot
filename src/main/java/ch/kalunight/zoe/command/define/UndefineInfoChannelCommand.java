@@ -1,7 +1,6 @@
 package ch.kalunight.zoe.command.define;
 
 import java.util.function.BiConsumer;
-
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
@@ -24,20 +23,20 @@ public class UndefineInfoChannelCommand extends Command {
         + "i will just stop to do my work in. Manage Channel permission needed.";
     this.helpBiConsumer = getHelpMethod();
   }
-  
+
   @Override
   protected void execute(CommandEvent event) {
     event.getTextChannel().sendTyping().complete();
     Server server = ServerData.getServers().get(event.getGuild().getId());
-    
+
     if(server == null) {
       server = new Server(event.getGuild(), SpellingLangage.EN);
       ServerData.getServers().put(event.getGuild().getId(), server);
     }
-    
+
     if(server.getInfoChannel() == null) {
       event.reply("I have no registered info channel ! I can't undefine something who don't exist :p");
-    }else {
+    } else {
       for(InfoCard infoCard : server.getControlePannel().getInfoCards()) {
         infoCard.getMessage().delete().queue();
         infoCard.getTitle().delete().queue();
@@ -50,7 +49,7 @@ public class UndefineInfoChannelCommand extends Command {
       event.reply("I have undefine the info channel ! I have deleted all message related to my activity");
     }
   }
-  
+
   private BiConsumer<CommandEvent, Command> getHelpMethod() {
     return new BiConsumer<CommandEvent, Command>() {
       @Override
@@ -59,7 +58,7 @@ public class UndefineInfoChannelCommand extends Command {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("Undefine infoChannel command :\n");
         stringBuilder.append("--> `>undefine " + name + " " + arguments + "` : " + help);
-        
+
         event.reply(stringBuilder.toString());
       }
     };

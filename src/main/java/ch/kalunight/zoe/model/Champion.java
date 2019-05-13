@@ -16,12 +16,19 @@ public class Champion {
     this.name = name;
     this.championLogo = championLogo;
   }
-  
+
   public String getDisplayName() {
     if(emote != null) {
       return emote.getAsMention();
     }
     return name;
+  }
+  
+  public String getEmoteUsable() {
+    if(emote == null) {
+      return "";
+    }
+    return emote.getAsMention();
   }
 
   public int getKey() {

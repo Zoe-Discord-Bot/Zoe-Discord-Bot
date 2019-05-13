@@ -4,7 +4,7 @@ import java.util.List;
 import net.dv8tion.jda.core.entities.TextChannel;
 
 public class MessageHelper {
-  
+
   private MessageHelper() {}
 
   public static void sendMessageInOneChannel(List<TextChannel> textChannels, String text) {

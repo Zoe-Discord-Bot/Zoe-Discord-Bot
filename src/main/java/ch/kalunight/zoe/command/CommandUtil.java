@@ -1,12 +1,9 @@
 package ch.kalunight.zoe.command;
 
 import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.jagrosh.jdautilities.command.CommandEvent;
-
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.PrivateChannel;
 import net.dv8tion.jda.core.entities.TextChannel;
@@ -17,7 +14,7 @@ public class CommandUtil {
   private static final Logger logger = LoggerFactory.getLogger(CommandUtil.class);
 
   private CommandUtil() {
-    //Hide public constructor
+    // Hide public constructor
   }
 
   public static void sendTypingInFonctionOfChannelType(CommandEvent event) {
@@ -51,7 +48,7 @@ public class CommandUtil {
         PrivateChannel privateChannel = guild.getOwner().getUser().openPrivateChannel().complete();
         privateChannel.sendMessage(messageToSend).queue();
       }
-    }catch(ErrorResponseException e) {
+    } catch(ErrorResponseException e) {
       logger.info("Impossible to send the annonce to a owner (Could be a error because i send a message to myself).");
     }
   }

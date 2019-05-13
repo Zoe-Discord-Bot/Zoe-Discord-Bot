@@ -6,7 +6,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import org.joda.time.DateTime;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.TextChannel;
@@ -18,7 +17,7 @@ public class Server {
    * Default time to force refresh of channel
    */
   private static final int DEFAULT_INIT_TIME = 3;
-  
+
   private final Map<String, CurrentGameInfo> currentGames = new HashMap<>();
   private final List<Long> currentGamesIdAlreadySended = new ArrayList<>();
 
@@ -27,7 +26,7 @@ public class Server {
   private List<Team> teams;
   private TextChannel infoChannel;
   private ControlPannel controlePannel;
-  private SpellingLangage langage; //Not implement yet
+  private SpellingLangage langage; // Not implement yet
   private DateTime lastRefresh;
 
   public Server(Guild guild, SpellingLangage langage) {
@@ -48,7 +47,7 @@ public class Server {
     return needToBeRefreshed;
   }
 
-  public List<Team> getAllPlayerTeams(){
+  public List<Team> getAllPlayerTeams() {
     List<Player> playerWithNoTeam = new ArrayList<>();
     playerWithNoTeam.addAll(players);
 
@@ -63,7 +62,7 @@ public class Server {
     if(!playerWithNoTeam.isEmpty()) {
       allTeams.add(new Team("No Team", playerWithNoTeam));
     }
-    
+
     return allTeams;
   }
 
@@ -91,7 +90,7 @@ public class Server {
     }
 
     Iterator<Long> idCurrentGamesIterator = currentGamesIdAlreadySended.iterator();
-    
+
     while(idCurrentGamesIterator.hasNext()) {
       Long actualCurrentGamesId = idCurrentGamesIterator.next();
       if(!gameIdToSave.contains(actualCurrentGamesId)) {
@@ -121,7 +120,7 @@ public class Server {
   public Team getTeamByPlayer(Player player) {
     for(Team team : teams) {
       if(team.getPlayers().contains(player)) {
-         return team;
+        return team;
       }
     }
     return null;

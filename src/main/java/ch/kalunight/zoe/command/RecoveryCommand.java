@@ -6,15 +6,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.google.common.collect.Lists;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
-
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.add.AddCommand;
@@ -35,6 +32,7 @@ import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.core.exceptions.InsufficientPermissionException;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.constant.CallPriority;
@@ -77,7 +75,7 @@ public class RecoveryCommand extends Command {
 
       waiter.waitForEvent(MessageReceivedEvent.class,
           e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel())
-            && !e.getMessage().getId().equals(event.getMessage().getId()),
+          && !e.getMessage().getId().equals(event.getMessage().getId()),
           e -> recover(e, users), 1, TimeUnit.MINUTES,
           () -> cancelRecovery(event.getEvent()));
     }else {
@@ -91,11 +89,19 @@ public class RecoveryCommand extends Command {
       messageReceivedEvent.getTextChannel().sendMessage("Alright, i start now ...").queue();
       messageReceivedEvent.getTextChannel().sendMessage("By the power of chocolate moon cake ! Restore all theses lost things !").queue();
 
-      List<Message> reverseMessages = messageReceivedEvent.getTextChannel().getIterableHistory().stream()
-          .filter(m-> usersId.contains(m.getAuthor().getId()) && m.getContentRaw().startsWith(Zoe.BOT_PREFIX))
-          .limit(1000)
-          .collect(Collectors.toList());
-      
+      List<Message> reverseMessages;
+
+      try {
+        reverseMessages = messageReceivedEvent.getTextChannel().getIterableHistory().stream()
+            .limit(1000)
+            .filter(m-> usersId.contains(m.getAuthor().getId()) && m.getContentRaw().startsWith(Zoe.BOT_PREFIX))
+            .collect(Collectors.toList());
+      }catch(InsufficientPermissionException e) {
+        messageReceivedEvent.getTextChannel()
+        .sendMessage("I don't have the right to read the history of this channel, please give me the permission to do that.").queue();
+        return;
+      }
+
       List<Message> messages = Lists.reverse(reverseMessages);
 
       try {
@@ -103,33 +109,33 @@ public class RecoveryCommand extends Command {
         for(Message potentialCommand : messages) {
           String message = potentialCommand.getContentRaw();
 
-            if(isCreatePlayerCommand(message)) {
-              executeCreatePlayerCommand(potentialCommand, server);
-            }
+          if(isCreatePlayerCommand(message)) {
+            executeCreatePlayerCommand(potentialCommand, server);
+          }
 
-            if(isDeletePlayerCommand(message)) {
-              executeDeletePlayerCommand(potentialCommand, server);
-            }
+          if(isDeletePlayerCommand(message)) {
+            executeDeletePlayerCommand(potentialCommand, server);
+          }
 
-            if(isCreateTeamCommand(message)) {
-              executeCreateTeamCommand(potentialCommand, server);
-            }
+          if(isCreateTeamCommand(message)) {
+            executeCreateTeamCommand(potentialCommand, server);
+          }
 
-            if(isDeleteTeamCommand(message)) {
-              executeDeleteTeamCommand(potentialCommand, server);
-            }
+          if(isDeleteTeamCommand(message)) {
+            executeDeleteTeamCommand(potentialCommand, server);
+          }
 
-            if(isAddPlayerToTeamCommand(message)) {
-              executeAddPlayerToTeamCommand(potentialCommand, server);
-            }
-            
-            if(isRemovePlayerToTeamCommand(message)) {
-              executeRemovePlayerToTeamCommand(potentialCommand, server);
-            }
+          if(isAddPlayerToTeamCommand(message)) {
+            executeAddPlayerToTeamCommand(potentialCommand, server);
+          }
+
+          if(isRemovePlayerToTeamCommand(message)) {
+            executeRemovePlayerToTeamCommand(potentialCommand, server);
+          }
         }
-        
+
         messageReceivedEvent.getTextChannel().sendMessage("Recovery finished !").queue();
-        
+
       }catch(RiotApiException e) {
         if(e.getErrorCode() == RiotApiException.SERVER_ERROR) {
           logger.info("Riot api got an error : {}", e.getMessage(), e);
@@ -144,7 +150,7 @@ public class RecoveryCommand extends Command {
         }
       } catch(Exception e) {
         logger.error("Unexpected error : {}", e.getMessage(), e);
-        messageReceivedEvent.getTextChannel().sendMessage("I got a unexpected issue, please retry. "
+        messageReceivedEvent.getTextChannel().sendMessage("I got a unexpected issue, please retry (do a `>reset` before). "
             + "If the error remain, please contact the support server.").queue();
       }
     }else {
@@ -153,17 +159,17 @@ public class RecoveryCommand extends Command {
   }
 
   private void executeRemovePlayerToTeamCommand(Message potentialCommand, Server server) {
-    
+
     if(potentialCommand.getMentionedMembers().size() != 1) {
       return;
     }
-    
+
     Player player = server.getPlayerByDiscordId(potentialCommand.getMentionedMembers().get(0).getUser().getId());
 
     if(player == null) {
       return;
     }
-    
+
     Matcher matcher = RemovePlayerToTeam.PARENTHESES_PATTERN.matcher(
         getArgsCommand(potentialCommand.getContentRaw(), RemoveCommand.USAGE_NAME, RemovePlayerToTeam.USAGE_NAME));
     String teamName = "";
@@ -184,13 +190,13 @@ public class RecoveryCommand extends Command {
   }
 
   private void executeAddPlayerToTeamCommand(Message potentialCommand, Server server) {
-    
+
     if(potentialCommand.getMentionedMembers().size() == 1) {
       Player player = server.getPlayerByDiscordId(potentialCommand.getMentionedMembers().get(0).getUser().getId());
-      
+
       if(player != null) {
         Team team = server.getTeamByPlayer(player);
-        
+
         if(team == null) {
           Matcher matcher = AddPlayerToTeam.PARENTHESES_PATTERN.matcher(
               getArgsCommand(potentialCommand.getContentRaw(), AddCommand.USAGE_NAME, AddPlayerToTeam.USAGE_NAME));
@@ -200,7 +206,7 @@ public class RecoveryCommand extends Command {
           }
 
           Team teamToAdd = server.getTeamByName(teamName);
-          
+
           if(teamToAdd != null) {
             teamToAdd.getPlayers().add(player);
           }
@@ -219,7 +225,7 @@ public class RecoveryCommand extends Command {
   }
 
   private void executeCreateTeamCommand(Message message, Server server) {
- 
+
     String nameTeam = getArgsCommand(message.getContentRaw(), CreateCommand.USAGE_NAME, CreateTeamCommand.USAGE_NAME);
 
     if(!nameTeam.isEmpty()) {
@@ -286,13 +292,13 @@ public class RecoveryCommand extends Command {
     if(command.split(" ").length < 4) { // Minimum 4 bloc of text
       return false;
     }
-    
+
     String messageInTreatment = command.substring(Zoe.BOT_PREFIX.length()).split(" ")[0];
 
     return messageInTreatment.equalsIgnoreCase(AddCommand.USAGE_NAME)
         && command.substring(Zoe.BOT_PREFIX.length()).split(" ")[1].equalsIgnoreCase(AddPlayerToTeam.USAGE_NAME);
   }
-  
+
   private boolean isRemovePlayerToTeamCommand(String command) {
     if(command.split(" ").length < 4) { // Minimum 4 bloc of text
       return false;
@@ -302,7 +308,7 @@ public class RecoveryCommand extends Command {
     return messageInTreatment.equalsIgnoreCase(RemoveCommand.USAGE_NAME)
         && command.substring(Zoe.BOT_PREFIX.length()).split(" ")[1].equalsIgnoreCase(RemovePlayerToTeam.USAGE_NAME);
   }
-  
+
   private boolean isCreatePlayerCommand(String command) {
     if(command.split(" ").length < 4) { // Minimum 4 bloc of text
       return false;

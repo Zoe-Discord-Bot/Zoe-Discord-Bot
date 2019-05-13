@@ -57,14 +57,8 @@ public class MessageBuilderRequest {
     message.setTitle(
         "Info on the game of " + user.getName() + " : " + NameConversion.convertGameQueueIdToString(match.getGameQueueConfigId()));
 
-    int blueTeamID = 0;
-
-    for(int i = 0; i < match.getParticipants().size(); i++) {
-      if(i == 0) {
-        blueTeamID = match.getParticipants().get(i).getTeamId();
-      }
-    }
-
+    int blueTeamID = 100;
+    
     ArrayList<CurrentGameParticipant> blueTeam = new ArrayList<>();
     ArrayList<CurrentGameParticipant> redTeam = new ArrayList<>();
 
@@ -121,14 +115,7 @@ public class MessageBuilderRequest {
 
     message.setTitle(title.toString());
 
-    int blueTeamID = 0;
-
-    for(int i = 0; i < currentGameInfo.getParticipants().size(); i++) {
-      if(i == 0) {
-        blueTeamID = currentGameInfo.getParticipants().get(i).getTeamId();
-      }
-    }
-
+    int blueTeamID = 100;
     ArrayList<CurrentGameParticipant> blueTeam = new ArrayList<>();
     ArrayList<CurrentGameParticipant> redTeam = new ArrayList<>();
 
@@ -336,10 +323,10 @@ public class MessageBuilderRequest {
         if(leaguePosition.getQueueType().equals("RANKED_SOLO_5x5")) {
           soloqRank = "Soloq : **" + Ressources.getTierEmote().get(tier).getUsableEmote() + " " + tier.toString() + " "
               + rank.toString() + " " +  leaguePosition.getLeaguePoints() + " PL**";
-        } else if(leaguePosition.getQueueType().equals("RANKED_TEAM_5x5")) {
+        } else if(leaguePosition.getQueueType().equals("RANKED_FLEX_SR")) {
           flexRank = "Flex : **" + Ressources.getTierEmote().get(tier).getUsableEmote() + " " + tier.toString() + " "
               + rank.toString() + " " +  leaguePosition.getLeaguePoints() + " PL**";
-        }else if(leaguePosition.getQueueType().equals("RANKED_TEAM_3x3")) {
+        }else if(leaguePosition.getQueueType().equals("RANKED_FLEX_TT")) {
           twistedThreeLine = "3x3 : **" + Ressources.getTierEmote().get(tier).getUsableEmote() + " " + tier.toString() + " "
               + rank.toString() + " " +  leaguePosition.getLeaguePoints() + " PL**";
         }

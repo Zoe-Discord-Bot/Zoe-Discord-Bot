@@ -26,6 +26,7 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.examples.command.PingCommand;
 import ch.kalunight.zoe.command.AboutCommand;
+import ch.kalunight.zoe.command.PatchNotesCommand;
 import ch.kalunight.zoe.command.RecoveryCommand;
 import ch.kalunight.zoe.command.ResetCommand;
 import ch.kalunight.zoe.command.ResetEmotesCommand;
@@ -166,6 +167,10 @@ public class Zoe {
         Command aboutCommand = new AboutCommand();
         stringBuilder.append("Command **" + aboutCommand.getName() + "** :\n");
         stringBuilder.append("--> `>" + aboutCommand.getName() + "` : " + aboutCommand.getHelp() + "\n\n");
+        
+        Command patchNoteCommand = new PatchNotesCommand();
+        stringBuilder.append("Command **" + patchNoteCommand.getName() + "** :\n");
+        stringBuilder.append("--> `>" + patchNoteCommand.getName() + "` : " + patchNoteCommand.getHelp() + "\n\n");
 
         Command recoveryCommand = new RecoveryCommand(null);
         stringBuilder.append("Command **" + recoveryCommand.getName() + "** :\n");
@@ -216,6 +221,7 @@ public class Zoe {
     // Basic commands
     commands.add(new AboutCommand());
     commands.add(new SetupCommand());
+    commands.add(new PatchNotesCommand());
     commands.add(new CreateCommand());
     commands.add(new DeleteCommand());
     commands.add(new DefineCommand());

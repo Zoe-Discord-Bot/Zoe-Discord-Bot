@@ -147,7 +147,7 @@ public class Zoe {
     priorityList.add(requestSecondsTank);
     priorityList.add(requestMinutesTank);
 
-    RateLimitHandler defaultLimite = new PriorityManagerRateLimitHandler(); // create default priority with dev api key rate limit
+    RateLimitHandler defaultLimite = new PriorityManagerRateLimitHandler(priorityList); // create default priority with dev api key rate limit
 
     config.setRateLimitHandler(defaultLimite);
     riotApi = new RiotApi(config);

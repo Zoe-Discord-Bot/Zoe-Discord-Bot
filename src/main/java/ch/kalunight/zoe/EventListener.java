@@ -1,29 +1,23 @@
 package ch.kalunight.zoe;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.TimerTask;
 import org.discordbots.api.client.DiscordBotListAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.model.ControlPannel;
-import ch.kalunight.zoe.model.CustomEmote;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.SpellingLangage;
 import ch.kalunight.zoe.service.GameChecker;
 import ch.kalunight.zoe.util.EventListenerUtil;
-import ch.kalunight.zoe.util.Ressources;
 import net.dv8tion.jda.core.OnlineStatus;
-import net.dv8tion.jda.core.entities.Emote;
 import net.dv8tion.jda.core.entities.Game;
 import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Icon;
 import net.dv8tion.jda.core.events.ReadyEvent;
 import net.dv8tion.jda.core.events.channel.text.TextChannelDeleteEvent;
 import net.dv8tion.jda.core.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
-import net.dv8tion.jda.core.managers.GuildController;
 import net.rithms.riot.api.RiotApiException;
 
 public class EventListener extends ListenerAdapter {
@@ -128,34 +122,6 @@ public class EventListener extends ListenerAdapter {
       CommandUtil.sendMessageInGuildOrAtOwner(event.getGuild(), WELCOME_MESSAGE);
       return;
     }
-
-    List<CustomEmote> customeEmotesList = Zoe.getEmotesNeedToBeUploaded().poll();
-
-    if(customeEmotesList == null) {
-      logger.error("Pas d'emote à envoyer ! Suppression de la guild ...");
-
-      if(event.getGuild().getOwner().getUser().equals(Zoe.getJda().getSelfUser())) {
-        event.getGuild().delete().queue();
-      }
-
-    } else {
-
-      try {
-        sendAllEmotesInGuild(event, customeEmotesList);
-      } catch(Exception e) {
-        logger.warn("Error with emotes sending ! Guild will be deleted");
-        logger.warn("Error : {}", e.getMessage());
-        logger.info("Some of emotes will be probably disable");
-        event.getGuild().delete().queue();
-        return;
-      }
-
-      Ressources.getCustomEmotes().addAll(customeEmotesList);
-
-      EventListenerUtil.assigneCustomEmotesToData();
-
-      logger.info("New emote Guild \"{}\" initialized !", event.getGuild().getName());
-    }
   }
 
   @Override
@@ -164,23 +130,6 @@ public class EventListener extends ListenerAdapter {
     if(server.getInfoChannel() != null && server.getInfoChannel().getId().equals(event.getChannel().getId())) {
       server.setControlePannel(new ControlPannel());
       server.setInfoChannel(null);
-    }
-  }
-
-  private void sendAllEmotesInGuild(GuildJoinEvent event, List<CustomEmote> customeEmotesList) {
-    GuildController guildController = event.getGuild().getController();
-
-    for(CustomEmote customEmote : customeEmotesList) {
-      try {
-        Icon icon;
-        icon = Icon.from(customEmote.getFile());
-
-        Emote emote = guildController.createEmote(customEmote.getName(), icon, event.getGuild().getPublicRole()).complete();
-
-        customEmote.setEmote(emote);
-      } catch(IOException e) {
-        logger.warn("Impossible de charger l'image !");
-      }
     }
   }
 }

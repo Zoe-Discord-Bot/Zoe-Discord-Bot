@@ -54,6 +54,7 @@ public class RecoveryCommand extends Command {
     this.guildOnly = true;
     this.waiter = waiter;
     this.helpBiConsumer = getHelpMethod();
+    this.cooldown = 30;
   }
 
   @Override

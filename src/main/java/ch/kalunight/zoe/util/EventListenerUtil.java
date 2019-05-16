@@ -1,5 +1,7 @@
 package ch.kalunight.zoe.util;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,44 +15,15 @@ public class EventListenerUtil {
   private EventListenerUtil() {
     //Hide public constructor
   }
-  
+
   public static void loadCustomEmotes() throws IOException {
     List<Emote> uploadedEmotes = getAllGuildCustomEmotes();
     List<CustomEmote> picturesInFile = CustomEmoteUtil.loadPicturesInFile();
 
     assigneAlreadyUploadedEmoteToPicturesInFile(uploadedEmotes, picturesInFile);
-
-    List<CustomEmote> emotesNeedToBeUploaded = getEmoteNeedToBeUploaded(picturesInFile);
-
-    CustomEmoteUtil.prepareUploadOfEmotes(emotesNeedToBeUploaded);
-
-    List<CustomEmote> emoteAlreadyUploded = getEmoteAlreadyUploaded(picturesInFile);
-
-    Ressources.setCustomEmotes(emoteAlreadyUploded);
-
+    
+    Ressources.getCustomEmotes().addAll(picturesInFile);
     assigneCustomEmotesToData();
-  }
-
-  private static List<CustomEmote> getEmoteAlreadyUploaded(List<CustomEmote> picturesInFile) {
-    List<CustomEmote> emoteAlreadyUploded = new ArrayList<>();
-
-    for(CustomEmote customEmote : picturesInFile) {
-      if(customEmote.getEmote() != null) {
-        emoteAlreadyUploded.add(customEmote);
-      }
-    }
-    return emoteAlreadyUploded;
-  }
-
-  private static List<CustomEmote> getEmoteNeedToBeUploaded(List<CustomEmote> picturesInFile) {
-    List<CustomEmote> emotesNeedToBeUploaded = new ArrayList<>();
-
-    for(CustomEmote customEmote : picturesInFile) {
-      if(customEmote.getEmote() == null) {
-        emotesNeedToBeUploaded.add(customEmote);
-      }
-    }
-    return emotesNeedToBeUploaded;
   }
 
   private static void assigneAlreadyUploadedEmoteToPicturesInFile(List<Emote> uploadedEmotes, List<CustomEmote> picturesInFile) {
@@ -63,15 +36,19 @@ public class EventListenerUtil {
     }
   }
 
-  private static List<Emote> getAllGuildCustomEmotes() {
+  private static List<Emote> getAllGuildCustomEmotes() throws IOException {
     List<Emote> uploadedEmotes = new ArrayList<>();
-    List<Guild> listGuild = Zoe.getJda().getGuilds();
+    List<Guild> listGuild = new ArrayList<>();
+
+    try(final BufferedReader reader = new BufferedReader(new FileReader(Ressources.GUILD_EMOTES_FILE));) {
+      String line;
+      while((line = reader.readLine()) != null) {
+        listGuild.add(Zoe.getJda().getGuildById(line));
+      }
+    }
 
     for(Guild guild : listGuild) {
-
-      if(guild.getOwnerId().equals(Zoe.getJda().getSelfUser().getId())) {
-        uploadedEmotes.addAll(guild.getEmotes());
-      }
+      uploadedEmotes.addAll(guild.getEmotes());
     }
     return uploadedEmotes;
   }

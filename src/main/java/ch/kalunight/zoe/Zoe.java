@@ -167,7 +167,7 @@ public class Zoe {
         Command aboutCommand = new AboutCommand();
         stringBuilder.append("Command **" + aboutCommand.getName() + "** :\n");
         stringBuilder.append("--> `>" + aboutCommand.getName() + "` : " + aboutCommand.getHelp() + "\n\n");
-        
+
         Command patchNoteCommand = new PatchNotesCommand();
         stringBuilder.append("Command **" + patchNoteCommand.getName() + "** :\n");
         stringBuilder.append("--> `>" + patchNoteCommand.getName() + "` : " + patchNoteCommand.getHelp() + "\n\n");
@@ -181,7 +181,8 @@ public class Zoe {
         stringBuilder.append("--> `>" + resetCommand.getName() + "` : " + resetCommand.getHelp() + "\n\n");
 
         for(Command command : getMainCommands(null)) {
-          if(!command.isHidden() && !(command instanceof PingCommand || command instanceof RecoveryCommand || command instanceof ResetCommand)) {
+          if(!command.isHidden() && !(command instanceof PingCommand || command instanceof RecoveryCommand 
+              || command instanceof ResetCommand || command instanceof PatchNotesCommand)) {
             stringBuilder.append("Commands **" + command.getName() + "** : \n");
 
             for(Command commandChild : command.getChildren()) {

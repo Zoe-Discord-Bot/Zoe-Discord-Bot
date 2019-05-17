@@ -41,7 +41,7 @@ public class AdminCreateRAPIChannel extends Command {
       }
     }
 
-    if(event.getArgs().isBlank()) {
+    if(event.getArgs().isEmpty()) {
       event.reply("Please send the name of the channel in args (E.g. : `>admin createRAPIChannel RAPIChannel`)");
       return;
     }

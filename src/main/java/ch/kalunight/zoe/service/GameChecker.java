@@ -15,14 +15,10 @@ public class GameChecker extends TimerTask {
   private static final int TIME_BETWEEN_EACH_SAVE_IN_MINUTES = 10;
 
   private static final int TIME_BETWEEN_EACH_STATUS_REFRESH_IN_HOURS = 1;
-  
-  private static final int TIME_BETWEEN_EACH_RAPI_CHANNEL_REFRESH_IN_MINUTES = 2;
 
   private static DateTime nextSaveTime = DateTime.now().plusSeconds(TIME_BETWEEN_EACH_SAVE_IN_MINUTES);
 
   private static DateTime nextStatusRefresh = DateTime.now();
-  
-  private static DateTime nextRAPIChannelRefresh = DateTime.now().plusMinutes(TIME_BETWEEN_EACH_RAPI_CHANNEL_REFRESH_IN_MINUTES);
 
   @Override
   public void run() {
@@ -46,12 +42,6 @@ public class GameChecker extends TimerTask {
         Runnable task = new InfoPanelRefresher(server);
         ServerData.getTaskExecutor().execute(task);
       }
-    }
-    
-    if(nextRAPIChannelRefresh.isBeforeNow() && RiotApiUsageChannelRefresh.getRapiInfoChannel() != null) {
-      ServerData.getTaskExecutor().execute(new RiotApiUsageChannelRefresh());
-      
-      setNextRAPIChannelRefresh(DateTime.now().plusMinutes(TIME_BETWEEN_EACH_RAPI_CHANNEL_REFRESH_IN_MINUTES));
     }
 
     if(nextSaveTime.isBeforeNow()) {
@@ -81,9 +71,5 @@ public class GameChecker extends TimerTask {
   
   public static void setNextSaveTime(DateTime nextRefreshDate) {
     GameChecker.nextSaveTime = nextRefreshDate;
-  }
-
-  private static void setNextRAPIChannelRefresh(DateTime nextRAPIChannelRefresh) {
-    GameChecker.nextRAPIChannelRefresh = nextRAPIChannelRefresh;
   }
 }

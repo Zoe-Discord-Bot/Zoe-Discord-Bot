@@ -12,7 +12,7 @@ public class AdminCommand extends Command {
     this.ownerCommand = true;
     this.hidden = true;
     this.help = "Send info about admin commands";
-    Command[] commandsChildren = {new AdminSendAnnonceMessageCommand(), new AdminCreateRAPIChannel(), new AdminDeleteRAPIChannel()};
+    Command[] commandsChildren = {new AdminSendAnnonceMessageCommand()};
     this.children = commandsChildren;
     this.helpBiConsumer = getHelpMethod();
   }

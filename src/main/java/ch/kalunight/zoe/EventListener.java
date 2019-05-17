@@ -1,11 +1,6 @@
 package ch.kalunight.zoe;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.TimerTask;
 import org.discordbots.api.client.DiscordBotListAPI;
 import org.slf4j.Logger;
@@ -15,12 +10,10 @@ import ch.kalunight.zoe.model.ControlPannel;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.SpellingLangage;
 import ch.kalunight.zoe.service.GameChecker;
-import ch.kalunight.zoe.service.RiotApiUsageChannelRefresh;
 import ch.kalunight.zoe.util.EventListenerUtil;
 import net.dv8tion.jda.core.OnlineStatus;
 import net.dv8tion.jda.core.entities.Game;
 import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.events.ReadyEvent;
 import net.dv8tion.jda.core.events.channel.text.TextChannelDeleteEvent;
 import net.dv8tion.jda.core.events.guild.GuildJoinEvent;
@@ -75,12 +68,6 @@ public class EventListener extends ListenerAdapter {
     }
 
     logger.info("Chargement des sauvegardes détaillés terminé !");
-    
-    logger.info("Loading of RAPI Status Channel ...");
-    
-    initRAPIStatusChannel();
-    
-    logger.info("Loading of RAPI Status Channel finished !");
 
     logger.info("Loading of DiscordBotList API ...");
 
@@ -133,6 +120,7 @@ public class EventListener extends ListenerAdapter {
       ServerData.getServers().put(event.getGuild().getId(), new Server(event.getGuild(), SpellingLangage.EN));
       ServerData.getServersIsInTreatment().put(event.getGuild().getId(), false);
       CommandUtil.sendMessageInGuildOrAtOwner(event.getGuild(), WELCOME_MESSAGE);
+      return;
     }
   }
 
@@ -142,33 +130,6 @@ public class EventListener extends ListenerAdapter {
     if(server.getInfoChannel() != null && server.getInfoChannel().getId().equals(event.getChannel().getId())) {
       server.setControlePannel(new ControlPannel());
       server.setInfoChannel(null);
-    }
-  }
-  
-  private void initRAPIStatusChannel() {
-    try(final BufferedReader reader = new BufferedReader(new FileReader(Zoe.RAPI_SAVE_TXT_FILE));) {
-      String line;
-
-      List<String> args = new ArrayList<>();
-      
-      while((line = reader.readLine()) != null) {
-        args.add(line);
-      }
-      
-      if(args.size() == 2) {
-        Guild guild = Zoe.getJda().getGuildById(args.get(0));
-        if(guild != null) {
-          TextChannel rapiStatusChannel = guild.getTextChannelById(args.get(1));
-          if(rapiStatusChannel != null) {
-            RiotApiUsageChannelRefresh.setRapiInfoChannel(rapiStatusChannel);
-            logger.info("RAPI Status channel correctly loaded.");
-          }
-        }
-      }      
-    } catch(FileNotFoundException e1) {
-      logger.info("Needed file doesn't exist. Will be created if needed.");
-    } catch(IOException e1) {
-      logger.warn("Error when loading the file of RAPI Status Channel. The older channel will be unused ! (You can re-create it)");
     }
   }
 }

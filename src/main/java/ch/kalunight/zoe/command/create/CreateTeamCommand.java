@@ -28,6 +28,11 @@ public class CreateTeamCommand extends Command {
     event.getTextChannel().sendTyping().complete();
     String nameTeam = event.getArgs();
     Server server = ServerData.getServers().get(event.getGuild().getId());
+    
+    if(nameTeam.equals("--server")) {
+      event.reply("This name is already used by the system. Please us another name.");
+      return;
+    }
 
     if(server == null) {
       server = new Server(event.getGuild(), SpellingLangage.EN);

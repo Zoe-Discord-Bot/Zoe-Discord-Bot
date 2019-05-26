@@ -58,6 +58,7 @@ import net.dv8tion.jda.core.entities.PrivateChannel;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.exceptions.ErrorResponseException;
+import net.dv8tion.jda.core.exceptions.InsufficientPermissionException;
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.RiotApi;
 import net.rithms.riot.api.RiotApiException;
@@ -167,7 +168,7 @@ public class Zoe {
         Command aboutCommand = new AboutCommand();
         stringBuilder.append("Command **" + aboutCommand.getName() + "** :\n");
         stringBuilder.append("--> `>" + aboutCommand.getName() + "` : " + aboutCommand.getHelp() + "\n\n");
-        
+
         Command patchNoteCommand = new PatchNotesCommand();
         stringBuilder.append("Command **" + patchNoteCommand.getName() + "** :\n");
         stringBuilder.append("--> `>" + patchNoteCommand.getName() + "` : " + patchNoteCommand.getHelp() + "\n\n");
@@ -343,39 +344,51 @@ public class Zoe {
 
       while((line = reader.readLine()) != null) {
 
-        if(line.equalsIgnoreCase("--server")) {
-          final String guildId = reader.readLine();
-          final Guild guild = jda.getGuildById(guildId);
-          if(guild == null) {
-            continue;
+        try {
+          if(line.equalsIgnoreCase("--server")) {
+            final String guildId = reader.readLine();
+            final Guild guild = jda.getGuildById(guildId);
+            if(guild == null) {
+              continue;
+            }
+            SpellingLangage langage = SpellingLangage.valueOf(reader.readLine());
+            if(langage == null) {
+              langage = SpellingLangage.EN;
+            }
+
+            final Server server = new Server(guild, langage);
+
+            final Long nbrPlayers = Long.parseLong(reader.readLine());
+
+            final List<Player> players = createPlayers(reader, nbrPlayers);
+
+            final Long nbrTeams = Long.parseLong(reader.readLine());
+
+            final List<Team> teams = createTeams(reader, players, nbrTeams);
+
+            final TextChannel pannel = guild.getTextChannelById(reader.readLine());
+
+            setInfoPannel(guild, server, pannel);
+
+            int nbrMessageControlPannel = Integer.parseInt(reader.readLine());
+            ControlPannel controlPannel = new ControlPannel();
+            try {
+              controlPannel = getControlePannel(reader, server, nbrMessageControlPannel);
+            }catch(InsufficientPermissionException e) {
+              logger.info("Zoe missing a permission in a guild !",e);
+              if(pannel != null) {
+                pannel.sendMessage("I need the \"" + e.getPermission().getName() + "\" permission to work properly.").queue();
+              }
+            }
+
+            server.setPlayers(players);
+            server.setTeams(teams);
+            server.setControlePannel(controlPannel);
+            ServerData.getServers().put(guildId, server);
+            ServerData.getServersIsInTreatment().put(guildId, false);
           }
-          SpellingLangage langage = SpellingLangage.valueOf(reader.readLine());
-          if(langage == null) {
-            langage = SpellingLangage.EN;
-          }
-
-          final Server server = new Server(guild, langage);
-
-          final Long nbrPlayers = Long.parseLong(reader.readLine());
-
-          final List<Player> players = createPlayers(reader, nbrPlayers);
-
-          final Long nbrTeams = Long.parseLong(reader.readLine());
-
-          final List<Team> teams = createTeams(reader, players, nbrTeams);
-
-          final TextChannel pannel = guild.getTextChannelById(reader.readLine());
-
-          setInfoPannel(guild, server, pannel);
-
-          int nbrMessageControlPannel = Integer.parseInt(reader.readLine());
-          ControlPannel controlPannel = getControlePannel(reader, server, nbrMessageControlPannel);
-
-          server.setPlayers(players);
-          server.setTeams(teams);
-          server.setControlePannel(controlPannel);
-          ServerData.getServers().put(guildId, server);
-          ServerData.getServersIsInTreatment().put(guildId, false);
+        }catch(Exception e) {
+          logger.error("A guild as been loaded badly !", e);
         }
       }
     }

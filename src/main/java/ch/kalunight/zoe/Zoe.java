@@ -65,7 +65,6 @@ import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.api.request.ratelimit.PriorityManagerRateLimitHandler;
 import net.rithms.riot.api.request.ratelimit.PriorityRateLimit;
-import net.rithms.riot.api.request.ratelimit.RateLimitHandler;
 import net.rithms.riot.api.request.ratelimit.RateLimitRequestTank;
 import net.rithms.riot.constant.Platform;
 
@@ -74,6 +73,13 @@ public class Zoe {
   public static final String BOT_PREFIX = ">";
 
   private static final File SAVE_TXT_FILE = new File("ressources/save.txt");
+  
+  public static final File RAPI_SAVE_TXT_FILE = new File("ressources/apiInfos.txt");
+  
+  /**
+   * USED ONLY FOR STATS ANALYSE. DON'T MODIFY DATA INSIDE.
+   */
+  private static RateLimitRequestTank minuteApiTank;
 
   private static List<Command> mainCommands;
 
@@ -147,9 +153,11 @@ public class Zoe {
     List<RateLimitRequestTank> priorityList = new ArrayList<>();
     priorityList.add(requestSecondsTank);
     priorityList.add(requestMinutesTank);
+    
+    minuteApiTank = requestMinutesTank;
 
-    RateLimitHandler defaultLimite = new PriorityManagerRateLimitHandler(priorityList); // create default priority with dev api key rate limit
-
+    PriorityManagerRateLimitHandler defaultLimite = new PriorityManagerRateLimitHandler(priorityList); //create default priority with dev api key rate limit if no param
+    
     config.setRateLimitHandler(defaultLimite);
     riotApi = new RiotApi(config);
   }
@@ -182,7 +190,8 @@ public class Zoe {
         stringBuilder.append("--> `>" + resetCommand.getName() + "` : " + resetCommand.getHelp() + "\n\n");
 
         for(Command command : getMainCommands(null)) {
-          if(!command.isHidden() && !(command instanceof PingCommand || command instanceof RecoveryCommand || command instanceof ResetCommand)) {
+          if(!command.isHidden() && !(command instanceof PingCommand || command instanceof RecoveryCommand 
+              || command instanceof ResetCommand || command instanceof PatchNotesCommand)) {
             stringBuilder.append("Commands **" + command.getName() + "** : \n");
 
             for(Command commandChild : command.getChildren()) {
@@ -484,7 +493,7 @@ public class Zoe {
   public static DiscordBotListAPI getBotListApi() {
     return botListApi;
   }
-
+  
   public static void setBotListApi(DiscordBotListAPI botListApi) {
     Zoe.botListApi = botListApi;
   }
@@ -495,5 +504,9 @@ public class Zoe {
 
   public static void setDiscordBotListTocken(String discordBotListTocken) {
     Zoe.discordBotListTocken = discordBotListTocken;
+  }
+
+  public static RateLimitRequestTank getMinuteApiTank() {
+    return minuteApiTank;
   }
 }

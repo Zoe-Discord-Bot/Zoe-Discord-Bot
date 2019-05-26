@@ -35,7 +35,7 @@ public class StatsProfileCommand extends Command {
   private static final Map<Double, Object> MASTERIES_TABLE_OF_HIGH_VALUE_Y_AXIS = new HashMap<>();
   private static final Map<Double, Object> MASTERIES_TABLE_OF_CLASSIC_VALUE_Y_AXIS = new HashMap<>();
   private static final Map<Double, Object> MASTERIES_TABLE_OF_LOW_VALUE_Y_AXIS = new HashMap<>();
-  
+
   private static final Logger logger = LoggerFactory.getLogger(StatsProfileCommand.class);
 
   static {
@@ -44,7 +44,7 @@ public class StatsProfileCommand extends Command {
     MASTERIES_TABLE_OF_LOW_VALUE_Y_AXIS.put(60000.0, "60K");
     MASTERIES_TABLE_OF_LOW_VALUE_Y_AXIS.put(80000.0, "80K");
     MASTERIES_TABLE_OF_LOW_VALUE_Y_AXIS.put(100000.0, "100K");
-    
+
     MASTERIES_TABLE_OF_CLASSIC_VALUE_Y_AXIS.put(50000.0, "50K");
     MASTERIES_TABLE_OF_CLASSIC_VALUE_Y_AXIS.put(100000.0, "100K");
     MASTERIES_TABLE_OF_CLASSIC_VALUE_Y_AXIS.put(200000.0, "200K");
@@ -59,7 +59,7 @@ public class StatsProfileCommand extends Command {
     MASTERIES_TABLE_OF_HIGH_VALUE_Y_AXIS.put(2500000.0, "2.5M");
     MASTERIES_TABLE_OF_HIGH_VALUE_Y_AXIS.put(3000000.0, "3M");
   }
-  
+
   public StatsProfileCommand() {
     this.name = "profile";
     this.arguments = "@playerMention";
@@ -99,7 +99,7 @@ public class StatsProfileCommand extends Command {
       event.reply("I got a unexpected error, please retry.");
       return;
     }
-    
+
     byte[] imageBytes;
     try {
       imageBytes = generateMasteriesChart(player, championsMasteries);
@@ -108,7 +108,7 @@ public class StatsProfileCommand extends Command {
       event.reply("I got an unexpected error when i creating the graph, please retry.");
       return;
     }
-    
+
     MessageEmbed embed;
     try {
       embed = MessageBuilderRequest.createProfileMessage(player, championsMasteries);
@@ -122,57 +122,57 @@ public class StatsProfileCommand extends Command {
       event.reply("Woops, i got an unexpexcted error. Please retry");
       return;
     }
-    
+
     MessageBuilder messageBuilder = new MessageBuilder();
-    
+
     messageBuilder.setEmbed(embed);
-    
-    event.getTextChannel().sendFile(imageBytes, player.getDiscordUser().getName() + ".png", messageBuilder.build()).queue();
+
+    event.getTextChannel().sendFile(imageBytes, player.getDiscordUser().getId() + ".png", messageBuilder.build()).queue();
   }
 
   private byte[] generateMasteriesChart(Player player, List<ChampionMastery> championsMasteries) throws IOException {
     List<ChampionMastery> listHeigherChampion = getBestMasteries(championsMasteries, NUMBER_OF_CHAMPIONS_IN_GRAPH);
     CategoryChartBuilder masteriesGraphBuilder = new CategoryChartBuilder();
-    
+
     masteriesGraphBuilder.chartTheme = ChartTheme.GGPlot2;
     masteriesGraphBuilder.title("Best Champions by Masteries of " + player.getDiscordUser().getName());
-    
+
     CategoryChart masteriesGraph = masteriesGraphBuilder.build();
     masteriesGraph.getStyler().setAntiAlias(true);
     masteriesGraph.getStyler().setLegendVisible(false);
-    
+
     if(getMoyenneMasteries(listHeigherChampion) < 50000) {
       masteriesGraph.setYAxisLabelOverrideMap(MASTERIES_TABLE_OF_LOW_VALUE_Y_AXIS);
-      
+
     } else if(getMoyenneMasteries(listHeigherChampion) < 200000) {
       masteriesGraph.setYAxisLabelOverrideMap(MASTERIES_TABLE_OF_CLASSIC_VALUE_Y_AXIS);
-      
+
     }else {
       masteriesGraph.setYAxisLabelOverrideMap(MASTERIES_TABLE_OF_HIGH_VALUE_Y_AXIS);
     }
-    
+
     masteriesGraph.setXAxisTitle("Best Champions by Masteries");
     masteriesGraph.setYAxisTitle("Masteries points");
-    
+
     List<Double> xPointsMasteries = new ArrayList<>();
     List<Object> yName = new ArrayList<>();
-    
+
     for(int i = 0; i < listHeigherChampion.size(); i++) {
       Champion actualSeriesChampion = Ressources.getChampionDataById(listHeigherChampion.get(i).getChampionId());
-      
+
       String championName = "Champion Unknown";
       if(actualSeriesChampion != null) {
         championName = actualSeriesChampion.getName();
       }
-      
+
       xPointsMasteries.add((double) listHeigherChampion.get(i).getChampionPoints());
       yName.add(championName);
     }
-    
+
     masteriesGraph.addSeries("Champions", yName, xPointsMasteries);
-    
-     return BitmapEncoder.getBitmapBytes(masteriesGraph, BitmapFormat.PNG);
-     }
+
+    return BitmapEncoder.getBitmapBytes(masteriesGraph, BitmapFormat.PNG);
+  }
 
   private long getMoyenneMasteries(List<ChampionMastery> championsMasteries) {
     long allMasteries = 0;
@@ -184,17 +184,17 @@ public class StatsProfileCommand extends Command {
 
   public static List<ChampionMastery> getBestMasteries(List<ChampionMastery> championsMasteries, int nbrTop) {
     List<ChampionMastery> listHeigherChampion = new ArrayList<>();
-    
+
     for(int i = 0; i < nbrTop; i++) {
 
       ChampionMastery heigherActual = null;
 
       for(ChampionMastery championMastery : championsMasteries) {
-        
+
         if(listHeigherChampion.contains(championMastery)) {
           continue;
         }
-        
+
         if(heigherActual == null) {
           heigherActual = championMastery;
           continue;

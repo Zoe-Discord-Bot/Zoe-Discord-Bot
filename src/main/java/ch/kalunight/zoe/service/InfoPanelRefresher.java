@@ -2,6 +2,7 @@ package ch.kalunight.zoe.service;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -41,6 +42,9 @@ public class InfoPanelRefresher implements Runnable {
   public void run() {
     ServerData.getServersIsInTreatment().put(server.getGuild().getId(), true);
     try {
+      
+      cleanRegisteredPlayerNoLongerInGuild();
+      
       if(server.getInfoChannel() != null) {
         if(server.getControlePannel().getInfoPanel().isEmpty()) {
           server.getControlePannel().getInfoPanel()
@@ -88,6 +92,21 @@ public class InfoPanelRefresher implements Runnable {
   }
 
 
+  private void cleanRegisteredPlayerNoLongerInGuild() {
+    
+    Iterator<Player> iter = server.getPlayers().iterator();
+    
+    while (iter.hasNext()) {
+      Player player = iter.next();
+      if(player.getDiscordUser() == null || server.getGuild().getMemberById(player.getDiscordUser().getId()) == null) {
+        iter.remove();
+        for(Team team : server.getTeams()) {
+          team.getPlayers().remove(player);
+        }
+      }
+    }
+  }
+
   private void cleaningInfoChannel() {
 
     List<Message> messagesToCheck = server.getInfoChannel().getIterableHistory().stream()
@@ -116,7 +135,6 @@ public class InfoPanelRefresher implements Runnable {
         messageToDelete.delete().queue();
       }
     }
-    
   }
 
   private void manageInfoCards() {

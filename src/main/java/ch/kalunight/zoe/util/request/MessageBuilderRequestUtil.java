@@ -28,6 +28,9 @@ public class MessageBuilderRequestUtil {
       CurrentGameParticipant participant = teamParticipant.get(i);
       Champion champion = null;
       champion = Ressources.getChampionDataById(participant.getChampionId());
+      if(champion == null) {
+        champion = new Champion(-1, "-1", "Unknown", null);
+      }
 
       FullTier fullTier = RiotRequest.getSoloqRank(participant.getSummonerId(), platform);
       String rank;

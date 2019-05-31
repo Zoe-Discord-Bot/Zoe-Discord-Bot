@@ -91,7 +91,7 @@ public class CreatePlayerCommand extends Command{
 
     Player player = new Player(user, summoner, region, false);
     server.getPlayers().add(player);
-    event.reply("The player " + user.getName() + " has been added with the account \"" + player.getSummoner().getName() + "\".");
+    event.reply("The player " + user.getName() + " has been added with the account \"" + summoner.getName() + "\".");
   }
 
   public static Platform getPlatform(String regionName) {

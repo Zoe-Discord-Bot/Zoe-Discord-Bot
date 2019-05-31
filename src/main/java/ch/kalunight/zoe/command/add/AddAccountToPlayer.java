@@ -15,7 +15,7 @@ public class AddAccountToPlayer extends Command {
   public AddAccountToPlayer() {
     this.name = USAGE_NAME;
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
-    this.arguments = "@MentionPlayer (accountName)";
+    this.arguments = "@MentionPlayer (Region) (accountName)";
     this.userPermissions = permissionRequired;
     this.help = "Add to the mentionned player the account in \"()\". Manage Channel permission needed.";
     this.helpBiConsumer = getHelpMethod();

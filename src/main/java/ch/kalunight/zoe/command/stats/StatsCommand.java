@@ -3,15 +3,16 @@ package ch.kalunight.zoe.command.stats;
 import java.util.function.BiConsumer;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
+import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import ch.kalunight.zoe.command.CommandUtil;
 
 public class StatsCommand extends Command {
 
-  public StatsCommand() {
+  public StatsCommand(EventWaiter waiter) {
     this.name = "stats";
     this.aliases = new String[] {"s"};
     this.help = "Send info about stats command.";
-    Command[] commandsChildren = {new StatsProfileCommand()};
+    Command[] commandsChildren = {new StatsProfileCommand(waiter)};
     this.children = commandsChildren;
     this.helpBiConsumer = getHelpMethod();
   }

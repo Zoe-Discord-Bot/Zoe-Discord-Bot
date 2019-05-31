@@ -16,6 +16,7 @@ import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.stats.StatsProfileCommand;
 import ch.kalunight.zoe.model.Champion;
 import ch.kalunight.zoe.model.CustomEmote;
+import ch.kalunight.zoe.model.LeagueAccount;
 import ch.kalunight.zoe.model.Mastery;
 import ch.kalunight.zoe.model.Player;
 import ch.kalunight.zoe.model.Rank;
@@ -107,6 +108,11 @@ public class MessageBuilderRequest {
 
   public static MessageEmbed createInfoCardsMultipleSummoner(List<Player> players, CurrentGameInfo currentGameInfo, Platform region) {
 
+    List<LeagueAccount> playersAccountsOfTheGame = new ArrayList<>();
+    for(Player player : players) {
+      playersAccountsOfTheGame.addAll(player.getLeagueAccountsInTheGivenGame(currentGameInfo));
+    }
+    
     EmbedBuilder message = new EmbedBuilder();
 
     StringBuilder title = new StringBuilder();
@@ -123,8 +129,8 @@ public class MessageBuilderRequest {
 
     ArrayList<String> listIdPlayers = new ArrayList<>();
 
-    for(int i = 0; i < players.size(); i++) {
-      listIdPlayers.add(players.get(i).getSummoner().getId());
+    for(LeagueAccount leagueAccount : playersAccountsOfTheGame) {
+      listIdPlayers.add(leagueAccount.getSummoner().getId());
     }
 
     StringBuilder blueTeamString = new StringBuilder();
@@ -169,22 +175,22 @@ public class MessageBuilderRequest {
     return message.build();
   }
 
-  public static MessageEmbed createProfileMessage(Player player, List<ChampionMastery> masteries) throws RiotApiException {
+  public static MessageEmbed createProfileMessage(Player player, LeagueAccount leagueAccount, List<ChampionMastery> masteries) throws RiotApiException {
 
     EmbedBuilder message = new EmbedBuilder();
 
     Summoner summoner;
     try {
-      summoner = Zoe.getRiotApi().getSummoner(player.getRegion(), player.getSummoner().getId());
-      player.setSummoner(summoner);
+      summoner = Zoe.getRiotApi().getSummoner(leagueAccount.getRegion(), leagueAccount.getSummoner().getId());
+      leagueAccount.setSummoner(summoner);
     } catch(RiotApiException e) {
-      summoner = player.getSummoner();
+      summoner = leagueAccount.getSummoner();
       if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
         throw e;
       }
     }
 
-    message.setTitle(player.getDiscordUser().getName() + "'s Profile (" + player.getSummoner().getName()
+    message.setTitle(player.getDiscordUser().getName() + "'s Profile (" + leagueAccount.getSummoner().getName()
         + ") : Lvl " + summoner.getSummonerLevel());
 
     List<ChampionMastery> threeBestchampionMasteries = StatsProfileCommand.getBestMasteries(masteries, 3);
@@ -235,7 +241,7 @@ public class MessageBuilderRequest {
     MatchList matchList = null;
 
     try {
-      matchList = Zoe.getRiotApi().getMatchListByAccountId(player.getRegion(), player.getSummoner().getAccountId(), 
+      matchList = Zoe.getRiotApi().getMatchListByAccountId(leagueAccount.getRegion(), leagueAccount.getSummoner().getAccountId(), 
           null, null, null, DateTime.now().minusWeeks(1).getMillis(), DateTime.now().getMillis(), -1, -1, CallPriority.HIGH);
     } catch(RiotApiException e) {
       if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
@@ -254,7 +260,7 @@ public class MessageBuilderRequest {
       if(matchsReference.size() < 3) {
         for(MatchReference matchReference : matchsReference) {
           try {
-            threeMostRecentMatch.add(Zoe.getRiotApi().getMatch(player.getRegion(), matchReference.getGameId(), CallPriority.HIGH));
+            threeMostRecentMatch.add(Zoe.getRiotApi().getMatch(leagueAccount.getRegion(), matchReference.getGameId(), CallPriority.HIGH));
           } catch(RiotApiException e) {
             if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
               throw e;
@@ -267,7 +273,7 @@ public class MessageBuilderRequest {
           MatchReference matchReference = matchsReference.get(i);
 
           try {
-            threeMostRecentMatch.add(Zoe.getRiotApi().getMatch(player.getRegion(), matchReference.getGameId(), CallPriority.HIGH));
+            threeMostRecentMatch.add(Zoe.getRiotApi().getMatch(leagueAccount.getRegion(), matchReference.getGameId(), CallPriority.HIGH));
           } catch(RiotApiException e) {
             if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
               throw e;
@@ -282,7 +288,7 @@ public class MessageBuilderRequest {
       if(!threeMostRecentMatch.isEmpty()) {
         for(Match match : threeMostRecentMatch) {
           LocalDateTime matchTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(match.getGameCreation()), ZoneId.ofOffset("UTC", ZoneOffset.UTC));
-          Champion champion = Ressources.getChampionDataById(match.getParticipantByAccountId(player.getSummoner().getAccountId()).getChampionId());
+          Champion champion = Ressources.getChampionDataById(match.getParticipantByAccountId(leagueAccount.getSummoner().getAccountId()).getChampionId());
           recentMatchsString.append(champion.getEmoteUsable() + " " + champion.getName() + " - **" + MessageBuilderRequestUtil.getPastMoment(matchTime) + "**\n");
         }
       }
@@ -299,7 +305,7 @@ public class MessageBuilderRequest {
 
     Set<LeaguePosition> rankPosition = null;
     try {
-      rankPosition = Zoe.getRiotApi().getLeaguePositionsBySummonerId(player.getRegion(), player.getSummoner().getId(), CallPriority.HIGH);
+      rankPosition = Zoe.getRiotApi().getLeaguePositionsBySummonerId(leagueAccount.getRegion(), leagueAccount.getSummoner().getId(), CallPriority.HIGH);
     }catch (RiotApiException e) {
       if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
         throw e;

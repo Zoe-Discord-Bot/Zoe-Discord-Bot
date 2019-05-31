@@ -43,6 +43,7 @@ import ch.kalunight.zoe.command.stats.StatsCommand;
 import ch.kalunight.zoe.model.Champion;
 import ch.kalunight.zoe.model.ControlPannel;
 import ch.kalunight.zoe.model.CustomEmote;
+import ch.kalunight.zoe.model.LeagueAccount;
 import ch.kalunight.zoe.model.Player;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.SpellingLangage;
@@ -73,9 +74,9 @@ public class Zoe {
   public static final String BOT_PREFIX = ">";
 
   private static final File SAVE_TXT_FILE = new File("ressources/save.txt");
-  
+
   public static final File RAPI_SAVE_TXT_FILE = new File("ressources/apiInfos.txt");
-  
+
   /**
    * USED ONLY FOR STATS ANALYSE. DON'T MODIFY DATA INSIDE.
    */
@@ -153,11 +154,11 @@ public class Zoe {
     List<RateLimitRequestTank> priorityList = new ArrayList<>();
     priorityList.add(requestSecondsTank);
     priorityList.add(requestMinutesTank);
-    
+
     minuteApiTank = requestMinutesTank;
 
     PriorityManagerRateLimitHandler defaultLimite = new PriorityManagerRateLimitHandler(priorityList); //create default priority with dev api key rate limit if no param
-    
+
     config.setRateLimitHandler(defaultLimite);
     riotApi = new RiotApi(config);
   }
@@ -238,7 +239,7 @@ public class Zoe {
     commands.add(new UndefineCommand());
     commands.add(new AddCommand());
     commands.add(new RemoveCommand());
-    commands.add(new StatsCommand());
+    commands.add(new StatsCommand(eventWaiter));
     commands.add(new RecoveryCommand(eventWaiter));
     commands.add(new ResetCommand(eventWaiter));
 
@@ -303,8 +304,11 @@ public class Zoe {
 
           for(Player player : server.getPlayers()) {
             strBuilder.append(player.getDiscordUser().getId() + "\n");
-            strBuilder.append(player.getSummoner().getId() + "\n");
-            strBuilder.append(player.getRegion().getName() + "\n");
+            strBuilder.append(player.getLolAccounts().size() + "\n");
+            for(LeagueAccount account : player.getLolAccounts()) { 
+              strBuilder.append(account.getSummoner().getId() + "\n");
+              strBuilder.append(account.getRegion().getName() + "\n");
+            }
             strBuilder.append(player.isMentionnable() + "\n");
           }
 
@@ -456,16 +460,21 @@ public class Zoe {
 
     for(Long i = 0L; i < nbrPlayers; i++) {
       String discordId = reader.readLine();
-      String summonerId = reader.readLine();
-      String summonerRegion = reader.readLine();
+      List<LeagueAccount> lolAccounts = new ArrayList<>();
+      int accountNbr = Integer.parseInt(reader.readLine());
+      for(int j = 0; j < accountNbr; j++) {
+        String summonerId = reader.readLine();
+        String summonerRegion = reader.readLine();
+        Platform region = Platform.getPlatformByName(summonerRegion);
+        Summoner summoner = riotApi.getSummoner(region, summonerId);
+        lolAccounts.add(new LeagueAccount(summoner, region));
+      }
       String mentionableString = reader.readLine();
 
       User user = jda.getUserById(discordId);
-      Platform region = Platform.getPlatformByName(summonerRegion);
-      Summoner summoner = riotApi.getSummoner(region, summonerId);
       boolean mentionable = Boolean.getBoolean(mentionableString);
 
-      players.add(new Player(user, summoner, region, mentionable));
+      players.add(new Player(user, lolAccounts, mentionable));
     }
     return players;
   }
@@ -493,7 +502,7 @@ public class Zoe {
   public static DiscordBotListAPI getBotListApi() {
     return botListApi;
   }
-  
+
   public static void setBotListApi(DiscordBotListAPI botListApi) {
     Zoe.botListApi = botListApi;
   }

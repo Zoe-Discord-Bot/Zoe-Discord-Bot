@@ -30,7 +30,10 @@ public class AboutCommand extends Command {
 
     ApplicationInfo info = event.getJDA().asBot().getApplicationInfo().complete();
     String inviteLink =
-        info.getInviteUrl(0L, Permission.MANAGE_CHANNEL, Permission.MESSAGE_MANAGE, Permission.MESSAGE_READ, Permission.MESSAGE_WRITE);
+        info.getInviteUrl(0L, Permission.MANAGE_CHANNEL, Permission.MESSAGE_MANAGE, Permission.MESSAGE_READ,
+            Permission.MESSAGE_WRITE, Permission.MESSAGE_ATTACH_FILES, Permission.MESSAGE_ADD_REACTION,
+            Permission.MESSAGE_EXT_EMOJI, Permission.MESSAGE_EMBED_LINKS, Permission.MESSAGE_HISTORY);
+    inviteLink += "&response_type=code&redirect_uri=https%3A%2F%2Fzoe-discord-bot.ch%2FThanksYou.html";
 
     String desc = "Hi, I'm a League Of Legends bot written in Java by KaluNight#0001. "
         + "I offer the possibility to create an information panel that allows you to know if your friends are in "

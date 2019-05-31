@@ -7,6 +7,7 @@ import org.joda.time.DateTime;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
+import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 
 public class Server {
 
@@ -41,6 +42,17 @@ public class Server {
       lastRefresh = DateTime.now();
     }
     return needToBeRefreshed;
+  }
+  
+  public Player isLeagueAccountAlreadyExist(Summoner summoner) {
+    for(Player player : players) {
+      for(LeagueAccount account : player.getLolAccounts()) {
+        if(summoner.getId().equals(account.getSummoner().getId())) {
+          return player;
+        }
+      }
+    }
+    return null;
   }
   
   public Player getPlayerByLeagueAccount(LeagueAccount account) {

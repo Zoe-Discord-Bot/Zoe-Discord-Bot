@@ -88,6 +88,13 @@ public class CreatePlayerCommand extends Command{
       }
       return;
     }
+    
+    Player playerAlreadyWithTheAccount = server.isLeagueAccountAlreadyExist(summoner);
+    
+    if(playerAlreadyWithTheAccount != null) {
+      event.reply("This account is already linked with the player " + playerAlreadyWithTheAccount.getDiscordUser().getName() + " !");
+      return;
+    }
 
     Player player = new Player(user, summoner, region, false);
     server.getPlayers().add(player);

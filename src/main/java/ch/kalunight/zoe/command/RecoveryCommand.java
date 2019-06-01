@@ -15,7 +15,7 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.add.AddCommand;
-import ch.kalunight.zoe.command.add.AddPlayerToTeam;
+import ch.kalunight.zoe.command.add.AddPlayerToTeamCommand;
 import ch.kalunight.zoe.command.create.CreateCommand;
 import ch.kalunight.zoe.command.create.CreatePlayerCommand;
 import ch.kalunight.zoe.command.create.CreateTeamCommand;
@@ -23,7 +23,7 @@ import ch.kalunight.zoe.command.delete.DeleteCommand;
 import ch.kalunight.zoe.command.delete.DeletePlayerCommand;
 import ch.kalunight.zoe.command.delete.DeleteTeamCommand;
 import ch.kalunight.zoe.command.remove.RemoveCommand;
-import ch.kalunight.zoe.command.remove.RemovePlayerToTeam;
+import ch.kalunight.zoe.command.remove.RemovePlayerToTeamCommand;
 import ch.kalunight.zoe.model.Player;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.Team;
@@ -171,8 +171,8 @@ public class RecoveryCommand extends Command {
       return;
     }
 
-    Matcher matcher = RemovePlayerToTeam.PARENTHESES_PATTERN.matcher(
-        getArgsCommand(potentialCommand.getContentRaw(), RemoveCommand.USAGE_NAME, RemovePlayerToTeam.USAGE_NAME));
+    Matcher matcher = RemovePlayerToTeamCommand.PARENTHESES_PATTERN.matcher(
+        getArgsCommand(potentialCommand.getContentRaw(), RemoveCommand.USAGE_NAME, RemovePlayerToTeamCommand.USAGE_NAME));
     String teamName = "";
     while(matcher.find()) {
       teamName = matcher.group(1);
@@ -199,8 +199,8 @@ public class RecoveryCommand extends Command {
         Team team = server.getTeamByPlayer(player);
 
         if(team == null) {
-          Matcher matcher = AddPlayerToTeam.PARENTHESES_PATTERN.matcher(
-              getArgsCommand(potentialCommand.getContentRaw(), AddCommand.USAGE_NAME, AddPlayerToTeam.USAGE_NAME));
+          Matcher matcher = AddPlayerToTeamCommand.PARENTHESES_PATTERN.matcher(
+              getArgsCommand(potentialCommand.getContentRaw(), AddCommand.USAGE_NAME, AddPlayerToTeamCommand.USAGE_NAME));
           String teamName = "";
           while(matcher.find()) {
             teamName = matcher.group(1);
@@ -297,7 +297,7 @@ public class RecoveryCommand extends Command {
     String messageInTreatment = command.substring(Zoe.BOT_PREFIX.length()).split(" ")[0];
 
     return messageInTreatment.equalsIgnoreCase(AddCommand.USAGE_NAME)
-        && command.substring(Zoe.BOT_PREFIX.length()).split(" ")[1].equalsIgnoreCase(AddPlayerToTeam.USAGE_NAME);
+        && command.substring(Zoe.BOT_PREFIX.length()).split(" ")[1].equalsIgnoreCase(AddPlayerToTeamCommand.USAGE_NAME);
   }
 
   private boolean isRemovePlayerToTeamCommand(String command) {
@@ -307,7 +307,7 @@ public class RecoveryCommand extends Command {
     String messageInTreatment = command.substring(Zoe.BOT_PREFIX.length()).split(" ")[0];
 
     return messageInTreatment.equalsIgnoreCase(RemoveCommand.USAGE_NAME)
-        && command.substring(Zoe.BOT_PREFIX.length()).split(" ")[1].equalsIgnoreCase(RemovePlayerToTeam.USAGE_NAME);
+        && command.substring(Zoe.BOT_PREFIX.length()).split(" ")[1].equalsIgnoreCase(RemovePlayerToTeamCommand.USAGE_NAME);
   }
 
   private boolean isCreatePlayerCommand(String command) {

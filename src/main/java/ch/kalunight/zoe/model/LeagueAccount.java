@@ -9,9 +9,9 @@ import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.constant.Platform;
 
 public class LeagueAccount {
-  
+
   private static final Logger logger = LoggerFactory.getLogger(LeagueAccount.class);
-  
+
   private Summoner summoner;
   private Platform region;
   private CurrentGameInfo currentGameInfo;
@@ -29,6 +29,35 @@ public class LeagueAccount {
       logger.info(e.getMessage());
       currentGameInfo = null;
     }
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    LeagueAccount other = (LeagueAccount) obj;
+    if (region != other.region)
+      return false;
+    if (summoner == null) {
+      if (other.summoner != null)
+        return false;
+    } else if (!summoner.equals(other.summoner)) {
+      return false;
+    }
+    return true;
+  }
+  
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((region == null) ? 0 : region.hashCode());
+    result = prime * result + ((summoner == null) ? 0 : summoner.hashCode());
+    return result;
   }
 
   public Summoner getSummoner() {

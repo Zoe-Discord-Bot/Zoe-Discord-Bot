@@ -15,7 +15,7 @@ public class RemoveCommand extends Command {
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
     this.help = "Send info about remove commands";
-    Command[] commandsChildren = {new RemovePlayerToTeam()};
+    Command[] commandsChildren = {new RemovePlayerToTeamCommand(), new RemoveAccountToPlayerCommand()};
     this.children = commandsChildren;
     this.helpBiConsumer = getHelpMethod();
   }

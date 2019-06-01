@@ -13,12 +13,12 @@ import ch.kalunight.zoe.model.SpellingLangage;
 import ch.kalunight.zoe.model.Team;
 import net.dv8tion.jda.core.Permission;
 
-public class AddPlayerToTeam extends Command {
+public class AddPlayerToTeamCommand extends Command {
 
   public static final String USAGE_NAME = "playerToTeam";
   public static final Pattern PARENTHESES_PATTERN = Pattern.compile("\\(([^)]+)\\)");
   
-  public AddPlayerToTeam() {
+  public AddPlayerToTeamCommand() {
     this.name = USAGE_NAME;
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.arguments = "@MentionPlayer (teamName)";

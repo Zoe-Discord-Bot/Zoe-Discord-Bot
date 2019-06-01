@@ -26,6 +26,7 @@ import net.dv8tion.jda.core.exceptions.ErrorResponseException;
 import net.dv8tion.jda.core.requests.ErrorResponse;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
+import net.rithms.riot.constant.CallPriority;
 
 public class InfoPanelRefresher implements Runnable {
 
@@ -294,7 +295,7 @@ public class InfoPanelRefresher implements Runnable {
     final StringBuilder stringMessage = new StringBuilder();
 
     for(Player player : server.getPlayers()) {
-      player.refreshAllLeagueAccounts();
+      player.refreshAllLeagueAccounts(CallPriority.NORMAL);
     }
 
     stringMessage.append("__**Control Panel**__\n \n");

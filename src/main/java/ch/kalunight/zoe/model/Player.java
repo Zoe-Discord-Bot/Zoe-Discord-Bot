@@ -9,6 +9,7 @@ import net.dv8tion.jda.core.entities.User;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
+import net.rithms.riot.constant.CallPriority;
 import net.rithms.riot.constant.Platform;
 
 public class Player {
@@ -42,6 +43,15 @@ public class Player {
     }
     return lolAccountsInGame;
   }
+  
+  public LeagueAccount getLeagueAccountsBySummonerName(Platform platform, String summonerName) {
+    for(LeagueAccount account : lolAccounts) {
+      if(account.getRegion().equals(platform) && account.getSummoner().getName().equals(summonerName)) {
+        return account;
+      }
+    }
+    return null;
+  }
 
   public List<LeagueAccount> getLeagueAccountsInGame() {
     List<LeagueAccount> lolAccountsInGame = new ArrayList<>();
@@ -53,13 +63,35 @@ public class Player {
     return lolAccountsInGame;
   }
 
-  public void refreshAllLeagueAccounts() {
+  public void refreshAllLeagueAccounts(CallPriority priority) {
     for(LeagueAccount leagueAccount : lolAccounts) {
       try { 
-        leagueAccount.setCurrentGameInfo(Zoe.getRiotApi().getActiveGameBySummoner(leagueAccount.getRegion(), leagueAccount.getSummoner().getId()));
+        leagueAccount.setCurrentGameInfo(Zoe.getRiotApi().getActiveGameBySummoner(leagueAccount.getRegion(), leagueAccount.getSummoner().getId(), priority));
       } catch(RiotApiException e) {
         logger.debug("Impossible to get current game : {}", e.getMessage());
         leagueAccount.setCurrentGameInfo(null);
+      }
+      
+      try {
+        leagueAccount.setSummoner(Zoe.getRiotApi().getSummoner(leagueAccount.getRegion(), leagueAccount.getSummoner().getId(), priority));
+      } catch(RiotApiException e) {
+        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+          logger.info("The summoner has been transfered to a new region, try to recover ...");
+          
+          for(Platform platform : Platform.values()) {
+            try {
+              Summoner summoner = Zoe.getRiotApi().getSummonerByPuuid(platform, leagueAccount.getSummoner().getPuuid(), priority);
+              leagueAccount.setSummoner(summoner);
+              leagueAccount.setRegion(platform);
+              break;
+            } catch (RiotApiException e1) {
+              logger.debug("Account \"{}\" not exist in {}", leagueAccount.getSummoner().getName(), platform.getName());
+            }
+          }
+          
+        }else {
+          logger.debug("Impossible to refresh the summoner : {}", e.getMessage());
+        }
       }
     }
   }

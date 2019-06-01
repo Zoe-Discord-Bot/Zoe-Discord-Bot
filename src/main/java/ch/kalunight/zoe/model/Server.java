@@ -57,7 +57,7 @@ public class Server {
   public Player getPlayerByLeagueAccount(LeagueAccount account) {
     for(Player player : players) {
       for(LeagueAccount potentialGoodAccount : player.getLolAccounts()) {
-        if(potentialGoodAccount.getSummoner().getAccountId().equals(account.getSummoner().getId()) 
+        if(potentialGoodAccount.getSummoner().getId().equals(account.getSummoner().getId()) 
             && potentialGoodAccount.getRegion() == account.getRegion()) {
           return player;
         }

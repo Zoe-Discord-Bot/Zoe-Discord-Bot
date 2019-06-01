@@ -51,7 +51,6 @@ public class CreateTeamCommand extends Command {
         event.reply("The team \"" + event.getArgs() + "\" has been created !");
       }
     }
-
   }
 
   private BiConsumer<CommandEvent, Command> getHelpMethod() {

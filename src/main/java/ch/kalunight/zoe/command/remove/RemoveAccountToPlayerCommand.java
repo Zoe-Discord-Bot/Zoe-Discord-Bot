@@ -72,7 +72,7 @@ public class RemoveAccountToPlayerCommand extends Command {
     }
     
     player.getLolAccounts().remove(account);
-    event.reply("The account \"" + account.getSummoner().getName() + "\" has been unlink of the player " + user.getAsMention() + ".");
+    event.reply("The account \"" + account.getSummoner().getName() + "\" has been unlink of the player " + user.getName() + ".");
   }
   
   private BiConsumer<CommandEvent, Command> getHelpMethod() {

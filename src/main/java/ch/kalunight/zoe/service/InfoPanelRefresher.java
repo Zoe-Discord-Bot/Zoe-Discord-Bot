@@ -2,8 +2,10 @@ package ch.kalunight.zoe.service;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -232,8 +234,13 @@ public class InfoPanelRefresher implements Runnable {
 
             List<String> playersName = NameConversion.getListNameOfPlayers(players);
 
-            for(int j = 0; j < card.getPlayers().size(); j++) {
-              if(playersName.size() == 1) {
+            Set<Player> cardPlayersNotTwice = new HashSet<>();
+            for(Player playerToCheck : card.getPlayers()) {
+              cardPlayersNotTwice.add(playerToCheck);
+            }
+            
+            for(int j = 0; j < cardPlayersNotTwice.size(); j++) {
+              if(j == 0) {
                 title.append(" " + playersName.get(j));
               } else if(j + 1 == playersName.size()) {
                 title.append(" and of " + playersName.get(j));
@@ -264,7 +271,7 @@ public class InfoPanelRefresher implements Runnable {
     for(Player player : server.getPlayers()) {
       for(LeagueAccount leagueAccount : player.getLolAccounts()) {
         for(CurrentGameParticipant participant : currentGameInfo.getParticipants()) {
-          if(participant.getSummonerId().equals(leagueAccount.getSummoner().getId()) && !listOfPlayers.contains(player)) {
+          if(participant.getSummonerId().equals(leagueAccount.getSummoner().getId())) {
             listOfPlayers.add(player);
           }
         }

@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -108,7 +109,7 @@ public class MessageBuilderRequest {
 
   public static MessageEmbed createInfoCardsMultipleSummoner(List<Player> players, CurrentGameInfo currentGameInfo, Platform region) {
 
-    List<LeagueAccount> playersAccountsOfTheGame = new ArrayList<>();
+    Set<LeagueAccount> playersAccountsOfTheGame = new HashSet<>();
     for(Player player : players) {
       playersAccountsOfTheGame.addAll(player.getLeagueAccountsInTheGivenGame(currentGameInfo));
     }

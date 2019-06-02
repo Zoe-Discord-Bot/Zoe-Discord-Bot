@@ -2,6 +2,7 @@ package ch.kalunight.zoe.util.request;
 
 import java.text.DecimalFormat;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import ch.kalunight.zoe.model.Champion;
 import ch.kalunight.zoe.model.FullTier;
@@ -75,6 +76,9 @@ public class MessageBuilderRequestUtil {
 
       Champion champion = null;
       champion = Ressources.getChampionDataById(participant.getChampionId());
+      if(champion == null) {
+        champion = new Champion(-1, "Unknown", "Unknown", null);
+      }
 
       FullTier fullTier = RiotRequest.getSoloqRank(participant.getSummonerId(), platform);
       String rank;
@@ -100,15 +104,25 @@ public class MessageBuilderRequestUtil {
   }
 
   public static void createTitle(List<Player> players, CurrentGameInfo currentGameInfo, StringBuilder title) {
+    ArrayList<Player> playersNotTwice = new ArrayList<>();
+    
+    for(Player player : players) {
+      if(!playersNotTwice.contains(player)) {
+        playersNotTwice.add(player);
+      }
+    }
+    
     title.append("Info on the game of");
 
-    for(int i = 0; i < players.size(); i++) {
-      if(i + 1 == players.size()) {
-        title.append(" and of " + players.get(i).getDiscordUser().getName());
-      } else if(i + 2 == players.size()) {
-        title.append(" " + players.get(i).getDiscordUser().getName());
+    for(int i = 0; i < playersNotTwice.size(); i++) {
+      if(i == 0) {
+        title.append(" " + playersNotTwice.get(i).getDiscordUser().getName());
+      } else if(i + 1 == playersNotTwice.size()) {
+        title.append(" and of " + playersNotTwice.get(i).getDiscordUser().getName());
+      } else if(i + 2 == playersNotTwice.size()) {
+        title.append(" " + playersNotTwice.get(i).getDiscordUser().getName());
       } else {
-        title.append(" " + players.get(i).getDiscordUser().getName() + ",");
+        title.append(" " + playersNotTwice.get(i).getDiscordUser().getName() + ",");
       }
     }
 

@@ -37,7 +37,7 @@ public class Player {
   public List<LeagueAccount> getLeagueAccountsInTheGivenGame(CurrentGameInfo currentGameInfo){
     List<LeagueAccount> lolAccountsInGame = new ArrayList<>();
     for(LeagueAccount leagueAccount : lolAccounts) {
-      if(currentGameInfo.getGameId() == leagueAccount.getCurrentGameInfo().getGameId()) {
+      if(leagueAccount.getCurrentGameInfo() != null && currentGameInfo.getGameId() == leagueAccount.getCurrentGameInfo().getGameId()) {
         lolAccountsInGame.add(leagueAccount);
       }
     }

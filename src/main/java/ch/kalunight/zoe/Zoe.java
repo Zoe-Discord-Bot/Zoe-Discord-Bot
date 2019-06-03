@@ -27,7 +27,6 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.examples.command.PingCommand;
 import ch.kalunight.zoe.command.AboutCommand;
 import ch.kalunight.zoe.command.PatchNotesCommand;
-import ch.kalunight.zoe.command.RecoveryCommand;
 import ch.kalunight.zoe.command.ResetCommand;
 import ch.kalunight.zoe.command.ResetEmotesCommand;
 import ch.kalunight.zoe.command.SetupCommand;
@@ -39,6 +38,7 @@ import ch.kalunight.zoe.command.define.DefineCommand;
 import ch.kalunight.zoe.command.define.UndefineCommand;
 import ch.kalunight.zoe.command.delete.DeleteCommand;
 import ch.kalunight.zoe.command.remove.RemoveCommand;
+import ch.kalunight.zoe.command.show.ShowCommand;
 import ch.kalunight.zoe.command.stats.StatsCommand;
 import ch.kalunight.zoe.model.Champion;
 import ch.kalunight.zoe.model.ControlPannel;
@@ -182,17 +182,12 @@ public class Zoe {
         stringBuilder.append("Command **" + patchNoteCommand.getName() + "** :\n");
         stringBuilder.append("--> `>" + patchNoteCommand.getName() + "` : " + patchNoteCommand.getHelp() + "\n\n");
 
-        Command recoveryCommand = new RecoveryCommand(null);
-        stringBuilder.append("Command **" + recoveryCommand.getName() + "** :\n");
-        stringBuilder.append("--> `>" + recoveryCommand.getName() + " " + recoveryCommand.getArguments() + "` : " + recoveryCommand.getHelp() + "\n\n");
-
         Command resetCommand = new ResetCommand(null);
         stringBuilder.append("Command **" + resetCommand.getName() + "** :\n");
         stringBuilder.append("--> `>" + resetCommand.getName() + "` : " + resetCommand.getHelp() + "\n\n");
 
         for(Command command : getMainCommands(null)) {
-          if(!command.isHidden() && !(command instanceof PingCommand || command instanceof RecoveryCommand 
-              || command instanceof ResetCommand || command instanceof PatchNotesCommand)) {
+          if(!command.isHidden() && !(command instanceof PingCommand || command instanceof ResetCommand || command instanceof PatchNotesCommand)) {
             stringBuilder.append("Commands **" + command.getName() + "** : \n");
 
             for(Command commandChild : command.getChildren()) {
@@ -240,8 +235,8 @@ public class Zoe {
     commands.add(new AddCommand());
     commands.add(new RemoveCommand());
     commands.add(new StatsCommand(eventWaiter));
-    commands.add(new RecoveryCommand(eventWaiter));
     commands.add(new ResetCommand(eventWaiter));
+    commands.add(new ShowCommand(eventWaiter));
 
     mainCommands = commands;
 

@@ -17,6 +17,7 @@ import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.stats.StatsProfileCommand;
 import ch.kalunight.zoe.model.Champion;
 import ch.kalunight.zoe.model.CustomEmote;
+import ch.kalunight.zoe.model.FullTier;
 import ch.kalunight.zoe.model.LeagueAccount;
 import ch.kalunight.zoe.model.Mastery;
 import ch.kalunight.zoe.model.Player;
@@ -326,16 +327,15 @@ public class MessageBuilderRequest {
         LeaguePosition leaguePosition = iteratorPosition.next();
         Tier tier = Tier.valueOf(leaguePosition.getTier());
         Rank rank = Rank.valueOf(leaguePosition.getRank());
+        
+        FullTier fullTier = new FullTier(tier, rank, leaguePosition.getLeaguePoints());
 
         if(leaguePosition.getQueueType().equals("RANKED_SOLO_5x5")) {
-          soloqRank = "Soloq : **" + Ressources.getTierEmote().get(tier).getUsableEmote() + " " + tier.toString() + " "
-              + rank.toString() + " " +  leaguePosition.getLeaguePoints() + " PL**";
+          soloqRank = "Soloq : **" + Ressources.getTierEmote().get(tier).getUsableEmote() + " " + fullTier.toString() + "**";
         } else if(leaguePosition.getQueueType().equals("RANKED_FLEX_SR")) {
-          flexRank = "Flex : **" + Ressources.getTierEmote().get(tier).getUsableEmote() + " " + tier.toString() + " "
-              + rank.toString() + " " +  leaguePosition.getLeaguePoints() + " PL**";
+          flexRank = "Flex : **" + Ressources.getTierEmote().get(tier).getUsableEmote() + " " + fullTier.toString() + "**";
         }else if(leaguePosition.getQueueType().equals("RANKED_FLEX_TT")) {
-          twistedThreeLine = "3x3 : **" + Ressources.getTierEmote().get(tier).getUsableEmote() + " " + tier.toString() + " "
-              + rank.toString() + " " +  leaguePosition.getLeaguePoints() + " PL**";
+          twistedThreeLine = "3x3 : **" + Ressources.getTierEmote().get(tier).getUsableEmote() + " " + fullTier.toString() + "**";
         }
       }
 

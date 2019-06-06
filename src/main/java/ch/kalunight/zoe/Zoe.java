@@ -58,13 +58,13 @@ import net.dv8tion.jda.core.entities.PrivateChannel;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.exceptions.ErrorResponseException;
+import net.dv8tion.jda.core.exceptions.InsufficientPermissionException;
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.RiotApi;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.api.request.ratelimit.PriorityManagerRateLimitHandler;
 import net.rithms.riot.api.request.ratelimit.PriorityRateLimit;
-import net.rithms.riot.api.request.ratelimit.RateLimitHandler;
 import net.rithms.riot.api.request.ratelimit.RateLimitRequestTank;
 import net.rithms.riot.constant.Platform;
 
@@ -73,6 +73,13 @@ public class Zoe {
   public static final String BOT_PREFIX = ">";
 
   private static final File SAVE_TXT_FILE = new File("ressources/save.txt");
+  
+  public static final File RAPI_SAVE_TXT_FILE = new File("ressources/apiInfos.txt");
+  
+  /**
+   * USED ONLY FOR STATS ANALYSE. DON'T MODIFY DATA INSIDE.
+   */
+  private static RateLimitRequestTank minuteApiTank;
 
   private static List<Command> mainCommands;
 
@@ -146,9 +153,11 @@ public class Zoe {
     List<RateLimitRequestTank> priorityList = new ArrayList<>();
     priorityList.add(requestSecondsTank);
     priorityList.add(requestMinutesTank);
+    
+    minuteApiTank = requestMinutesTank;
 
-    RateLimitHandler defaultLimite = new PriorityManagerRateLimitHandler(priorityList); // create default priority with dev api key rate limit
-
+    PriorityManagerRateLimitHandler defaultLimite = new PriorityManagerRateLimitHandler(priorityList); //create default priority with dev api key rate limit if no param
+    
     config.setRateLimitHandler(defaultLimite);
     riotApi = new RiotApi(config);
   }
@@ -344,39 +353,51 @@ public class Zoe {
 
       while((line = reader.readLine()) != null) {
 
-        if(line.equalsIgnoreCase("--server")) {
-          final String guildId = reader.readLine();
-          final Guild guild = jda.getGuildById(guildId);
-          if(guild == null) {
-            continue;
+        try {
+          if(line.equalsIgnoreCase("--server")) {
+            final String guildId = reader.readLine();
+            final Guild guild = jda.getGuildById(guildId);
+            if(guild == null) {
+              continue;
+            }
+            SpellingLangage langage = SpellingLangage.valueOf(reader.readLine());
+            if(langage == null) {
+              langage = SpellingLangage.EN;
+            }
+
+            final Server server = new Server(guild, langage);
+
+            final Long nbrPlayers = Long.parseLong(reader.readLine());
+
+            final List<Player> players = createPlayers(reader, nbrPlayers);
+
+            final Long nbrTeams = Long.parseLong(reader.readLine());
+
+            final List<Team> teams = createTeams(reader, players, nbrTeams);
+
+            final TextChannel pannel = guild.getTextChannelById(reader.readLine());
+
+            setInfoPannel(guild, server, pannel);
+
+            int nbrMessageControlPannel = Integer.parseInt(reader.readLine());
+            ControlPannel controlPannel = new ControlPannel();
+            try {
+              controlPannel = getControlePannel(reader, server, nbrMessageControlPannel);
+            }catch(InsufficientPermissionException e) {
+              logger.info("Zoe missing a permission in a guild !",e);
+              if(pannel != null) {
+                pannel.sendMessage("I need the \"" + e.getPermission().getName() + "\" permission to work properly.").queue();
+              }
+            }
+
+            server.setPlayers(players);
+            server.setTeams(teams);
+            server.setControlePannel(controlPannel);
+            ServerData.getServers().put(guildId, server);
+            ServerData.getServersIsInTreatment().put(guildId, false);
           }
-          SpellingLangage langage = SpellingLangage.valueOf(reader.readLine());
-          if(langage == null) {
-            langage = SpellingLangage.EN;
-          }
-
-          final Server server = new Server(guild, langage);
-
-          final Long nbrPlayers = Long.parseLong(reader.readLine());
-
-          final List<Player> players = createPlayers(reader, nbrPlayers);
-
-          final Long nbrTeams = Long.parseLong(reader.readLine());
-
-          final List<Team> teams = createTeams(reader, players, nbrTeams);
-
-          final TextChannel pannel = guild.getTextChannelById(reader.readLine());
-
-          setInfoPannel(guild, server, pannel);
-
-          int nbrMessageControlPannel = Integer.parseInt(reader.readLine());
-          ControlPannel controlPannel = getControlePannel(reader, server, nbrMessageControlPannel);
-
-          server.setPlayers(players);
-          server.setTeams(teams);
-          server.setControlePannel(controlPannel);
-          ServerData.getServers().put(guildId, server);
-          ServerData.getServersIsInTreatment().put(guildId, false);
+        }catch(Exception e) {
+          logger.error("A guild as been loaded badly !", e);
         }
       }
     }
@@ -472,7 +493,7 @@ public class Zoe {
   public static DiscordBotListAPI getBotListApi() {
     return botListApi;
   }
-
+  
   public static void setBotListApi(DiscordBotListAPI botListApi) {
     Zoe.botListApi = botListApi;
   }
@@ -483,5 +504,9 @@ public class Zoe {
 
   public static void setDiscordBotListTocken(String discordBotListTocken) {
     Zoe.discordBotListTocken = discordBotListTocken;
+  }
+
+  public static RateLimitRequestTank getMinuteApiTank() {
+    return minuteApiTank;
   }
 }

@@ -345,7 +345,7 @@ public class MessageBuilderRequest {
 
     message.addField(field);
 
-    message.setImage("attachment://" + player.getDiscordUser().getName() + ".png");
+    message.setImage("attachment://" + player.getDiscordUser().getId() + ".png");
 
     message.setColor(new Color(206, 20, 221));
 

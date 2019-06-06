@@ -66,4 +66,9 @@ public class AboutCommand extends Command {
 
     event.reply(builder.build());
   }
+  
+  @Override
+  public String toString() {
+    return name + "command : " + help;
+  }
 }

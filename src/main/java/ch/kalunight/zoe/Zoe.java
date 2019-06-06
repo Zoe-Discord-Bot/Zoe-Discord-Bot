@@ -25,6 +25,8 @@ import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.examples.command.PingCommand;
+import com.jagrosh.jdautilities.menu.ButtonMenu;
+import com.jagrosh.jdautilities.menu.Paginator;
 import ch.kalunight.zoe.command.AboutCommand;
 import ch.kalunight.zoe.command.PatchNotesCommand;
 import ch.kalunight.zoe.command.ResetCommand;
@@ -76,7 +78,7 @@ public class Zoe {
   private static final File SAVE_TXT_FILE = new File("ressources/save.txt");
 
   public static final File RAPI_SAVE_TXT_FILE = new File("ressources/apiInfos.txt");
-
+  
   /**
    * USED ONLY FOR STATS ANALYSE. DON'T MODIFY DATA INSIDE.
    */
@@ -167,6 +169,7 @@ public class Zoe {
     return new Consumer<CommandEvent>() {
       @Override
       public void accept(CommandEvent event) {
+        
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("Here is my commands :\n");
 

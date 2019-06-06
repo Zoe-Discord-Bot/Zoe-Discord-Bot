@@ -1,5 +1,6 @@
 package ch.kalunight.zoe.command.stats;
 
+import java.awt.Color;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -7,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import org.knowm.xchart.BitmapEncoder;
 import org.knowm.xchart.BitmapEncoder.BitmapFormat;
 import org.knowm.xchart.CategoryChart;
@@ -30,6 +33,7 @@ import ch.kalunight.zoe.util.Ressources;
 import ch.kalunight.zoe.util.request.MessageBuilderRequest;
 import ch.kalunight.zoe.util.request.RiotRequest;
 import net.dv8tion.jda.core.MessageBuilder;
+import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageEmbed;
 import net.dv8tion.jda.core.entities.User;
 import net.rithms.riot.api.RiotApiException;
@@ -43,6 +47,8 @@ public class StatsProfileCommand extends Command {
   private static final Map<Double, Object> MASTERIES_TABLE_OF_LOW_VALUE_Y_AXIS = new HashMap<>();
 
   private static final Logger logger = LoggerFactory.getLogger(StatsProfileCommand.class);
+
+  private final SelectionDialog.Builder selectAccountBuilder;
 
   static {
     MASTERIES_TABLE_OF_LOW_VALUE_Y_AXIS.put(20000.0, "20K");
@@ -65,20 +71,24 @@ public class StatsProfileCommand extends Command {
     MASTERIES_TABLE_OF_HIGH_VALUE_Y_AXIS.put(2500000.0, "2.5M");
     MASTERIES_TABLE_OF_HIGH_VALUE_Y_AXIS.put(3000000.0, "3M");
   }
-  
-  private final EventWaiter waiter;
 
   public StatsProfileCommand(EventWaiter eventWaiter) {
     this.name = "profile";
     this.arguments = "@playerMention";
     this.help = "Get information about the mentioned player.";
-    this.waiter = eventWaiter;
     this.helpBiConsumer = getHelpMethod();
+    selectAccountBuilder = new SelectionDialog.Builder()
+        .setEventWaiter(eventWaiter)
+        .useLooping(true)
+        .setColor(Color.GREEN)
+        .setText("Please select an account to use")
+        .setTimeout(1, TimeUnit.MINUTES);
   }
 
   @Override
   protected void execute(CommandEvent event) {
     CommandUtil.sendTypingInFonctionOfChannelType(event);
+    selectAccountBuilder.clearChoices();
 
     List<User> userList = event.getMessage().getMentionedUsers();
     if(userList.size() != 1) {
@@ -95,29 +105,72 @@ public class StatsProfileCommand extends Command {
       event.reply("The poeple mentioned is not a registered player !");
       return;
     }
-    
-    LeagueAccount lolAccount;
+
     if(player.getLolAccounts().size() == 1) {
-      lolAccount = player.getLolAccounts().get(0);
+      generateStatsMessage(event, player, player.getLolAccounts().get(0));
     }else {
-      SelectionDialog.Builder selectAccountBuilder = new SelectionDialog.Builder()
-          .addUsers(player.getDiscordUser())
-          .useLooping(false)
-          .setText("Please select an account to use")
-          .setEventWaiter(waiter)
-          .setTimeout(1, TimeUnit.MINUTES);
-      
+      selectAccountBuilder
+      .addUsers(player.getDiscordUser())
+      .setCanceled(getSelectionCancelAction())
+      .setSelectedEnds("**", "**")
+      .setSelectionConsumer(getSelectionDoneAction(event, player))
+      .setText("Player selected");
+
+
+
+      List<String> accountsName = new ArrayList<>();
+
       for(LeagueAccount choiceAccount : player.getLolAccounts()) {
         FullTier tier = RiotRequest.getSoloqRank(choiceAccount.getSummoner().getId(), choiceAccount.getRegion());
-        selectAccountBuilder.addChoices(choiceAccount.getSummoner().getName() 
+        selectAccountBuilder.addChoices("- " + choiceAccount.getSummoner().getName() 
             + " (" + choiceAccount.getRegion().getName() + ") Soloq Rank : " + tier.toString());
+        accountsName.add(choiceAccount.getSummoner().getName());
       }
+      
+      selectAccountBuilder.setText(getUpdateMessageAfterChangeSelectAction(accountsName));
       
       SelectionDialog selectAccount = selectAccountBuilder.build();
       selectAccount.display(event.getChannel());
-      lolAccount = player.getLolAccounts().get(0);
     }
+  }
 
+  private Function<Integer, String> getUpdateMessageAfterChangeSelectAction(List<String> choices) {
+    return new Function<Integer, String>() {
+      @Override
+      public String apply(Integer index) {
+        return "Account selected : \"**" + choices.get(index - 1) + "**\"";
+      }
+    };
+  }
+
+  private BiConsumer<Message, Integer> getSelectionDoneAction(CommandEvent event, Player player) {
+    return new BiConsumer<Message, Integer>() {
+      @Override
+      public void accept(Message selectionMessage, Integer selectionOfUser) {
+        LeagueAccount account = player.getLolAccounts().get(selectionOfUser - 1);
+
+        selectionMessage.clearReactions().queue();
+        selectionMessage.getTextChannel().sendMessage("You have selected the account \"" 
+            + account.getSummoner().getName() + "\" of the player " + player.getDiscordUser().getName() + ".").queue();
+        selectionMessage.getTextChannel().sendTyping().queue();
+        generateStatsMessage(event, player, player.getLolAccounts().get(selectionOfUser - 1));
+      }
+
+    };
+  }
+
+  private Consumer<Message> getSelectionCancelAction(){
+    return new Consumer<Message>() {
+      @Override
+      public void accept(Message message) {
+        message.clearReactions().queue();
+        message.getTextChannel().sendMessage("Okay, i will not send stats message").queue();
+        selectAccountBuilder.clearChoices();
+      }
+    };
+  }
+
+  private void generateStatsMessage(CommandEvent event, Player player, LeagueAccount lolAccount) {
     List<ChampionMastery> championsMasteries;
     try {
       championsMasteries = Zoe.getRiotApi().getChampionMasteriesBySummoner(lolAccount.getRegion(), lolAccount.getSummoner().getId());

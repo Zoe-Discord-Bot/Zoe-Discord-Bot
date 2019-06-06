@@ -14,25 +14,28 @@ import ch.kalunight.zoe.model.Player;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.util.request.RiotRequest;
 import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.ChannelType;
 import net.dv8tion.jda.core.exceptions.PermissionException;
 
 public class ShowPlayerCommand extends Command {
 
-  public static final String USAGE_NAME = "player";
+  public static final String USAGE_NAME = "players";
   private final Paginator.Builder pbuilder;
 
   public ShowPlayerCommand(EventWaiter eventWaiter) {
     this.name = USAGE_NAME;
+    String[] aliases = {"p", "player"};
+    this.arguments = "";
+    this.aliases = aliases;
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
-    this.help = "Show all players in the server.";
+    this.help = "Show all players with their accounts in the server.";
+    this.cooldown = 10;
     this.helpBiConsumer = getHelpMethod();
     pbuilder = new Paginator.Builder().setColumns(1)
-        .setItemsPerPage(10)
+        .setItemsPerPage(5)
         .showPageNumbers(true)
         .waitOnSinglePage(false)
-        .useNumberedItems(false)
+        .useNumberedItems(true)
         .setFinalAction(m -> {
           try {
             m.clearReactions().queue();
@@ -56,12 +59,17 @@ public class ShowPlayerCommand extends Command {
       playerInfo.append("**" + player.getDiscordUser().getName() + " Accounts** : \n");
       for(LeagueAccount leagueAccount : player.getLolAccounts()) {
         playerInfo.append("-" + leagueAccount.getSummoner().getName() + " Soloq Rank : "
-            + RiotRequest.getSoloqRank(leagueAccount.getSummoner().getId(), leagueAccount.getRegion()).toString());
+            + RiotRequest.getSoloqRank(leagueAccount.getSummoner().getId(), leagueAccount.getRegion()).toString() + "\n");
       }
-      pbuilder.addItems(playerInfo.toString());
+      pbuilder.addItems(playerInfo.toString().substring(0, playerInfo.toString().length() - 1));
+    }
+    
+    int accountsNmb = 0;
+    for(Player player : server.getPlayers()) {
+      accountsNmb += player.getLolAccounts().size();
     }
     Paginator p = pbuilder.setColor(Color.GREEN)
-        .setText("List of players registered")
+        .setText("List of players registered with their accounts (Players : " + server.getPlayers().size() + " | Accounts : " + accountsNmb + ") :")
         .setUsers(event.getAuthor())
         .build();
     p.paginate(event.getChannel(), page);
@@ -74,7 +82,7 @@ public class ShowPlayerCommand extends Command {
       public void accept(CommandEvent event, Command command) {
         CommandUtil.sendTypingInFonctionOfChannelType(event);
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("Show player command :\n");
+        stringBuilder.append("Show players command :\n");
         stringBuilder.append("--> `>show " + name + " " + arguments + "` : " + help);
 
         event.reply(stringBuilder.toString());

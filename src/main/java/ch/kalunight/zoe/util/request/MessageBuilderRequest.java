@@ -251,7 +251,7 @@ public class MessageBuilderRequest {
       }else if (e.getErrorCode() == RiotApiException.UNAVAILABLE || e.getErrorCode() == RiotApiException.SERVER_ERROR) {
         isRiotApiError = true;
       }
-      logger.info("Impossible to get match history : {}", e);
+      logger.info("Impossible to get match history : {}", e.getMessage());
     }
 
     if(matchList != null) {

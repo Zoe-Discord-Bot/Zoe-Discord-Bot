@@ -94,8 +94,6 @@ public class StatsProfileCommand extends Command {
         .setSelectedEnds("**", "**")
         .setCanceled(getSelectionCancelAction())
         .setTimeout(1, TimeUnit.MINUTES);
-    
-    selectAccountBuilder.clearChoices();
 
     List<User> userList = event.getMessage().getMentionedUsers();
     if(userList.size() != 1) {

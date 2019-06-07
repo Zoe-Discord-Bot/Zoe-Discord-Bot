@@ -28,7 +28,6 @@ import com.jagrosh.jdautilities.examples.command.PingCommand;
 import ch.kalunight.zoe.command.AboutCommand;
 import ch.kalunight.zoe.command.PatchNotesCommand;
 import ch.kalunight.zoe.command.ResetCommand;
-import ch.kalunight.zoe.command.ResetEmotesCommand;
 import ch.kalunight.zoe.command.SetupCommand;
 import ch.kalunight.zoe.command.ShutDownCommand;
 import ch.kalunight.zoe.command.add.AddCommand;
@@ -221,7 +220,6 @@ public class Zoe {
 
     // Admin commands
     commands.add(new ShutDownCommand());
-    commands.add(new ResetEmotesCommand());
     commands.add(new PingCommand());
     commands.add(new AdminCommand());
 

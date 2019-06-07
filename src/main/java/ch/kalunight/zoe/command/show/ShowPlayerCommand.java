@@ -13,7 +13,6 @@ import ch.kalunight.zoe.model.LeagueAccount;
 import ch.kalunight.zoe.model.Player;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.util.request.RiotRequest;
-import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.exceptions.PermissionException;
 import net.rithms.riot.constant.CallPriority;
 
@@ -28,8 +27,6 @@ public class ShowPlayerCommand extends Command {
     String[] aliases = {"p", "player"};
     this.arguments = "";
     this.aliases = aliases;
-    Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
-    this.userPermissions = permissionRequired;
     this.waiter = eventWaiter;
     this.help = "Show all players with their accounts in the server.";
     this.cooldown = 10;

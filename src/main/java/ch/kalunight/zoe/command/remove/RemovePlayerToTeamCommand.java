@@ -1,8 +1,6 @@
 package ch.kalunight.zoe.command.remove;
 
 import java.util.function.BiConsumer;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
@@ -15,13 +13,12 @@ import net.dv8tion.jda.core.Permission;
 
 public class RemovePlayerToTeamCommand extends Command {
 
-  public static final Pattern PARENTHESES_PATTERN = Pattern.compile("\\(([^)]+)\\)");
   public static final String USAGE_NAME = "playerToTeam";
 
   public RemovePlayerToTeamCommand() {
     this.name = USAGE_NAME;
-    this.help = "Delete the given player from the given team. Manage Channel permission needed.";
-    this.arguments = "@MentionOfPlayer (teamName)";
+    this.help = "Delete the given player from his team. Manage Channel permission needed.";
+    this.arguments = "@MentionOfPlayer";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
     this.helpBiConsumer = getHelpMethod();
@@ -49,26 +46,15 @@ public class RemovePlayerToTeamCommand extends Command {
       return;
     }
 
-    Matcher matcher = PARENTHESES_PATTERN.matcher(event.getArgs());
-    String teamName = "";
-    while(matcher.find()) {
-      teamName = matcher.group(1);
-    }
-
-    Team teamWhereRemove = server.getTeamByName(teamName);
+    Team teamWhereRemove = server.getTeamByPlayer(player);
+    
     if(teamWhereRemove == null) {
-      event.reply("The given team does not exist ! "
-          + "(Hint: The team name need to be in parantheses like this : `>remmove playerToTeam @PlayerMentioned (TeamName)`)");
-      return;
-    }
-
-    if(!teamWhereRemove.isPlayerInTheTeam(player)) {
-      event.reply("The player is not in the given Team !");
+      event.reply("This player is not in a team");
       return;
     }
 
     teamWhereRemove.getPlayers().remove(player);
-    event.reply("The player has been deleted from the team !");
+    event.reply(player.getDiscordUser().getName() + " has been deleted from the team " + teamWhereRemove.getName() + " !");
   }
 
   private BiConsumer<CommandEvent, Command> getHelpMethod() {

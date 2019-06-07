@@ -64,10 +64,10 @@ public class RemoveAccountToPlayerCommand extends Command {
       event.reply("The region tag is invalid. (Valid tag : EUW, EUNE, NA, BR, JP, KR, LAN, LAS, OCE, RU, TR)");
       return;
     }
-    
+
     LeagueAccount account = player.getLeagueAccountsBySummonerName(region, summonerName);
     if(account == null) {
-      event.reply("The given summoner is not linked to the mentionned player !");
+      event.reply("The given summoner is not linked to the mentionned player ! Try the command `>show players` to see wich accounts is linked to the player");
       return;
     }
     

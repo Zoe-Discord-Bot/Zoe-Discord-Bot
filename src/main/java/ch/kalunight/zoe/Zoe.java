@@ -25,8 +25,6 @@ import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.examples.command.PingCommand;
-import com.jagrosh.jdautilities.menu.ButtonMenu;
-import com.jagrosh.jdautilities.menu.Paginator;
 import ch.kalunight.zoe.command.AboutCommand;
 import ch.kalunight.zoe.command.PatchNotesCommand;
 import ch.kalunight.zoe.command.ResetCommand;

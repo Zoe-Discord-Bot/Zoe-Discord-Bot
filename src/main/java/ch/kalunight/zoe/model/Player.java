@@ -1,6 +1,7 @@
 package ch.kalunight.zoe.model;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +24,7 @@ public class Player {
   public Player(User discordUser, Summoner summoner, Platform region, boolean mentionnable) {
     this.discordUser = discordUser;
     LeagueAccount lolAccount = new LeagueAccount(summoner, region);
-    lolAccounts = new ArrayList<>();
+    lolAccounts = Collections.synchronizedList(new ArrayList<>());
     lolAccounts.add(lolAccount);
     this.mentionnable = mentionnable;
   }

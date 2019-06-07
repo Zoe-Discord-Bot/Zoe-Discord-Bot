@@ -61,7 +61,7 @@ public class MessageBuilderRequest {
         "Info on the game of " + user.getName() + " : " + NameConversion.convertGameQueueIdToString(match.getGameQueueConfigId()));
 
     int blueTeamID = 100;
-    
+
     ArrayList<CurrentGameParticipant> blueTeam = new ArrayList<>();
     ArrayList<CurrentGameParticipant> redTeam = new ArrayList<>();
 
@@ -114,7 +114,7 @@ public class MessageBuilderRequest {
     for(Player player : players) {
       playersAccountsOfTheGame.addAll(player.getLeagueAccountsInTheGivenGame(currentGameInfo));
     }
-    
+
     EmbedBuilder message = new EmbedBuilder();
 
     StringBuilder title = new StringBuilder();
@@ -244,7 +244,7 @@ public class MessageBuilderRequest {
 
     try {
       matchList = Zoe.getRiotApi().getMatchListByAccountId(leagueAccount.getRegion(), leagueAccount.getSummoner().getAccountId(), 
-          null, null, null, DateTime.now().minusWeeks(1).getMillis(), DateTime.now().getMillis(), -1, -1, CallPriority.HIGH);
+          null, null, null, DateTime.now().minusWeeks(1).plusSeconds(10).getMillis(), DateTime.now().getMillis(), -1, -1, CallPriority.HIGH);
     } catch(RiotApiException e) {
       if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
         throw e;
@@ -290,7 +290,12 @@ public class MessageBuilderRequest {
       if(!threeMostRecentMatch.isEmpty()) {
         for(Match match : threeMostRecentMatch) {
           LocalDateTime matchTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(match.getGameCreation()), ZoneId.ofOffset("UTC", ZoneOffset.UTC));
-          Champion champion = Ressources.getChampionDataById(match.getParticipantByAccountId(leagueAccount.getSummoner().getAccountId()).getChampionId());
+          Champion champion = new Champion(-1, "unknown", "unknown", null);
+          try {
+            champion = Ressources.getChampionDataById(match.getParticipantBySummonerId(leagueAccount.getSummoner().getId()).getChampionId());
+          }catch(NullPointerException e) {
+            logger.debug("Data anonymize, can't detect champion");
+          }
           recentMatchsString.append(champion.getEmoteUsable() + " " + champion.getName() + " - **" + MessageBuilderRequestUtil.getPastMoment(matchTime) + "**\n");
         }
       }
@@ -327,7 +332,7 @@ public class MessageBuilderRequest {
         LeaguePosition leaguePosition = iteratorPosition.next();
         Tier tier = Tier.valueOf(leaguePosition.getTier());
         Rank rank = Rank.valueOf(leaguePosition.getRank());
-        
+
         FullTier fullTier = new FullTier(tier, rank, leaguePosition.getLeaguePoints());
 
         if(leaguePosition.getQueueType().equals("RANKED_SOLO_5x5")) {

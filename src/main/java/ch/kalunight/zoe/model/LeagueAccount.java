@@ -45,7 +45,7 @@ public class LeagueAccount {
     if (summoner == null) {
       if (other.summoner != null)
         return false;
-    } else if (!summoner.equals(other.summoner)) {
+    } else if (!summoner.getId().equals(other.getSummoner().getId())) {
       return false;
     }
     return true;

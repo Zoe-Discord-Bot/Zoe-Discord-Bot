@@ -1,6 +1,7 @@
 package ch.kalunight.zoe.model;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import org.joda.time.DateTime;
@@ -28,8 +29,8 @@ public class Server {
   public Server(Guild guild, SpellingLangage langage) {
     this.guild = guild;
     this.langage = langage;
-    players = new ArrayList<>();
-    teams = new ArrayList<>();
+    players = Collections.synchronizedList(new ArrayList<>());
+    teams = Collections.synchronizedList(new ArrayList<>());
     controlePannel = new ControlPannel();
     lastRefresh = DateTime.now().minusMinutes(DEFAULT_INIT_TIME);
   }

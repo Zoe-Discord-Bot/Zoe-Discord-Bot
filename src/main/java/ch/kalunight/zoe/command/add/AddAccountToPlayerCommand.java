@@ -100,7 +100,7 @@ public class AddAccountToPlayerCommand extends Command {
     }
     
     player.getLolAccounts().add(newAccount);
-    event.reply("The account \"" + newAccount.getSummoner().getName() + "\" as been added to the player " + user.getName() + ".");
+    event.reply("The account \"" + newAccount.getSummoner().getName() + "\" has been added to the player " + user.getName() + ".");
   }
 
   private BiConsumer<CommandEvent, Command> getHelpMethod() {

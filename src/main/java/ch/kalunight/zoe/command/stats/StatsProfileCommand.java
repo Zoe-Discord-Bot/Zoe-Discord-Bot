@@ -33,6 +33,7 @@ import ch.kalunight.zoe.util.Ressources;
 import ch.kalunight.zoe.util.request.MessageBuilderRequest;
 import ch.kalunight.zoe.util.request.RiotRequest;
 import net.dv8tion.jda.core.MessageBuilder;
+import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageEmbed;
 import net.dv8tion.jda.core.entities.User;
@@ -82,6 +83,9 @@ public class StatsProfileCommand extends Command {
     this.help = "Get information about the mentioned player.";
     this.helpBiConsumer = getHelpMethod();
     this.waiter = eventWaiter;
+    Permission[] botPermissionNeeded = {Permission.MANAGE_EMOTES, Permission.MESSAGE_EMBED_LINKS,
+        Permission.MESSAGE_ADD_REACTION, Permission.MESSAGE_MANAGE};
+    this.botPermissions = botPermissionNeeded;
   }
 
   @Override

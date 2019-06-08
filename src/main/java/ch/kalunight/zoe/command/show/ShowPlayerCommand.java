@@ -13,6 +13,7 @@ import ch.kalunight.zoe.model.LeagueAccount;
 import ch.kalunight.zoe.model.Player;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.util.request.RiotRequest;
+import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.exceptions.PermissionException;
 import net.rithms.riot.constant.CallPriority;
 
@@ -31,6 +32,8 @@ public class ShowPlayerCommand extends Command {
     this.help = "Show all players with their accounts in the server.";
     this.cooldown = 10;
     this.helpBiConsumer = getHelpMethod();
+    Permission[] botPermissionNeeded = {Permission.MANAGE_EMOTES, Permission.MESSAGE_EMBED_LINKS, Permission.MESSAGE_ADD_REACTION, Permission.MESSAGE_MANAGE};
+    this.botPermissions = botPermissionNeeded;
   }
 
   @Override

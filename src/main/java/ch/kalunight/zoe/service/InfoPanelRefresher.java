@@ -25,6 +25,7 @@ import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageEmbed;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.exceptions.ErrorResponseException;
+import net.dv8tion.jda.core.exceptions.PermissionException;
 import net.dv8tion.jda.core.requests.ErrorResponse;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
@@ -44,7 +45,6 @@ public class InfoPanelRefresher implements Runnable {
 
   @Override
   public void run() {
-    ServerData.getServersIsInTreatment().put(server.getGuild().getId(), true);
     try {
 
       cleanRegisteredPlayerNoLongerInGuild();
@@ -52,12 +52,12 @@ public class InfoPanelRefresher implements Runnable {
       if(server.getInfoChannel() != null) {
         if(server.getControlePannel().getInfoPanel().isEmpty()) {
           server.getControlePannel().getInfoPanel()
-          .add(server.getInfoChannel().sendMessage("__**Control Panel**__\n \n*Loading...*").complete());
+          .add(server.getInfoChannel().sendMessage("__**Information Panel**__\n \n*Loading...*").complete());
         }
 
         ArrayList<String> infoPanels = CommandEvent.splitMessage(refreshPannel());
 
-        if(server.getInfoChannel() != null || server.getGuild().getTextChannelById(server.getInfoChannel().getId()) != null) {
+        if(server.getInfoChannel() != null && server.getGuild().getTextChannelById(server.getInfoChannel().getId()) != null) {
 
           if(infoPanels.size() < server.getControlePannel().getInfoPanel().size()) {
             int nbrMessageToDelete = server.getControlePannel().getInfoPanel().size() - infoPanels.size();
@@ -80,7 +80,13 @@ public class InfoPanelRefresher implements Runnable {
 
           manageInfoCards();
 
-          cleaningInfoChannel();
+          try {
+            cleaningInfoChannel();
+          }catch (PermissionException e) {
+            logger.info("Unsuffisient permission to clean info channel : {}", e.getMessage());
+          }catch (Exception e) {
+            logger.warn("An unexpected error when cleaning info channel has occure.", e);
+          }
         } else {
           server.setInfoChannel(null);
           server.setControlePannel(new ControlPannel());
@@ -238,7 +244,7 @@ public class InfoPanelRefresher implements Runnable {
             for(Player playerToCheck : card.getPlayers()) {
               cardPlayersNotTwice.add(playerToCheck);
             }
-            
+
             for(int j = 0; j < cardPlayersNotTwice.size(); j++) {
               if(j == 0) {
                 title.append(" " + playersName.get(j));
@@ -279,11 +285,11 @@ public class InfoPanelRefresher implements Runnable {
     }
     return listOfPlayers;
   }
-  
+
   private List<LeagueAccount> checkIfOthersPlayersInKnowInTheMatch(CurrentGameInfo currentGameInfo){
-    
+
     ArrayList<LeagueAccount> listOfAccounts = new ArrayList<>();
-    
+
     for(Player player : server.getPlayers()) {
       for(LeagueAccount leagueAccount : player.getLolAccounts()) {
         for(CurrentGameParticipant participant : currentGameInfo.getParticipants()) {

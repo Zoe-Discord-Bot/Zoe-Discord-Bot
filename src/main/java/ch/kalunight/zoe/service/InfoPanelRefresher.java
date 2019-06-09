@@ -311,7 +311,7 @@ public class InfoPanelRefresher implements Runnable {
       player.refreshAllLeagueAccounts(CallPriority.NORMAL);
     }
 
-    stringMessage.append("__**Control Panel**__\n \n");
+    stringMessage.append("__**Information Panel**__\n \n");
 
     for(Team team : teamList) {
 

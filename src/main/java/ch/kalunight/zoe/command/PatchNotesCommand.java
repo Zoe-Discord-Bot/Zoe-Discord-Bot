@@ -19,7 +19,7 @@ public class PatchNotesCommand extends Command {
   protected void execute(CommandEvent event) {
     //TODO: Patch note are actually hard coded -> Implement a Patch note reader (reader of an external file).
     
-    event.reply("**Actual version : 1.2.0**\n"
+    event.reply("**Actual version : 1.2.1**\n"
         + "\n"
         + "**Multiples accounts system added !**\n"
         + "You can now link multiples accounts to a player ! Try the commands `>add accountToPlayer` and `>remove accountToPlayer`. \n\n"
@@ -27,7 +27,8 @@ public class PatchNotesCommand extends Command {
         + "-Add more information for dev about Riot Api usage.\n"
         + "-Implement multiples accounts system.\n"
         + "-First implementation of show commands, try `>show players`.\n"
-        + "-Remove recovery command (Was unusable with the new system of LoL accounts).\n"
+        + "-Remove recovery command (Was unusable with the new system of LoL accounts)."
+        + "-Add a refresh command.\n"
         + "-Some minor fix.\n"
         + "\n"
         + "For more information, please join the support server (`>help`).");

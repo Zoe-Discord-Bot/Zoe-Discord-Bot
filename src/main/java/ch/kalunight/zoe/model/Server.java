@@ -1,11 +1,9 @@
 package ch.kalunight.zoe.model;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import org.joda.time.DateTime;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.TextChannel;
@@ -18,7 +16,6 @@ public class Server {
    */
   private static final int DEFAULT_INIT_TIME = 3;
 
-  private final Map<String, CurrentGameInfo> currentGames = new HashMap<>();
   private final List<Long> currentGamesIdAlreadySended = new ArrayList<>();
 
   private Guild guild;
@@ -32,8 +29,8 @@ public class Server {
   public Server(Guild guild, SpellingLangage langage) {
     this.guild = guild;
     this.langage = langage;
-    players = new ArrayList<>();
-    teams = new ArrayList<>();
+    players = Collections.synchronizedList(new ArrayList<>());
+    teams = Collections.synchronizedList(new ArrayList<>());
     controlePannel = new ControlPannel();
     lastRefresh = DateTime.now().minusMinutes(DEFAULT_INIT_TIME);
   }
@@ -45,6 +42,39 @@ public class Server {
       lastRefresh = DateTime.now();
     }
     return needToBeRefreshed;
+  }
+  
+  public Player isLeagueAccountAlreadyExist(LeagueAccount accountToSearch) {
+    for(Player player : players) {
+      for(LeagueAccount account : player.getLolAccounts()) {
+        if(account.equals(accountToSearch)) {
+          return player;
+        }
+      }
+    }
+    return null;
+  }
+  
+  public Player getPlayerByLeagueAccount(LeagueAccount account) {
+    for(Player player : players) {
+      for(LeagueAccount potentialGoodAccount : player.getLolAccounts()) {
+        if(potentialGoodAccount.getSummoner().getId().equals(account.getSummoner().getId()) 
+            && potentialGoodAccount.getRegion() == account.getRegion()) {
+          return player;
+        }
+      }
+    }
+    return null;
+  }
+  
+  public List<LeagueAccount> getAllAccountsOfTheServer() {
+    List<LeagueAccount> accountsOfServer = new ArrayList<>();
+    for(Player player : players) {
+      for(LeagueAccount account : player.getLeagueAccountsInGame()) {
+        accountsOfServer.add(account);
+      }
+    }
+    return accountsOfServer;
   }
 
   public List<Team> getAllPlayerTeams() {
@@ -75,15 +105,22 @@ public class Server {
   }
 
   public void clearOldMatchOfSendedGamesIdList() {
-    final Iterator<Entry<String, CurrentGameInfo>> iterator = currentGames.entrySet().iterator();
+    
+    final List<CurrentGameInfo> allCurrentGamesOfPlayers = new ArrayList<>();
+    for(Player player : players) {
+      for(LeagueAccount leagueAccount : player.getLolAccounts()) {
+        allCurrentGamesOfPlayers.add(leagueAccount.getCurrentGameInfo());
+      }
+    }
+    
+    final Iterator<CurrentGameInfo> iterator = allCurrentGamesOfPlayers.iterator();
 
     final List<Long> gameIdToSave = new ArrayList<>();
 
     while(iterator.hasNext()) {
-      final Entry<String, CurrentGameInfo> currentGameInfoEntry = iterator.next();
 
-      final CurrentGameInfo currentGameInfo = currentGameInfoEntry.getValue();
-
+      final CurrentGameInfo currentGameInfo = iterator.next();
+      
       if(currentGameInfo != null) {
         gameIdToSave.add(currentGameInfo.getGameId());
       }
@@ -177,11 +214,7 @@ public class Server {
   public void setControlePannel(ControlPannel controlePannel) {
     this.controlePannel = controlePannel;
   }
-
-  public Map<String, CurrentGameInfo> getCurrentGames() {
-    return currentGames;
-  }
-
+  
   public List<Long> getCurrentGamesIdAlreadySended() {
     return currentGamesIdAlreadySended;
   }

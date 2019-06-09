@@ -81,8 +81,8 @@ public class ShutDownCommand extends Command {
                 message.delete().complete();
               }
             }
-          } catch(NullPointerException e) {
-            logger.info("Zoe go kicked from a guild, have no impact");
+          } catch(Exception e) {
+            logger.info("Error when deleting message {}", e.getMessage());
           }
         }
       }

@@ -36,13 +36,13 @@ public class RiotRequest {
 
   private RiotRequest() {}
 
-  public static FullTier getSoloqRank(String summonerId, Platform region) {
+  public static FullTier getSoloqRank(String summonerId, Platform region, CallPriority priority) {
 
     Set<LeaguePosition> listLeague;
     try {
-      listLeague = Zoe.getRiotApi().getLeaguePositionsBySummonerId(region, summonerId, CallPriority.NORMAL);
+      listLeague = Zoe.getRiotApi().getLeaguePositionsBySummonerId(region, summonerId, priority);
     } catch(RiotApiException e) {
-      logger.warn("Error with riot api : {}", e.getMessage());
+      logger.info("Error with riot api : {}", e.getMessage());
       return new FullTier(Tier.UNKNOWN, Rank.UNKNOWN, 0);
     }
 

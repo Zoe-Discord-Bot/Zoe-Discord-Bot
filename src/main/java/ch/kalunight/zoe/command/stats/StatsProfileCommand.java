@@ -1,11 +1,15 @@
 package ch.kalunight.zoe.command.stats;
 
+import java.awt.Color;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import org.knowm.xchart.BitmapEncoder;
 import org.knowm.xchart.BitmapEncoder.BitmapFormat;
 import org.knowm.xchart.CategoryChart;
@@ -15,19 +19,27 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
+import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
+import com.jagrosh.jdautilities.menu.SelectionDialog;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.model.Champion;
+import ch.kalunight.zoe.model.FullTier;
+import ch.kalunight.zoe.model.LeagueAccount;
 import ch.kalunight.zoe.model.Player;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.util.Ressources;
 import ch.kalunight.zoe.util.request.MessageBuilderRequest;
+import ch.kalunight.zoe.util.request.RiotRequest;
 import net.dv8tion.jda.core.MessageBuilder;
+import net.dv8tion.jda.core.Permission;
+import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageEmbed;
 import net.dv8tion.jda.core.entities.User;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.champion_mastery.dto.ChampionMastery;
+import net.rithms.riot.constant.CallPriority;
 
 public class StatsProfileCommand extends Command {
 
@@ -37,6 +49,8 @@ public class StatsProfileCommand extends Command {
   private static final Map<Double, Object> MASTERIES_TABLE_OF_LOW_VALUE_Y_AXIS = new HashMap<>();
 
   private static final Logger logger = LoggerFactory.getLogger(StatsProfileCommand.class);
+  
+  private final EventWaiter waiter;
 
   static {
     MASTERIES_TABLE_OF_LOW_VALUE_Y_AXIS.put(20000.0, "20K");
@@ -59,17 +73,31 @@ public class StatsProfileCommand extends Command {
     MASTERIES_TABLE_OF_HIGH_VALUE_Y_AXIS.put(2500000.0, "2.5M");
     MASTERIES_TABLE_OF_HIGH_VALUE_Y_AXIS.put(3000000.0, "3M");
   }
+  
 
-  public StatsProfileCommand() {
+  public StatsProfileCommand(EventWaiter eventWaiter) {
     this.name = "profile";
+    String[] aliases = {"player", "players", "p"};
+    this.aliases = aliases;
     this.arguments = "@playerMention";
     this.help = "Get information about the mentioned player.";
     this.helpBiConsumer = getHelpMethod();
+    this.waiter = eventWaiter;
+    Permission[] botPermissionNeeded = {Permission.MANAGE_EMOTES, Permission.MESSAGE_EMBED_LINKS,
+        Permission.MESSAGE_ADD_REACTION, Permission.MESSAGE_MANAGE};
+    this.botPermissions = botPermissionNeeded;
   }
 
   @Override
   protected void execute(CommandEvent event) {
     CommandUtil.sendTypingInFonctionOfChannelType(event);
+    SelectionDialog.Builder selectAccountBuilder = new SelectionDialog.Builder()
+        .setEventWaiter(waiter)
+        .useLooping(true)
+        .setColor(Color.GREEN)
+        .setSelectedEnds("**", "**")
+        .setCanceled(getSelectionCancelAction())
+        .setTimeout(1, TimeUnit.MINUTES);
 
     List<User> userList = event.getMessage().getMentionedUsers();
     if(userList.size() != 1) {
@@ -87,9 +115,69 @@ public class StatsProfileCommand extends Command {
       return;
     }
 
+    if(player.getLolAccounts().size() == 1) {
+      generateStatsMessage(event, player, player.getLolAccounts().get(0));
+    }else {
+      selectAccountBuilder
+      .addUsers(player.getDiscordUser())
+      .setSelectionConsumer(getSelectionDoneAction(event, player));
+
+      List<String> accountsName = new ArrayList<>();
+
+      for(LeagueAccount choiceAccount : player.getLolAccounts()) {
+        FullTier tier = RiotRequest.getSoloqRank(choiceAccount.getSummoner().getId(), choiceAccount.getRegion(), CallPriority.HIGH);
+        selectAccountBuilder.addChoices("- " + choiceAccount.getSummoner().getName() 
+            + " (" + choiceAccount.getRegion().getName().toUpperCase() + ") Soloq Rank : " + tier.toString());
+        accountsName.add(choiceAccount.getSummoner().getName());
+      }
+      
+      selectAccountBuilder.setText(getUpdateMessageAfterChangeSelectAction(accountsName));
+      
+      SelectionDialog selectAccount = selectAccountBuilder.build();
+      selectAccount.display(event.getChannel());
+    }
+  }
+
+  private Function<Integer, String> getUpdateMessageAfterChangeSelectAction(List<String> choices) {
+    return new Function<Integer, String>() {
+      @Override
+      public String apply(Integer index) {
+        return "Account selected : \"**" + choices.get(index - 1) + "**\"";
+      }
+    };
+  }
+
+  private BiConsumer<Message, Integer> getSelectionDoneAction(CommandEvent event, Player player) {
+    return new BiConsumer<Message, Integer>() {
+      @Override
+      public void accept(Message selectionMessage, Integer selectionOfUser) {
+        LeagueAccount account = player.getLolAccounts().get(selectionOfUser - 1);
+
+        selectionMessage.clearReactions().queue();
+        selectionMessage.getTextChannel().sendMessage("You have selected the account \"" 
+            + account.getSummoner().getName() + "\" of the player " + player.getDiscordUser().getName() + ".").queue();
+        generateStatsMessage(event, player, player.getLolAccounts().get(selectionOfUser - 1));
+      }
+
+    };
+  }
+
+  private Consumer<Message> getSelectionCancelAction(){
+    return new Consumer<Message>() {
+      @Override
+      public void accept(Message message) {
+        message.clearReactions().queue();
+        message.editMessage("Selection Ended").queue();
+      }
+    };
+  }
+
+  private void generateStatsMessage(CommandEvent event, Player player, LeagueAccount lolAccount) {
+    event.getTextChannel().sendTyping().queue();
+    
     List<ChampionMastery> championsMasteries;
     try {
-      championsMasteries = Zoe.getRiotApi().getChampionMasteriesBySummoner(player.getRegion(), player.getSummoner().getId());
+      championsMasteries = Zoe.getRiotApi().getChampionMasteriesBySummoner(lolAccount.getRegion(), lolAccount.getSummoner().getId());
     } catch(RiotApiException e) {
       if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
         event.reply("Please retry, I got a minor internal error. Sorry about that :/");
@@ -111,7 +199,7 @@ public class StatsProfileCommand extends Command {
 
     MessageEmbed embed;
     try {
-      embed = MessageBuilderRequest.createProfileMessage(player, championsMasteries);
+      embed = MessageBuilderRequest.createProfileMessage(player, lolAccount, championsMasteries);
     } catch(RiotApiException e) {
       if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
         logger.debug("Get rate limited : {}", e);

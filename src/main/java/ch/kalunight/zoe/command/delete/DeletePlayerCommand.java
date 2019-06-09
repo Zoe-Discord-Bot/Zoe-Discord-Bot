@@ -41,10 +41,10 @@ public class DeletePlayerCommand extends Command {
       Player player = server.getPlayerByDiscordId(user.getId());
 
       if(player == null) {
-        event.reply("This people is not registered !");
+        event.reply(user.getName() + " is not registered !");
       } else {
         server.deletePlayer(player);
-        event.reply("This people has been deleted !");
+        event.reply(player.getDiscordUser().getName() + " has been deleted !");
       }
     }
   }

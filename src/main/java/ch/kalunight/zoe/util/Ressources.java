@@ -37,7 +37,7 @@ public class Ressources {
         return champion;
       }
     }
-    return null;
+    return new Champion(-1, "unknown", "unknown", null);
   }
 
   public static List<CustomEmote> getCustomEmotes() {

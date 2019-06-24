@@ -67,6 +67,7 @@ import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.api.request.ratelimit.PriorityManagerRateLimitHandler;
 import net.rithms.riot.api.request.ratelimit.PriorityRateLimit;
 import net.rithms.riot.api.request.ratelimit.RateLimitRequestTank;
+import net.rithms.riot.constant.CallPriority;
 import net.rithms.riot.constant.Platform;
 
 public class Zoe {
@@ -309,44 +310,13 @@ public class Zoe {
           strBuilder.append(guild.getId() + "\n");
           strBuilder.append(server.getLangage().toString() + "\n");
 
-          strBuilder.append(server.getPlayers().size() + "\n");
+          savePlayers(server, strBuilder);
 
-          for(Player player : server.getPlayers()) {
-            strBuilder.append(player.getDiscordUser().getId() + "\n");
-            strBuilder.append(player.getLolAccounts().size() + "\n");
-            for(LeagueAccount account : player.getLolAccounts()) { 
-              strBuilder.append(account.getSummoner().getId() + "\n");
-              strBuilder.append(account.getRegion().getName() + "\n");
-            }
-            strBuilder.append(player.isMentionnable() + "\n");
-          }
+          saveTeams(server, strBuilder);
 
-          strBuilder.append(server.getTeams().size() + "\n");
+          saveInfoChannel(server, strBuilder);
 
-          for(Team team : server.getTeams()) {
-            strBuilder.append(team.getName() + "\n");
-
-            strBuilder.append(team.getPlayers().size() + "\n");
-
-            for(Player player : team.getPlayers()) {
-              strBuilder.append(player.getDiscordUser().getId() + "\n");
-            }
-          }
-
-          if(server.getInfoChannel() != null) {
-            strBuilder.append(server.getInfoChannel().getId() + "\n");
-          } else {
-            strBuilder.append("-1\n");
-          }
-
-          if(server.getControlePannel() != null) {
-            strBuilder.append(server.getControlePannel().getInfoPanel().size() + "\n");
-            for(Message message : server.getControlePannel().getInfoPanel()) {
-              strBuilder.append(message.getId() + "\n");
-            }
-          }else {
-            strBuilder.append("0\n");
-          }
+          saveControlPanel(server, strBuilder);
         }
         strMainBuilder.append(strBuilder.toString());
       }catch(Exception e) {
@@ -357,6 +327,82 @@ public class Zoe {
     try(PrintWriter writer = new PrintWriter(SAVE_TXT_FILE, "UTF-8");) {
       writer.write(strMainBuilder.toString());
     }
+  }
+
+  private static void saveControlPanel(Server server, StringBuilder strBuilder) {
+    if(server.getControlePannel() != null) {
+      strBuilder.append(server.getControlePannel().getInfoPanel().size() + "\n");
+      for(Message message : server.getControlePannel().getInfoPanel()) {
+        strBuilder.append(message.getId() + "\n");
+      }
+    }else {
+      strBuilder.append("0\n");
+    }
+  }
+
+  private static void saveInfoChannel(Server server, StringBuilder strBuilder) {
+    if(server.getInfoChannel() != null) {
+      strBuilder.append(server.getInfoChannel().getId() + "\n");
+    } else {
+      strBuilder.append("-1\n");
+    }
+  }
+
+  private static void saveTeams(Server server, StringBuilder strBuilder) {
+    StringBuilder oneTeam;
+    StringBuilder teamAlreadySaved = new StringBuilder();
+
+    int nbrTeamSaved = 0;
+
+    for(Team team : server.getTeams()) {
+      try {
+        oneTeam = new StringBuilder();
+
+        oneTeam.append(team.getName() + "\n");
+
+        oneTeam.append(team.getPlayers().size() + "\n");
+
+        for(Player player : team.getPlayers()) {
+          oneTeam.append(player.getDiscordUser().getId() + "\n");
+        }
+
+        nbrTeamSaved++;
+        teamAlreadySaved.append(oneTeam.toString());
+      }catch(Exception e) {
+        logger.warn("A team has not been saved !", e);
+      }
+    }
+
+    strBuilder.append(nbrTeamSaved + "\n");
+    strBuilder.append(teamAlreadySaved.toString());
+  }
+
+  private static void savePlayers(Server server, StringBuilder strBuilder) {
+    StringBuilder onePlayer;
+    StringBuilder playersOKOfTheServer = new StringBuilder();
+
+    int nbrPlayersOk = 0;
+
+    for(Player player : server.getPlayers()) {
+      try {
+        onePlayer = new StringBuilder();
+        onePlayer.append(player.getDiscordUser().getId() + "\n");
+        onePlayer.append(player.getLolAccounts().size() + "\n");
+        for(LeagueAccount account : player.getLolAccounts()) {
+          onePlayer.append(account.getSummoner().getId() + "\n");
+          onePlayer.append(account.getRegion().getName() + "\n");
+        }
+        onePlayer.append(player.isMentionnable() + "\n");
+
+        nbrPlayersOk++;
+        playersOKOfTheServer.append(onePlayer.toString());
+      }catch (Exception e) {
+        logger.warn("A player has not been saved ! Error when saving lol accounts and discords users", e);
+      }
+    }
+
+    strBuilder.append(nbrPlayersOk + "\n");
+    strBuilder.append(playersOKOfTheServer.toString());
   }
 
   public static void loadDataTxt() throws IOException, RiotApiException {
@@ -475,7 +521,7 @@ public class Zoe {
         String summonerId = reader.readLine();
         String summonerRegion = reader.readLine();
         Platform region = Platform.getPlatformByName(summonerRegion);
-        Summoner summoner = riotApi.getSummoner(region, summonerId);
+        Summoner summoner = riotApi.getSummoner(region, summonerId, CallPriority.HIGH);
         lolAccounts.add(new LeagueAccount(summoner, region));
       }
       String mentionableString = reader.readLine();

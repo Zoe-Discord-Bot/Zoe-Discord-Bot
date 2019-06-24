@@ -18,7 +18,7 @@ import ch.kalunight.zoe.util.NameConversion;
 import ch.kalunight.zoe.util.Ressources;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.champion_mastery.dto.ChampionMastery;
-import net.rithms.riot.api.endpoints.league.dto.LeaguePosition;
+import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 import net.rithms.riot.api.endpoints.match.dto.Match;
 import net.rithms.riot.api.endpoints.match.dto.MatchList;
 import net.rithms.riot.api.endpoints.match.dto.MatchReference;
@@ -38,22 +38,22 @@ public class RiotRequest {
 
   public static FullTier getSoloqRank(String summonerId, Platform region, CallPriority priority) {
 
-    Set<LeaguePosition> listLeague;
+    Set<LeagueEntry> listLeague;
     try {
-      listLeague = Zoe.getRiotApi().getLeaguePositionsBySummonerId(region, summonerId, priority);
+      listLeague = Zoe.getRiotApi().getLeagueEntriesBySummonerId(region, summonerId, priority);
     } catch(RiotApiException e) {
       logger.info("Error with riot api : {}", e.getMessage());
       return new FullTier(Tier.UNKNOWN, Rank.UNKNOWN, 0);
     }
 
-    Iterator<LeaguePosition> gettableList = listLeague.iterator();
+    Iterator<LeagueEntry> gettableList = listLeague.iterator();
 
     Tier rank = Tier.UNRANKED;
     Rank tier = Rank.UNRANKED;
     int leaguePoints = 0;
 
     while(gettableList.hasNext()) {
-      LeaguePosition leaguePosition = gettableList.next();
+      LeagueEntry leaguePosition = gettableList.next();
 
       if(leaguePosition.getQueueType().equals("RANKED_SOLO_5x5")) {
         rank = Tier.valueOf(leaguePosition.getTier());

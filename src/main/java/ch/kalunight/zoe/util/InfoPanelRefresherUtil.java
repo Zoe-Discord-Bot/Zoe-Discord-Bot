@@ -14,7 +14,7 @@ public class InfoPanelRefresherUtil {
     Preconditions.checkNotNull(account);
 
     String gameStatus = NameConversion.convertGameQueueIdToString(account.getCurrentGameInfo().getGameQueueConfigId()) 
-        + " with the account " + account.getSummoner().getName();
+        + " with the account **" + account.getSummoner().getName() + "**";
 
     double minutesOfGames = 0.0;
 
@@ -38,7 +38,7 @@ public class InfoPanelRefresherUtil {
     StringBuilder stringBuilder = new StringBuilder();
 
     for(LeagueAccount account : accounts) {
-      stringBuilder.append("-Account " + account.getSummoner().getName() + " : ");
+      stringBuilder.append("-Account **" + account.getSummoner().getName() + "** : ");
 
       stringBuilder.append(NameConversion.convertGameQueueIdToString(account.getCurrentGameInfo().getGameQueueConfigId()));
 

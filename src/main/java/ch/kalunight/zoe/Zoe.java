@@ -76,7 +76,7 @@ public class Zoe {
   private static final File SAVE_TXT_FILE = new File("ressources/save.txt");
 
   public static final File RAPI_SAVE_TXT_FILE = new File("ressources/apiInfos.txt");
-  
+
   /**
    * USED ONLY FOR STATS ANALYSE. DON'T MODIFY DATA INSIDE.
    */
@@ -167,7 +167,7 @@ public class Zoe {
     return new Consumer<CommandEvent>() {
       @Override
       public void accept(CommandEvent event) {
-        
+
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("Here is my commands :\n");
 
@@ -186,7 +186,7 @@ public class Zoe {
         Command resetCommand = new ResetCommand(null);
         stringBuilder.append("Command **" + resetCommand.getName() + "** :\n");
         stringBuilder.append("--> `>" + resetCommand.getName() + "` : " + resetCommand.getHelp() + "\n\n");
-        
+
         Command refreshCommand = new RefreshCommand();
         stringBuilder.append("Command **" + refreshCommand.getName() + "** :\n");
         stringBuilder.append("--> `>" + refreshCommand.getName() + "` : " + refreshCommand.getHelp() + "\n\n");
@@ -274,10 +274,18 @@ public class Zoe {
   }
 
   public static Player searchPlayerWithDiscordId(List<Player> players, String discordId) {
-    for(Player player : players) {
-      if(player.getDiscordUser().getId().equals(discordId)) {
-        return player;
+    if(players == null || discordId == null) {
+      return null;
+    }
+
+    try {
+      for(Player player : players) {
+        if(player.getDiscordUser().getId().equals(discordId)) {
+          return player;
+        }
       }
+    }catch(Exception e) {
+      logger.warn("Error in the search of player", e);
     }
     return null;
   }

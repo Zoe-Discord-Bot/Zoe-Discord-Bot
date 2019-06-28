@@ -1,25 +1,30 @@
-package ch.kalunight.zoe.command.stats;
+package ch.kalunight.zoe.command.show;
 
 import java.util.function.BiConsumer;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import ch.kalunight.zoe.command.CommandUtil;
+import net.dv8tion.jda.core.Permission;
 
-public class StatsCommand extends Command {
+public class ShowCommand extends Command {
+  
+  public static final String USAGE_NAME = "show";
 
-  public StatsCommand(EventWaiter waiter) {
-    this.name = "stats";
-    this.aliases = new String[] {"s"};
-    this.help = "Send info about stats command.";
-    Command[] commandsChildren = {new StatsProfileCommand(waiter)};
+  public ShowCommand(EventWaiter waiter) {
+    this.name = USAGE_NAME;
+    Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
+    this.userPermissions = permissionRequired;
+    this.help = "Send info about show commands";
+    Command[] commandsChildren = {new ShowPlayerCommand(waiter)};
     this.children = commandsChildren;
     this.helpBiConsumer = getHelpMethod();
   }
+
   
   @Override
   protected void execute(CommandEvent event) {
-    event.reply("If you want help about stats commands, type `>stats help`");
+    event.reply("If you need help for show command, type `>remove help`");
   }
   
   private BiConsumer<CommandEvent, Command> getHelpMethod() {
@@ -28,14 +33,15 @@ public class StatsCommand extends Command {
       public void accept(CommandEvent event, Command command) {
         CommandUtil.sendTypingInFonctionOfChannelType(event);
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("Stats commands :\n");
+        stringBuilder.append("Show command :\n");
         for(Command commandChildren : children) {
-          stringBuilder.append("--> `>" + name + " " + commandChildren.getName() + " " + commandChildren.getArguments()
-          + "` : " + commandChildren.getHelp() + "\n");
+          stringBuilder.append("--> `>" + name + " " + commandChildren.getName() + " " + commandChildren.getArguments() + "` : "
+              + commandChildren.getHelp() + "\n");
         }
-        
+
         event.reply(stringBuilder.toString());
       }
     };
   }
+  
 }

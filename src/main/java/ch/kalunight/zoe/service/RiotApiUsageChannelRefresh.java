@@ -2,7 +2,9 @@ package ch.kalunight.zoe.service;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import org.knowm.xchart.BitmapEncoder;
 import org.knowm.xchart.BitmapEncoder.BitmapFormat;
@@ -11,7 +13,10 @@ import org.knowm.xchart.PieChartBuilder;
 import org.knowm.xchart.style.PieStyler;
 import org.knowm.xchart.style.PieStyler.AnnotationType;
 import org.knowm.xchart.style.Styler.ChartTheme;
+import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
+import ch.kalunight.zoe.model.Player;
+import ch.kalunight.zoe.model.Server;
 import net.dv8tion.jda.core.MessageBuilder;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.TextChannel;
@@ -31,6 +36,25 @@ public class RiotApiUsageChannelRefresh implements Runnable {
         cleanChannel();
 
         RateLimitRequestTank minutesRAPITank = Zoe.getMinuteApiTank();
+        
+        Iterator<Entry<String, Server>> serversListIterator = ServerData.getServers().entrySet().iterator();
+        
+        int nbrPlayers = 0;
+        int nbrAccount = 0;
+        
+        while(serversListIterator.hasNext()) {
+          Server server = serversListIterator.next().getValue();
+          if(server != null) {
+            nbrPlayers += server.getPlayers().size();
+            for(Player player : server.getPlayers()) {
+              nbrAccount += player.getLolAccounts().size();
+            }
+          }
+        }
+        
+        rapiInfoChannel.sendMessage("Total number of players : " + nbrPlayers 
+            + "\nTotal number of League accounts : " + nbrAccount 
+            + "\nTask in queue : " + ServerData.getTaskExecutor().getQueue().size()).queue();
 
         ArrayList<byte[]> graphs = new ArrayList<>();
         List<Platform> platformOrder = new ArrayList<>();

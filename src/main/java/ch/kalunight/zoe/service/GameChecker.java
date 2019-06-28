@@ -40,10 +40,23 @@ public class GameChecker extends TimerTask {
       if(ServerData.getServersIsInTreatment().get(guild.getId()) == null) {
         ServerData.getServersIsInTreatment().put(guild.getId(), false);
       }
+      
+      if(ServerData.getServersAskedTreatment().get(guild.getId()) == null) {
+        ServerData.getServersAskedTreatment().put(guild.getId(), false);
+      }
+      
+      if(ServerData.getServersAskedTreatment().get(server.getGuild().getId()) && !ServerData.getServersIsInTreatment().get(server.getGuild().getId())) {
+        ServerData.getServersAskedTreatment().put(server.getGuild().getId(), false);
+        ServerData.getServersIsInTreatment().put(guild.getId(), true);
+        server.setLastRefresh(DateTime.now());
+        Runnable task = new InfoPanelRefresher(server);
+        ServerData.getTaskExecutor().execute(task);
+      }
 
       if(server.isNeedToBeRefreshed() && server.getInfoChannel() != null && !ServerData.getServersIsInTreatment().get(guild.getId())) {
 
         Runnable task = new InfoPanelRefresher(server);
+        ServerData.getServersIsInTreatment().put(guild.getId(), true);
         ServerData.getTaskExecutor().execute(task);
       }
     }

@@ -27,9 +27,8 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.examples.command.PingCommand;
 import ch.kalunight.zoe.command.AboutCommand;
 import ch.kalunight.zoe.command.PatchNotesCommand;
-import ch.kalunight.zoe.command.RecoveryCommand;
+import ch.kalunight.zoe.command.RefreshCommand;
 import ch.kalunight.zoe.command.ResetCommand;
-import ch.kalunight.zoe.command.ResetEmotesCommand;
 import ch.kalunight.zoe.command.SetupCommand;
 import ch.kalunight.zoe.command.ShutDownCommand;
 import ch.kalunight.zoe.command.add.AddCommand;
@@ -39,10 +38,12 @@ import ch.kalunight.zoe.command.define.DefineCommand;
 import ch.kalunight.zoe.command.define.UndefineCommand;
 import ch.kalunight.zoe.command.delete.DeleteCommand;
 import ch.kalunight.zoe.command.remove.RemoveCommand;
+import ch.kalunight.zoe.command.show.ShowCommand;
 import ch.kalunight.zoe.command.stats.StatsCommand;
 import ch.kalunight.zoe.model.Champion;
 import ch.kalunight.zoe.model.ControlPannel;
 import ch.kalunight.zoe.model.CustomEmote;
+import ch.kalunight.zoe.model.LeagueAccount;
 import ch.kalunight.zoe.model.Player;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.SpellingLangage;
@@ -66,6 +67,7 @@ import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.api.request.ratelimit.PriorityManagerRateLimitHandler;
 import net.rithms.riot.api.request.ratelimit.PriorityRateLimit;
 import net.rithms.riot.api.request.ratelimit.RateLimitRequestTank;
+import net.rithms.riot.constant.CallPriority;
 import net.rithms.riot.constant.Platform;
 
 public class Zoe {
@@ -73,9 +75,9 @@ public class Zoe {
   public static final String BOT_PREFIX = ">";
 
   private static final File SAVE_TXT_FILE = new File("ressources/save.txt");
-  
+
   public static final File RAPI_SAVE_TXT_FILE = new File("ressources/apiInfos.txt");
-  
+
   /**
    * USED ONLY FOR STATS ANALYSE. DON'T MODIFY DATA INSIDE.
    */
@@ -153,11 +155,11 @@ public class Zoe {
     List<RateLimitRequestTank> priorityList = new ArrayList<>();
     priorityList.add(requestSecondsTank);
     priorityList.add(requestMinutesTank);
-    
+
     minuteApiTank = requestMinutesTank;
 
     PriorityManagerRateLimitHandler defaultLimite = new PriorityManagerRateLimitHandler(priorityList); //create default priority with dev api key rate limit if no param
-    
+
     config.setRateLimitHandler(defaultLimite);
     riotApi = new RiotApi(config);
   }
@@ -166,6 +168,7 @@ public class Zoe {
     return new Consumer<CommandEvent>() {
       @Override
       public void accept(CommandEvent event) {
+
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("Here is my commands :\n");
 
@@ -181,17 +184,17 @@ public class Zoe {
         stringBuilder.append("Command **" + patchNoteCommand.getName() + "** :\n");
         stringBuilder.append("--> `>" + patchNoteCommand.getName() + "` : " + patchNoteCommand.getHelp() + "\n\n");
 
-        Command recoveryCommand = new RecoveryCommand(null);
-        stringBuilder.append("Command **" + recoveryCommand.getName() + "** :\n");
-        stringBuilder.append("--> `>" + recoveryCommand.getName() + " " + recoveryCommand.getArguments() + "` : " + recoveryCommand.getHelp() + "\n\n");
-
         Command resetCommand = new ResetCommand(null);
         stringBuilder.append("Command **" + resetCommand.getName() + "** :\n");
         stringBuilder.append("--> `>" + resetCommand.getName() + "` : " + resetCommand.getHelp() + "\n\n");
 
+        Command refreshCommand = new RefreshCommand();
+        stringBuilder.append("Command **" + refreshCommand.getName() + "** :\n");
+        stringBuilder.append("--> `>" + refreshCommand.getName() + "` : " + refreshCommand.getHelp() + "\n\n");
+
         for(Command command : getMainCommands(null)) {
-          if(!command.isHidden() && !(command instanceof PingCommand || command instanceof RecoveryCommand 
-              || command instanceof ResetCommand || command instanceof PatchNotesCommand)) {
+          if(!command.isHidden() && !(command instanceof PingCommand || command instanceof ResetCommand || command instanceof SetupCommand
+              || command instanceof PatchNotesCommand || command instanceof RefreshCommand || command instanceof AboutCommand)) {
             stringBuilder.append("Commands **" + command.getName() + "** : \n");
 
             for(Command commandChild : command.getChildren()) {
@@ -224,7 +227,6 @@ public class Zoe {
 
     // Admin commands
     commands.add(new ShutDownCommand());
-    commands.add(new ResetEmotesCommand());
     commands.add(new PingCommand());
     commands.add(new AdminCommand());
 
@@ -232,15 +234,16 @@ public class Zoe {
     commands.add(new AboutCommand());
     commands.add(new SetupCommand());
     commands.add(new PatchNotesCommand());
+    commands.add(new RefreshCommand());
     commands.add(new CreateCommand());
     commands.add(new DeleteCommand());
     commands.add(new DefineCommand());
     commands.add(new UndefineCommand());
     commands.add(new AddCommand());
     commands.add(new RemoveCommand());
-    commands.add(new StatsCommand());
-    commands.add(new RecoveryCommand(eventWaiter));
+    commands.add(new StatsCommand(eventWaiter));
     commands.add(new ResetCommand(eventWaiter));
+    commands.add(new ShowCommand(eventWaiter));
 
     mainCommands = commands;
 
@@ -272,10 +275,18 @@ public class Zoe {
   }
 
   public static Player searchPlayerWithDiscordId(List<Player> players, String discordId) {
-    for(Player player : players) {
-      if(player.getDiscordUser().getId().equals(discordId)) {
-        return player;
+    if(players == null || discordId == null) {
+      return null;
+    }
+
+    try {
+      for(Player player : players) {
+        if(player.getDiscordUser().getId().equals(discordId)) {
+          return player;
+        }
       }
+    }catch(Exception e) {
+      logger.warn("Error in the search of player", e);
     }
     return null;
   }
@@ -299,41 +310,13 @@ public class Zoe {
           strBuilder.append(guild.getId() + "\n");
           strBuilder.append(server.getLangage().toString() + "\n");
 
-          strBuilder.append(server.getPlayers().size() + "\n");
+          savePlayers(server, strBuilder);
 
-          for(Player player : server.getPlayers()) {
-            strBuilder.append(player.getDiscordUser().getId() + "\n");
-            strBuilder.append(player.getSummoner().getId() + "\n");
-            strBuilder.append(player.getRegion().getName() + "\n");
-            strBuilder.append(player.isMentionnable() + "\n");
-          }
+          saveTeams(server, strBuilder);
 
-          strBuilder.append(server.getTeams().size() + "\n");
+          saveInfoChannel(server, strBuilder);
 
-          for(Team team : server.getTeams()) {
-            strBuilder.append(team.getName() + "\n");
-
-            strBuilder.append(team.getPlayers().size() + "\n");
-
-            for(Player player : team.getPlayers()) {
-              strBuilder.append(player.getDiscordUser().getId() + "\n");
-            }
-          }
-
-          if(server.getInfoChannel() != null) {
-            strBuilder.append(server.getInfoChannel().getId() + "\n");
-          } else {
-            strBuilder.append("-1\n");
-          }
-
-          if(server.getControlePannel() != null) {
-            strBuilder.append(server.getControlePannel().getInfoPanel().size() + "\n");
-            for(Message message : server.getControlePannel().getInfoPanel()) {
-              strBuilder.append(message.getId() + "\n");
-            }
-          }else {
-            strBuilder.append("0\n");
-          }
+          saveControlPanel(server, strBuilder);
         }
         strMainBuilder.append(strBuilder.toString());
       }catch(Exception e) {
@@ -344,6 +327,82 @@ public class Zoe {
     try(PrintWriter writer = new PrintWriter(SAVE_TXT_FILE, "UTF-8");) {
       writer.write(strMainBuilder.toString());
     }
+  }
+
+  private static void saveControlPanel(Server server, StringBuilder strBuilder) {
+    if(server.getControlePannel() != null) {
+      strBuilder.append(server.getControlePannel().getInfoPanel().size() + "\n");
+      for(Message message : server.getControlePannel().getInfoPanel()) {
+        strBuilder.append(message.getId() + "\n");
+      }
+    }else {
+      strBuilder.append("0\n");
+    }
+  }
+
+  private static void saveInfoChannel(Server server, StringBuilder strBuilder) {
+    if(server.getInfoChannel() != null) {
+      strBuilder.append(server.getInfoChannel().getId() + "\n");
+    } else {
+      strBuilder.append("-1\n");
+    }
+  }
+
+  private static void saveTeams(Server server, StringBuilder strBuilder) {
+    StringBuilder oneTeam;
+    StringBuilder teamAlreadySaved = new StringBuilder();
+
+    int nbrTeamSaved = 0;
+
+    for(Team team : server.getTeams()) {
+      try {
+        oneTeam = new StringBuilder();
+
+        oneTeam.append(team.getName() + "\n");
+
+        oneTeam.append(team.getPlayers().size() + "\n");
+
+        for(Player player : team.getPlayers()) {
+          oneTeam.append(player.getDiscordUser().getId() + "\n");
+        }
+
+        nbrTeamSaved++;
+        teamAlreadySaved.append(oneTeam.toString());
+      }catch(Exception e) {
+        logger.warn("A team has not been saved !", e);
+      }
+    }
+
+    strBuilder.append(nbrTeamSaved + "\n");
+    strBuilder.append(teamAlreadySaved.toString());
+  }
+
+  private static void savePlayers(Server server, StringBuilder strBuilder) {
+    StringBuilder onePlayer;
+    StringBuilder playersOKOfTheServer = new StringBuilder();
+
+    int nbrPlayersOk = 0;
+
+    for(Player player : server.getPlayers()) {
+      try {
+        onePlayer = new StringBuilder();
+        onePlayer.append(player.getDiscordUser().getId() + "\n");
+        onePlayer.append(player.getLolAccounts().size() + "\n");
+        for(LeagueAccount account : player.getLolAccounts()) {
+          onePlayer.append(account.getSummoner().getId() + "\n");
+          onePlayer.append(account.getRegion().getName() + "\n");
+        }
+        onePlayer.append(player.isMentionnable() + "\n");
+
+        nbrPlayersOk++;
+        playersOKOfTheServer.append(onePlayer.toString());
+      }catch (Exception e) {
+        logger.warn("A player has not been saved ! Error when saving lol accounts and discords users", e);
+      }
+    }
+
+    strBuilder.append(nbrPlayersOk + "\n");
+    strBuilder.append(playersOKOfTheServer.toString());
   }
 
   public static void loadDataTxt() throws IOException, RiotApiException {
@@ -456,16 +515,21 @@ public class Zoe {
 
     for(Long i = 0L; i < nbrPlayers; i++) {
       String discordId = reader.readLine();
-      String summonerId = reader.readLine();
-      String summonerRegion = reader.readLine();
+      List<LeagueAccount> lolAccounts = new ArrayList<>();
+      int accountNbr = Integer.parseInt(reader.readLine());
+      for(int j = 0; j < accountNbr; j++) {
+        String summonerId = reader.readLine();
+        String summonerRegion = reader.readLine();
+        Platform region = Platform.getPlatformByName(summonerRegion);
+        Summoner summoner = riotApi.getSummoner(region, summonerId, CallPriority.HIGH);
+        lolAccounts.add(new LeagueAccount(summoner, region));
+      }
       String mentionableString = reader.readLine();
 
       User user = jda.getUserById(discordId);
-      Platform region = Platform.getPlatformByName(summonerRegion);
-      Summoner summoner = riotApi.getSummoner(region, summonerId);
       boolean mentionable = Boolean.getBoolean(mentionableString);
 
-      players.add(new Player(user, summoner, region, mentionable));
+      players.add(new Player(user, lolAccounts, mentionable));
     }
     return players;
   }
@@ -493,7 +557,7 @@ public class Zoe {
   public static DiscordBotListAPI getBotListApi() {
     return botListApi;
   }
-  
+
   public static void setBotListApi(DiscordBotListAPI botListApi) {
     Zoe.botListApi = botListApi;
   }

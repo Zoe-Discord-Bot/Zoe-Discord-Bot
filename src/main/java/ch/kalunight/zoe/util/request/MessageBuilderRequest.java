@@ -10,9 +10,11 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.stats.StatsProfileCommand;
 import ch.kalunight.zoe.model.Champion;
@@ -31,7 +33,7 @@ import net.dv8tion.jda.core.entities.MessageEmbed.Field;
 import net.dv8tion.jda.core.entities.User;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.champion_mastery.dto.ChampionMastery;
-import net.rithms.riot.api.endpoints.league.dto.LeaguePosition;
+import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 import net.rithms.riot.api.endpoints.match.dto.Match;
 import net.rithms.riot.api.endpoints.match.dto.MatchList;
 import net.rithms.riot.api.endpoints.match.dto.MatchReference;
@@ -310,9 +312,9 @@ public class MessageBuilderRequest {
 
     message.addField(field);
 
-    Set<LeaguePosition> rankPosition = null;
+    Set<LeagueEntry> rankPosition = null;
     try {
-      rankPosition = Zoe.getRiotApi().getLeaguePositionsBySummonerId(leagueAccount.getRegion(), leagueAccount.getSummoner().getId(), CallPriority.HIGH);
+      rankPosition = Zoe.getRiotApi().getLeagueEntriesBySummonerId(leagueAccount.getRegion(), leagueAccount.getSummoner().getId(), CallPriority.HIGH);
     }catch (RiotApiException e) {
       if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
         throw e;
@@ -322,14 +324,14 @@ public class MessageBuilderRequest {
 
     if(rankPosition != null) {
 
-      Iterator<LeaguePosition> iteratorPosition = rankPosition.iterator();
+      Iterator<LeagueEntry> iteratorPosition = rankPosition.iterator();
 
       String soloqRank = "Soloq : **Unranked**";
       String flexRank = "Flex : **Unranked**";
       String twistedThreeLine = "3x3 : **Unranked**";
 
       while(iteratorPosition.hasNext()) {
-        LeaguePosition leaguePosition = iteratorPosition.next();
+        LeagueEntry leaguePosition = iteratorPosition.next();
         Tier tier = Tier.valueOf(leaguePosition.getTier());
         Rank rank = Rank.valueOf(leaguePosition.getRank());
 

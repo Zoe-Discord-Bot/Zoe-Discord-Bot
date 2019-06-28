@@ -15,6 +15,8 @@ public class ServerData {
   private static final Logger logger = LoggerFactory.getLogger(ServerData.class);
 
   private static final ConcurrentHashMap<String, Server> servers = new ConcurrentHashMap<>();
+  
+  private static final ConcurrentHashMap<String, Boolean> serversAskedTreatment = new ConcurrentHashMap<>();
 
   private static final ConcurrentHashMap<String, Boolean> serversIsInTreatment = new ConcurrentHashMap<>();
 
@@ -53,5 +55,9 @@ public class ServerData {
     TASK_EXECUTOR.shutdown();
 
     TASK_EXECUTOR.awaitTermination(10, TimeUnit.MINUTES);
+  }
+
+  public static ConcurrentHashMap<String, Boolean> getServersAskedTreatment() {
+    return serversAskedTreatment;
   }
 }

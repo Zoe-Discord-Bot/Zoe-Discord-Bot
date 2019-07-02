@@ -23,7 +23,7 @@ public class LeagueAccount {
   }
 
   public void refreshCurrentGameInfo() {
-    try { 
+    try {
       currentGameInfo = Zoe.getRiotApi().getActiveGameBySummoner(region, summoner.getId());
     } catch(RiotApiException e) {
       logger.info(e.getMessage());
@@ -50,7 +50,7 @@ public class LeagueAccount {
     }
     return true;
   }
-  
+
   @Override
   public int hashCode() {
     final int prime = 31;
@@ -82,5 +82,10 @@ public class LeagueAccount {
 
   public void setCurrentGameInfo(CurrentGameInfo currentGameInfo) {
     this.currentGameInfo = currentGameInfo;
+  }
+
+  @Override
+  public String toString() {
+    return "LeagueAccount [summonerName=" + summoner.getName() + ", region=" + region.getName() + "]";
   }
 }

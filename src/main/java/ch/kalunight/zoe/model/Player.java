@@ -116,4 +116,9 @@ public class Player {
   public List<LeagueAccount> getLolAccounts() {
     return lolAccounts;
   }
+
+  @Override
+  public String toString() {
+    return "Player [discordUserName=" + discordUser.getName() + ", lolAccounts=" + lolAccounts + "]";
+  }
 }

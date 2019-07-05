@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.model.ControlPannel;
 import ch.kalunight.zoe.model.Server;
+import ch.kalunight.zoe.model.ServerConfiguration;
 import ch.kalunight.zoe.model.SpellingLangage;
 import ch.kalunight.zoe.service.GameChecker;
 import ch.kalunight.zoe.service.RiotApiUsageChannelRefresh;
@@ -111,7 +112,7 @@ public class EventListener extends ListenerAdapter {
         Server server = ServerData.getServers().get(guild.getId());
 
         if(server == null) {
-          ServerData.getServers().put(guild.getId(), new Server(guild, SpellingLangage.EN));
+          ServerData.getServers().put(guild.getId(), new Server(guild, SpellingLangage.EN, new ServerConfiguration()));
         }
       }
     }
@@ -130,7 +131,7 @@ public class EventListener extends ListenerAdapter {
   public void onGuildJoin(GuildJoinEvent event) {
 
     if(!event.getGuild().getOwner().getUser().getId().equals(Zoe.getJda().getSelfUser().getId())) {
-      ServerData.getServers().put(event.getGuild().getId(), new Server(event.getGuild(), SpellingLangage.EN));
+      ServerData.getServers().put(event.getGuild().getId(), new Server(event.getGuild(), SpellingLangage.EN, new ServerConfiguration()));
       ServerData.getServersIsInTreatment().put(event.getGuild().getId(), false);
       CommandUtil.sendMessageInGuildOrAtOwner(event.getGuild(), WELCOME_MESSAGE);
     }

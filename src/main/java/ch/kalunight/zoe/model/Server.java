@@ -18,6 +18,7 @@ public class Server {
 
   private final List<Long> currentGamesIdAlreadySended = new ArrayList<>();
 
+  private ServerConfiguration config;
   private Guild guild;
   private List<Player> players;
   private List<Team> teams;
@@ -26,8 +27,9 @@ public class Server {
   private SpellingLangage langage; // Not implement yet
   private DateTime lastRefresh;
 
-  public Server(Guild guild, SpellingLangage langage) {
+  public Server(Guild guild, SpellingLangage langage, ServerConfiguration configuration) {
     this.guild = guild;
+    this.config = configuration;
     this.langage = langage;
     players = Collections.synchronizedList(new ArrayList<>());
     teams = Collections.synchronizedList(new ArrayList<>());
@@ -217,5 +219,13 @@ public class Server {
   
   public List<Long> getCurrentGamesIdAlreadySended() {
     return currentGamesIdAlreadySended;
+  }
+
+  public ServerConfiguration getConfig() {
+    return config;
+  }
+
+  public void setConfig(ServerConfiguration config) {
+    this.config = config;
   }
 }

@@ -46,6 +46,7 @@ import ch.kalunight.zoe.model.CustomEmote;
 import ch.kalunight.zoe.model.LeagueAccount;
 import ch.kalunight.zoe.model.Player;
 import ch.kalunight.zoe.model.Server;
+import ch.kalunight.zoe.model.ServerConfiguration;
 import ch.kalunight.zoe.model.SpellingLangage;
 import ch.kalunight.zoe.model.Team;
 import ch.kalunight.zoe.util.Ressources;
@@ -424,7 +425,7 @@ public class Zoe {
               langage = SpellingLangage.EN;
             }
 
-            final Server server = new Server(guild, langage);
+            final Server server = new Server(guild, langage, new ServerConfiguration());
 
             final Long nbrPlayers = Long.parseLong(reader.readLine());
 

@@ -1,8 +1,11 @@
-package ch.kalunight.zoe.model;
+package ch.kalunight.zoe.model.config;
 
-import net.dv8tion.jda.core.entities.Role;
-import net.rithms.riot.constant.Platform;
+import java.util.ArrayList;
+import java.util.List;
 import javax.annotation.Generated;
+import ch.kalunight.zoe.model.config.option.ConfigurationOption;
+import ch.kalunight.zoe.model.config.option.RegionOption;
+import net.dv8tion.jda.core.entities.Role;
 
 public class ServerConfiguration {
   
@@ -15,7 +18,7 @@ public class ServerConfiguration {
    * Default region of the server. If a account/player is created without the region and this option activated the default region will be used.
    * Null if non activated.
    */
-  private Platform defaultRegion;
+  private RegionOption defaultRegion;
   
   /**
    * This option hide channels of zoe to non-register players. Null if non activated. This id is saved in the save.
@@ -34,14 +37,19 @@ public class ServerConfiguration {
     this.zoeRole = builder.zoeRole;
     this.everyoneCanMoveOfTeam = builder.everyoneCanMoveOfTeam;
   }
-  
+
   public ServerConfiguration() {
     this.userSelfAdding = false;
-    this.defaultRegion = null;
+    this.defaultRegion = new RegionOption(null);
     this.zoeRole = null;
     this.everyoneCanMoveOfTeam = false;
   }
   
+  public List<ConfigurationOption> getAllConfigurationOption() {
+    List<ConfigurationOption> options = new ArrayList<>();
+    options.add(defaultRegion);
+    return options;
+  }
 
   public boolean isUserSelfAdding() {
     return userSelfAdding;
@@ -51,11 +59,11 @@ public class ServerConfiguration {
     this.userSelfAdding = userSelfAdding;
   }
 
-  public Platform getDefaultRegion() {
+  public RegionOption getDefaultRegion() {
     return defaultRegion;
   }
 
-  public void setDefaultRegion(Platform defaultRegion) {
+  public void setDefaultRegion(RegionOption defaultRegion) {
     this.defaultRegion = defaultRegion;
   }
 
@@ -90,7 +98,7 @@ public class ServerConfiguration {
   @Generated("SparkTools")
   public static final class Builder {
     private boolean userSelfAdding;
-    private Platform defaultRegion;
+    private RegionOption defaultRegion;
     private Role zoeRole;
     private boolean everyoneCanMoveOfTeam;
 
@@ -101,7 +109,7 @@ public class ServerConfiguration {
       return this;
     }
 
-    public Builder withDefaultRegion(Platform defaultRegion) {
+    public Builder withDefaultRegion(RegionOption defaultRegion) {
       this.defaultRegion = defaultRegion;
       return this;
     }

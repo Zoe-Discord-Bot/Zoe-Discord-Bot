@@ -2,6 +2,7 @@ package ch.kalunight.zoe.model;
 
 import java.util.List;
 import org.joda.time.DateTime;
+import ch.kalunight.zoe.model.player_data.Player;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageEmbed;
 

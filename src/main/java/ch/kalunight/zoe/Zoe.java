@@ -26,6 +26,7 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.examples.command.PingCommand;
 import ch.kalunight.zoe.command.AboutCommand;
+import ch.kalunight.zoe.command.ConfigCommand;
 import ch.kalunight.zoe.command.PatchNotesCommand;
 import ch.kalunight.zoe.command.RefreshCommand;
 import ch.kalunight.zoe.command.ResetCommand;
@@ -40,15 +41,15 @@ import ch.kalunight.zoe.command.delete.DeleteCommand;
 import ch.kalunight.zoe.command.remove.RemoveCommand;
 import ch.kalunight.zoe.command.show.ShowCommand;
 import ch.kalunight.zoe.command.stats.StatsCommand;
-import ch.kalunight.zoe.model.Champion;
 import ch.kalunight.zoe.model.ControlPannel;
-import ch.kalunight.zoe.model.CustomEmote;
-import ch.kalunight.zoe.model.LeagueAccount;
-import ch.kalunight.zoe.model.Player;
 import ch.kalunight.zoe.model.Server;
-import ch.kalunight.zoe.model.ServerConfiguration;
-import ch.kalunight.zoe.model.SpellingLangage;
-import ch.kalunight.zoe.model.Team;
+import ch.kalunight.zoe.model.config.ServerConfiguration;
+import ch.kalunight.zoe.model.player_data.LeagueAccount;
+import ch.kalunight.zoe.model.player_data.Player;
+import ch.kalunight.zoe.model.player_data.Team;
+import ch.kalunight.zoe.model.static_data.Champion;
+import ch.kalunight.zoe.model.static_data.CustomEmote;
+import ch.kalunight.zoe.model.static_data.SpellingLangage;
 import ch.kalunight.zoe.util.Ressources;
 import net.dv8tion.jda.core.AccountType;
 import net.dv8tion.jda.core.JDA;
@@ -245,6 +246,7 @@ public class Zoe {
     commands.add(new StatsCommand(eventWaiter));
     commands.add(new ResetCommand(eventWaiter));
     commands.add(new ShowCommand(eventWaiter));
+    commands.add(new ConfigCommand(eventWaiter));
 
     mainCommands = commands;
 

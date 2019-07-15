@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import ch.kalunight.zoe.Zoe;
-import ch.kalunight.zoe.model.CustomEmote;
+import ch.kalunight.zoe.model.static_data.CustomEmote;
 import net.dv8tion.jda.core.entities.Emote;
 import net.dv8tion.jda.core.entities.Guild;
 

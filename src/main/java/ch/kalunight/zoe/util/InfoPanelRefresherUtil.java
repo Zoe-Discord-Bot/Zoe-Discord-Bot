@@ -2,7 +2,7 @@ package ch.kalunight.zoe.util;
 
 import java.util.List;
 import com.google.common.base.Preconditions;
-import ch.kalunight.zoe.model.LeagueAccount;
+import ch.kalunight.zoe.model.player_data.LeagueAccount;
 
 public class InfoPanelRefresherUtil {
 

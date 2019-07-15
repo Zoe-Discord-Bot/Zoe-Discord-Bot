@@ -1,4 +1,4 @@
-package ch.kalunight.zoe.model;
+package ch.kalunight.zoe.model.player_data;
 
 import java.util.ArrayList;
 import java.util.Collections;

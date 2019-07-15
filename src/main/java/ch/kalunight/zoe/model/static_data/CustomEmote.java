@@ -1,4 +1,4 @@
-package ch.kalunight.zoe.model;
+package ch.kalunight.zoe.model.static_data;
 
 import java.io.File;
 import net.dv8tion.jda.core.entities.Emote;

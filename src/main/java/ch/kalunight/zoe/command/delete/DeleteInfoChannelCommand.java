@@ -7,8 +7,8 @@ import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.model.ControlPannel;
 import ch.kalunight.zoe.model.Server;
-import ch.kalunight.zoe.model.ServerConfiguration;
-import ch.kalunight.zoe.model.SpellingLangage;
+import ch.kalunight.zoe.model.config.ServerConfiguration;
+import ch.kalunight.zoe.model.static_data.SpellingLangage;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.exceptions.InsufficientPermissionException;
 

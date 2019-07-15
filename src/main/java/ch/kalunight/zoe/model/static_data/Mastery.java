@@ -1,4 +1,4 @@
-package ch.kalunight.zoe.model;
+package ch.kalunight.zoe.model.static_data;
 
 public enum Mastery {
   MASTERY1("mastery1"), MASTERY2("mastery2"), MASTERY3("mastery3"), MASTERY4("mastery4"), MASTERY5("mastery5"), MASTERY6(

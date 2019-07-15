@@ -1,4 +1,4 @@
-package ch.kalunight.zoe.model;
+package ch.kalunight.zoe.model.player_data;
 
 public enum Rank {
   UNKNOWN("", -1), UNRANKED("", -1), I("1", 300), II("2", 200), III("3", 100), IV("4", 0);

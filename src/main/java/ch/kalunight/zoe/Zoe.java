@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
 import org.discordbots.api.client.DiscordBotListAPI;
@@ -44,6 +45,7 @@ import ch.kalunight.zoe.command.stats.StatsCommand;
 import ch.kalunight.zoe.model.ControlPannel;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
+import ch.kalunight.zoe.model.config.option.ConfigurationOption;
 import ch.kalunight.zoe.model.player_data.LeagueAccount;
 import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.model.player_data.Team;
@@ -79,6 +81,8 @@ public class Zoe {
   private static final File SAVE_TXT_FILE = new File("ressources/save.txt");
 
   public static final File RAPI_SAVE_TXT_FILE = new File("ressources/apiInfos.txt");
+
+  public static final File SAVE_CONFIG_FOLDER = new File("ressources/serversConfigs");
 
   /**
    * USED ONLY FOR STATS ANALYSE. DON'T MODIFY DATA INSIDE.
@@ -330,6 +334,35 @@ public class Zoe {
     try(PrintWriter writer = new PrintWriter(SAVE_TXT_FILE, "UTF-8");) {
       writer.write(strMainBuilder.toString());
     }
+
+    saveServerConfiguration(servers);
+  }
+
+  private static void saveServerConfiguration(Map<String, Server> servers) {
+    if(!SAVE_CONFIG_FOLDER.exists()) {
+      SAVE_CONFIG_FOLDER.mkdir();
+    }
+
+    Iterator<Entry<String, Server>> iterator = servers.entrySet().iterator();
+
+    while(iterator.hasNext()) {
+      Server server = iterator.next().getValue();
+
+      List<ConfigurationOption> options = server.getConfig().getAllConfigurationOption();
+
+      StringBuilder strBuilder = new StringBuilder();
+      for(ConfigurationOption option : options) {
+        strBuilder.append(option.getSave() + "\n");
+      }
+
+      strBuilder.deleteCharAt(strBuilder.length() - 1);
+
+      try(PrintWriter writer = new PrintWriter(SAVE_CONFIG_FOLDER + "/" + server.getGuild().getId() + ".txt", "UTF-8");) {
+        writer.write(strBuilder.toString());
+      } catch(FileNotFoundException | UnsupportedEncodingException e) {
+        logger.error("Error in the saving of the config in the server ID : {}", server.getGuild().getId(), e);
+      }
+    }
   }
 
   private static void saveControlPanel(Server server, StringBuilder strBuilder) {
@@ -427,7 +460,7 @@ public class Zoe {
               langage = SpellingLangage.EN;
             }
 
-            final Server server = new Server(guild, langage, new ServerConfiguration());
+            final Server server = new Server(guild, langage, loadConfig(guildId));
 
             final Long nbrPlayers = Long.parseLong(reader.readLine());
 
@@ -462,6 +495,29 @@ public class Zoe {
           logger.error("A guild as been loaded badly !", e);
         }
       }
+    }
+  }
+
+  private static ServerConfiguration loadConfig(String guildId) throws IOException {
+    ServerConfiguration serverConfiguration = new ServerConfiguration();
+    List<ConfigurationOption> options = serverConfiguration.getAllConfigurationOption();
+    
+    File file = new File(SAVE_CONFIG_FOLDER + "/" + guildId + ".txt");
+    if(file.exists()) {
+      try(final BufferedReader reader = new BufferedReader(new FileReader(SAVE_CONFIG_FOLDER + "/" + guildId + ".txt"));) {
+        String line;
+
+        while((line = reader.readLine()) != null) {
+          for(ConfigurationOption option : options) {
+            if(option.isTheOption(line)) {
+              option.restoreSave(line);
+            }
+          }
+        }
+      }
+      return serverConfiguration;
+    }else {
+      return serverConfiguration;
     }
   }
 

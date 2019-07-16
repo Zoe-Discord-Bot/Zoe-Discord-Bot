@@ -43,7 +43,7 @@ public class ConfigCommand extends Command{
         .setTimeout(2, TimeUnit.MINUTES)
         .useNumbers()
         .setText("Here my options:")
-        .setDescription("Configuration Choices:")
+        .setDescription("**Configuration Choices:**")
         .useCancelButton(true)
         .setEventWaiter(waiter);
     
@@ -75,7 +75,7 @@ public class ConfigCommand extends Command{
       @Override
       public void accept(Message message) {
         message.clearReactions();
-        message.editMessage("Configuration ended").queue();
+        message.getChannel().sendMessage("Configuration Ended").queue();
       }};
   }
   

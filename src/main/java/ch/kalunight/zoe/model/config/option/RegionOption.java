@@ -15,19 +15,21 @@ import net.rithms.riot.constant.Platform;
 
 public class RegionOption extends ConfigurationOption {
 
+  private static final String NO_VALUE_REPRESENTATION = "null";
+  
   private Platform region;
   
   public RegionOption(Platform region) {
-    super("Default region of the server");
-    this.setRegion(region);
+    super("default_region", "Default region of the server");
+    this.region = region;
   }
 
   @Override
   public String getChoiceText() {
-    String strRegion = "Any (Disabled)";
+    String strRegion = "Any (Disable)";
     
     if(region != null) {
-      strRegion = this.region.getName() + " (Enabled)";
+      strRegion = this.region.getName().toUpperCase() + " (Enabled)";
     }
     
     return description + " : " + strRegion;
@@ -42,9 +44,9 @@ public class RegionOption extends ConfigurationOption {
         event.getChannel().sendTyping().complete();
         String message;
         if(region == null) {
-          message = "Currently any default region is setted. Which region you want to set ?";
+          message = "Currently **any** default region is setted. Which region you want to set ?";
         }else {
-          message = "Currently default region is " + region.getName() + ". Which region you want to set ?";
+          message = "Currently default region is **" + region.getName().toUpperCase() + "**. Which region you want to set ?";
         }
         
         event.getChannel().sendMessage(message).queue();
@@ -60,7 +62,7 @@ public class RegionOption extends ConfigurationOption {
         List<Platform> regionsList = new ArrayList<>();
         List<String> regionChoices = new ArrayList<>();
         for(Platform regionMember : Platform.values()) {
-          String actualChoice = "Region " + regionMember.getName();
+          String actualChoice = "Region " + regionMember.getName().toUpperCase();
           regionChoices.add(actualChoice);
           selectAccountBuilder.addChoices(actualChoice);
           regionsList.add(regionMember);
@@ -69,7 +71,7 @@ public class RegionOption extends ConfigurationOption {
         selectAccountBuilder.addChoices("Region Any (Option Disable)");
         
         selectAccountBuilder.setText(getUpdateMessageAfterChangeSelectAction(regionChoices))
-        .setSelectionConsumer(getSelectionDoneAction(regionsList));
+                            .setSelectionConsumer(getSelectionDoneAction(regionsList));
         
         SelectionDialog dialog = selectAccountBuilder.build();
         dialog.display(event.getChannel());
@@ -101,11 +103,11 @@ public class RegionOption extends ConfigurationOption {
           strRegion = "Any";
           region = null;
         }else {
-          strRegion = regionsList.get(selectionOfRegion - 1).getName();
+          strRegion = regionsList.get(selectionOfRegion - 1).getName().toUpperCase();
           region = regionsList.get(selectionOfRegion - 1);
         }
         
-        selectionMessage.getTextChannel().sendMessage("The default region of the server is \"" + strRegion + "\".").queue();
+        selectionMessage.getTextChannel().sendMessage("The default region of the server is now \"**" + strRegion + "**\".").queue();
       }
     };
   }
@@ -115,16 +117,32 @@ public class RegionOption extends ConfigurationOption {
       @Override
       public void accept(Message message) {
         message.clearReactions().queue();
-        message.editMessage("Selection Ended").queue();
+        message.editMessage("Selection canceled").queue();
+        message.getChannel().sendMessage("Selection canceled").queue();
       }
     };
+  }
+  
+  @Override
+  public String getSave() {
+    String regionStr = NO_VALUE_REPRESENTATION;
+    if(region != null) {
+      regionStr = region.getId();
+    }
+    
+    return id + ":" + regionStr;
+  }
+
+  @Override
+  public void restoreSave(String save) {
+    String[] saveDatas = save.split(":");
+    
+    if(!saveDatas[1].equals(NO_VALUE_REPRESENTATION)) {
+      region = Platform.getPlatformById(saveDatas[1]);
+    }
   }
 
   public Platform getRegion() {
     return region;
-  }
-
-  public void setRegion(Platform region) {
-    this.region = region;
   }
 }

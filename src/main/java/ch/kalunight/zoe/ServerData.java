@@ -14,6 +14,9 @@ public class ServerData {
 
   private static final Logger logger = LoggerFactory.getLogger(ServerData.class);
 
+  /**
+   * Server storage, Key is guild discord id of the concerned server.
+   */
   private static final ConcurrentHashMap<String, Server> servers = new ConcurrentHashMap<>();
   
   private static final ConcurrentHashMap<String, Boolean> serversAskedTreatment = new ConcurrentHashMap<>();

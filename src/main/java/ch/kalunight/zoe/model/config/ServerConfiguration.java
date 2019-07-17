@@ -37,7 +37,7 @@ public class ServerConfiguration {
   
   public ServerConfiguration() {
     this.userSelfAdding = false;
-    this.defaultRegion = new RegionOption(null);
+    this.defaultRegion = new RegionOption();
     this.zoeRole = null;
     this.everyoneCanMoveOfTeam = false;
   }

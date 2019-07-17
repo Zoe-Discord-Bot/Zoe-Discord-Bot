@@ -6,6 +6,8 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 
 public abstract class ConfigurationOption {
 
+  protected static final String NO_VALUE_REPRESENTATION = "null";
+  
   protected String id;
   protected String description;
   

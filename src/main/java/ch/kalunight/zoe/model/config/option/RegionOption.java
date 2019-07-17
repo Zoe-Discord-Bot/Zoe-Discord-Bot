@@ -16,13 +16,11 @@ import net.rithms.riot.constant.Platform;
 
 public class RegionOption extends ConfigurationOption {
 
-  private static final String NO_VALUE_REPRESENTATION = "null";
-
   private Platform region;
 
-  public RegionOption(Platform region) {
+  public RegionOption() {
     super("default_region", "Default region of the server");
-    this.region = region;
+    this.region = null;
   }
 
   @Override

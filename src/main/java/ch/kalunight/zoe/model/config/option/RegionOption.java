@@ -1,6 +1,7 @@
 package ch.kalunight.zoe.model.config.option;
 
 import java.awt.Color;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -16,9 +17,9 @@ import net.rithms.riot.constant.Platform;
 public class RegionOption extends ConfigurationOption {
 
   private static final String NO_VALUE_REPRESENTATION = "null";
-  
+
   private Platform region;
-  
+
   public RegionOption(Platform region) {
     super("default_region", "Default region of the server");
     this.region = region;
@@ -27,14 +28,14 @@ public class RegionOption extends ConfigurationOption {
   @Override
   public String getChoiceText() {
     String strRegion = "Any (Disable)";
-    
+
     if(region != null) {
       strRegion = this.region.getName().toUpperCase() + " (Enabled)";
     }
-    
+
     return description + " : " + strRegion;
   }
-  
+
   @Override
   public Consumer<CommandEvent> getChangeConsumer(EventWaiter waiter) {
     return new Consumer<CommandEvent>() {
@@ -48,17 +49,18 @@ public class RegionOption extends ConfigurationOption {
         }else {
           message = "Currently default region is **" + region.getName().toUpperCase() + "**. Which region you want to set ?";
         }
-        
+
         event.getChannel().sendMessage(message).queue();
-        
+
         SelectionDialog.Builder selectAccountBuilder = new SelectionDialog.Builder()
+            .addUsers(event.getAuthor())
             .setEventWaiter(waiter)
             .useLooping(true)
             .setColor(Color.GREEN)
             .setSelectedEnds("**", "**")
             .setCanceled(getSelectionCancelAction())
             .setTimeout(2, TimeUnit.MINUTES);
-        
+
         List<Platform> regionsList = new ArrayList<>();
         List<String> regionChoices = new ArrayList<>();
         for(Platform regionMember : Platform.values()) {
@@ -69,15 +71,15 @@ public class RegionOption extends ConfigurationOption {
         }
         regionChoices.add("Region Any (Option Disable)");
         selectAccountBuilder.addChoices("Region Any (Option Disable)");
-        
+
         selectAccountBuilder.setText(getUpdateMessageAfterChangeSelectAction(regionChoices))
-                            .setSelectionConsumer(getSelectionDoneAction(regionsList));
-        
+        .setSelectionConsumer(getSelectionDoneAction(regionsList));
+
         SelectionDialog dialog = selectAccountBuilder.build();
         dialog.display(event.getChannel());
       }};
   }
-  
+
   private Function<Integer, String> getUpdateMessageAfterChangeSelectAction(List<String> choices) {
     return new Function<Integer, String>() {
       @Override
@@ -85,19 +87,19 @@ public class RegionOption extends ConfigurationOption {
         if(choices.size() == index) {
           return "Region selected : \"**Any**\"";
         }
-        
+
         return "Region selected : \"**" + choices.get(index - 1) + "**\"";
       }
     };
   }
-  
+
   private BiConsumer<Message, Integer> getSelectionDoneAction(List<Platform> regionsList) {
     return new BiConsumer<Message, Integer>() {
       @Override
       public void accept(Message selectionMessage, Integer selectionOfRegion) {
-        
+
         selectionMessage.clearReactions().queue();
-        
+
         String strRegion;
         if(regionsList.size() == selectionOfRegion - 1) {
           strRegion = "Any";
@@ -106,37 +108,39 @@ public class RegionOption extends ConfigurationOption {
           strRegion = regionsList.get(selectionOfRegion - 1).getName().toUpperCase();
           region = regionsList.get(selectionOfRegion - 1);
         }
-        
+
         selectionMessage.getTextChannel().sendMessage("The default region of the server is now \"**" + strRegion + "**\".").queue();
       }
     };
   }
-  
+
   private Consumer<Message> getSelectionCancelAction(){
     return new Consumer<Message>() {
       @Override
       public void accept(Message message) {
-        message.clearReactions().queue();
-        message.editMessage("Selection canceled").queue();
-        message.getChannel().sendMessage("Selection canceled").queue();
+        if(message.getCreationTime().isAfter(OffsetDateTime.now().minusSeconds(119))) {
+          message.clearReactions().queue();
+          message.editMessage("Selection canceled").queue();
+          message.getChannel().sendMessage("Selection canceled").queue();
+        }
       }
     };
   }
-  
+
   @Override
   public String getSave() {
     String regionStr = NO_VALUE_REPRESENTATION;
     if(region != null) {
       regionStr = region.getId();
     }
-    
+
     return id + ":" + regionStr;
   }
 
   @Override
   public void restoreSave(String save) {
     String[] saveDatas = save.split(":");
-    
+
     if(!saveDatas[1].equals(NO_VALUE_REPRESENTATION)) {
       region = Platform.getPlatformById(saveDatas[1]);
     }

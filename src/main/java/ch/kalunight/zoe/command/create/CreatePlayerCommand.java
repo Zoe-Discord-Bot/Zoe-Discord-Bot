@@ -14,6 +14,7 @@ import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.model.Server;
+import ch.kalunight.zoe.model.config.option.RegionOption;
 import ch.kalunight.zoe.model.player_data.LeagueAccount;
 import ch.kalunight.zoe.model.player_data.Player;
 import net.dv8tion.jda.core.Permission;
@@ -57,15 +58,29 @@ public class CreatePlayerCommand extends Command{
       event.reply("The mentioned member is already register. If you want to modify the LoL account please delete it first.");
       return;
     }
+    
+    RegionOption regionOption = server.getConfig().getDefaultRegion();
 
-    List<String> listArgs = getParameterInParenteses(event.getArgs());
-    if(listArgs.size() != 2) {
+    List<String> listArgs = CreatePlayerCommand.getParameterInParenteses(event.getArgs());
+    if(listArgs.size() != 2 && regionOption.getRegion() == null) {
       event.reply("The command is malformed. Please respect this pattern : `>create player @DiscordPlayerMention (Region) (SummonerName)`");
       return;
+    }else if((listArgs.isEmpty() || listArgs.size() > 2) && regionOption.getRegion() != null) {
+      event.reply("The command is malformed. Please respect this pattern : `>create player @DiscordPlayerMention (Region) (SummonerName)`\n"
+          + "If the region is not set, the default region will be used (" + regionOption.getRegion().getName().toUpperCase() + ").");
+      return;
     }
-    
-    String regionName = listArgs.get(0);
-    String summonerName = listArgs.get(1);
+
+    String regionName;
+    String summonerName;
+    if(listArgs.size() == 2) {
+      regionName = listArgs.get(0);
+      summonerName = listArgs.get(1);
+    }else {
+      regionName = regionOption.getRegion().getName();
+      summonerName = listArgs.get(0);
+    }
+
 
     Platform region = getPlatform(regionName);
     if(region == null) {

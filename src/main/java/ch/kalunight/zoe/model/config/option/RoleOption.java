@@ -45,11 +45,37 @@ public class RoleOption extends ConfigurationOption {
               TimeUnit.MINUTES, () -> endRegistrationTime(event.getEvent()));
 
         }else {
-          event.reply("This option it's currently activated. "
+          event.reply("This option it's currently **activated**.\n\n"
               + "Disable it will **delete the Zoe-Player role** and will remake infochannel readable by everyone."
-              + "\n\nIf you want disable the option, send **Disable**.");
+              + "\n\nIf you want disable the option, send **Disable**. "
+              + "If you don't want to disable it, say **Stop** (or somthing other than Disable).");
+
+          waiter.waitForEvent(MessageReceivedEvent.class,
+              e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel()), e -> receiveValidationAndDisableOption(e), 1,
+              TimeUnit.MINUTES, () -> endRegistrationTime(event.getEvent()));
         }
       }};
+  }
+  
+  private void receiveValidationAndDisableOption(MessageReceivedEvent event) {
+    event.getChannel().sendTyping().queue();
+    String message = event.getMessage().getContentRaw();
+    if(message.equalsIgnoreCase("Disable")) {
+      event.getChannel().sendMessage("Right, i disable the option. Please wait 2 seconds...").complete();
+      event.getChannel().sendTyping().complete();
+      role.delete().complete();
+      
+      Server server = ServerData.getServers().get(event.getGuild().getId());
+      
+      if(server != null && server.getInfoChannel() != null) {
+        PermissionOverride everyone = server.getInfoChannel().getPermissionOverride(server.getGuild().getPublicRole());
+        everyone.getManager().grant(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).complete();
+      }
+      
+      event.getChannel().sendMessage("The option has been disable !").queue();
+    }else {
+      event.getChannel().sendMessage("Right, the option is still activate.").queue();
+    }
   }
 
   private void receiveValidationAndCreateOption(MessageReceivedEvent event) {
@@ -72,10 +98,10 @@ public class RoleOption extends ConfigurationOption {
 
       if(server.getInfoChannel() != null) {
         PermissionOverride permissionZoePlayer = server.getInfoChannel().putPermissionOverride(role).complete();
-        permissionZoePlayer.getManager().grant(Permission.MESSAGE_READ).complete();
+        permissionZoePlayer.getManager().grant(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).complete();
 
         PermissionOverride everyone = server.getInfoChannel().getPermissionOverride(server.getGuild().getPublicRole());
-        everyone.getManager().deny(Permission.MESSAGE_READ).complete();
+        everyone.getManager().deny(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).complete();
       }
       event.getChannel().sendMessage("The configuration has endend ! Now only registered player can see the infoChannel.").complete();
     }else {
@@ -87,7 +113,6 @@ public class RoleOption extends ConfigurationOption {
     event.getChannel().sendTyping().queue();
     event.getTextChannel().sendMessage("Well, i have some others things to do. You can always me ask again to activate this option later.").queue();
   }
-
 
 
   @Override

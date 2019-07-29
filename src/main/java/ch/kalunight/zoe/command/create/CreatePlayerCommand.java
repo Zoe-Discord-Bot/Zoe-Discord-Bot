@@ -117,6 +117,12 @@ public class CreatePlayerCommand extends Command{
 
     Player player = new Player(user, summoner, region, false);
     server.getPlayers().add(player);
+    if(server.getConfig().getZoeRoleOption().getRole() != null) {
+      Member member = server.getGuild().getMember(user);
+      if(member != null) {
+        server.getGuild().getController().addRolesToMember(member, server.getConfig().getZoeRoleOption().getRole()).queue();
+      }
+    }
     event.reply("The player " + user.getName() + " has been added with the account \"" + summoner.getName() + "\".");
   }
 

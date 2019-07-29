@@ -45,6 +45,12 @@ public class DeletePlayerCommand extends Command {
         event.reply(user.getName() + " is not registered !");
       } else {
         server.deletePlayer(player);
+        if(server.getConfig().getZoeRoleOption().getRole() != null) {
+          Member member = server.getGuild().getMember(user);
+          if(member != null) {
+            server.getGuild().getController().removeRolesFromMember(member, server.getConfig().getZoeRoleOption().getRole()).queue();
+          }
+        }
         event.reply(player.getDiscordUser().getName() + " has been deleted !");
       }
     }

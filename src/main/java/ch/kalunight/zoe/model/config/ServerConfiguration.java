@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import ch.kalunight.zoe.model.config.option.ConfigurationOption;
 import ch.kalunight.zoe.model.config.option.RegionOption;
-import net.dv8tion.jda.core.entities.Role;
+import ch.kalunight.zoe.model.config.option.RoleOption;
 
 public class ServerConfiguration {
   
@@ -22,7 +22,7 @@ public class ServerConfiguration {
   /**
    * This option hide channels of zoe to non-register players. Null if non activated. This id is saved in the save.
    */
-  private Role zoeRole;
+  private RoleOption zoeRoleOption;
   
   /**
    * This option activate the command join/leave for everyone. They can join team joinable by everyone.
@@ -32,13 +32,14 @@ public class ServerConfiguration {
   public List<ConfigurationOption> getAllConfigurationOption() {
     List<ConfigurationOption> options = new ArrayList<>();
     options.add(defaultRegion);
+    options.add(zoeRoleOption);
     return options;
   }
   
   public ServerConfiguration() {
     this.userSelfAdding = false;
     this.defaultRegion = new RegionOption();
-    this.zoeRole = null;
+    this.zoeRoleOption = new RoleOption();
     this.everyoneCanMoveOfTeam = false;
   }
 
@@ -58,12 +59,12 @@ public class ServerConfiguration {
     this.defaultRegion = defaultRegion;
   }
 
-  public Role getZoeRole() {
-    return zoeRole;
+  public RoleOption getZoeRoleOption() {
+    return zoeRoleOption;
   }
 
-  public void setZoeRole(Role zoeRole) {
-    this.zoeRole = zoeRole;
+  public void setZoeRoleOption(RoleOption zoeRole) {
+    this.zoeRoleOption = zoeRole;
   }
 
   public boolean isEveryoneCanMoveOfTeam() {

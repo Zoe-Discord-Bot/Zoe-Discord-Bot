@@ -19,7 +19,7 @@ public abstract class ConfigurationOption {
   /**
    * Consumer who create a new interface for the user to change the option
    * @param waiter of Zoe. Used to wait user action.
-   * @return Consumer who the interface
+   * @return Consumer who is the interface
    */
   public abstract Consumer<CommandEvent> getChangeConsumer(EventWaiter waiter);
 

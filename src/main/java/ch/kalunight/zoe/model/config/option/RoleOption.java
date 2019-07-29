@@ -121,7 +121,6 @@ public class RoleOption extends ConfigurationOption {
     if(role != null) {
       status = "Enable";
     }
-
     return description + " : " + status;
   }
 
@@ -131,7 +130,6 @@ public class RoleOption extends ConfigurationOption {
     if(role != null) {
       save = role.getId() + ":" + role.getGuild().getId();
     }
-
     return id + ":" + save;
   }
 

@@ -479,7 +479,7 @@ public class Zoe {
             try {
               controlPannel = getControlePannel(reader, server, nbrMessageControlPannel);
             }catch(InsufficientPermissionException e) {
-              logger.info("Zoe missing a permission in a guild !",e);
+              logger.info("Zoe missing a permission in a guild !");
               
               try {
                 PrivateChannel privateChannel = guild.getOwner().getUser().openPrivateChannel().complete();

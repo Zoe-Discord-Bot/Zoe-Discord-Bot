@@ -26,7 +26,7 @@ import net.dv8tion.jda.core.entities.MessageEmbed;
 import net.dv8tion.jda.core.entities.PermissionOverride;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.exceptions.ErrorResponseException;
-import net.dv8tion.jda.core.exceptions.PermissionException;
+import net.dv8tion.jda.core.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.core.requests.ErrorResponse;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
@@ -83,17 +83,6 @@ public class InfoPanelRefresher implements Runnable {
 
           try {
             cleaningInfoChannel();
-          }catch (PermissionException e) {
-            logger.info("Permission {} missing to clean infochannel in the guild {}, try to autofix the issue...",
-                e.getPermission().getName(), server.getGuild().getName());
-            try {
-              PermissionOverride permissionOverride = server.getInfoChannel()
-                  .putPermissionOverride(server.getGuild().getMember(Zoe.getJda().getSelfUser())).complete();
-            
-              permissionOverride.getManager().grant(e.getPermission()).complete();
-            }catch(Exception e1) {
-              logger.info("Autofix fail.");
-            }
           }catch (Exception e) {
             logger.warn("An unexpected error when cleaning info channel has occure.", e);
           }
@@ -104,6 +93,18 @@ public class InfoPanelRefresher implements Runnable {
       }
     } catch(NullPointerException e) {
       logger.info("The Thread has crashed normally because of deletion of infoChannel :", e);
+    }catch (InsufficientPermissionException e) {
+      logger.info("Permission {} missing for infochannel in the guild {}, try to autofix the issue...",
+          e.getPermission().getName(), server.getGuild().getName());
+      try {
+        PermissionOverride permissionOverride = server.getInfoChannel()
+            .putPermissionOverride(server.getGuild().getMember(Zoe.getJda().getSelfUser())).complete();
+      
+        permissionOverride.getManager().grant(e.getPermission()).complete();
+        logger.info("Autofix complete !");
+      }catch(Exception e1) {
+        logger.info("Autofix fail ! Error message : {} ", e1.getMessage());
+      }
     } catch(Exception e) {
       logger.warn("The thread got a unexpected error :", e);
     } finally {

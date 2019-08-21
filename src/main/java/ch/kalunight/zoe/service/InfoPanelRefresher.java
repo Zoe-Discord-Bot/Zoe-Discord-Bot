@@ -23,6 +23,7 @@ import ch.kalunight.zoe.util.NameConversion;
 import ch.kalunight.zoe.util.request.MessageBuilderRequest;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageEmbed;
+import net.dv8tion.jda.core.entities.PermissionOverride;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.exceptions.ErrorResponseException;
 import net.dv8tion.jda.core.exceptions.PermissionException;
@@ -83,7 +84,16 @@ public class InfoPanelRefresher implements Runnable {
           try {
             cleaningInfoChannel();
           }catch (PermissionException e) {
-            logger.info("Unsuffisient permission to clean info channel : {}", e.getMessage());
+            logger.info("Permission {} missing to clean infochannel in the guild {}, try to autofix the issue...",
+                e.getPermission().getName(), server.getGuild().getName());
+            try {
+              PermissionOverride permissionOverride = server.getInfoChannel()
+                  .putPermissionOverride(server.getGuild().getMember(Zoe.getJda().getSelfUser())).complete();
+            
+              permissionOverride.getManager().grant(e.getPermission()).complete();
+            }catch(Exception e1) {
+              logger.info("Autofix fail.");
+            }
           }catch (Exception e) {
             logger.warn("An unexpected error when cleaning info channel has occure.", e);
           }

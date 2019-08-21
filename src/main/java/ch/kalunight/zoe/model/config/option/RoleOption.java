@@ -1,5 +1,7 @@
 package ch.kalunight.zoe.model.config.option;
 
+import java.awt.Color;
+import java.time.OffsetDateTime;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import com.jagrosh.jdautilities.command.CommandEvent;
@@ -33,6 +35,12 @@ public class RoleOption extends ConfigurationOption {
       @Override
       public void accept(CommandEvent event) {
 
+        if(!event.getGuild().getSelfMember().getPermissions().contains(Permission.MANAGE_ROLES)) {
+          event.reply("I need the manage roles permission to activate this option. "
+              + "Please give me this permission if you want to activate this option.");
+          return;
+        }
+
         if(role == null) {
           event.reply("Option in activation : **" + description + "**\n\n"
               + "Activate this option will create a role named \"Zoe-Player\" and assigne it to all players registered. "
@@ -45,7 +53,7 @@ public class RoleOption extends ConfigurationOption {
               TimeUnit.MINUTES, () -> endRegistrationTime(event.getEvent()));
 
         }else {
-          event.reply("This option it's currently **activated**.\n\n"
+          event.reply("This option is currently **activated**.\n\n"
               + "Disable it will **delete the Zoe-Player role** and will remake infochannel readable by everyone."
               + "\n\nIf you want disable the option, send **Disable**. "
               + "If you don't want to disable it, say **Stop** (or somthing other than Disable).");
@@ -56,7 +64,7 @@ public class RoleOption extends ConfigurationOption {
         }
       }};
   }
-  
+
   private void receiveValidationAndDisableOption(MessageReceivedEvent event) {
     event.getChannel().sendTyping().queue();
     String message = event.getMessage().getContentRaw();
@@ -64,14 +72,15 @@ public class RoleOption extends ConfigurationOption {
       event.getChannel().sendMessage("Right, i disable the option. Please wait 2 seconds...").complete();
       event.getChannel().sendTyping().complete();
       role.delete().complete();
-      
+
       Server server = ServerData.getServers().get(event.getGuild().getId());
-      
+
       if(server != null && server.getInfoChannel() != null) {
         PermissionOverride everyone = server.getInfoChannel().getPermissionOverride(server.getGuild().getPublicRole());
         everyone.getManager().grant(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).complete();
       }
-      
+
+      role = null;
       event.getChannel().sendMessage("The option has been disable !").queue();
     }else {
       event.getChannel().sendMessage("Right, the option is still activate.").queue();
@@ -88,6 +97,7 @@ public class RoleOption extends ConfigurationOption {
       RoleAction action = guildController.createRole();
       action.setName("Zoe-Player");
       action.setMentionable(false);
+      action.setColor(Color.PINK);
       role = action.complete();
 
       Server server = ServerData.getServers().get(event.getGuild().getId());
@@ -100,18 +110,20 @@ public class RoleOption extends ConfigurationOption {
         PermissionOverride permissionZoePlayer = server.getInfoChannel().putPermissionOverride(role).complete();
         permissionZoePlayer.getManager().grant(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).complete();
 
-        PermissionOverride everyone = server.getInfoChannel().getPermissionOverride(server.getGuild().getPublicRole());
+        PermissionOverride everyone = server.getInfoChannel().putPermissionOverride(server.getGuild().getPublicRole()).complete(); //TODO: Zoe need to read the channel
         everyone.getManager().deny(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).complete();
       }
-      event.getChannel().sendMessage("The configuration has endend ! Now only registered player can see the infoChannel.").complete();
+      event.getChannel().sendMessage("The configuration has ended ! Now only registered player can see the infoChannel.").complete();
     }else {
       event.getChannel().sendMessage("Well, if you have one day changed you mind. You know where i am.").queue();
     }
   }
 
   private void endRegistrationTime(MessageReceivedEvent event) {
-    event.getChannel().sendTyping().queue();
-    event.getTextChannel().sendMessage("Well, i have some others things to do. You can always me ask again to activate this option later.").queue();
+    if(event.getMessage().getCreationTime().isAfter(OffsetDateTime.now().minusSeconds(59))) {
+      event.getChannel().sendTyping().queue();
+      event.getTextChannel().sendMessage("Well, i have some others things to do. You can always me ask again to activate this option later.").queue();
+    }
   }
 
 

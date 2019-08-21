@@ -90,7 +90,7 @@ public class RegionOption extends ConfigurationOption {
       }
     };
   }
-
+  
   private BiConsumer<Message, Integer> getSelectionDoneAction(List<Platform> regionsList) {
     return new BiConsumer<Message, Integer>() {
       @Override

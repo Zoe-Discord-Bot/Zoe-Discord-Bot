@@ -94,7 +94,7 @@ public class InfoPanelRefresher implements Runnable {
     } catch(NullPointerException e) {
       logger.info("The Thread has crashed normally because of deletion of infoChannel :", e);
     }catch (InsufficientPermissionException e) {
-      logger.info("Permission {} missing for infochannel in the guild {}, try to autofix the issue...",
+      logger.info("Permission {} missing for infochannel in the guild {}, try to autofix the issue... (Low chance to work)",
           e.getPermission().getName(), server.getGuild().getName());
       try {
         PermissionOverride permissionOverride = server.getInfoChannel()

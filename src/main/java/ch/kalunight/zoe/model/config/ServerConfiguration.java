@@ -5,22 +5,22 @@ import java.util.List;
 import ch.kalunight.zoe.model.config.option.ConfigurationOption;
 import ch.kalunight.zoe.model.config.option.RegionOption;
 import ch.kalunight.zoe.model.config.option.RoleOption;
+import ch.kalunight.zoe.model.config.option.SelfAddingOption;
 
 public class ServerConfiguration {
   
   /**
-   * Define if user can add them self in the system. False if non activated.
+   * Define if user can add them self in the system.
    */
-  private boolean userSelfAdding = false;
+  private SelfAddingOption userSelfAdding;
   
   /**
-   * Default region of the server. If a account/player is created without the region and this option activated the default region will be used.
-   * Null if non activated.
+   * Default region of the server. If a account/player is created without the region and this option is activated the default region will be used.
    */
   private RegionOption defaultRegion;
   
   /**
-   * This option hide channels of zoe to non-register players. Null if non activated. This id is saved in the save.
+   * This option hide channels of zoe to non-register players.
    */
   private RoleOption zoeRoleOption;
   
@@ -33,21 +33,22 @@ public class ServerConfiguration {
     List<ConfigurationOption> options = new ArrayList<>();
     options.add(defaultRegion);
     options.add(zoeRoleOption);
+    options.add(userSelfAdding);
     return options;
   }
   
   public ServerConfiguration() {
-    this.userSelfAdding = false;
     this.defaultRegion = new RegionOption();
     this.zoeRoleOption = new RoleOption();
+    this.userSelfAdding = new SelfAddingOption();
     this.everyoneCanMoveOfTeam = false;
   }
 
-  public boolean isUserSelfAdding() {
+  public SelfAddingOption isUserSelfAdding() {
     return userSelfAdding;
   }
 
-  public void setUserSelfAdding(boolean userSelfAdding) {
+  public void setUserSelfAdding(SelfAddingOption userSelfAdding) {
     this.userSelfAdding = userSelfAdding;
   }
 

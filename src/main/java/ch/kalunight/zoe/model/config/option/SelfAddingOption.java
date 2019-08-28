@@ -7,6 +7,9 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.ButtonMenu;
 import net.dv8tion.jda.core.entities.Message;
+import net.dv8tion.jda.core.entities.MessageChannel;
+import net.dv8tion.jda.core.entities.MessageReaction;
+import net.dv8tion.jda.core.entities.MessageReaction.ReactionEmote;
 
 public class SelfAddingOption extends ConfigurationOption {
 
@@ -34,9 +37,16 @@ public class SelfAddingOption extends ConfigurationOption {
               + "This option will let player add them self in the system with the command ``>create player``, ``>delete player`` "
               + "and this will activate the command ``>register``.\n\n"
               + ":white_check_mark: : Activate this option.\n"
-              + ":negative_squared_cross_mark: : Cancel the activation.");
+              + ":x: : Cancel the activation.");
           
           choiceBuilder.setTimeout(2, TimeUnit.MINUTES);
+          
+          choiceBuilder.setAction(activateTheOption(event.getChannel()));
+          choiceBuilder.setFinalAction(finalAction());
+          
+          ButtonMenu menu = choiceBuilder.build();
+                    
+          menu.display(event.getChannel());
           
         }else {
           
@@ -49,11 +59,38 @@ public class SelfAddingOption extends ConfigurationOption {
     };
   }
   
+  public Consumer<ReactionEmote> activateTheOption(MessageChannel messageChannel) {
+    return new Consumer<ReactionEmote>() {
+
+      @Override
+      public void accept(ReactionEmote emoteUsed) {
+        
+        if(emoteUsed.getName().equals("✅")) {
+          messageChannel.sendMessage("Good").queue();
+        }
+      }};
+  }
+  
+  public Consumer<Message> finalAction(){
+    return new Consumer<Message>() {
+
+      @Override
+      public void accept(Message t) {
+        // TODO Auto-generated method stub
+        
+      }};
+  }
 
   @Override
   public String getChoiceText() {
-    // TODO Auto-generated method stub
-    return null;
+    String status;
+    
+    if(optionActivated) {
+      status = "Enable";
+    }else {
+      status = "Disable";
+    }
+    return description + " : " + status;
   }
 
   @Override

@@ -83,6 +83,9 @@ public class InfoPanelRefresher implements Runnable {
 
           try {
             cleaningInfoChannel();
+          }catch (InsufficientPermissionException e) {
+            logger.info("Error in a infochannel when cleaning : {}", e.getMessage());
+            
           }catch (Exception e) {
             logger.warn("An unexpected error when cleaning info channel has occure.", e);
           }

@@ -27,22 +27,26 @@ public class SelfAddingOption extends ConfigurationOption {
       @Override
       public void accept(CommandEvent event) {
         
+        ButtonMenu.Builder choiceBuilder = new ButtonMenu.Builder();
+        
+        choiceBuilder.setEventWaiter(waiter);
+        choiceBuilder.addChoices("✅","❌");
+        choiceBuilder.addUsers(event.getAuthor());
+        choiceBuilder.setFinalAction(finalAction());
+
+        choiceBuilder.setTimeout(2, TimeUnit.MINUTES);
+        
         if(!optionActivated) {
-          ButtonMenu.Builder choiceBuilder = new ButtonMenu.Builder();
-          
-          choiceBuilder.setEventWaiter(waiter);
-          choiceBuilder.addChoices("✅","❌");
-          choiceBuilder.addUsers(event.getAuthor());
+
           choiceBuilder.setText("Option in activation : **" + description + "**\n\n"
-              + "This option will let player add them self in the system with the command ``>create player``, ``>delete player`` "
+              + "This option will allow all members of the server to add/delete them self in the "
+              + "system with the command ``>create player``, ``>delete player`` "
               + "and this will activate the command ``>register``.\n\n"
               + ":white_check_mark: : Activate this option.\n"
               + ":x: : Cancel the activation.");
           
-          choiceBuilder.setTimeout(2, TimeUnit.MINUTES);
           
           choiceBuilder.setAction(activateTheOption(event.getChannel()));
-          choiceBuilder.setFinalAction(finalAction());
           
           ButtonMenu menu = choiceBuilder.build();
                     
@@ -50,13 +54,36 @@ public class SelfAddingOption extends ConfigurationOption {
           
         }else {
           
+          choiceBuilder.setText("Option you want to disable  : **" + description + "**\n\n"
+              + "All members will not be longer be allowed to add/delete them self in the system. "
+              + "The command ``>register`` will be disable.\n"
+              + "**Are you sur to disable this option ?**\n\n"
+              + ":white_check_mark: : Disable the option\n"
+              + ":x: : Cancel the disable procedure");
           
+          ButtonMenu menu = choiceBuilder.build();
           
-          
-          
+          menu.display(event.getChannel());
         }
       }
     };
+  }
+  
+  public Consumer<ReactionEmote> disableTheOption(MessageChannel messageChannel) {
+    return new Consumer<MessageReaction.ReactionEmote>() {
+
+      @Override
+      public void accept(ReactionEmote emote) {
+        messageChannel.sendTyping().complete();
+        
+        if(emote.getName().equals("✅")) {
+          optionActivated = false;
+          messageChannel.sendMessage("Right, the option has been disabled.").queue();
+        }else {
+          messageChannel.sendMessage("Right, the option is still enable.").queue();
+        
+      }
+    }};
   }
   
   public Consumer<ReactionEmote> activateTheOption(MessageChannel messageChannel) {
@@ -65,8 +92,13 @@ public class SelfAddingOption extends ConfigurationOption {
       @Override
       public void accept(ReactionEmote emoteUsed) {
         
+        messageChannel.sendTyping().complete();
+        
         if(emoteUsed.getName().equals("✅")) {
-          messageChannel.sendMessage("Good").queue();
+          optionActivated = true;
+          messageChannel.sendMessage("Right, the option has been activated.").queue();
+        }else {
+          messageChannel.sendMessage("Right, the option is still disable.").queue();
         }
       }};
   }
@@ -75,9 +107,8 @@ public class SelfAddingOption extends ConfigurationOption {
     return new Consumer<Message>() {
 
       @Override
-      public void accept(Message t) {
-        // TODO Auto-generated method stub
-        
+      public void accept(Message message) {
+        message.clearReactions().complete();
       }};
   }
 

@@ -44,14 +44,6 @@ public class ServerConfiguration {
     this.everyoneCanMoveOfTeam = false;
   }
 
-  public SelfAddingOption isUserSelfAdding() {
-    return userSelfAdding;
-  }
-
-  public void setUserSelfAdding(SelfAddingOption userSelfAdding) {
-    this.userSelfAdding = userSelfAdding;
-  }
-
   public RegionOption getDefaultRegion() {
     return defaultRegion;
   }
@@ -74,5 +66,13 @@ public class ServerConfiguration {
 
   public void setEveryoneCanMoveOfTeam(boolean everyoneCanMoveOfTeam) {
     this.everyoneCanMoveOfTeam = everyoneCanMoveOfTeam;
+  }
+
+  public SelfAddingOption getUserSelfAdding() {
+    return userSelfAdding;
+  }
+
+  public void setUserSelfAdding(SelfAddingOption userSelfAdding) {
+    this.userSelfAdding = userSelfAdding;
   }
 }

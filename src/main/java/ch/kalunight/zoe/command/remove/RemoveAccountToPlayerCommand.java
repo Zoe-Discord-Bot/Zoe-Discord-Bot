@@ -24,10 +24,8 @@ public class RemoveAccountToPlayerCommand extends Command {
 
   public RemoveAccountToPlayerCommand() {
     this.name = USAGE_NAME;
-    this.help = "Remove the given account to the mentionned player. Manage Channel permission needed.";
+    this.help = "Remove the given account to the mentionned player.";
     this.arguments = "@MentionOfPlayer (Region) (SummonerName)";
-    Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
-    this.userPermissions = permissionRequired;
     this.helpBiConsumer = getHelpMethod();
   }
   
@@ -36,11 +34,20 @@ public class RemoveAccountToPlayerCommand extends Command {
     event.getTextChannel().sendTyping().complete();
     
     Server server = ServerData.getServers().get(event.getGuild().getId());
-
+    
+    if(!server.getConfig().getUserSelfAdding().isOptionActivated() && !event.getMember().getPermissions().contains(Permission.MANAGE_CHANNEL)) {
+        event.reply("You need the permission \"" + Permission.MANAGE_CHANNEL.getName() + "\" to do that.");
+        return;
+    }
+    
     User user = CreatePlayerCommand.getMentionedUser(event.getMessage().getMentionedMembers());
     if(user == null) {
       event.reply("Please mention 1 member of the server "
           + "(e.g. `>create player @" + event.getMember().getUser().getName() + " (Region) (SummonerName)`)");
+      return;
+    } else if(!user.equals(event.getAuthor()) && !event.getMember().getPermissions().contains(Permission.MANAGE_CHANNEL)) {
+      event.reply("You cannot remove an account of another player than you "
+          + "if you don't have the *" + Permission.MANAGE_CHANNEL.getName() + "* permission.");
       return;
     }
     

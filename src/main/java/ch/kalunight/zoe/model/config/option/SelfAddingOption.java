@@ -2,13 +2,11 @@ package ch.kalunight.zoe.model.config.option;
 
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.ButtonMenu;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageChannel;
-import net.dv8tion.jda.core.entities.MessageReaction;
 import net.dv8tion.jda.core.entities.MessageReaction.ReactionEmote;
 
 public class SelfAddingOption extends ConfigurationOption {
@@ -40,11 +38,10 @@ public class SelfAddingOption extends ConfigurationOption {
 
           choiceBuilder.setText("Option in activation : **" + description + "**\n\n"
               + "This option will allow all members of the server to add/delete them self in the "
-              + "system with the command ``>create player``, ``>delete player`` "
+              + "system with the command ``>create player``, ``>delete player``, ``>add accountToPlayer``, ``>remove accountToPlayer`` "
               + "and this will activate the command ``>register``.\n\n"
               + ":white_check_mark: : Activate this option.\n"
               + ":x: : Cancel the activation.");
-          
           
           choiceBuilder.setAction(activateTheOption(event.getChannel()));
           
@@ -54,12 +51,14 @@ public class SelfAddingOption extends ConfigurationOption {
           
         }else {
           
-          choiceBuilder.setText("Option you want to disable  : **" + description + "**\n\n"
-              + "All members will not be longer be allowed to add/delete them self in the system. "
+          choiceBuilder.setText("Option you want to disable : **" + description + "**\n\n"
+              + "All members will not be longer allowed to add/delete them self in the system. "
               + "The command ``>register`` will be disable.\n"
-              + "**Are you sur to disable this option ?**\n\n"
+              + "**Are you sure to disable this option ?**\n\n"
               + ":white_check_mark: : Disable the option\n"
               + ":x: : Cancel the disable procedure");
+          
+          choiceBuilder.setAction(disableTheOption(event.getChannel()));
           
           ButtonMenu menu = choiceBuilder.build();
           
@@ -69,11 +68,12 @@ public class SelfAddingOption extends ConfigurationOption {
     };
   }
   
-  public Consumer<ReactionEmote> disableTheOption(MessageChannel messageChannel) {
-    return new Consumer<MessageReaction.ReactionEmote>() {
+  private Consumer<ReactionEmote> disableTheOption(MessageChannel messageChannel) {
+    return new Consumer<ReactionEmote>() {
 
       @Override
       public void accept(ReactionEmote emote) {
+        
         messageChannel.sendTyping().complete();
         
         if(emote.getName().equals("✅")) {
@@ -81,12 +81,11 @@ public class SelfAddingOption extends ConfigurationOption {
           messageChannel.sendMessage("Right, the option has been disabled.").queue();
         }else {
           messageChannel.sendMessage("Right, the option is still enable.").queue();
-        
-      }
+        }
     }};
   }
   
-  public Consumer<ReactionEmote> activateTheOption(MessageChannel messageChannel) {
+  private Consumer<ReactionEmote> activateTheOption(MessageChannel messageChannel) {
     return new Consumer<ReactionEmote>() {
 
       @Override
@@ -103,7 +102,7 @@ public class SelfAddingOption extends ConfigurationOption {
       }};
   }
   
-  public Consumer<Message> finalAction(){
+  private Consumer<Message> finalAction(){
     return new Consumer<Message>() {
 
       @Override

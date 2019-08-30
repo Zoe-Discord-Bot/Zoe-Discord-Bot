@@ -21,26 +21,36 @@ public class DeletePlayerCommand extends Command {
 
   public DeletePlayerCommand() {
     this.name = USAGE_NAME;
-    this.help = "Delete the given player. Manage Channel permission needed.";
+    this.help = "Delete the given player.";
     this.arguments = "@DiscordMentionOfPlayer";
-    Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
-    this.userPermissions = permissionRequired;
     this.helpBiConsumer = getHelpMethod();
   }
 
   @Override
   protected void execute(CommandEvent event) {
     event.getTextChannel().sendTyping().complete();
-    Server server = checkServer(event.getGuild());
-
+    
+    Server server = ServerData.getServers().get(event.getGuild().getId());
+    
+    if(!server.getConfig().getUserSelfAdding().isOptionActivated() && !event.getMember().getPermissions().contains(Permission.MANAGE_CHANNEL)) {
+        event.reply("You need the permission \"" + Permission.MANAGE_CHANNEL.getName() + "\" to do that.");
+        return;
+    }
+    
     List<Member> members = event.getMessage().getMentionedMembers();
 
     if(members.size() != 1) {
       event.reply("You need to mention 1 people !");
     } else {
       User user = members.get(0).getUser();
+      
+      if(!user.equals(event.getAuthor()) && !event.getMember().getPermissions().contains(Permission.MANAGE_CHANNEL)) {
+        event.reply("You cannot delete another player than you if you don't have the *" + Permission.MANAGE_CHANNEL.getName() + "* permission.");
+        return;
+      }
+      
       Player player = server.getPlayerByDiscordId(user.getId());
-
+      
       if(player == null) {
         event.reply(user.getName() + " is not registered !");
       } else {

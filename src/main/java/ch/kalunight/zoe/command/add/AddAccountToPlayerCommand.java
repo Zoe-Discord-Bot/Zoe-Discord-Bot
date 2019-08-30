@@ -30,23 +30,30 @@ public class AddAccountToPlayerCommand extends Command {
 
   public AddAccountToPlayerCommand() {
     this.name = USAGE_NAME;
-    Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.arguments = "@MentionPlayer (Region) (accountName)";
-    this.userPermissions = permissionRequired;
-    this.help = "Add to the mentionned player the given account. Manage Channel permission needed.";
+    this.help = "Add to the mentionned player the given account.";
     this.helpBiConsumer = getHelpMethod();
   }
 
   @Override
   protected void execute(CommandEvent event) {
-    Server server = ServerData.getServers().get(event.getGuild().getId());
-
     event.getTextChannel().sendTyping().complete();
 
+    Server server = ServerData.getServers().get(event.getGuild().getId());
+    
+    if(!server.getConfig().getUserSelfAdding().isOptionActivated() && !event.getMember().getPermissions().contains(Permission.MANAGE_CHANNEL)) {
+        event.reply("You need the permission \"" + Permission.MANAGE_CHANNEL.getName() + "\" to do that.");
+        return;
+    }
+    
     User user = CreatePlayerCommand.getMentionedUser(event.getMessage().getMentionedMembers());
     if(user == null) {
       event.reply("Please mention 1 member of the server "
           + "(e.g. `>create player @" + event.getMember().getUser().getName() + " (Region) (SummonerName)`)");
+      return;
+    }else if(!user.equals(event.getAuthor()) && !event.getMember().getPermissions().contains(Permission.MANAGE_CHANNEL)) {
+      event.reply("You cannot add an account to another player than you if don't have the *" + Permission.MANAGE_CHANNEL.getName() + "* permission. "
+          + "Sorry about that :/");
       return;
     }
 

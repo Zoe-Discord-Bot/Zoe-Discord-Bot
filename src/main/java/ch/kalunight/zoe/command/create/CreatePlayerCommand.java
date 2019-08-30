@@ -35,27 +35,36 @@ public class CreatePlayerCommand extends Command{
 
   public CreatePlayerCommand() {
     this.name = USAGE_NAME;
-    this.help = "Create a player with the given information. Manage Channel permission needed.";
+    this.help = "Create a player with the given information.";
     this.arguments = "@DiscordMentionOfPlayer (Region) (SummonerName)";
-    Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
-    this.userPermissions = permissionRequired;
     this.helpBiConsumer = getHelpMethod();
   }
 
   @Override
   public void execute(CommandEvent event) {
     event.getTextChannel().sendTyping().complete();
-
+    
+    Server server = ServerData.getServers().get(event.getGuild().getId());
+    
+    if(!server.getConfig().getUserSelfAdding().isOptionActivated() && !event.getMember().getPermissions().contains(Permission.MANAGE_CHANNEL)) {
+        event.reply("You need the permission \"" + Permission.MANAGE_CHANNEL.getName() + "\" to do that.");
+        return;
+    }
+    
     User user = getMentionedUser(event.getMessage().getMentionedMembers());
     if(user == null) {
       event.reply("Please mention 1 member of the server "
           + "(e.g. `>create player @" + event.getMember().getUser().getName() + " (Region) (SummonerName)`)");
       return;
+    }else if(!user.equals(event.getAuthor()) && !event.getMember().getPermissions().contains(Permission.MANAGE_CHANNEL)) {
+      event.reply("You cannot create another player than you if don't have the *" + Permission.MANAGE_CHANNEL.getName() + "* permission. "
+          + "Sorry about that :/");
+      return;
     }
 
-    Server server = ServerData.getServers().get(event.getGuild().getId());
     if(isTheGivenUserAlreadyRegister(user, server)) {
-      event.reply("The mentioned member is already register. If you want to modify the LoL account please delete it first.");
+      event.reply("The mentioned member is already register. "
+          + "If you want to add a secondary lol account, please use the command ``>add accountToPlayer``.");
       return;
     }
     

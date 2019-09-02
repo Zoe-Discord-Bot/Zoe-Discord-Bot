@@ -21,10 +21,12 @@ import ch.kalunight.zoe.util.EventListenerUtil;
 import net.dv8tion.jda.core.OnlineStatus;
 import net.dv8tion.jda.core.entities.Game;
 import net.dv8tion.jda.core.entities.Guild;
+import net.dv8tion.jda.core.entities.Role;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.events.ReadyEvent;
 import net.dv8tion.jda.core.events.channel.text.TextChannelDeleteEvent;
 import net.dv8tion.jda.core.events.guild.GuildJoinEvent;
+import net.dv8tion.jda.core.events.role.RoleDeleteEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
 import net.rithms.riot.api.RiotApiException;
 
@@ -127,25 +129,6 @@ public class EventListener extends ListenerAdapter {
     thread.start();
   }
 
-  @Override
-  public void onGuildJoin(GuildJoinEvent event) {
-
-    if(!event.getGuild().getOwner().getUser().getId().equals(Zoe.getJda().getSelfUser().getId())) {
-      ServerData.getServers().put(event.getGuild().getId(), new Server(event.getGuild(), SpellingLangage.EN, new ServerConfiguration()));
-      ServerData.getServersIsInTreatment().put(event.getGuild().getId(), false);
-      CommandUtil.sendMessageInGuildOrAtOwner(event.getGuild(), WELCOME_MESSAGE);
-    }
-  }
-
-  @Override
-  public void onTextChannelDelete(TextChannelDeleteEvent event) {
-    Server server = ServerData.getServers().get(event.getGuild().getId());
-    if(server.getInfoChannel() != null && server.getInfoChannel().getId().equals(event.getChannel().getId())) {
-      server.setControlePannel(new ControlPannel());
-      server.setInfoChannel(null);
-    }
-  }
-  
   private void initRAPIStatusChannel() {
     try(final BufferedReader reader = new BufferedReader(new FileReader(Zoe.RAPI_SAVE_TXT_FILE));) {
       String line;
@@ -172,4 +155,35 @@ public class EventListener extends ListenerAdapter {
       logger.warn("Error when loading the file of RAPI Status Channel. The older channel will be unused ! (You can re-create it)");
     }
   }
+  
+  @Override
+  public void onGuildJoin(GuildJoinEvent event) {
+
+    if(!event.getGuild().getOwner().getUser().getId().equals(Zoe.getJda().getSelfUser().getId())) {
+      ServerData.getServers().put(event.getGuild().getId(), new Server(event.getGuild(), SpellingLangage.EN, new ServerConfiguration()));
+      ServerData.getServersIsInTreatment().put(event.getGuild().getId(), false);
+      CommandUtil.sendMessageInGuildOrAtOwner(event.getGuild(), WELCOME_MESSAGE);
+    }
+  }
+
+  @Override
+  public void onTextChannelDelete(TextChannelDeleteEvent event) {
+    Server server = ServerData.getServers().get(event.getGuild().getId());
+    if(server.getInfoChannel() != null && server.getInfoChannel().getId().equals(event.getChannel().getId())) {
+      server.setControlePannel(new ControlPannel());
+      server.setInfoChannel(null);
+    }
+  }
+  
+  @Override
+  public void onRoleDelete(RoleDeleteEvent event) {
+    Server server = ServerData.getServers().get(event.getGuild().getId());
+    
+    Role optionRole = server.getConfig().getZoeRoleOption().getRole();
+    
+    if(optionRole != null && optionRole.equals(event.getRole())) {
+      server.getConfig().getZoeRoleOption().setRole(null);
+    }
+  }
+  
 }

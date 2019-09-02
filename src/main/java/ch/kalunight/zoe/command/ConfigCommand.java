@@ -24,7 +24,7 @@ public class ConfigCommand extends Command{
     this.help = "Open an interactive message to configure the server.";
     this.hidden = false;
     this.ownerCommand = false;
-    Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
+    Permission[] permissionRequired = {Permission.MANAGE_CHANNEL, Permission.MESSAGE_ADD_REACTION, Permission.MANAGE_EMOTES};
     this.userPermissions = permissionRequired;
     this.guildOnly = true;
     this.waiter = waiter;

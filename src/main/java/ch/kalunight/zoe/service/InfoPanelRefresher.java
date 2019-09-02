@@ -28,8 +28,8 @@ import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.exceptions.ErrorResponseException;
 import net.dv8tion.jda.core.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.core.requests.ErrorResponse;
+import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
-import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
 import net.rithms.riot.constant.CallPriority;
 
 public class InfoPanelRefresher implements Runnable {
@@ -178,7 +178,23 @@ public class InfoPanelRefresher implements Runnable {
       InfoCard card = server.getControlePannel().getInfoCards().get(i);
 
       if(card.getCreationTime().plusMinutes(INFO_CARDS_MINUTES_LIVE_TIME).isBeforeNow()) {
-        cardsToRemove.add(card);
+        
+        if(!card.getPlayers().isEmpty()) {
+          Player player = card.getPlayers().get(0);
+          if(!player.getLeagueAccountsInTheGivenGame(card.getCurrentGameInfo()).isEmpty()) {
+            LeagueAccount account = player.getLeagueAccountsInTheGivenGame(card.getCurrentGameInfo()).get(0);
+            try {
+              Zoe.getRiotApi().getActiveGameBySummoner(account.getRegion(), account.getSummoner().getId(), CallPriority.NORMAL);
+            } catch(RiotApiException e) {
+              if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+                cardsToRemove.add(card);
+              }
+            }
+          }
+        }else {
+          cardsToRemove.add(card);
+        }
+
       }
     }
 
@@ -224,7 +240,7 @@ public class InfoPanelRefresher implements Runnable {
         CurrentGameInfo currentGameInfo = account.getCurrentGameInfo();
 
         if(currentGameInfo != null && !server.getCurrentGamesIdAlreadySended().contains(currentGameInfo.getGameId())) {
-          List<Player> listOfPlayerInTheGame = checkIfOthersPlayersIsKnowInTheMatch(currentGameInfo);
+          List<Player> listOfPlayerInTheGame = InfoPanelRefresherUtil.checkIfOthersPlayersIsKnowInTheMatch(currentGameInfo, server);
           Player player = server.getPlayerByLeagueAccount(account);
           InfoCard card = null;
 
@@ -232,18 +248,18 @@ public class InfoPanelRefresher implements Runnable {
             MessageEmbed messageCard = MessageBuilderRequest.createInfoCard1summoner(player.getDiscordUser(), account.getSummoner(),
                 currentGameInfo, account.getRegion());
             if(messageCard != null) {
-              card = new InfoCard(listOfPlayerInTheGame, messageCard);
+              card = new InfoCard(listOfPlayerInTheGame, messageCard, currentGameInfo);
             }
           } else if(listOfPlayerInTheGame.size() > 1) {
             MessageEmbed messageCard =
                 MessageBuilderRequest.createInfoCardsMultipleSummoner(listOfPlayerInTheGame, currentGameInfo, account.getRegion());
 
             if(messageCard != null) {
-              card = new InfoCard(listOfPlayerInTheGame, messageCard);
+              card = new InfoCard(listOfPlayerInTheGame, messageCard, currentGameInfo);
             }
           }
 
-          accountAlreadyGenerated.addAll(checkIfOthersPlayersInKnowInTheMatch(currentGameInfo));
+          accountAlreadyGenerated.addAll(InfoPanelRefresherUtil.checkIfOthersAccountsInKnowInTheMatch(currentGameInfo, server));
           server.getCurrentGamesIdAlreadySended().add(currentGameInfo.getGameId());
 
           if(card != null) {
@@ -284,38 +300,6 @@ public class InfoPanelRefresher implements Runnable {
     return cards;
   }
 
-  private List<Player> checkIfOthersPlayersIsKnowInTheMatch(CurrentGameInfo currentGameInfo) {
-
-    ArrayList<Player> listOfPlayers = new ArrayList<>();
-
-    for(Player player : server.getPlayers()) {
-      for(LeagueAccount leagueAccount : player.getLolAccounts()) {
-        for(CurrentGameParticipant participant : currentGameInfo.getParticipants()) {
-          if(participant.getSummonerId().equals(leagueAccount.getSummoner().getId())) {
-            listOfPlayers.add(player);
-          }
-        }
-      }
-    }
-    return listOfPlayers;
-  }
-
-  private List<LeagueAccount> checkIfOthersPlayersInKnowInTheMatch(CurrentGameInfo currentGameInfo){
-
-    ArrayList<LeagueAccount> listOfAccounts = new ArrayList<>();
-
-    for(Player player : server.getPlayers()) {
-      for(LeagueAccount leagueAccount : player.getLolAccounts()) {
-        for(CurrentGameParticipant participant : currentGameInfo.getParticipants()) {
-          if(participant.getSummonerId().equals(leagueAccount.getSummoner().getId()) && !listOfAccounts.contains(leagueAccount)) {
-            listOfAccounts.add(leagueAccount);
-          }
-        }
-      }
-    }
-    return listOfAccounts;
-  }
-
   private String refreshPannel() {
 
     final List<Team> teamList = server.getAllPlayerTeams();
@@ -329,7 +313,9 @@ public class InfoPanelRefresher implements Runnable {
 
     for(Team team : teamList) {
 
-      stringMessage.append("**" + team.getName() + "**\n \n");
+      if(teamList.size() != 1) {
+        stringMessage.append("**" + team.getName() + "**\n \n");
+      }
 
       List<Player> playersList = team.getPlayers();
 

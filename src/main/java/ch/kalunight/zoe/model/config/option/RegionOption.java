@@ -1,7 +1,6 @@
 package ch.kalunight.zoe.model.config.option;
 
 import java.awt.Color;
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -90,7 +89,7 @@ public class RegionOption extends ConfigurationOption {
       }
     };
   }
-  
+
   private BiConsumer<Message, Integer> getSelectionDoneAction(List<Platform> regionsList) {
     return new BiConsumer<Message, Integer>() {
       @Override
@@ -116,11 +115,8 @@ public class RegionOption extends ConfigurationOption {
     return new Consumer<Message>() {
       @Override
       public void accept(Message message) {
-        if(message.getCreationTime().isAfter(OffsetDateTime.now().minusSeconds(119))) {
-          message.clearReactions().queue();
-          message.editMessage("Selection canceled").queue();
-          message.getChannel().sendMessage("Selection canceled").queue();
-        }
+        message.clearReactions().queue();
+        message.editMessage("Selection canceled").queue();
       }
     };
   }

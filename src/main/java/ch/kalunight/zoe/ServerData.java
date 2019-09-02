@@ -8,6 +8,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import ch.kalunight.zoe.model.Server;
 
 public class ServerData {
@@ -36,6 +37,7 @@ public class ServerData {
 
   static {
     logger.info("Task executor lauched with {} threads", nbProcs);
+    TASK_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Task-Excecutor-Thread %d").build());
   }
 
   public static Map<String, Server> getServers() {

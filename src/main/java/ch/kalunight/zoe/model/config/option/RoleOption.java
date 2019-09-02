@@ -53,7 +53,7 @@ public class RoleOption extends ConfigurationOption {
         choiceBuilder.setTimeout(2, TimeUnit.MINUTES);
 
         if(role == null) {
-          event.reply("Option in activation : **" + description + "**\n\n"
+          choiceBuilder.setText("Option in activation : **" + description + "**\n\n"
               + "Activate this option will create a role named \"Zoe-Player\" and assigne it to all players registered. "
               + "You can update it like you want. If it got deleted, the option will be disable automatically.\n\n"
               + ":white_check_mark: : Activate this option\n"
@@ -66,9 +66,9 @@ public class RoleOption extends ConfigurationOption {
           menu.display(event.getChannel());
 
         }else {
-          event.reply("Option you want to disable : **" + description + "**\n\n"
+          choiceBuilder.setText("Option you want to disable : **" + description + "**\n\n"
               + "Disable it will **delete the Zoe-Player role** and will remake infochannel readable by everyone.\n\n"
-              + ":white_check_mark: : Disable the option.\n"
+              + ":white_check_mark: : **Disable** the option.\n"
               + ":x: : Cancel the deactivation");
 
           choiceBuilder.setAction(receiveValidationAndDisableOption(event.getChannel(), event.getGuild()));

@@ -5,7 +5,6 @@ import java.util.function.Consumer;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.ButtonMenu;
-import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageChannel;
 import net.dv8tion.jda.core.entities.MessageReaction.ReactionEmote;
@@ -56,7 +55,7 @@ public class SelfAddingOption extends ConfigurationOption {
               + "All members will not be longer allowed to add/delete them self in the system. "
               + "The command ``>register`` will be disable.\n"
               + "**Are you sure to disable this option ?**\n\n"
-              + ":white_check_mark: : Disable the option\n"
+              + ":white_check_mark: : **Disable** the option\n"
               + ":x: : Cancel the disable procedure");
           
           choiceBuilder.setAction(disableTheOption(event.getChannel()));

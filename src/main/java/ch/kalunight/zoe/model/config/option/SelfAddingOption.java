@@ -125,7 +125,7 @@ public class SelfAddingOption extends ConfigurationOption {
 
   @Override
   public String getSave() {
-    return id + " : " + optionActivated;
+    return id + ":" + optionActivated;
   }
 
   @Override

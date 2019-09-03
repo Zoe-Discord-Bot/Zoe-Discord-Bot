@@ -17,13 +17,15 @@ import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.User;
 import net.rithms.riot.constant.Platform;
 
-public class RemoveAccountToPlayerCommand extends Command {
+public class RemoveAccountCommand extends Command {
 
   public static final Pattern PARENTHESES_PATTERN = Pattern.compile("\\(([^)]+)\\)");
-  public static final String USAGE_NAME = "accountToPlayer";
+  public static final String USAGE_NAME = "account";
 
-  public RemoveAccountToPlayerCommand() {
+  public RemoveAccountCommand() {
     this.name = USAGE_NAME;
+    String[] aliases = {"accountToPlayers", "accountsToPlayers", "accountToPlayers", "accountToPlayer", "accounts"};
+    this.aliases = aliases;
     this.help = "Remove the given account to the mentionned player.";
     this.arguments = "@MentionOfPlayer (Region) (SummonerName)";
     this.helpBiConsumer = getHelpMethod();
@@ -59,7 +61,7 @@ public class RemoveAccountToPlayerCommand extends Command {
 
     List<String> listArgs = CreatePlayerCommand.getParameterInParenteses(event.getArgs());
     if(listArgs.size() != 2) {
-      event.reply("The command is malformed. Please respect this pattern : `>create player @DiscordPlayerMention (Region) (SummonerName)`");
+      event.reply("The command is malformed. Please respect this pattern : `>remove account @DiscordPlayerMention (Region) (SummonerName)`");
       return;
     }
     

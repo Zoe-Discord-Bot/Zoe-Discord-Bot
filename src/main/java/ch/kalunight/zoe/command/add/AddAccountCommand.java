@@ -22,14 +22,16 @@ import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.constant.CallPriority;
 import net.rithms.riot.constant.Platform;
 
-public class AddAccountToPlayerCommand extends Command {
+public class AddAccountCommand extends Command {
 
-  public static final String USAGE_NAME = "accountToPlayer";
+  public static final String USAGE_NAME = "account";
   public static final Pattern PARENTHESES_PATTERN = Pattern.compile("\\(([^)]+)\\)");
-  private static final Logger logger = LoggerFactory.getLogger(AddAccountToPlayerCommand.class);
+  private static final Logger logger = LoggerFactory.getLogger(AddAccountCommand.class);
 
-  public AddAccountToPlayerCommand() {
+  public AddAccountCommand() {
     this.name = USAGE_NAME;
+    String[] aliases = {"accountToPlayers", "accountsToPlayers", "accountToPlayers", "accountToPlayer", "accounts"};
+    this.aliases = aliases;
     this.arguments = "@MentionPlayer (Region) (accountName)";
     this.help = "Add to the mentionned player the given account.";
     this.helpBiConsumer = getHelpMethod();

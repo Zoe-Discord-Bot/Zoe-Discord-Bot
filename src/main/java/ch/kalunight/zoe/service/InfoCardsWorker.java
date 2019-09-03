@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ch.kalunight.zoe.model.InfoCard;
 import ch.kalunight.zoe.model.Server;
@@ -18,6 +22,8 @@ import net.rithms.riot.constant.CallPriority;
 
 public class InfoCardsWorker implements Runnable {
 
+  private static final Logger logger = LoggerFactory.getLogger(InfoCardsWorker.class);
+  
   private Server server;
   
   private Player registedPlayer;
@@ -32,10 +38,10 @@ public class InfoCardsWorker implements Runnable {
   public void run() {
     
     try {
-      server.wait(5000);
-    } catch (InterruptedException e) { //TODO: Make it more cleaner ?
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      TimeUnit.SECONDS.sleep(5);
+    } catch (InterruptedException e) {
+      logger.info("Faster info card thread interrupted. This will be generated with the classic thread.");
+      Thread.currentThread().interrupt();
     }
     
     registedPlayer.refreshAllLeagueAccounts(CallPriority.NORMAL);

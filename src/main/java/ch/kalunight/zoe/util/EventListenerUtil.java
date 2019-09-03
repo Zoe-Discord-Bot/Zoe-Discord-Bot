@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.static_data.CustomEmote;
 import net.dv8tion.jda.core.entities.Emote;
@@ -28,7 +29,8 @@ public class EventListenerUtil {
   
   
   public static boolean checkIfRichPresenceIsInGame(RichPresence richPresence) {
-    return inGameTranslationList.contains(richPresence.getState());
+    return inGameTranslationList.contains(richPresence.getState()) 
+        || (richPresence.getLargeImage() != null && richPresence.getLargeImage().getKey() != null);
   }
   
 

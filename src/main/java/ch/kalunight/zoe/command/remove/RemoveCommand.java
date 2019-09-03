@@ -1,10 +1,11 @@
 package ch.kalunight.zoe.command.remove;
 
 import java.util.function.BiConsumer;
+
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
+
 import ch.kalunight.zoe.command.CommandUtil;
-import net.dv8tion.jda.core.Permission;
 
 public class RemoveCommand extends Command {
 
@@ -12,10 +13,8 @@ public class RemoveCommand extends Command {
 
   public RemoveCommand() {
     this.name = USAGE_NAME;
-    Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
-    this.userPermissions = permissionRequired;
     this.help = "Send info about remove commands";
-    Command[] commandsChildren = {new RemovePlayerToTeamCommand(), new RemoveAccountToPlayerCommand()};
+    Command[] commandsChildren = {new RemovePlayerToTeamCommand(), new RemoveAccountCommand()};
     this.children = commandsChildren;
     this.helpBiConsumer = getHelpMethod();
   }

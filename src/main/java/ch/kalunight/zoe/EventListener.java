@@ -207,7 +207,7 @@ public class EventListener extends ListenerAdapter {
         RichPresence richPresenceGame = event.getNewGame().asRichPresence();
         if(richPresenceGame.getName() != null && richPresenceGame.getName().equals("League of Legends") 
             && EventListenerUtil.checkIfRichPresenceIsInGame(richPresenceGame)) {
-
+          
           ServerData.getTaskExecutor().execute(new InfoCardsWorker(registedPlayer, server));
         }
       }

@@ -24,7 +24,7 @@ public class ServerData {
 
   private static final ConcurrentHashMap<String, Boolean> serversIsInTreatment = new ConcurrentHashMap<>();
 
-  private static final Timer mainThreadTimer = new Timer();
+  private static final Timer mainThreadTimer = new Timer("GameChecker-Timer-Executor");
 
   private static int nbProcs = Runtime.getRuntime().availableProcessors();
 
@@ -37,7 +37,7 @@ public class ServerData {
 
   static {
     logger.info("Task executor lauched with {} threads", nbProcs);
-    TASK_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Task-Excecutor-Thread %d").build());
+    TASK_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Task-Executor-Thread %d").build());
   }
 
   public static Map<String, Server> getServers() {

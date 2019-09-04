@@ -16,7 +16,7 @@ import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.model.static_data.SpellingLangage;
-import ch.kalunight.zoe.service.GameChecker;
+import ch.kalunight.zoe.service.ServerChecker;
 import ch.kalunight.zoe.service.InfoCardsWorker;
 import ch.kalunight.zoe.service.RiotApiUsageChannelRefresh;
 import ch.kalunight.zoe.util.EventListenerUtil;
@@ -35,8 +35,6 @@ import net.dv8tion.jda.core.hooks.ListenerAdapter;
 import net.rithms.riot.api.RiotApiException;
 
 public class EventListener extends ListenerAdapter {
-
-  private static final int WAIT_TIME_BETWEEN_EACH_REFRESH_IN_MS = 30000;
 
   private static final String WELCOME_MESSAGE = "Hi! Thank you for adding me! To get help on my configuration type the command `>setup`. "
       + "If you want to see all commands i have, type >`help`";
@@ -93,8 +91,8 @@ public class EventListener extends ListenerAdapter {
 
     try {
       Zoe.setBotListApi(new DiscordBotListAPI.Builder().botId(Zoe.getJda().getSelfUser().getId()).token(Zoe.getDiscordBotListTocken()) // SET
-          // TOCKEN
-          .build());
+          .build());                                                                                                                   // TOCKEN
+          
       logger.info("Loading of DiscordBotList API finished !");
     } catch(Exception e) {
       logger.info("Discord bot list api not loaded normally ! Working of the bot not affected");
@@ -125,12 +123,8 @@ public class EventListener extends ListenerAdapter {
   }
 
   private void setupContinousRefreshThread() {
-    TimerTask mainThread = new GameChecker();
-    ServerData.getMainThreadTimer().schedule(mainThread, 0, WAIT_TIME_BETWEEN_EACH_REFRESH_IN_MS);
-
-    Runnable gameChecker = new GameChecker();
-    Thread thread = new Thread(gameChecker, "Game-Checker-Thread");
-    thread.start();
+    TimerTask mainThread = new ServerChecker();
+    ServerData.getMainThreadTimer().schedule(mainThread, 0);
   }
 
   private void initRAPIStatusChannel() {

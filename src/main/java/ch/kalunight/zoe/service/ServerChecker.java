@@ -94,9 +94,9 @@ public class ServerChecker extends TimerTask {
         setNextStatusRefresh(nextStatusRefresh.plusHours(TIME_BETWEEN_EACH_STATUS_REFRESH_IN_HOURS));
       }
     }finally {
-      ServerData.getTaskExecutor().execute(new DataSaver());
       logger.debug("GameChecker thread ended !");
       logger.info("Zoe-Task-Executor Queue : {}", ServerData.getTaskExecutor().getQueue().size());
+      ServerData.getTaskExecutor().execute(new DataSaver());
     }
   }
 

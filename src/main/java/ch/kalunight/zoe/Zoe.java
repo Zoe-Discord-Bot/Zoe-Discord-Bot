@@ -177,39 +177,25 @@ public class Zoe {
       public void accept(CommandEvent event) {
 
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("Here is my commands :\n");
-
-        Command setupCommand = new SetupCommand();
-        stringBuilder.append("Command **" + setupCommand.getName() + "** :\n");
-        stringBuilder.append("--> `>" + setupCommand.getName() + "` : " + setupCommand.getHelp() + "\n\n");
-
-        Command aboutCommand = new AboutCommand();
-        stringBuilder.append("Command **" + aboutCommand.getName() + "** :\n");
-        stringBuilder.append("--> `>" + aboutCommand.getName() + "` : " + aboutCommand.getHelp() + "\n\n");
-
-        Command patchNoteCommand = new PatchNotesCommand();
-        stringBuilder.append("Command **" + patchNoteCommand.getName() + "** :\n");
-        stringBuilder.append("--> `>" + patchNoteCommand.getName() + "` : " + patchNoteCommand.getHelp() + "\n\n");
-
-        Command resetCommand = new ResetCommand(null);
-        stringBuilder.append("Command **" + resetCommand.getName() + "** :\n");
-        stringBuilder.append("--> `>" + resetCommand.getName() + "` : " + resetCommand.getHelp() + "\n\n");
-
-        Command refreshCommand = new RefreshCommand();
-        stringBuilder.append("Command **" + refreshCommand.getName() + "** :\n");
-        stringBuilder.append("--> `>" + refreshCommand.getName() + "` : " + refreshCommand.getHelp() + "\n\n");
-
+        stringBuilder.append("Here is my commands :\n\n");
+        
         for(Command command : getMainCommands(null)) {
-          if(!command.isHidden() && !(command instanceof PingCommand || command instanceof ResetCommand || command instanceof SetupCommand
-              || command instanceof PatchNotesCommand || command instanceof RefreshCommand || command instanceof AboutCommand)) {
+          
+          if(!command.isHidden() && command.getChildren().length == 0) {
+            
+            stringBuilder.append("Command **" + command.getName() + "** :\n");
+            stringBuilder.append("--> `>" + command.getName() + "` : " + command.getHelp() + "\n\n");
+            
+          }else if(!command.isHidden()){
+            
             stringBuilder.append("Commands **" + command.getName() + "** : \n");
-
             for(Command commandChild : command.getChildren()) {
               stringBuilder.append("--> `>" + command.getName() + " " + commandChild.getName() + " " + commandChild.getArguments() + "` : "
                   + commandChild.getHelp() + "\n");
             }
             stringBuilder.append(" \n");
           }
+          
         }
 
         stringBuilder.append("For additional help, you can join our official server : https://discord.gg/whc5PrC");
@@ -234,25 +220,26 @@ public class Zoe {
 
     // Admin commands
     commands.add(new ShutDownCommand());
-    commands.add(new PingCommand());
     commands.add(new AdminCommand());
 
     // Basic commands
     commands.add(new AboutCommand());
     commands.add(new SetupCommand());
-    commands.add(new PatchNotesCommand());
-    commands.add(new RefreshCommand());
+    commands.add(new ConfigCommand(eventWaiter));
     commands.add(new CreateCommand());
-    commands.add(new RegisterCommand());
     commands.add(new DeleteCommand());
-    commands.add(new DefineCommand());
-    commands.add(new UndefineCommand());
     commands.add(new AddCommand());
     commands.add(new RemoveCommand());
     commands.add(new StatsCommand(eventWaiter));
-    commands.add(new ResetCommand(eventWaiter));
     commands.add(new ShowCommand(eventWaiter));
-    commands.add(new ConfigCommand(eventWaiter));
+    commands.add(new RefreshCommand());
+    commands.add(new RegisterCommand());
+    commands.add(new DefineCommand());
+    commands.add(new UndefineCommand());
+    commands.add(new ResetCommand(eventWaiter));
+    commands.add(new PatchNotesCommand());
+
+    commands.add(new PingCommand());
 
     mainCommands = commands;
 

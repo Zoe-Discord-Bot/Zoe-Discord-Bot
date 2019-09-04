@@ -24,8 +24,10 @@ public class ConfigCommand extends Command{
     this.help = "Open an interactive message to configure the server.";
     this.hidden = false;
     this.ownerCommand = false;
-    Permission[] permissionRequired = {Permission.MANAGE_CHANNEL, Permission.MESSAGE_ADD_REACTION, Permission.MANAGE_EMOTES};
+    Permission[] permissionRequired = {Permission.MANAGE_CHANNEL, Permission.MESSAGE_ADD_REACTION};
     this.userPermissions = permissionRequired;
+    Permission[] permissionBot = {Permission.MESSAGE_ADD_REACTION, Permission.MANAGE_EMOTES, Permission.MESSAGE_EMBED_LINKS};
+    this.botPermissions = permissionBot;
     this.guildOnly = true;
     this.waiter = waiter;
     this.helpBiConsumer = getHelpMethod();
@@ -74,7 +76,7 @@ public class ConfigCommand extends Command{
 
       @Override
       public void accept(Message message) {
-        message.clearReactions();
+        message.clearReactions().queue();
         message.getChannel().sendMessage("Configuration Ended").queue();
       }};
   }

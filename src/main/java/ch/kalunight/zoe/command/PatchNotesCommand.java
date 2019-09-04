@@ -19,19 +19,17 @@ public class PatchNotesCommand extends Command {
   protected void execute(CommandEvent event) {
     //TODO: Patch note are actually hard coded -> Implement a Patch note reader (reader of an external file).
     
-    event.reply("**Actual version : 1.2.1**\n"
+    event.reply("**Actual version : 1.3.0**\n"
         + "\n"
-        + "**Multiples accounts system added !**\n"
-        + "You can now link multiples accounts to a player ! Try the commands `>add accountToPlayer` and `>remove accountToPlayer`. \n\n"
+        + "**Configurations Updates !**\n"
+        + "Configurations options as been added to make Zoe perfectly suit with your server ! Try the command `>config`. "
+        + "More options will be added in the time, if you have a idea you can come to the support server to request your idea ! (`>help`)\n\n"
         + "Changelog :\n"
-        + "-Add more information for dev about Riot Api usage.\n"
-        + "-Implement multiples accounts system.\n"
-        + "-First implementation of show commands, try `>show players`.\n"
-        + "-Remove recovery command (Was unusable with the new system of LoL accounts)."
-        + "-Add a refresh command.\n"
-        + "-Some minor fix.\n"
+        + "-**NEW** Zoe now detect your discord status to create your infocards in about 20 seconds after the champ select.\n"
+        + "-Internal system has been reworked to improve performance.\n"
+        + "-Bugs fix\n"
         + "\n"
-        + "For more information, please join the support server (`>help`).");
+        + "For help, feature request and bug report please join the support server (`>help`).");
   }
 
 }

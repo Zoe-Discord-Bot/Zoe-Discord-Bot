@@ -38,7 +38,7 @@ public class SelfAddingOption extends ConfigurationOption {
 
           choiceBuilder.setText("Option in activation : **" + description + "**\n\n"
               + "This option will allow all members of the server to add/delete them self in the "
-              + "system with the command ``>create player``, ``>delete player``, ``>add accountToPlayer``, ``>remove accountToPlayer`` "
+              + "system with the command ``>create player``, ``>delete player``, ``>add account``, ``>remove account`` "
               + "and this will activate the command ``>register``.\n\n"
               + ":white_check_mark: : Activate this option.\n"
               + ":x: : Cancel the activation.");

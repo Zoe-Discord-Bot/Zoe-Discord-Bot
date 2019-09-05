@@ -184,11 +184,16 @@ public class EventListener extends ListenerAdapter {
     }
   }
 
-  @Override
+  /**Rework this system
+   * @Override
   public void onUserUpdateGame(UserUpdateGameEvent event) {
     if(event.getGuild() != null) {
       Server server = ServerData.getServers().get(event.getGuild().getId());
 
+      if(server == null) {
+        return;
+      }
+      
       Player registedPlayer = null;
       
       for(Player player : server.getPlayers()) {
@@ -207,6 +212,7 @@ public class EventListener extends ListenerAdapter {
       }
     }
   }
+  **/
 
 
 

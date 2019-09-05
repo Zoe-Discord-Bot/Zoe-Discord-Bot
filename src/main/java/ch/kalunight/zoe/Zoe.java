@@ -83,7 +83,7 @@ public class Zoe {
 
   public static final File RAPI_SAVE_TXT_FILE = new File("ressources/apiInfos.txt");
 
-  public static final File SAVE_CONFIG_FOLDER = new File("ressources/serversConfigs");
+  public static final File SAVE_CONFIG_FOLDER = new File("ressources/serversconfigs");
 
   /**
    * USED ONLY FOR STATS ANALYSE. DON'T MODIFY DATA INSIDE.

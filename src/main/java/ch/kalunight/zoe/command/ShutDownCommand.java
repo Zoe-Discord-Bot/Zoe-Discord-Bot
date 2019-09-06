@@ -68,7 +68,7 @@ public class ShutDownCommand extends Command {
     }
 
     logger.info("All ThreadPoolExecutors has safely stop. Now shutdown JDA...");
-    channel.sendMessage("All ThreadPoolExecutors has safely stop. Now shutdown discord and save data. (ShutDown is complete)").complete();
+    channel.sendMessage("All ThreadPoolExecutors has safely stop. Now shutdown JDA and save data. (ShutDown is complete)").complete();
     channel.sendMessage("Please wait 30 sec before update Zoe, some process can take some time before to automatically shutdown.").complete();
     
     Zoe.getJda().shutdown();

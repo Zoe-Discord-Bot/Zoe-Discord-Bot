@@ -4,6 +4,7 @@ import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
@@ -34,6 +35,11 @@ public class ServerData {
   
   private static final ThreadPoolExecutor INFOCARDS_GENERATOR =
       new ThreadPoolExecutor(nbProcs, nbProcs, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+  
+  /**
+   * Used by event waiter, define in {@link Zoe#main(String[])}
+   */
+  private static final ScheduledThreadPoolExecutor RESPONSE_WAITER = new ScheduledThreadPoolExecutor(nbProcs);
 
   private ServerData() {
     // Hide public default constructor
@@ -43,6 +49,7 @@ public class ServerData {
     logger.info("ThreadPools has been lauched with {} threads", nbProcs);
     SERVER_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Server-Executor-Thread %d").build());
     INFOCARDS_GENERATOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe InfoCards-Generator-Thread %d").build());
+    RESPONSE_WAITER.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Response-Waiter-Thread %d").build());
   }
 
   public static ConcurrentMap<String, Server> getServers() {
@@ -65,11 +72,27 @@ public class ServerData {
     return INFOCARDS_GENERATOR;
   }
   
+  public static ScheduledThreadPoolExecutor getResponseWaiter() {
+    return RESPONSE_WAITER;
+  }
+  
   public static Timer getServerCheckerThreadTimer() {
     return serverCheckerThreadTimer;
   }
 
   public static void shutDownTaskExecutor(TextChannel channel) throws InterruptedException {
+    
+    logger.info("Start to shutdown Response Waiter, this can take 5 minutes max...");
+    channel.sendMessage("Start to shutdown Response Waiter, this can take 5 minutes max...").complete();
+    RESPONSE_WAITER.shutdown();
+
+    RESPONSE_WAITER.awaitTermination(5, TimeUnit.MINUTES);
+    if(!RESPONSE_WAITER.isShutdown()) {
+      RESPONSE_WAITER.shutdownNow();
+    }
+    logger.info("Shutdown of Response Waiter has been completed !");
+    channel.sendMessage("Shutdown of Response Waiter has been completed !").complete();
+    
     logger.info("Start to shutdown Servers Executor, this can take 5 minutes max...");
     channel.sendMessage("Start to shutdown Servers Executor, this can take 5 minutes max...").complete();
     SERVER_EXECUTOR.shutdown();
@@ -92,4 +115,5 @@ public class ServerData {
     logger.info("Shutdown of InfoCards Generator has been completed !");
     channel.sendMessage("Shutdown of InfoCards Generator has been completed !").complete();
   }
+
 }

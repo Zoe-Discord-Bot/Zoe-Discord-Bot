@@ -78,7 +78,6 @@ public class ConfigCommand extends Command{
 
       @Override
       public void accept(Message message) {
-        message.clearReactions().queue();
         message.getChannel().sendMessage("Configuration Ended").queue();
       }};
   }

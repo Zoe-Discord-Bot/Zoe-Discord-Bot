@@ -125,7 +125,7 @@ public class Zoe {
 
     client.setPrefix(BOT_PREFIX);
 
-    EventWaiter eventWaiter = new EventWaiter();
+    EventWaiter eventWaiter = new EventWaiter(ServerData.getResponseWaiter(), false);
 
     for(Command command : getMainCommands(eventWaiter)) {
       client.addCommand(command);

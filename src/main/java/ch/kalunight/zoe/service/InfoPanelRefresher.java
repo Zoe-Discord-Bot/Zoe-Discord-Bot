@@ -72,8 +72,10 @@ public class InfoPanelRefresher implements Runnable {
             server.getControlePannel().getInfoPanel().get(i).editMessage(infoPanels.get(i)).queue();
           }
 
-          manageInfoCards();
-
+          if(server.getConfig().getInfoCardsOption().isOptionActivated()) {
+            manageInfoCards();
+          }
+          
           try {
             cleaningInfoChannel();
           }catch (InsufficientPermissionException e) {

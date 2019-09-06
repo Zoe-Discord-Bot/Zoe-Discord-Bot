@@ -31,7 +31,7 @@ import net.dv8tion.jda.core.hooks.ListenerAdapter;
 import net.rithms.riot.api.RiotApiException;
 
 public class EventListener extends ListenerAdapter {
-
+  
   private static final String WELCOME_MESSAGE = "Hi! Thank you for adding me! To get help on my configuration type the command `>setup`. "
       + "If you want to see all commands i have, type >`help`";
 

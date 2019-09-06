@@ -52,9 +52,11 @@ public class RiotApiUsageChannelRefresh implements Runnable {
           }
         }
         
-        rapiInfoChannel.sendMessage("Total number of players : " + nbrPlayers 
+        rapiInfoChannel.sendMessage("Total number of Servers : " + Zoe.getJda().getGuilds().size()
+            + "\nTotal number of players : " + nbrPlayers 
             + "\nTotal number of League accounts : " + nbrAccount 
-            + "\nTask in queue : " + ServerData.getTaskExecutor().getQueue().size()).queue();
+            + "\nTask in Server Executor Queue : " + ServerData.getServerExecutor().getQueue().size()
+            + "\nTask in InfoCards Generator Queue : " + ServerData.getInfocardsGenerator().getQueue().size()).queue();
 
         ArrayList<byte[]> graphs = new ArrayList<>();
         List<Platform> platformOrder = new ArrayList<>();

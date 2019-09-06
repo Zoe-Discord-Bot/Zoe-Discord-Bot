@@ -22,6 +22,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.jagrosh.jdautilities.command.Command;
+import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
@@ -85,6 +86,12 @@ public class Zoe {
 
   public static final File SAVE_CONFIG_FOLDER = new File("ressources/serversconfigs");
 
+  private static final ConcurrentLinkedQueue<List<CustomEmote>> emotesNeedToBeUploaded = new ConcurrentLinkedQueue<>();
+  
+  private static final List<Object> eventListenerList = new ArrayList<>();  
+
+  private static final Logger logger = LoggerFactory.getLogger(Zoe.class);
+  
   /**
    * USED ONLY FOR STATS ANALYSE. DON'T MODIFY DATA INSIDE.
    */
@@ -99,10 +106,6 @@ public class Zoe {
   private static String discordBotListTocken = "";
 
   private static DiscordBotListAPI botListApi;
-
-  private static final ConcurrentLinkedQueue<List<CustomEmote>> emotesNeedToBeUploaded = new ConcurrentLinkedQueue<>();
-
-  private static final Logger logger = LoggerFactory.getLogger(Zoe.class);
 
   public static void main(String[] args) {
 
@@ -134,13 +137,21 @@ public class Zoe {
 
     initRiotApi(riotTocken);
 
+    CommandClient commandClient = client.build();
+    
+    EventListener eventListener = new EventListener();
+    
+    eventListenerList.add(commandClient);
+    eventListenerList.add(eventWaiter);
+    eventListenerList.add(eventListener);
+    
     try {
       jda = new JDABuilder(AccountType.BOT)//
           .setToken(discordTocken)//
           .setStatus(OnlineStatus.DO_NOT_DISTURB)//
-          .addEventListener(client.build())//
+          .addEventListener(commandClient)//
           .addEventListener(eventWaiter)//
-          .addEventListener(new EventListener()).build();//
+          .addEventListener(eventListener).build();//
     } catch(IndexOutOfBoundsException e) {
       logger.error("You must provide a token.");
       System.exit(1);
@@ -628,5 +639,9 @@ public class Zoe {
 
   public static RateLimitRequestTank getMinuteApiTank() {
     return minuteApiTank;
+  }
+
+  public static List<Object> getEventlistenerlist() {
+    return eventListenerList;
   }
 }

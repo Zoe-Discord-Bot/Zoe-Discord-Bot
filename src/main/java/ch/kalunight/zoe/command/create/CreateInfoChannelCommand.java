@@ -50,9 +50,14 @@ public class CreateInfoChannelCommand extends Command {
       String id = infoChannel.getId();
       TextChannel textChannel = event.getGuild().getTextChannelById(id);
       server.setInfoChannel(textChannel);
-
+      
+      if(server.getControlePannel().getInfoPanel().isEmpty()) {
+        server.getControlePannel().getInfoPanel()
+        .add(server.getInfoChannel().sendMessage("__**Information Panel**__\n \n*Loading...*").complete());
+      }
+      
       Runnable task = new InfoPanelRefresher(server);
-      ServerData.getTaskExecutor().execute(task);
+      ServerData.getServerExecutor().execute(task);
 
       event.reply("The channel got created !");
     } catch(InsufficientPermissionException e) {

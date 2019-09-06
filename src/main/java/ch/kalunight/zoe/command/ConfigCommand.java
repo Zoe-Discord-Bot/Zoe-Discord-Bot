@@ -1,5 +1,6 @@
 package ch.kalunight.zoe.command;
 
+import java.awt.Color;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
@@ -44,6 +45,7 @@ public class ConfigCommand extends Command{
         .allowTextInput(false)
         .setTimeout(2, TimeUnit.MINUTES)
         .useNumbers()
+        .setColor(Color.BLUE)
         .setText("Here my options:")
         .setDescription("**Configuration Choices:**")
         .useCancelButton(true)

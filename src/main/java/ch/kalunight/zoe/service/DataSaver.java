@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 
-public class DataSaver implements Runnable {
+public class DataSaver extends TimerTask {
 
   private static final int WAIT_TIME_BETWEEN_EACH_REFRESH_IN_MS = 10000;
 
@@ -30,7 +30,7 @@ public class DataSaver implements Runnable {
       logger.error("Error : {}", e);
     } finally {
       TimerTask mainThread = new ServerChecker();
-      ServerData.getMainThreadTimer().schedule(mainThread, WAIT_TIME_BETWEEN_EACH_REFRESH_IN_MS);
+      ServerData.getServerCheckerThreadTimer().schedule(mainThread, WAIT_TIME_BETWEEN_EACH_REFRESH_IN_MS);
     }
   }
 

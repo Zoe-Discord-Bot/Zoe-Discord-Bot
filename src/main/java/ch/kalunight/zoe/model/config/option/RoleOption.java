@@ -49,6 +49,7 @@ public class RoleOption extends ConfigurationOption {
         choiceBuilder.addChoices("✅","❌");
         choiceBuilder.addUsers(event.getAuthor());
         choiceBuilder.setFinalAction(finalAction());
+        choiceBuilder.setColor(Color.BLUE);
 
         choiceBuilder.setTimeout(2, TimeUnit.MINUTES);
 

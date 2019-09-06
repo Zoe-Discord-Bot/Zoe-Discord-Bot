@@ -46,7 +46,6 @@ public class Server {
     boolean needToBeRefreshed = false;
     if(lastRefresh == null || lastRefresh.isBefore(DateTime.now().minusMinutes(DEFAULT_INIT_TIME))) {
       needToBeRefreshed = true;
-      lastRefresh = DateTime.now();
     }
     return needToBeRefreshed;
   }
@@ -206,11 +205,11 @@ public class Server {
     this.langage = langage;
   }
 
-  public DateTime getLastRefresh() {
+  public synchronized DateTime getLastRefresh() {
     return lastRefresh;
   }
 
-  public void setLastRefresh(DateTime lastRefresh) {
+  public synchronized void setLastRefresh(DateTime lastRefresh) {
     this.lastRefresh = lastRefresh;
   }
 

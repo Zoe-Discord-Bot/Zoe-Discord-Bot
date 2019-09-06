@@ -53,8 +53,13 @@ public class DefineInfoChannelCommand extends Command {
             server.setInfoChannel(textChannel);
             server.setControlePannel(new ControlPannel());
             event.reply("The channel has been defined ! It should be refreshed really quick.");
+            
+            if(server.getControlePannel().getInfoPanel().isEmpty()) {
+              server.getControlePannel().getInfoPanel()
+              .add(server.getInfoChannel().sendMessage("__**Information Panel**__\n \n*Loading...*").complete());
+            }
             InfoPanelRefresher infoPanelRefresher = new InfoPanelRefresher(server);
-            ServerData.getTaskExecutor().submit(infoPanelRefresher);
+            ServerData.getServerExecutor().submit(infoPanelRefresher);
           }
         }
       }

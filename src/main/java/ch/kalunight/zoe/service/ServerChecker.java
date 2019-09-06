@@ -32,7 +32,7 @@ public class ServerChecker extends TimerTask {
   @Override
   public void run() {
     
-    logger.debug("GameChecker thread started !");
+    logger.debug("ServerChecker thread started !");
     
     try {
       for(Guild guild : Zoe.getJda().getGuilds()) {
@@ -54,24 +54,25 @@ public class ServerChecker extends TimerTask {
           ServerData.getServersAskedTreatment().put(guild.getId(), false);
         }
 
-        if(ServerData.getServersAskedTreatment().get(server.getGuild().getId()) && !ServerData.getServersIsInTreatment().get(server.getGuild().getId())) {
+        if(ServerData.getServersAskedTreatment().get(server.getGuild().getId()) 
+            && !ServerData.getServersIsInTreatment().get(server.getGuild().getId())) {
+          
           ServerData.getServersAskedTreatment().put(server.getGuild().getId(), false);
           ServerData.getServersIsInTreatment().put(guild.getId(), true);
-          server.setLastRefresh(DateTime.now());
           Runnable task = new InfoPanelRefresher(server);
-          ServerData.getTaskExecutor().execute(task);
+          ServerData.getServerExecutor().execute(task);
         }
 
         if(server.isNeedToBeRefreshed() && server.getInfoChannel() != null && !ServerData.getServersIsInTreatment().get(guild.getId())) {
 
           Runnable task = new InfoPanelRefresher(server);
           ServerData.getServersIsInTreatment().put(guild.getId(), true);
-          ServerData.getTaskExecutor().execute(task);
+          ServerData.getServerExecutor().execute(task);
         }
       }
 
       if(nextRAPIChannelRefresh.isBeforeNow() && RiotApiUsageChannelRefresh.getRapiInfoChannel() != null) {
-        ServerData.getTaskExecutor().execute(new RiotApiUsageChannelRefresh());
+        ServerData.getServerExecutor().execute(new RiotApiUsageChannelRefresh());
 
         setNextRAPIChannelRefresh(DateTime.now().plusMinutes(TIME_BETWEEN_EACH_RAPI_CHANNEL_REFRESH_IN_MINUTES));
       }
@@ -94,9 +95,10 @@ public class ServerChecker extends TimerTask {
         setNextStatusRefresh(nextStatusRefresh.plusHours(TIME_BETWEEN_EACH_STATUS_REFRESH_IN_HOURS));
       }
     }finally {
-      logger.debug("GameChecker thread ended !");
-      logger.info("Zoe-Task-Executor Queue : {}", ServerData.getTaskExecutor().getQueue().size());
-      ServerData.getTaskExecutor().execute(new DataSaver());
+      logger.debug("ServerChecker thread ended !");
+      logger.info("Zoe Server-Executor Queue : {}", ServerData.getServerExecutor().getQueue().size());
+      logger.info("Zoe InfoCards-Generator Queue : {}", ServerData.getInfocardsGenerator().getQueue().size());
+      ServerData.getServerCheckerThreadTimer().schedule(new DataSaver(), 0);
     }
   }
 

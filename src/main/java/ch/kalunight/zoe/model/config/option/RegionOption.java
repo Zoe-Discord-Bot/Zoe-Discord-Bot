@@ -53,7 +53,7 @@ public class RegionOption extends ConfigurationOption {
             .addUsers(event.getAuthor())
             .setEventWaiter(waiter)
             .useLooping(true)
-            .setColor(Color.GREEN)
+            .setColor(Color.BLUE)
             .setSelectedEnds("**", "**")
             .setCanceled(getSelectionCancelAction())
             .setTimeout(2, TimeUnit.MINUTES);

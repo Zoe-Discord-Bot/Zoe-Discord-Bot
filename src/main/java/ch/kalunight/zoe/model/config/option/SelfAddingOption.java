@@ -1,5 +1,6 @@
 package ch.kalunight.zoe.model.config.option;
 
+import java.awt.Color;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import com.jagrosh.jdautilities.command.CommandEvent;
@@ -31,6 +32,7 @@ public class SelfAddingOption extends ConfigurationOption {
         choiceBuilder.addChoices("✅","❌");
         choiceBuilder.addUsers(event.getAuthor());
         choiceBuilder.setFinalAction(finalAction());
+        choiceBuilder.setColor(Color.BLUE);
 
         choiceBuilder.setTimeout(2, TimeUnit.MINUTES);
         

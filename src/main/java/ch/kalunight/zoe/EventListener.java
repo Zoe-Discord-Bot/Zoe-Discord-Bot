@@ -14,23 +14,19 @@ import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.model.ControlPannel;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
-import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.model.static_data.SpellingLangage;
 import ch.kalunight.zoe.service.ServerChecker;
-import ch.kalunight.zoe.service.InfoCardsWorker;
 import ch.kalunight.zoe.service.RiotApiUsageChannelRefresh;
 import ch.kalunight.zoe.util.EventListenerUtil;
 import net.dv8tion.jda.core.OnlineStatus;
 import net.dv8tion.jda.core.entities.Game;
 import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.RichPresence;
 import net.dv8tion.jda.core.entities.Role;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.events.ReadyEvent;
 import net.dv8tion.jda.core.events.channel.text.TextChannelDeleteEvent;
 import net.dv8tion.jda.core.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.core.events.role.RoleDeleteEvent;
-import net.dv8tion.jda.core.events.user.update.UserUpdateGameEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
 import net.rithms.riot.api.RiotApiException;
 
@@ -92,7 +88,7 @@ public class EventListener extends ListenerAdapter {
     try {
       Zoe.setBotListApi(new DiscordBotListAPI.Builder().botId(Zoe.getJda().getSelfUser().getId()).token(Zoe.getDiscordBotListTocken()) // SET
           .build());                                                                                                                   // TOCKEN
-          
+
       logger.info("Loading of DiscordBotList API finished !");
     } catch(Exception e) {
       logger.info("Discord bot list api not loaded normally ! Working of the bot not affected");
@@ -124,7 +120,7 @@ public class EventListener extends ListenerAdapter {
 
   private void setupContinousRefreshThread() {
     TimerTask mainThread = new ServerChecker();
-    ServerData.getMainThreadTimer().schedule(mainThread, 0);
+    ServerData.getServerCheckerThreadTimer().schedule(mainThread, 0);
   }
 
   private void initRAPIStatusChannel() {
@@ -177,10 +173,13 @@ public class EventListener extends ListenerAdapter {
   public void onRoleDelete(RoleDeleteEvent event) {
     Server server = ServerData.getServers().get(event.getGuild().getId());
 
-    Role optionRole = server.getConfig().getZoeRoleOption().getRole();
+    if(server != null) {
 
-    if(optionRole != null && optionRole.equals(event.getRole())) {
-      server.getConfig().getZoeRoleOption().setRole(null);
+      Role optionRole = server.getConfig().getZoeRoleOption().getRole();
+
+      if(optionRole != null && optionRole.equals(event.getRole())) {
+        server.getConfig().getZoeRoleOption().setRole(null);
+      }
     }
   }
 
@@ -193,9 +192,9 @@ public class EventListener extends ListenerAdapter {
       if(server == null) {
         return;
       }
-      
+
       Player registedPlayer = null;
-      
+
       for(Player player : server.getPlayers()) {
         if(player.getDiscordUser().equals(event.getUser())) {
           registedPlayer = player;
@@ -206,13 +205,13 @@ public class EventListener extends ListenerAdapter {
         RichPresence richPresenceGame = event.getNewGame().asRichPresence();
         if(richPresenceGame.getName() != null && richPresenceGame.getName().equals("League of Legends") 
             && EventListenerUtil.checkIfRichPresenceIsInGame(richPresenceGame)) {
-          
+
           ServerData.getTaskExecutor().execute(new InfoCardsWorker(registedPlayer, server));
         }
       }
     }
   }
-  **/
+   **/
 
 
 

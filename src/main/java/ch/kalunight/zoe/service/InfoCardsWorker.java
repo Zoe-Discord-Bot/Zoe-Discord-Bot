@@ -45,6 +45,7 @@ public class InfoCardsWorker implements Runnable {
       logger.debug("InfoCards worker lauched for the game id: {}", currentGameInfo.getGameId());
       if(controlPanel.canTalk()) {
         generateInfoCard(controlPanel, account, currentGameInfo);
+        RiotApiUsageChannelRefresh.incrementInfocardCount();
         logger.debug("InfoCards worker has ended correctly for the game id: {}", currentGameInfo.getGameId());
       }else {
         logger.info("Impossible to send message in the infochannel of the guild id: {}", server.getGuild().getId());

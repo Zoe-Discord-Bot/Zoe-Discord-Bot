@@ -24,13 +24,12 @@ import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.exceptions.ErrorResponseException;
 import net.dv8tion.jda.core.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.core.requests.ErrorResponse;
-import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.constant.CallPriority;
 
 public class InfoPanelRefresher implements Runnable {
 
-  private static final int INFO_CARDS_MINUTES_LIVE_TIME = 30;
+  private static final int INFO_CARDS_MINUTES_LIVE_TIME = 20;
 
   private static final Logger logger = LoggerFactory.getLogger(InfoPanelRefresher.class);
 
@@ -43,12 +42,17 @@ public class InfoPanelRefresher implements Runnable {
   @Override
   public void run() {
     try {
-      cleanRegisteredPlayerNoLongerInGuild();
-      server.clearOldMatchOfSendedGamesIdList();
-      deleteOlderInfoCards();
 
       if(server.getInfoChannel() != null) {
+        
+        for(Player player : server.getPlayers()) {
+          player.refreshAllLeagueAccounts(CallPriority.NORMAL);
+        }
 
+        cleanRegisteredPlayerNoLongerInGuild();
+        server.clearOldMatchOfSendedGamesIdList();
+        deleteOlderInfoCards();
+        
         ArrayList<String> infoPanels = CommandEvent.splitMessage(refreshPannel());
 
         if(server.getInfoChannel() != null && server.getGuild().getTextChannelById(server.getInfoChannel().getId()) != null) {
@@ -75,12 +79,12 @@ public class InfoPanelRefresher implements Runnable {
           if(server.getConfig().getInfoCardsOption().isOptionActivated()) {
             manageInfoCards();
           }
-          
+
           try {
             cleaningInfoChannel();
           }catch (InsufficientPermissionException e) {
             logger.info("Error in a infochannel when cleaning : {}", e.getMessage());
-            
+
           }catch (Exception e) {
             logger.warn("An unexpected error when cleaning info channel has occure.", e);
           }
@@ -97,7 +101,7 @@ public class InfoPanelRefresher implements Runnable {
       try {
         PermissionOverride permissionOverride = server.getInfoChannel()
             .putPermissionOverride(server.getGuild().getMember(Zoe.getJda().getSelfUser())).complete();
-      
+
         permissionOverride.getManager().grant(e.getPermission()).complete();
         logger.info("Autofix complete !");
       }catch(Exception e1) {
@@ -170,52 +174,52 @@ public class InfoPanelRefresher implements Runnable {
       InfoCard card = server.getControlePannel().getInfoCards().get(i);
 
       if(card.getCreationTime().plusMinutes(INFO_CARDS_MINUTES_LIVE_TIME).isBeforeNow()) {
-        
-        if(!card.getPlayers().isEmpty()) {
-          Player player = card.getPlayers().get(0);
-          if(!player.getLeagueAccountsInTheGivenGame(card.getCurrentGameInfo()).isEmpty()) {
-            LeagueAccount account = player.getLeagueAccountsInTheGivenGame(card.getCurrentGameInfo()).get(0);
-            try {
-              Zoe.getRiotApi().getActiveGameBySummoner(account.getRegion(), account.getSummoner().getId(), CallPriority.NORMAL);
-            } catch(RiotApiException e) {
-              if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
-                cardsToRemove.add(card);
-              }
-            }
-          }
-        }else {
-          cardsToRemove.add(card);
-        }
+
+        checkIfGameLongerExist(cardsToRemove, card);
 
       }
     }
 
     for(int i = 0; i < cardsToRemove.size(); i++) {
       try {
-        try {
-          cardsToRemove.get(i).getMessage().delete().complete();
-        } catch(ErrorResponseException e) {
-          if(e.getErrorResponse() == ErrorResponse.UNKNOWN_MESSAGE) {
-            logger.info("Message already deleted : {}", e.getMessage());
-          } else {
-            logger.warn("Unhandle error : {}", e.getMessage());
-            throw e;
-          }
-        }
+        removeMessage(cardsToRemove.get(i).getMessage());
+        removeMessage(cardsToRemove.get(i).getTitle());
 
-        try {
-          cardsToRemove.get(i).getTitle().delete().complete();
-        } catch(ErrorResponseException e) {
-          if(e.getErrorResponse() == ErrorResponse.UNKNOWN_MESSAGE) {
-            logger.info("Message already deleted : {}", e.getMessage());
-          } else {
-            logger.warn("Unhandle error : {}", e.getMessage());
-            throw e;
-          }
-        }
         server.getControlePannel().getInfoCards().remove(cardsToRemove.get(i));
       } catch(Exception e) {
         logger.warn("Impossible to delete message, retry next time : {}", e.getMessage(), e);
+      }
+    }
+  }
+
+  private void checkIfGameLongerExist(List<InfoCard> cardsToRemove, InfoCard card) {
+    if(!card.getPlayers().isEmpty()) {
+      Player player = card.getPlayers().get(0);
+      if(!player.getLeagueAccountsInTheGivenGame(card.getCurrentGameInfo()).isEmpty()) {
+        
+        LeagueAccount account = player.getLeagueAccountsInTheGivenGame(card.getCurrentGameInfo()).get(0);
+        
+        if(account.getCurrentGameInfo() == null || account.getCurrentGameInfo().getGameId() != card.getCurrentGameInfo().getGameId()) {
+          cardsToRemove.add(card);
+        }
+        
+      }else {
+        cardsToRemove.add(card);
+      }
+    }else {
+      cardsToRemove.add(card);
+    }
+  }
+
+  private void removeMessage(Message message) {
+    try {
+      message.delete().complete();
+    } catch(ErrorResponseException e) {
+      if(e.getErrorResponse() == ErrorResponse.UNKNOWN_MESSAGE) {
+        logger.info("Message already deleted : {}", e.getMessage());
+      } else {
+        logger.warn("Unhandle error : {}", e.getMessage());
+        throw e;
       }
     }
   }
@@ -243,10 +247,6 @@ public class InfoPanelRefresher implements Runnable {
 
     final List<Team> teamList = server.getAllPlayerTeams();
     final StringBuilder stringMessage = new StringBuilder();
-
-    for(Player player : server.getPlayers()) {
-      player.refreshAllLeagueAccounts(CallPriority.NORMAL);
-    }
 
     stringMessage.append("__**Information Panel**__\n \n");
 

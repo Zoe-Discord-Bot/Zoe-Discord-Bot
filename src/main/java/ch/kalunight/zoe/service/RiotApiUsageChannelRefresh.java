@@ -26,6 +26,8 @@ import net.rithms.riot.constant.Platform;
 
 public class RiotApiUsageChannelRefresh implements Runnable {
 
+  private static Integer infocardCreatedCount = 0;
+  
   private static TextChannel rapiInfoChannel;
 
   @Override
@@ -56,7 +58,10 @@ public class RiotApiUsageChannelRefresh implements Runnable {
             + "\nTotal number of players : " + nbrPlayers 
             + "\nTotal number of League accounts : " + nbrAccount 
             + "\nTask in Server Executor Queue : " + ServerData.getServerExecutor().getQueue().size()
-            + "\nTask in InfoCards Generator Queue : " + ServerData.getInfocardsGenerator().getQueue().size()).queue();
+            + "\nTask in InfoCards Generator Queue : " + ServerData.getInfocardsGenerator().getQueue().size()
+            + "\nInfocards Generated last 2 minutes : " + getInfocardCreatedCount()).complete();
+        
+        setInfocardCreatedCount(0);
 
         ArrayList<byte[]> graphs = new ArrayList<>();
         List<Platform> platformOrder = new ArrayList<>();
@@ -121,6 +126,18 @@ public class RiotApiUsageChannelRefresh implements Runnable {
 
   public static void setRapiInfoChannel(TextChannel rapiInfoChannel) {
     RiotApiUsageChannelRefresh.rapiInfoChannel = rapiInfoChannel;
+  }
+
+  public static synchronized Integer getInfocardCreatedCount() {
+    return infocardCreatedCount;
+  }
+
+  public static synchronized void setInfocardCreatedCount(Integer infocardCreatedCount) {
+    RiotApiUsageChannelRefresh.infocardCreatedCount = infocardCreatedCount;
+  }
+  
+  public static synchronized void incrementInfocardCount() {
+    infocardCreatedCount++;
   }
 
 }

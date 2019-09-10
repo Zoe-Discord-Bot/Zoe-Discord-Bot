@@ -2,22 +2,17 @@ package ch.kalunight.zoe.command;
 
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
-import ch.kalunight.zoe.model.InfoCard;
-import ch.kalunight.zoe.model.Server;
 import net.dv8tion.jda.core.JDA.Status;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Message;
+import net.dv8tion.jda.core.OnlineStatus;
+import net.dv8tion.jda.core.entities.Game;
 import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.core.entities.Game.GameType;
 
 public class ShutDownCommand extends Command {
 
@@ -35,18 +30,32 @@ public class ShutDownCommand extends Command {
   protected void execute(CommandEvent event) {
     TextChannel channel = event.getTextChannel();
 
+    if(channel == null) {
+      event.reply("Please send this command in a guild text channel !");
+      return;
+    }
+    
     channel.sendTyping().complete();
 
-    channel.sendMessage("I will be shutdown ...").complete();
+    logger.info("Shutdown started !");
+    
+    channel.sendMessage("ShutDown Started ! I will not respond anymore ...").complete();
 
-    ServerData.getMainThreadTimer().cancel();
+    for(Object eventListener : Zoe.getEventlistenerlist()) {
+      Zoe.getJda().removeEventListener(eventListener);
+    }
+    
+    Zoe.getJda().getPresence().setPresence(OnlineStatus.DO_NOT_DISTURB, Game.of(GameType.DEFAULT, "Shuting down ..."));
+    
+    ServerData.getServerCheckerThreadTimer().cancel();
 
-    channel.sendMessage("The game checker thread has been safely stopped ...").complete();
+    logger.info("The server checker thread has been safely stopped ...");
+    channel.sendMessage("The server checker thread has been safely stopped ...").complete();
 
     try {
-      ServerData.shutDownTaskExecutor();
+      ServerData.shutDownTaskExecutor(channel);
     } catch(InterruptedException e) {
-      event.reply("Task executor got a error : " + e.getMessage());
+      event.reply("Thread got interupted ! Save end shut down without finish task : " + e.getMessage());
       logger.error("Error in shutDownTaskExecutor : {}", e.getMessage(), e);
       Zoe.getJda().shutdownNow();
       try {
@@ -58,38 +67,10 @@ public class ShutDownCommand extends Command {
       Thread.currentThread().interrupt();
     }
 
-    channel.sendMessage("Task executor has safely stop ...").complete();
-
-    Set<Entry<String, Server>> serversEntry = ServerData.getServers().entrySet();
-
-    for(Entry<String, Server> serverEntry : serversEntry) {
-      Server server = serverEntry.getValue();
-
-      if(server != null) {
-        List<InfoCard> infoCards = server.getControlePannel().getInfoCards();
-        ArrayList<Message> messageToDelete = new ArrayList<>();
-        for(InfoCard infoCard : infoCards) {
-          messageToDelete.add(infoCard.getMessage());
-          messageToDelete.add(infoCard.getTitle());
-        }
-        if(server.getInfoChannel() != null) {
-          try {
-            if(server.getGuild().getMember(Zoe.getJda().getSelfUser()).hasPermission(Permission.MESSAGE_MANAGE)) {
-              server.getInfoChannel().purgeMessages(messageToDelete);
-            } else {
-              for(Message message : messageToDelete) {
-                message.delete().complete();
-              }
-            }
-          } catch(Exception e) {
-            logger.info("Error when deleting message {}", e.getMessage());
-          }
-        }
-      }
-    }
-
-    channel.sendMessage("All info cards has been deleted, now shutdown discord and save data. (ShutDown is complete)").complete();
-
+    logger.info("All ThreadPoolExecutors has safely stop. Now shutdown JDA...");
+    channel.sendMessage("All ThreadPoolExecutors has safely stop. Now shutdown JDA and save data. (ShutDown is complete)").complete();
+    channel.sendMessage("Please wait 30 sec before update Zoe, some process can take some time before to automatically shutdown.").complete();
+    
     Zoe.getJda().shutdown();
 
     while(!Zoe.getJda().getStatus().equals(Status.SHUTDOWN)) {
@@ -99,13 +80,14 @@ public class ShutDownCommand extends Command {
         Thread.currentThread().interrupt();
       }
     }
+    
+    logger.info("JDA has been ShutDown !");
 
     try {
       Zoe.saveDataTxt();
     } catch(FileNotFoundException | UnsupportedEncodingException e) {
       logger.error("La sauvegarde n'a pas pu être effectué !");
     }
-
-    System.exit(0);
+    logger.info("Save has been done ! Zoe Process are now totally down ! Some process can remain and will be shutdown automatically.");
   }
 }

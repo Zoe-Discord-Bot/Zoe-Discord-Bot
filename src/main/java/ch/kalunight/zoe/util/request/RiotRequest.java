@@ -12,10 +12,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.kalunight.zoe.Zoe;
-import ch.kalunight.zoe.model.FullTier;
-import ch.kalunight.zoe.model.Mastery;
-import ch.kalunight.zoe.model.Rank;
-import ch.kalunight.zoe.model.Tier;
+import ch.kalunight.zoe.model.player_data.FullTier;
+import ch.kalunight.zoe.model.player_data.Rank;
+import ch.kalunight.zoe.model.player_data.Tier;
+import ch.kalunight.zoe.model.static_data.Mastery;
 import ch.kalunight.zoe.util.NameConversion;
 import ch.kalunight.zoe.util.Ressources;
 import net.rithms.riot.api.RiotApiException;

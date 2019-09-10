@@ -15,8 +15,8 @@ import org.knowm.xchart.style.PieStyler.AnnotationType;
 import org.knowm.xchart.style.Styler.ChartTheme;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
-import ch.kalunight.zoe.model.Player;
 import ch.kalunight.zoe.model.Server;
+import ch.kalunight.zoe.model.player_data.Player;
 import net.dv8tion.jda.core.MessageBuilder;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.TextChannel;
@@ -26,6 +26,8 @@ import net.rithms.riot.constant.Platform;
 
 public class RiotApiUsageChannelRefresh implements Runnable {
 
+  private static Integer infocardCreatedCount = 0;
+  
   private static TextChannel rapiInfoChannel;
 
   @Override
@@ -52,9 +54,14 @@ public class RiotApiUsageChannelRefresh implements Runnable {
           }
         }
         
-        rapiInfoChannel.sendMessage("Total number of players : " + nbrPlayers 
+        rapiInfoChannel.sendMessage("Total number of Servers : " + Zoe.getJda().getGuilds().size()
+            + "\nTotal number of players : " + nbrPlayers 
             + "\nTotal number of League accounts : " + nbrAccount 
-            + "\nTask in queue : " + ServerData.getTaskExecutor().getQueue().size()).queue();
+            + "\nTask in Server Executor Queue : " + ServerData.getServerExecutor().getQueue().size()
+            + "\nTask in InfoCards Generator Queue : " + ServerData.getInfocardsGenerator().getQueue().size()
+            + "\nInfocards Generated last 2 minutes : " + getInfocardCreatedCount()).complete();
+        
+        setInfocardCreatedCount(0);
 
         ArrayList<byte[]> graphs = new ArrayList<>();
         List<Platform> platformOrder = new ArrayList<>();
@@ -119,6 +126,18 @@ public class RiotApiUsageChannelRefresh implements Runnable {
 
   public static void setRapiInfoChannel(TextChannel rapiInfoChannel) {
     RiotApiUsageChannelRefresh.rapiInfoChannel = rapiInfoChannel;
+  }
+
+  public static synchronized Integer getInfocardCreatedCount() {
+    return infocardCreatedCount;
+  }
+
+  public static synchronized void setInfocardCreatedCount(Integer infocardCreatedCount) {
+    RiotApiUsageChannelRefresh.infocardCreatedCount = infocardCreatedCount;
+  }
+  
+  public static synchronized void incrementInfocardCount() {
+    infocardCreatedCount++;
   }
 
 }

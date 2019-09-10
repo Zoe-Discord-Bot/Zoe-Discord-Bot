@@ -16,7 +16,7 @@ public class AddCommand extends Command {
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
     this.help = "Send info about add commands";
-    Command[] commandsChildren = {new AddPlayerToTeamCommand(), new AddAccountToPlayerCommand()};
+    Command[] commandsChildren = {new AddPlayerToTeamCommand(), new AddAccountCommand()};
     this.children = commandsChildren;
     this.helpBiConsumer = getHelpMethod();
   }

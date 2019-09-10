@@ -1,4 +1,4 @@
-package ch.kalunight.zoe.model;
+package ch.kalunight.zoe.model.player_data;
 
 import ch.kalunight.zoe.exception.NoValueRankException;
 

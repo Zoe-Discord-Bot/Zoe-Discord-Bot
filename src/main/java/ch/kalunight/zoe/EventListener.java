@@ -13,24 +13,25 @@ import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.model.ControlPannel;
 import ch.kalunight.zoe.model.Server;
-import ch.kalunight.zoe.model.SpellingLangage;
-import ch.kalunight.zoe.service.GameChecker;
+import ch.kalunight.zoe.model.config.ServerConfiguration;
+import ch.kalunight.zoe.model.static_data.SpellingLangage;
+import ch.kalunight.zoe.service.ServerChecker;
 import ch.kalunight.zoe.service.RiotApiUsageChannelRefresh;
 import ch.kalunight.zoe.util.EventListenerUtil;
 import net.dv8tion.jda.core.OnlineStatus;
 import net.dv8tion.jda.core.entities.Game;
 import net.dv8tion.jda.core.entities.Guild;
+import net.dv8tion.jda.core.entities.Role;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.events.ReadyEvent;
 import net.dv8tion.jda.core.events.channel.text.TextChannelDeleteEvent;
 import net.dv8tion.jda.core.events.guild.GuildJoinEvent;
+import net.dv8tion.jda.core.events.role.RoleDeleteEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
 import net.rithms.riot.api.RiotApiException;
 
 public class EventListener extends ListenerAdapter {
-
-  private static final int WAIT_TIME_BETWEEN_EACH_REFRESH_IN_MS = 10000;
-
+  
   private static final String WELCOME_MESSAGE = "Hi! Thank you for adding me! To get help on my configuration type the command `>setup`. "
       + "If you want to see all commands i have, type >`help`";
 
@@ -75,19 +76,19 @@ public class EventListener extends ListenerAdapter {
     }
 
     logger.info("Chargement des sauvegardes détaillés terminé !");
-    
+
     logger.info("Loading of RAPI Status Channel ...");
-    
+
     initRAPIStatusChannel();
-    
+
     logger.info("Loading of RAPI Status Channel finished !");
 
     logger.info("Loading of DiscordBotList API ...");
 
     try {
       Zoe.setBotListApi(new DiscordBotListAPI.Builder().botId(Zoe.getJda().getSelfUser().getId()).token(Zoe.getDiscordBotListTocken()) // SET
-                                                                                                                                       // TOCKEN
-          .build());
+          .build());                                                                                                                   // TOCKEN
+
       logger.info("Loading of DiscordBotList API finished !");
     } catch(Exception e) {
       logger.info("Discord bot list api not loaded normally ! Working of the bot not affected");
@@ -111,50 +112,27 @@ public class EventListener extends ListenerAdapter {
         Server server = ServerData.getServers().get(guild.getId());
 
         if(server == null) {
-          ServerData.getServers().put(guild.getId(), new Server(guild, SpellingLangage.EN));
+          ServerData.getServers().put(guild.getId(), new Server(guild, SpellingLangage.EN, new ServerConfiguration()));
         }
       }
     }
   }
 
   private void setupContinousRefreshThread() {
-    TimerTask mainThread = new GameChecker();
-    ServerData.getMainThreadTimer().schedule(mainThread, 0, WAIT_TIME_BETWEEN_EACH_REFRESH_IN_MS);
-
-    Runnable gameChecker = new GameChecker();
-    Thread thread = new Thread(gameChecker, "Game-Checker-Thread");
-    thread.start();
+    TimerTask mainThread = new ServerChecker();
+    ServerData.getServerCheckerThreadTimer().schedule(mainThread, 0);
   }
 
-  @Override
-  public void onGuildJoin(GuildJoinEvent event) {
-
-    if(!event.getGuild().getOwner().getUser().getId().equals(Zoe.getJda().getSelfUser().getId())) {
-      ServerData.getServers().put(event.getGuild().getId(), new Server(event.getGuild(), SpellingLangage.EN));
-      ServerData.getServersIsInTreatment().put(event.getGuild().getId(), false);
-      CommandUtil.sendMessageInGuildOrAtOwner(event.getGuild(), WELCOME_MESSAGE);
-    }
-  }
-
-  @Override
-  public void onTextChannelDelete(TextChannelDeleteEvent event) {
-    Server server = ServerData.getServers().get(event.getGuild().getId());
-    if(server.getInfoChannel() != null && server.getInfoChannel().getId().equals(event.getChannel().getId())) {
-      server.setControlePannel(new ControlPannel());
-      server.setInfoChannel(null);
-    }
-  }
-  
   private void initRAPIStatusChannel() {
     try(final BufferedReader reader = new BufferedReader(new FileReader(Zoe.RAPI_SAVE_TXT_FILE));) {
       String line;
 
       List<String> args = new ArrayList<>();
-      
+
       while((line = reader.readLine()) != null) {
         args.add(line);
       }
-      
+
       if(args.size() == 2) {
         Guild guild = Zoe.getJda().getGuildById(args.get(0));
         if(guild != null) {
@@ -171,4 +149,70 @@ public class EventListener extends ListenerAdapter {
       logger.warn("Error when loading the file of RAPI Status Channel. The older channel will be unused ! (You can re-create it)");
     }
   }
+
+  @Override
+  public void onGuildJoin(GuildJoinEvent event) {
+
+    if(!event.getGuild().getOwner().getUser().getId().equals(Zoe.getJda().getSelfUser().getId())) {
+      ServerData.getServers().put(event.getGuild().getId(), new Server(event.getGuild(), SpellingLangage.EN, new ServerConfiguration()));
+      ServerData.getServersIsInTreatment().put(event.getGuild().getId(), false);
+      CommandUtil.sendMessageInGuildOrAtOwner(event.getGuild(), WELCOME_MESSAGE);
+    }
+  }
+
+  @Override
+  public void onTextChannelDelete(TextChannelDeleteEvent event) {
+    Server server = ServerData.getServers().get(event.getGuild().getId());
+    if(server.getInfoChannel() != null && server.getInfoChannel().getId().equals(event.getChannel().getId())) {
+      server.setControlePannel(new ControlPannel());
+      server.setInfoChannel(null);
+    }
+  }
+
+  @Override
+  public void onRoleDelete(RoleDeleteEvent event) {
+    Server server = ServerData.getServers().get(event.getGuild().getId());
+
+    if(server != null) {
+
+      Role optionRole = server.getConfig().getZoeRoleOption().getRole();
+
+      if(optionRole != null && optionRole.equals(event.getRole())) {
+        server.getConfig().getZoeRoleOption().setRole(null);
+      }
+    }
+  }
+
+  /**Rework this system
+   * @Override
+  public void onUserUpdateGame(UserUpdateGameEvent event) {
+    if(event.getGuild() != null) {
+      Server server = ServerData.getServers().get(event.getGuild().getId());
+
+      if(server == null) {
+        return;
+      }
+
+      Player registedPlayer = null;
+
+      for(Player player : server.getPlayers()) {
+        if(player.getDiscordUser().equals(event.getUser())) {
+          registedPlayer = player;
+        }
+      }
+
+      if(server.getInfoChannel() != null && registedPlayer != null && event.getNewGame().isRich()) {
+        RichPresence richPresenceGame = event.getNewGame().asRichPresence();
+        if(richPresenceGame.getName() != null && richPresenceGame.getName().equals("League of Legends") 
+            && EventListenerUtil.checkIfRichPresenceIsInGame(richPresenceGame)) {
+
+          ServerData.getTaskExecutor().execute(new InfoCardsWorker(registedPlayer, server));
+        }
+      }
+    }
+  }
+   **/
+
+
+
 }

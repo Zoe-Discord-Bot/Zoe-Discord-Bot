@@ -2,7 +2,7 @@ package ch.kalunight.zoe.util;
 
 import java.util.ArrayList;
 import java.util.List;
-import ch.kalunight.zoe.model.Player;
+import ch.kalunight.zoe.model.player_data.Player;
 
 public class NameConversion {
 

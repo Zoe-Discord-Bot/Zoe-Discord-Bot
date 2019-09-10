@@ -10,24 +10,24 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.command.create.CreatePlayerCommand;
-import ch.kalunight.zoe.model.LeagueAccount;
-import ch.kalunight.zoe.model.Player;
 import ch.kalunight.zoe.model.Server;
+import ch.kalunight.zoe.model.player_data.LeagueAccount;
+import ch.kalunight.zoe.model.player_data.Player;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.User;
 import net.rithms.riot.constant.Platform;
 
-public class RemoveAccountToPlayerCommand extends Command {
+public class RemoveAccountCommand extends Command {
 
   public static final Pattern PARENTHESES_PATTERN = Pattern.compile("\\(([^)]+)\\)");
-  public static final String USAGE_NAME = "accountToPlayer";
+  public static final String USAGE_NAME = "account";
 
-  public RemoveAccountToPlayerCommand() {
+  public RemoveAccountCommand() {
     this.name = USAGE_NAME;
-    this.help = "Remove the given account to the mentionned player. Manage Channel permission needed.";
+    String[] aliases = {"accountToPlayers", "accountsToPlayers", "accountToPlayers", "accountToPlayer", "accounts"};
+    this.aliases = aliases;
+    this.help = "Remove the given account to the mentionned player.";
     this.arguments = "@MentionOfPlayer (Region) (SummonerName)";
-    Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
-    this.userPermissions = permissionRequired;
     this.helpBiConsumer = getHelpMethod();
   }
   
@@ -36,11 +36,20 @@ public class RemoveAccountToPlayerCommand extends Command {
     event.getTextChannel().sendTyping().complete();
     
     Server server = ServerData.getServers().get(event.getGuild().getId());
-
+    
+    if(!server.getConfig().getUserSelfAdding().isOptionActivated() && !event.getMember().getPermissions().contains(Permission.MANAGE_CHANNEL)) {
+        event.reply("You need the permission \"" + Permission.MANAGE_CHANNEL.getName() + "\" to do that.");
+        return;
+    }
+    
     User user = CreatePlayerCommand.getMentionedUser(event.getMessage().getMentionedMembers());
     if(user == null) {
       event.reply("Please mention 1 member of the server "
           + "(e.g. `>create player @" + event.getMember().getUser().getName() + " (Region) (SummonerName)`)");
+      return;
+    } else if(!user.equals(event.getAuthor()) && !event.getMember().getPermissions().contains(Permission.MANAGE_CHANNEL)) {
+      event.reply("You cannot remove an account of another player than you "
+          + "if you don't have the *" + Permission.MANAGE_CHANNEL.getName() + "* permission.");
       return;
     }
     
@@ -52,7 +61,7 @@ public class RemoveAccountToPlayerCommand extends Command {
 
     List<String> listArgs = CreatePlayerCommand.getParameterInParenteses(event.getArgs());
     if(listArgs.size() != 2) {
-      event.reply("The command is malformed. Please respect this pattern : `>create player @DiscordPlayerMention (Region) (SummonerName)`");
+      event.reply("The command is malformed. Please respect this pattern : `>remove account @DiscordPlayerMention (Region) (SummonerName)`");
       return;
     }
     

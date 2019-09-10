@@ -6,10 +6,10 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import ch.kalunight.zoe.model.Champion;
-import ch.kalunight.zoe.model.CustomEmote;
-import ch.kalunight.zoe.model.Mastery;
-import ch.kalunight.zoe.model.Tier;
+import ch.kalunight.zoe.model.player_data.Tier;
+import ch.kalunight.zoe.model.static_data.Champion;
+import ch.kalunight.zoe.model.static_data.CustomEmote;
+import ch.kalunight.zoe.model.static_data.Mastery;
 
 public class Ressources {
 

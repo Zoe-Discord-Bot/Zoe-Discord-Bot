@@ -5,16 +5,34 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 import ch.kalunight.zoe.Zoe;
-import ch.kalunight.zoe.model.CustomEmote;
+import ch.kalunight.zoe.model.static_data.CustomEmote;
 import net.dv8tion.jda.core.entities.Emote;
 import net.dv8tion.jda.core.entities.Guild;
+import net.dv8tion.jda.core.entities.RichPresence;
 
 public class EventListenerUtil {
 
+  private static final List<String> inGameTranslationList = new ArrayList<>();
+  
+  static {
+    inGameTranslationList.add("In Game");
+    inGameTranslationList.add("En jeu");
+    inGameTranslationList.add("Em partida");
+    inGameTranslationList.add("Oyunda");
+  }
+  
   private EventListenerUtil() {
     //Hide public constructor
   }
+  
+  
+  public static boolean checkIfRichPresenceIsInGame(RichPresence richPresence) {
+    return inGameTranslationList.contains(richPresence.getState()) 
+        || (richPresence.getLargeImage() != null && richPresence.getLargeImage().getKey() != null);
+  }
+  
 
   public static void loadCustomEmotes() throws IOException {
     List<Emote> uploadedEmotes = getAllGuildCustomEmotes();

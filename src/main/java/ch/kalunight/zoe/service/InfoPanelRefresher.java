@@ -2,11 +2,10 @@ package ch.kalunight.zoe.service;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.command.CommandEvent;
@@ -14,26 +13,23 @@ import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.ControlPannel;
 import ch.kalunight.zoe.model.InfoCard;
-import ch.kalunight.zoe.model.LeagueAccount;
-import ch.kalunight.zoe.model.Player;
 import ch.kalunight.zoe.model.Server;
-import ch.kalunight.zoe.model.Team;
+import ch.kalunight.zoe.model.player_data.LeagueAccount;
+import ch.kalunight.zoe.model.player_data.Player;
+import ch.kalunight.zoe.model.player_data.Team;
 import ch.kalunight.zoe.util.InfoPanelRefresherUtil;
-import ch.kalunight.zoe.util.NameConversion;
-import ch.kalunight.zoe.util.request.MessageBuilderRequest;
 import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.MessageEmbed;
+import net.dv8tion.jda.core.entities.PermissionOverride;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.exceptions.ErrorResponseException;
-import net.dv8tion.jda.core.exceptions.PermissionException;
+import net.dv8tion.jda.core.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.core.requests.ErrorResponse;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
-import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
 import net.rithms.riot.constant.CallPriority;
 
 public class InfoPanelRefresher implements Runnable {
 
-  private static final int INFO_CARDS_MINUTES_LIVE_TIME = 30;
+  private static final int INFO_CARDS_MINUTES_LIVE_TIME = 20;
 
   private static final Logger logger = LoggerFactory.getLogger(InfoPanelRefresher.class);
 
@@ -47,14 +43,16 @@ public class InfoPanelRefresher implements Runnable {
   public void run() {
     try {
 
-      cleanRegisteredPlayerNoLongerInGuild();
-
       if(server.getInfoChannel() != null) {
-        if(server.getControlePannel().getInfoPanel().isEmpty()) {
-          server.getControlePannel().getInfoPanel()
-          .add(server.getInfoChannel().sendMessage("__**Information Panel**__\n \n*Loading...*").complete());
+        
+        for(Player player : server.getPlayers()) {
+          player.refreshAllLeagueAccounts(CallPriority.NORMAL);
         }
 
+        cleanRegisteredPlayerNoLongerInGuild();
+        server.clearOldMatchOfSendedGamesIdList();
+        deleteOlderInfoCards();
+        
         ArrayList<String> infoPanels = CommandEvent.splitMessage(refreshPannel());
 
         if(server.getInfoChannel() != null && server.getGuild().getTextChannelById(server.getInfoChannel().getId()) != null) {
@@ -78,12 +76,15 @@ public class InfoPanelRefresher implements Runnable {
             server.getControlePannel().getInfoPanel().get(i).editMessage(infoPanels.get(i)).queue();
           }
 
-          manageInfoCards();
+          if(server.getConfig().getInfoCardsOption().isOptionActivated()) {
+            manageInfoCards();
+          }
 
           try {
             cleaningInfoChannel();
-          }catch (PermissionException e) {
-            logger.info("Unsuffisient permission to clean info channel : {}", e.getMessage());
+          }catch (InsufficientPermissionException e) {
+            logger.info("Error in a infochannel when cleaning : {}", e.getMessage());
+
           }catch (Exception e) {
             logger.warn("An unexpected error when cleaning info channel has occure.", e);
           }
@@ -94,9 +95,22 @@ public class InfoPanelRefresher implements Runnable {
       }
     } catch(NullPointerException e) {
       logger.info("The Thread has crashed normally because of deletion of infoChannel :", e);
+    }catch (InsufficientPermissionException e) {
+      logger.info("Permission {} missing for infochannel in the guild {}, try to autofix the issue... (Low chance to work)",
+          e.getPermission().getName(), server.getGuild().getName());
+      try {
+        PermissionOverride permissionOverride = server.getInfoChannel()
+            .putPermissionOverride(server.getGuild().getMember(Zoe.getJda().getSelfUser())).complete();
+
+        permissionOverride.getManager().grant(e.getPermission()).complete();
+        logger.info("Autofix complete !");
+      }catch(Exception e1) {
+        logger.info("Autofix fail ! Error message : {} ", e1.getMessage());
+      }
     } catch(Exception e) {
       logger.warn("The thread got a unexpected error :", e);
     } finally {
+      server.setLastRefresh(DateTime.now());
       ServerData.getServersIsInTreatment().put(server.getGuild().getId(), false);
     }
   }
@@ -150,11 +164,7 @@ public class InfoPanelRefresher implements Runnable {
   private void manageInfoCards() {
     TextChannel controlPannel = server.getInfoChannel();
 
-    List<InfoCard> messageSended = createInfoCards(controlPannel);
-
-    server.getControlePannel().getInfoCards().addAll(messageSended);
-
-    deleteOlderInfoCards();
+    createInfoCards(controlPannel);
   }
 
   private void deleteOlderInfoCards() {
@@ -164,33 +174,17 @@ public class InfoPanelRefresher implements Runnable {
       InfoCard card = server.getControlePannel().getInfoCards().get(i);
 
       if(card.getCreationTime().plusMinutes(INFO_CARDS_MINUTES_LIVE_TIME).isBeforeNow()) {
-        cardsToRemove.add(card);
+
+        checkIfGameLongerExist(cardsToRemove, card);
+
       }
     }
 
     for(int i = 0; i < cardsToRemove.size(); i++) {
       try {
-        try {
-          cardsToRemove.get(i).getMessage().delete().complete();
-        } catch(ErrorResponseException e) {
-          if(e.getErrorResponse() == ErrorResponse.UNKNOWN_MESSAGE) {
-            logger.info("Message already deleted : {}", e.getMessage());
-          } else {
-            logger.warn("Unhandle error : {}", e.getMessage());
-            throw e;
-          }
-        }
+        removeMessage(cardsToRemove.get(i).getMessage());
+        removeMessage(cardsToRemove.get(i).getTitle());
 
-        try {
-          cardsToRemove.get(i).getTitle().delete().complete();
-        } catch(ErrorResponseException e) {
-          if(e.getErrorResponse() == ErrorResponse.UNKNOWN_MESSAGE) {
-            logger.info("Message already deleted : {}", e.getMessage());
-          } else {
-            logger.warn("Unhandle error : {}", e.getMessage());
-            throw e;
-          }
-        }
         server.getControlePannel().getInfoCards().remove(cardsToRemove.get(i));
       } catch(Exception e) {
         logger.warn("Impossible to delete message, retry next time : {}", e.getMessage(), e);
@@ -198,9 +192,40 @@ public class InfoPanelRefresher implements Runnable {
     }
   }
 
-  private List<InfoCard> createInfoCards(TextChannel controlPannel) {
+  private void checkIfGameLongerExist(List<InfoCard> cardsToRemove, InfoCard card) {
+    if(!card.getPlayers().isEmpty()) {
+      Player player = card.getPlayers().get(0);
+      if(!player.getLeagueAccountsInTheGivenGame(card.getCurrentGameInfo()).isEmpty()) {
+        
+        LeagueAccount account = player.getLeagueAccountsInTheGivenGame(card.getCurrentGameInfo()).get(0);
+        
+        if(account.getCurrentGameInfo() == null || account.getCurrentGameInfo().getGameId() != card.getCurrentGameInfo().getGameId()) {
+          cardsToRemove.add(card);
+        }
+        
+      }else {
+        cardsToRemove.add(card);
+      }
+    }else {
+      cardsToRemove.add(card);
+    }
+  }
 
-    ArrayList<InfoCard> cards = new ArrayList<>();
+  private void removeMessage(Message message) {
+    try {
+      message.delete().complete();
+    } catch(ErrorResponseException e) {
+      if(e.getErrorResponse() == ErrorResponse.UNKNOWN_MESSAGE) {
+        logger.info("Message already deleted : {}", e.getMessage());
+      } else {
+        logger.warn("Unhandle error : {}", e.getMessage());
+        throw e;
+      }
+    }
+  }
+
+  private void createInfoCards(TextChannel controlPanel) {
+
     ArrayList<LeagueAccount> accountAlreadyGenerated = new ArrayList<>();
 
     for(LeagueAccount account : server.getAllAccountsOfTheServer()) {
@@ -210,96 +235,12 @@ public class InfoPanelRefresher implements Runnable {
         CurrentGameInfo currentGameInfo = account.getCurrentGameInfo();
 
         if(currentGameInfo != null && !server.getCurrentGamesIdAlreadySended().contains(currentGameInfo.getGameId())) {
-          List<Player> listOfPlayerInTheGame = checkIfOthersPlayersIsKnowInTheMatch(currentGameInfo);
-          Player player = server.getPlayerByLeagueAccount(account);
-          InfoCard card = null;
-
-          if(listOfPlayerInTheGame.size() == 1) {
-            MessageEmbed messageCard = MessageBuilderRequest.createInfoCard1summoner(player.getDiscordUser(), account.getSummoner(),
-                currentGameInfo, account.getRegion());
-            if(messageCard != null) {
-              card = new InfoCard(listOfPlayerInTheGame, messageCard);
-            }
-          } else if(listOfPlayerInTheGame.size() > 1) {
-            MessageEmbed messageCard =
-                MessageBuilderRequest.createInfoCardsMultipleSummoner(listOfPlayerInTheGame, currentGameInfo, account.getRegion());
-
-            if(messageCard != null) {
-              card = new InfoCard(listOfPlayerInTheGame, messageCard);
-            }
-          }
-
-          accountAlreadyGenerated.addAll(checkIfOthersPlayersInKnowInTheMatch(currentGameInfo));
+          accountAlreadyGenerated.addAll(InfoPanelRefresherUtil.checkIfOthersAccountsInKnowInTheMatch(currentGameInfo, server));
           server.getCurrentGamesIdAlreadySended().add(currentGameInfo.getGameId());
-
-          if(card != null) {
-            List<Player> players = card.getPlayers();
-
-            StringBuilder title = new StringBuilder();
-            title.append("Info on the game of");
-
-            List<String> playersName = NameConversion.getListNameOfPlayers(players);
-
-            Set<Player> cardPlayersNotTwice = new HashSet<>();
-            for(Player playerToCheck : card.getPlayers()) {
-              cardPlayersNotTwice.add(playerToCheck);
-            }
-
-            for(int j = 0; j < cardPlayersNotTwice.size(); j++) {
-              if(j == 0) {
-                title.append(" " + playersName.get(j));
-              } else if(j + 1 == playersName.size()) {
-                title.append(" and of " + playersName.get(j));
-              } else if(j + 2 == playersName.size()) {
-                title.append(" " + playersName.get(j));
-              } else {
-                title.append(" " + playersName.get(j) + ",");
-              }
-            }
-
-            card.setTitle(controlPannel.sendMessage(title.toString()).complete());
-            card.setMessage(controlPannel.sendMessage(card.getCard()).complete());
-
-            cards.add(card);
-          }
+          ServerData.getInfocardsGenerator().execute(new InfoCardsWorker(server, controlPanel, account, currentGameInfo));
         }
       }
     }
-
-    server.clearOldMatchOfSendedGamesIdList();
-    return cards;
-  }
-
-  private List<Player> checkIfOthersPlayersIsKnowInTheMatch(CurrentGameInfo currentGameInfo) {
-
-    ArrayList<Player> listOfPlayers = new ArrayList<>();
-
-    for(Player player : server.getPlayers()) {
-      for(LeagueAccount leagueAccount : player.getLolAccounts()) {
-        for(CurrentGameParticipant participant : currentGameInfo.getParticipants()) {
-          if(participant.getSummonerId().equals(leagueAccount.getSummoner().getId())) {
-            listOfPlayers.add(player);
-          }
-        }
-      }
-    }
-    return listOfPlayers;
-  }
-
-  private List<LeagueAccount> checkIfOthersPlayersInKnowInTheMatch(CurrentGameInfo currentGameInfo){
-
-    ArrayList<LeagueAccount> listOfAccounts = new ArrayList<>();
-
-    for(Player player : server.getPlayers()) {
-      for(LeagueAccount leagueAccount : player.getLolAccounts()) {
-        for(CurrentGameParticipant participant : currentGameInfo.getParticipants()) {
-          if(participant.getSummonerId().equals(leagueAccount.getSummoner().getId()) && !listOfAccounts.contains(leagueAccount)) {
-            listOfAccounts.add(leagueAccount);
-          }
-        }
-      }
-    }
-    return listOfAccounts;
   }
 
   private String refreshPannel() {
@@ -307,15 +248,13 @@ public class InfoPanelRefresher implements Runnable {
     final List<Team> teamList = server.getAllPlayerTeams();
     final StringBuilder stringMessage = new StringBuilder();
 
-    for(Player player : server.getPlayers()) {
-      player.refreshAllLeagueAccounts(CallPriority.NORMAL);
-    }
-
     stringMessage.append("__**Information Panel**__\n \n");
 
     for(Team team : teamList) {
 
-      stringMessage.append("**" + team.getName() + "**\n \n");
+      if(teamList.size() != 1) {
+        stringMessage.append("**" + team.getName() + "**\n \n");
+      }
 
       List<Player> playersList = team.getPlayers();
 

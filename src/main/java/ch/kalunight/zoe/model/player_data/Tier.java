@@ -1,4 +1,4 @@
-package ch.kalunight.zoe.model;
+package ch.kalunight.zoe.model.player_data;
 
 public enum Tier {
   UNKNOWN("Inconnu", -1), UNRANKED("Unranked", -1), IRON("Iron", 1000), BRONZE("Bronze", 1400), SILVER("Silver", 1800), GOLD("Gold",

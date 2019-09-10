@@ -8,7 +8,8 @@ import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.model.ControlPannel;
 import ch.kalunight.zoe.model.InfoCard;
 import ch.kalunight.zoe.model.Server;
-import ch.kalunight.zoe.model.SpellingLangage;
+import ch.kalunight.zoe.model.config.ServerConfiguration;
+import ch.kalunight.zoe.model.static_data.SpellingLangage;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Message;
 
@@ -30,7 +31,7 @@ public class UndefineInfoChannelCommand extends Command {
     Server server = ServerData.getServers().get(event.getGuild().getId());
 
     if(server == null) {
-      server = new Server(event.getGuild(), SpellingLangage.EN);
+      server = new Server(event.getGuild(), SpellingLangage.EN, new ServerConfiguration());
       ServerData.getServers().put(event.getGuild().getId(), server);
     }
 

@@ -9,7 +9,8 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.model.Server;
-import ch.kalunight.zoe.model.SpellingLangage;
+import ch.kalunight.zoe.model.config.ServerConfiguration;
+import ch.kalunight.zoe.model.static_data.SpellingLangage;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 
@@ -57,7 +58,8 @@ public class ResetCommand extends Command {
         spellingLangage = server.getLangage();
       }
       
-      ServerData.getServers().put(messageReceivedEvent.getGuild().getId(), new Server(messageReceivedEvent.getGuild(), spellingLangage));
+      ServerData.getServers().put(messageReceivedEvent.getGuild().getId(), 
+          new Server(messageReceivedEvent.getGuild(), spellingLangage, new ServerConfiguration()));
       
       messageReceivedEvent.getTextChannel().sendMessage("Done, i have been reset correctly").queue();
     }else {

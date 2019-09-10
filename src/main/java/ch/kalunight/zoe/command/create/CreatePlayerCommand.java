@@ -13,9 +13,10 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.CommandUtil;
-import ch.kalunight.zoe.model.LeagueAccount;
-import ch.kalunight.zoe.model.Player;
 import ch.kalunight.zoe.model.Server;
+import ch.kalunight.zoe.model.config.option.RegionOption;
+import ch.kalunight.zoe.model.player_data.LeagueAccount;
+import ch.kalunight.zoe.model.player_data.Player;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.User;
@@ -34,38 +35,61 @@ public class CreatePlayerCommand extends Command{
 
   public CreatePlayerCommand() {
     this.name = USAGE_NAME;
-    this.help = "Create a player with the given information. Manage Channel permission needed.";
+    this.help = "Create a player with the given information.";
     this.arguments = "@DiscordMentionOfPlayer (Region) (SummonerName)";
-    Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
-    this.userPermissions = permissionRequired;
     this.helpBiConsumer = getHelpMethod();
   }
 
   @Override
   public void execute(CommandEvent event) {
     event.getTextChannel().sendTyping().complete();
-
+    
+    Server server = ServerData.getServers().get(event.getGuild().getId());
+    
+    if(!server.getConfig().getUserSelfAdding().isOptionActivated() && !event.getMember().getPermissions().contains(Permission.MANAGE_CHANNEL)) {
+        event.reply("You need the permission \"" + Permission.MANAGE_CHANNEL.getName() + "\" to do that.");
+        return;
+    }
+    
     User user = getMentionedUser(event.getMessage().getMentionedMembers());
     if(user == null) {
       event.reply("Please mention 1 member of the server "
           + "(e.g. `>create player @" + event.getMember().getUser().getName() + " (Region) (SummonerName)`)");
       return;
-    }
-
-    Server server = ServerData.getServers().get(event.getGuild().getId());
-    if(isTheGivenUserAlreadyRegister(user, server)) {
-      event.reply("The mentioned member is already register. If you want to modify the LoL account please delete it first.");
+    }else if(!user.equals(event.getAuthor()) && !event.getMember().getPermissions().contains(Permission.MANAGE_CHANNEL)) {
+      event.reply("You cannot create another player than you if don't have the *" + Permission.MANAGE_CHANNEL.getName() + "* permission. "
+          + "Sorry about that :/");
       return;
     }
 
-    List<String> listArgs = getParameterInParenteses(event.getArgs());
-    if(listArgs.size() != 2) {
-      event.reply("The command is malformed. Please respect this pattern : `>create player @DiscordPlayerMention (Region) (SummonerName)`");
+    if(isTheGivenUserAlreadyRegister(user, server)) {
+      event.reply("The mentioned member is already register. "
+          + "If you want to add a secondary lol account, please use the command ``>add accountToPlayer``.");
       return;
     }
     
-    String regionName = listArgs.get(0);
-    String summonerName = listArgs.get(1);
+    RegionOption regionOption = server.getConfig().getDefaultRegion();
+
+    List<String> listArgs = CreatePlayerCommand.getParameterInParenteses(event.getArgs());
+    if(listArgs.size() != 2 && regionOption.getRegion() == null) {
+      event.reply("The command is malformed. Please respect this pattern : `>create player @DiscordPlayerMention (Region) (SummonerName)`");
+      return;
+    }else if((listArgs.isEmpty() || listArgs.size() > 2) && regionOption.getRegion() != null) {
+      event.reply("The command is malformed. Please respect this pattern : `>create player @DiscordPlayerMention (Region) (SummonerName)`\n"
+          + "If the region is not set, the default region will be used (" + regionOption.getRegion().getName().toUpperCase() + ").");
+      return;
+    }
+
+    String regionName;
+    String summonerName;
+    if(listArgs.size() == 2) {
+      regionName = listArgs.get(0);
+      summonerName = listArgs.get(1);
+    }else {
+      regionName = regionOption.getRegion().getName();
+      summonerName = listArgs.get(0);
+    }
+
 
     Platform region = getPlatform(regionName);
     if(region == null) {
@@ -102,6 +126,12 @@ public class CreatePlayerCommand extends Command{
 
     Player player = new Player(user, summoner, region, false);
     server.getPlayers().add(player);
+    if(server.getConfig().getZoeRoleOption().getRole() != null) {
+      Member member = server.getGuild().getMember(user);
+      if(member != null) {
+        server.getGuild().getController().addRolesToMember(member, server.getConfig().getZoeRoleOption().getRole()).queue();
+      }
+    }
     event.reply("The player " + user.getName() + " has been added with the account \"" + summoner.getName() + "\".");
   }
 

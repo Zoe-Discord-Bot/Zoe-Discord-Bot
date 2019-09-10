@@ -6,8 +6,9 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.model.Server;
-import ch.kalunight.zoe.model.SpellingLangage;
-import ch.kalunight.zoe.model.Team;
+import ch.kalunight.zoe.model.config.ServerConfiguration;
+import ch.kalunight.zoe.model.player_data.Team;
+import ch.kalunight.zoe.model.static_data.SpellingLangage;
 import net.dv8tion.jda.core.Permission;
 
 public class DeleteTeamCommand extends Command {
@@ -30,7 +31,7 @@ public class DeleteTeamCommand extends Command {
     Server server = ServerData.getServers().get(event.getGuild().getId());
 
     if(server == null) {
-      server = new Server(event.getGuild(), SpellingLangage.EN);
+      server = new Server(event.getGuild(), SpellingLangage.EN, new ServerConfiguration());
       ServerData.getServers().put(event.getGuild().getId(), server);
     }
 

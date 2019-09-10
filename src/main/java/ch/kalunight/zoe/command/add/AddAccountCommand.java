@@ -11,9 +11,10 @@ import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.command.create.CreatePlayerCommand;
-import ch.kalunight.zoe.model.LeagueAccount;
-import ch.kalunight.zoe.model.Player;
 import ch.kalunight.zoe.model.Server;
+import ch.kalunight.zoe.model.config.option.RegionOption;
+import ch.kalunight.zoe.model.player_data.LeagueAccount;
+import ch.kalunight.zoe.model.player_data.Player;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.User;
 import net.rithms.riot.api.RiotApiException;
@@ -21,55 +22,77 @@ import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.constant.CallPriority;
 import net.rithms.riot.constant.Platform;
 
-public class AddAccountToPlayerCommand extends Command {
+public class AddAccountCommand extends Command {
 
-  public static final String USAGE_NAME = "accountToPlayer";
+  public static final String USAGE_NAME = "account";
   public static final Pattern PARENTHESES_PATTERN = Pattern.compile("\\(([^)]+)\\)");
-  private static final Logger logger = LoggerFactory.getLogger(AddAccountToPlayerCommand.class);
-  
-  public AddAccountToPlayerCommand() {
+  private static final Logger logger = LoggerFactory.getLogger(AddAccountCommand.class);
+
+  public AddAccountCommand() {
     this.name = USAGE_NAME;
-    Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
+    String[] aliases = {"accountToPlayers", "accountsToPlayers", "accountToPlayers", "accountToPlayer", "accounts"};
+    this.aliases = aliases;
     this.arguments = "@MentionPlayer (Region) (accountName)";
-    this.userPermissions = permissionRequired;
-    this.help = "Add to the mentionned player the given account. Manage Channel permission needed.";
+    this.help = "Add to the mentionned player the given account.";
     this.helpBiConsumer = getHelpMethod();
   }
-  
+
   @Override
   protected void execute(CommandEvent event) {
-    Server server = ServerData.getServers().get(event.getGuild().getId());
-    
     event.getTextChannel().sendTyping().complete();
 
+    Server server = ServerData.getServers().get(event.getGuild().getId());
+    
+    if(!server.getConfig().getUserSelfAdding().isOptionActivated() && !event.getMember().getPermissions().contains(Permission.MANAGE_CHANNEL)) {
+        event.reply("You need the permission \"" + Permission.MANAGE_CHANNEL.getName() + "\" to do that.");
+        return;
+    }
+    
     User user = CreatePlayerCommand.getMentionedUser(event.getMessage().getMentionedMembers());
     if(user == null) {
       event.reply("Please mention 1 member of the server "
           + "(e.g. `>create player @" + event.getMember().getUser().getName() + " (Region) (SummonerName)`)");
       return;
+    }else if(!user.equals(event.getAuthor()) && !event.getMember().getPermissions().contains(Permission.MANAGE_CHANNEL)) {
+      event.reply("You cannot add an account to another player than you if don't have the *" + Permission.MANAGE_CHANNEL.getName() + "* permission. "
+          + "Sorry about that :/");
+      return;
     }
-    
+
     Player player = server.getPlayerByDiscordId(user.getId());
     if(player == null) {
       event.reply("The mentionned user is not registered, please create it first with the command `>create player`.");
       return;
     }
 
+    RegionOption regionOption = server.getConfig().getDefaultRegion();
+
     List<String> listArgs = CreatePlayerCommand.getParameterInParenteses(event.getArgs());
-    if(listArgs.size() != 2) {
-      event.reply("The command is malformed. Please respect this pattern : `>create player @DiscordPlayerMention (Region) (SummonerName)`");
+    if(listArgs.size() != 2 && regionOption.getRegion() == null) {
+      event.reply("The command is malformed. Please respect this pattern : `>add " + name + " @DiscordPlayerMention (Region) (SummonerName)`");
+      return;
+    }else if((listArgs.isEmpty() || listArgs.size() > 2) && regionOption.getRegion() != null) {
+      event.reply("The command is malformed. Please respect this pattern : `>add " + name + " @DiscordPlayerMention (Region) (SummonerName)`\n"
+          + "If the region is not set, the default region will be used (" + regionOption.getRegion().getName().toUpperCase() + ").");
       return;
     }
-    
-    String regionName = listArgs.get(0);
-    String summonerName = listArgs.get(1);
+
+    String regionName;
+    String summonerName;
+    if(listArgs.size() == 2) {
+      regionName = listArgs.get(0);
+      summonerName = listArgs.get(1);
+    }else {
+      regionName = regionOption.getRegion().getName();
+      summonerName = listArgs.get(0);
+    }
 
     Platform region = CreatePlayerCommand.getPlatform(regionName);
     if(region == null) {
       event.reply("The region tag is invalid. (Valid tag : EUW, EUNE, NA, BR, JP, KR, LAN, LAS, OCE, RU, TR)");
       return;
     }
-    
+
     Summoner summoner;
     try {
       summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName, CallPriority.HIGH);
@@ -89,16 +112,16 @@ public class AddAccountToPlayerCommand extends Command {
       }
       return;
     }
-    
+
     LeagueAccount newAccount = new LeagueAccount(summoner, region);
-    
+
     Player playerAlreadyWithTheAccount = server.isLeagueAccountAlreadyExist(newAccount);
-    
+
     if(playerAlreadyWithTheAccount != null) {
       event.reply("This account is already linked with the player " + playerAlreadyWithTheAccount.getDiscordUser().getName() + " !");
       return;
     }
-    
+
     player.getLolAccounts().add(newAccount);
     event.reply("The account \"" + newAccount.getSummoner().getName() + "\" has been added to the player " + user.getName() + ".");
   }
@@ -116,5 +139,5 @@ public class AddAccountToPlayerCommand extends Command {
       }
     };
   }
-  
+
 }

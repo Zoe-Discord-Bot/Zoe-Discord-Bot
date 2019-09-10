@@ -5,6 +5,11 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import org.joda.time.DateTime;
+import ch.kalunight.zoe.model.config.ServerConfiguration;
+import ch.kalunight.zoe.model.player_data.LeagueAccount;
+import ch.kalunight.zoe.model.player_data.Player;
+import ch.kalunight.zoe.model.player_data.Team;
+import ch.kalunight.zoe.model.static_data.SpellingLangage;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
@@ -18,6 +23,7 @@ public class Server {
 
   private final List<Long> currentGamesIdAlreadySended = new ArrayList<>();
 
+  private ServerConfiguration config;
   private Guild guild;
   private List<Player> players;
   private List<Team> teams;
@@ -26,8 +32,9 @@ public class Server {
   private SpellingLangage langage; // Not implement yet
   private DateTime lastRefresh;
 
-  public Server(Guild guild, SpellingLangage langage) {
+  public Server(Guild guild, SpellingLangage langage, ServerConfiguration configuration) {
     this.guild = guild;
+    this.config = configuration;
     this.langage = langage;
     players = Collections.synchronizedList(new ArrayList<>());
     teams = Collections.synchronizedList(new ArrayList<>());
@@ -39,7 +46,6 @@ public class Server {
     boolean needToBeRefreshed = false;
     if(lastRefresh == null || lastRefresh.isBefore(DateTime.now().minusMinutes(DEFAULT_INIT_TIME))) {
       needToBeRefreshed = true;
-      lastRefresh = DateTime.now();
     }
     return needToBeRefreshed;
   }
@@ -199,11 +205,11 @@ public class Server {
     this.langage = langage;
   }
 
-  public DateTime getLastRefresh() {
+  public synchronized DateTime getLastRefresh() {
     return lastRefresh;
   }
 
-  public void setLastRefresh(DateTime lastRefresh) {
+  public synchronized void setLastRefresh(DateTime lastRefresh) {
     this.lastRefresh = lastRefresh;
   }
 
@@ -217,5 +223,13 @@ public class Server {
   
   public List<Long> getCurrentGamesIdAlreadySended() {
     return currentGamesIdAlreadySended;
+  }
+
+  public ServerConfiguration getConfig() {
+    return config;
+  }
+
+  public void setConfig(ServerConfiguration config) {
+    this.config = config;
   }
 }

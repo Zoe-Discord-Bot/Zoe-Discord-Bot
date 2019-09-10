@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
 import org.discordbots.api.client.DiscordBotListAPI;
@@ -21,11 +22,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.jagrosh.jdautilities.command.Command;
+import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.examples.command.PingCommand;
 import ch.kalunight.zoe.command.AboutCommand;
+import ch.kalunight.zoe.command.ConfigCommand;
 import ch.kalunight.zoe.command.PatchNotesCommand;
 import ch.kalunight.zoe.command.RefreshCommand;
 import ch.kalunight.zoe.command.ResetCommand;
@@ -34,20 +37,23 @@ import ch.kalunight.zoe.command.ShutDownCommand;
 import ch.kalunight.zoe.command.add.AddCommand;
 import ch.kalunight.zoe.command.admin.AdminCommand;
 import ch.kalunight.zoe.command.create.CreateCommand;
+import ch.kalunight.zoe.command.create.RegisterCommand;
 import ch.kalunight.zoe.command.define.DefineCommand;
 import ch.kalunight.zoe.command.define.UndefineCommand;
 import ch.kalunight.zoe.command.delete.DeleteCommand;
 import ch.kalunight.zoe.command.remove.RemoveCommand;
 import ch.kalunight.zoe.command.show.ShowCommand;
 import ch.kalunight.zoe.command.stats.StatsCommand;
-import ch.kalunight.zoe.model.Champion;
 import ch.kalunight.zoe.model.ControlPannel;
-import ch.kalunight.zoe.model.CustomEmote;
-import ch.kalunight.zoe.model.LeagueAccount;
-import ch.kalunight.zoe.model.Player;
 import ch.kalunight.zoe.model.Server;
-import ch.kalunight.zoe.model.SpellingLangage;
-import ch.kalunight.zoe.model.Team;
+import ch.kalunight.zoe.model.config.ServerConfiguration;
+import ch.kalunight.zoe.model.config.option.ConfigurationOption;
+import ch.kalunight.zoe.model.player_data.LeagueAccount;
+import ch.kalunight.zoe.model.player_data.Player;
+import ch.kalunight.zoe.model.player_data.Team;
+import ch.kalunight.zoe.model.static_data.Champion;
+import ch.kalunight.zoe.model.static_data.CustomEmote;
+import ch.kalunight.zoe.model.static_data.SpellingLangage;
 import ch.kalunight.zoe.util.Ressources;
 import net.dv8tion.jda.core.AccountType;
 import net.dv8tion.jda.core.JDA;
@@ -78,6 +84,14 @@ public class Zoe {
 
   public static final File RAPI_SAVE_TXT_FILE = new File("ressources/apiInfos.txt");
 
+  public static final File SAVE_CONFIG_FOLDER = new File("ressources/serversconfigs");
+
+  private static final ConcurrentLinkedQueue<List<CustomEmote>> emotesNeedToBeUploaded = new ConcurrentLinkedQueue<>();
+  
+  private static final List<Object> eventListenerList = new ArrayList<>();  
+
+  private static final Logger logger = LoggerFactory.getLogger(Zoe.class);
+  
   /**
    * USED ONLY FOR STATS ANALYSE. DON'T MODIFY DATA INSIDE.
    */
@@ -92,10 +106,6 @@ public class Zoe {
   private static String discordBotListTocken = "";
 
   private static DiscordBotListAPI botListApi;
-
-  private static final ConcurrentLinkedQueue<List<CustomEmote>> emotesNeedToBeUploaded = new ConcurrentLinkedQueue<>();
-
-  private static final Logger logger = LoggerFactory.getLogger(Zoe.class);
 
   public static void main(String[] args) {
 
@@ -115,7 +125,7 @@ public class Zoe {
 
     client.setPrefix(BOT_PREFIX);
 
-    EventWaiter eventWaiter = new EventWaiter();
+    EventWaiter eventWaiter = new EventWaiter(ServerData.getResponseWaiter(), false);
 
     for(Command command : getMainCommands(eventWaiter)) {
       client.addCommand(command);
@@ -127,13 +137,21 @@ public class Zoe {
 
     initRiotApi(riotTocken);
 
+    CommandClient commandClient = client.build();
+    
+    EventListener eventListener = new EventListener();
+    
+    eventListenerList.add(commandClient);
+    eventListenerList.add(eventWaiter);
+    eventListenerList.add(eventListener);
+    
     try {
       jda = new JDABuilder(AccountType.BOT)//
           .setToken(discordTocken)//
           .setStatus(OnlineStatus.DO_NOT_DISTURB)//
-          .addEventListener(client.build())//
+          .addEventListener(commandClient)//
           .addEventListener(eventWaiter)//
-          .addEventListener(new EventListener()).build();//
+          .addEventListener(eventListener).build();//
     } catch(IndexOutOfBoundsException e) {
       logger.error("You must provide a token.");
       System.exit(1);
@@ -170,39 +188,25 @@ public class Zoe {
       public void accept(CommandEvent event) {
 
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("Here is my commands :\n");
-
-        Command setupCommand = new SetupCommand();
-        stringBuilder.append("Command **" + setupCommand.getName() + "** :\n");
-        stringBuilder.append("--> `>" + setupCommand.getName() + "` : " + setupCommand.getHelp() + "\n\n");
-
-        Command aboutCommand = new AboutCommand();
-        stringBuilder.append("Command **" + aboutCommand.getName() + "** :\n");
-        stringBuilder.append("--> `>" + aboutCommand.getName() + "` : " + aboutCommand.getHelp() + "\n\n");
-
-        Command patchNoteCommand = new PatchNotesCommand();
-        stringBuilder.append("Command **" + patchNoteCommand.getName() + "** :\n");
-        stringBuilder.append("--> `>" + patchNoteCommand.getName() + "` : " + patchNoteCommand.getHelp() + "\n\n");
-
-        Command resetCommand = new ResetCommand(null);
-        stringBuilder.append("Command **" + resetCommand.getName() + "** :\n");
-        stringBuilder.append("--> `>" + resetCommand.getName() + "` : " + resetCommand.getHelp() + "\n\n");
-
-        Command refreshCommand = new RefreshCommand();
-        stringBuilder.append("Command **" + refreshCommand.getName() + "** :\n");
-        stringBuilder.append("--> `>" + refreshCommand.getName() + "` : " + refreshCommand.getHelp() + "\n\n");
-
+        stringBuilder.append("Here is my commands :\n\n");
+        
         for(Command command : getMainCommands(null)) {
-          if(!command.isHidden() && !(command instanceof PingCommand || command instanceof ResetCommand || command instanceof SetupCommand
-              || command instanceof PatchNotesCommand || command instanceof RefreshCommand || command instanceof AboutCommand)) {
+          
+          if(!command.isHidden() && command.getChildren().length == 0) {
+            
+            stringBuilder.append("Command **" + command.getName() + "** :\n");
+            stringBuilder.append("--> `>" + command.getName() + "` : " + command.getHelp() + "\n\n");
+            
+          }else if(!command.isHidden()){
+            
             stringBuilder.append("Commands **" + command.getName() + "** : \n");
-
             for(Command commandChild : command.getChildren()) {
               stringBuilder.append("--> `>" + command.getName() + " " + commandChild.getName() + " " + commandChild.getArguments() + "` : "
                   + commandChild.getHelp() + "\n");
             }
             stringBuilder.append(" \n");
           }
+          
         }
 
         stringBuilder.append("For additional help, you can join our official server : https://discord.gg/whc5PrC");
@@ -227,23 +231,26 @@ public class Zoe {
 
     // Admin commands
     commands.add(new ShutDownCommand());
-    commands.add(new PingCommand());
     commands.add(new AdminCommand());
 
     // Basic commands
     commands.add(new AboutCommand());
     commands.add(new SetupCommand());
-    commands.add(new PatchNotesCommand());
-    commands.add(new RefreshCommand());
+    commands.add(new ConfigCommand(eventWaiter));
     commands.add(new CreateCommand());
     commands.add(new DeleteCommand());
-    commands.add(new DefineCommand());
-    commands.add(new UndefineCommand());
     commands.add(new AddCommand());
     commands.add(new RemoveCommand());
     commands.add(new StatsCommand(eventWaiter));
-    commands.add(new ResetCommand(eventWaiter));
     commands.add(new ShowCommand(eventWaiter));
+    commands.add(new RefreshCommand());
+    commands.add(new RegisterCommand());
+    commands.add(new DefineCommand());
+    commands.add(new UndefineCommand());
+    commands.add(new ResetCommand(eventWaiter));
+    commands.add(new PatchNotesCommand());
+
+    commands.add(new PingCommand());
 
     mainCommands = commands;
 
@@ -326,6 +333,35 @@ public class Zoe {
 
     try(PrintWriter writer = new PrintWriter(SAVE_TXT_FILE, "UTF-8");) {
       writer.write(strMainBuilder.toString());
+    }
+
+    saveServerConfiguration(servers);
+  }
+
+  private static void saveServerConfiguration(Map<String, Server> servers) {
+    if(!SAVE_CONFIG_FOLDER.exists()) {
+      SAVE_CONFIG_FOLDER.mkdir();
+    }
+
+    Iterator<Entry<String, Server>> iterator = servers.entrySet().iterator();
+
+    while(iterator.hasNext()) {
+      Server server = iterator.next().getValue();
+
+      List<ConfigurationOption> options = server.getConfig().getAllConfigurationOption();
+
+      StringBuilder strBuilder = new StringBuilder();
+      for(ConfigurationOption option : options) {
+        strBuilder.append(option.getSave() + "\n");
+      }
+
+      strBuilder.deleteCharAt(strBuilder.length() - 1);
+
+      try(PrintWriter writer = new PrintWriter(SAVE_CONFIG_FOLDER + "/" + server.getGuild().getId() + ".txt", "UTF-8");) {
+        writer.write(strBuilder.toString());
+      } catch(FileNotFoundException | UnsupportedEncodingException e) {
+        logger.error("Error in the saving of the config in the server ID : {}", server.getGuild().getId(), e);
+      }
     }
   }
 
@@ -424,7 +460,7 @@ public class Zoe {
               langage = SpellingLangage.EN;
             }
 
-            final Server server = new Server(guild, langage);
+            final Server server = new Server(guild, langage, loadConfig(guildId));
 
             final Long nbrPlayers = Long.parseLong(reader.readLine());
 
@@ -443,9 +479,17 @@ public class Zoe {
             try {
               controlPannel = getControlePannel(reader, server, nbrMessageControlPannel);
             }catch(InsufficientPermissionException e) {
-              logger.info("Zoe missing a permission in a guild !",e);
-              if(pannel != null) {
-                pannel.sendMessage("I need the \"" + e.getPermission().getName() + "\" permission to work properly.").queue();
+              logger.info("Zoe missing a permission in a guild !");
+              
+              try {
+                PrivateChannel privateChannel = guild.getOwner().getUser().openPrivateChannel().complete();
+                privateChannel.sendMessage("Hi ! I am a bot of your server " + guild.getName() + ".\n"
+                    + "I need the \"" + e.getPermission().getName() + "\" permission in infochannel to work properly. "
+                    + "If you need help you can join the help server here : https://discord.gg/sRgyFvq\n"
+                    + "This message will be sended at each time i reboot. Thank you in advance !").queue();
+                logger.info("Message send to owner.");
+              }catch(ErrorResponseException e1) {
+                  logger.info("The owner ({}) of the server have bloqued the bot.", guild.getOwner().getUser().getAsTag());
               }
             }
 
@@ -459,6 +503,29 @@ public class Zoe {
           logger.error("A guild as been loaded badly !", e);
         }
       }
+    }
+  }
+
+  private static ServerConfiguration loadConfig(String guildId) throws IOException {
+    ServerConfiguration serverConfiguration = new ServerConfiguration();
+    List<ConfigurationOption> options = serverConfiguration.getAllConfigurationOption();
+    
+    File file = new File(SAVE_CONFIG_FOLDER + "/" + guildId + ".txt");
+    if(file.exists()) {
+      try(final BufferedReader reader = new BufferedReader(new FileReader(SAVE_CONFIG_FOLDER + "/" + guildId + ".txt"));) {
+        String line;
+
+        while((line = reader.readLine()) != null) {
+          for(ConfigurationOption option : options) {
+            if(option.isTheOption(line)) {
+              option.restoreSave(line);
+            }
+          }
+        }
+      }
+      return serverConfiguration;
+    }else {
+      return serverConfiguration;
     }
   }
 
@@ -572,5 +639,9 @@ public class Zoe {
 
   public static RateLimitRequestTank getMinuteApiTank() {
     return minuteApiTank;
+  }
+
+  public static List<Object> getEventlistenerlist() {
+    return eventListenerList;
   }
 }

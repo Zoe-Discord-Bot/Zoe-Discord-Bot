@@ -1,4 +1,4 @@
-package ch.kalunight.zoe.model;
+package ch.kalunight.zoe.model.player_data;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -9,6 +9,7 @@ import ch.kalunight.zoe.Zoe;
 import net.dv8tion.jda.core.entities.User;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
+import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.constant.CallPriority;
 import net.rithms.riot.constant.Platform;
@@ -38,13 +39,15 @@ public class Player {
   public List<LeagueAccount> getLeagueAccountsInTheGivenGame(CurrentGameInfo currentGameInfo){
     List<LeagueAccount> lolAccountsInGame = new ArrayList<>();
     for(LeagueAccount leagueAccount : lolAccounts) {
-      if(leagueAccount.getCurrentGameInfo() != null && currentGameInfo.getGameId() == leagueAccount.getCurrentGameInfo().getGameId()) {
-        lolAccountsInGame.add(leagueAccount);
+      for(CurrentGameParticipant participant : currentGameInfo.getParticipants()) {
+        if(participant.getSummonerId().equals(leagueAccount.getSummoner().getId())) {
+          lolAccountsInGame.add(leagueAccount);
+        }
       }
     }
     return lolAccountsInGame;
   }
-  
+
   public LeagueAccount getLeagueAccountsBySummonerName(Platform platform, String summonerName) {
     for(LeagueAccount account : lolAccounts) {
       if(account.getRegion().equals(platform) && account.getSummoner().getName().equals(summonerName)) {
@@ -69,16 +72,18 @@ public class Player {
       try { 
         leagueAccount.setCurrentGameInfo(Zoe.getRiotApi().getActiveGameBySummoner(leagueAccount.getRegion(), leagueAccount.getSummoner().getId(), priority));
       } catch(RiotApiException e) {
-        logger.debug("Impossible to get current game : {}", e.getMessage());
-        leagueAccount.setCurrentGameInfo(null);
+        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+          logger.debug("Not in game : {}", e.getMessage());
+          leagueAccount.setCurrentGameInfo(null);
+        }
       }
-      
+
       try {
         leagueAccount.setSummoner(Zoe.getRiotApi().getSummoner(leagueAccount.getRegion(), leagueAccount.getSummoner().getId(), priority));
       } catch(RiotApiException e) {
         if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
           logger.info("The summoner has been transfered to a new region, try to recover ...");
-          
+
           for(Platform platform : Platform.values()) {
             try {
               Summoner summoner = Zoe.getRiotApi().getSummonerByPuuid(platform, leagueAccount.getSummoner().getPuuid(), priority);
@@ -89,7 +94,7 @@ public class Player {
               logger.debug("Account \"{}\" not exist in {}", leagueAccount.getSummoner().getName(), platform.getName());
             }
           }
-          
+
         }else {
           logger.debug("Impossible to refresh the summoner : {}", e.getMessage());
         }
@@ -115,5 +120,10 @@ public class Player {
 
   public List<LeagueAccount> getLolAccounts() {
     return lolAccounts;
+  }
+
+  @Override
+  public String toString() {
+    return "Player [discordUserName=" + discordUser.getName() + ", lolAccounts=" + lolAccounts + "]";
   }
 }

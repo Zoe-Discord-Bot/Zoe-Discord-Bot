@@ -189,6 +189,10 @@ public class EventListener extends ListenerAdapter {
 
   @Override
   public void onUserUpdateGame(UserUpdateGameEvent event) {
+    if(event == null || event.getNewGame() == null) {
+      return;
+    }
+    
     if(event.getNewGame().isRich() && EventListenerUtil.checkIfIsGame(event.getNewGame().asRichPresence()) && event.getGuild() != null) {
       Server server = ServerData.getServers().get(event.getGuild().getId());
 
@@ -207,8 +211,8 @@ public class EventListener extends ListenerAdapter {
       if(server.getInfoChannel() != null && registedPlayer != null && !ServerData.isServerWillBeTreated(server) 
           && server.getLastRefresh().isBefore(DateTime.now().minusSeconds(30))) {
 
-          ServerData.getServersIsInTreatment().put(event.getGuild().getId(), true);
-          ServerData.getServerExecutor().execute(new InfoPanelRefresher(server, true));
+        ServerData.getServersIsInTreatment().put(event.getGuild().getId(), true);
+        ServerData.getServerExecutor().execute(new InfoPanelRefresher(server, true));
       }
     }
   }

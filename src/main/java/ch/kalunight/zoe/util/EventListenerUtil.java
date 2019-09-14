@@ -13,7 +13,7 @@ import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.RichPresence;
 
 public class EventListenerUtil {
-
+  
   private EventListenerUtil() {
     //Hide public constructor
   }
@@ -27,7 +27,7 @@ public class EventListenerUtil {
     }
 
     if(isInGame) {
-      return richPresence.getTimestamps() != null;
+      return richPresence.getTimestamps() != null && (richPresence.getLargeImage() == null || richPresence.getLargeImage().getText() != null);
     }
     return false;
   }

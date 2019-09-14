@@ -23,7 +23,7 @@ public class SetupCommand extends Command {
         + "1. To start, create an information channel with the command `>create infoChannel channelName`. "
         + "You can also define an existing one with the command `>define infoChannel #mentionOfAChannel`.\n"
         + "2. Then add the League of Legends players to the system using the command `>create player @MentionOfPlayer (ServerTag) (SummonerName)`. "
-        + "You can add a secondary account to a player with the command `>add accountToPlayer @mentionOfPlayer (ServerTag) (SummonerName)\n"
+        + "You can add a secondary account to a player with the command `>add accountToPlayer @mentionOfPlayer (ServerTag) (SummonerName)`\n"
         + "3. You can use the command `>config` to config your server like you want.\n\n"
         + "That's it, your information system has been well implemented. If you have questions,"
         + " features requests or just discuss feel free to come here : https://discord.gg/whc5PrC\n"

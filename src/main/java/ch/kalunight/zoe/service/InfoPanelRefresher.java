@@ -4,6 +4,7 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -34,16 +35,28 @@ public class InfoPanelRefresher implements Runnable {
   private static final Logger logger = LoggerFactory.getLogger(InfoPanelRefresher.class);
 
   private Server server;
+  
+  private boolean needToWait = false;
 
   public InfoPanelRefresher(Server server) {
     this.server = server;
   }
+  
+  public InfoPanelRefresher(Server server, boolean needToWait) {
+    this.server = server;
+    this.needToWait = needToWait;
+  }
+  
 
   @Override
   public void run() {
     try {
 
       if(server.getInfoChannel() != null) {
+        
+        if(needToWait) {
+          TimeUnit.SECONDS.sleep(3);
+        }
         
         for(Player player : server.getPlayers()) {
           player.refreshAllLeagueAccounts(CallPriority.NORMAL);

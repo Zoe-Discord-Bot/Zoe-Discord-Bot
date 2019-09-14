@@ -9,7 +9,7 @@ import ch.kalunight.zoe.Zoe;
 
 public class DataSaver extends TimerTask {
 
-  private static final int WAIT_TIME_BETWEEN_EACH_REFRESH_IN_MS = 0;//Put 10000 in debug mode
+  private static final int WAIT_TIME_BETWEEN_EACH_REFRESH_IN_MS = 10000;
 
   private static final int TIME_BETWEEN_EACH_SAVE_IN_MINUTES = 10;
 

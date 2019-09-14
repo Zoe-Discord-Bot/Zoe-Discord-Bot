@@ -8,14 +8,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TimerTask;
 import org.discordbots.api.client.DiscordBotListAPI;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.model.ControlPannel;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
+import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.model.static_data.SpellingLangage;
 import ch.kalunight.zoe.service.ServerChecker;
+import ch.kalunight.zoe.service.InfoPanelRefresher;
 import ch.kalunight.zoe.service.RiotApiUsageChannelRefresh;
 import ch.kalunight.zoe.util.EventListenerUtil;
 import net.dv8tion.jda.core.OnlineStatus;
@@ -27,11 +30,12 @@ import net.dv8tion.jda.core.events.ReadyEvent;
 import net.dv8tion.jda.core.events.channel.text.TextChannelDeleteEvent;
 import net.dv8tion.jda.core.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.core.events.role.RoleDeleteEvent;
+import net.dv8tion.jda.core.events.user.update.UserUpdateGameEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
 import net.rithms.riot.api.RiotApiException;
 
 public class EventListener extends ListenerAdapter {
-  
+
   private static final String WELCOME_MESSAGE = "Hi! Thank you for adding me! To get help on my configuration type the command `>setup`. "
       + "If you want to see all commands i have, type >`help`";
 
@@ -183,10 +187,9 @@ public class EventListener extends ListenerAdapter {
     }
   }
 
-  /**Rework this system
-   * @Override
+  @Override
   public void onUserUpdateGame(UserUpdateGameEvent event) {
-    if(event.getGuild() != null) {
+    if(event.getNewGame().isRich() && EventListenerUtil.checkIfIsGame(event.getNewGame().asRichPresence()) && event.getGuild() != null) {
       Server server = ServerData.getServers().get(event.getGuild().getId());
 
       if(server == null) {
@@ -201,18 +204,14 @@ public class EventListener extends ListenerAdapter {
         }
       }
 
-      if(server.getInfoChannel() != null && registedPlayer != null && event.getNewGame().isRich()) {
-        RichPresence richPresenceGame = event.getNewGame().asRichPresence();
-        if(richPresenceGame.getName() != null && richPresenceGame.getName().equals("League of Legends") 
-            && EventListenerUtil.checkIfRichPresenceIsInGame(richPresenceGame)) {
+      if(server.getInfoChannel() != null && registedPlayer != null && !ServerData.isServerWillBeTreated(server) 
+          && server.getLastRefresh().isBefore(DateTime.now().minusSeconds(30))) {
 
-          ServerData.getTaskExecutor().execute(new InfoCardsWorker(registedPlayer, server));
-        }
+          ServerData.getServersIsInTreatment().put(event.getGuild().getId(), true);
+          ServerData.getServerExecutor().execute(new InfoPanelRefresher(server, true));
       }
     }
   }
-   **/
-
 
 
 }

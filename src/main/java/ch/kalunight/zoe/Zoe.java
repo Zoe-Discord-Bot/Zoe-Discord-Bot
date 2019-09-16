@@ -605,16 +605,8 @@ public class Zoe {
     return riotApi;
   }
 
-  public static void setRiotApi(RiotApi riotApi) {
-    Zoe.riotApi = riotApi;
-  }
-
   public static JDA getJda() {
     return jda;
-  }
-
-  public static void setJda(JDA jda) {
-    Zoe.jda = jda;
   }
 
   public static ConcurrentLinkedQueue<List<CustomEmote>> getEmotesNeedToBeUploaded() {
@@ -631,10 +623,6 @@ public class Zoe {
 
   public static String getDiscordBotListTocken() {
     return discordBotListTocken;
-  }
-
-  public static void setDiscordBotListTocken(String discordBotListTocken) {
-    Zoe.discordBotListTocken = discordBotListTocken;
   }
 
   public static RateLimitRequestTank getMinuteApiTank() {

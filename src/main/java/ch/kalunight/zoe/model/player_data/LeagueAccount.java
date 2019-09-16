@@ -6,6 +6,7 @@ import ch.kalunight.zoe.Zoe;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
+import net.rithms.riot.constant.CallPriority;
 import net.rithms.riot.constant.Platform;
 
 public class LeagueAccount {
@@ -24,7 +25,7 @@ public class LeagueAccount {
 
   public void refreshCurrentGameInfo() {
     try {
-      currentGameInfo = Zoe.getRiotApi().getActiveGameBySummoner(region, summoner.getId());
+      currentGameInfo = Zoe.getRiotApi().getActiveGameBySummoner(region, summoner.getId(), CallPriority.HIGH);
     } catch(RiotApiException e) {
       logger.info(e.getMessage());
       currentGameInfo = null;

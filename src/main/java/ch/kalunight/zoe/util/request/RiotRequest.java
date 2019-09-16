@@ -62,7 +62,7 @@ public class RiotRequest {
     return new FullTier(rank, tier, leaguePoints);
   }
 
-  public static String getWinrateLateMonthWithGivenChampion(String summonerId, Platform region, int championKey) {
+  public static String getWinrateLastMonthWithGivenChampion(String summonerId, Platform region, int championKey) {
 
     Summoner summoner;
     try {

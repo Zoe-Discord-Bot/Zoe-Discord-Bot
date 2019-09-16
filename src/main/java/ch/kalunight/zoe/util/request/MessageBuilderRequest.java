@@ -185,7 +185,7 @@ public class MessageBuilderRequest {
 
     Summoner summoner;
     try {
-      summoner = Zoe.getRiotApi().getSummoner(leagueAccount.getRegion(), leagueAccount.getSummoner().getId());
+      summoner = Zoe.getRiotApi().getSummoner(leagueAccount.getRegion(), leagueAccount.getSummoner().getId(), CallPriority.HIGH);
       leagueAccount.setSummoner(summoner);
     } catch(RiotApiException e) {
       summoner = leagueAccount.getSummoner();

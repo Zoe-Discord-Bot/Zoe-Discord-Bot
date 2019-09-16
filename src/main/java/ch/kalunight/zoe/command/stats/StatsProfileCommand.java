@@ -177,7 +177,7 @@ public class StatsProfileCommand extends Command {
     
     List<ChampionMastery> championsMasteries;
     try {
-      championsMasteries = Zoe.getRiotApi().getChampionMasteriesBySummoner(lolAccount.getRegion(), lolAccount.getSummoner().getId());
+      championsMasteries = Zoe.getRiotApi().getChampionMasteriesBySummoner(lolAccount.getRegion(), lolAccount.getSummoner().getId(), CallPriority.HIGH);
     } catch(RiotApiException e) {
       if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
         event.reply("Please retry, I got a minor internal error. Sorry about that :/");

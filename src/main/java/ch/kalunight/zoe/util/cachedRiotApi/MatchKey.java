@@ -11,7 +11,8 @@ public final class MatchKey {
 		this.matchId = matchId;
 	}
 	
-	public boolean Equals(Object obj) {
+	@Override
+	public boolean equals(Object obj) {
 		if(!(obj instanceof MatchKey)) {
 			return false;
 		}

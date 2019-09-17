@@ -23,6 +23,19 @@ public class CachedRiotApi {
 	
 	private final HashMap<MatchKey, Match> matchCache = new HashMap<>();
 	
+	private int matchRequestCount = 0;
+	private int cachedMatchRequestCount = 0;
+	
+	private int matchListRequestCount = 0;
+	
+	private int summonerRequestCount = 0;
+	
+	private int leagueEntryRequestCount = 0;
+	
+	private int championMasteryRequestCount = 0;
+	
+	private int currentGameInfoRequestCount = 0;
+	
 	public CachedRiotApi(RiotApi riotApi) {
 		this.riotApi = riotApi;
 	}
@@ -36,41 +49,126 @@ public class CachedRiotApi {
 			match = riotApi.getMatch(platform, matchId, priority);
 			
 			matchCache.put(key, match);
+
+			cachedMatchRequestCount++;
 		}
+		
+		matchRequestCount++;
 		
 		return match;
 	}
 	
 	public synchronized MatchList getMatchListByAccountId(Platform platform, String accountId, Set<Integer> champion, Set<Integer> queue, Set<Integer> season,
 		      long beginTime, long endTime, int beginIndex, int endIndex, CallPriority priority) throws RiotApiException {
-		return riotApi.getMatchListByAccountId(platform, accountId, champion, queue, season, beginTime, endTime, beginIndex, endIndex, priority);
+		MatchList matchList = riotApi.getMatchListByAccountId(platform, accountId, champion, queue, season, beginTime, endTime, beginIndex, endIndex, priority);
+		
+		matchListRequestCount++;
+		
+		return matchList;
 	}
 	
 	public synchronized Summoner getSummoner(Platform platform, String summonerId, CallPriority priority) throws RiotApiException {
-		return riotApi.getSummoner(platform, summonerId, priority);
+		Summoner summoner = riotApi.getSummoner(platform, summonerId, priority);
+		
+		summonerRequestCount++;
+		
+		return summoner;
 	}
 
 	public synchronized Summoner getSummonerByName(Platform platform, String summonerName, CallPriority priority) throws RiotApiException {
-		return riotApi.getSummonerByName(platform, summonerName, priority);
+		Summoner summoner = riotApi.getSummonerByName(platform, summonerName, priority);
+		
+		summonerRequestCount++;
+		
+		return summoner;
 	}
 	
 	public Summoner getSummonerByPuuid(Platform platform, String puuid, CallPriority priority) throws RiotApiException {
-		return riotApi.getSummonerByPuuid(platform, puuid, priority);
+		Summoner summoner = riotApi.getSummonerByPuuid(platform, puuid, priority);
+		
+		summonerRequestCount++;
+		
+		return summoner;
 	}
 	
 	public synchronized Set<LeagueEntry> getLeagueEntriesBySummonerId(Platform platform, String summonerId, CallPriority callPriority) throws RiotApiException {
-		return riotApi.getLeagueEntriesBySummonerId(platform, summonerId, callPriority);
+		Set<LeagueEntry> leagueEntries = riotApi.getLeagueEntriesBySummonerId(platform, summonerId, callPriority);
+		
+		leagueEntryRequestCount++;
+		
+		return leagueEntries;
+	}
+
+	public synchronized CurrentGameInfo getActiveGameBySummoner(Platform platform, String summonerId, CallPriority priority) throws RiotApiException {
+		CurrentGameInfo gameInfo = riotApi.getActiveGameBySummoner(platform, summonerId, priority);
+		
+		currentGameInfoRequestCount++;
+		
+		return gameInfo;
 	}
 
 	public synchronized ChampionMastery getChampionMasteriesBySummonerByChampion(Platform platform, String summonerId, int championId, CallPriority priority) throws RiotApiException {
-	    return riotApi.getChampionMasteriesBySummonerByChampion(platform, summonerId, championId, priority);
-	}
-	
-	public synchronized CurrentGameInfo getActiveGameBySummoner(Platform platform, String summonerId, CallPriority priority) throws RiotApiException {
-		return riotApi.getActiveGameBySummoner(platform, summonerId, priority);
+	    ChampionMastery mastery = riotApi.getChampionMasteriesBySummonerByChampion(platform, summonerId, championId, priority);
+		
+	    championMasteryRequestCount++;
+	    
+		return mastery;
 	}
 	
 	public synchronized List<ChampionMastery> getChampionMasteriesBySummoner(Platform platform, String summonerId, CallPriority priority) throws RiotApiException {
-		return riotApi.getChampionMasteriesBySummoner(platform, summonerId, priority);
+		List<ChampionMastery> masteries = riotApi.getChampionMasteriesBySummoner(platform, summonerId, priority);
+		
+		championMasteryRequestCount++;
+		
+		return masteries;
+	}
+	
+	public synchronized void clearCounts() {
+		matchRequestCount = 0;
+		cachedMatchRequestCount = 0;
+		
+		matchListRequestCount = 0;
+		
+		summonerRequestCount = 0;
+		
+		leagueEntryRequestCount = 0;
+		
+		championMasteryRequestCount = 0;
+		
+		currentGameInfoRequestCount = 0;
+	}
+	
+	public int getTotalRequestCount() {
+		return matchRequestCount + cachedMatchRequestCount + matchListRequestCount
+				+ summonerRequestCount + leagueEntryRequestCount + championMasteryRequestCount
+				+ currentGameInfoRequestCount;
+	}
+
+	public int getMatchRequestCount() {
+		return matchRequestCount;
+	}
+
+	public int getCachedMatchRequestCount() {
+		return cachedMatchRequestCount;
+	}
+
+	public int getMatchListRequestCount() {
+		return matchListRequestCount;
+	}
+
+	public int getSummonerRequestCount() {
+		return summonerRequestCount;
+	}
+
+	public int getLeagueEntryRequestCount() {
+		return leagueEntryRequestCount;
+	}
+
+	public int getChampionMasteryRequestCount() {
+		return championMasteryRequestCount;
+	}
+
+	public int getCurrentGameInfoRequestCount() {
+		return currentGameInfoRequestCount;
 	}
 }

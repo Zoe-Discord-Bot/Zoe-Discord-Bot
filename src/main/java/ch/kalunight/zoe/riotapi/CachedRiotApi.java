@@ -1,8 +1,14 @@
 package ch.kalunight.zoe.riotapi;
 
-import java.util.HashMap;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import net.rithms.riot.api.RiotApi;
 import net.rithms.riot.api.RiotApiException;
@@ -22,7 +28,7 @@ public class CachedRiotApi {
 
   private final RiotApi riotApi;
 
-  private final HashMap<MatchKey, Match> matchCache = new HashMap<>();
+  private final ConcurrentHashMap<MatchKey, Match> matchCache = new ConcurrentHashMap<>();
 
   private int matchRequestCount = 0;
   private int cachedMatchRequestCount = 0;
@@ -36,6 +42,28 @@ public class CachedRiotApi {
     this.riotApi = riotApi;
   }
 
+  public synchronized void cleanCache() {
+    Iterator<Entry<MatchKey, Match>> cachList = matchCache.entrySet().iterator();
+    
+    ArrayList<MatchKey> matchsToDelete = new ArrayList<>();
+    
+    while(cachList.hasNext()) {
+      Entry<MatchKey, Match> matchEntry = cachList.next();
+      
+      Match match = matchEntry.getValue();
+      
+      LocalDateTime dateTimeCreationMatch = LocalDateTime.ofInstant(Instant.ofEpochMilli(match.getGameCreation()), ZoneOffset.UTC);
+      
+      if(LocalDateTime.now().minusDays(32).isAfter(dateTimeCreationMatch)) { //32 days to avoid premature delete due to time zone
+        matchsToDelete.add(matchEntry.getKey());
+      }
+    }
+    
+    for(MatchKey matchKey : matchsToDelete) {
+      matchCache.remove(matchKey);
+    }
+  }
+  
   public synchronized Match getMatch(Platform platform, long matchId, CallPriority priority) throws RiotApiException {
     MatchKey key = new MatchKey(platform, matchId);
 
@@ -46,16 +74,16 @@ public class CachedRiotApi {
 
       matchCache.put(key, match);
 
-      cachedMatchRequestCount++;
+      matchRequestCount++;
     }
-
-    matchRequestCount++;
-
+    
+    cachedMatchRequestCount++;
+    
     return match;
   }
-
-  public synchronized MatchList getMatchListByAccountId(Platform platform, String accountId, Set<Integer> champion, Set<Integer> queue, Set<Integer> season,
-      long beginTime, long endTime, int beginIndex, int endIndex, CallPriority priority) throws RiotApiException {
+  
+  public synchronized MatchList getMatchListByAccountId(Platform platform, String accountId, Set<Integer> champion, Set<Integer> queue,
+      Set<Integer> season, long beginTime, long endTime, int beginIndex, int endIndex, CallPriority priority) throws RiotApiException {
     MatchList matchList = riotApi.getMatchListByAccountId(platform, accountId, champion, queue, season, beginTime, endTime, beginIndex, endIndex, priority);
 
     matchListRequestCount++;
@@ -134,37 +162,37 @@ public class CachedRiotApi {
     currentGameInfoRequestCount = 0;
   }
 
-  public int getTotalRequestCount() {
+  public synchronized int getTotalRequestCount() {
     return matchRequestCount + cachedMatchRequestCount + matchListRequestCount
         + summonerRequestCount + leagueEntryRequestCount + championMasteryRequestCount
         + currentGameInfoRequestCount;
   }
 
-  public int getMatchRequestCount() {
+  public synchronized  int getMatchRequestCount() {
     return matchRequestCount;
   }
 
-  public int getCachedMatchRequestCount() {
+  public synchronized int getCachedMatchRequestCount() {
     return cachedMatchRequestCount;
   }
 
-  public int getMatchListRequestCount() {
+  public synchronized int getMatchListRequestCount() {
     return matchListRequestCount;
   }
 
-  public int getSummonerRequestCount() {
+  public synchronized int getSummonerRequestCount() {
     return summonerRequestCount;
   }
 
-  public int getLeagueEntryRequestCount() {
+  public synchronized int getLeagueEntryRequestCount() {
     return leagueEntryRequestCount;
   }
 
-  public int getChampionMasteryRequestCount() {
+  public synchronized int getChampionMasteryRequestCount() {
     return championMasteryRequestCount;
   }
 
-  public int getCurrentGameInfoRequestCount() {
+  public synchronized int getCurrentGameInfoRequestCount() {
     return currentGameInfoRequestCount;
   }
 }

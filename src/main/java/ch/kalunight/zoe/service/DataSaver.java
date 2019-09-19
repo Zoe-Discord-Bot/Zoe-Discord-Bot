@@ -12,10 +12,14 @@ public class DataSaver extends TimerTask {
   private static final int WAIT_TIME_BETWEEN_EACH_REFRESH_IN_MS = 10000;
 
   private static final int TIME_BETWEEN_EACH_SAVE_IN_MINUTES = 10;
+  
+  private static final int TIME_BETWEEN_CLEAN_CACHE_IN_HOURS = 12;
 
   private static final Logger logger = LoggerFactory.getLogger(DataSaver.class);
 
   private static DateTime nextSaveTime = DateTime.now().plusMinutes(TIME_BETWEEN_EACH_SAVE_IN_MINUTES);
+  
+  private static DateTime nextCleanCacheTime = DateTime.now().plusHours(TIME_BETWEEN_CLEAN_CACHE_IN_HOURS);
 
   @Override
   public void run() {
@@ -25,6 +29,13 @@ public class DataSaver extends TimerTask {
         Zoe.saveDataTxt();
         setNextSaveTime(DateTime.now().plusMinutes(TIME_BETWEEN_EACH_SAVE_IN_MINUTES));
         logger.info("Saving ended !");
+      }
+      
+      if(nextCleanCacheTime.isBeforeNow()) {
+        logger.info("Cleaning cache started !");
+        Zoe.getRiotApi().cleanCache();
+        setNextCleanCacheTime(DateTime.now().plusHours(TIME_BETWEEN_CLEAN_CACHE_IN_HOURS));
+        logger.info("Cleaning cache ended !");
       }
     } catch(Exception e) {
       logger.error("Error : {}", e);
@@ -36,6 +47,10 @@ public class DataSaver extends TimerTask {
 
   private static void setNextSaveTime(DateTime nextSaveTime) {
     DataSaver.nextSaveTime = nextSaveTime;
+  }
+
+  private static void setNextCleanCacheTime(DateTime nextCleanCacheTime) {
+    DataSaver.nextCleanCacheTime = nextCleanCacheTime;
   }
 
 }

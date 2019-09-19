@@ -6,6 +6,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
+
+import org.joda.time.DateTime;
 import org.knowm.xchart.BitmapEncoder;
 import org.knowm.xchart.BitmapEncoder.BitmapFormat;
 import org.knowm.xchart.PieChart;
@@ -26,6 +28,10 @@ import net.rithms.riot.constant.Platform;
 
 public class RiotApiUsageChannelRefresh implements Runnable {
 
+  private static final int TIME_BETWEEN_EACH_RESET_CATCHED_RIOT_API_IN_DAY = 3;
+  
+  private static DateTime lastRapiCountReset = DateTime.now();
+  
   private static Integer infocardCreatedCount = 0;
   
   private static TextChannel rapiInfoChannel;
@@ -59,7 +65,16 @@ public class RiotApiUsageChannelRefresh implements Runnable {
             + "\nTotal number of League accounts : " + nbrAccount 
             + "\nTask in Server Executor Queue : " + ServerData.getServerExecutor().getQueue().size()
             + "\nTask in InfoCards Generator Queue : " + ServerData.getInfocardsGenerator().getQueue().size()
-            + "\nInfocards Generated last 2 minutes : " + getInfocardCreatedCount()).complete();
+            + "\nInfocards Generated last 2 minutes : " + getInfocardCreatedCount()).queue();
+        
+        rapiInfoChannel.sendMessage("Total of requests with Riot api : " + Zoe.getRiotApi().getTotalRequestCount()
+            + "\nNumber of request for match with RiotAPI : " + Zoe.getRiotApi().getMatchRequestCount()
+            + "\nTotal number of request for match : " + Zoe.getRiotApi().getCachedMatchRequestCount()).queue();
+        
+        if(DateTime.now().minusDays(TIME_BETWEEN_EACH_RESET_CATCHED_RIOT_API_IN_DAY).isAfter(lastRapiCountReset)) {
+          lastRapiCountReset = DateTime.now();
+          Zoe.getRiotApi().cleanCache();
+        }
         
         setInfocardCreatedCount(0);
 

@@ -55,6 +55,7 @@ import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.model.static_data.CustomEmote;
 import ch.kalunight.zoe.model.static_data.SpellingLangage;
 import ch.kalunight.zoe.util.Ressources;
+import ch.kalunight.zoe.util.cachedRiotApi.CachedRiotApi;
 import net.dv8tion.jda.core.AccountType;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.JDABuilder;
@@ -99,7 +100,7 @@ public class Zoe {
 
   private static List<Command> mainCommands;
 
-  private static RiotApi riotApi;
+  private static CachedRiotApi riotApi;
 
   private static JDA jda;
 
@@ -179,7 +180,7 @@ public class Zoe {
     PriorityManagerRateLimitHandler defaultLimite = new PriorityManagerRateLimitHandler(priorityList); //create default priority with dev api key rate limit if no param
 
     config.setRateLimitHandler(defaultLimite);
-    riotApi = new RiotApi(config);
+    riotApi = new CachedRiotApi(new RiotApi(config));
   }
 
   private static Consumer<CommandEvent> getHelpCommand() {
@@ -601,20 +602,12 @@ public class Zoe {
     return players;
   }
 
-  public static RiotApi getRiotApi() {
+  public static CachedRiotApi getRiotApi() {
     return riotApi;
-  }
-
-  public static void setRiotApi(RiotApi riotApi) {
-    Zoe.riotApi = riotApi;
   }
 
   public static JDA getJda() {
     return jda;
-  }
-
-  public static void setJda(JDA jda) {
-    Zoe.jda = jda;
   }
 
   public static ConcurrentLinkedQueue<List<CustomEmote>> getEmotesNeedToBeUploaded() {
@@ -631,10 +624,6 @@ public class Zoe {
 
   public static String getDiscordBotListTocken() {
     return discordBotListTocken;
-  }
-
-  public static void setDiscordBotListTocken(String discordBotListTocken) {
-    Zoe.discordBotListTocken = discordBotListTocken;
   }
 
   public static RateLimitRequestTank getMinuteApiTank() {

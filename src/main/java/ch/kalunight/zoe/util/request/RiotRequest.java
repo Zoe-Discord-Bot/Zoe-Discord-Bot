@@ -3,7 +3,6 @@ package ch.kalunight.zoe.util.request;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -48,15 +47,11 @@ public class RiotRequest {
       return new FullTier(Tier.UNKNOWN, Rank.UNKNOWN, 0);
     }
 
-    Iterator<LeagueEntry> gettableList = listLeague.iterator();
-
     Tier rank = Tier.UNRANKED;
     Rank tier = Rank.UNRANKED;
     int leaguePoints = 0;
 
-    while(gettableList.hasNext()) {
-      LeagueEntry leaguePosition = gettableList.next();
-
+    for(LeagueEntry leaguePosition : listLeague) {
       if(leaguePosition.getQueueType().equals("RANKED_SOLO_5x5")) {
         rank = Tier.valueOf(leaguePosition.getTier());
         tier = Rank.valueOf(leaguePosition.getRank());
@@ -67,7 +62,7 @@ public class RiotRequest {
     return new FullTier(rank, tier, leaguePoints);
   }
 
-  public static String getWinrateLateMonthWithGivenChampion(String summonerId, Platform region, int championKey) {
+  public static String getWinrateLastMonthWithGivenChampion(String summonerId, Platform region, int championKey) {
 
     Summoner summoner;
     try {

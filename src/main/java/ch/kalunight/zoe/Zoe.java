@@ -88,11 +88,11 @@ public class Zoe {
   public static final File SAVE_CONFIG_FOLDER = new File("ressources/serversconfigs");
 
   private static final ConcurrentLinkedQueue<List<CustomEmote>> emotesNeedToBeUploaded = new ConcurrentLinkedQueue<>();
-  
+
   private static final List<Object> eventListenerList = new ArrayList<>();  
 
   private static final Logger logger = LoggerFactory.getLogger(Zoe.class);
-  
+
   /**
    * USED ONLY FOR STATS ANALYSE. DON'T MODIFY DATA INSIDE.
    */
@@ -139,13 +139,13 @@ public class Zoe {
     initRiotApi(riotTocken);
 
     CommandClient commandClient = client.build();
-    
+
     EventListener eventListener = new EventListener();
-    
+
     eventListenerList.add(commandClient);
     eventListenerList.add(eventWaiter);
     eventListenerList.add(eventListener);
-    
+
     try {
       jda = new JDABuilder(AccountType.BOT)//
           .setToken(discordTocken)//
@@ -190,16 +190,16 @@ public class Zoe {
 
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("Here is my commands :\n\n");
-        
+
         for(Command command : getMainCommands(null)) {
-          
+
           if(!command.isHidden() && command.getChildren().length == 0) {
-            
+
             stringBuilder.append("Command **" + command.getName() + "** :\n");
             stringBuilder.append("--> `>" + command.getName() + "` : " + command.getHelp() + "\n\n");
-            
+
           }else if(!command.isHidden()){
-            
+
             stringBuilder.append("Commands **" + command.getName() + "** : \n");
             for(Command commandChild : command.getChildren()) {
               stringBuilder.append("--> `>" + command.getName() + " " + commandChild.getName() + " " + commandChild.getArguments() + "` : "
@@ -207,7 +207,7 @@ public class Zoe {
             }
             stringBuilder.append(" \n");
           }
-          
+
         }
 
         stringBuilder.append("For additional help, you can join our official server : https://discord.gg/whc5PrC");
@@ -481,7 +481,7 @@ public class Zoe {
               controlPannel = getControlePannel(reader, server, nbrMessageControlPannel);
             }catch(InsufficientPermissionException e) {
               logger.info("Zoe missing a permission in a guild !");
-              
+
               try {
                 PrivateChannel privateChannel = guild.getOwner().getUser().openPrivateChannel().complete();
                 privateChannel.sendMessage("Hi ! I am a bot of your server " + guild.getName() + ".\n"
@@ -490,7 +490,7 @@ public class Zoe {
                     + "This message will be sended at each time i reboot. Thank you in advance !").queue();
                 logger.info("Message send to owner.");
               }catch(ErrorResponseException e1) {
-                  logger.info("The owner ({}) of the server have bloqued the bot.", guild.getOwner().getUser().getAsTag());
+                logger.info("The owner ({}) of the server have bloqued the bot.", guild.getOwner().getUser().getAsTag());
               }
             }
 
@@ -500,6 +500,8 @@ public class Zoe {
             ServerData.getServers().put(guildId, server);
             ServerData.getServersIsInTreatment().put(guildId, false);
           }
+        }catch(RiotApiException e) {
+          throw e;
         }catch(Exception e) {
           logger.error("A guild as been loaded badly !", e);
         }
@@ -510,7 +512,7 @@ public class Zoe {
   private static ServerConfiguration loadConfig(String guildId) throws IOException {
     ServerConfiguration serverConfiguration = new ServerConfiguration();
     List<ConfigurationOption> options = serverConfiguration.getAllConfigurationOption();
-    
+
     File file = new File(SAVE_CONFIG_FOLDER + "/" + guildId + ".txt");
     if(file.exists()) {
       try(final BufferedReader reader = new BufferedReader(new FileReader(SAVE_CONFIG_FOLDER + "/" + guildId + ".txt"));) {
@@ -589,8 +591,30 @@ public class Zoe {
         String summonerId = reader.readLine();
         String summonerRegion = reader.readLine();
         Platform region = Platform.getPlatformByName(summonerRegion);
-        Summoner summoner = riotApi.getSummoner(region, summonerId, CallPriority.HIGH);
-        lolAccounts.add(new LeagueAccount(summoner, region));
+
+        boolean needToRetry = false;
+        Summoner summoner = null;
+
+        do {
+          try {
+            summoner = riotApi.getSummoner(region, summonerId, CallPriority.HIGH);
+            needToRetry = false;
+          }catch(RiotApiException e) {
+            if(e.getErrorCode() == RiotApiException.SERVER_ERROR) {
+              needToRetry = true;
+              logger.info("Error code 500 when loading a summoner, retry ...");
+            } else if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND){
+              logger.info("League account not found when loading. Probably rename/transfer.");
+            }else {
+              throw e;
+            }
+          }
+        } while(needToRetry);
+
+        if(summoner != null) {
+          lolAccounts.add(new LeagueAccount(summoner, region));
+        }
+
       }
       String mentionableString = reader.readLine();
 

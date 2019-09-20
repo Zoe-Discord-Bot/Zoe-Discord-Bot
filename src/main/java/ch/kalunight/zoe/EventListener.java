@@ -74,8 +74,7 @@ public class EventListener extends ListenerAdapter {
       logger.info("Une erreur est survenu lors du chargement des sauvegardes détaillés !");
       System.exit(1);
     } catch(RiotApiException e) {
-      logger.error(e.getMessage());
-      logger.info("Une erreur venant de l'api Riot est survenu lors du chargement des sauvegardes détaillés !");
+      logger.error("Une erreur venant de l'api Riot est survenu lors du chargement des sauvegardes détaillés !", e);
       System.exit(1);
     }
 

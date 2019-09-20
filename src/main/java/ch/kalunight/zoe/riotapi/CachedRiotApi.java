@@ -162,8 +162,12 @@ public class CachedRiotApi {
         + summonerRequestCount.intValue() + leagueEntryRequestCount.intValue() + championMasteryRequestCount.intValue()
         + currentGameInfoRequestCount.intValue();
   }
+  
+  public int getNumberOfCachedMatch() {
+    return matchCache.size();
+  }
 
-  public  int getApiMatchRequestCount() {
+  public int getApiMatchRequestCount() {
     return apiMatchRequestCount.intValue();
   }
 

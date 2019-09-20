@@ -48,37 +48,36 @@ public class EventListener extends ListenerAdapter {
 
     setupNonInitializedGuild();
 
-    logger.info("Chargements des champions ...");
+    logger.info("Loading of champions ...");
     try {
       Zoe.loadChampions();
-    } catch(IOException e1) {
-      logger.error("Erreur lors du chargement des champions !");
+    } catch(IOException e) {
+      logger.error("Critical error with the loading of champions !", e);
       System.exit(1);
     }
 
-    logger.info("Chargements des champions terminé !");
+    logger.info("Loading of champions finished !");
 
-    logger.info("Chargements des emotes ...");
+    logger.info("Loading of emotes ...");
     try {
       EventListenerUtil.loadCustomEmotes();
-      logger.info("Chargements des emotes terminé !");
+      logger.info("Loading of emotes finished !");
     } catch(IOException e) {
-      logger.error("Erreur lors du chargment des emotes : {}", e.getMessage());
+      logger.warn("Error with the loading of emotes : {}", e.getMessage());
     }
 
-    logger.info("Chargement des sauvegardes détaillés ...");
+    logger.info("Loading of guilds ...");
     try {
       Zoe.loadDataTxt();
     } catch(IOException e) {
-      logger.error(e.getMessage());
-      logger.info("Une erreur est survenu lors du chargement des sauvegardes détaillés !");
+      logger.error("Critical error with the loading of guilds (File issue) !", e);
       System.exit(1);
     } catch(RiotApiException e) {
-      logger.error("Une erreur venant de l'api Riot est survenu lors du chargement des sauvegardes détaillés !", e);
+      logger.error("Critical error with the Riot API when loadings of guilds (Riot Api issue) !", e);
       System.exit(1);
     }
 
-    logger.info("Chargement des sauvegardes détaillés terminé !");
+    logger.info("Loading of guilds finished !");
 
     logger.info("Loading of RAPI Status Channel ...");
 
@@ -98,15 +97,15 @@ public class EventListener extends ListenerAdapter {
       Zoe.setBotListApi(null);
     }
 
-    logger.info("Démarrage des tâches continue...");
+    logger.info("Setup of main thread  ...");
 
     setupContinousRefreshThread();
 
-    logger.info("Démarrage des tâches continues terminés !");
+    logger.info("Setup of main thread finished !");
 
     Zoe.getJda().getPresence().setStatus(OnlineStatus.ONLINE);
     Zoe.getJda().getPresence().setGame(Game.playing("type \">help\""));
-    logger.info("Démarrage terminés !");
+    logger.info("Booting finished !");
   }
 
   private void setupNonInitializedGuild() {

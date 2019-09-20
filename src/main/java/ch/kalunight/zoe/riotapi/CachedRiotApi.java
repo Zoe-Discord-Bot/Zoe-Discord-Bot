@@ -30,13 +30,13 @@ public class CachedRiotApi {
 
   private final ConcurrentHashMap<MatchKey, Match> matchCache = new ConcurrentHashMap<>();
 
-  private AtomicInteger apiMatchRequestCount = new AtomicInteger(0);
-  private AtomicInteger allMatchRequestCount = new AtomicInteger(0);
-  private AtomicInteger matchListRequestCount = new AtomicInteger(0);
-  private AtomicInteger summonerRequestCount = new AtomicInteger(0);
-  private AtomicInteger leagueEntryRequestCount = new AtomicInteger(0);
-  private AtomicInteger championMasteryRequestCount = new AtomicInteger(0);
-  private AtomicInteger currentGameInfoRequestCount = new AtomicInteger(0);
+  private final AtomicInteger apiMatchRequestCount = new AtomicInteger(0);
+  private final AtomicInteger allMatchRequestCount = new AtomicInteger(0);
+  private final AtomicInteger matchListRequestCount = new AtomicInteger(0);
+  private final AtomicInteger summonerRequestCount = new AtomicInteger(0);
+  private final AtomicInteger leagueEntryRequestCount = new AtomicInteger(0);
+  private final AtomicInteger championMasteryRequestCount = new AtomicInteger(0);
+  private final AtomicInteger currentGameInfoRequestCount = new AtomicInteger(0);
 
   public CachedRiotApi(RiotApi riotApi) {
     this.riotApi = riotApi;
@@ -148,13 +148,13 @@ public class CachedRiotApi {
   }
 
   public synchronized void clearCounts() {
-    apiMatchRequestCount = new AtomicInteger(0);
-    allMatchRequestCount = new AtomicInteger(0);
-    matchListRequestCount = new AtomicInteger(0);
-    summonerRequestCount = new AtomicInteger(0);
-    leagueEntryRequestCount = new AtomicInteger(0);
-    championMasteryRequestCount = new AtomicInteger(0);
-    currentGameInfoRequestCount = new AtomicInteger(0);
+    apiMatchRequestCount.set(0);
+    allMatchRequestCount.set(0);
+    matchListRequestCount.set(0);
+    summonerRequestCount.set(0);
+    leagueEntryRequestCount.set(0);
+    championMasteryRequestCount.set(0);
+    currentGameInfoRequestCount.set(0);
   }
 
   public int getTotalRequestCount() {

@@ -604,7 +604,7 @@ public class Zoe {
               needToRetry = true;
               logger.info("Error code 500 when loading a summoner, retry ...");
             } else if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND){
-              logger.info("League account not found when loading. Probably rename/transfer.");
+              logger.info("League account {} {} not found when loading. Probably rename/transfer.", region.getName(), summonerId);
             }else {
               throw e;
             }

@@ -2,8 +2,8 @@ package ch.kalunight.zoe.riotapi;
 
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import net.rithms.riot.api.RiotApi;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.champion_mastery.dto.ChampionMastery;
@@ -21,8 +21,6 @@ import net.rithms.riot.constant.Platform;
 public class CachedRiotApi {
 
   private final RiotApi riotApi;
-
-  private final ConcurrentHashMap<MatchKey, Match> matchCache = new ConcurrentHashMap<>();
 
   private final AtomicInteger apiMatchRequestCount = new AtomicInteger(0);
   private final AtomicInteger allMatchRequestCount = new AtomicInteger(0);
@@ -135,10 +133,6 @@ public class CachedRiotApi {
     return apiMatchRequestCount.intValue() + allMatchRequestCount.intValue() + matchListRequestCount.intValue()
         + summonerRequestCount.intValue() + leagueEntryRequestCount.intValue() + championMasteryRequestCount.intValue()
         + currentGameInfoRequestCount.intValue();
-  }
-  
-  public int getNumberOfCachedMatch() {
-    return matchCache.size();
   }
 
   public int getApiMatchRequestCount() {

@@ -17,6 +17,7 @@ import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.model.static_data.SpellingLangage;
+import ch.kalunight.zoe.riotapi.CacheManager;
 import ch.kalunight.zoe.service.ServerChecker;
 import ch.kalunight.zoe.service.InfoPanelRefresher;
 import ch.kalunight.zoe.service.RiotApiUsageChannelRefresh;
@@ -76,6 +77,10 @@ public class EventListener extends ListenerAdapter {
       logger.error("Critical error with the Riot API when loadings of guilds (Riot Api issue) !", e);
       System.exit(1);
     }
+    
+    logger.info("Setup cache ...");
+    CacheManager.setupCache();
+    logger.info("Setup cache finished !");
 
     logger.info("Loading of guilds finished !");
 

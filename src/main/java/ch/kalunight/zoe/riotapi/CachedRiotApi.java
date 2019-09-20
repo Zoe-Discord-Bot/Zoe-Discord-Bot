@@ -1,12 +1,6 @@
 package ch.kalunight.zoe.riotapi;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -43,36 +37,16 @@ public class CachedRiotApi {
   }
 
   public synchronized void cleanCache() {
-    Iterator<Entry<MatchKey, Match>> cachList = matchCache.entrySet().iterator();
-    
-    ArrayList<MatchKey> matchsToDelete = new ArrayList<>();
-    
-    while(cachList.hasNext()) {
-      Entry<MatchKey, Match> matchEntry = cachList.next();
-      
-      Match match = matchEntry.getValue();
-      
-      LocalDateTime dateTimeCreationMatch = LocalDateTime.ofInstant(Instant.ofEpochMilli(match.getGameCreation()), ZoneOffset.UTC);
-      
-      if(LocalDateTime.now().minusDays(32).isAfter(dateTimeCreationMatch)) { //32 days to avoid premature delete due to time zone
-        matchsToDelete.add(matchEntry.getKey());
-      }
-    }
-    
-    for(MatchKey matchKey : matchsToDelete) {
-      matchCache.remove(matchKey);
-    }
+    CacheManager.cleanMatchCache();
   }
   
   public Match getMatch(Platform platform, long matchId, CallPriority priority) throws RiotApiException {
-    MatchKey key = new MatchKey(platform, matchId);
-
-    Match match = matchCache.get(key);
+    Match match = CacheManager.getMatch(platform, Long.toString(matchId));
 
     if(match == null) {
       match = riotApi.getMatch(platform, matchId, priority);
 
-      matchCache.put(key, match);
+      CacheManager.putMatch(platform, match);
 
       apiMatchRequestCount.incrementAndGet();
     }

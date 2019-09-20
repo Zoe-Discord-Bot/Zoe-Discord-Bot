@@ -68,8 +68,8 @@ public class RiotApiUsageChannelRefresh implements Runnable {
             + "\nInfocards Generated last 2 minutes : " + getInfocardCreatedCount()).queue();
         
         rapiInfoChannel.sendMessage("Total of requests with Riot api : " + Zoe.getRiotApi().getTotalRequestCount()
-            + "\nNumber of request for match with RiotAPI : " + Zoe.getRiotApi().getMatchRequestCount()
-            + "\nTotal number of request for match : " + Zoe.getRiotApi().getCachedMatchRequestCount()).queue();
+            + "\nNumber of request for match with RiotAPI : " + Zoe.getRiotApi().getApiMatchRequestCount()
+            + "\nTotal number of request for match : " + Zoe.getRiotApi().getAllMatchRequestCount()).queue();
         
         if(DateTime.now().minusDays(TIME_BETWEEN_EACH_RESET_CATCHED_RIOT_API_IN_DAY).isAfter(lastRapiCountReset)) {
           lastRapiCountReset = DateTime.now();

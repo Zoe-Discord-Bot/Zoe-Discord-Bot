@@ -3,6 +3,7 @@ package ch.kalunight.zoe.model.config.option;
 import java.awt.Color;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import org.checkerframework.checker.units.qual.g;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.ButtonMenu;
@@ -12,7 +13,10 @@ import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageChannel;
 import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.entities.MessageReaction.ReactionEmote;
+import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
 
 public class RegistrationChannelOption extends ConfigurationOption {
 
@@ -78,7 +82,7 @@ public class RegistrationChannelOption extends ConfigurationOption {
             + ":two: -> " + CLEAN_CHANNEL_OPTION.ONLY_ZOE_COMMANDS.name + " : " + CLEAN_CHANNEL_OPTION.ONLY_ZOE_COMMANDS.description + "\n"
             + ":three: -> " + CLEAN_CHANNEL_OPTION.ALL.name + " : " + CLEAN_CHANNEL_OPTION.ALL.description + "\n");
 
-        choiceBuilder.setAction(receiveValidationAndCreateOption(event.getChannel(), event.getGuild()));
+        choiceBuilder.setAction(updateOption(event.getChannel(), event.getGuild(), waiter, event.getAuthor()));
 
         ButtonMenu menu = choiceBuilder.build();
 
@@ -87,7 +91,7 @@ public class RegistrationChannelOption extends ConfigurationOption {
       }};
   }
   
-  private Consumer<ReactionEmote> receiveValidationAndCreateOption(MessageChannel channel, Guild guild) {
+  private Consumer<ReactionEmote> updateOption(MessageChannel channel, Guild guild, EventWaiter eventWaiter, User user) {
     return new Consumer<ReactionEmote>() {
 
       @Override
@@ -95,14 +99,64 @@ public class RegistrationChannelOption extends ConfigurationOption {
         channel.sendTyping().complete();
         if(emoteUsed.getName().equals(":two:") || emoteUsed.getName().equals(":three:")) {
           
+          if(emoteUsed.getName().equals(":two:")){
+            cleanChannelOption = CLEAN_CHANNEL_OPTION.ONLY_ZOE_COMMANDS;
+          }else {
+            cleanChannelOption = CLEAN_CHANNEL_OPTION.ALL;
+          }
           
+          ButtonMenu.Builder choiceBuilder = new ButtonMenu.Builder();
           
+          choiceBuilder.setEventWaiter(eventWaiter);
+          choiceBuilder.addChoices(":one:",":two:");
+          choiceBuilder.addUsers(user);
+          choiceBuilder.setFinalAction(finalAction());
+          choiceBuilder.setColor(Color.BLUE);
+
+          choiceBuilder.setTimeout(2, TimeUnit.MINUTES);
+          
+          choiceBuilder.setText("Right ! You want to define it in a existant channel or you want to create a new text channel ?\n\n"
+              + ":one: : Define a exitant channel\n"
+              + ":two: : Create a new channel\n");
+          
+          choiceBuilder.setAction(createNewChannel(channel, guild, eventWaiter, user));
+          
+          ButtonMenu menu = choiceBuilder.build();
+
+          menu.display(channel);
         }else {
+          
+          
           
         }
       }};
   }
   
+  
+  private Consumer<ReactionEmote> createNewChannel(MessageChannel channel, Guild guild, EventWaiter eventWaiter, User user){
+    return new Consumer<ReactionEmote>() {
+
+      @Override
+      public void accept(ReactionEmote reactionEmote) {
+        channel.sendTyping().complete();
+        if(reactionEmote.getName().equals(":one:")) {
+          
+
+          
+        }
+        
+        
+        
+        
+        
+        
+      }
+    };
+  }
+  
+  private void endCreateChannelTime(MessageChannel channel) {
+    channel.sendMessage("The wait time of 2 minutes has been ended. Please remake the command if you want to setup this option.").queue();
+  }
   
   private Consumer<Message> finalAction(){
     return new Consumer<Message>() {

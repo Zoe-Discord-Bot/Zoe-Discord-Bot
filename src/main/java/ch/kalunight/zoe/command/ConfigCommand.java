@@ -46,7 +46,7 @@ public class ConfigCommand extends Command{
         .setTimeout(2, TimeUnit.MINUTES)
         .useNumbers()
         .setColor(Color.BLUE)
-        .setText("Here my options:")
+        .setText("Here are my options:")
         .setDescription("**Configuration Choices:**")
         .useCancelButton(true)
         .setEventWaiter(waiter);

@@ -3,7 +3,6 @@ package ch.kalunight.zoe.model.config.option;
 import java.awt.Color;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import org.checkerframework.checker.units.qual.g;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.ButtonMenu;
@@ -15,22 +14,22 @@ import net.dv8tion.jda.core.entities.MessageChannel;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.entities.MessageReaction.ReactionEmote;
-import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
 
 public class RegistrationChannelOption extends ConfigurationOption {
 
   public enum CLEAN_CHANNEL_OPTION {
-    DISABLE("Disable", "Option disable"),
-    ONLY_ZOE_COMMANDS("Delete only Zoe commands", "This will delete all new zoe commands in the channel"),
-    ALL("Delete all messages", "This will delete all new messages sended in the channel.");
+    DISABLE("Disable", "Option disable", ":one:"),
+    ONLY_ZOE_COMMANDS("Delete only Zoe commands", "This will delete all new zoe commands in the channel", ":two:"),
+    ALL("Delete all messages", "This will delete all new messages sended in the channel.", "three");
 
     private final String name;
     private final String description;
+    private final String emote;
 
-    private CLEAN_CHANNEL_OPTION(String name, String description) {
+    private CLEAN_CHANNEL_OPTION(String name, String description, String emote) {
       this.name = name;
       this.description = description;
+      this.emote = emote;
     }
 
     public String getName() {
@@ -39,6 +38,10 @@ public class RegistrationChannelOption extends ConfigurationOption {
 
     public String getDescription() {
       return description;
+    }
+    
+    public String getEmoteString() {
+      return emote;
     }
   }
 
@@ -60,14 +63,17 @@ public class RegistrationChannelOption extends ConfigurationOption {
       public void accept(CommandEvent event) {
 
         if(!event.getGuild().getSelfMember().getPermissions().contains(Permission.MESSAGE_MANAGE)) {
-          event.reply("I need the message manage permission to activate this option.");
+          event.reply("I need the message manage permission to activate this option. Please retry after give me this permission.");
           return;
         }
 
         ButtonMenu.Builder choiceBuilder = new ButtonMenu.Builder();
 
         choiceBuilder.setEventWaiter(waiter);
-        choiceBuilder.addChoices(":one:",":two:",":three:");
+        choiceBuilder.addChoices(
+            CLEAN_CHANNEL_OPTION.DISABLE.emote,
+            CLEAN_CHANNEL_OPTION.ONLY_ZOE_COMMANDS.emote,
+            CLEAN_CHANNEL_OPTION.ALL.emote);
         choiceBuilder.addUsers(event.getAuthor());
         choiceBuilder.setFinalAction(finalAction());
         choiceBuilder.setColor(Color.BLUE);
@@ -75,12 +81,18 @@ public class RegistrationChannelOption extends ConfigurationOption {
         choiceBuilder.setTimeout(2, TimeUnit.MINUTES);
 
         choiceBuilder.setText("Option : **" + description + "**\n\n"
-            + "This option will create a \"clean channel\" where messages are deleted after been sended. " 
-            + "People with the permission Manage channel.\n"
+            + "This option will create a \"clean channel\" where messages are deleted after been sended. "
+            + "This option can be used in combination with the \"Hide infochannel\" option to make a **registration system** "
+            + "for your server (server where you need to register yoursefl to access into the bot to acces to the server)"
+            + "If a user with the permission Manage channel send a message his message will not be deleted.\n"
             + "**The text channel will be selected after the option selection**.\n\n"
-            + ":one: -> " + CLEAN_CHANNEL_OPTION.DISABLE.name + " : " + CLEAN_CHANNEL_OPTION.DISABLE.description + "\n"
-            + ":two: -> " + CLEAN_CHANNEL_OPTION.ONLY_ZOE_COMMANDS.name + " : " + CLEAN_CHANNEL_OPTION.ONLY_ZOE_COMMANDS.description + "\n"
-            + ":three: -> " + CLEAN_CHANNEL_OPTION.ALL.name + " : " + CLEAN_CHANNEL_OPTION.ALL.description + "\n");
+            + "Here are my options : \n"
+            + CLEAN_CHANNEL_OPTION.DISABLE.emote 
+            + " -> " + CLEAN_CHANNEL_OPTION.DISABLE.name + " : " + CLEAN_CHANNEL_OPTION.DISABLE.description + "\n"
+            + CLEAN_CHANNEL_OPTION.ONLY_ZOE_COMMANDS.emote
+            + " -> " + CLEAN_CHANNEL_OPTION.ONLY_ZOE_COMMANDS.name + " : " + CLEAN_CHANNEL_OPTION.ONLY_ZOE_COMMANDS.description + "\n"
+            + CLEAN_CHANNEL_OPTION.ALL.emote
+            + " -> " + CLEAN_CHANNEL_OPTION.ALL.name + " : " + CLEAN_CHANNEL_OPTION.ALL.description + "\n");
 
         choiceBuilder.setAction(updateOption(event.getChannel(), event.getGuild(), waiter, event.getAuthor()));
 
@@ -97,13 +109,8 @@ public class RegistrationChannelOption extends ConfigurationOption {
       @Override
       public void accept(ReactionEmote emoteUsed) {
         channel.sendTyping().complete();
-        if(emoteUsed.getName().equals(":two:") || emoteUsed.getName().equals(":three:")) {
-          
-          if(emoteUsed.getName().equals(":two:")){
-            cleanChannelOption = CLEAN_CHANNEL_OPTION.ONLY_ZOE_COMMANDS;
-          }else {
-            cleanChannelOption = CLEAN_CHANNEL_OPTION.ALL;
-          }
+        if(emoteUsed.getName().equals(CLEAN_CHANNEL_OPTION.ONLY_ZOE_COMMANDS.emote) 
+            || emoteUsed.getName().equals(CLEAN_CHANNEL_OPTION.ALL.emote)) {
           
           ButtonMenu.Builder choiceBuilder = new ButtonMenu.Builder();
           

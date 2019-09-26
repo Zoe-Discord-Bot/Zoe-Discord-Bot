@@ -22,6 +22,9 @@ public class MessageBuilderRequestUtil {
   private MessageBuilderRequestUtil() {
     // Hide default public constructor
   }
+  
+  
+  
 
   public static void createTeamData1Summoner(Summoner summoner, List<CurrentGameParticipant> teamParticipant, StringBuilder teamString,
       StringBuilder teamRankString, StringBuilder teamWinRateLastMonth, Platform platform) {

@@ -17,10 +17,16 @@ import net.dv8tion.jda.core.entities.MessageReaction.ReactionEmote;
 
 public class RegistrationChannelOption extends ConfigurationOption {
 
+  private static final String EMOTE_ONE = ":one:";
+
+  private static final String EMOTE_TWO = ":two:";
+
+  private static final String EMOTE_THREE = ":three:";
+  
   public enum CLEAN_CHANNEL_OPTION {
-    DISABLE("Disable", "Option disable", ":one:"),
-    ONLY_ZOE_COMMANDS("Delete only Zoe commands", "This will delete all new zoe commands in the channel", ":two:"),
-    ALL("Delete all messages", "This will delete all new messages sended in the channel.", "three");
+    DISABLE("Disable", "Option disable", EMOTE_ONE),
+    ONLY_ZOE_COMMANDS("Delete only Zoe commands", "This will delete all new zoe commands in the channel", EMOTE_TWO),
+    ALL("Delete all messages", "This will delete all new messages sended in the channel.", EMOTE_THREE);
 
     private final String name;
     private final String description;
@@ -115,7 +121,7 @@ public class RegistrationChannelOption extends ConfigurationOption {
           ButtonMenu.Builder choiceBuilder = new ButtonMenu.Builder();
           
           choiceBuilder.setEventWaiter(eventWaiter);
-          choiceBuilder.addChoices(":one:",":two:");
+          choiceBuilder.addChoices(EMOTE_ONE,EMOTE_TWO);
           choiceBuilder.addUsers(user);
           choiceBuilder.setFinalAction(finalAction());
           choiceBuilder.setColor(Color.BLUE);
@@ -123,8 +129,8 @@ public class RegistrationChannelOption extends ConfigurationOption {
           choiceBuilder.setTimeout(2, TimeUnit.MINUTES);
           
           choiceBuilder.setText("Right ! You want to define it in a existant channel or you want to create a new text channel ?\n\n"
-              + ":one: : Define a exitant channel\n"
-              + ":two: : Create a new channel\n");
+              + EMOTE_ONE + " : Define a exitant channel\n"
+              + EMOTE_TWO + " : Create a new channel\n");
           
           choiceBuilder.setAction(createNewChannel(channel, guild, eventWaiter, user));
           
@@ -146,7 +152,7 @@ public class RegistrationChannelOption extends ConfigurationOption {
       @Override
       public void accept(ReactionEmote reactionEmote) {
         channel.sendTyping().complete();
-        if(reactionEmote.getName().equals(":one:")) {
+        if(reactionEmote.getName().equals(EMOTE_ONE)) {
           
 
           

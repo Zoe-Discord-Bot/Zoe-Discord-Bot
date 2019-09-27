@@ -1,6 +1,5 @@
 package ch.kalunight.zoe.service;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -14,11 +13,9 @@ import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.util.InfoPanelRefresherUtil;
 import ch.kalunight.zoe.util.NameConversion;
 import ch.kalunight.zoe.util.request.MessageBuilderRequest;
-import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageEmbed;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.exceptions.InsufficientPermissionException;
-import net.dv8tion.jda.core.requests.restaction.MessageAction;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 
 public class InfoCardsWorker implements Runnable {
@@ -40,18 +37,12 @@ public class InfoCardsWorker implements Runnable {
     this.currentGameInfo = currentGameInfo;
   }
 
-
   @Override
   public void run() {
     try {
-      
       logger.debug("InfoCards worker lauched for the game id: {}", currentGameInfo.getGameId());
       if(controlPanel.canTalk()) {
-        generateInfoCard(controlPanel, account, currentGameInfo);
-        
-        generatePlayersComments();
-        
-        
+        generateInfoCard(controlPanel, account, currentGameInfo);    
         RiotApiUsageChannelRefresh.incrementInfocardCount();
         logger.debug("InfoCards worker has ended correctly for the game id: {}", currentGameInfo.getGameId());
       }else {
@@ -67,15 +58,6 @@ public class InfoCardsWorker implements Runnable {
       server.setLastRefresh(DateTime.now());
     }
   }
-
-  private void generatePlayersComments() {
-    
-    
-    
-    
-    
-  }
-
 
   private void generateInfoCard(TextChannel controlPanel, LeagueAccount account, CurrentGameInfo currentGameInfo) {
 

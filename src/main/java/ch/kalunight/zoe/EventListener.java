@@ -224,7 +224,7 @@ public class EventListener extends ListenerAdapter {
       }
     }
   }
-
+  
   @Override
   public void onGuildMessageReceived(GuildMessageReceivedEvent event) {
     if(event == null || event.getMessage() == null) {

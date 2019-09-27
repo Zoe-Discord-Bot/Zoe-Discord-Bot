@@ -13,6 +13,7 @@ import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.Server;
 import net.dv8tion.jda.core.Permission;
+import net.dv8tion.jda.core.entities.Emote;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageChannel;
@@ -23,13 +24,13 @@ import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 
 public class CleanChannelOption extends ConfigurationOption {
 
-  private static final String UNICODE_ONE = "1️⃣";
+  private static final String UNICODE_ONE = "1\u20E3";
   private static final String EMOJI_ONE = ":one:";
 
-  private static final String UNICODE_TWO = "2️⃣";
+  private static final String UNICODE_TWO = "2\u20E3";
   private static final String EMOJI_TWO = ":two:";
   
-  private static final String UNICODE_THREE = "3️⃣";
+  private static final String UNICODE_THREE = "3\u20E3";
   private static final String EMOJI_THREE = ":three:";
   
   Logger logger = LoggerFactory.getLogger(CleanChannelOption.class);
@@ -81,7 +82,7 @@ public class CleanChannelOption extends ConfigurationOption {
 
         ButtonMenu.Builder choiceBuilder = new ButtonMenu.Builder();
 
-        choiceBuilder.setEventWaiter(waiter);
+        choiceBuilder.setEventWaiter(waiter);        
         
         choiceBuilder.addChoices(
             CleanChannelOptionInfo.DISABLE.unicode,
@@ -139,7 +140,7 @@ public class CleanChannelOption extends ConfigurationOption {
           ButtonMenu.Builder choiceBuilder = new ButtonMenu.Builder();
           
           choiceBuilder.setEventWaiter(eventWaiter);
-          choiceBuilder.addChoices(EMOJI_ONE,EMOJI_TWO);
+          choiceBuilder.addChoices(UNICODE_ONE,UNICODE_TWO);
           choiceBuilder.addUsers(user);
           choiceBuilder.setFinalAction(finalAction());
           choiceBuilder.setColor(Color.BLUE);

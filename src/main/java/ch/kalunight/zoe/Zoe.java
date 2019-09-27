@@ -484,7 +484,7 @@ public class Zoe {
 
               try {
                 PrivateChannel privateChannel = guild.getOwner().getUser().openPrivateChannel().complete();
-                privateChannel.sendMessage("Hi ! I am a bot of your server " + guild.getName() + ".\n"
+                privateChannel.sendMessage("Hi ! I'm a bot of your server " + guild.getName() + ".\n"
                     + "I need the \"" + e.getPermission().getName() + "\" permission in infochannel to work properly. "
                     + "If you need help you can join the help server here : https://discord.gg/sRgyFvq\n"
                     + "This message will be sended at each time i reboot. Thank you in advance !").queue();

@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 import org.discordbots.api.client.DiscordBotListAPI;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -15,21 +16,25 @@ import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.model.ControlPannel;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
+import ch.kalunight.zoe.model.config.option.CleanChannelOption.CleanChannelOptionInfo;
 import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.model.static_data.SpellingLangage;
 import ch.kalunight.zoe.riotapi.CacheManager;
-import ch.kalunight.zoe.service.ServerChecker;
 import ch.kalunight.zoe.service.InfoPanelRefresher;
 import ch.kalunight.zoe.service.RiotApiUsageChannelRefresh;
+import ch.kalunight.zoe.service.ServerChecker;
 import ch.kalunight.zoe.util.EventListenerUtil;
 import net.dv8tion.jda.core.OnlineStatus;
+import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Game;
 import net.dv8tion.jda.core.entities.Guild;
+import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Role;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.events.ReadyEvent;
 import net.dv8tion.jda.core.events.channel.text.TextChannelDeleteEvent;
 import net.dv8tion.jda.core.events.guild.GuildJoinEvent;
+import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.core.events.role.RoleDeleteEvent;
 import net.dv8tion.jda.core.events.user.update.UserUpdateGameEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
@@ -77,7 +82,7 @@ public class EventListener extends ListenerAdapter {
       logger.error("Critical error with the Riot API when loadings of guilds (Riot Api issue) !", e);
       System.exit(1);
     }
-    
+
     logger.info("Setup cache ...");
     CacheManager.setupCache();
     logger.info("Setup cache finished !");
@@ -195,7 +200,7 @@ public class EventListener extends ListenerAdapter {
     if(event == null || event.getNewGame() == null) {
       return;
     }
-    
+
     if(event.getNewGame().isRich() && EventListenerUtil.checkIfIsGame(event.getNewGame().asRichPresence()) && event.getGuild() != null) {
       Server server = ServerData.getServers().get(event.getGuild().getId());
 
@@ -220,5 +225,36 @@ public class EventListener extends ListenerAdapter {
     }
   }
 
-
+  @Override
+  public void onGuildMessageReceived(GuildMessageReceivedEvent event) {
+    if(event == null || event.getMessage() == null) {
+      return;
+    }
+    
+    Server server = ServerData.getServers().get(event.getGuild().getId());
+    if(server == null) {
+      return;
+    }
+    
+    if(server.getConfig().getCleanChannelOption().getCleanChannelOption().equals(CleanChannelOptionInfo.DISABLE)) {
+      return;
+    }
+    
+    Member member = event.getGuild().getMember(event.getAuthor());
+    
+    if(member.getUser() != Zoe.getJda().getSelfUser() && member.getPermissions().contains(Permission.MANAGE_CHANNEL)) {
+      return;
+    }
+    
+    if(server.getConfig().getCleanChannelOption().getCleanChannelOption() == CleanChannelOptionInfo.ONLY_ZOE_COMMANDS
+        || server.getConfig().getCleanChannelOption().getCleanChannel().equals(event.getChannel())) {
+      
+      if(event.getMessage().getContentRaw().startsWith(Zoe.BOT_PREFIX) || member.getUser().equals(Zoe.getJda().getSelfUser())) {
+        event.getMessage().delete().queueAfter(3, TimeUnit.SECONDS);
+      }
+      
+    }else if(server.getConfig().getCleanChannelOption().getCleanChannelOption() == CleanChannelOptionInfo.ALL) {
+      event.getMessage().delete().queueAfter(3, TimeUnit.SECONDS);
+    }
+  }
 }

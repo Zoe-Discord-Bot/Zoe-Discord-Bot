@@ -240,20 +240,25 @@ public class EventListener extends ListenerAdapter {
       return;
     }
     
+    if(event.getAuthor().equals(Zoe.getJda().getSelfUser()) && event.getMessage().getContentRaw().startsWith("Info")) {
+      return;
+    }
+    
     Member member = event.getGuild().getMember(event.getAuthor());
     
     if(member.getUser() != Zoe.getJda().getSelfUser() && member.getPermissions().contains(Permission.MANAGE_CHANNEL)) {
       return;
     }
     
-    if(server.getConfig().getCleanChannelOption().getCleanChannelOption() == CleanChannelOptionInfo.ONLY_ZOE_COMMANDS
-        || server.getConfig().getCleanChannelOption().getCleanChannel().equals(event.getChannel())) {
+    if(server.getConfig().getCleanChannelOption().getCleanChannelOption().equals(CleanChannelOptionInfo.ONLY_ZOE_COMMANDS)
+        && server.getConfig().getCleanChannelOption().getCleanChannel().equals(event.getChannel())) {
       
       if(event.getMessage().getContentRaw().startsWith(Zoe.BOT_PREFIX) || member.getUser().equals(Zoe.getJda().getSelfUser())) {
         event.getMessage().delete().queueAfter(3, TimeUnit.SECONDS);
       }
       
-    }else if(server.getConfig().getCleanChannelOption().getCleanChannelOption() == CleanChannelOptionInfo.ALL) {
+    }else if(server.getConfig().getCleanChannelOption().getCleanChannelOption().equals(CleanChannelOptionInfo.ALL)
+        && server.getConfig().getCleanChannelOption().getCleanChannel().equals(event.getChannel())) {
       event.getMessage().delete().queueAfter(3, TimeUnit.SECONDS);
     }
   }

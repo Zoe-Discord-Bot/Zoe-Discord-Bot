@@ -13,7 +13,6 @@ import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.Server;
 import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Emote;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageChannel;
@@ -87,7 +86,8 @@ public class CleanChannelOption extends ConfigurationOption {
         choiceBuilder.addChoices(
             CleanChannelOptionInfo.DISABLE.unicode,
             CleanChannelOptionInfo.ONLY_ZOE_COMMANDS.unicode,
-            CleanChannelOptionInfo.ALL.unicode);
+            CleanChannelOptionInfo.ALL.unicode,
+            "❌");
         choiceBuilder.addUsers(event.getAuthor());
         choiceBuilder.setFinalAction(finalAction());
         choiceBuilder.setColor(Color.BLUE);
@@ -129,8 +129,7 @@ public class CleanChannelOption extends ConfigurationOption {
         }else if(emoteUsed.getName().equals(CleanChannelOptionInfo.DISABLE.unicode)){
           tmpCleanChannelOption = CleanChannelOptionInfo.DISABLE;
         }else {
-          logger.warn("Error when receive the emote. Not corresponding.");
-          channel.sendMessage("Error in the selection of the emote. Please retry.").queue();
+          channel.sendMessage("Ok, the configuration has been canceled.").queue();
           return;
         }
         
@@ -177,8 +176,8 @@ public class CleanChannelOption extends ConfigurationOption {
         channel.sendTyping().complete();
         if(reactionEmote.getName().equals(UNICODE_ONE)) {
           
-          channel.sendMessage("One more step and we are fine ! Now please send me a message with "
-              + "the **Mention** of the text channel you want to define (e.g. #registration-channel). "
+          channel.sendMessage("One more step and we are fine ! Now please **send a message with "
+              + "the mention of the text channel** you want to define (e.g. #registration-channel). "
               + "*You can't select the InfoChannel.*").queue();
           
           eventWaiter.waitForEvent(MessageReceivedEvent.class,
@@ -189,13 +188,13 @@ public class CleanChannelOption extends ConfigurationOption {
           
           cleanChannel = guild.getTextChannelById(guild.getController().createTextChannel("clean-channel").complete().getId());
           
-          cleanChannelOption = tmpCleanChannelOption;
-          
           if(cleanChannelOption == CleanChannelOptionInfo.ONLY_ZOE_COMMANDS) {
-            cleanChannel.sendMessage("All Zoe command sended here will be deleted after 3 seconds.").queue();
+            cleanChannel.getManager().setTopic("All Zoe command sended here will be deleted after 3 seconds.").queue();
           }else {
-            cleanChannel.sendMessage("All messages sended here will be deleted after 3 seconds.").queue();
+            cleanChannel.getManager().setTopic("All messages sended here will be deleted after 3 seconds.").queue();
           }
+          
+          cleanChannelOption = tmpCleanChannelOption;
 
           channel.sendMessage("Perfect ! I have created a channel with the name \"clean-channel\". "
               + "You can change option of this channel like you want. Just let me my permissions inside "
@@ -211,15 +210,15 @@ public class CleanChannelOption extends ConfigurationOption {
     
     List<TextChannel> textsChannel = event.getMessage().getMentionedChannels();
     
-    if(textsChannel.size() != 1) {
+    if(textsChannel.size() == 1) {
      TextChannel textChannel = textsChannel.get(0); 
-     Server server = ServerData.getServers().get(textChannel.getId());
+     Server server = ServerData.getServers().get(textChannel.getGuild().getId());
      if(!server.getInfoChannel().equals(textChannel)) {
        
        if(cleanChannelOption == CleanChannelOptionInfo.ONLY_ZOE_COMMANDS) {
-         textChannel.sendMessage("From now on, Zoe command sended here will be deleted after 3 seconds.").queue();
+         textChannel.sendMessage("Info : From now on, Zoe command sended here will be deleted after 3 seconds.").complete();
        }else {
-         textChannel.sendMessage("From now on, all messages sended here will be deleted after 3 seconds.").queue();
+         textChannel.sendMessage("Info : From now on, all messages sended here will be deleted after 3 seconds.").complete();
        }
        
        cleanChannel = textChannel;

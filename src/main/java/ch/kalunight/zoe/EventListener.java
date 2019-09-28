@@ -240,7 +240,7 @@ public class EventListener extends ListenerAdapter {
       return;
     }
     
-    if(event.getAuthor().equals(Zoe.getJda().getSelfUser()) && event.getMessage().getContentRaw().startsWith("Info")) {
+    if(event.getAuthor().equals(Zoe.getJda().getSelfUser()) && event.getMessage().getContentRaw().startsWith("Info : From now on,")) {
       return;
     }
     
@@ -251,7 +251,7 @@ public class EventListener extends ListenerAdapter {
     }
     
     if(server.getConfig().getCleanChannelOption().getCleanChannelOption().equals(CleanChannelOptionInfo.ONLY_ZOE_COMMANDS)
-        && server.getConfig().getCleanChannelOption().getCleanChannel().equals(event.getChannel())) {
+        && event.getChannel().equals(server.getConfig().getCleanChannelOption().getCleanChannel())) {
       
       if(event.getMessage().getContentRaw().startsWith(Zoe.BOT_PREFIX) || member.getUser().equals(Zoe.getJda().getSelfUser())) {
         event.getMessage().delete().queueAfter(3, TimeUnit.SECONDS);

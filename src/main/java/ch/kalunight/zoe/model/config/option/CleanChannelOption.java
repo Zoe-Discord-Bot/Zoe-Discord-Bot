@@ -158,11 +158,14 @@ public class CleanChannelOption extends ConfigurationOption {
           menu.display(channel);
         }else {
           
-          cleanChannelOption = tmpCleanChannelOption;
           cleanChannel = null;
           
-          channel.sendMessage("Okay ! The option is now disable, i will no longer delete messages in the clean channel.").queue();
-          
+          if(tmpCleanChannelOption.equals(cleanChannelOption)) {
+            channel.sendMessage("The option is already disable !").queue();
+          }else {
+            cleanChannelOption = tmpCleanChannelOption;
+            channel.sendMessage("Okay ! The option is now disable, i will no longer delete messages in the clean channel.").queue();
+          }
         }
       }};
   }
@@ -188,17 +191,17 @@ public class CleanChannelOption extends ConfigurationOption {
           
           cleanChannel = guild.getTextChannelById(guild.getController().createTextChannel("clean-channel").complete().getId());
           
-          if(cleanChannelOption == CleanChannelOptionInfo.ONLY_ZOE_COMMANDS) {
-            cleanChannel.getManager().setTopic("All Zoe command sended here will be deleted after 3 seconds.").queue();
+          cleanChannelOption = tmpCleanChannelOption;
+          
+          if(cleanChannelOption.equals(CleanChannelOptionInfo.ONLY_ZOE_COMMANDS)) {
+            cleanChannel.getManager().setTopic("All Zoe commands sended here will be deleted after 3 seconds.").queue();
           }else {
             cleanChannel.getManager().setTopic("All messages sended here will be deleted after 3 seconds.").queue();
           }
-          
-          cleanChannelOption = tmpCleanChannelOption;
 
           channel.sendMessage("Perfect ! I have created a channel with the name \"clean-channel\". "
               + "You can change option of this channel like you want. Just let me my permissions inside "
-              + "and everything will be working.").queue();
+              + "and everything will work.").queue();
           
         }
       }
@@ -215,14 +218,14 @@ public class CleanChannelOption extends ConfigurationOption {
      Server server = ServerData.getServers().get(textChannel.getGuild().getId());
      if(!server.getInfoChannel().equals(textChannel)) {
        
-       if(cleanChannelOption == CleanChannelOptionInfo.ONLY_ZOE_COMMANDS) {
-         textChannel.sendMessage("Info : From now on, Zoe command sended here will be deleted after 3 seconds.").complete();
+       cleanChannel = textChannel;
+       cleanChannelOption = tmpCleanChannelOption;
+       
+       if(cleanChannelOption.equals(CleanChannelOptionInfo.ONLY_ZOE_COMMANDS)) {
+         textChannel.sendMessage("Info : From now on, Zoe commands sended here will be deleted after 3 seconds.").complete();
        }else {
          textChannel.sendMessage("Info : From now on, all messages sended here will be deleted after 3 seconds.").complete();
        }
-       
-       cleanChannel = textChannel;
-       cleanChannelOption = tmpCleanChannelOption;
        
        event.getTextChannel().sendMessage("Perfect ! The channel has been correctly setted. "
            + " Please just check that i have all my needed permissions inside (Manage Messages, Read, Read History).").queue();
@@ -251,8 +254,14 @@ public class CleanChannelOption extends ConfigurationOption {
 
   @Override
   public String getChoiceText() {
+    
+    if(Zoe.getJda().getTextChannelById(cleanChannel.getId()) == null) {
+      cleanChannel = null;
+      cleanChannelOption = CleanChannelOptionInfo.DISABLE;
+    }
+    
     String status = "";
-
+    
     if(cleanChannelOption == CleanChannelOptionInfo.DISABLE) {
       status = "Disable";
     } else {
@@ -280,6 +289,9 @@ public class CleanChannelOption extends ConfigurationOption {
 
     if(saveDatas.length > 2) {
       cleanChannel = Zoe.getJda().getTextChannelById(saveDatas[2]);
+      if(cleanChannel == null) {
+        cleanChannelOption = CleanChannelOptionInfo.DISABLE;
+      }
     }
   }
 

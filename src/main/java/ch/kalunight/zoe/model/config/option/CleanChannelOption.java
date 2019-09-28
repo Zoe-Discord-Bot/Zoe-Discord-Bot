@@ -28,12 +28,12 @@ public class CleanChannelOption extends ConfigurationOption {
 
   private static final String UNICODE_TWO = "2\u20E3";
   private static final String EMOJI_TWO = ":two:";
-  
+
   private static final String UNICODE_THREE = "3\u20E3";
   private static final String EMOJI_THREE = ":three:";
-  
+
   Logger logger = LoggerFactory.getLogger(CleanChannelOption.class);
-  
+
   public enum CleanChannelOptionInfo {
     DISABLE("Disable", "Option disable", UNICODE_ONE, EMOJI_ONE),
     ONLY_ZOE_COMMANDS("Delete only Zoe commands", "This will delete all new zoe commands in the channel", UNICODE_TWO, EMOJI_TWO),
@@ -55,7 +55,7 @@ public class CleanChannelOption extends ConfigurationOption {
   private CleanChannelOptionInfo cleanChannelOption;
 
   private TextChannel cleanChannel;
-  
+
   /**
    * Used when update option, this is not the state of the option.
    */
@@ -82,7 +82,7 @@ public class CleanChannelOption extends ConfigurationOption {
         ButtonMenu.Builder choiceBuilder = new ButtonMenu.Builder();
 
         choiceBuilder.setEventWaiter(waiter);        
-        
+
         choiceBuilder.addChoices(
             CleanChannelOptionInfo.DISABLE.unicode,
             CleanChannelOptionInfo.ONLY_ZOE_COMMANDS.unicode,
@@ -115,7 +115,7 @@ public class CleanChannelOption extends ConfigurationOption {
         menu.display(event.getChannel());
       }};
   }
-  
+
   private Consumer<ReactionEmote> updateOption(MessageChannel channel, Guild guild, EventWaiter eventWaiter, User user) {
     return new Consumer<ReactionEmote>() {
 
@@ -132,12 +132,12 @@ public class CleanChannelOption extends ConfigurationOption {
           channel.sendMessage("Ok, the configuration has been canceled.").queue();
           return;
         }
-        
+
         if(tmpCleanChannelOption == CleanChannelOptionInfo.ONLY_ZOE_COMMANDS 
             || tmpCleanChannelOption == CleanChannelOptionInfo.ALL) {
-          
+
           ButtonMenu.Builder choiceBuilder = new ButtonMenu.Builder();
-          
+
           choiceBuilder.setEventWaiter(eventWaiter);
           choiceBuilder.addChoices(UNICODE_ONE,UNICODE_TWO);
           choiceBuilder.addUsers(user);
@@ -145,21 +145,21 @@ public class CleanChannelOption extends ConfigurationOption {
           choiceBuilder.setColor(Color.BLUE);
 
           choiceBuilder.setTimeout(2, TimeUnit.MINUTES);
-          
+
           choiceBuilder.setText("Right ! You want to define it in a existant channel or you want to create a new text channel ?\n\n"
               + "Options :\n"
               + EMOJI_ONE + " : Define a exitant channel\n"
               + EMOJI_TWO + " : Create a new channel\n");
-          
+
           choiceBuilder.setAction(defineNewChannel(channel, guild, eventWaiter, user));
-          
+
           ButtonMenu menu = choiceBuilder.build();
 
           menu.display(channel);
         }else {
-          
+
           cleanChannel = null;
-          
+
           if(tmpCleanChannelOption.equals(cleanChannelOption)) {
             channel.sendMessage("The option is already disable !").queue();
           }else {
@@ -169,8 +169,8 @@ public class CleanChannelOption extends ConfigurationOption {
         }
       }};
   }
-  
-  
+
+
   private Consumer<ReactionEmote> defineNewChannel(MessageChannel channel, Guild guild, EventWaiter eventWaiter, User user){
     return new Consumer<ReactionEmote>() {
 
@@ -178,21 +178,21 @@ public class CleanChannelOption extends ConfigurationOption {
       public void accept(ReactionEmote reactionEmote) {
         channel.sendTyping().complete();
         if(reactionEmote.getName().equals(UNICODE_ONE)) {
-          
+
           channel.sendMessage("One more step and we are fine ! Now please **send a message with "
               + "the mention of the text channel** you want to define (e.g. #registration-channel). "
               + "*You can't select the InfoChannel.*").queue();
-          
+
           eventWaiter.waitForEvent(MessageReceivedEvent.class,
               e -> e.getAuthor().equals(user) && e.getChannel().equals(channel),
               e -> selectChannel(e), 2, TimeUnit.MINUTES,
               () -> endCreateChannelTime(channel));
         }else if(reactionEmote.getName().equals(UNICODE_TWO)) {
-          
+
           cleanChannel = guild.getTextChannelById(guild.getController().createTextChannel("clean-channel").complete().getId());
-          
+
           cleanChannelOption = tmpCleanChannelOption;
-          
+
           if(cleanChannelOption.equals(CleanChannelOptionInfo.ONLY_ZOE_COMMANDS)) {
             cleanChannel.getManager().setTopic("All Zoe commands sended here will be deleted after 3 seconds.").queue();
           }else {
@@ -202,47 +202,47 @@ public class CleanChannelOption extends ConfigurationOption {
           channel.sendMessage("Perfect ! I have created a channel with the name \"clean-channel\". "
               + "You can change option of this channel like you want. Just let me my permissions inside "
               + "and everything will work.").queue();
-          
+
         }
       }
     };
   }
-  
+
   private void selectChannel(MessageReceivedEvent event) {
     event.getTextChannel().sendTyping().complete();
-    
+
     List<TextChannel> textsChannel = event.getMessage().getMentionedChannels();
-    
+
     if(textsChannel.size() == 1) {
-     TextChannel textChannel = textsChannel.get(0); 
-     Server server = ServerData.getServers().get(textChannel.getGuild().getId());
-     if(!server.getInfoChannel().equals(textChannel)) {
-       
-       cleanChannel = textChannel;
-       cleanChannelOption = tmpCleanChannelOption;
-       
-       if(cleanChannelOption.equals(CleanChannelOptionInfo.ONLY_ZOE_COMMANDS)) {
-         textChannel.sendMessage("Info : From now on, Zoe commands sended here will be deleted after 3 seconds.").complete();
-       }else {
-         textChannel.sendMessage("Info : From now on, all messages sended here will be deleted after 3 seconds.").complete();
-       }
-       
-       event.getTextChannel().sendMessage("Perfect ! The channel has been correctly setted. "
-           + " Please just check that i have all my needed permissions inside (Manage Messages, Read, Read History).").queue();
-       
-     }else {
-       event.getTextChannel().sendMessage("You have selected the infochannel, this config is impossible to setup. "
-           + "The configuration has been canceled.").queue();
-     }
+      TextChannel textChannel = textsChannel.get(0); 
+      Server server = ServerData.getServers().get(textChannel.getGuild().getId());
+      if(!server.getInfoChannel().equals(textChannel)) {
+
+        cleanChannel = textChannel;
+        cleanChannelOption = tmpCleanChannelOption;
+
+        if(cleanChannelOption.equals(CleanChannelOptionInfo.ONLY_ZOE_COMMANDS)) {
+          textChannel.sendMessage("Info : From now on, Zoe commands sended here will be deleted after 3 seconds.").complete();
+        }else {
+          textChannel.sendMessage("Info : From now on, all messages sended here will be deleted after 3 seconds.").complete();
+        }
+
+        event.getTextChannel().sendMessage("Perfect ! The channel has been correctly setted. "
+            + " Please just check that i have all my needed permissions inside (Manage Messages, Read, Read History).").queue();
+
+      }else {
+        event.getTextChannel().sendMessage("You have selected the infochannel, this config is impossible to setup. "
+            + "The configuration has been canceled.").queue();
+      }
     }else {
       event.getTextChannel().sendMessage("You haven't mentionned 1 textchannel. The configuration has been canceled.").queue();
     }
   }
-  
+
   private void endCreateChannelTime(MessageChannel channel) {
     channel.sendMessage("The wait time of 2 minutes has been ended. Please remake the command if you want to setup this option.").queue();
   }
-  
+
   private Consumer<Message> finalAction(){
     return new Consumer<Message>() {
 
@@ -254,14 +254,14 @@ public class CleanChannelOption extends ConfigurationOption {
 
   @Override
   public String getChoiceText() {
-    
-    if(Zoe.getJda().getTextChannelById(cleanChannel.getId()) == null) {
+
+    if(cleanChannel != null && Zoe.getJda().getTextChannelById(cleanChannel.getId()) == null) {
       cleanChannel = null;
       cleanChannelOption = CleanChannelOptionInfo.DISABLE;
     }
-    
+
     String status = "";
-    
+
     if(cleanChannelOption == CleanChannelOptionInfo.DISABLE) {
       status = "Disable";
     } else {
@@ -298,7 +298,7 @@ public class CleanChannelOption extends ConfigurationOption {
   public CleanChannelOptionInfo getCleanChannelOption() {
     return cleanChannelOption;
   }
-  
+
   public TextChannel getCleanChannel() {
     return cleanChannel;
   }

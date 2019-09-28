@@ -119,7 +119,7 @@ public class StatsProfileCommand extends Command {
       generateStatsMessage(event, player, player.getLolAccounts().get(0));
     }else {
       selectAccountBuilder
-      .addUsers(player.getDiscordUser())
+      .addUsers(event.getAuthor())
       .setSelectionConsumer(getSelectionDoneAction(event, player));
 
       List<String> accountsName = new ArrayList<>();

@@ -13,6 +13,7 @@ import java.time.ZoneOffset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import net.rithms.riot.api.endpoints.match.dto.Match;
 import net.rithms.riot.constant.Platform;
 
@@ -45,24 +46,35 @@ public class CacheManager {
   }
 
   public static void cleanMatchCache() {
+    int totalDeletedFile = 0;
     for(Platform platform : Platform.values()) {
       File matchFolder = new File(CACHE_FOLDER.getAbsoluteFile() + "/" + platform.getName() + "/" + DataType.MATCH.toString());
 
       for(File fileMatch : matchFolder.listFiles()) {
-        try(final BufferedReader reader = new BufferedReader(new FileReader(fileMatch));) {
-          Match match = gson.fromJson(reader, Match.class);
-          
-          LocalDateTime creationMatch = LocalDateTime.ofInstant(Instant.ofEpochMilli(match.getGameCreation()), ZoneOffset.UTC);
-          
-          if(LocalDateTime.now().minusDays(32).isAfter(creationMatch)) { //32 days to avoid premature delete due to time zone
-            fileMatch.delete();
+        if(fileMatch.getName().endsWith(".json")) {
+          try(final BufferedReader reader = new BufferedReader(new FileReader(fileMatch));) {
+            Match match = gson.fromJson(reader, Match.class);
+
+            LocalDateTime creationMatch = LocalDateTime.ofInstant(Instant.ofEpochMilli(match.getGameCreation()), ZoneOffset.UTC);
+
+            if(LocalDateTime.now().minusDays(32).isAfter(creationMatch)) { //32 days to avoid premature delete due to time zone
+              if(fileMatch.delete()) {
+                totalDeletedFile++;
+              }
+            }
+
+          } catch(IOException e) {
+            logger.warn("Error in loading a file of caching system ! File Path: {}", fileMatch.getAbsoluteFile());
+          } catch(JsonSyntaxException e) {
+            logger.info("A file is malformed, this file will be deleted. Error : {}", e.getMessage());
+            if(fileMatch.delete()) {
+              totalDeletedFile++;
+            }
           }
-          
-        } catch(IOException e) {
-          logger.warn("Error in loading a file of caching system ! File Path: {}", fileMatch.getAbsoluteFile());
         }
       }
     }
+    logger.info("Number of files deleted : {}", totalDeletedFile);
   }
 
   private static File getCacheFile(Platform platform, DataType dataType, String fileName) {
@@ -91,6 +103,8 @@ public class CacheManager {
 
     } catch(IOException e) {
       logger.warn("Error in loading a file of caching system ! Platform : {}, ID : {}", platform.getName(), id);
+    } catch(Exception e) {
+      logger.warn("Unexpected error in the loading of the match. Error : ", e);
     }
     return null;
   }

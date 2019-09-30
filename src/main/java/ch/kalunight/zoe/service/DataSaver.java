@@ -13,7 +13,7 @@ public class DataSaver extends TimerTask {
 
   private static final int TIME_BETWEEN_EACH_SAVE_IN_MINUTES = 10;
   
-  private static final int TIME_BETWEEN_CLEAN_CACHE_IN_HOURS = 12;
+  private static final int TIME_BETWEEN_CLEAN_CACHE_IN_HOURS = 48;
 
   private static final Logger logger = LoggerFactory.getLogger(DataSaver.class);
 

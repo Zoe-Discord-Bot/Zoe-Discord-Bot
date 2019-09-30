@@ -10,10 +10,10 @@ import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.model.static_data.SpellingLangage;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.User;
 
 public class DeletePlayerCommand extends Command {
 
@@ -58,7 +58,7 @@ public class DeletePlayerCommand extends Command {
         if(server.getConfig().getZoeRoleOption().getRole() != null) {
           Member member = server.getGuild().getMember(user);
           if(member != null) {
-            server.getGuild().getController().removeRolesFromMember(member, server.getConfig().getZoeRoleOption().getRole()).queue();
+            server.getGuild().removeRoleFromMember(member, server.getConfig().getZoeRoleOption().getRole()).queue();
           }
         }
         event.reply(player.getDiscordUser().getName() + " has been deleted !");

@@ -10,16 +10,15 @@ import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.player_data.Player;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.MessageChannel;
-import net.dv8tion.jda.core.entities.MessageReaction.ReactionEmote;
-import net.dv8tion.jda.core.entities.PermissionOverride;
-import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.managers.GuildController;
-import net.dv8tion.jda.core.requests.restaction.RoleAction;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.entities.MessageReaction.ReactionEmote;
+import net.dv8tion.jda.api.entities.PermissionOverride;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.requests.restaction.RoleAction;
 
 public class RoleOption extends ConfigurationOption {
 
@@ -90,8 +89,7 @@ public class RoleOption extends ConfigurationOption {
         if(emoteUsed.getName().equals("✅")) {
           channel.sendMessage("Right, i will activate that quickly. Wait 2 seconds...").queue();
           channel.sendTyping().complete();
-          GuildController guildController = guild.getController();
-          RoleAction action = guildController.createRole();
+          RoleAction action = guild.createRole();
           action.setName("Zoe-Player");
           action.setMentionable(false);
           action.setColor(Color.PINK);
@@ -100,7 +98,7 @@ public class RoleOption extends ConfigurationOption {
           Server server = ServerData.getServers().get(guild.getId());
           for(Player player : server.getPlayers()) {
             Member member = guild.getMember(player.getDiscordUser());
-            guildController.addSingleRoleToMember(member, role).queue();
+            guild.addRoleToMember(member, role).queue();
           }
 
           if(server.getInfoChannel() != null) {

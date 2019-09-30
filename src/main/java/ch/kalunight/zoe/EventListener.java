@@ -24,20 +24,20 @@ import ch.kalunight.zoe.service.InfoPanelRefresher;
 import ch.kalunight.zoe.service.RiotApiUsageChannelRefresh;
 import ch.kalunight.zoe.service.ServerChecker;
 import ch.kalunight.zoe.util.EventListenerUtil;
-import net.dv8tion.jda.core.OnlineStatus;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Game;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.events.ReadyEvent;
-import net.dv8tion.jda.core.events.channel.text.TextChannelDeleteEvent;
-import net.dv8tion.jda.core.events.guild.GuildJoinEvent;
-import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
-import net.dv8tion.jda.core.events.role.RoleDeleteEvent;
-import net.dv8tion.jda.core.events.user.update.UserUpdateGameEvent;
-import net.dv8tion.jda.core.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.OnlineStatus;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.events.ReadyEvent;
+import net.dv8tion.jda.api.events.channel.text.TextChannelDeleteEvent;
+import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.events.role.RoleDeleteEvent;
+import net.dv8tion.jda.api.events.user.update.UserUpdateActivityOrderEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.rithms.riot.api.RiotApiException;
 
 public class EventListener extends ListenerAdapter {
@@ -50,7 +50,7 @@ public class EventListener extends ListenerAdapter {
   @Override
   public void onReady(ReadyEvent event) {
     Zoe.getJda().getPresence().setStatus(OnlineStatus.DO_NOT_DISTURB);
-    Zoe.getJda().getPresence().setGame(Game.playing("Booting ..."));
+    Zoe.getJda().getPresence().setActivity(Activity.playing("Booting ..."));
 
     setupNonInitializedGuild();
 
@@ -114,7 +114,7 @@ public class EventListener extends ListenerAdapter {
     logger.info("Setup of main thread finished !");
 
     Zoe.getJda().getPresence().setStatus(OnlineStatus.ONLINE);
-    Zoe.getJda().getPresence().setGame(Game.playing("type \">help\""));
+    Zoe.getJda().getPresence().setActivity(Activity.playing("type \">help\""));
     logger.info("Booting finished !");
   }
 
@@ -196,67 +196,71 @@ public class EventListener extends ListenerAdapter {
   }
 
   @Override
-  public void onUserUpdateGame(UserUpdateGameEvent event) {
-    if(event == null || event.getNewGame() == null) {
+  public void onUserUpdateActivityOrder(UserUpdateActivityOrderEvent event) {
+    if(event == null || event.getNewValue().isEmpty()) {
       return;
     }
 
-    if(event.getNewGame().isRich() && EventListenerUtil.checkIfIsGame(event.getNewGame().asRichPresence()) && event.getGuild() != null) {
-      Server server = ServerData.getServers().get(event.getGuild().getId());
+    for(Activity activity : event.getNewValue()) {
+      
+      if(activity.isRich() && EventListenerUtil.checkIfIsGame(activity.asRichPresence()) && event.getGuild() != null) {
+        Server server = ServerData.getServers().get(event.getGuild().getId());
 
-      if(server == null) {
-        return;
-      }
-
-      Player registedPlayer = null;
-
-      for(Player player : server.getPlayers()) {
-        if(player.getDiscordUser().equals(event.getUser())) {
-          registedPlayer = player;
+        if(server == null) {
+          return;
         }
-      }
 
-      if(server.getInfoChannel() != null && registedPlayer != null && !ServerData.isServerWillBeTreated(server) 
-          && server.getLastRefresh().isBefore(DateTime.now().minusSeconds(30))) {
+        Player registedPlayer = null;
 
-        ServerData.getServersIsInTreatment().put(event.getGuild().getId(), true);
-        ServerData.getServerExecutor().execute(new InfoPanelRefresher(server, true));
+        for(Player player : server.getPlayers()) {
+          if(player.getDiscordUser().equals(event.getUser())) {
+            registedPlayer = player;
+          }
+        }
+
+        if(server.getInfoChannel() != null && registedPlayer != null && !ServerData.isServerWillBeTreated(server) 
+            && server.getLastRefresh().isBefore(DateTime.now().minusSeconds(30))) {
+
+          ServerData.getServersIsInTreatment().put(event.getGuild().getId(), true);
+          ServerData.getServerExecutor().execute(new InfoPanelRefresher(server, true));
+          break;
+        }
       }
     }
   }
-  
+
   @Override
   public void onGuildMessageReceived(GuildMessageReceivedEvent event) {
     if(event == null || event.getMessage() == null) {
       return;
     }
-    
+
     Server server = ServerData.getServers().get(event.getGuild().getId());
     if(server == null) {
       return;
     }
-    
+
     if(server.getConfig().getCleanChannelOption().getCleanChannelOption().equals(CleanChannelOptionInfo.DISABLE)) {
       return;
     }
-    
+
     if(event.getAuthor().equals(Zoe.getJda().getSelfUser()) && event.getMessage().getContentRaw().startsWith("Info : From now on,")) {
       return;
     }
-    
+
     Member member = event.getGuild().getMember(event.getAuthor());
-    
+
     if(member.getUser() != Zoe.getJda().getSelfUser() && member.getPermissions().contains(Permission.MANAGE_CHANNEL)) {
       return;
     }
-    
+
     if(server.getConfig().getCleanChannelOption().getCleanChannelOption().equals(CleanChannelOptionInfo.ONLY_ZOE_COMMANDS)
         && event.getChannel().equals(server.getConfig().getCleanChannelOption().getCleanChannel())) {
-      
+
       if(event.getMessage().getContentRaw().startsWith(Zoe.BOT_PREFIX) || member.getUser().equals(Zoe.getJda().getSelfUser())) {
         event.getMessage().delete().queueAfter(3, TimeUnit.SECONDS);
       }
-      
+
     }else if(server.getConfig().getCleanChannelOption().getCleanChannelOption().equals(CleanChannelOptionInfo.ALL)
         && server.getConfig().getCleanChannelOption().getCleanChannel().equals(event.getChannel())) {
       event.getMessage().delete().queueAfter(3, TimeUnit.SECONDS);

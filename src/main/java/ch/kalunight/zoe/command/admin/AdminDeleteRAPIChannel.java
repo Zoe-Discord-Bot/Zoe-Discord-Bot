@@ -11,9 +11,9 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.service.RiotApiUsageChannelRefresh;
-import net.dv8tion.jda.core.exceptions.ErrorResponseException;
-import net.dv8tion.jda.core.exceptions.InsufficientPermissionException;
-import net.dv8tion.jda.core.requests.ErrorResponse;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
+import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
+import net.dv8tion.jda.api.requests.ErrorResponse;
 
 public class AdminDeleteRAPIChannel extends Command {
 

@@ -9,10 +9,9 @@ import ch.kalunight.zoe.model.player_data.Tier;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.model.static_data.CustomEmote;
 import ch.kalunight.zoe.model.static_data.Mastery;
-import net.dv8tion.jda.core.entities.Emote;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Icon;
-import net.dv8tion.jda.core.managers.GuildController;
+import net.dv8tion.jda.api.entities.Emote;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Icon;
 
 public class CustomEmoteUtil {
 
@@ -80,14 +79,12 @@ public class CustomEmoteUtil {
     for(Guild guild : emoteGuilds) {
       List<Emote> emotes = getNonAnimatedEmoteOfTheGuild(guild);
 
-      GuildController guildController = guild.getController();
-
       int emotesSize = emotes.size();
 
       while(emotesSize < MAX_EMOTE_BY_GUILD && !customEmotes.isEmpty()) {
         CustomEmote customEmote = customEmotes.get(0);
         Icon icon = Icon.from(customEmote.getFile());
-        Emote emote = guildController.createEmote(customEmote.getName(), icon, guild.getPublicRole()).complete();
+        Emote emote = guild.createEmote(customEmote.getName(), icon, guild.getPublicRole()).complete();
 
         emotesSize++;
 

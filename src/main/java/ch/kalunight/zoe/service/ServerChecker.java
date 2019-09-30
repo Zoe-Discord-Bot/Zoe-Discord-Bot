@@ -9,9 +9,9 @@ import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.static_data.SpellingLangage;
-import net.dv8tion.jda.core.OnlineStatus;
-import net.dv8tion.jda.core.entities.Game;
-import net.dv8tion.jda.core.entities.Guild;
+import net.dv8tion.jda.api.OnlineStatus;
+import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.entities.Guild;
 
 public class ServerChecker extends TimerTask {
 
@@ -90,7 +90,7 @@ public class ServerChecker extends TimerTask {
       if(nextStatusRefresh.isBeforeNow()) {
         // Discord status
         Zoe.getJda().getPresence().setStatus(OnlineStatus.ONLINE);
-        Zoe.getJda().getPresence().setGame(Game.playing("type \">help\""));
+        Zoe.getJda().getPresence().setActivity(Activity.playing("type \">help\""));
 
         setNextStatusRefresh(nextStatusRefresh.plusHours(TIME_BETWEEN_EACH_STATUS_REFRESH_IN_HOURS));
       }

@@ -8,9 +8,9 @@ import java.util.List;
 
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.static_data.CustomEmote;
-import net.dv8tion.jda.core.entities.Emote;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.RichPresence;
+import net.dv8tion.jda.api.entities.Emote;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.RichPresence;
 
 public class EventListenerUtil {
   

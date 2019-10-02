@@ -3,6 +3,9 @@ package ch.kalunight.zoe.command;
 import java.awt.Color;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
+import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.model.Server;
+import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.ApplicationInfo;
@@ -13,7 +16,7 @@ public class AboutCommand extends Command {
 
   public AboutCommand() {
     this.name = "about";
-    this.help = "Give info about the bot.";
+    this.help = "aboutCommandHelp";
     this.hidden = true;
     this.ownerCommand = false;
     this.guildOnly = false;
@@ -23,6 +26,8 @@ public class AboutCommand extends Command {
   protected void execute(CommandEvent event) {
 
     CommandUtil.sendTypingInFonctionOfChannelType(event);
+    
+    Server server = ServerData.getServers().get(event.getGuild().getId());
 
     EmbedBuilder builder = new EmbedBuilder();
 
@@ -35,15 +40,9 @@ public class AboutCommand extends Command {
             Permission.MESSAGE_EXT_EMOJI, Permission.MESSAGE_EMBED_LINKS, Permission.MESSAGE_HISTORY,
             Permission.MANAGE_EMOTES, Permission.MANAGE_ROLES);
     inviteLink += "&response_type=code&redirect_uri=https%3A%2F%2Fzoe-discord-bot.ch%2FThanksYou.html";
-
-    String desc = "Hi, I'm a League Of Legends bot written in Java by KaluNight#0001. "
-        + "I offer the possibility to create an information panel that allows you to know if your friends are in "
-        + "game directly in a Discord channel while giving various information about the current games. "
-        + "You can contribute to my development on my Github [here](https://github.com/KaluNight/Zoe-Discord-Bot).\n"
-        + "Official Server Discord: <https://discord.gg/whc5PrC>\n" + "To add me to your server click [here](" + inviteLink + ")!\n\n"
-        + "*I like butterflies, unicorns, and watching the end of finite realities!*\n\n" + event.getSelfUser().getName()
-        + " isn't endorsed by Riot Games and doesn't reflect the views or opinions of"
-        + " Riot Games or anyone officially involved in producing or managing League of Legends.";
+    
+    String desc = String.format(LanguageManager.getText(server.getLangage(), "aboutMessage"),
+        "https://github.com/KaluNight/Zoe-Discord-Bot", "<https://discord.gg/whc5PrC>", inviteLink);
 
     builder.setDescription(desc);
     if(event.getJDA().getShardInfo() == null) {

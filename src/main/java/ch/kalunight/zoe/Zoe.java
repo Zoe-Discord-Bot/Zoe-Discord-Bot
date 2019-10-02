@@ -55,6 +55,7 @@ import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.model.static_data.CustomEmote;
 import ch.kalunight.zoe.model.static_data.SpellingLangage;
 import ch.kalunight.zoe.riotapi.CachedRiotApi;
+import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.Ressources;
 import net.dv8tion.jda.api.AccountType;
 import net.dv8tion.jda.api.JDA;
@@ -188,29 +189,33 @@ public class Zoe {
       @Override
       public void accept(CommandEvent event) {
 
+        Server server = ServerData.getServers().get(event.getGuild().getId());
+        SpellingLangage language = server.getLangage();
+        
+        
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("Here is my commands :\n\n");
+        stringBuilder.append(LanguageManager.getText(language, "startHelpMessage") + "\n\n");
 
         for(Command command : getMainCommands(null)) {
 
           if(!command.isHidden() && command.getChildren().length == 0) {
 
-            stringBuilder.append("Command **" + command.getName() + "** :\n");
-            stringBuilder.append("--> `>" + command.getName() + "` : " + command.getHelp() + "\n\n");
+            stringBuilder.append(LanguageManager.getText(language, "command") + " **" + command.getName() + "** :\n");
+            stringBuilder.append("--> `>" + command.getName() + "` : " + LanguageManager.getText(language, command.getHelp()) + "\n\n");
 
           }else if(!command.isHidden()){
 
-            stringBuilder.append("Commands **" + command.getName() + "** : \n");
+            stringBuilder.append(LanguageManager.getText(language, "commandPlural") + " **" + command.getName() + "** : \n");
             for(Command commandChild : command.getChildren()) {
               stringBuilder.append("--> `>" + command.getName() + " " + commandChild.getName() + " " + commandChild.getArguments() + "` : "
-                  + commandChild.getHelp() + "\n");
+                  + LanguageManager.getText(language, commandChild.getHelp()) + "\n");
             }
             stringBuilder.append(" \n");
           }
 
         }
 
-        stringBuilder.append("For additional help, you can join our official server : https://discord.gg/whc5PrC");
+        stringBuilder.append(LanguageManager.getText(language, "endHelpMessage") + " https://discord.gg/whc5PrC");
 
         PrivateChannel privateChannel = event.getAuthor().openPrivateChannel().complete();
 
@@ -219,7 +224,7 @@ public class Zoe {
         for(String helpMessage : helpMessages) {
           privateChannel.sendMessage(helpMessage).queue();
         }
-        event.reply("I send you all the commands in a private message.");
+        event.reply(LanguageManager.getText(language, "helpMessageSendConfirmation"));
       }
     };
   }
@@ -484,10 +489,9 @@ public class Zoe {
 
               try {
                 PrivateChannel privateChannel = guild.getOwner().getUser().openPrivateChannel().complete();
-                privateChannel.sendMessage("Hi ! I'm a bot of your server " + guild.getName() + ".\n"
-                    + "I need the \"" + e.getPermission().getName() + "\" permission in infochannel to work properly. "
-                    + "If you need help you can join the help server here : https://discord.gg/sRgyFvq\n"
-                    + "This message will be sended at each time i reboot. Thank you in advance !").queue();
+                privateChannel.sendMessage(
+                    String.format(LanguageManager.getText(server.getLangage(), "missingPermissionOwnerMessage"), 
+                    guild.getName(), e.getPermission().getName(), "https://discord.gg/sRgyFvq")).queue();                
                 logger.info("Message send to owner.");
               }catch(ErrorResponseException e1) {
                 logger.info("The owner ({}) of the server have bloqued the bot.", guild.getOwner().getUser().getAsTag());

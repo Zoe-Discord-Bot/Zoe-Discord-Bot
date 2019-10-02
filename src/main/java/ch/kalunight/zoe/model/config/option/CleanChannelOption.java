@@ -12,14 +12,14 @@ import com.jagrosh.jdautilities.menu.ButtonMenu;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.Server;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.MessageChannel;
-import net.dv8tion.jda.core.entities.MessageReaction.ReactionEmote;
-import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.entities.User;
-import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.entities.MessageReaction.ReactionEmote;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 public class CleanChannelOption extends ConfigurationOption {
 
@@ -189,7 +189,7 @@ public class CleanChannelOption extends ConfigurationOption {
               () -> endCreateChannelTime(channel));
         }else if(reactionEmote.getName().equals(UNICODE_TWO)) {
 
-          cleanChannel = guild.getTextChannelById(guild.getController().createTextChannel("clean-channel").complete().getId());
+          cleanChannel = guild.getTextChannelById(guild.createTextChannel("clean-channel").complete().getId());
 
           cleanChannelOption = tmpCleanChannelOption;
 

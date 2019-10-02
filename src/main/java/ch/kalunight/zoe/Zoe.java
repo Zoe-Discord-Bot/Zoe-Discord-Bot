@@ -56,17 +56,17 @@ import ch.kalunight.zoe.model.static_data.CustomEmote;
 import ch.kalunight.zoe.model.static_data.SpellingLangage;
 import ch.kalunight.zoe.riotapi.CachedRiotApi;
 import ch.kalunight.zoe.util.Ressources;
-import net.dv8tion.jda.core.AccountType;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.JDABuilder;
-import net.dv8tion.jda.core.OnlineStatus;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.PrivateChannel;
-import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.entities.User;
-import net.dv8tion.jda.core.exceptions.ErrorResponseException;
-import net.dv8tion.jda.core.exceptions.InsufficientPermissionException;
+import net.dv8tion.jda.api.AccountType;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.OnlineStatus;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.PrivateChannel;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
+import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.RiotApi;
 import net.rithms.riot.api.RiotApiException;
@@ -139,7 +139,7 @@ public class Zoe {
     initRiotApi(riotTocken);
 
     CommandClient commandClient = client.build();
-
+    
     EventListener eventListener = new EventListener();
 
     eventListenerList.add(commandClient);
@@ -150,9 +150,9 @@ public class Zoe {
       jda = new JDABuilder(AccountType.BOT)//
           .setToken(discordTocken)//
           .setStatus(OnlineStatus.DO_NOT_DISTURB)//
-          .addEventListener(commandClient)//
-          .addEventListener(eventWaiter)//
-          .addEventListener(eventListener).build();//
+          .addEventListeners(commandClient)//
+          .addEventListeners(eventWaiter)//
+          .addEventListeners(eventListener).build();//
     } catch(IndexOutOfBoundsException e) {
       logger.error("You must provide a token.");
       System.exit(1);
@@ -541,7 +541,7 @@ public class Zoe {
 
       if(server.getInfoChannel() != null) {
         try {
-          Message message = server.getInfoChannel().getMessageById(messageId).complete();
+          Message message = server.getInfoChannel().retrieveMessageById(messageId).complete();
           controlPannel.getInfoPanel().add(message);
         } catch(ErrorResponseException e) {
           logger.debug("The message got delete : {}", e.getMessage());

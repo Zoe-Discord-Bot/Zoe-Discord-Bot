@@ -9,8 +9,8 @@ import ch.kalunight.zoe.model.ControlPannel;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.static_data.SpellingLangage;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.exceptions.InsufficientPermissionException;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 
 public class DeleteInfoChannelCommand extends Command {
 

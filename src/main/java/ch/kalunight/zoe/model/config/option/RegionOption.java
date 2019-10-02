@@ -10,7 +10,7 @@ import java.util.function.Function;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.SelectionDialog;
-import net.dv8tion.jda.core.entities.Message;
+import net.dv8tion.jda.api.entities.Message;
 import net.rithms.riot.constant.Platform;
 
 public class RegionOption extends ConfigurationOption {

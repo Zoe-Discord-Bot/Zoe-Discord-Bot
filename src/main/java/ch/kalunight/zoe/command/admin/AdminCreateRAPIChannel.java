@@ -11,9 +11,8 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.service.RiotApiUsageChannelRefresh;
-import net.dv8tion.jda.core.entities.Channel;
-import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.exceptions.InsufficientPermissionException;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 
 public class AdminCreateRAPIChannel extends Command {
 
@@ -47,7 +46,7 @@ public class AdminCreateRAPIChannel extends Command {
     }
     TextChannel rapiTextChannel;
     try {
-      Channel rapiChannel = event.getGuild().getController().createTextChannel(event.getArgs()).complete();
+      TextChannel rapiChannel = event.getGuild().createTextChannel(event.getArgs()).complete();
       rapiTextChannel = event.getGuild().getTextChannelById(rapiChannel.getId());
     }catch(InsufficientPermissionException e) {
       event.reply("I don't have the right to create a channel in this guild !");

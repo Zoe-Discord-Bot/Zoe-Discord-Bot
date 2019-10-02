@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import ch.kalunight.zoe.model.Server;
-import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.api.entities.TextChannel;
 
 public class ServerData {
 
@@ -52,7 +52,6 @@ public class ServerData {
     RESPONSE_WAITER.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Response-Waiter-Thread %d").build());
   }
 
-
   /**
    * Check is the server will be refreshed or actually in treatment.
    * @param server to check
@@ -67,9 +66,6 @@ public class ServerData {
     }
     return false;
   }
-
-
-
 
   public static void shutDownTaskExecutor(TextChannel channel) throws InterruptedException {
 

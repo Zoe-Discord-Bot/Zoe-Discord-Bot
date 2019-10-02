@@ -7,10 +7,9 @@ import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.service.InfoPanelRefresher;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Channel;
-import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.exceptions.InsufficientPermissionException;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 
 public class CreateInfoChannelCommand extends Command {
 
@@ -46,7 +45,7 @@ public class CreateInfoChannelCommand extends Command {
     }
 
     try {
-      Channel infoChannel = event.getGuild().getController().createTextChannel(nameChannel).complete();
+      TextChannel infoChannel = event.getGuild().createTextChannel(nameChannel).complete();
       String id = infoChannel.getId();
       TextChannel textChannel = event.getGuild().getTextChannelById(id);
       server.setInfoChannel(textChannel);

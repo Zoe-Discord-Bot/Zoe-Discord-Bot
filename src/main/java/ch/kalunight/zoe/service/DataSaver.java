@@ -26,15 +26,15 @@ public class DataSaver extends TimerTask {
     try {
       if(nextSaveTime.isBeforeNow()) {
         logger.info("Saving started !");
-        Zoe.saveDataTxt();
         setNextSaveTime(DateTime.now().plusMinutes(TIME_BETWEEN_EACH_SAVE_IN_MINUTES));
+        Zoe.saveDataTxt();
         logger.info("Saving ended !");
       }
       
       if(nextCleanCacheTime.isBeforeNow()) {
         logger.info("Cleaning cache started !");
-        Zoe.getRiotApi().cleanCache();
         setNextCleanCacheTime(DateTime.now().plusHours(TIME_BETWEEN_CLEAN_CACHE_IN_HOURS));
+        Zoe.getRiotApi().cleanCache();
         logger.info("Cleaning cache ended !");
       }
     } catch(Exception e) {

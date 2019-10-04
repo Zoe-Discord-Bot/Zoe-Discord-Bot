@@ -12,8 +12,8 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.model.Server;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.PrivateChannel;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.PrivateChannel;
 
 public class AdminSendAnnonceMessageCommand extends Command {
 

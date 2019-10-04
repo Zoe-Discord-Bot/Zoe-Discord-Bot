@@ -3,8 +3,8 @@ package ch.kalunight.zoe.model;
 import java.util.List;
 import org.joda.time.DateTime;
 import ch.kalunight.zoe.model.player_data.Player;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 
 public class InfoCard {

@@ -1,7 +1,7 @@
 package ch.kalunight.zoe.model.static_data;
 
 import java.io.File;
-import net.dv8tion.jda.core.entities.Emote;
+import net.dv8tion.jda.api.entities.Emote;
 
 public class Champion {
   private int key;

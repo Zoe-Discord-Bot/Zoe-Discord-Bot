@@ -8,38 +8,37 @@ import java.util.List;
 
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.static_data.CustomEmote;
-import net.dv8tion.jda.core.entities.Emote;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.RichPresence;
+import net.dv8tion.jda.api.entities.Emote;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.RichPresence;
 
 public class EventListenerUtil {
-
-  private static final List<String> inGameTranslationList = new ArrayList<>();
-  
-  static {
-    inGameTranslationList.add("In Game");
-    inGameTranslationList.add("En jeu");
-    inGameTranslationList.add("Em partida");
-    inGameTranslationList.add("Oyunda");
-  }
   
   private EventListenerUtil() {
     //Hide public constructor
   }
-  
-  
-  public static boolean checkIfRichPresenceIsInGame(RichPresence richPresence) {
-    return inGameTranslationList.contains(richPresence.getState()) 
-        || (richPresence.getLargeImage() != null && richPresence.getLargeImage().getKey() != null);
+
+  public static boolean checkIfIsGame(RichPresence richPresence) {
+
+    boolean isInGame = false;
+
+    if(richPresence.getName() != null && richPresence.getName().equals("League of Legends")){
+      isInGame = true;
+    }
+
+    if(isInGame) {
+      return richPresence.getTimestamps() != null && (richPresence.getLargeImage() == null || richPresence.getLargeImage().getText() != null);
+    }
+    return false;
   }
-  
+
 
   public static void loadCustomEmotes() throws IOException {
     List<Emote> uploadedEmotes = getAllGuildCustomEmotes();
     List<CustomEmote> picturesInFile = CustomEmoteUtil.loadPicturesInFile();
 
     assigneAlreadyUploadedEmoteToPicturesInFile(uploadedEmotes, picturesInFile);
-    
+
     Ressources.getCustomEmotes().addAll(picturesInFile);
     assigneCustomEmotesToData();
   }

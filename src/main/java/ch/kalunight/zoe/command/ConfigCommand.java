@@ -13,8 +13,8 @@ import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.config.option.ConfigurationOption;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Message;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Message;
 
 public class ConfigCommand extends Command{
   
@@ -46,7 +46,7 @@ public class ConfigCommand extends Command{
         .setTimeout(2, TimeUnit.MINUTES)
         .useNumbers()
         .setColor(Color.BLUE)
-        .setText("Here my options:")
+        .setText("Here are my options:")
         .setDescription("**Configuration Choices:**")
         .useCancelButton(true)
         .setEventWaiter(waiter);

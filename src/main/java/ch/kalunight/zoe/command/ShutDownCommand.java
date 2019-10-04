@@ -8,11 +8,11 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
-import net.dv8tion.jda.core.JDA.Status;
-import net.dv8tion.jda.core.OnlineStatus;
-import net.dv8tion.jda.core.entities.Game;
-import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.entities.Game.GameType;
+import net.dv8tion.jda.api.JDA.Status;
+import net.dv8tion.jda.api.OnlineStatus;
+import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.entities.Activity.ActivityType;
+import net.dv8tion.jda.api.entities.TextChannel;
 
 public class ShutDownCommand extends Command {
 
@@ -45,7 +45,7 @@ public class ShutDownCommand extends Command {
       Zoe.getJda().removeEventListener(eventListener);
     }
     
-    Zoe.getJda().getPresence().setPresence(OnlineStatus.DO_NOT_DISTURB, Game.of(GameType.DEFAULT, "Shuting down ..."));
+    Zoe.getJda().getPresence().setPresence(OnlineStatus.DO_NOT_DISTURB, Activity.of(ActivityType.DEFAULT, "Shuting down ..."));
     
     ServerData.getServerCheckerThreadTimer().cancel();
 

@@ -5,6 +5,7 @@ import java.util.List;
 import ch.kalunight.zoe.model.config.option.ConfigurationOption;
 import ch.kalunight.zoe.model.config.option.InfoCardOption;
 import ch.kalunight.zoe.model.config.option.RegionOption;
+import ch.kalunight.zoe.model.config.option.CleanChannelOption;
 import ch.kalunight.zoe.model.config.option.RoleOption;
 import ch.kalunight.zoe.model.config.option.SelfAddingOption;
 
@@ -31,6 +32,11 @@ public class ServerConfiguration {
   private InfoCardOption infoCardsOption;
   
   /**
+   * This option let config a "Clean Channel"
+   */
+  private CleanChannelOption cleanChannelOption;
+  
+  /**
    * This option activate the command join/leave for everyone. They can join team joinable by everyone. NOT IMPLEMENTED
    */
   private boolean everyoneCanMoveOfTeam = false;
@@ -39,6 +45,7 @@ public class ServerConfiguration {
     List<ConfigurationOption> options = new ArrayList<>();
     options.add(defaultRegion);
     options.add(zoeRoleOption);
+    options.add(cleanChannelOption);
     options.add(userSelfAdding);
     options.add(infoCardsOption);
     return options;
@@ -49,6 +56,7 @@ public class ServerConfiguration {
     this.zoeRoleOption = new RoleOption();
     this.userSelfAdding = new SelfAddingOption();
     this.infoCardsOption = new InfoCardOption();
+    this.cleanChannelOption = new CleanChannelOption();
     this.everyoneCanMoveOfTeam = false;
   }
 
@@ -70,5 +78,9 @@ public class ServerConfiguration {
 
   public InfoCardOption getInfoCardsOption() {
     return infoCardsOption;
+  }
+
+  public CleanChannelOption getCleanChannelOption() {
+    return cleanChannelOption;
   }
 }

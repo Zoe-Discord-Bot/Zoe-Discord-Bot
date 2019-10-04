@@ -13,8 +13,8 @@ import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.config.option.RegionOption;
 import ch.kalunight.zoe.model.player_data.LeagueAccount;
 import ch.kalunight.zoe.model.player_data.Player;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.User;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.constant.CallPriority;
@@ -114,7 +114,7 @@ public class RegisterCommand extends Command {
     if(server.getConfig().getZoeRoleOption().getRole() != null) {
       Member member = server.getGuild().getMember(user);
       if(member != null) {
-        server.getGuild().getController().addRolesToMember(member, server.getConfig().getZoeRoleOption().getRole()).queue();
+        server.getGuild().addRoleToMember(member, server.getConfig().getZoeRoleOption().getRole()).queue();
       }
     }
     event.reply("You have been added with the account \"" + summoner.getName() + "\".");

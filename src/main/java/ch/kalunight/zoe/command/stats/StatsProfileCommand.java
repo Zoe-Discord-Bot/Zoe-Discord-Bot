@@ -32,11 +32,11 @@ import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.util.Ressources;
 import ch.kalunight.zoe.util.request.MessageBuilderRequest;
 import ch.kalunight.zoe.util.request.RiotRequest;
-import net.dv8tion.jda.core.MessageBuilder;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.MessageEmbed;
-import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.User;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.champion_mastery.dto.ChampionMastery;
 import net.rithms.riot.constant.CallPriority;
@@ -119,7 +119,7 @@ public class StatsProfileCommand extends Command {
       generateStatsMessage(event, player, player.getLolAccounts().get(0));
     }else {
       selectAccountBuilder
-      .addUsers(player.getDiscordUser())
+      .addUsers(event.getAuthor())
       .setSelectionConsumer(getSelectionDoneAction(event, player));
 
       List<String> accountsName = new ArrayList<>();
@@ -177,7 +177,7 @@ public class StatsProfileCommand extends Command {
     
     List<ChampionMastery> championsMasteries;
     try {
-      championsMasteries = Zoe.getRiotApi().getChampionMasteriesBySummoner(lolAccount.getRegion(), lolAccount.getSummoner().getId());
+      championsMasteries = Zoe.getRiotApi().getChampionMasteriesBySummoner(lolAccount.getRegion(), lolAccount.getSummoner().getId(), CallPriority.HIGH);
     } catch(RiotApiException e) {
       if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
         event.reply("Please retry, I got a minor internal error. Sorry about that :/");
@@ -215,7 +215,7 @@ public class StatsProfileCommand extends Command {
 
     messageBuilder.setEmbed(embed);
 
-    event.getTextChannel().sendFile(imageBytes, player.getDiscordUser().getId() + ".png", messageBuilder.build()).queue();
+    event.getTextChannel().sendMessage(messageBuilder.build()).addFile(imageBytes, player.getDiscordUser().getId() + ".png").queue();
   }
 
   private byte[] generateMasteriesChart(Player player, List<ChampionMastery> championsMasteries) throws IOException {

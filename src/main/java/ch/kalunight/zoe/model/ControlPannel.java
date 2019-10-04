@@ -3,7 +3,7 @@ package ch.kalunight.zoe.model;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import net.dv8tion.jda.core.entities.Message;
+import net.dv8tion.jda.api.entities.Message;
 
 public class ControlPannel {
 

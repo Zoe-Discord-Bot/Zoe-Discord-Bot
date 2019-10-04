@@ -13,9 +13,9 @@ import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.util.InfoPanelRefresherUtil;
 import ch.kalunight.zoe.util.NameConversion;
 import ch.kalunight.zoe.util.request.MessageBuilderRequest;
-import net.dv8tion.jda.core.entities.MessageEmbed;
-import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.exceptions.InsufficientPermissionException;
+import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 
 public class InfoCardsWorker implements Runnable {
@@ -37,14 +37,12 @@ public class InfoCardsWorker implements Runnable {
     this.currentGameInfo = currentGameInfo;
   }
 
-
   @Override
   public void run() {
     try {
-      
       logger.debug("InfoCards worker lauched for the game id: {}", currentGameInfo.getGameId());
       if(controlPanel.canTalk()) {
-        generateInfoCard(controlPanel, account, currentGameInfo);
+        generateInfoCard(controlPanel, account, currentGameInfo);    
         RiotApiUsageChannelRefresh.incrementInfocardCount();
         logger.debug("InfoCards worker has ended correctly for the game id: {}", currentGameInfo.getGameId());
       }else {

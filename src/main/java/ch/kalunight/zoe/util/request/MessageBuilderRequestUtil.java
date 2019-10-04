@@ -22,6 +22,9 @@ public class MessageBuilderRequestUtil {
   private MessageBuilderRequestUtil() {
     // Hide default public constructor
   }
+  
+  
+  
 
   public static void createTeamData1Summoner(Summoner summoner, List<CurrentGameParticipant> teamParticipant, StringBuilder teamString,
       StringBuilder teamRankString, StringBuilder teamWinRateLastMonth, Platform platform) {
@@ -53,7 +56,7 @@ public class MessageBuilderRequestUtil {
       teamRankString.append(rank + "\n");
 
       teamWinRateLastMonth.append(RiotRequest.getMasterysScore(participant.getSummonerId(), participant.getChampionId(), platform) + " | "
-          + RiotRequest.getWinrateLateMonthWithGivenChampion(participant.getSummonerId(), platform, participant.getChampionId()) + "\n");
+          + RiotRequest.getWinrateLastMonthWithGivenChampion(participant.getSummonerId(), platform, participant.getChampionId()) + "\n");
     }
   }
 
@@ -100,7 +103,7 @@ public class MessageBuilderRequestUtil {
       teamRankString.append(rank + "\n");
 
       teamWinrateString.append(RiotRequest.getMasterysScore(participant.getSummonerId(), participant.getChampionId(), platform) + " | "
-          + RiotRequest.getWinrateLateMonthWithGivenChampion(participant.getSummonerId(), platform, participant.getChampionId()) + "\n");
+          + RiotRequest.getWinrateLastMonthWithGivenChampion(participant.getSummonerId(), platform, participant.getChampionId()) + "\n");
     }
   }
 

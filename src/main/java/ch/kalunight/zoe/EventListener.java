@@ -7,31 +7,41 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 import org.discordbots.api.client.DiscordBotListAPI;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.model.ControlPannel;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
+import ch.kalunight.zoe.model.config.option.CleanChannelOption.CleanChannelOptionInfo;
+import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.model.static_data.SpellingLangage;
-import ch.kalunight.zoe.service.ServerChecker;
+import ch.kalunight.zoe.riotapi.CacheManager;
+import ch.kalunight.zoe.service.InfoPanelRefresher;
 import ch.kalunight.zoe.service.RiotApiUsageChannelRefresh;
+import ch.kalunight.zoe.service.ServerChecker;
 import ch.kalunight.zoe.util.EventListenerUtil;
-import net.dv8tion.jda.core.OnlineStatus;
-import net.dv8tion.jda.core.entities.Game;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.events.ReadyEvent;
-import net.dv8tion.jda.core.events.channel.text.TextChannelDeleteEvent;
-import net.dv8tion.jda.core.events.guild.GuildJoinEvent;
-import net.dv8tion.jda.core.events.role.RoleDeleteEvent;
-import net.dv8tion.jda.core.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.OnlineStatus;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.events.ReadyEvent;
+import net.dv8tion.jda.api.events.channel.text.TextChannelDeleteEvent;
+import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.events.role.RoleDeleteEvent;
+import net.dv8tion.jda.api.events.user.update.UserUpdateActivityOrderEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.rithms.riot.api.RiotApiException;
 
 public class EventListener extends ListenerAdapter {
-  
+
   private static final String WELCOME_MESSAGE = "Hi! Thank you for adding me! To get help on my configuration type the command `>setup`. "
       + "If you want to see all commands i have, type >`help`";
 
@@ -40,42 +50,44 @@ public class EventListener extends ListenerAdapter {
   @Override
   public void onReady(ReadyEvent event) {
     Zoe.getJda().getPresence().setStatus(OnlineStatus.DO_NOT_DISTURB);
-    Zoe.getJda().getPresence().setGame(Game.playing("Booting ..."));
+    Zoe.getJda().getPresence().setActivity(Activity.playing("Booting ..."));
 
     setupNonInitializedGuild();
 
-    logger.info("Chargements des champions ...");
+    logger.info("Loading of champions ...");
     try {
       Zoe.loadChampions();
-    } catch(IOException e1) {
-      logger.error("Erreur lors du chargement des champions !");
+    } catch(IOException e) {
+      logger.error("Critical error with the loading of champions !", e);
       System.exit(1);
     }
 
-    logger.info("Chargements des champions terminé !");
+    logger.info("Loading of champions finished !");
 
-    logger.info("Chargements des emotes ...");
+    logger.info("Loading of emotes ...");
     try {
       EventListenerUtil.loadCustomEmotes();
-      logger.info("Chargements des emotes terminé !");
+      logger.info("Loading of emotes finished !");
     } catch(IOException e) {
-      logger.error("Erreur lors du chargment des emotes : {}", e.getMessage());
+      logger.warn("Error with the loading of emotes : {}", e.getMessage());
     }
 
-    logger.info("Chargement des sauvegardes détaillés ...");
+    logger.info("Loading of guilds ...");
     try {
       Zoe.loadDataTxt();
     } catch(IOException e) {
-      logger.error(e.getMessage());
-      logger.info("Une erreur est survenu lors du chargement des sauvegardes détaillés !");
+      logger.error("Critical error with the loading of guilds (File issue) !", e);
       System.exit(1);
     } catch(RiotApiException e) {
-      logger.error(e.getMessage());
-      logger.info("Une erreur venant de l'api Riot est survenu lors du chargement des sauvegardes détaillés !");
+      logger.error("Critical error with the Riot API when loadings of guilds (Riot Api issue) !", e);
       System.exit(1);
     }
 
-    logger.info("Chargement des sauvegardes détaillés terminé !");
+    logger.info("Setup cache ...");
+    CacheManager.setupCache();
+    logger.info("Setup cache finished !");
+
+    logger.info("Loading of guilds finished !");
 
     logger.info("Loading of RAPI Status Channel ...");
 
@@ -95,15 +107,15 @@ public class EventListener extends ListenerAdapter {
       Zoe.setBotListApi(null);
     }
 
-    logger.info("Démarrage des tâches continue...");
+    logger.info("Setup of main thread  ...");
 
     setupContinousRefreshThread();
 
-    logger.info("Démarrage des tâches continues terminés !");
+    logger.info("Setup of main thread finished !");
 
     Zoe.getJda().getPresence().setStatus(OnlineStatus.ONLINE);
-    Zoe.getJda().getPresence().setGame(Game.playing("type \">help\""));
-    logger.info("Démarrage terminés !");
+    Zoe.getJda().getPresence().setActivity(Activity.playing("type \">help\""));
+    logger.info("Booting finished !");
   }
 
   private void setupNonInitializedGuild() {
@@ -183,36 +195,75 @@ public class EventListener extends ListenerAdapter {
     }
   }
 
-  /**Rework this system
-   * @Override
-  public void onUserUpdateGame(UserUpdateGameEvent event) {
-    if(event.getGuild() != null) {
-      Server server = ServerData.getServers().get(event.getGuild().getId());
+  @Override
+  public void onUserUpdateActivityOrder(UserUpdateActivityOrderEvent event) {
+    if(event == null || event.getNewValue().isEmpty()) {
+      return;
+    }
 
-      if(server == null) {
-        return;
-      }
+    for(Activity activity : event.getNewValue()) {
+      
+      if(activity.isRich() && EventListenerUtil.checkIfIsGame(activity.asRichPresence()) && event.getGuild() != null) {
+        Server server = ServerData.getServers().get(event.getGuild().getId());
 
-      Player registedPlayer = null;
-
-      for(Player player : server.getPlayers()) {
-        if(player.getDiscordUser().equals(event.getUser())) {
-          registedPlayer = player;
+        if(server == null) {
+          return;
         }
-      }
 
-      if(server.getInfoChannel() != null && registedPlayer != null && event.getNewGame().isRich()) {
-        RichPresence richPresenceGame = event.getNewGame().asRichPresence();
-        if(richPresenceGame.getName() != null && richPresenceGame.getName().equals("League of Legends") 
-            && EventListenerUtil.checkIfRichPresenceIsInGame(richPresenceGame)) {
+        Player registedPlayer = null;
 
-          ServerData.getTaskExecutor().execute(new InfoCardsWorker(registedPlayer, server));
+        for(Player player : server.getPlayers()) {
+          if(player.getDiscordUser().equals(event.getUser())) {
+            registedPlayer = player;
+          }
+        }
+
+        if(server.getInfoChannel() != null && registedPlayer != null && !ServerData.isServerWillBeTreated(server) 
+            && server.getLastRefresh().isBefore(DateTime.now().minusSeconds(30))) {
+
+          ServerData.getServersIsInTreatment().put(event.getGuild().getId(), true);
+          ServerData.getServerExecutor().execute(new InfoPanelRefresher(server, true));
+          break;
         }
       }
     }
   }
-   **/
 
+  @Override
+  public void onGuildMessageReceived(GuildMessageReceivedEvent event) {
+    if(event == null || event.getMessage() == null) {
+      return;
+    }
 
+    Server server = ServerData.getServers().get(event.getGuild().getId());
+    if(server == null) {
+      return;
+    }
 
+    if(server.getConfig().getCleanChannelOption().getCleanChannelOption().equals(CleanChannelOptionInfo.DISABLE)) {
+      return;
+    }
+
+    if(event.getAuthor().equals(Zoe.getJda().getSelfUser()) && event.getMessage().getContentRaw().startsWith("Info : From now on,")) {
+      return;
+    }
+
+    Member member = event.getGuild().getMember(event.getAuthor());
+
+    if(member.getUser() != Zoe.getJda().getSelfUser() && member.getPermissions().contains(Permission.MANAGE_CHANNEL)) {
+      return;
+    }
+
+    if(server.getConfig().getCleanChannelOption().getCleanChannelOption().equals(CleanChannelOptionInfo.ONLY_ZOE_COMMANDS)
+        && event.getChannel().equals(server.getConfig().getCleanChannelOption().getCleanChannel())) {
+
+      if(event.getMessage().getContentRaw().startsWith(Zoe.BOT_PREFIX) || member.getUser().equals(Zoe.getJda().getSelfUser())) {
+        event.getMessage().delete().queueAfter(3, TimeUnit.SECONDS);
+      }
+
+    }else if(server.getConfig().getCleanChannelOption().getCleanChannelOption().equals(CleanChannelOptionInfo.ALL)
+        && server.getConfig().getCleanChannelOption().getCleanChannel().equals(event.getChannel())) {
+      event.getMessage().delete().queueAfter(3, TimeUnit.SECONDS);
+    }
+  }
 }

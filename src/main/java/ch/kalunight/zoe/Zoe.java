@@ -54,18 +54,19 @@ import ch.kalunight.zoe.model.player_data.Team;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.model.static_data.CustomEmote;
 import ch.kalunight.zoe.model.static_data.SpellingLangage;
+import ch.kalunight.zoe.riotapi.CachedRiotApi;
 import ch.kalunight.zoe.util.Ressources;
-import net.dv8tion.jda.core.AccountType;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.JDABuilder;
-import net.dv8tion.jda.core.OnlineStatus;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.PrivateChannel;
-import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.entities.User;
-import net.dv8tion.jda.core.exceptions.ErrorResponseException;
-import net.dv8tion.jda.core.exceptions.InsufficientPermissionException;
+import net.dv8tion.jda.api.AccountType;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.OnlineStatus;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.PrivateChannel;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
+import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.RiotApi;
 import net.rithms.riot.api.RiotApiException;
@@ -87,11 +88,11 @@ public class Zoe {
   public static final File SAVE_CONFIG_FOLDER = new File("ressources/serversconfigs");
 
   private static final ConcurrentLinkedQueue<List<CustomEmote>> emotesNeedToBeUploaded = new ConcurrentLinkedQueue<>();
-  
+
   private static final List<Object> eventListenerList = new ArrayList<>();  
 
   private static final Logger logger = LoggerFactory.getLogger(Zoe.class);
-  
+
   /**
    * USED ONLY FOR STATS ANALYSE. DON'T MODIFY DATA INSIDE.
    */
@@ -99,7 +100,7 @@ public class Zoe {
 
   private static List<Command> mainCommands;
 
-  private static RiotApi riotApi;
+  private static CachedRiotApi riotApi;
 
   private static JDA jda;
 
@@ -140,18 +141,18 @@ public class Zoe {
     CommandClient commandClient = client.build();
     
     EventListener eventListener = new EventListener();
-    
+
     eventListenerList.add(commandClient);
     eventListenerList.add(eventWaiter);
     eventListenerList.add(eventListener);
-    
+
     try {
       jda = new JDABuilder(AccountType.BOT)//
           .setToken(discordTocken)//
           .setStatus(OnlineStatus.DO_NOT_DISTURB)//
-          .addEventListener(commandClient)//
-          .addEventListener(eventWaiter)//
-          .addEventListener(eventListener).build();//
+          .addEventListeners(commandClient)//
+          .addEventListeners(eventWaiter)//
+          .addEventListeners(eventListener).build();//
     } catch(IndexOutOfBoundsException e) {
       logger.error("You must provide a token.");
       System.exit(1);
@@ -179,7 +180,7 @@ public class Zoe {
     PriorityManagerRateLimitHandler defaultLimite = new PriorityManagerRateLimitHandler(priorityList); //create default priority with dev api key rate limit if no param
 
     config.setRateLimitHandler(defaultLimite);
-    riotApi = new RiotApi(config);
+    riotApi = new CachedRiotApi(new RiotApi(config));
   }
 
   private static Consumer<CommandEvent> getHelpCommand() {
@@ -189,16 +190,16 @@ public class Zoe {
 
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("Here is my commands :\n\n");
-        
+
         for(Command command : getMainCommands(null)) {
-          
+
           if(!command.isHidden() && command.getChildren().length == 0) {
-            
+
             stringBuilder.append("Command **" + command.getName() + "** :\n");
             stringBuilder.append("--> `>" + command.getName() + "` : " + command.getHelp() + "\n\n");
-            
+
           }else if(!command.isHidden()){
-            
+
             stringBuilder.append("Commands **" + command.getName() + "** : \n");
             for(Command commandChild : command.getChildren()) {
               stringBuilder.append("--> `>" + command.getName() + " " + commandChild.getName() + " " + commandChild.getArguments() + "` : "
@@ -206,7 +207,7 @@ public class Zoe {
             }
             stringBuilder.append(" \n");
           }
-          
+
         }
 
         stringBuilder.append("For additional help, you can join our official server : https://discord.gg/whc5PrC");
@@ -445,7 +446,7 @@ public class Zoe {
 
     try(final BufferedReader reader = new BufferedReader(new FileReader(SAVE_TXT_FILE));) {
       String line;
-
+      
       while((line = reader.readLine()) != null) {
 
         try {
@@ -480,16 +481,16 @@ public class Zoe {
               controlPannel = getControlePannel(reader, server, nbrMessageControlPannel);
             }catch(InsufficientPermissionException e) {
               logger.info("Zoe missing a permission in a guild !");
-              
+
               try {
                 PrivateChannel privateChannel = guild.getOwner().getUser().openPrivateChannel().complete();
-                privateChannel.sendMessage("Hi ! I am a bot of your server " + guild.getName() + ".\n"
+                privateChannel.sendMessage("Hi ! I'm a bot of your server " + guild.getName() + ".\n"
                     + "I need the \"" + e.getPermission().getName() + "\" permission in infochannel to work properly. "
                     + "If you need help you can join the help server here : https://discord.gg/sRgyFvq\n"
                     + "This message will be sended at each time i reboot. Thank you in advance !").queue();
                 logger.info("Message send to owner.");
               }catch(ErrorResponseException e1) {
-                  logger.info("The owner ({}) of the server have bloqued the bot.", guild.getOwner().getUser().getAsTag());
+                logger.info("The owner ({}) of the server have bloqued the bot.", guild.getOwner().getUser().getAsTag());
               }
             }
 
@@ -499,6 +500,8 @@ public class Zoe {
             ServerData.getServers().put(guildId, server);
             ServerData.getServersIsInTreatment().put(guildId, false);
           }
+        }catch(RiotApiException e) {
+          throw e;
         }catch(Exception e) {
           logger.error("A guild as been loaded badly !", e);
         }
@@ -509,7 +512,7 @@ public class Zoe {
   private static ServerConfiguration loadConfig(String guildId) throws IOException {
     ServerConfiguration serverConfiguration = new ServerConfiguration();
     List<ConfigurationOption> options = serverConfiguration.getAllConfigurationOption();
-    
+
     File file = new File(SAVE_CONFIG_FOLDER + "/" + guildId + ".txt");
     if(file.exists()) {
       try(final BufferedReader reader = new BufferedReader(new FileReader(SAVE_CONFIG_FOLDER + "/" + guildId + ".txt"));) {
@@ -538,7 +541,7 @@ public class Zoe {
 
       if(server.getInfoChannel() != null) {
         try {
-          Message message = server.getInfoChannel().getMessageById(messageId).complete();
+          Message message = server.getInfoChannel().retrieveMessageById(messageId).complete();
           controlPannel.getInfoPanel().add(message);
         } catch(ErrorResponseException e) {
           logger.debug("The message got delete : {}", e.getMessage());
@@ -588,8 +591,30 @@ public class Zoe {
         String summonerId = reader.readLine();
         String summonerRegion = reader.readLine();
         Platform region = Platform.getPlatformByName(summonerRegion);
-        Summoner summoner = riotApi.getSummoner(region, summonerId, CallPriority.HIGH);
-        lolAccounts.add(new LeagueAccount(summoner, region));
+
+        boolean needToRetry = false;
+        Summoner summoner = null;
+
+        do {
+          try {
+            summoner = riotApi.getSummoner(region, summonerId, CallPriority.HIGH);
+            needToRetry = false;
+          }catch(RiotApiException e) {
+            if(e.getErrorCode() == RiotApiException.SERVER_ERROR) {
+              needToRetry = true;
+              logger.info("Error code 500 when loading a summoner, retry ...");
+            } else if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND){
+              logger.info("League account {} {} not found when loading. Probably rename/transfer.", region.getName(), summonerId);
+            }else {
+              throw e;
+            }
+          }
+        } while(needToRetry);
+
+        if(summoner != null) {
+          lolAccounts.add(new LeagueAccount(summoner, region));
+        }
+
       }
       String mentionableString = reader.readLine();
 
@@ -601,20 +626,12 @@ public class Zoe {
     return players;
   }
 
-  public static RiotApi getRiotApi() {
+  public static CachedRiotApi getRiotApi() {
     return riotApi;
-  }
-
-  public static void setRiotApi(RiotApi riotApi) {
-    Zoe.riotApi = riotApi;
   }
 
   public static JDA getJda() {
     return jda;
-  }
-
-  public static void setJda(JDA jda) {
-    Zoe.jda = jda;
   }
 
   public static ConcurrentLinkedQueue<List<CustomEmote>> getEmotesNeedToBeUploaded() {
@@ -631,10 +648,6 @@ public class Zoe {
 
   public static String getDiscordBotListTocken() {
     return discordBotListTocken;
-  }
-
-  public static void setDiscordBotListTocken(String discordBotListTocken) {
-    Zoe.discordBotListTocken = discordBotListTocken;
   }
 
   public static RateLimitRequestTank getMinuteApiTank() {

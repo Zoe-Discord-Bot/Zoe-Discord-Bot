@@ -3,9 +3,9 @@ package ch.kalunight.zoe.command;
 import java.awt.Color;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import net.dv8tion.jda.bot.entities.ApplicationInfo;
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.Permission;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.ApplicationInfo;
 
 public class AboutCommand extends Command {
 
@@ -28,7 +28,7 @@ public class AboutCommand extends Command {
 
     builder.setAuthor("Hi guys ! I'm " + event.getSelfUser().getName() + " !", null, event.getSelfUser().getAvatarUrl());
 
-    ApplicationInfo info = event.getJDA().asBot().getApplicationInfo().complete();
+    ApplicationInfo info = event.getJDA().retrieveApplicationInfo().complete();
     String inviteLink =
         info.getInviteUrl(0L, Permission.MANAGE_CHANNEL, Permission.MESSAGE_MANAGE, Permission.MESSAGE_READ,
             Permission.MESSAGE_WRITE, Permission.MESSAGE_ATTACH_FILES, Permission.MESSAGE_ADD_REACTION,

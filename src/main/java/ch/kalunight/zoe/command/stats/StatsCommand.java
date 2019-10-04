@@ -4,6 +4,8 @@ import java.util.function.BiConsumer;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
+
+import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.CommandUtil;
 
 public class StatsCommand extends Command {
@@ -19,6 +21,17 @@ public class StatsCommand extends Command {
   
   @Override
   protected void execute(CommandEvent event) {
+    if(!event.getMessage().getMentionedMembers().isEmpty()) {
+      for(Command command : Zoe.getMainCommands(null)) {
+        for(Command commandChild : command.getChildren()) {
+          if(commandChild instanceof StatsProfileCommand) {
+            ((StatsProfileCommand) commandChild).execute(event);
+            return;
+          }
+        }
+      }
+    }
+    
     event.reply("If you want help about stats commands, type `>stats help`");
   }
   

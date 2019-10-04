@@ -4,6 +4,7 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -18,12 +19,12 @@ import ch.kalunight.zoe.model.player_data.LeagueAccount;
 import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.model.player_data.Team;
 import ch.kalunight.zoe.util.InfoPanelRefresherUtil;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.PermissionOverride;
-import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.exceptions.ErrorResponseException;
-import net.dv8tion.jda.core.exceptions.InsufficientPermissionException;
-import net.dv8tion.jda.core.requests.ErrorResponse;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.PermissionOverride;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
+import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
+import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.constant.CallPriority;
 
@@ -34,16 +35,28 @@ public class InfoPanelRefresher implements Runnable {
   private static final Logger logger = LoggerFactory.getLogger(InfoPanelRefresher.class);
 
   private Server server;
+  
+  private boolean needToWait = false;
 
   public InfoPanelRefresher(Server server) {
     this.server = server;
   }
+  
+  public InfoPanelRefresher(Server server, boolean needToWait) {
+    this.server = server;
+    this.needToWait = needToWait;
+  }
+  
 
   @Override
   public void run() {
     try {
 
       if(server.getInfoChannel() != null) {
+        
+        if(needToWait) {
+          TimeUnit.SECONDS.sleep(3);
+        }
         
         for(Player player : server.getPlayers()) {
           player.refreshAllLeagueAccounts(CallPriority.NORMAL);
@@ -141,7 +154,7 @@ public class InfoPanelRefresher implements Runnable {
     List<Message> messagesToDelete = new ArrayList<>();
 
     for(Message messageToCheck : messagesToCheck) {
-      if(!messageToCheck.getCreationTime().isBefore(OffsetDateTime.now().minusHours(1)) || server.getControlePannel().getInfoPanel().contains(messageToCheck)) {
+      if(!messageToCheck.getTimeCreated().isBefore(OffsetDateTime.now().minusHours(1)) || server.getControlePannel().getInfoPanel().contains(messageToCheck)) {
         continue;
       }
 

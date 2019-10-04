@@ -5,10 +5,12 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.model.Server;
+import ch.kalunight.zoe.model.static_data.SpellingLangage;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.ApplicationInfo;
+import net.dv8tion.jda.api.entities.ChannelType;
 
 public class AboutCommand extends Command {
 
@@ -27,9 +29,12 @@ public class AboutCommand extends Command {
   protected void execute(CommandEvent event) {
 
     CommandUtil.sendTypingInFonctionOfChannelType(event);
-    
-    Server server = ServerData.getServers().get(event.getGuild().getId());
 
+    SpellingLangage langage = SpellingLangage.EN;
+    if(event.getChannelType() == ChannelType.TEXT) {
+      Server server = ServerData.getServers().get(event.getGuild().getId());
+      langage = server.getLangage();
+    }
     EmbedBuilder builder = new EmbedBuilder();
 
     builder.setAuthor("Hi guys ! I'm " + event.getSelfUser().getName() + " !", null, event.getSelfUser().getAvatarUrl());
@@ -41,25 +46,18 @@ public class AboutCommand extends Command {
             Permission.MESSAGE_EXT_EMOJI, Permission.MESSAGE_EMBED_LINKS, Permission.MESSAGE_HISTORY,
             Permission.MANAGE_EMOTES, Permission.MANAGE_ROLES);
     inviteLink += "&response_type=code&redirect_uri=https%3A%2F%2Fzoe-discord-bot.ch%2FThanksYou.html";
-    
-    String desc = String.format(LanguageManager.getText(server.getLangage(), "aboutMessage"),
+
+    String desc = String.format(LanguageManager.getText(langage, "aboutMessage"),
         "https://github.com/KaluNight/Zoe-Discord-Bot", "<https://discord.gg/whc5PrC>", inviteLink);
 
     builder.setDescription(desc);
-    if(event.getJDA().getShardInfo() == null) {
-      builder.addField("Stats", event.getJDA().getGuilds().size() + " servers\n1 shard", true);
-      builder.addField("Users", event.getJDA().getUsers().size() + " unique\n"
-          + event.getJDA().getGuilds().stream().mapToInt(g -> g.getMembers().size()).sum() + " total", true);
-      builder.addField("Channels",
-          event.getJDA().getTextChannels().size() + " Text\n" + event.getJDA().getVoiceChannels().size() + " Voice", true);
-    } else {
-      builder.addField("Stats", (event.getClient()).getTotalGuilds() + " Servers\nShard " + (event.getJDA().getShardInfo().getShardId() + 1)
-          + "/" + event.getJDA().getShardInfo().getShardTotal(), true);
-      builder.addField("This shard", event.getJDA().getUsers().size() + " Users\n" + event.getJDA().getGuilds().size() + " Servers", true);
-      builder.addField("",
-          event.getJDA().getTextChannels().size() + " Text Channels\n" + event.getJDA().getVoiceChannels().size() + " Voice Channels",
-          true);
-    }
+    builder.addField("Stats", (event.getClient()).getTotalGuilds() + " Servers\nShard " + (event.getJDA().getShardInfo().getShardId() + 1)
+        + "/" + event.getJDA().getShardInfo().getShardTotal(), true);
+    builder.addField("This shard", event.getJDA().getUsers().size() + " Users\n" + event.getJDA().getGuilds().size() + " Servers", true);
+    builder.addField("Channels",
+        event.getJDA().getTextChannels().size() + " Text Channels\n" + event.getJDA().getVoiceChannels().size() + " Voice Channels",
+        true);
+
 
     builder.setFooter("Last restart", null);
     builder.setTimestamp(event.getClient().getStartTime());
@@ -67,7 +65,7 @@ public class AboutCommand extends Command {
 
     event.reply(builder.build());
   }
-  
+
   @Override
   public String toString() {
     return name + "command : " + help;

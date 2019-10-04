@@ -3,9 +3,11 @@ package ch.kalunight.zoe.service;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.google.common.base.Stopwatch;
 import ch.kalunight.zoe.model.InfoCard;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.player_data.LeagueAccount;
@@ -40,9 +42,15 @@ public class InfoCardsWorker implements Runnable {
   @Override
   public void run() {
     try {
-      logger.debug("InfoCards worker lauched for the game id: {}", currentGameInfo.getGameId());
       if(controlPanel.canTalk()) {
-        generateInfoCard(controlPanel, account, currentGameInfo);    
+        logger.info("Start generate infocards for the account " + account.getSummoner().getName() 
+            + " (" + account.getRegion().getName() + ")");
+        
+        Stopwatch stopWatch = Stopwatch.createStarted();
+        generateInfoCard(controlPanel, account, currentGameInfo);
+        stopWatch.stop();
+        logger.info("Infocards generation done in {} secs.", stopWatch.elapsed(TimeUnit.SECONDS));
+        
         RiotApiUsageChannelRefresh.incrementInfocardCount();
         logger.debug("InfoCards worker has ended correctly for the game id: {}", currentGameInfo.getGameId());
       }else {

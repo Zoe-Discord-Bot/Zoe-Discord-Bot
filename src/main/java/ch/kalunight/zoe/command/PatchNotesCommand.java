@@ -1,36 +1,44 @@
 package ch.kalunight.zoe.command;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 
 public class PatchNotesCommand extends Command {
 
+  private static final File patchNoteFile = new File("ressources/patchnotes.txt");
+  
   public PatchNotesCommand() {
     this.name = "patchNotes";
-    String[] aliasesTable = {"notes", "note", "patch", "patchs"};
+    String[] aliasesTable = {"notes", "note", "patch", "patchs", "patchNote"};
     this.aliases = aliasesTable;
-    this.help = "Send the last patch note.";
+    this.help = "patchNotesCommandHelp";
     this.hidden = false;
     this.ownerCommand = false;
     this.guildOnly = false;
+    this.helpBiConsumer = CommandUtil.getHelpMethod(name, help);
   }
   
   @Override
   protected void execute(CommandEvent event) {
-    //TODO: Patch note are actually hard coded -> Implement a Patch note reader (reader of an external file).
+    CommandUtil.sendTypingInFonctionOfChannelType(event);
     
-    event.reply("**Actual version : 1.3.0**\n"
-        + "\n"
-        + "**Configurations Updates !**\n"
-        + "Configurations options as been added to make Zoe perfectly suit with your server ! Try the command `>config`. "
-        + "More options will be added in the time, if you have a idea you can come to the support server to request your idea ! (`>help`)\n\n"
-        + "Changelog :\n"
-        + "-**New Feature** 3 new options of configurations. Try the commands `>config`."
-        + "-**New Feature** Zoe now detect your discord status to create your infocards in about 20 seconds after the champ select.\n"
-        + "-Internal system has been reworked to improve performance.\n"
-        + "-Bugs fix\n"
-        + "\n"
-        + "For help, feature request and bug report please join the support server (`>help`).");
+    try(final BufferedReader reader = new BufferedReader(new FileReader(patchNoteFile));) {
+      String line;
+      
+      StringBuilder builder = new StringBuilder();
+      
+      while((line = reader.readLine()) != null) {
+        builder.append(line + "\n");
+      }
+      
+      event.reply(builder.toString());
+    } catch(IOException e) {
+      event.reply("Patch notes are currently unavailable");
+    }
   }
 
 }

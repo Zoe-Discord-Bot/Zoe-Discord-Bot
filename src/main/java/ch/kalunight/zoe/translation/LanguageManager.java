@@ -23,7 +23,7 @@ public class LanguageManager {
     //hide public constructor
   }
 
-  public static void loadTranslations() throws IOException {
+  public static synchronized void loadTranslations() throws IOException {
     translations.clear();
     
     for(File file : LANGUAGE_FOLDER.listFiles()) {

@@ -1,16 +1,14 @@
 package ch.kalunight.zoe.command;
 
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
-
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
-
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.static_data.SpellingLangage;
+import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
@@ -20,23 +18,23 @@ public class ResetCommand extends Command {
 
   public ResetCommand(EventWaiter waiter) {
     this.name = "reset";
-    this.help = "Reset the actual config of the server.";
+    this.help = "resetCommandHelp";
     this.hidden = false;
     this.ownerCommand = false;
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
     this.guildOnly = true;
     this.waiter = waiter;
-    this.helpBiConsumer = getHelpMethod();
+    this.helpBiConsumer = CommandUtil.getHelpMethod(name, help);
   }
   
   @Override
   protected void execute(CommandEvent event) {
     CommandUtil.sendTypingInFonctionOfChannelType(event);
     
-    event.getEvent().getTextChannel().sendMessage("**WARNING**: This command will reset the configuration of this server ! "
-        + "Discord related stuff won't be deleted (Zoe's messages and channels) "
-        + "Are you sure to do that ?\n\nIf it's really what you want to do say **YES**.").queue();
+    Server server = ServerData.getServers().get(event.getGuild().getId());
+    
+    event.reply(LanguageManager.getText(server.getLangage(), "resetWarningMessage"));
     
     waiter.waitForEvent(MessageReceivedEvent.class,
         e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel())
@@ -48,8 +46,6 @@ public class ResetCommand extends Command {
   private void reset(MessageReceivedEvent messageReceivedEvent) {
     if(messageReceivedEvent.getMessage().getContentRaw().equals("YES")) {
       
-      messageReceivedEvent.getTextChannel().sendMessage("Okay, let's go ! Let's forgot everything !").queue();
-      
       Server server = ServerData.getServers().get(messageReceivedEvent.getGuild().getId());
       
       SpellingLangage spellingLangage = SpellingLangage.EN;
@@ -58,34 +54,18 @@ public class ResetCommand extends Command {
         spellingLangage = server.getLangage();
       }
       
+      messageReceivedEvent.getTextChannel().sendMessage(LanguageManager.getText(spellingLangage, "resetConfirmationMessage")).queue();
+      
       ServerData.getServers().put(messageReceivedEvent.getGuild().getId(), 
           new Server(messageReceivedEvent.getGuild(), spellingLangage, new ServerConfiguration()));
       
-      messageReceivedEvent.getTextChannel().sendMessage("Done, i have been reset correctly").queue();
+      messageReceivedEvent.getTextChannel().sendMessage("resetDoneMessage").queue();
     }else {
-      messageReceivedEvent.getTextChannel().sendMessage("Alright, so i do nothing.").queue();
+      messageReceivedEvent.getTextChannel().sendMessage("resetCancelMessage").queue();
     }
   }
   
   private void cancelReset(MessageReceivedEvent event) {
-    event.getTextChannel().sendMessage("I've been waiting for more than a minute. I won't wait more. "
-        + "Please resend the command `>reset` if you want to reset myself.").queue();
+    event.getTextChannel().sendMessage("resetTimeoutMessage").queue();
   }
-
-
-
-  private BiConsumer<CommandEvent, Command> getHelpMethod() {
-    return new BiConsumer<CommandEvent, Command>() {
-      @Override
-      public void accept(CommandEvent event, Command command) {
-        CommandUtil.sendTypingInFonctionOfChannelType(event);
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("Reset command :\n");
-        stringBuilder.append("--> `>" + name + " " + "` : " + help);
-
-        event.reply(stringBuilder.toString());
-      }
-    };
-  }
-  
 }

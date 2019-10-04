@@ -22,7 +22,7 @@ public class ConfigCommand extends Command{
   
   public ConfigCommand(EventWaiter waiter) {
     this.name = "config";
-    this.help = "Open an interactive message to configure the server.";
+    this.help = "configCommandHelp";
     this.hidden = false;
     this.ownerCommand = false;
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL, Permission.MESSAGE_ADD_REACTION};
@@ -31,7 +31,7 @@ public class ConfigCommand extends Command{
     this.botPermissions = permissionBot;
     this.guildOnly = true;
     this.waiter = waiter;
-    this.helpBiConsumer = getHelpMethod();
+    this.helpBiConsumer = CommandUtil.getHelpMethod(name, help);
   }
   
   @Override
@@ -81,19 +81,4 @@ public class ConfigCommand extends Command{
         message.getChannel().sendMessage("Configuration Ended").queue();
       }};
   }
-  
-  private BiConsumer<CommandEvent, Command> getHelpMethod() {
-    return new BiConsumer<CommandEvent, Command>() {
-      @Override
-      public void accept(CommandEvent event, Command command) {
-        CommandUtil.sendTypingInFonctionOfChannelType(event);
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(name + " command :\n");
-        stringBuilder.append("--> `>" + name + " " + "` : " + help);
-
-        event.reply(stringBuilder.toString());
-      }
-    };
-  }
-  
 }

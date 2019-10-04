@@ -20,6 +20,7 @@ public class AboutCommand extends Command {
     this.hidden = true;
     this.ownerCommand = false;
     this.guildOnly = false;
+    this.helpBiConsumer = CommandUtil.getHelpMethod(name, help);
   }
 
   @Override

@@ -57,7 +57,7 @@ public class CacheManager {
 
             LocalDateTime creationMatch = LocalDateTime.ofInstant(Instant.ofEpochMilli(match.getGameCreation()), ZoneOffset.UTC);
 
-            if(LocalDateTime.now().minusDays(15).isAfter(creationMatch)) { //32 days to avoid premature delete due to time zone
+            if(LocalDateTime.now().minusDays(15).isAfter(creationMatch)) {
               if(fileMatch.delete()) {
                 totalDeletedFile++;
               }

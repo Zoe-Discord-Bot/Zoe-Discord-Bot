@@ -44,28 +44,35 @@ public class ResetCommand extends Command {
   }
 
   private void reset(MessageReceivedEvent messageReceivedEvent) {
+    Server server = ServerData.getServers().get(messageReceivedEvent.getGuild().getId());
+    
+    SpellingLangage spellingLangage = SpellingLangage.EN;
+    
+    if(server != null) {
+      spellingLangage = server.getLangage();
+    }
+    
     if(messageReceivedEvent.getMessage().getContentRaw().equals("YES")) {
-      
-      Server server = ServerData.getServers().get(messageReceivedEvent.getGuild().getId());
-      
-      SpellingLangage spellingLangage = SpellingLangage.EN;
-      
-      if(server != null) {
-        spellingLangage = server.getLangage();
-      }
       
       messageReceivedEvent.getTextChannel().sendMessage(LanguageManager.getText(spellingLangage, "resetConfirmationMessage")).queue();
       
       ServerData.getServers().put(messageReceivedEvent.getGuild().getId(), 
           new Server(messageReceivedEvent.getGuild(), spellingLangage, new ServerConfiguration()));
       
-      messageReceivedEvent.getTextChannel().sendMessage("resetDoneMessage").queue();
+      messageReceivedEvent.getTextChannel().sendMessage(LanguageManager.getText(spellingLangage, "resetDoneMessage")).queue();
     }else {
-      messageReceivedEvent.getTextChannel().sendMessage("resetCancelMessage").queue();
+      messageReceivedEvent.getTextChannel().sendMessage(LanguageManager.getText(spellingLangage, "resetCancelMessage")).queue();
     }
   }
   
   private void cancelReset(MessageReceivedEvent event) {
-    event.getTextChannel().sendMessage("resetTimeoutMessage").queue();
+    Server server = ServerData.getServers().get(event.getGuild().getId());
+    
+    SpellingLangage spellingLangage = SpellingLangage.EN;
+    
+    if(server != null) {
+      spellingLangage = server.getLangage();
+    }
+    event.getTextChannel().sendMessage(LanguageManager.getText(spellingLangage, "resetTimeoutMessage")).queue();
   }
 }

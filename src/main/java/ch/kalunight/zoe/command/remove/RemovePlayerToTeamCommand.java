@@ -1,6 +1,5 @@
 package ch.kalunight.zoe.command.remove;
 
-import java.util.function.BiConsumer;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
@@ -18,11 +17,11 @@ public class RemovePlayerToTeamCommand extends Command {
 
   public RemovePlayerToTeamCommand() {
     this.name = USAGE_NAME;
-    this.help = "Delete the given player from his team. Manage Channel permission needed.";
+    this.help = "removePlayerToTeamHelpMessage";
     this.arguments = "@MentionOfPlayer";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
-    this.helpBiConsumer = getHelpMethod();
+    this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(RemoveCommand.USAGE_NAME, name, arguments, help);
   }
 
   @Override
@@ -57,19 +56,4 @@ public class RemovePlayerToTeamCommand extends Command {
     teamWhereRemove.getPlayers().remove(player);
     event.reply(player.getDiscordUser().getName() + " has been deleted from the team " + teamWhereRemove.getName() + " !");
   }
-
-  private BiConsumer<CommandEvent, Command> getHelpMethod() {
-    return new BiConsumer<CommandEvent, Command>() {
-      @Override
-      public void accept(CommandEvent event, Command command) {
-        CommandUtil.sendTypingInFonctionOfChannelType(event);
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("Remove playerToTeam command :\n");
-        stringBuilder.append("--> `>remove " + name + " " + arguments + "` : " + help);
-
-        event.reply(stringBuilder.toString());
-      }
-    };
-  }
-
 }

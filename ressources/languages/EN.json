@@ -81,5 +81,18 @@
   "deletePlayerHelpMessage" : "Delete the given player",
   "deletePlayerMissingPermission" : "You need the permission \"%s\" to do that.",
   "deletePlayerOtherPlayerMissingPermission" : "You cannot delete another player than you if you don't have the *%s* permission.",
-  "deletePlayerMissingMentionPlayer" : "You need to mention 1 people !"
+  "deletePlayerMissingMentionPlayer" : "You need to mention 1 people !",
+  "deletePlayerUserNotRegistered" : "%s is not registered !",
+  "deletePlayerDoneMessage" : "%s has been deleted !",
+  "deleteTeamHelpMessage" : "Delete the given team. Manage Channel permission needed.",
+  "deleteTeamNotFound" : "There is no team called \"%s\" !",
+  "deleteTeamDoneMessage" : "The team \"%s\" has been deleted !",
+  "removeAccountHelpMessage" : "Remove the given account to the mentionned player.",
+  "removeAccountMissingMention" : "Please mention 1 member of the server (e.g. `>remove account @%s (Region) (SummonerName)`)",
+  "removeAccountMissingRight" : "You cannot remove an account of another player than you if you don't have the *%s* permission.",
+  "removeAccountUserNotRegistered" : "The mentionned user is not registered !",
+  "removeAccountMalformed" : "The command is malformed. Please respect this pattern : `>remove account @DiscordPlayerMention (Region) (SummonerName)`",
+  "removeAccountNotLinkedToPlayer" : "The given summoner is not linked to the mentionned player ! Try the command `>show players` to see wich accounts is linked to the player",
+  "removeAccountDoneMessage" : "The account \"%s\" has been unlink of the player %s.",
+  "removePlayerToTeamHelpMessage" : "Delete the given player from his team. Manage Channel permission needed."
 }

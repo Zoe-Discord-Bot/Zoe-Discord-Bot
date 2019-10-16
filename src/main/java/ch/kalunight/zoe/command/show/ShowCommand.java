@@ -1,6 +1,5 @@
 package ch.kalunight.zoe.command.show;
 
-import java.util.function.BiConsumer;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
@@ -18,30 +17,11 @@ public class ShowCommand extends Command {
     this.help = "Send info about show commands";
     Command[] commandsChildren = {new ShowPlayerCommand(waiter)};
     this.children = commandsChildren;
-    this.helpBiConsumer = getHelpMethod();
+    this.helpBiConsumer = CommandUtil.getHelpMethodHasChildren(USAGE_NAME, commandsChildren);
   }
 
-  
   @Override
   protected void execute(CommandEvent event) {
     event.reply("If you need help for show command, type `>remove help`");
   }
-  
-  private BiConsumer<CommandEvent, Command> getHelpMethod() {
-    return new BiConsumer<CommandEvent, Command>() {
-      @Override
-      public void accept(CommandEvent event, Command command) {
-        CommandUtil.sendTypingInFonctionOfChannelType(event);
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("Show command :\n");
-        for(Command commandChildren : children) {
-          stringBuilder.append("--> `>" + name + " " + commandChildren.getName() + " " + commandChildren.getArguments() + "` : "
-              + commandChildren.getHelp() + "\n");
-        }
-
-        event.reply(stringBuilder.toString());
-      }
-    };
-  }
-  
 }

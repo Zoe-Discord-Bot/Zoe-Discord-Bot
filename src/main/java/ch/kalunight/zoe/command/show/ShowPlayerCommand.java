@@ -2,7 +2,6 @@ package ch.kalunight.zoe.command.show;
 
 import java.awt.Color;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
@@ -12,6 +11,7 @@ import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.player_data.LeagueAccount;
 import ch.kalunight.zoe.model.player_data.Player;
+import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.request.RiotRequest;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.exceptions.PermissionException;
@@ -29,9 +29,9 @@ public class ShowPlayerCommand extends Command {
     this.arguments = "";
     this.aliases = aliases;
     this.waiter = eventWaiter;
-    this.help = "Show all players with their accounts in the server.";
+    this.help = "showPlayerHelpMessage";
     this.cooldown = 10;
-    this.helpBiConsumer = getHelpMethod();
+    this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(ShowCommand.USAGE_NAME, name, arguments, help);
     Permission[] botPermissionNeeded = {Permission.MANAGE_EMOTES, Permission.MESSAGE_EMBED_LINKS, Permission.MESSAGE_ADD_REACTION, Permission.MESSAGE_MANAGE};
     this.botPermissions = botPermissionNeeded;
   }
@@ -61,16 +61,17 @@ public class ShowPlayerCommand extends Command {
     Server server = ServerData.getServers().get(event.getGuild().getId());
 
     if(server.getPlayers().isEmpty()) {
-      event.reply("The server have 0 player registered.");
+      event.reply(LanguageManager.getText(server.getLangage(), "showPlayerServerEmpty"));
       return;
     }
 
     for(Player player : server.getPlayers()) {
       StringBuilder playerInfo = new StringBuilder();
-      playerInfo.append("**" + player.getDiscordUser().getName() + " Accounts** : \n");
+      playerInfo.append(String.format(LanguageManager.getText(server.getLangage(), "showPlayerName"),
+          player.getDiscordUser().getName()) + "\n");
 
       if(player.getLolAccounts().isEmpty()) {
-        playerInfo.append("*No Account Link*\n");
+        playerInfo.append(LanguageManager.getText(server.getLangage(), "showPlayerNoAccount") + "\n");
       }
 
       for(LeagueAccount leagueAccount : player.getLolAccounts()) {
@@ -91,19 +92,5 @@ public class ShowPlayerCommand extends Command {
         .build();
     p.paginate(event.getChannel(), page);
 
-  }
-
-  private BiConsumer<CommandEvent, Command> getHelpMethod() {
-    return new BiConsumer<CommandEvent, Command>() {
-      @Override
-      public void accept(CommandEvent event, Command command) {
-        CommandUtil.sendTypingInFonctionOfChannelType(event);
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("Show players command :\n");
-        stringBuilder.append("--> `>show " + name + " " + arguments + "` : " + help);
-
-        event.reply(stringBuilder.toString());
-      }
-    };
   }
 }

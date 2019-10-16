@@ -23,20 +23,21 @@ public class LanguageManager {
     //hide public constructor
   }
 
-  public static synchronized void loadTranslations() throws IOException {
-    translations.clear();
-    
-    for(File file : LANGUAGE_FOLDER.listFiles()) {
+  public static void loadTranslations() throws IOException {
+    synchronized(translations) {
+      translations.clear();
       
-      SpellingLangage language = SpellingLangage.valueOf(file.getName().split("\\.")[0]);
-      
-      try(final BufferedReader reader = new BufferedReader(new FileReader(file));) {
-        JsonObject jsonObject = gson.fromJson(reader, JsonObject.class);
-
-        for(Entry<String, JsonElement> entryJson : jsonObject.entrySet()) {
-          translations.put(new TranslationKey(language, entryJson.getKey()), entryJson.getValue().getAsString());
-        }
+      for(File file : LANGUAGE_FOLDER.listFiles()) {
         
+        SpellingLangage language = SpellingLangage.valueOf(file.getName().split("\\.")[0]);
+        
+        try(final BufferedReader reader = new BufferedReader(new FileReader(file));) {
+          JsonObject jsonObject = gson.fromJson(reader, JsonObject.class);
+
+          for(Entry<String, JsonElement> entryJson : jsonObject.entrySet()) {
+            translations.put(new TranslationKey(language, entryJson.getKey()), entryJson.getValue().getAsString());
+          }
+        }
       }
     }
   }

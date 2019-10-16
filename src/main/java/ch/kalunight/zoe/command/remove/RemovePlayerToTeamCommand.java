@@ -9,6 +9,7 @@ import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.model.player_data.Team;
 import ch.kalunight.zoe.model.static_data.SpellingLangage;
+import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.Permission;
 
 public class RemovePlayerToTeamCommand extends Command {
@@ -35,25 +36,26 @@ public class RemovePlayerToTeamCommand extends Command {
     }
 
     if(event.getMessage().getMentionedMembers().size() != 1) {
-      event.reply("Please mentions one people !");
+      event.reply(LanguageManager.getText(server.getLangage(), "removePlayerToTeamMissingMention"));
       return;
     }
 
     Player player = server.getPlayerByDiscordId(event.getMessage().getMentionedMembers().get(0).getUser().getId());
 
     if(player == null) {
-      event.reply("The mentioned people is not a registed player !");
+      event.reply(LanguageManager.getText(server.getLangage(), "removePlayerToTeamMentionnedPlayerNotPlayer"));
       return;
     }
 
     Team teamWhereRemove = server.getTeamByPlayer(player);
     
     if(teamWhereRemove == null) {
-      event.reply("This player is not in a team");
+      event.reply(LanguageManager.getText(server.getLangage(), "removePlayerToTeamNotInTheTeam"));
       return;
     }
 
     teamWhereRemove.getPlayers().remove(player);
-    event.reply(player.getDiscordUser().getName() + " has been deleted from the team " + teamWhereRemove.getName() + " !");
+    event.reply(String.format(LanguageManager.getText(server.getLangage(), "removePlayerToTeamDoneMessage"),
+        player.getDiscordUser().getName(), teamWhereRemove.getName()));
   }
 }

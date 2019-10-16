@@ -94,5 +94,13 @@
   "removeAccountMalformed" : "The command is malformed. Please respect this pattern : `>remove account @DiscordPlayerMention (Region) (SummonerName)`",
   "removeAccountNotLinkedToPlayer" : "The given summoner is not linked to the mentionned player ! Try the command `>show players` to see wich accounts is linked to the player",
   "removeAccountDoneMessage" : "The account \"%s\" has been unlink of the player %s.",
-  "removePlayerToTeamHelpMessage" : "Delete the given player from his team. Manage Channel permission needed."
+  "removePlayerToTeamHelpMessage" : "Delete the given player from his team. Manage Channel permission needed.",
+  "removePlayerToTeamMissingMention" : "Please mention one people !",
+  "removePlayerToTeamMentionnedPlayerNotPlayer" : "The mentioned people is not a registed player !",
+  "removePlayerToTeamNotInTheTeam" : "This player is not in a team",
+  "removePlayerToTeamDoneMessage" : "%s has been deleted from the team %s !",
+  "showPlayerHelpMessage" : "Show all players with their accounts in the server",
+  "showPlayerServerEmpty" : "The server have 0 player registered",
+  "showPlayerName" : "**%s Accounts** :",
+  "showPlayerNoAccount" : "*No Account Link*"
 }

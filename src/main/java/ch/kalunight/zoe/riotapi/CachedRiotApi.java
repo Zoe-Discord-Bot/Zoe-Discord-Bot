@@ -20,6 +20,8 @@ import net.rithms.riot.constant.Platform;
  */
 public class CachedRiotApi {
 
+  public static final boolean CACHE_ENABLE = false;
+  
   private final RiotApi riotApi;
 
   private final AtomicInteger apiMatchRequestCount = new AtomicInteger(0);

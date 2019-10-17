@@ -75,9 +75,9 @@ public class ShowPlayerCommand extends Command {
       }
 
       for(LeagueAccount leagueAccount : player.getLolAccounts()) {
-        playerInfo.append("-" + leagueAccount.getSummoner().getName() 
-            + " (" + leagueAccount.getRegion().getName().toUpperCase() + ") Soloq Rank : "
-            + RiotRequest.getSoloqRank(leagueAccount.getSummoner().getId(), leagueAccount.getRegion(), CallPriority.HIGH).toString() + "\n");
+        playerInfo.append(String.format(LanguageManager.getText(server.getLangage(), "showPlayerAccount"),
+            leagueAccount.getSummoner().getName(), leagueAccount.getRegion().getName().toUpperCase(),
+            RiotRequest.getSoloqRank(leagueAccount.getSummoner().getId(), leagueAccount.getRegion(), CallPriority.HIGH)) + "\n");
       }
       pbuilder.addItems(playerInfo.toString().substring(0, playerInfo.toString().length() - 1));
     }
@@ -87,7 +87,7 @@ public class ShowPlayerCommand extends Command {
       accountsNmb += player.getLolAccounts().size();
     }
     Paginator p = pbuilder.setColor(Color.GREEN)
-        .setText("List of players registered with their accounts (Players : " + server.getPlayers().size() + " | Accounts : " + accountsNmb + ") :")
+        .setText(String.format(LanguageManager.getText(server.getLangage(), "showPlayerEmbedTitle"), server.getPlayers().size(), accountsNmb))
         .setUsers(event.getAuthor())
         .build();
     p.paginate(event.getChannel(), page);

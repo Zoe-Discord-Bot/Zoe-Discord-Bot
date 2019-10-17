@@ -29,7 +29,7 @@ public class Server {
   private List<Team> teams;
   private TextChannel infoChannel;
   private ControlPannel controlePannel;
-  private SpellingLangage langage; // Not implement yet
+  private SpellingLangage langage;
   private DateTime lastRefresh;
 
   public Server(Guild guild, SpellingLangage langage, ServerConfiguration configuration) {

@@ -25,10 +25,10 @@ import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.CommandUtil;
 import ch.kalunight.zoe.model.Server;
-import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.model.player_data.LeagueAccount;
 import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.model.static_data.Champion;
+import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.Ressources;
 import ch.kalunight.zoe.util.request.MessageBuilderRequest;
 import ch.kalunight.zoe.util.request.RiotRequest;
@@ -80,8 +80,8 @@ public class StatsProfileCommand extends Command {
     String[] aliases = {"player", "players", "p"};
     this.aliases = aliases;
     this.arguments = "@playerMention";
-    this.help = "Get information about the mentioned player.";
-    this.helpBiConsumer = getHelpMethod();
+    this.help = "statsProfileHelpMessage";
+    this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(StatsCommand.USAGE_NAME, name, arguments, help);
     this.waiter = eventWaiter;
     Permission[] botPermissionNeeded = {Permission.MANAGE_EMOTES, Permission.MESSAGE_EMBED_LINKS,
         Permission.MESSAGE_ADD_REACTION, Permission.MESSAGE_MANAGE};
@@ -91,88 +91,92 @@ public class StatsProfileCommand extends Command {
   @Override
   protected void execute(CommandEvent event) {
     CommandUtil.sendTypingInFonctionOfChannelType(event);
+    
+    Server server = ServerData.getServers().get(event.getGuild().getId());
     SelectionDialog.Builder selectAccountBuilder = new SelectionDialog.Builder()
         .setEventWaiter(waiter)
         .useLooping(true)
         .setColor(Color.GREEN)
         .setSelectedEnds("**", "**")
-        .setCanceled(getSelectionCancelAction())
+        .setCanceled(getSelectionCancelAction(server))
         .setTimeout(1, TimeUnit.MINUTES);
 
     List<User> userList = event.getMessage().getMentionedUsers();
     if(userList.size() != 1) {
-      event.reply("Please mention 1 player.");
+      
+      event.reply(LanguageManager.getText(server.getLangage(), "statsProfileMentionOnePlayer"));
       return;
     }
 
     User user = userList.get(0);
-
-    Server server = ServerData.getServers().get(event.getGuild().getId());
     Player player = server.getPlayerByDiscordId(user.getId());
 
     if(player == null) {
-      event.reply("The poeple mentioned is not a registered player !");
+      event.reply(LanguageManager.getText(server.getLangage(), "statsProfileNeedARegisteredPlayer"));
       return;
     }
 
     if(player.getLolAccounts().size() == 1) {
-      generateStatsMessage(event, player, player.getLolAccounts().get(0));
+      generateStatsMessage(event, player, player.getLolAccounts().get(0), server);
     }else {
       selectAccountBuilder
       .addUsers(event.getAuthor())
-      .setSelectionConsumer(getSelectionDoneAction(event, player));
+      .setSelectionConsumer(getSelectionDoneAction(event, player, server));
 
       List<String> accountsName = new ArrayList<>();
 
       for(LeagueAccount choiceAccount : player.getLolAccounts()) {
-        FullTier tier = RiotRequest.getSoloqRank(choiceAccount.getSummoner().getId(), choiceAccount.getRegion(), CallPriority.HIGH);
-        selectAccountBuilder.addChoices("- " + choiceAccount.getSummoner().getName() 
-            + " (" + choiceAccount.getRegion().getName().toUpperCase() + ") Soloq Rank : " + tier.toString());
+        selectAccountBuilder.addChoices(String.format(LanguageManager.getText(server.getLangage(), "showPlayerAccount"),
+            RiotRequest.getSoloqRank(choiceAccount.getSummoner().getId(), choiceAccount.getRegion(), CallPriority.HIGH),
+            choiceAccount.getRegion(), CallPriority.HIGH));
         accountsName.add(choiceAccount.getSummoner().getName());
       }
       
-      selectAccountBuilder.setText(getUpdateMessageAfterChangeSelectAction(accountsName));
+      selectAccountBuilder.setText(getUpdateMessageAfterChangeSelectAction(accountsName, server));
       
       SelectionDialog selectAccount = selectAccountBuilder.build();
       selectAccount.display(event.getChannel());
     }
   }
 
-  private Function<Integer, String> getUpdateMessageAfterChangeSelectAction(List<String> choices) {
+  private Function<Integer, String> getUpdateMessageAfterChangeSelectAction(List<String> choices, Server server) {
     return new Function<Integer, String>() {
       @Override
       public String apply(Integer index) {
-        return "Account selected : \"**" + choices.get(index - 1) + "**\"";
+        return String.format(LanguageManager.getText(server.getLangage(), "statsProfileSelectText"), choices.get(index - 1));
       }
     };
   }
 
-  private BiConsumer<Message, Integer> getSelectionDoneAction(CommandEvent event, Player player) {
+  private BiConsumer<Message, Integer> getSelectionDoneAction(CommandEvent event, Player player, Server server) {
     return new BiConsumer<Message, Integer>() {
       @Override
       public void accept(Message selectionMessage, Integer selectionOfUser) {
         LeagueAccount account = player.getLolAccounts().get(selectionOfUser - 1);
 
         selectionMessage.clearReactions().queue();
-        selectionMessage.getTextChannel().sendMessage("You have selected the account \"" 
-            + account.getSummoner().getName() + "\" of the player " + player.getDiscordUser().getName() + ".").queue();
-        generateStatsMessage(event, player, player.getLolAccounts().get(selectionOfUser - 1));
+        
+        selectionMessage.getTextChannel().sendMessage(String.format(
+            LanguageManager.getText(server.getLangage(), "statsProfileSelectionDoneMessage"),
+            account.getSummoner().getName(), player.getDiscordUser().getName())).queue();
+        
+        generateStatsMessage(event, player, player.getLolAccounts().get(selectionOfUser - 1), server);
       }
 
     };
   }
 
-  private Consumer<Message> getSelectionCancelAction(){
+  private Consumer<Message> getSelectionCancelAction(Server server){
     return new Consumer<Message>() {
       @Override
       public void accept(Message message) {
         message.clearReactions().queue();
-        message.editMessage("Selection Ended").queue();
+        message.editMessage(LanguageManager.getText(server.getLangage(), "statsProfileSelectionEnded")).queue();
       }
     };
   }
 
-  private void generateStatsMessage(CommandEvent event, Player player, LeagueAccount lolAccount) {
+  private void generateStatsMessage(CommandEvent event, Player player, LeagueAccount lolAccount, Server server) {
     event.getTextChannel().sendTyping().queue();
     
     List<ChampionMastery> championsMasteries;
@@ -180,20 +184,20 @@ public class StatsProfileCommand extends Command {
       championsMasteries = Zoe.getRiotApi().getChampionMasteriesBySummoner(lolAccount.getRegion(), lolAccount.getSummoner().getId(), CallPriority.HIGH);
     } catch(RiotApiException e) {
       if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
-        event.reply("Please retry, I got a minor internal error. Sorry about that :/");
+        event.reply(LanguageManager.getText(server.getLangage(), "statsProfileRateLimitError"));
         return;
       }
       logger.warn("Got a unexpected error : ", e);
-      event.reply("I got a unexpected error, please retry.");
+      event.reply(LanguageManager.getText(server.getLangage(), "statsProfileUnexpectedError"));
       return;
     }
 
     byte[] imageBytes;
     try {
-      imageBytes = generateMasteriesChart(player, championsMasteries);
+      imageBytes = generateMasteriesChart(player, championsMasteries, server);
     } catch(IOException e) {
       logger.info("Got a error in encoding bytesMap image : {}", e);
-      event.reply("I got an unexpected error when i creating the graph, please retry.");
+      event.reply(LanguageManager.getText(server.getLangage(), "statsProfileUnexpectedErrorGraph"));
       return;
     }
 
@@ -203,11 +207,11 @@ public class StatsProfileCommand extends Command {
     } catch(RiotApiException e) {
       if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
         logger.debug("Get rate limited : {}", e);
-        event.reply("I am actually rate limited by riot Api. Please retry in 5 minutes");
+        event.reply(LanguageManager.getText(server.getLangage(), "statsProfileRateLimitError"));
         return;
       }
       logger.warn("Got a unexpected error : {}", e);
-      event.reply("Woops, i got an unexpexcted error. Please retry");
+      event.reply(LanguageManager.getText(server.getLangage(), "statsProfileUnexpectedError"));
       return;
     }
 
@@ -218,12 +222,14 @@ public class StatsProfileCommand extends Command {
     event.getTextChannel().sendMessage(messageBuilder.build()).addFile(imageBytes, player.getDiscordUser().getId() + ".png").queue();
   }
 
-  private byte[] generateMasteriesChart(Player player, List<ChampionMastery> championsMasteries) throws IOException {
+  private byte[] generateMasteriesChart(Player player, List<ChampionMastery> championsMasteries, Server server) throws IOException {
     List<ChampionMastery> listHeigherChampion = getBestMasteries(championsMasteries, NUMBER_OF_CHAMPIONS_IN_GRAPH);
     CategoryChartBuilder masteriesGraphBuilder = new CategoryChartBuilder();
 
     masteriesGraphBuilder.chartTheme = ChartTheme.GGPlot2;
-    masteriesGraphBuilder.title("Best Champions by Masteries of " + player.getDiscordUser().getName());
+
+    masteriesGraphBuilder.title(String.format(LanguageManager.getText(server.getLangage(), "statsProfileGraphTitle"),
+        player.getDiscordUser().getName()));
 
     CategoryChart masteriesGraph = masteriesGraphBuilder.build();
     masteriesGraph.getStyler().setAntiAlias(true);
@@ -239,8 +245,8 @@ public class StatsProfileCommand extends Command {
       masteriesGraph.setYAxisLabelOverrideMap(MASTERIES_TABLE_OF_HIGH_VALUE_Y_AXIS);
     }
 
-    masteriesGraph.setXAxisTitle("Best Champions by Masteries");
-    masteriesGraph.setYAxisTitle("Masteries points");
+    masteriesGraph.setXAxisTitle(LanguageManager.getText(server.getLangage(), "statsProfileGraphTitleX"));
+    masteriesGraph.setYAxisTitle(LanguageManager.getText(server.getLangage(), "statsProfileGraphTitleY"));
 
     List<Double> xPointsMasteries = new ArrayList<>();
     List<Object> yName = new ArrayList<>();
@@ -297,19 +303,4 @@ public class StatsProfileCommand extends Command {
     }
     return listHeigherChampion;
   }
-
-  private BiConsumer<CommandEvent, Command> getHelpMethod() {
-    return new BiConsumer<CommandEvent, Command>() {
-      @Override
-      public void accept(CommandEvent event, Command command) {
-        CommandUtil.sendTypingInFonctionOfChannelType(event);
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("Stats profile command :\n");
-        stringBuilder.append("--> `>delete " + name + " " + arguments + "` : " + help);
-
-        event.reply(stringBuilder.toString());
-      }
-    };
-  }
-
 }

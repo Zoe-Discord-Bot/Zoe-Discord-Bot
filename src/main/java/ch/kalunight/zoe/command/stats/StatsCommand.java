@@ -9,9 +9,11 @@ import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.CommandUtil;
 
 public class StatsCommand extends Command {
+  
+  public static final String USAGE_NAME = "stats";
 
   public StatsCommand(EventWaiter waiter) {
-    this.name = "stats";
+    this.name = USAGE_NAME;
     this.aliases = new String[] {"s"};
     this.help = "Send info about stats command.";
     Command[] commandsChildren = {new StatsProfileCommand(waiter)};

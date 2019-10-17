@@ -12,6 +12,7 @@ import com.jagrosh.jdautilities.menu.ButtonMenu;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.Server;
+import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
@@ -35,9 +36,9 @@ public class CleanChannelOption extends ConfigurationOption {
   Logger logger = LoggerFactory.getLogger(CleanChannelOption.class);
 
   public enum CleanChannelOptionInfo {
-    DISABLE("Disable", "Option disable", UNICODE_ONE, EMOJI_ONE),
-    ONLY_ZOE_COMMANDS("Delete only Zoe commands", "This will delete all new zoe commands in the channel", UNICODE_TWO, EMOJI_TWO),
-    ALL("Delete all messages", "This will delete all new messages sended in the channel", UNICODE_THREE, EMOJI_THREE);
+    DISABLE("cleanChannelOptionDisable", "cleanChannelOptionDisableDesc", UNICODE_ONE, EMOJI_ONE),
+    ONLY_ZOE_COMMANDS("cleanChannelOptionZoeCommands", "cleanChannelOptionZoeCommandsDesc", UNICODE_TWO, EMOJI_TWO),
+    ALL("cleanChannelOptionAll", "cleanChannelOptionAllDesc", UNICODE_THREE, EMOJI_THREE);
 
     private final String name;
     private final String description;
@@ -62,7 +63,7 @@ public class CleanChannelOption extends ConfigurationOption {
   private CleanChannelOptionInfo tmpCleanChannelOption;
 
   public CleanChannelOption() {
-    super("clean_channel", "Create a clean text channel where message/commands are automatically deleted");   
+    super("clean_channel", "cleanChannelOptionDesc");   
     cleanChannelOption = CleanChannelOptionInfo.DISABLE;
     cleanChannel = null;
   }
@@ -74,11 +75,13 @@ public class CleanChannelOption extends ConfigurationOption {
       @Override
       public void accept(CommandEvent event) {
 
+        Server server = ServerData.getServers().get(event.getGuild().getId());
+        
         if(!event.getGuild().getSelfMember().getPermissions().contains(Permission.MESSAGE_MANAGE)) {
-          event.reply("I need the message manage permission to activate this option. Please retry after give me this permission.");
+          event.reply(LanguageManager.getText(server.getLangage(), "cleanChannelOptionPermissionNeeded"));
           return;
         }
-
+        
         ButtonMenu.Builder choiceBuilder = new ButtonMenu.Builder();
 
         choiceBuilder.setEventWaiter(waiter);        
@@ -94,13 +97,9 @@ public class CleanChannelOption extends ConfigurationOption {
 
         choiceBuilder.setTimeout(2, TimeUnit.MINUTES);
 
-        choiceBuilder.setText("Option : **" + description + "**\n\n"
-            + "This option will create a \"clean channel\" where messages are deleted after been sended (with a delay of 3 secs). "
-            + "This option can be used in combination with the \"Hide infochannel\" option to make a **registration system** "
-            + "for your server (server where you need to register yourself into the bot to acces to the server). "
-            + "If a user with the permission Manage channel send a message his message will not be deleted.\n"
-            + "**The text channel will be selected after the option selection**.\n\n"
-            + "Here are my options : \n"
+        choiceBuilder.setText(
+            String.format(LanguageManager.getText(server.getLangage(), "cleanChannelOptionLongDesc"),
+                LanguageManager.getText(server.getLangage(), description))
             + CleanChannelOptionInfo.DISABLE.emoji 
             + " -> " + CleanChannelOptionInfo.DISABLE.name + " : " + CleanChannelOptionInfo.DISABLE.description + "\n"
             + CleanChannelOptionInfo.ONLY_ZOE_COMMANDS.emoji
@@ -122,6 +121,8 @@ public class CleanChannelOption extends ConfigurationOption {
       @Override
       public void accept(ReactionEmote emoteUsed) {
         channel.sendTyping().complete();
+        Server server = ServerData.getServers().get(guild.getId());
+        
         if(emoteUsed.getName().equals(CleanChannelOptionInfo.ONLY_ZOE_COMMANDS.unicode)) {
           tmpCleanChannelOption = CleanChannelOptionInfo.ONLY_ZOE_COMMANDS;
         }else if(emoteUsed.getName().equals(CleanChannelOptionInfo.ALL.unicode)) {
@@ -129,7 +130,7 @@ public class CleanChannelOption extends ConfigurationOption {
         }else if(emoteUsed.getName().equals(CleanChannelOptionInfo.DISABLE.unicode)){
           tmpCleanChannelOption = CleanChannelOptionInfo.DISABLE;
         }else {
-          channel.sendMessage("Ok, the configuration has been canceled.").queue();
+          channel.sendMessage(LanguageManager.getText(server.getLangage(), "cleanChannelOptionCanceled")).queue();
           return;
         }
 
@@ -146,10 +147,8 @@ public class CleanChannelOption extends ConfigurationOption {
 
           choiceBuilder.setTimeout(2, TimeUnit.MINUTES);
 
-          choiceBuilder.setText("Right ! You want to define it in a existant channel or you want to create a new text channel ?\n\n"
-              + "Options :\n"
-              + EMOJI_ONE + " : Define a exitant channel\n"
-              + EMOJI_TWO + " : Create a new channel\n");
+          choiceBuilder.setText(String.format(LanguageManager.getText(server.getLangage(), "cleanChannelOptionChoiceChannel"),
+              EMOJI_ONE, EMOJI_TWO));
 
           choiceBuilder.setAction(defineNewChannel(channel, guild, eventWaiter, user));
 
@@ -161,10 +160,10 @@ public class CleanChannelOption extends ConfigurationOption {
           cleanChannel = null;
 
           if(tmpCleanChannelOption.equals(cleanChannelOption)) {
-            channel.sendMessage("The option is already disable !").queue();
+            channel.sendMessage(LanguageManager.getText(server.getLangage(), "cleanChannelOptionAlreadyDisable")).queue();
           }else {
             cleanChannelOption = tmpCleanChannelOption;
-            channel.sendMessage("Okay ! The option is now disable, i will no longer delete messages in the clean channel.").queue();
+            channel.sendMessage(LanguageManager.getText(server.getLangage(), "cleanChannelOptionNowDisable")).queue();
           }
         }
       }};
@@ -177,11 +176,10 @@ public class CleanChannelOption extends ConfigurationOption {
       @Override
       public void accept(ReactionEmote reactionEmote) {
         channel.sendTyping().complete();
+        Server server = ServerData.getServers().get(guild.getId());
         if(reactionEmote.getName().equals(UNICODE_ONE)) {
 
-          channel.sendMessage("One more step and we are fine ! Now please **send a message with "
-              + "the mention of the text channel** you want to define (e.g. #registration-channel). "
-              + "*You can't select the InfoChannel.*").queue();
+          channel.sendMessage(LanguageManager.getText(server.getLangage(), "cleanChannelOptionSendTextChannel")).queue();
 
           eventWaiter.waitForEvent(MessageReceivedEvent.class,
               e -> e.getAuthor().equals(user) && e.getChannel().equals(channel),
@@ -194,7 +192,8 @@ public class CleanChannelOption extends ConfigurationOption {
           cleanChannelOption = tmpCleanChannelOption;
 
           if(cleanChannelOption.equals(CleanChannelOptionInfo.ONLY_ZOE_COMMANDS)) {
-            cleanChannel.getManager().setTopic("All Zoe commands sended here will be deleted after 3 seconds.").queue();
+            cleanChannel.getManager().setTopic(LanguageManager.getText(server.getLangage(),
+                "cleanChannelOptionTopicChannelZoeCommands")).queue();
           }else {
             cleanChannel.getManager().setTopic("All messages sended here will be deleted after 3 seconds.").queue();
           }

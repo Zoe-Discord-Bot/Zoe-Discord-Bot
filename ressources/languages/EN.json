@@ -131,5 +131,17 @@
   "cleanChannelOptionAlreadyDisable" : "The option is already disable !",
   "cleanChannelOptionNowDisable" : "Okay ! The option is now disable, i will no longer delete messages in the clean channel.",
   "cleanChannelOptionSendTextChannel" : "One more step and we are fine ! Now please **send a message with *You can't select the InfoChannel.*",
-  "cleanChannelOptionTopicChannelZoeCommands" : "All Zoe commands sended here will be deleted after 3 seconds."
+  "cleanChannelOptionTopicChannelZoeCommands" : "All Zoe commands sended here will be deleted after 3 seconds.",
+  "cleanChannelOptionTopicChannelAll" : "All messages sended here will be deleted after 3 seconds.",
+  "cleanChannelOptionCreatedDoneMessage" : "Perfect ! I have created a channel with the name \"clean-channel\". You can change option of this channel like you want. Just let me my permissions inside and everything will work.",
+  "cleanChannelOptionInfoMessageZoeCommands" : "Info : From now on, Zoe commands sended here will be deleted after 3 seconds.",
+  "cleanChannelOptionInfoMessageAll" : "Info : From now on, all messages sended here will be deleted after 3 seconds.",
+  "cleanChannelOptionSettedDoneMessage" : "Perfect ! The channel has been correctly setted. Please just check that i have all my needed permissions inside (Manage Messages, Read, Read History).",
+  "cleanChannelOptionSelectInfoChannel" : "You have selected the infochannel, this config is impossible to setup. The configuration has been canceled.",
+  "cleanChannelOptionOneTextChannelRequired" : "You haven't mentionned one textchannel. The configuration has been canceled.",
+  "cleanChannelOptionResponseTimeOut" : "The wait time of 2 minutes has been ended. Please remake the command if you want to setup this option.",
+  "optionDisable" : "Disable",
+  "optionEnable" : "Enable",
+  "cleanChannelOptionEnable" : "Enable (%s in the channel %s)",
+  "optionRegionDisable" : "Any (Disable)"
 }

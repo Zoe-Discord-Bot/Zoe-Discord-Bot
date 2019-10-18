@@ -12,6 +12,7 @@ import com.jagrosh.jdautilities.menu.ButtonMenu;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.Server;
+import ch.kalunight.zoe.model.static_data.SpellingLangage;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
@@ -76,12 +77,12 @@ public class CleanChannelOption extends ConfigurationOption {
       public void accept(CommandEvent event) {
 
         Server server = ServerData.getServers().get(event.getGuild().getId());
-        
+
         if(!event.getGuild().getSelfMember().getPermissions().contains(Permission.MESSAGE_MANAGE)) {
           event.reply(LanguageManager.getText(server.getLangage(), "cleanChannelOptionPermissionNeeded"));
           return;
         }
-        
+
         ButtonMenu.Builder choiceBuilder = new ButtonMenu.Builder();
 
         choiceBuilder.setEventWaiter(waiter);        
@@ -101,11 +102,14 @@ public class CleanChannelOption extends ConfigurationOption {
             String.format(LanguageManager.getText(server.getLangage(), "cleanChannelOptionLongDesc"),
                 LanguageManager.getText(server.getLangage(), description))
             + CleanChannelOptionInfo.DISABLE.emoji 
-            + " -> " + CleanChannelOptionInfo.DISABLE.name + " : " + CleanChannelOptionInfo.DISABLE.description + "\n"
+            + " -> " + LanguageManager.getText(server.getLangage(), CleanChannelOptionInfo.DISABLE.name)
+            + " : " + LanguageManager.getText(server.getLangage(), CleanChannelOptionInfo.DISABLE.description) + "\n"
             + CleanChannelOptionInfo.ONLY_ZOE_COMMANDS.emoji
-            + " -> " + CleanChannelOptionInfo.ONLY_ZOE_COMMANDS.name + " : " + CleanChannelOptionInfo.ONLY_ZOE_COMMANDS.description + "\n"
+            + " -> " + LanguageManager.getText(server.getLangage(), CleanChannelOptionInfo.ONLY_ZOE_COMMANDS.name)
+            + " : " + LanguageManager.getText(server.getLangage(), CleanChannelOptionInfo.ONLY_ZOE_COMMANDS.description) + "\n"
             + CleanChannelOptionInfo.ALL.emoji
-            + " -> " + CleanChannelOptionInfo.ALL.name + " : " + CleanChannelOptionInfo.ALL.description + "\n");
+            + " -> " + LanguageManager.getText(server.getLangage(), CleanChannelOptionInfo.ALL.name)
+            + " : " + LanguageManager.getText(server.getLangage(), CleanChannelOptionInfo.ALL.description) + "\n");
 
         choiceBuilder.setAction(updateOption(event.getChannel(), event.getGuild(), waiter, event.getAuthor()));
 
@@ -122,7 +126,7 @@ public class CleanChannelOption extends ConfigurationOption {
       public void accept(ReactionEmote emoteUsed) {
         channel.sendTyping().complete();
         Server server = ServerData.getServers().get(guild.getId());
-        
+
         if(emoteUsed.getName().equals(CleanChannelOptionInfo.ONLY_ZOE_COMMANDS.unicode)) {
           tmpCleanChannelOption = CleanChannelOptionInfo.ONLY_ZOE_COMMANDS;
         }else if(emoteUsed.getName().equals(CleanChannelOptionInfo.ALL.unicode)) {
@@ -170,7 +174,7 @@ public class CleanChannelOption extends ConfigurationOption {
   }
 
 
-  private Consumer<ReactionEmote> defineNewChannel(MessageChannel channel, Guild guild, EventWaiter eventWaiter, User user){
+  private Consumer<ReactionEmote> defineNewChannel(MessageChannel channel, Guild guild, EventWaiter eventWaiter, User user) {
     return new Consumer<ReactionEmote>() {
 
       @Override
@@ -195,12 +199,10 @@ public class CleanChannelOption extends ConfigurationOption {
             cleanChannel.getManager().setTopic(LanguageManager.getText(server.getLangage(),
                 "cleanChannelOptionTopicChannelZoeCommands")).queue();
           }else {
-            cleanChannel.getManager().setTopic("All messages sended here will be deleted after 3 seconds.").queue();
+            cleanChannel.getManager().setTopic(LanguageManager.getText(server.getLangage(), "cleanChannelOptionTopicChannelAll")).queue();
           }
 
-          channel.sendMessage("Perfect ! I have created a channel with the name \"clean-channel\". "
-              + "You can change option of this channel like you want. Just let me my permissions inside "
-              + "and everything will work.").queue();
+          channel.sendMessage(LanguageManager.getText(server.getLangage(), "cleanChannelOptionCreatedDoneMessage")).queue();
 
         }
       }
@@ -210,36 +212,44 @@ public class CleanChannelOption extends ConfigurationOption {
   private void selectChannel(MessageReceivedEvent event) {
     event.getTextChannel().sendTyping().complete();
 
+    Server server = ServerData.getServers().get(event.getGuild().getId());
+
     List<TextChannel> textsChannel = event.getMessage().getMentionedChannels();
 
     if(textsChannel.size() == 1) {
       TextChannel textChannel = textsChannel.get(0); 
-      Server server = ServerData.getServers().get(textChannel.getGuild().getId());
       if(!server.getInfoChannel().equals(textChannel)) {
 
         cleanChannel = textChannel;
         cleanChannelOption = tmpCleanChannelOption;
 
         if(cleanChannelOption.equals(CleanChannelOptionInfo.ONLY_ZOE_COMMANDS)) {
-          textChannel.sendMessage("Info : From now on, Zoe commands sended here will be deleted after 3 seconds.").complete();
+          textChannel.sendMessage(LanguageManager.getText(server.getLangage(), "cleanChannelOptionInfoMessageZoeCommands")).complete();
         }else {
-          textChannel.sendMessage("Info : From now on, all messages sended here will be deleted after 3 seconds.").complete();
+          textChannel.sendMessage(LanguageManager.getText(server.getLangage(), "cleanChannelOptionInfoMessageAll")).complete();
         }
 
-        event.getTextChannel().sendMessage("Perfect ! The channel has been correctly setted. "
-            + " Please just check that i have all my needed permissions inside (Manage Messages, Read, Read History).").queue();
+        event.getTextChannel().sendMessage(LanguageManager.getText(server.getLangage(), "cleanChannelOptionSettedDoneMessage")).queue();
 
       }else {
-        event.getTextChannel().sendMessage("You have selected the infochannel, this config is impossible to setup. "
-            + "The configuration has been canceled.").queue();
+        event.getTextChannel().sendMessage(LanguageManager.getText(server.getLangage(), "cleanChannelOptionSelectInfoChannel")).queue();
       }
     }else {
-      event.getTextChannel().sendMessage("You haven't mentionned 1 textchannel. The configuration has been canceled.").queue();
+      event.getTextChannel().sendMessage(LanguageManager.getText(server.getLangage(), "cleanChannelOptionOneTextChannelRequired")).queue();
     }
   }
 
   private void endCreateChannelTime(MessageChannel channel) {
-    channel.sendMessage("The wait time of 2 minutes has been ended. Please remake the command if you want to setup this option.").queue();
+    TextChannel textChannel = Zoe.getJda().getTextChannelById(channel.getId());
+
+    SpellingLangage langage = SpellingLangage.EN;
+    if(textChannel != null) {
+      Server server = ServerData.getServers().get(textChannel.getGuild().getId());
+      if(server != null) {
+        langage = server.getLangage();
+      }
+    }
+    channel.sendMessage(LanguageManager.getText(langage, "cleanChannelOptionResponseTimeOut")).queue();
   }
 
   private Consumer<Message> finalAction(){
@@ -252,19 +262,20 @@ public class CleanChannelOption extends ConfigurationOption {
   }
 
   @Override
-  public String getChoiceText() {
+  public String getChoiceText(SpellingLangage langage) {
 
     if(cleanChannel != null && Zoe.getJda().getTextChannelById(cleanChannel.getId()) == null) {
       cleanChannel = null;
       cleanChannelOption = CleanChannelOptionInfo.DISABLE;
     }
 
-    String status = "";
+    String status = LanguageManager.getText(langage, "optionDisable");
 
-    if(cleanChannelOption == CleanChannelOptionInfo.DISABLE) {
-      status = "Disable";
-    } else {
-      status = "Enable (" + cleanChannelOption.name + ")";
+    if(cleanChannel != null) {
+      status = String.format(LanguageManager.getText(langage, "cleanChannelOptionEnable"),
+          cleanChannelOption.name, cleanChannel.getAsMention());
+    }else {
+      cleanChannelOption = CleanChannelOptionInfo.DISABLE;
     }
 
     return description + " : " + status;

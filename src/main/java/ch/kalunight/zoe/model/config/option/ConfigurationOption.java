@@ -3,6 +3,7 @@ package ch.kalunight.zoe.model.config.option;
 import java.util.function.Consumer;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
+import ch.kalunight.zoe.model.static_data.SpellingLangage;
 
 public abstract class ConfigurationOption {
 
@@ -27,7 +28,7 @@ public abstract class ConfigurationOption {
    * Pattern -> Description : Status (Enabled/Disabled)
    * @return description of the option and his status
    */
-  public abstract String getChoiceText();
+  public abstract String getChoiceText(SpellingLangage langage);
   
   /**
    * Get save of the option <br>

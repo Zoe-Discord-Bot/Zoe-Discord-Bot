@@ -10,6 +10,8 @@ import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.player_data.Player;
+import ch.kalunight.zoe.model.static_data.SpellingLangage;
+import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -156,10 +158,10 @@ public class RoleOption extends ConfigurationOption {
   }
 
   @Override
-  public String getChoiceText() {
-    String status = "Disable";
+  public String getChoiceText(SpellingLangage langage) {
+    String status = LanguageManager.getText(langage, "optionDisable");
     if(role != null) {
-      status = "Enable";
+      status = LanguageManager.getText(langage, "optionEnable");
     }
     return description + " : " + status;
   }

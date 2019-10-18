@@ -55,7 +55,7 @@ public class ConfigCommand extends Command{
     
     List<ConfigurationOption> options = serverConfiguration.getAllConfigurationOption();
     for(ConfigurationOption option : options) {
-      builder.addChoice(option.getChoiceText());
+      builder.addChoice(option.getChoiceText(server.getLangage()));
     }
     
     builder.setSelection(getSelectionAction(options, event))

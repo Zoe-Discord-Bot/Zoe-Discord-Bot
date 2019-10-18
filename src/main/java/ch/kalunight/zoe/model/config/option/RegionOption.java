@@ -10,6 +10,8 @@ import java.util.function.Function;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.SelectionDialog;
+import ch.kalunight.zoe.model.static_data.SpellingLangage;
+import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.entities.Message;
 import net.rithms.riot.constant.Platform;
 
@@ -23,11 +25,11 @@ public class RegionOption extends ConfigurationOption {
   }
 
   @Override
-  public String getChoiceText() {
-    String strRegion = "Any (Disable)";
+  public String getChoiceText(SpellingLangage langage) {
+    String strRegion = LanguageManager.getText(langage, "optionRegionDisable");
 
     if(region != null) {
-      strRegion = this.region.getName().toUpperCase() + " (Enabled)";
+      strRegion = this.region.getName().toUpperCase() + " (" + LanguageManager.getText(langage, "optionEnable") + ")";
     }
 
     return description + " : " + strRegion;

@@ -43,9 +43,7 @@ public class LanguageManager {
   }
   
   public static String getText(SpellingLangage spellingLangage, String key) {
-    TranslationKey translationKey = new TranslationKey(spellingLangage, key);
-    
-    String text = translations.get(translationKey);
+    String text = translations.get(new TranslationKey(spellingLangage, key));
     if(text == null) {
       text = translations.get(new TranslationKey(SpellingLangage.EN, key));
     }

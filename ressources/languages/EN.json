@@ -143,5 +143,13 @@
   "optionDisable" : "Disable",
   "optionEnable" : "Enable",
   "cleanChannelOptionEnable" : "Enable (%s in the channel %s)",
-  "optionRegionDisable" : "Any (Disable)"
+  "optionRegionDisable" : "Any (Disable)",
+  "infocardsOptionDesc" : "Send stats message when a player start a game",
+  "infocardsOptionLongDescEnable" : "Option in activation : **%s**\n\nActivate this option will create at each game started by a player a message with stats about the game.\nThese message will be automatically deleted.\n\n:white_check_mark: : Activate this option.\n:x: : Cancel the activation.",
+  "infocardsOptionLongDescDisable" : "Option you want to disable : **%s**\n\nDisable this option will stop the sending of stats message about game in infochannel.\n\n**Are you sure to disable this option ?**\n\n:white_check_mark: : **Disable** the option\n:x: : Cancel the disable procedure",
+  "cleanChannelOptionBeenDisable" : "Right, the option has been disabled.",
+  "cleanChannelOptionStillEnable" : "Right, the option is still enable.",
+  "cleanChannelOptionBeenActivated" : "Right, the option has been activated.",
+  "cleanChannelOptionStillDisable" : "Right, the option is still disable."
+
 }

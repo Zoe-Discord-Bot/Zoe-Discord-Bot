@@ -6,18 +6,24 @@ import java.util.function.Consumer;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.ButtonMenu;
+import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.Zoe;
+import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.static_data.SpellingLangage;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.MessageReaction.ReactionEmote;
 
 public class InfoCardOption extends ConfigurationOption {
 
+  private static final String INFOCARDS_DESC_ID = "infocardsOptionDesc";
+  
   private boolean optionActivated;
   
   public InfoCardOption() {
-    super("infocards", "Send stats message when a player start a game");
+    super("infocards", INFOCARDS_DESC_ID);
     this.optionActivated = true;
   }
 
@@ -27,6 +33,8 @@ public class InfoCardOption extends ConfigurationOption {
       
       @Override
       public void accept(CommandEvent event) {
+        
+        Server server = ServerData.getServers().get(event.getGuild().getId());
         
         ButtonMenu.Builder choiceBuilder = new ButtonMenu.Builder();
         
@@ -40,11 +48,8 @@ public class InfoCardOption extends ConfigurationOption {
         
         if(!optionActivated) {
 
-          choiceBuilder.setText("Option in activation : **" + description + "**\n\n"
-              + "Activate this option will create at each game started by a player a message with stats about the game.\n"
-              + "These message will be automatically deleted.\n\n"
-              + ":white_check_mark: : Activate this option.\n"
-              + ":x: : Cancel the activation.");
+          choiceBuilder.setText(String.format(LanguageManager.getText(server.getLangage(),
+              "infocardsOptionLongDescEnable"), LanguageManager.getText(server.getLangage(), INFOCARDS_DESC_ID)));
           
           choiceBuilder.setAction(activateTheOption(event.getChannel()));
           
@@ -54,11 +59,8 @@ public class InfoCardOption extends ConfigurationOption {
           
         }else {
           
-          choiceBuilder.setText("Option you want to disable : **" + description + "**\n\n"
-              + "Disable this option will stop the sending of stats message about game in infochannel.\n\n"
-              + "**Are you sure to disable this option ?**\n\n"
-              + ":white_check_mark: : **Disable** the option\n"
-              + ":x: : Cancel the disable procedure");
+          choiceBuilder.setText(String.format(LanguageManager.getText(server.getLangage(), "infocardsOptionLongDescDisable"),
+              LanguageManager.getText(server.getLangage(), INFOCARDS_DESC_ID)));
           
           choiceBuilder.setAction(disableTheOption(event.getChannel()));
           
@@ -76,14 +78,16 @@ public class InfoCardOption extends ConfigurationOption {
 
       @Override
       public void accept(ReactionEmote emote) {
-        
         messageChannel.sendTyping().complete();
+        TextChannel textChannel = Zoe.getJda().getTextChannelById(messageChannel.getId());
+        
+        Server server = ServerData.getServers().get(textChannel.getId());
         
         if(emote.getName().equals("✅")) {
           optionActivated = false;
-          messageChannel.sendMessage("Right, the option has been disabled.").queue();
+          messageChannel.sendMessage(LanguageManager.getText(server.getLangage(), "cleanChannelOptionBeenDisable")).queue();
         }else {
-          messageChannel.sendMessage("Right, the option is still enable.").queue();
+          messageChannel.sendMessage(LanguageManager.getText(server.getLangage(), "cleanChannelOptionStillEnable")).queue();
         }
     }};
   }
@@ -93,14 +97,16 @@ public class InfoCardOption extends ConfigurationOption {
 
       @Override
       public void accept(ReactionEmote emoteUsed) {
-        
         messageChannel.sendTyping().complete();
+        TextChannel textChannel = Zoe.getJda().getTextChannelById(messageChannel.getId());
+        
+        Server server = ServerData.getServers().get(textChannel.getId());
         
         if(emoteUsed.getName().equals("✅")) {
           optionActivated = true;
-          messageChannel.sendMessage("Right, the option has been activated.").queue();
+          messageChannel.sendMessage(LanguageManager.getText(server.getLangage(), "cleanChannelOptionBeenActivated")).queue();
         }else {
-          messageChannel.sendMessage("Right, the option is still disable.").queue();
+          messageChannel.sendMessage(LanguageManager.getText(server.getLangage(), "cleanChannelOptionStillDisable")).queue();
         }
       }};
   }
@@ -124,7 +130,7 @@ public class InfoCardOption extends ConfigurationOption {
     }else {
       status = LanguageManager.getText(langage, "optionDisable");
     }
-    return description + " : " + status;
+    return LanguageManager.getText(langage, description) + " : " + status;
   }
 
   @Override

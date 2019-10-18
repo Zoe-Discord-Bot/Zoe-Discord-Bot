@@ -278,7 +278,7 @@ public class CleanChannelOption extends ConfigurationOption {
       cleanChannelOption = CleanChannelOptionInfo.DISABLE;
     }
 
-    return description + " : " + status;
+    return LanguageManager.getText(langage, description) + " : " + status;
   }
 
   @Override

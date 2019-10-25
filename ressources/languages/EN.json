@@ -150,6 +150,25 @@
   "cleanChannelOptionBeenDisable" : "Right, the option has been disabled.",
   "cleanChannelOptionStillEnable" : "Right, the option is still enable.",
   "cleanChannelOptionBeenActivated" : "Right, the option has been activated.",
-  "cleanChannelOptionStillDisable" : "Right, the option is still disable."
-
+  "cleanChannelOptionStillDisable" : "Right, the option is still disable.",
+  "regionOptionDesc" : "Default region of the server",
+  "regionOptionAnyRegionSelected" : "Currently **any** default region is setted. Which region you want to set ?",
+  "regionOptionRegionSelected" : "Currently default region is **%s**. Which region you want to set ?",
+  "regionOptionRegionChoice" : "Region %s",
+  "regionOptionDisableChoice" : "Region Any (Option Disable)",
+  "regionOptionInSelectionAny" : "Region selected : \"**Any**\"",
+  "regionOptionInSelectionRegion" : "Region selected : \"**%s**\"",
+  "regionOptionAnyRegion" : "Any",
+  "regionOptionDoneMessage" : "The default region of the server is now \"**%s**\".",
+  "regionOptionSelectionCanceledMessage" : "Selection canceled",
+  "roleOptionDescription" : "Hide the infochannel to non-player with a role",
+  "roleOptionPermissionNeeded" : "I need the manage roles permission to activate this option. Please give me this permission if you want to activate this option.",
+  "roleOptionLongDesc" : "Option in activation : **%s**\n\nActivate this option will create a role named \"Zoe-Player\" and assigne it to all players registered. You can update it like you want. If it got deleted, the option will be disable automatically.\n\n:white_check_mark: : Activate this option\n:x: : Cancel the activation",
+  "roleOptionLongDescDisable" : "Option you want to disable : **%s**\n\nDisable it will **delete the Zoe-Player role** and will remake infochannel readable by everyone.\n\n:white_check_mark: : **Disable** the option.\n:x: : Cancel the deactivation",
+  "roleOptionActivateWaitMessage" : "Right, i will activate that quickly. Wait 2 seconds...",
+  "roleOptionDoneMessage" : "The configuration has ended ! Now only registered player can see the infoChannel.",
+  "roleOptionCancelMessage" : "Well, if you have one day changed you mind. You know where i am.",
+  "roleOptionDisableWaitMessage" : "Right, i disable the option. Please wait 2 seconds...",
+  "roleOptionDoneMessageDisable" : "The option has been disable !",
+  "roleOptionDoneMessageStillActivate" : "Right, the option is still activate."
 }

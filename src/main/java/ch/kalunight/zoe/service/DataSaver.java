@@ -19,7 +19,7 @@ public class DataSaver extends TimerTask {
 
   private static DateTime nextSaveTime = DateTime.now().plusMinutes(TIME_BETWEEN_EACH_SAVE_IN_MINUTES);
   
-  private static DateTime nextCleanCacheTime = DateTime.now().plusHours(TIME_BETWEEN_CLEAN_CACHE_IN_HOURS);
+  private static DateTime nextCleanCacheTime = DateTime.now();
 
   @Override
   public void run() {

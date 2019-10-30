@@ -26,6 +26,12 @@ public class CacheManager {
   private static final Logger logger = LoggerFactory.getLogger(CacheManager.class);
 
   public static void setupCache() {
+    if(!CachedRiotApi.CACHE_ENABLE) {
+      logger.info("The cache is disable, no file will be cached.");
+      return;
+    }
+    
+    
     if(!CACHE_FOLDER.exists()) {
       CACHE_FOLDER.mkdir();
     }
@@ -46,6 +52,11 @@ public class CacheManager {
   }
 
   public static void cleanMatchCache() {
+    if(!CachedRiotApi.CACHE_ENABLE) {
+      logger.info("The cache is disable, no file will be cleaned.");
+      return;
+    }
+    
     int totalDeletedFile = 0;
     for(Platform platform : Platform.values()) {
       File matchFolder = new File(CACHE_FOLDER.getAbsoluteFile() + "/" + platform.getName() + "/" + DataType.MATCH.toString());
@@ -57,7 +68,7 @@ public class CacheManager {
 
             LocalDateTime creationMatch = LocalDateTime.ofInstant(Instant.ofEpochMilli(match.getGameCreation()), ZoneOffset.UTC);
 
-            if(LocalDateTime.now().minusDays(32).isAfter(creationMatch)) { //32 days to avoid premature delete due to time zone
+            if(LocalDateTime.now().minusDays(15).isAfter(creationMatch)) {
               if(fileMatch.delete()) {
                 totalDeletedFile++;
               }
@@ -82,6 +93,9 @@ public class CacheManager {
   }
 
   public static void putMatch(Platform platform, Match match) {
+    if(!CachedRiotApi.CACHE_ENABLE) {
+      return;
+    }
     File file = getCacheFile(platform, DataType.MATCH, Long.toString(match.getGameId()) + ".json");
 
     String jsonMatch = gson.toJson(match);
@@ -94,6 +108,10 @@ public class CacheManager {
   }
 
   public static Match getMatch(Platform platform, String id) {
+    if(!CachedRiotApi.CACHE_ENABLE) {
+      return null;
+    }
+    
     File file = getCacheFile(platform, DataType.MATCH, id + ".json");
 
     if(!file.exists()) return null;

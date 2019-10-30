@@ -70,6 +70,8 @@ public class InfoPanelRefresher implements Runnable {
 
         if(server.getInfoChannel() != null && server.getGuild().getTextChannelById(server.getInfoChannel().getId()) != null) {
 
+          cleanInfoChannelCache();
+          
           if(infoPanels.size() < server.getControlePannel().getInfoPanel().size()) {
             int nbrMessageToDelete = server.getControlePannel().getInfoPanel().size() - infoPanels.size();
             for(int i = 0; i < nbrMessageToDelete; i++) {
@@ -125,6 +127,20 @@ public class InfoPanelRefresher implements Runnable {
     } finally {
       server.setLastRefresh(DateTime.now());
       ServerData.getServersIsInTreatment().put(server.getGuild().getId(), false);
+    }
+  }
+
+  private void cleanInfoChannelCache() {
+    List<Message> messagesToRemove = new ArrayList<>();
+    for(Message partInfoPannel : server.getControlePannel().getInfoPanel()) {
+      try {
+        partInfoPannel.addReaction(":clock1:").complete(); //TODO: to delete
+      }catch(ErrorResponseException e) {
+        messagesToRemove.add(partInfoPannel);
+      }
+    }
+    for(Message messageToRemove : messagesToRemove) {
+      server.getControlePannel().getInfoPanel().remove(messageToRemove);
     }
   }
 

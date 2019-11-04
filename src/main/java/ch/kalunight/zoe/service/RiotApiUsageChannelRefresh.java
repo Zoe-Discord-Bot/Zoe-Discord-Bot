@@ -81,6 +81,7 @@ public class RiotApiUsageChannelRefresh implements Runnable {
       if(DateTime.now().minusDays(TIME_BETWEEN_EACH_RESET_CATCHED_RIOT_API_IN_DAY).isAfter(lastRapiCountReset)) {
         lastRapiCountReset = DateTime.now();
         Zoe.getRiotApi().cleanCache();
+        ZoeCommand.clearStats();
       }
 
       setInfocardCreatedCount(0);

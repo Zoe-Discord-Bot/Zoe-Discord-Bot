@@ -81,7 +81,7 @@ public class Zoe {
 
   public static final String BOT_PREFIX = ">";
 
-  private static final File SAVE_TXT_FILE = new File("ressources/save.txt");
+  public static final File SAVE_TXT_FILE = new File("ressources/save.txt");
 
   public static final File RAPI_SAVE_TXT_FILE = new File("ressources/apiInfos.txt");
 

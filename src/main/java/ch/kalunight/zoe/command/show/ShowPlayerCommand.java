@@ -8,16 +8,17 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.Paginator;
 import ch.kalunight.zoe.ServerData;
-import ch.kalunight.zoe.command.CommandUtil;
+import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.player_data.LeagueAccount;
 import ch.kalunight.zoe.model.player_data.Player;
+import ch.kalunight.zoe.util.CommandUtil;
 import ch.kalunight.zoe.util.request.RiotRequest;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.rithms.riot.constant.CallPriority;
 
-public class ShowPlayerCommand extends Command {
+public class ShowPlayerCommand extends ZoeCommand {
 
   public static final String USAGE_NAME = "players";
 
@@ -37,7 +38,7 @@ public class ShowPlayerCommand extends Command {
   }
 
   @Override
-  protected void execute(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) {
     CommandUtil.sendTypingInFonctionOfChannelType(event);
 
     Paginator.Builder pbuilder = new Paginator.Builder()

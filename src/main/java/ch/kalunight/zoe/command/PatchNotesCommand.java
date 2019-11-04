@@ -1,9 +1,8 @@
 package ch.kalunight.zoe.command;
 
-import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 
-public class PatchNotesCommand extends Command {
+public class PatchNotesCommand extends ZoeCommand {
 
   public PatchNotesCommand() {
     this.name = "patchNotes";
@@ -16,7 +15,7 @@ public class PatchNotesCommand extends Command {
   }
   
   @Override
-  protected void execute(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) {
     //TODO: Patch note are actually hard coded -> Implement a Patch note reader (reader of an external file).
     
     event.reply("**Actual version : 1.3.0**\n"

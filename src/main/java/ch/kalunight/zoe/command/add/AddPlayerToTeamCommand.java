@@ -6,15 +6,16 @@ import java.util.regex.Pattern;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
-import ch.kalunight.zoe.command.CommandUtil;
+import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.model.player_data.Team;
 import ch.kalunight.zoe.model.static_data.SpellingLangage;
+import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
 
-public class AddPlayerToTeamCommand extends Command {
+public class AddPlayerToTeamCommand extends ZoeCommand {
 
   public static final String USAGE_NAME = "playerToTeam";
   public static final Pattern PARENTHESES_PATTERN = Pattern.compile("\\(([^)]+)\\)");
@@ -29,7 +30,7 @@ public class AddPlayerToTeamCommand extends Command {
   }
 
   @Override
-  protected void execute(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) {
     event.getTextChannel().sendTyping().complete();
     Server server = ServerData.getServers().get(event.getGuild().getId());
 

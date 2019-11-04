@@ -4,10 +4,10 @@ import java.util.function.BiConsumer;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
+import ch.kalunight.zoe.command.ZoeCommand;
+import ch.kalunight.zoe.util.CommandUtil;
 
-import ch.kalunight.zoe.command.CommandUtil;
-
-public class RemoveCommand extends Command {
+public class RemoveCommand extends ZoeCommand {
 
   public static final String USAGE_NAME = "remove";
 
@@ -20,7 +20,7 @@ public class RemoveCommand extends Command {
   }
 
   @Override
-  protected void execute(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) {
     event.reply("If you need help for remove command, type `>remove help`");
   }
 

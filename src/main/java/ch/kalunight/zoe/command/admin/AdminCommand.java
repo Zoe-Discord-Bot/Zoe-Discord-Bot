@@ -3,9 +3,10 @@ package ch.kalunight.zoe.command.admin;
 import java.util.function.BiConsumer;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import ch.kalunight.zoe.command.CommandUtil;
+import ch.kalunight.zoe.command.ZoeCommand;
+import ch.kalunight.zoe.util.CommandUtil;
 
-public class AdminCommand extends Command {
+public class AdminCommand extends ZoeCommand {
 
   public AdminCommand() {
     this.name = "admin";
@@ -18,7 +19,7 @@ public class AdminCommand extends Command {
   }
   
   @Override
-  protected void execute(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) {
     event.reply("Admins command, type `>admin help` for help");
   }
 

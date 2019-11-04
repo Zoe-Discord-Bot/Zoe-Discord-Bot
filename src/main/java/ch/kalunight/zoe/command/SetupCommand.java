@@ -1,9 +1,9 @@
 package ch.kalunight.zoe.command;
 
-import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
+import ch.kalunight.zoe.util.CommandUtil;
 
-public class SetupCommand extends Command {
+public class SetupCommand extends ZoeCommand {
 
   public SetupCommand() {
     this.name = "setup";
@@ -14,7 +14,7 @@ public class SetupCommand extends Command {
   }
 
   @Override
-  protected void execute(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) {
     CommandUtil.sendTypingInFonctionOfChannelType(event);
     event.reply("Hi, you'll see, my commands are really not complicated. "
         + "First of all, know that you can see all my commands with a help with the command `>help`. "

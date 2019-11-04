@@ -114,16 +114,16 @@ public class InfoPanelRefresher implements Runnable {
     } catch(NullPointerException e) {
       logger.info("The Thread has crashed normally because of deletion of infoChannel :", e);
     }catch (InsufficientPermissionException e) {
-      logger.info("Permission {} missing for infochannel in the guild {}, try to autofix the issue... (Low chance to work)",
+      logger.debug("Permission {} missing for infochannel in the guild {}, try to autofix the issue... (Low chance to work)",
           e.getPermission().getName(), server.getGuild().getName());
       try {
         PermissionOverride permissionOverride = server.getInfoChannel()
             .putPermissionOverride(server.getGuild().getMember(Zoe.getJda().getSelfUser())).complete();
 
         permissionOverride.getManager().grant(e.getPermission()).complete();
-        logger.info("Autofix complete !");
+        logger.debug("Autofix complete !");
       }catch(Exception e1) {
-        logger.info("Autofix fail ! Error message : {} ", e1.getMessage());
+        logger.debug("Autofix fail ! Error message : {} ", e1.getMessage());
       }
     } catch(Exception e) {
       logger.warn("The thread got a unexpected error :", e);

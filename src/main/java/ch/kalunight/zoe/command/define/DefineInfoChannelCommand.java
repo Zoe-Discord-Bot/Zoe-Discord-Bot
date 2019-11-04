@@ -4,16 +4,17 @@ import java.util.function.BiConsumer;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
-import ch.kalunight.zoe.command.CommandUtil;
+import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.model.ControlPannel;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.static_data.SpellingLangage;
 import ch.kalunight.zoe.service.InfoPanelRefresher;
+import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.TextChannel;
 
-public class DefineInfoChannelCommand extends Command {
+public class DefineInfoChannelCommand extends ZoeCommand {
 
   public DefineInfoChannelCommand() {
     this.name = "InfoChannel";
@@ -25,7 +26,7 @@ public class DefineInfoChannelCommand extends Command {
   }
 
   @Override
-  protected void execute(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) {
     event.getTextChannel().sendTyping().complete();
     Server server = ServerData.getServers().get(event.getGuild().getId());
 
@@ -50,16 +51,20 @@ public class DefineInfoChannelCommand extends Command {
           if(!event.getMessage().getMentionedChannels().get(0).canTalk()) {
             event.reply("I can't talk in this channel ! Please give me the speak permission in this channel if you want to do that.");
           } else {
-            server.setInfoChannel(textChannel);
-            server.setControlePannel(new ControlPannel());
-            event.reply("The channel has been defined ! It should be refreshed really quick.");
-            
-            if(server.getControlePannel().getInfoPanel().isEmpty()) {
-              server.getControlePannel().getInfoPanel()
-              .add(server.getInfoChannel().sendMessage("__**Information Panel**__\n \n*Loading...*").complete());
+            if(textChannel.equals(server.getConfig().getCleanChannelOption().getCleanChannel())) {
+              event.reply("I can't define the infochannel inside the clean channel (-> see config option \"Clean Channel\").");
+            }else {
+              server.setInfoChannel(textChannel);
+              server.setControlePannel(new ControlPannel());
+              event.reply("The channel has been defined ! It should be refreshed really quick.");
+
+              if(server.getControlePannel().getInfoPanel().isEmpty()) {
+                server.getControlePannel().getInfoPanel()
+                .add(server.getInfoChannel().sendMessage("__**Information Panel**__\n \n*Loading...*").complete());
+              }
+              InfoPanelRefresher infoPanelRefresher = new InfoPanelRefresher(server);
+              ServerData.getServerExecutor().submit(infoPanelRefresher);
             }
-            InfoPanelRefresher infoPanelRefresher = new InfoPanelRefresher(server);
-            ServerData.getServerExecutor().submit(infoPanelRefresher);
           }
         }
       }

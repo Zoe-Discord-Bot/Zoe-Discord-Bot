@@ -6,9 +6,10 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 
 import ch.kalunight.zoe.Zoe;
-import ch.kalunight.zoe.command.CommandUtil;
+import ch.kalunight.zoe.command.ZoeCommand;
+import ch.kalunight.zoe.util.CommandUtil;
 
-public class StatsCommand extends Command {
+public class StatsCommand extends ZoeCommand {
 
   public StatsCommand(EventWaiter waiter) {
     this.name = "stats";
@@ -20,12 +21,12 @@ public class StatsCommand extends Command {
   }
   
   @Override
-  protected void execute(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) {
     if(!event.getMessage().getMentionedMembers().isEmpty()) {
       for(Command command : Zoe.getMainCommands(null)) {
         for(Command commandChild : command.getChildren()) {
           if(commandChild instanceof StatsProfileCommand) {
-            ((StatsProfileCommand) commandChild).execute(event);
+            ((StatsProfileCommand) commandChild).executeCommand(event);
             return;
           }
         }

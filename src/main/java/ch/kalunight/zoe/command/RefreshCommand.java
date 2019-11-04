@@ -7,8 +7,9 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.model.Server;
+import ch.kalunight.zoe.util.CommandUtil;
 
-public class RefreshCommand extends Command {
+public class RefreshCommand extends ZoeCommand {
   
   public RefreshCommand() {
     this.name = "refresh";
@@ -23,7 +24,7 @@ public class RefreshCommand extends Command {
   }
 
   @Override
-  protected void execute(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) {
     CommandUtil.sendTypingInFonctionOfChannelType(event);
     Server server = ServerData.getServers().get(event.getGuild().getId());
     

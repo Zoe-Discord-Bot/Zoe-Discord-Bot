@@ -8,11 +8,12 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
-import ch.kalunight.zoe.command.CommandUtil;
+import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.config.option.RegionOption;
 import ch.kalunight.zoe.model.player_data.LeagueAccount;
 import ch.kalunight.zoe.model.player_data.Player;
+import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.rithms.riot.api.RiotApiException;
@@ -20,7 +21,7 @@ import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.constant.CallPriority;
 import net.rithms.riot.constant.Platform;
 
-public class RegisterCommand extends Command {
+public class RegisterCommand extends ZoeCommand {
 
   public static final String USAGE_NAME = "register";
   
@@ -35,7 +36,7 @@ public class RegisterCommand extends Command {
   }
   
   @Override
-  protected void execute(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) {
     event.getTextChannel().sendTyping().complete();
     
     Server server = ServerData.getServers().get(event.getGuild().getId());

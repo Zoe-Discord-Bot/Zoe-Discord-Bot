@@ -3,10 +3,11 @@ package ch.kalunight.zoe.command.create;
 import java.util.function.BiConsumer;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import ch.kalunight.zoe.command.CommandUtil;
+import ch.kalunight.zoe.command.ZoeCommand;
+import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
 
-public class CreateCommand extends Command {
+public class CreateCommand extends ZoeCommand {
 
   public static final String USAGE_NAME = "create";
   
@@ -22,7 +23,7 @@ public class CreateCommand extends Command {
   }
 
   @Override
-  protected void execute(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) {
     event.reply("If you need help for create commands, type `>create help`");
   }
 

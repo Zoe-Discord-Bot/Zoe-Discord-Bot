@@ -51,16 +51,20 @@ public class DefineInfoChannelCommand extends ZoeCommand {
           if(!event.getMessage().getMentionedChannels().get(0).canTalk()) {
             event.reply("I can't talk in this channel ! Please give me the speak permission in this channel if you want to do that.");
           } else {
-            server.setInfoChannel(textChannel);
-            server.setControlePannel(new ControlPannel());
-            event.reply("The channel has been defined ! It should be refreshed really quick.");
-            
-            if(server.getControlePannel().getInfoPanel().isEmpty()) {
-              server.getControlePannel().getInfoPanel()
-              .add(server.getInfoChannel().sendMessage("__**Information Panel**__\n \n*Loading...*").complete());
+            if(textChannel.equals(server.getConfig().getCleanChannelOption().getCleanChannel())) {
+              event.reply("I can't define the infochannel inside the clean channel (-> see config option \"Clean Chanel\").");
+            }else {
+              server.setInfoChannel(textChannel);
+              server.setControlePannel(new ControlPannel());
+              event.reply("The channel has been defined ! It should be refreshed really quick.");
+
+              if(server.getControlePannel().getInfoPanel().isEmpty()) {
+                server.getControlePannel().getInfoPanel()
+                .add(server.getInfoChannel().sendMessage("__**Information Panel**__\n \n*Loading...*").complete());
+              }
+              InfoPanelRefresher infoPanelRefresher = new InfoPanelRefresher(server);
+              ServerData.getServerExecutor().submit(infoPanelRefresher);
             }
-            InfoPanelRefresher infoPanelRefresher = new InfoPanelRefresher(server);
-            ServerData.getServerExecutor().submit(infoPanelRefresher);
           }
         }
       }

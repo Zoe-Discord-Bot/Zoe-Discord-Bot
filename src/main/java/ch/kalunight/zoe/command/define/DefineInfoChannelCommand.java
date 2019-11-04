@@ -52,7 +52,7 @@ public class DefineInfoChannelCommand extends ZoeCommand {
             event.reply("I can't talk in this channel ! Please give me the speak permission in this channel if you want to do that.");
           } else {
             if(textChannel.equals(server.getConfig().getCleanChannelOption().getCleanChannel())) {
-              event.reply("I can't define the infochannel inside the clean channel (-> see config option \"Clean Chanel\").");
+              event.reply("I can't define the infochannel inside the clean channel (-> see config option \"Clean Channel\").");
             }else {
               server.setInfoChannel(textChannel);
               server.setControlePannel(new ControlPannel());

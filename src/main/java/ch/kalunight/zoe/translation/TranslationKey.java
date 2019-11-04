@@ -49,10 +49,12 @@ public class TranslationKey {
     if(key == null) {
       if(other.key != null)
         return false;
-    } else if(!key.equals(other.key))
+    } else if(!key.equals(other.key)) {
+      return false; 
+    }
+    if(language != other.language) {
       return false;
-    if(language != other.language)
-      return false;
+    }
     return true;
   }
   

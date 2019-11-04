@@ -6,6 +6,8 @@ import java.util.function.Consumer;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.ButtonMenu;
+import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.static_data.SpellingLangage;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.entities.Message;
@@ -17,7 +19,7 @@ public class SelfAddingOption extends ConfigurationOption {
   private boolean optionActivated;
 
   public SelfAddingOption() {
-    super("self_adding", "Everyone can add/delete them self in the system");
+    super("self_adding", "selfAddingOptionDesc");
     optionActivated = false;
   }
 
@@ -38,16 +40,14 @@ public class SelfAddingOption extends ConfigurationOption {
 
         choiceBuilder.setTimeout(2, TimeUnit.MINUTES);
         
+        Server server = ServerData.getServers().get(event.getGuild().getId());
+        
         if(!optionActivated) {
 
-          choiceBuilder.setText("Option in activation : **" + description + "**\n\n"
-              + "This option will allow all members of the server to add/delete them self in the "
-              + "system with the command ``>create player``, ``>delete player``, ``>add account``, ``>remove account`` "
-              + "and this will activate the command ``>register``.\n\n"
-              + ":white_check_mark: : Activate this option.\n"
-              + ":x: : Cancel the activation.");
+          choiceBuilder.setText(String.format(LanguageManager.getText(server.getLangage(), "selfAddingOptionDescLong"), 
+              LanguageManager.getText(server.getLangage(), description)));
           
-          choiceBuilder.setAction(activateTheOption(event.getChannel()));
+          choiceBuilder.setAction(activateTheOption(server.getLangage(), event.getChannel()));
           
           ButtonMenu menu = choiceBuilder.build();
                     
@@ -55,14 +55,9 @@ public class SelfAddingOption extends ConfigurationOption {
           
         }else {
           
-          choiceBuilder.setText("Option you want to disable : **" + description + "**\n\n"
-              + "All members will not be longer allowed to add/delete them self in the system. "
-              + "The command ``>register`` will be disable.\n"
-              + "**Are you sure to disable this option ?**\n\n"
-              + ":white_check_mark: : **Disable** the option\n"
-              + ":x: : Cancel the disable procedure");
+          choiceBuilder.setText(LanguageManager.getText(server.getLangage(), "selfAddingOptionDescLongDisable"));
           
-          choiceBuilder.setAction(disableTheOption(event.getChannel()));
+          choiceBuilder.setAction(disableTheOption(server.getLangage(), event.getChannel()));
           
           ButtonMenu menu = choiceBuilder.build();
           
@@ -72,7 +67,7 @@ public class SelfAddingOption extends ConfigurationOption {
     };
   }
   
-  private Consumer<ReactionEmote> disableTheOption(MessageChannel messageChannel) {
+  private Consumer<ReactionEmote> disableTheOption(SpellingLangage langage, MessageChannel messageChannel) {
     return new Consumer<ReactionEmote>() {
 
       @Override
@@ -82,14 +77,14 @@ public class SelfAddingOption extends ConfigurationOption {
         
         if(emote.getName().equals("✅")) {
           optionActivated = false;
-          messageChannel.sendMessage("Right, the option has been disabled.").queue();
+          messageChannel.sendMessage(LanguageManager.getText(langage, "selfAddingOptionBeenDisable")).queue();
         }else {
-          messageChannel.sendMessage("Right, the option is still enable.").queue();
+          messageChannel.sendMessage(LanguageManager.getText(langage, "selfAddingOptionStillEnable")).queue();
         }
     }};
   }
   
-  private Consumer<ReactionEmote> activateTheOption(MessageChannel messageChannel) {
+  private Consumer<ReactionEmote> activateTheOption(SpellingLangage langage, MessageChannel messageChannel) {
     return new Consumer<ReactionEmote>() {
 
       @Override
@@ -99,9 +94,9 @@ public class SelfAddingOption extends ConfigurationOption {
         
         if(emoteUsed.getName().equals("✅")) {
           optionActivated = true;
-          messageChannel.sendMessage("Right, the option has been activated.").queue();
+          messageChannel.sendMessage(LanguageManager.getText(langage, "selfAddingOptionBeenActivated")).queue();
         }else {
-          messageChannel.sendMessage("Right, the option is still disable.").queue();
+          messageChannel.sendMessage(LanguageManager.getText(langage, "selfAddingOptionStillDisable")).queue();
         }
       }};
   }
@@ -124,7 +119,7 @@ public class SelfAddingOption extends ConfigurationOption {
     } else {
       status = LanguageManager.getText(langage, "optionDisable");
     }
-    return description + " : " + status;
+    return LanguageManager.getText(langage, description) + " : " + status;
   }
 
   @Override

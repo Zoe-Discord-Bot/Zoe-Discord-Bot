@@ -170,5 +170,12 @@
   "roleOptionCancelMessage" : "Well, if you have one day changed you mind. You know where i am.",
   "roleOptionDisableWaitMessage" : "Right, i disable the option. Please wait 2 seconds...",
   "roleOptionDoneMessageDisable" : "The option has been disable !",
-  "roleOptionDoneMessageStillActivate" : "Right, the option is still activate."
+  "roleOptionDoneMessageStillActivate" : "Right, the option is still activate.",
+  "selfAddingOptionDesc" : "Everyone can add/delete them self in the system",
+  "selfAddingOptionDescLong" : "Option in activation : **%s**\n\nThis option will allow all members of the server to add/delete them self in the system with the command ``>create player``, ``>delete player``, ``>add account``, ``>remove account`` and this will activate the command ``>register``.\n\n:white_check_mark: : Activate this option.\n:x: : Cancel the activation.",
+  "selfAddingOptionDescLongDisable" : "Option you want to disable : **%s**\n\nAll members will not be longer allowed to add/delete them self in the system. The command ``>register`` will be disable.\n**Are you sure to disable this option ?**\n\n:white_check_mark: : **Disable** the option\n:x: : Cancel the disable procedure",
+  "selfAddingOptionBeenDisable" : "Right, the option has been disabled.",
+  "selfAddingOptionStillEnable" : "Right, the option is still enable.",
+  "selfAddingOptionBeenActivated" : "Right, the option has been activated.",
+  "selfAddingOptionStillDisable" : "Right, the option is still disable.",
 }

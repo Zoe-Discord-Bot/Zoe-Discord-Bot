@@ -17,6 +17,7 @@ import org.knowm.xchart.style.PieStyler.AnnotationType;
 import org.knowm.xchart.style.Styler.ChartTheme;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
+import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.player_data.Player;
 import net.dv8tion.jda.api.MessageBuilder;
@@ -59,16 +60,23 @@ public class RiotApiUsageChannelRefresh implements Runnable {
         }
       }
 
-      rapiInfoChannel.sendMessage("Total number of Servers : " + Zoe.getJda().getGuilds().size()
+      rapiInfoChannel.sendMessage("**Generic Stats**"
+          + "\nTotal number of Servers : " + Zoe.getJda().getGuilds().size()
           + "\nTotal number of players : " + nbrPlayers 
           + "\nTotal number of League accounts : " + nbrAccount 
           + "\nTask in Server Executor Queue : " + ServerData.getServerExecutor().getQueue().size()
           + "\nTask in InfoCards Generator Queue : " + ServerData.getInfocardsGenerator().getQueue().size()
           + "\nInfocards Generated last 2 minutes : " + getInfocardCreatedCount()).queue();
 
-      rapiInfoChannel.sendMessage("Total of requests with Riot api : " + Zoe.getRiotApi().getTotalRequestCount()
+      rapiInfoChannel.sendMessage("**Riot Request Stats**"
+          + "\nTotal of requests with Riot api : " + Zoe.getRiotApi().getTotalRequestCount()
           + "\nNumber of request for match with RiotAPI : " + Zoe.getRiotApi().getApiMatchRequestCount()
           + "\nTotal number of request for match : " + Zoe.getRiotApi().getAllMatchRequestCount()).queue();
+      
+      rapiInfoChannel.sendMessage("**Discord Command Stats**"
+          + "\nTotal discord command executed : " + ZoeCommand.getCommandExecuted().get() 
+          + "\nTotal discord command done correctly : " + ZoeCommand.getCommandFinishedCorrectly().get()
+          + "\nTotal discord command done with error : " + ZoeCommand.getCommandFinishedWithError().get()).queue();
 
       if(DateTime.now().minusDays(TIME_BETWEEN_EACH_RESET_CATCHED_RIOT_API_IN_DAY).isAfter(lastRapiCountReset)) {
         lastRapiCountReset = DateTime.now();

@@ -419,8 +419,13 @@ public class Zoe {
     StringBuilder playersOKOfTheServer = new StringBuilder();
 
     int nbrPlayersOk = 0;
-
+    int nbrPlayerNotOk = 0;
+    
     for(Player player : server.getPlayers()) {
+      if(player == null) {
+        nbrPlayerNotOk++;
+        continue;
+      }
       try {
         onePlayer = new StringBuilder();
         onePlayer.append(player.getDiscordUser().getId() + "\n");
@@ -436,6 +441,10 @@ public class Zoe {
       }catch (Exception e) {
         logger.warn("A player has not been saved ! Error when saving lol accounts and discords users", e);
       }
+    }
+    
+    for(int i = 0; i < nbrPlayerNotOk; i++) {
+      server.getPlayers().remove(null);
     }
 
     strBuilder.append(nbrPlayersOk + "\n");

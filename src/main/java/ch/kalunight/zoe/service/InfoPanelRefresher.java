@@ -112,21 +112,21 @@ public class InfoPanelRefresher implements Runnable {
         }
       }
     } catch(NullPointerException e) {
-      logger.info("The Thread has crashed normally because of deletion of infoChannel :", e);
+      logger.warn("The Thread has crashed prbably normally because of deletion of infoChannel :", e);
     }catch (InsufficientPermissionException e) {
-      logger.info("Permission {} missing for infochannel in the guild {}, try to autofix the issue... (Low chance to work)",
+      logger.debug("Permission {} missing for infochannel in the guild {}, try to autofix the issue... (Low chance to work)",
           e.getPermission().getName(), server.getGuild().getName());
       try {
         PermissionOverride permissionOverride = server.getInfoChannel()
             .putPermissionOverride(server.getGuild().getMember(Zoe.getJda().getSelfUser())).complete();
 
         permissionOverride.getManager().grant(e.getPermission()).complete();
-        logger.info("Autofix complete !");
+        logger.debug("Autofix complete !");
       }catch(Exception e1) {
-        logger.info("Autofix fail ! Error message : {} ", e1.getMessage());
+        logger.debug("Autofix fail ! Error message : {} ", e1.getMessage());
       }
     } catch(Exception e) {
-      logger.warn("The thread got a unexpected error :", e);
+      logger.error("The thread got a unexpected error :", e);
     } finally {
       server.setLastRefresh(DateTime.now());
       ServerData.getServersIsInTreatment().put(server.getGuild().getId(), false);
@@ -139,7 +139,12 @@ public class InfoPanelRefresher implements Runnable {
       try {
         partInfoPannel.addReaction("U+23F3").complete();
       }catch(ErrorResponseException e) {
-        messagesToRemove.add(partInfoPannel);
+        //Try to check in a less pretty way
+        try {
+          server.getInfoChannel().retrieveMessageById(partInfoPannel.getId()).complete();
+        } catch (ErrorResponseException e1) {
+          messagesToRemove.add(partInfoPannel);
+        }
       }
     }
     for(Message messageToRemove : messagesToRemove) {

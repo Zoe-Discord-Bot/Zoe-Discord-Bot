@@ -7,12 +7,9 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.model.Server;
-import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.player_data.Player;
-import ch.kalunight.zoe.model.static_data.SpellingLangage;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 
@@ -65,15 +62,6 @@ public class DeletePlayerCommand extends ZoeCommand {
         event.reply(player.getDiscordUser().getName() + " has been deleted !");
       }
     }
-  }
-
-  public static Server checkServer(Guild guild) {
-    Server server = ServerData.getServers().get(guild.getId());
-
-    if(server == null) {
-      server = new Server(guild, SpellingLangage.EN, new ServerConfiguration());
-    }
-    return server;
   }
 
   private BiConsumer<CommandEvent, Command> getHelpMethod() {

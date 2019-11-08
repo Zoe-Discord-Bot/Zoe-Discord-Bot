@@ -60,7 +60,7 @@ public class ResetCommand extends ZoeCommand {
       }
       
       ServerData.getServers().put(messageReceivedEvent.getGuild().getId(), 
-          new Server(messageReceivedEvent.getGuild(), spellingLangage, new ServerConfiguration()));
+          new Server(messageReceivedEvent.getGuild().getIdLong(), spellingLangage, new ServerConfiguration()));
       
       messageReceivedEvent.getTextChannel().sendMessage("Done, i have been reset correctly").queue();
     }else {

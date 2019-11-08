@@ -469,7 +469,7 @@ public class Zoe {
               langage = SpellingLangage.EN;
             }
 
-            final Server server = new Server(guild, langage, loadConfig(guildId));
+            final Server server = new Server(guild.getIdLong(), langage, loadConfig(guildId));
 
             final Long nbrPlayers = Long.parseLong(reader.readLine());
 

@@ -5,6 +5,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
+import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.model.Server;
+import ch.kalunight.zoe.model.config.ServerConfiguration;
+import ch.kalunight.zoe.model.static_data.SpellingLangage;
 
 public abstract class ZoeCommand extends Command {
 
@@ -18,6 +22,14 @@ public abstract class ZoeCommand extends Command {
   protected void execute(CommandEvent event) {
     logger.info("Command \"{}\" executed", this.getClass().getName());
     commandExecuted.incrementAndGet();
+    
+    Server server = ServerData.getServers().get(event.getGuild().getId());
+
+    if(server == null) {
+      server = new Server(event.getGuild().getIdLong(), SpellingLangage.EN, new ServerConfiguration());
+      ServerData.getServers().put(event.getGuild().getId(), server);
+    }
+    
     try {
       executeCommand(event);
     } catch (Exception e) {

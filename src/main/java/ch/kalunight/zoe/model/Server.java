@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import org.joda.time.DateTime;
+import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.player_data.LeagueAccount;
 import ch.kalunight.zoe.model.player_data.Player;
@@ -24,7 +25,7 @@ public class Server {
   private final List<Long> currentGamesIdAlreadySended = new ArrayList<>();
 
   private ServerConfiguration config;
-  private Guild guild;
+  private long guildId;
   private List<Player> players;
   private List<Team> teams;
   private TextChannel infoChannel;
@@ -32,8 +33,8 @@ public class Server {
   private SpellingLangage langage; // Not implement yet
   private DateTime lastRefresh;
 
-  public Server(Guild guild, SpellingLangage langage, ServerConfiguration configuration) {
-    this.guild = guild;
+  public Server(long guildId, SpellingLangage langage, ServerConfiguration configuration) {
+    this.guildId = guildId;
     this.config = configuration;
     this.langage = langage;
     players = Collections.synchronizedList(new ArrayList<>());
@@ -186,7 +187,7 @@ public class Server {
   }
 
   public Guild getGuild() {
-    return guild;
+    return Zoe.getJda().getGuildById(guildId);
   }
 
   public TextChannel getInfoChannel() {

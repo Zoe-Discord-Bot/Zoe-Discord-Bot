@@ -28,7 +28,7 @@ public class Server {
   private long guildId;
   private List<Player> players;
   private List<Team> teams;
-  private TextChannel infoChannel;
+  private Long infoChannelId;
   private ControlPannel controlePannel;
   private SpellingLangage langage; // Not implement yet
   private DateTime lastRefresh;
@@ -191,11 +191,14 @@ public class Server {
   }
 
   public TextChannel getInfoChannel() {
-    return infoChannel;
+    if(infoChannelId == null) {
+      return null;
+    }
+    return Zoe.getJda().getGuildById(guildId).getTextChannelById(infoChannelId);
   }
 
-  public void setInfoChannel(TextChannel infoChannel) {
-    this.infoChannel = infoChannel;
+  public void setInfoChannel(Long infoChannelId) {
+    this.infoChannelId = infoChannelId;
   }
 
   public SpellingLangage getLangage() {

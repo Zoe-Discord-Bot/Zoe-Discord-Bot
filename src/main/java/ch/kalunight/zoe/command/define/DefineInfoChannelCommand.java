@@ -47,7 +47,7 @@ public class DefineInfoChannelCommand extends ZoeCommand {
             if(textChannel.equals(server.getConfig().getCleanChannelOption().getCleanChannel())) {
               event.reply("I can't define the infochannel inside the clean channel (-> see config option \"Clean Channel\").");
             }else {
-              server.setInfoChannel(textChannel);
+              server.setInfoChannel(textChannel.getIdLong());
               server.setControlePannel(new ControlPannel());
               event.reply("The channel has been defined ! It should be refreshed really quick.");
 

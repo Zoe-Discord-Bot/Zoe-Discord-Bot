@@ -561,7 +561,7 @@ public class Zoe {
 
   private static void setInfoPannel(final Guild guild, final Server server, final TextChannel pannel) {
     if(pannel != null) {
-      server.setInfoChannel(pannel);
+      server.setInfoChannel(pannel.getIdLong());
     }
   }
 

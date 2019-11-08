@@ -66,6 +66,8 @@ public class LanguageCommand extends ZoeCommand{
     
     builder.setSelection(getSelectionAction(langagesList, event, server));
     builder.setCancel(getCancelAction(server.getLangage()));
+    
+    builder.build().display(event.getChannel());
   }
   
   private BiConsumer<Message, Integer> getSelectionAction(List<SpellingLangage> langages, CommandEvent event, Server server){

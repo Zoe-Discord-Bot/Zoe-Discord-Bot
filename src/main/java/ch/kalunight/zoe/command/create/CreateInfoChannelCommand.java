@@ -48,7 +48,7 @@ public class CreateInfoChannelCommand extends ZoeCommand {
       TextChannel infoChannel = event.getGuild().createTextChannel(nameChannel).complete();
       String id = infoChannel.getId();
       TextChannel textChannel = event.getGuild().getTextChannelById(id);
-      server.setInfoChannel(textChannel);
+      server.setInfoChannel(textChannel.getIdLong());
       
       if(server.getControlePannel().getInfoPanel().isEmpty()) {
         server.getControlePannel().getInfoPanel()

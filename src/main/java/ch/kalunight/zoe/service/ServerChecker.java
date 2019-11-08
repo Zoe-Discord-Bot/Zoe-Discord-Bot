@@ -7,8 +7,6 @@ import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.Server;
-import ch.kalunight.zoe.model.config.ServerConfiguration;
-import ch.kalunight.zoe.model.static_data.SpellingLangage;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
@@ -41,11 +39,6 @@ public class ServerChecker extends TimerTask {
         }
         Server server = ServerData.getServers().get(guild.getId());
 
-        if(server == null) {
-          server = new Server(guild, SpellingLangage.EN, new ServerConfiguration());
-          ServerData.getServers().put(guild.getId(), server);
-        }
-
         if(ServerData.getServersIsInTreatment().get(guild.getId()) == null) {
           ServerData.getServersIsInTreatment().put(guild.getId(), false);
         }
@@ -54,8 +47,8 @@ public class ServerChecker extends TimerTask {
           ServerData.getServersAskedTreatment().put(guild.getId(), false);
         }
 
-        if(ServerData.getServersAskedTreatment().get(server.getGuild().getId()) 
-            && !ServerData.getServersIsInTreatment().get(server.getGuild().getId())) {
+        if(Boolean.TRUE.equals(ServerData.getServersAskedTreatment().get(server.getGuild().getId())) 
+            && Boolean.FALSE.equals(ServerData.getServersIsInTreatment().get(server.getGuild().getId()))) {
           
           ServerData.getServersAskedTreatment().put(server.getGuild().getId(), false);
           ServerData.getServersIsInTreatment().put(guild.getId(), true);

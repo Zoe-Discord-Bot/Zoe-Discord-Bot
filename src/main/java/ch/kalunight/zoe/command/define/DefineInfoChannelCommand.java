@@ -5,8 +5,6 @@ import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.model.ControlPannel;
 import ch.kalunight.zoe.model.Server;
-import ch.kalunight.zoe.model.config.ServerConfiguration;
-import ch.kalunight.zoe.model.static_data.SpellingLangage;
 import ch.kalunight.zoe.service.InfoPanelRefresher;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
@@ -29,11 +27,6 @@ public class DefineInfoChannelCommand extends ZoeCommand {
     event.getTextChannel().sendTyping().complete();
     Server server = ServerData.getServers().get(event.getGuild().getId());
 
-    if(server == null) {
-      server = new Server(event.getGuild(), SpellingLangage.EN, new ServerConfiguration());
-      ServerData.getServers().put(event.getGuild().getId(), server);
-    }
-
     if(server.getInfoChannel() != null) {
       event.reply(String.format(LanguageManager.getText(server.getLangage(), "defineInfoChannelAlreadySet"), 
           server.getInfoChannel().getAsMention()));
@@ -53,7 +46,7 @@ public class DefineInfoChannelCommand extends ZoeCommand {
             if(textChannel.equals(server.getConfig().getCleanChannelOption().getCleanChannel())) {
               event.reply(LanguageManager.getText(server.getLangage(), "defineInfoChannelImpossibleToDefineCleanChannel"));
             }else {
-              server.setInfoChannel(textChannel);
+              server.setInfoChannel(textChannel.getIdLong());
               server.setControlePannel(new ControlPannel());
               event.reply(LanguageManager.getText(server.getLangage(), "defineInfoChannelDoneMessage"));
 

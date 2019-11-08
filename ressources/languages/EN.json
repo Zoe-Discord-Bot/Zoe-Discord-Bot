@@ -69,6 +69,7 @@
   "defineInfoChannelMentionOfAChannelNeeded" : "You need to mention one channel like this : `>define infoChannel #the-best-text-channel`",
   "defineInfoChannelMentionOfAChannel" : "Please mention a channel from this server ! (I see you with your little magic trick :eyes:)",
   "defineInfoChannelMissingSpeakPermission" : "I can't talk in this channel ! Please give me the speak permission in this channel if you want to do that.",
+  "defineInfoChannelImpossibleToDefineCleanChannel" : "I can't define the infochannel inside the clean channel (-> see config option \"Clean Channel\").",
   "defineInfoChannelDoneMessage" : "The channel has been defined ! It should be refreshed really quick.",
   "defineInfoChannelLoadingMessage" : "__**Information Panel**__\n \n*Loading...*",
   "undefineInfoChannelHelpMessage" : "Undefine the actual InfoChannel. This will **NOT** delete the channel, i will just stop to do my work in. Manage Channel permission needed.",

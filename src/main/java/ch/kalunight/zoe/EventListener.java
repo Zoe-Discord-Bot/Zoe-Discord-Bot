@@ -136,7 +136,7 @@ public class EventListener extends ListenerAdapter {
         Server server = ServerData.getServers().get(guild.getId());
 
         if(server == null) {
-          ServerData.getServers().put(guild.getId(), new Server(guild, SpellingLangage.EN, new ServerConfiguration()));
+          ServerData.getServers().put(guild.getId(), new Server(guild.getIdLong(), SpellingLangage.EN, new ServerConfiguration()));
         }
       }
     }
@@ -178,7 +178,7 @@ public class EventListener extends ListenerAdapter {
   public void onGuildJoin(GuildJoinEvent event) {
 
     if(!event.getGuild().getOwner().getUser().getId().equals(Zoe.getJda().getSelfUser().getId())) {
-      ServerData.getServers().put(event.getGuild().getId(), new Server(event.getGuild(), SpellingLangage.EN, new ServerConfiguration()));
+      ServerData.getServers().put(event.getGuild().getId(), new Server(event.getGuild().getIdLong(), SpellingLangage.EN, new ServerConfiguration()));
       ServerData.getServersIsInTreatment().put(event.getGuild().getId(), false);
       CommandUtil.sendMessageInGuildOrAtOwner(event.getGuild(), WELCOME_MESSAGE);
     }

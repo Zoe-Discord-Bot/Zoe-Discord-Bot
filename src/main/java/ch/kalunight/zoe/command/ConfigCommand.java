@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.OrderedMenu;
@@ -13,10 +12,11 @@ import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.config.option.ConfigurationOption;
+import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Message;
 
-public class ConfigCommand extends Command{
+public class ConfigCommand extends ZoeCommand {
   
   private EventWaiter waiter;
   
@@ -35,7 +35,7 @@ public class ConfigCommand extends Command{
   }
   
   @Override
-  protected void execute(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) {
     CommandUtil.sendTypingInFonctionOfChannelType(event);
     
     Server server = ServerData.getServers().get(event.getGuild().getId());

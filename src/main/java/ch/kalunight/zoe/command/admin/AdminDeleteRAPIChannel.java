@@ -9,13 +9,14 @@ import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.Zoe;
-import ch.kalunight.zoe.command.CommandUtil;
+import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.service.RiotApiUsageChannelRefresh;
+import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 
-public class AdminDeleteRAPIChannel extends Command {
+public class AdminDeleteRAPIChannel extends ZoeCommand {
 
   private static final Logger logger = LoggerFactory.getLogger(AdminDeleteRAPIChannel.class);
   
@@ -28,7 +29,7 @@ public class AdminDeleteRAPIChannel extends Command {
   }
 
   @Override
-  protected void execute(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) {
     CommandUtil.sendTypingInFonctionOfChannelType(event);
 
     if(RiotApiUsageChannelRefresh.getRapiInfoChannel() == null) {

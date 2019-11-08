@@ -3,10 +3,11 @@ package ch.kalunight.zoe.command.show;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
-import ch.kalunight.zoe.command.CommandUtil;
+import ch.kalunight.zoe.command.ZoeCommand;
+import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
 
-public class ShowCommand extends Command {
+public class ShowCommand extends ZoeCommand {
   
   public static final String USAGE_NAME = "show";
 
@@ -21,7 +22,7 @@ public class ShowCommand extends Command {
   }
 
   @Override
-  protected void execute(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) {
     event.reply("If you need help for show command, type `>remove help`");
   }
 }

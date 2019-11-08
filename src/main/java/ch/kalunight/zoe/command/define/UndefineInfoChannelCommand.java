@@ -1,19 +1,19 @@
 package ch.kalunight.zoe.command.define;
 
-import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
-import ch.kalunight.zoe.command.CommandUtil;
+import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.model.ControlPannel;
 import ch.kalunight.zoe.model.InfoCard;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.static_data.SpellingLangage;
 import ch.kalunight.zoe.translation.LanguageManager;
+import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Message;
 
-public class UndefineInfoChannelCommand extends Command {
+public class UndefineInfoChannelCommand extends ZoeCommand {
 
   public UndefineInfoChannelCommand() {
     this.name = "infochannel";
@@ -25,7 +25,7 @@ public class UndefineInfoChannelCommand extends Command {
   }
 
   @Override
-  protected void execute(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) {
     event.getTextChannel().sendTyping().complete();
     Server server = ServerData.getServers().get(event.getGuild().getId());
 

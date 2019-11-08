@@ -55,7 +55,7 @@ public class NameConversion {
       case 850:
         return "Coop vs IA | Summoner's Rift";
       case 900:
-        return "ARURF | Summoner's Rift";
+        return "URF | Summoner's Rift";
       case 1200:
         return "Raid du Nexus | Summoner's Rift";
       default:

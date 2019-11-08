@@ -1,7 +1,6 @@
 package ch.kalunight.zoe.command;
 
 import java.util.concurrent.TimeUnit;
-import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import ch.kalunight.zoe.ServerData;
@@ -9,10 +8,11 @@ import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.static_data.SpellingLangage;
 import ch.kalunight.zoe.translation.LanguageManager;
+import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
-public class ResetCommand extends Command {
+public class ResetCommand extends ZoeCommand {
   
   private final EventWaiter waiter;
 
@@ -29,7 +29,7 @@ public class ResetCommand extends Command {
   }
   
   @Override
-  protected void execute(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) {
     CommandUtil.sendTypingInFonctionOfChannelType(event);
     
     Server server = ServerData.getServers().get(event.getGuild().getId());

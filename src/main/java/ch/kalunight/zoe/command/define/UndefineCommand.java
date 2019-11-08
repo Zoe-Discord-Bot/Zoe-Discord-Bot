@@ -2,10 +2,11 @@ package ch.kalunight.zoe.command.define;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import ch.kalunight.zoe.command.CommandUtil;
+import ch.kalunight.zoe.command.ZoeCommand;
+import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
 
-public class UndefineCommand extends Command {
+public class UndefineCommand extends ZoeCommand {
 
   public static final String USAGE_NAME = "undefine";
   
@@ -20,7 +21,7 @@ public class UndefineCommand extends Command {
   }
 
   @Override
-  protected void execute(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) {
     event.reply("If you need help for undefine command, type `>undefine help`");
   }
 }

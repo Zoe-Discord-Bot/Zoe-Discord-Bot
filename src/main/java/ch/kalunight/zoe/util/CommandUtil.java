@@ -1,4 +1,4 @@
-package ch.kalunight.zoe.command;
+package ch.kalunight.zoe.util;
 
 import java.util.List;
 import java.util.function.BiConsumer;

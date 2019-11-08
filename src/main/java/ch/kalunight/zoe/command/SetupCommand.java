@@ -1,12 +1,12 @@
 package ch.kalunight.zoe.command;
 
-import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.translation.LanguageManager;
+import ch.kalunight.zoe.util.CommandUtil;
 
-public class SetupCommand extends Command {
+public class SetupCommand extends ZoeCommand {
 
   public SetupCommand() {
     this.name = "setup";
@@ -17,7 +17,7 @@ public class SetupCommand extends Command {
   }
 
   @Override
-  protected void execute(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) {
     CommandUtil.sendTypingInFonctionOfChannelType(event);
     
     Server server = ServerData.getServers().get(event.getGuild().getId());

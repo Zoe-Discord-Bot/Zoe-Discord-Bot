@@ -1,18 +1,18 @@
 package ch.kalunight.zoe.command;
 
 import java.awt.Color;
-import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.static_data.SpellingLangage;
 import ch.kalunight.zoe.translation.LanguageManager;
+import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.ApplicationInfo;
 import net.dv8tion.jda.api.entities.ChannelType;
 
-public class AboutCommand extends Command {
+public class AboutCommand extends ZoeCommand {
 
   private static final Color COLOR_EMBED_MESSAGE = Color.CYAN;
 
@@ -26,7 +26,7 @@ public class AboutCommand extends Command {
   }
 
   @Override
-  protected void execute(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) {
 
     CommandUtil.sendTypingInFonctionOfChannelType(event);
 

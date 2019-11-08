@@ -4,10 +4,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
+import ch.kalunight.zoe.util.CommandUtil;
 
-public class PatchNotesCommand extends Command {
+public class PatchNotesCommand extends ZoeCommand {
 
   private static final File patchNoteFile = new File("ressources/patchnotes.txt");
   
@@ -23,7 +23,7 @@ public class PatchNotesCommand extends Command {
   }
   
   @Override
-  protected void execute(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) {
     CommandUtil.sendTypingInFonctionOfChannelType(event);
     
     try(final BufferedReader reader = new BufferedReader(new FileReader(patchNoteFile));) {

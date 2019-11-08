@@ -17,18 +17,18 @@ import org.knowm.xchart.CategoryChartBuilder;
 import org.knowm.xchart.style.Styler.ChartTheme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.SelectionDialog;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
-import ch.kalunight.zoe.command.CommandUtil;
+import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.player_data.LeagueAccount;
 import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.translation.LanguageManager;
+import ch.kalunight.zoe.util.CommandUtil;
 import ch.kalunight.zoe.util.Ressources;
 import ch.kalunight.zoe.util.request.MessageBuilderRequest;
 import ch.kalunight.zoe.util.request.RiotRequest;
@@ -41,7 +41,7 @@ import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.champion_mastery.dto.ChampionMastery;
 import net.rithms.riot.constant.CallPriority;
 
-public class StatsProfileCommand extends Command {
+public class StatsProfileCommand extends ZoeCommand {
 
   private static final int NUMBER_OF_CHAMPIONS_IN_GRAPH = 6;
   private static final Map<Double, Object> MASTERIES_TABLE_OF_HIGH_VALUE_Y_AXIS = new HashMap<>();
@@ -89,7 +89,7 @@ public class StatsProfileCommand extends Command {
   }
 
   @Override
-  protected void execute(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) {
     CommandUtil.sendTypingInFonctionOfChannelType(event);
     
     Server server = ServerData.getServers().get(event.getGuild().getId());

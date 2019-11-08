@@ -4,7 +4,6 @@ import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
@@ -14,7 +13,7 @@ import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Activity.ActivityType;
 import net.dv8tion.jda.api.entities.TextChannel;
 
-public class ShutDownCommand extends Command {
+public class ShutDownCommand extends ZoeCommand {
 
   private static final Logger logger = LoggerFactory.getLogger(ShutDownCommand.class);
 
@@ -27,7 +26,7 @@ public class ShutDownCommand extends Command {
   }
 
   @Override
-  protected void execute(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) {
     TextChannel channel = event.getTextChannel();
 
     if(channel == null) {

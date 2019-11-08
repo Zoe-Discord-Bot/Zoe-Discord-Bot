@@ -2,10 +2,11 @@ package ch.kalunight.zoe.command.define;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import ch.kalunight.zoe.command.CommandUtil;
+import ch.kalunight.zoe.command.ZoeCommand;
+import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
 
-public class DefineCommand extends Command {
+public class DefineCommand extends ZoeCommand {
 
   public static final String USAGE_NAME = "define";
   
@@ -20,7 +21,7 @@ public class DefineCommand extends Command {
   }
 
   @Override
-  protected void execute(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) {
     event.reply("If you need help for define command, type `>define help`");
   }
 }

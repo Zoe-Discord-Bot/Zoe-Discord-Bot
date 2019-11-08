@@ -1,17 +1,17 @@
 package ch.kalunight.zoe.command.delete;
 
-import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
-import ch.kalunight.zoe.command.CommandUtil;
+import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.player_data.Team;
 import ch.kalunight.zoe.model.static_data.SpellingLangage;
 import ch.kalunight.zoe.translation.LanguageManager;
+import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
 
-public class DeleteTeamCommand extends Command {
+public class DeleteTeamCommand extends ZoeCommand {
 
   public static final String USAGE_NAME = "team";
 
@@ -25,7 +25,7 @@ public class DeleteTeamCommand extends Command {
   }
 
   @Override
-  protected void execute(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) {
     event.getTextChannel().sendTyping().complete();
     String teamName = event.getArgs();
     Server server = ServerData.getServers().get(event.getGuild().getId());

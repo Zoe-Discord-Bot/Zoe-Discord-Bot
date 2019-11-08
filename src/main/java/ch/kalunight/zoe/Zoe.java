@@ -189,8 +189,10 @@ public class Zoe {
       public void accept(CommandEvent event) {
 
         Server server = ServerData.getServers().get(event.getGuild().getId());
-        SpellingLangage language = server.getLangage();
-        
+        SpellingLangage language = SpellingLangage.EN;
+        if(server != null) {
+           language = server.getLangage();
+        }
         
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(LanguageManager.getText(language, "startHelpMessage") + "\n\n");

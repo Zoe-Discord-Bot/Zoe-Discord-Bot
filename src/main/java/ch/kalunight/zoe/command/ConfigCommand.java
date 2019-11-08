@@ -12,6 +12,7 @@ import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.config.option.ConfigurationOption;
+import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Message;
@@ -46,8 +47,8 @@ public class ConfigCommand extends ZoeCommand {
         .setTimeout(2, TimeUnit.MINUTES)
         .useNumbers()
         .setColor(Color.BLUE)
-        .setText("Here are my options:")
-        .setDescription("**Configuration Choices:**")
+        .setText(LanguageManager.getText(server.getLangage(), "configCommandMenuText"))
+        .setDescription(LanguageManager.getText(server.getLangage(), "configCommandMenuDescription"))
         .useCancelButton(true)
         .setEventWaiter(waiter);
     

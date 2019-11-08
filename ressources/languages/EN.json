@@ -179,4 +179,10 @@
   "selfAddingOptionStillEnable" : "Right, the option is still enable.",
   "selfAddingOptionBeenActivated" : "Right, the option has been activated.",
   "selfAddingOptionStillDisable" : "Right, the option is still disable.",
+  "configCommandMenuText" : "Here are my options:",
+  "configCommandMenuDescription" : "**Configuration Choices:**",
+  "languageCommandStartMessage" : "I actually speak \"%s\". Here my available language :",
+  "languageCommandMenuDescription" : "**Languages Choices:**",
+  "languageCommandSelected" : "Okay, i will now speak in %s. Hello :D",
+  "languageCommandSelectionEnded" : "Selection of language ended"
 }

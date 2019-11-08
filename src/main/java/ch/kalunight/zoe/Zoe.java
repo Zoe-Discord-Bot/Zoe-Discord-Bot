@@ -29,6 +29,7 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.examples.command.PingCommand;
 import ch.kalunight.zoe.command.AboutCommand;
 import ch.kalunight.zoe.command.ConfigCommand;
+import ch.kalunight.zoe.command.LanguageCommand;
 import ch.kalunight.zoe.command.PatchNotesCommand;
 import ch.kalunight.zoe.command.RefreshCommand;
 import ch.kalunight.zoe.command.ResetCommand;
@@ -243,6 +244,7 @@ public class Zoe {
     // Basic commands
     commands.add(new AboutCommand());
     commands.add(new SetupCommand());
+    commands.add(new LanguageCommand(eventWaiter));
     commands.add(new ConfigCommand(eventWaiter));
     commands.add(new CreateCommand());
     commands.add(new DeleteCommand());

@@ -182,7 +182,7 @@ public class InfoPanelRefresher implements Runnable {
 
     while (iter.hasNext()) {
       Player player = iter.next();
-      if(player.getDiscordUser() == null || server.getGuild().getMemberById(player.getDiscordUser().getId()) == null) {
+      if(server.getGuild().getMemberById(player.getDiscordUser().getId()) == null) {
         iter.remove();
         for(Team team : server.getTeams()) {
           team.getPlayers().remove(player);

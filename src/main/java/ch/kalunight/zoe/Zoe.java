@@ -64,7 +64,6 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.PrivateChannel;
 import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.rithms.riot.api.ApiConfig;
@@ -470,7 +469,7 @@ public class Zoe {
               langage = SpellingLangage.EN;
             }
 
-            final Server server = new Server(guild, langage, loadConfig(guildId));
+            final Server server = new Server(guild.getIdLong(), langage, loadConfig(guildId));
 
             final Long nbrPlayers = Long.parseLong(reader.readLine());
 
@@ -562,7 +561,7 @@ public class Zoe {
 
   private static void setInfoPannel(final Guild guild, final Server server, final TextChannel pannel) {
     if(pannel != null) {
-      server.setInfoChannel(pannel);
+      server.setInfoChannel(pannel.getIdLong());
     }
   }
 
@@ -627,10 +626,9 @@ public class Zoe {
       }
       String mentionableString = reader.readLine();
 
-      User user = jda.getUserById(discordId);
       boolean mentionable = Boolean.getBoolean(mentionableString);
 
-      players.add(new Player(user, lolAccounts, mentionable));
+      players.add(new Player(Long.parseLong(discordId), lolAccounts, mentionable));
     }
     return players;
   }

@@ -110,7 +110,7 @@ public class RegisterCommand extends ZoeCommand {
       return;
     }
     
-    Player player = new Player(user, summoner, region, false);
+    Player player = new Player(user.getIdLong(), summoner, region, false);
     server.getPlayers().add(player);
     if(server.getConfig().getZoeRoleOption().getRole() != null) {
       Member member = server.getGuild().getMember(user);

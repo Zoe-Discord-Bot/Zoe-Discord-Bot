@@ -309,7 +309,7 @@ public class InfoPanelRefresher implements Runnable {
     final List<Team> teamList = server.getAllPlayerTeams();
     final StringBuilder stringMessage = new StringBuilder();
 
-    stringMessage.append("__**Information Panel**__\n \n");
+    stringMessage.append("__**" + LanguageManager.getText(server.getLangage(), "informationPanelTitle") + "**__\n \n");
 
     for(Team team : teamList) {
 
@@ -325,20 +325,20 @@ public class InfoPanelRefresher implements Runnable {
 
         if(leagueAccounts.isEmpty()) {
           stringMessage.append(player.getDiscordUser().getAsMention() + " : " 
-        + LanguageManager.getText(server.getLangage(), "informationPannelNotInGame") + " \n");
+        + LanguageManager.getText(server.getLangage(), "informationPanelNotInGame") + " \n");
         }else if (leagueAccounts.size() == 1) {
           stringMessage.append(player.getDiscordUser().getAsMention() + " : " 
               + InfoPanelRefresherUtil.getCurrentGameInfoStringForOneAccount(leagueAccounts.get(0)) + "\n");
         }else {
           stringMessage.append(player.getDiscordUser().getAsMention() + " : " 
-        + LanguageManager.getText(server.getLangage(), "informationPannelMultipleAccountInGame") + "\n"
+        + LanguageManager.getText(server.getLangage(), "informationPanelMultipleAccountInGame") + "\n"
               + InfoPanelRefresherUtil.getCurrentGameInfoStringForMultipleAccounts(leagueAccounts));
         }
       }
       stringMessage.append(" \n");
     }
 
-    stringMessage.append(LanguageManager.getText(server.getLangage(), "informationPannelRefreshedTime"));
+    stringMessage.append(LanguageManager.getText(server.getLangage(), "informationPanelRefreshedTime"));
 
     return stringMessage.toString();
   }

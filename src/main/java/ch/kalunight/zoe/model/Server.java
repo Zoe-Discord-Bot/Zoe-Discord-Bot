@@ -11,6 +11,7 @@ import ch.kalunight.zoe.model.player_data.LeagueAccount;
 import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.model.player_data.Team;
 import ch.kalunight.zoe.model.static_data.SpellingLanguage;
+import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
@@ -97,7 +98,7 @@ public class Server {
     List<Team> allTeams = new ArrayList<>();
     allTeams.addAll(teams);
     if(!playerWithNoTeam.isEmpty()) {
-      allTeams.add(new Team("No Team", playerWithNoTeam));
+      allTeams.add(new Team(LanguageManager.getText(langage, "teamNameOfPlayerWithoutTeam"), playerWithNoTeam));
     }
 
     return allTeams;

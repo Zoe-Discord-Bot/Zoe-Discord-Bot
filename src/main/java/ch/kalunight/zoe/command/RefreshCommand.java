@@ -4,6 +4,7 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.model.Server;
+import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 
 public class RefreshCommand extends ZoeCommand {
@@ -26,6 +27,6 @@ public class RefreshCommand extends ZoeCommand {
     Server server = ServerData.getServers().get(event.getGuild().getId());
     
     ServerData.getServersAskedTreatment().put(server.getGuild().getId(), true);
-    event.reply("The information panel will be refreshed in a few seconds.");
+    event.reply(LanguageManager.getText(server.getLangage(), "refreshCommandDoneMessage"));
   }
 }

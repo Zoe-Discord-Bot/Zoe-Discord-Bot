@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import com.jagrosh.jdautilities.command.CommandEvent;
+import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 
 public class PatchNotesCommand extends ZoeCommand {
@@ -37,7 +39,7 @@ public class PatchNotesCommand extends ZoeCommand {
       
       event.reply(builder.toString());
     } catch(IOException e) {
-      event.reply("Patch notes are currently unavailable");
+      event.reply(LanguageManager.getText(ServerData.getServers().get(event.getGuild().getId()).getLangage(), "patchNoteUnavailable"));
     }
   }
 

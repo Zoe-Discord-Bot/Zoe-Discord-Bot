@@ -185,5 +185,19 @@
   "languageCommandMenuDescription" : "**Languages Choices:**",
   "languageCommandSelected" : "Okay, i will now speak in %s. Hello :D",
   "languageCommandSelectionEnded" : "Selection of language ended",
-  "configurationEnded" : "Configuration Ended"
+  "configurationEnded" : "Configuration Ended",
+  "patchNoteUnavailable" : "Patch notes are currently unavailable",
+  "refreshCommandDoneMessage" : "The information panel will be refreshed in a few seconds.",
+  "mainAddCommandHelpMessage" : "If you need help for add commands, type `>add help`",
+  "mainCreateCommandHelpMessage" : "If you need help for create commands, type `>create help`",
+  "mainDefineCommandHelpMessage" : "If you need help for define command, type `>define help`",
+  "mainUndefineCommandHelpMessage" : "If you need help for undefine command, type `>undefine help`",
+  "mainDeleteCommandHelpMessage" : "If you need help for delete commands, type `>delete help`",
+  "mainRemoveCommandHelpMessage" : "If you need help for remove command, type `>remove help`",
+  "mainShowCommandHelpMessage" : "If you need help for show command, type `>show help`",
+  "mainStatsCommandHelpMessage" : "If you want help about stats commands, type `>stats help`",
+  "teamNameOfPlayerWithoutTeam" : "No Team",
+  "informationPannelRefreshedTime" : "*Refreshed every 3 minutes*",
+  "informationPannelNotInGame" : "Not in game",
+  "informationPannelMultipleAccountInGame" : "Multiples accounts are in game"
 }

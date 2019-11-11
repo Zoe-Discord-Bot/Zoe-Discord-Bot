@@ -1,22 +1,22 @@
 package ch.kalunight.zoe.translation;
 
-import ch.kalunight.zoe.model.static_data.SpellingLangage;
+import ch.kalunight.zoe.model.static_data.SpellingLanguage;
 
 public class TranslationKey {
 
-  private SpellingLangage language;
+  private SpellingLanguage language;
   private String key;
   
-  public TranslationKey(SpellingLangage language, String translationKey) {
+  public TranslationKey(SpellingLanguage language, String translationKey) {
     this.language = language;
     this.key = translationKey;
   }
 
-  public SpellingLangage getLanguage() {
+  public SpellingLanguage getLanguage() {
     return language;
   }
 
-  public void setLanguage(SpellingLangage language) {
+  public void setLanguage(SpellingLanguage language) {
     this.language = language;
   }
 

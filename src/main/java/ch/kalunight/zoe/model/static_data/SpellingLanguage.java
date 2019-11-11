@@ -1,12 +1,12 @@
 package ch.kalunight.zoe.model.static_data;
 
-public enum SpellingLangage {
+public enum SpellingLanguage {
   FR("Français"),
   EN("English");
   
   private String name;
   
-  private SpellingLangage(String name) {
+  private SpellingLanguage(String name) {
     this.name = name;
   }
 

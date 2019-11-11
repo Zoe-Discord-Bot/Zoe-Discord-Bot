@@ -12,7 +12,7 @@ import com.jagrosh.jdautilities.menu.ButtonMenu;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.Server;
-import ch.kalunight.zoe.model.static_data.SpellingLangage;
+import ch.kalunight.zoe.model.static_data.SpellingLanguage;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
@@ -242,7 +242,7 @@ public class CleanChannelOption extends ConfigurationOption {
   private void endCreateChannelTime(MessageChannel channel) {
     TextChannel textChannel = Zoe.getJda().getTextChannelById(channel.getId());
 
-    SpellingLangage langage = SpellingLangage.EN;
+    SpellingLanguage langage = SpellingLanguage.EN;
     if(textChannel != null) {
       Server server = ServerData.getServers().get(textChannel.getGuild().getId());
       if(server != null) {
@@ -262,7 +262,7 @@ public class CleanChannelOption extends ConfigurationOption {
   }
 
   @Override
-  public String getChoiceText(SpellingLangage langage) {
+  public String getChoiceText(SpellingLanguage langage) {
 
     if(cleanChannel != null && Zoe.getJda().getTextChannelById(cleanChannel.getId()) == null) {
       cleanChannel = null;

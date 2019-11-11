@@ -12,7 +12,7 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.SelectionDialog;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.model.Server;
-import ch.kalunight.zoe.model.static_data.SpellingLangage;
+import ch.kalunight.zoe.model.static_data.SpellingLanguage;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.entities.Message;
 import net.rithms.riot.constant.Platform;
@@ -27,7 +27,7 @@ public class RegionOption extends ConfigurationOption {
   }
 
   @Override
-  public String getChoiceText(SpellingLangage langage) {
+  public String getChoiceText(SpellingLanguage langage) {
     String strRegion = LanguageManager.getText(langage, "optionRegionDisable");
 
     if(region != null) {
@@ -88,7 +88,7 @@ public class RegionOption extends ConfigurationOption {
       }};
   }
 
-  private Function<Integer, String> getUpdateMessageAfterChangeSelectAction(SpellingLangage language, List<String> choices) {
+  private Function<Integer, String> getUpdateMessageAfterChangeSelectAction(SpellingLanguage language, List<String> choices) {
     return new Function<Integer, String>() {
       @Override
       public String apply(Integer index) {
@@ -101,7 +101,7 @@ public class RegionOption extends ConfigurationOption {
     };
   }
 
-  private BiConsumer<Message, Integer> getSelectionDoneAction(SpellingLangage language, List<Platform> regionsList) {
+  private BiConsumer<Message, Integer> getSelectionDoneAction(SpellingLanguage language, List<Platform> regionsList) {
     return new BiConsumer<Message, Integer>() {
       @Override
       public void accept(Message selectionMessage, Integer selectionOfRegion) {
@@ -123,7 +123,7 @@ public class RegionOption extends ConfigurationOption {
     };
   }
 
-  private Consumer<Message> getSelectionCancelAction(SpellingLangage language){
+  private Consumer<Message> getSelectionCancelAction(SpellingLanguage language){
     return new Consumer<Message>() {
       @Override
       public void accept(Message message) {

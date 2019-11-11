@@ -12,6 +12,7 @@ import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.config.option.ConfigurationOption;
+import ch.kalunight.zoe.model.static_data.SpellingLanguage;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
@@ -60,7 +61,7 @@ public class ConfigCommand extends ZoeCommand {
     }
     
     builder.setSelection(getSelectionAction(options, event))
-    .setCancel(getCancelAction());
+    .setCancel(getCancelAction(server.getLangage()));
     
     builder.build().display(event.getChannel());
   }
@@ -74,12 +75,12 @@ public class ConfigCommand extends ZoeCommand {
       }};
   }
   
-  private Consumer<Message> getCancelAction(){
+  private Consumer<Message> getCancelAction(SpellingLanguage language){
     return new Consumer<Message>() {
 
       @Override
       public void accept(Message message) {
-        message.getChannel().sendMessage("Configuration Ended").queue();
+        message.getChannel().sendMessage(LanguageManager.getText(language, "configurationEnded")).queue();
       }};
   }
 }

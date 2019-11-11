@@ -11,7 +11,7 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.OrderedMenu;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.model.Server;
-import ch.kalunight.zoe.model.static_data.SpellingLangage;
+import ch.kalunight.zoe.model.static_data.SpellingLanguage;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
@@ -58,8 +58,8 @@ public class LanguageCommand extends ZoeCommand{
         .useCancelButton(true)
         .setEventWaiter(waiter);
     
-    List<SpellingLangage> langagesList = new ArrayList<SpellingLangage>();
-    for(SpellingLangage langage : SpellingLangage.values()) {
+    List<SpellingLanguage> langagesList = new ArrayList<SpellingLanguage>();
+    for(SpellingLanguage langage : SpellingLanguage.values()) {
       builder.addChoices(langage.nameInNativeLanguage());
       langagesList.add(langage);
     }
@@ -70,7 +70,7 @@ public class LanguageCommand extends ZoeCommand{
     builder.build().display(event.getChannel());
   }
   
-  private BiConsumer<Message, Integer> getSelectionAction(List<SpellingLangage> langages, CommandEvent event, Server server){
+  private BiConsumer<Message, Integer> getSelectionAction(List<SpellingLanguage> langages, CommandEvent event, Server server){
     return new BiConsumer<Message, Integer>() {
       
       @Override
@@ -82,7 +82,7 @@ public class LanguageCommand extends ZoeCommand{
       }};
   }
   
-  private Consumer<Message> getCancelAction(SpellingLangage langage){
+  private Consumer<Message> getCancelAction(SpellingLanguage langage){
     return new Consumer<Message>() {
 
       @Override

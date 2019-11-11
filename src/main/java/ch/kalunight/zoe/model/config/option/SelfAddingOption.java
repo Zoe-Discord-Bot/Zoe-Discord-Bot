@@ -8,7 +8,7 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.ButtonMenu;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.model.Server;
-import ch.kalunight.zoe.model.static_data.SpellingLangage;
+import ch.kalunight.zoe.model.static_data.SpellingLanguage;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
@@ -67,7 +67,7 @@ public class SelfAddingOption extends ConfigurationOption {
     };
   }
   
-  private Consumer<ReactionEmote> disableTheOption(SpellingLangage langage, MessageChannel messageChannel) {
+  private Consumer<ReactionEmote> disableTheOption(SpellingLanguage langage, MessageChannel messageChannel) {
     return new Consumer<ReactionEmote>() {
 
       @Override
@@ -84,7 +84,7 @@ public class SelfAddingOption extends ConfigurationOption {
     }};
   }
   
-  private Consumer<ReactionEmote> activateTheOption(SpellingLangage langage, MessageChannel messageChannel) {
+  private Consumer<ReactionEmote> activateTheOption(SpellingLanguage langage, MessageChannel messageChannel) {
     return new Consumer<ReactionEmote>() {
 
       @Override
@@ -111,7 +111,7 @@ public class SelfAddingOption extends ConfigurationOption {
   }
 
   @Override
-  public String getChoiceText(SpellingLangage langage) {
+  public String getChoiceText(SpellingLanguage langage) {
     String status;
     
     if(optionActivated) {

@@ -184,5 +184,6 @@
   "languageCommandStartMessage" : "I actually speak \"%s\". Here my available language :",
   "languageCommandMenuDescription" : "**Languages Choices:**",
   "languageCommandSelected" : "Okay, i will now speak in %s. Hello :D",
-  "languageCommandSelectionEnded" : "Selection of language ended"
+  "languageCommandSelectionEnded" : "Selection of language ended",
+  "configurationEnded" : "Configuration Ended"
 }

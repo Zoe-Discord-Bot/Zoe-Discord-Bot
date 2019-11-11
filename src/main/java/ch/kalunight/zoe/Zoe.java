@@ -54,7 +54,7 @@ import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.model.player_data.Team;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.model.static_data.CustomEmote;
-import ch.kalunight.zoe.model.static_data.SpellingLangage;
+import ch.kalunight.zoe.model.static_data.SpellingLanguage;
 import ch.kalunight.zoe.riotapi.CachedRiotApi;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.Ressources;
@@ -190,7 +190,7 @@ public class Zoe {
       public void accept(CommandEvent event) {
 
         Server server = ServerData.getServers().get(event.getGuild().getId());
-        SpellingLangage language = SpellingLangage.EN;
+        SpellingLanguage language = SpellingLanguage.EN;
         if(server != null) {
            language = server.getLangage();
         }
@@ -473,9 +473,9 @@ public class Zoe {
             if(guild == null) {
               continue;
             }
-            SpellingLangage langage = SpellingLangage.valueOf(reader.readLine());
+            SpellingLanguage langage = SpellingLanguage.valueOf(reader.readLine());
             if(langage == null) {
-              langage = SpellingLangage.EN;
+              langage = SpellingLanguage.EN;
             }
 
             final Server server = new Server(guild.getIdLong(), langage, loadConfig(guildId));

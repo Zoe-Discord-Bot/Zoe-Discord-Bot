@@ -6,7 +6,7 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
-import ch.kalunight.zoe.model.static_data.SpellingLangage;
+import ch.kalunight.zoe.model.static_data.SpellingLanguage;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
@@ -46,7 +46,7 @@ public class ResetCommand extends ZoeCommand {
   private void reset(MessageReceivedEvent messageReceivedEvent) {
     Server server = ServerData.getServers().get(messageReceivedEvent.getGuild().getId());
     
-    SpellingLangage spellingLangage = SpellingLangage.EN;
+    SpellingLanguage spellingLangage = SpellingLanguage.EN;
     
     if(server != null) {
       spellingLangage = server.getLangage();
@@ -68,7 +68,7 @@ public class ResetCommand extends ZoeCommand {
   private void cancelReset(MessageReceivedEvent event) {
     Server server = ServerData.getServers().get(event.getGuild().getId());
     
-    SpellingLangage spellingLangage = SpellingLangage.EN;
+    SpellingLanguage spellingLangage = SpellingLanguage.EN;
     
     if(server != null) {
       spellingLangage = server.getLangage();

@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import ch.kalunight.zoe.model.static_data.SpellingLangage;
+import ch.kalunight.zoe.model.static_data.SpellingLanguage;
 
 public class LanguageManager {
 
@@ -29,7 +29,7 @@ public class LanguageManager {
       
       for(File file : LANGUAGE_FOLDER.listFiles()) {
         
-        SpellingLangage language = SpellingLangage.valueOf(file.getName().split("\\.")[0]);
+        SpellingLanguage language = SpellingLanguage.valueOf(file.getName().split("\\.")[0]);
         
         try(final BufferedReader reader = new BufferedReader(new FileReader(file));) {
           JsonObject jsonObject = gson.fromJson(reader, JsonObject.class);
@@ -42,10 +42,10 @@ public class LanguageManager {
     }
   }
   
-  public static String getText(SpellingLangage spellingLangage, String key) {
+  public static String getText(SpellingLanguage spellingLangage, String key) {
     String text = translations.get(new TranslationKey(spellingLangage, key));
     if(text == null) {
-      text = translations.get(new TranslationKey(SpellingLangage.EN, key));
+      text = translations.get(new TranslationKey(SpellingLanguage.EN, key));
     }
     
     if(text == null) {

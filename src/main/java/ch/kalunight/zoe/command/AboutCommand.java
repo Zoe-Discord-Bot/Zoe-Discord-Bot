@@ -4,7 +4,7 @@ import java.awt.Color;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.model.Server;
-import ch.kalunight.zoe.model.static_data.SpellingLangage;
+import ch.kalunight.zoe.model.static_data.SpellingLanguage;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -30,7 +30,7 @@ public class AboutCommand extends ZoeCommand {
 
     CommandUtil.sendTypingInFonctionOfChannelType(event);
 
-    SpellingLangage langage = SpellingLangage.EN;
+    SpellingLanguage langage = SpellingLanguage.EN;
     if(event.getChannelType() == ChannelType.TEXT) {
       Server server = ServerData.getServers().get(event.getGuild().getId());
       langage = server.getLangage();

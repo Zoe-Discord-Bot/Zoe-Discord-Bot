@@ -10,7 +10,7 @@ import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.player_data.Player;
-import ch.kalunight.zoe.model.static_data.SpellingLangage;
+import ch.kalunight.zoe.model.static_data.SpellingLanguage;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
@@ -76,7 +76,7 @@ public class RoleOption extends ConfigurationOption {
       }};
   }
 
-  private Consumer<ReactionEmote> receiveValidationAndCreateOption(MessageChannel channel, Guild guild, SpellingLangage langage) {
+  private Consumer<ReactionEmote> receiveValidationAndCreateOption(MessageChannel channel, Guild guild, SpellingLanguage langage) {
     return new Consumer<ReactionEmote>() {
 
       @Override
@@ -116,7 +116,7 @@ public class RoleOption extends ConfigurationOption {
 
   }
 
-  private Consumer<ReactionEmote> receiveValidationAndDisableOption(MessageChannel channel, Guild guild, SpellingLangage langage) {
+  private Consumer<ReactionEmote> receiveValidationAndDisableOption(MessageChannel channel, Guild guild, SpellingLanguage langage) {
     return new Consumer<ReactionEmote>() {
       
       @Override
@@ -152,7 +152,7 @@ public class RoleOption extends ConfigurationOption {
   }
 
   @Override
-  public String getChoiceText(SpellingLangage langage) {
+  public String getChoiceText(SpellingLanguage langage) {
     String status = LanguageManager.getText(langage, "optionDisable");
     if(role != null) {
       status = LanguageManager.getText(langage, "optionEnable");

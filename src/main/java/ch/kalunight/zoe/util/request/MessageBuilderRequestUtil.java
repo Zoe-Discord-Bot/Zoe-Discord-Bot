@@ -7,6 +7,8 @@ import java.util.List;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.model.static_data.Champion;
+import ch.kalunight.zoe.model.static_data.SpellingLanguage;
+import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.NameConversion;
 import ch.kalunight.zoe.util.Ressources;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
@@ -23,18 +25,15 @@ public class MessageBuilderRequestUtil {
     // Hide default public constructor
   }
   
-  
-  
-
   public static void createTeamData1Summoner(Summoner summoner, List<CurrentGameParticipant> teamParticipant, StringBuilder teamString,
-      StringBuilder teamRankString, StringBuilder teamWinRateLastMonth, Platform platform) {
+      StringBuilder teamRankString, StringBuilder teamWinRateLastMonth, Platform platform, SpellingLanguage language) {
 
     for(int i = 0; i < teamParticipant.size(); i++) {
       CurrentGameParticipant participant = teamParticipant.get(i);
       Champion champion = null;
       champion = Ressources.getChampionDataById(participant.getChampionId());
       if(champion == null) {
-        champion = new Champion(-1, "-1", "Unknown", null);
+        champion = new Champion(-1, "-1", LanguageManager.getText(language, "unknown"), null);
       }
 
       FullTier fullTier = RiotRequest.getSoloqRank(participant.getSummonerId(), platform, CallPriority.NORMAL);
@@ -73,15 +72,18 @@ public class MessageBuilderRequestUtil {
 
 
   public static void createTeamDataMultipleSummoner(List<CurrentGameParticipant> teamParticipant, List<String> listIdPlayers,
-      StringBuilder teamString, StringBuilder teamRankString, StringBuilder teamWinrateString, Platform platform) {
+      StringBuilder teamString, StringBuilder teamRankString, StringBuilder teamWinrateString, Platform platform,
+      SpellingLanguage language) {
 
+    String unknownChampion = LanguageManager.getText(language, "unknown");
+    
     for(int i = 0; i < teamParticipant.size(); i++) {
       CurrentGameParticipant participant = teamParticipant.get(i);
 
       Champion champion = null;
       champion = Ressources.getChampionDataById(participant.getChampionId());
       if(champion == null) {
-        champion = new Champion(-1, "Unknown", "Unknown", null);
+        champion = new Champion(-1, unknownChampion, unknownChampion, null);
       }
 
       FullTier fullTier = RiotRequest.getSoloqRank(participant.getSummonerId(), platform, CallPriority.NORMAL);
@@ -107,7 +109,7 @@ public class MessageBuilderRequestUtil {
     }
   }
 
-  public static void createTitle(List<Player> players, CurrentGameInfo currentGameInfo, StringBuilder title) {
+  public static void createTitle(List<Player> players, CurrentGameInfo currentGameInfo, StringBuilder title, SpellingLanguage language) {
     ArrayList<Player> playersNotTwice = new ArrayList<>();
     
     for(Player player : players) {
@@ -116,13 +118,15 @@ public class MessageBuilderRequestUtil {
       }
     }
     
-    title.append("Info on the game of");
+    title.append(LanguageManager.getText(language, "infoCardsGameInfoOnTheGameOf"));
 
+    String andOfTranslated = LanguageManager.getText(language, "infoCardsGameInfoAndOf");
+    
     for(int i = 0; i < playersNotTwice.size(); i++) {
       if(i == 0) {
         title.append(" " + playersNotTwice.get(i).getDiscordUser().getName());
       } else if(i + 1 == playersNotTwice.size()) {
-        title.append(" and of " + playersNotTwice.get(i).getDiscordUser().getName());
+        title.append(" " + andOfTranslated + " " + playersNotTwice.get(i).getDiscordUser().getName());
       } else if(i + 2 == playersNotTwice.size()) {
         title.append(" " + playersNotTwice.get(i).getDiscordUser().getName());
       } else {
@@ -130,7 +134,7 @@ public class MessageBuilderRequestUtil {
       }
     }
 
-    title.append(" : " + NameConversion.convertGameQueueIdToString(currentGameInfo.getGameQueueConfigId()));
+    title.append(" : " + LanguageManager.getText(language, NameConversion.convertGameQueueIdToString(currentGameInfo.getGameQueueConfigId())));
   }
 
   public static String getMasteryUnit(Long masteryPoints) {
@@ -143,40 +147,40 @@ public class MessageBuilderRequestUtil {
   }
   
   //TODO: Improve this method, make it automated adaptable
-  public static String getPastMoment(LocalDateTime pastMoment) {
+  public static String getPastMoment(LocalDateTime pastMoment, SpellingLanguage language) {
     LocalDateTime now = LocalDateTime.now();
     if(pastMoment.isBefore(now.minusWeeks(1))) {
-      return "A week ago";
+      return LanguageManager.getText(language, "aWeekAgo");
     }else if(pastMoment.isBefore(now.minusDays(6))) {
-      return "6 days ago";
+      return LanguageManager.getText(language, "6DaysAgo");
     }else if(pastMoment.isBefore(now.minusDays(5))) {
-      return "5 days ago";
+      return LanguageManager.getText(language, "5DaysAgo");
     }else if(pastMoment.isBefore(now.minusDays(4))) {
-      return "4 days ago";
+      return LanguageManager.getText(language, "4DaysAgo");
     }else if(pastMoment.isBefore(now.minusDays(3))) {
-      return "3 days ago";
+      return LanguageManager.getText(language, "3DaysAgo");
     }else if(pastMoment.isBefore(now.minusDays(2))) {
-      return "2 days ago";
+      return LanguageManager.getText(language, "2DaysAgo");
     }else if(pastMoment.isBefore(now.minusDays(1))) {
-      return "Yesterday";
+      return LanguageManager.getText(language, "yesterday");
     }else if(pastMoment.isBefore(now.minusHours(6))) {
-      return "Today";
+      return LanguageManager.getText(language, "Today");
     }else if(pastMoment.isBefore(now.minusHours(5))) {
-      return "5 hours ago";
+      return LanguageManager.getText(language, "5HoursAgo");
     }else if(pastMoment.isBefore(now.minusHours(4))) {
-      return "4 hours ago";
+      return LanguageManager.getText(language, "4HoursAgo");
     }else if(pastMoment.isBefore(now.minusHours(3))) {
-      return "3 hours ago";
+      return LanguageManager.getText(language, "3HoursAgo");
     }else if(pastMoment.isBefore(now.minusHours(2))) {
-      return "2 hours ago";
+      return LanguageManager.getText(language, "2HoursAgo");
     }else if(pastMoment.isBefore(now.minusHours(1))) {
-      return "1 hour ago";
+      return LanguageManager.getText(language, "1HourAgo");
     }else if(pastMoment.isBefore(now.minusMinutes(30))) {
-      return "30 minutes ago";
+      return LanguageManager.getText(language, "30MinutesAgo");
     }else if(pastMoment.isBefore(now.minusMinutes(10))) {
-      return "fews minutes ago";
+      return LanguageManager.getText(language, "fewsMinutesAgo");
     }else {
-      return "unkown";
+      return LanguageManager.getText(language, "unknown");
     }
   }
 }

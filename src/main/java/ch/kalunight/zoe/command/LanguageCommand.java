@@ -45,7 +45,7 @@ public class LanguageCommand extends ZoeCommand{
     Server server = ServerData.getServers().get(event.getGuild().getId());
     
     String message = String.format(LanguageManager.getText(server.getLangage(),
-        "languageCommandStartMessage"), server.getLangage().nameInNativeLanguage());
+        "languageCommandStartMessage"), server.getLangage().nameInNativeLanguage(), "https://discord.gg/XuZAfGK");
     
     OrderedMenu.Builder builder = new OrderedMenu.Builder()
         .addUsers(event.getAuthor())

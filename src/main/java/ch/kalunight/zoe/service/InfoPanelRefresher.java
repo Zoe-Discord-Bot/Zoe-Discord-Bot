@@ -85,7 +85,8 @@ public class InfoPanelRefresher implements Runnable {
           } else {
             int nbrMessageToAdd = infoPanels.size() - server.getControlePannel().getInfoPanel().size();
             for(int i = 0; i < nbrMessageToAdd; i++) {
-              server.getControlePannel().getInfoPanel().add(server.getInfoChannel().sendMessage("loading ...").complete());
+              server.getControlePannel().getInfoPanel().add(server.getInfoChannel()
+                  .sendMessage(LanguageManager.getText(server.getLangage(), "loading")).complete());
             }
           }
 

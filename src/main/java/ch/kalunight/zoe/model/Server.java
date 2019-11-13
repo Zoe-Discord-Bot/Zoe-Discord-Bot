@@ -10,7 +10,8 @@ import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.player_data.LeagueAccount;
 import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.model.player_data.Team;
-import ch.kalunight.zoe.model.static_data.SpellingLangage;
+import ch.kalunight.zoe.model.static_data.SpellingLanguage;
+import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
@@ -30,10 +31,10 @@ public class Server {
   private List<Team> teams;
   private Long infoChannelId;
   private ControlPannel controlePannel;
-  private SpellingLangage langage; // Not implement yet
+  private SpellingLanguage langage;
   private DateTime lastRefresh;
 
-  public Server(long guildId, SpellingLangage langage, ServerConfiguration configuration) {
+  public Server(long guildId, SpellingLanguage langage, ServerConfiguration configuration) {
     this.guildId = guildId;
     this.config = configuration;
     this.langage = langage;
@@ -97,7 +98,7 @@ public class Server {
     List<Team> allTeams = new ArrayList<>();
     allTeams.addAll(teams);
     if(!playerWithNoTeam.isEmpty()) {
-      allTeams.add(new Team("No Team", playerWithNoTeam));
+      allTeams.add(new Team(LanguageManager.getText(langage, "teamNameOfPlayerWithoutTeam"), playerWithNoTeam));
     }
 
     return allTeams;
@@ -201,11 +202,11 @@ public class Server {
     this.infoChannelId = infoChannelId;
   }
 
-  public SpellingLangage getLangage() {
+  public SpellingLanguage getLangage() {
     return langage;
   }
 
-  public void setLangage(SpellingLangage langage) {
+  public void setLangage(SpellingLanguage langage) {
     this.langage = langage;
   }
 

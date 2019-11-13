@@ -1,10 +1,10 @@
 package ch.kalunight.zoe.command.remove;
 
-import java.util.function.BiConsumer;
-
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
+import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.command.ZoeCommand;
+import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 
 public class RemoveCommand extends ZoeCommand {
@@ -13,32 +13,13 @@ public class RemoveCommand extends ZoeCommand {
 
   public RemoveCommand() {
     this.name = USAGE_NAME;
-    this.help = "Send info about remove commands";
     Command[] commandsChildren = {new RemovePlayerToTeamCommand(), new RemoveAccountCommand()};
     this.children = commandsChildren;
-    this.helpBiConsumer = getHelpMethod();
+    this.helpBiConsumer = CommandUtil.getHelpMethodHasChildren(USAGE_NAME, commandsChildren);
   }
 
   @Override
   protected void executeCommand(CommandEvent event) {
-    event.reply("If you need help for remove command, type `>remove help`");
+    event.reply(LanguageManager.getText(ServerData.getServers().get(event.getGuild().getId()).getLangage(), "mainRemoveCommandHelpMessage"));
   }
-
-  private BiConsumer<CommandEvent, Command> getHelpMethod() {
-    return new BiConsumer<CommandEvent, Command>() {
-      @Override
-      public void accept(CommandEvent event, Command command) {
-        CommandUtil.sendTypingInFonctionOfChannelType(event);
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("Remove command :\n");
-        for(Command commandChildren : children) {
-          stringBuilder.append("--> `>" + name + " " + commandChildren.getName() + " " + commandChildren.getArguments() + "` : "
-              + commandChildren.getHelp() + "\n");
-        }
-
-        event.reply(stringBuilder.toString());
-      }
-    };
-  }
-
 }

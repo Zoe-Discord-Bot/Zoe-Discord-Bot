@@ -10,6 +10,10 @@ import java.util.function.Function;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.SelectionDialog;
+import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.model.Server;
+import ch.kalunight.zoe.model.static_data.SpellingLanguage;
+import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.entities.Message;
 import net.rithms.riot.constant.Platform;
 
@@ -18,19 +22,19 @@ public class RegionOption extends ConfigurationOption {
   private Platform region;
 
   public RegionOption() {
-    super("default_region", "Default region of the server");
+    super("default_region", "regionOptionDesc");
     this.region = null;
   }
 
   @Override
-  public String getChoiceText() {
-    String strRegion = "Any (Disable)";
+  public String getChoiceText(SpellingLanguage langage) {
+    String strRegion = LanguageManager.getText(langage, "optionRegionDisable");
 
     if(region != null) {
-      strRegion = this.region.getName().toUpperCase() + " (Enabled)";
+      strRegion = this.region.getName().toUpperCase() + " (" + LanguageManager.getText(langage, "optionEnable") + ")";
     }
 
-    return description + " : " + strRegion;
+    return LanguageManager.getText(langage, description) + " : " + strRegion;
   }
 
   @Override
@@ -40,11 +44,14 @@ public class RegionOption extends ConfigurationOption {
       @Override
       public void accept(CommandEvent event) {
         event.getChannel().sendTyping().complete();
+        Server server = ServerData.getServers().get(event.getGuild().getId());
+        
         String message;
         if(region == null) {
-          message = "Currently **any** default region is setted. Which region you want to set ?";
+          message = LanguageManager.getText(server.getLangage(), "regionOptionAnyRegionSelected");
         }else {
-          message = "Currently default region is **" + region.getName().toUpperCase() + "**. Which region you want to set ?";
+          message = String.format(LanguageManager.getText(server.getLangage(), "regionOptionRegionSelected"),
+              region.getName().toUpperCase());
         }
 
         event.getChannel().sendMessage(message).queue();
@@ -55,42 +62,46 @@ public class RegionOption extends ConfigurationOption {
             .useLooping(true)
             .setColor(Color.BLUE)
             .setSelectedEnds("**", "**")
-            .setCanceled(getSelectionCancelAction())
+            .setCanceled(getSelectionCancelAction(server.getLangage()))
             .setTimeout(2, TimeUnit.MINUTES);
 
         List<Platform> regionsList = new ArrayList<>();
         List<String> regionChoices = new ArrayList<>();
         for(Platform regionMember : Platform.values()) {
-          String actualChoice = "Region " + regionMember.getName().toUpperCase();
+          String actualChoice = String.format(LanguageManager.getText(server.getLangage(), "regionOptionRegionChoice"),
+              regionMember.getName().toUpperCase());
+          
           regionChoices.add(actualChoice);
           selectAccountBuilder.addChoices(actualChoice);
           regionsList.add(regionMember);
         }
-        regionChoices.add("Region Any (Option Disable)");
-        selectAccountBuilder.addChoices("Region Any (Option Disable)");
+        
+        String anyChoice = LanguageManager.getText(server.getLangage(), "regionOptionDisableChoice");
+        regionChoices.add(anyChoice);
+        selectAccountBuilder.addChoices(anyChoice);
 
-        selectAccountBuilder.setText(getUpdateMessageAfterChangeSelectAction(regionChoices))
-        .setSelectionConsumer(getSelectionDoneAction(regionsList));
+        selectAccountBuilder.setText(getUpdateMessageAfterChangeSelectAction(server.getLangage(), regionChoices));
+        selectAccountBuilder.setSelectionConsumer(getSelectionDoneAction(server.getLangage(), regionsList));
 
         SelectionDialog dialog = selectAccountBuilder.build();
         dialog.display(event.getChannel());
       }};
   }
 
-  private Function<Integer, String> getUpdateMessageAfterChangeSelectAction(List<String> choices) {
+  private Function<Integer, String> getUpdateMessageAfterChangeSelectAction(SpellingLanguage language, List<String> choices) {
     return new Function<Integer, String>() {
       @Override
       public String apply(Integer index) {
         if(choices.size() == index) {
-          return "Region selected : \"**Any**\"";
+          return LanguageManager.getText(language, "regionOptionInSelectionAny");
         }
 
-        return "Region selected : \"**" + choices.get(index - 1) + "**\"";
+        return String.format(LanguageManager.getText(language, "regionOptionInSelectionRegion"), choices.get(index - 1));
       }
     };
   }
 
-  private BiConsumer<Message, Integer> getSelectionDoneAction(List<Platform> regionsList) {
+  private BiConsumer<Message, Integer> getSelectionDoneAction(SpellingLanguage language, List<Platform> regionsList) {
     return new BiConsumer<Message, Integer>() {
       @Override
       public void accept(Message selectionMessage, Integer selectionOfRegion) {
@@ -99,24 +110,25 @@ public class RegionOption extends ConfigurationOption {
 
         String strRegion;
         if(regionsList.size() == selectionOfRegion - 1) {
-          strRegion = "Any";
+          strRegion = LanguageManager.getText(language, "regionOptionAnyRegion");
           region = null;
         }else {
           strRegion = regionsList.get(selectionOfRegion - 1).getName().toUpperCase();
           region = regionsList.get(selectionOfRegion - 1);
         }
 
-        selectionMessage.getTextChannel().sendMessage("The default region of the server is now \"**" + strRegion + "**\".").queue();
+        selectionMessage.getTextChannel().sendMessage(String.format(LanguageManager.getText(language, "regionOptionDoneMessage"),
+            strRegion)).queue();
       }
     };
   }
 
-  private Consumer<Message> getSelectionCancelAction(){
+  private Consumer<Message> getSelectionCancelAction(SpellingLanguage language){
     return new Consumer<Message>() {
       @Override
       public void accept(Message message) {
         message.clearReactions().queue();
-        message.editMessage("Selection canceled").queue();
+        message.editMessage(LanguageManager.getText(language, "regionOptionSelectionCanceledMessage")).queue();
       }
     };
   }

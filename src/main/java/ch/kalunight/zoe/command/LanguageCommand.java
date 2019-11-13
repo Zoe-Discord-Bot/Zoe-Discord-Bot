@@ -1,6 +1,7 @@
 package ch.kalunight.zoe.command;
 
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
@@ -10,21 +11,21 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.OrderedMenu;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.model.Server;
-import ch.kalunight.zoe.model.config.ServerConfiguration;
-import ch.kalunight.zoe.model.config.option.ConfigurationOption;
 import ch.kalunight.zoe.model.static_data.SpellingLanguage;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Message;
 
-public class ConfigCommand extends ZoeCommand {
-  
+public class LanguageCommand extends ZoeCommand{
+
   private EventWaiter waiter;
   
-  public ConfigCommand(EventWaiter waiter) {
-    this.name = "config";
-    this.help = "configCommandHelp";
+  public LanguageCommand(EventWaiter waiter) {
+    this.name = "language";
+    String[] aliasesTable = {"lang", "l", "languages"};
+    this.aliases = aliasesTable;
+    this.help = "LanguageCommandHelp";
     this.hidden = false;
     this.ownerCommand = false;
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL, Permission.MESSAGE_ADD_REACTION};
@@ -36,51 +37,57 @@ public class ConfigCommand extends ZoeCommand {
     this.helpBiConsumer = CommandUtil.getHelpMethod(name, help);
   }
   
+  
   @Override
   protected void executeCommand(CommandEvent event) {
     CommandUtil.sendTypingInFonctionOfChannelType(event);
     
     Server server = ServerData.getServers().get(event.getGuild().getId());
     
+    String message = String.format(LanguageManager.getText(server.getLangage(),
+        "languageCommandStartMessage"), server.getLangage().nameInNativeLanguage(), "https://discord.gg/XuZAfGK");
+    
     OrderedMenu.Builder builder = new OrderedMenu.Builder()
         .addUsers(event.getAuthor())
         .allowTextInput(false)
         .setTimeout(2, TimeUnit.MINUTES)
         .useNumbers()
-        .setColor(Color.BLUE)
-        .setText(LanguageManager.getText(server.getLangage(), "configCommandMenuText"))
-        .setDescription(LanguageManager.getText(server.getLangage(), "configCommandMenuDescription"))
+        .setColor(Color.GREEN)
+        .setText(LanguageManager.getText(server.getLangage(), message))
+        .setDescription(LanguageManager.getText(server.getLangage(), "languageCommandMenuDescription"))
         .useCancelButton(true)
         .setEventWaiter(waiter);
     
-    ServerConfiguration serverConfiguration = server.getConfig();
-    
-    List<ConfigurationOption> options = serverConfiguration.getAllConfigurationOption();
-    for(ConfigurationOption option : options) {
-      builder.addChoice(option.getChoiceText(server.getLangage()));
+    List<SpellingLanguage> langagesList = new ArrayList<SpellingLanguage>();
+    for(SpellingLanguage langage : SpellingLanguage.values()) {
+      builder.addChoices(langage.nameInNativeLanguage());
+      langagesList.add(langage);
     }
     
-    builder.setSelection(getSelectionAction(options, event))
-    .setCancel(getCancelAction(server.getLangage()));
+    builder.setSelection(getSelectionAction(langagesList, event, server));
+    builder.setCancel(getCancelAction(server.getLangage()));
     
     builder.build().display(event.getChannel());
   }
   
-  private BiConsumer<Message, Integer> getSelectionAction(List<ConfigurationOption> options, CommandEvent event){
+  private BiConsumer<Message, Integer> getSelectionAction(List<SpellingLanguage> langages, CommandEvent event, Server server){
     return new BiConsumer<Message, Integer>() {
       
       @Override
       public void accept(Message messageEmbended, Integer selectionNumber) {
-        options.get(selectionNumber - 1).getChangeConsumer(waiter).accept(event);
+        CommandUtil.sendTypingInFonctionOfChannelType(event);
+        server.setLangage(langages.get(selectionNumber - 1));
+        event.reply(String.format(
+            LanguageManager.getText(server.getLangage(), "languageCommandSelected"), server.getLangage().nameInNativeLanguage()));
       }};
   }
   
-  private Consumer<Message> getCancelAction(SpellingLanguage language){
+  private Consumer<Message> getCancelAction(SpellingLanguage langage){
     return new Consumer<Message>() {
 
       @Override
       public void accept(Message message) {
-        message.getChannel().sendMessage(LanguageManager.getText(language, "configurationEnded")).queue();
+        message.getChannel().sendMessage(LanguageManager.getText(langage, "languageCommandSelectionEnded")).queue();
       }};
   }
 }

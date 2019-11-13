@@ -3,12 +3,10 @@ package ch.kalunight.zoe.command.create;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
@@ -17,6 +15,7 @@ import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.config.option.RegionOption;
 import ch.kalunight.zoe.model.player_data.LeagueAccount;
 import ch.kalunight.zoe.model.player_data.Player;
+import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
@@ -36,9 +35,9 @@ public class CreatePlayerCommand extends ZoeCommand {
 
   public CreatePlayerCommand() {
     this.name = USAGE_NAME;
-    this.help = "Create a player with the given information.";
+    this.help = "createPlayerHelpMessage";
     this.arguments = "@DiscordMentionOfPlayer (Region) (SummonerName)";
-    this.helpBiConsumer = getHelpMethod();
+    this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(CreateCommand.USAGE_NAME, name, arguments, help);
   }
 
   @Override
@@ -48,24 +47,23 @@ public class CreatePlayerCommand extends ZoeCommand {
     Server server = ServerData.getServers().get(event.getGuild().getId());
     
     if(!server.getConfig().getUserSelfAdding().isOptionActivated() && !event.getMember().getPermissions().contains(Permission.MANAGE_CHANNEL)) {
-        event.reply("You need the permission \"" + Permission.MANAGE_CHANNEL.getName() + "\" to do that.");
+      event.reply(String.format(LanguageManager.getText(server.getLangage(), "permissionNeededMessage"),
+          Permission.MANAGE_CHANNEL.getName()));
         return;
     }
     
     User user = getMentionedUser(event.getMessage().getMentionedMembers());
     if(user == null) {
-      event.reply("Please mention 1 member of the server "
-          + "(e.g. `>create player @" + event.getMember().getUser().getName() + " (Region) (SummonerName)`)");
+      event.reply(String.format(LanguageManager.getText(server.getLangage(), "mentionNeededMessageWithUser"), event.getAuthor().getName()));
       return;
     }else if(!user.equals(event.getAuthor()) && !event.getMember().getPermissions().contains(Permission.MANAGE_CHANNEL)) {
-      event.reply("You cannot create another player than you if don't have the *" + Permission.MANAGE_CHANNEL.getName() + "* permission. "
-          + "Sorry about that :/");
+      event.reply(String.format(LanguageManager.getText(server.getLangage(), "permissionNeededCreateOtherPlayer"),
+          Permission.MANAGE_CHANNEL.getName()));
       return;
     }
 
     if(isTheGivenUserAlreadyRegister(user, server)) {
-      event.reply("The mentioned member is already register. "
-          + "If you want to add a secondary lol account, please use the command ``>add accountToPlayer``.");
+      event.reply(LanguageManager.getText(server.getLangage(), "createPlayerAlreadyRegistered"));
       return;
     }
     
@@ -73,11 +71,11 @@ public class CreatePlayerCommand extends ZoeCommand {
 
     List<String> listArgs = CreatePlayerCommand.getParameterInParenteses(event.getArgs());
     if(listArgs.size() != 2 && regionOption.getRegion() == null) {
-      event.reply("The command is malformed. Please respect this pattern : `>create player @DiscordPlayerMention (Region) (SummonerName)`");
+      event.reply(LanguageManager.getText(server.getLangage(), "createPlayerMalformedWithoutRegionOption"));
       return;
     }else if((listArgs.isEmpty() || listArgs.size() > 2) && regionOption.getRegion() != null) {
-      event.reply("The command is malformed. Please respect this pattern : `>create player @DiscordPlayerMention (Region) (SummonerName)`\n"
-          + "If the region is not set, the default region will be used (" + regionOption.getRegion().getName().toUpperCase() + ").");
+      event.reply(String.format(LanguageManager.getText(server.getLangage(), "createPlayerMalformedWithRegionOption"), 
+          regionOption.getRegion().getName().toUpperCase()));
       return;
     }
 
@@ -94,7 +92,7 @@ public class CreatePlayerCommand extends ZoeCommand {
 
     Platform region = getPlatform(regionName);
     if(region == null) {
-      event.reply("The region tag is invalid. (Valid tag : EUW, EUNE, NA, BR, JP, KR, LAN, LAS, OCE, RU, TR)");
+      event.reply(LanguageManager.getText(server.getLangage(), "regionTagInvalid"));
       return;
     }
 
@@ -103,16 +101,16 @@ public class CreatePlayerCommand extends ZoeCommand {
       summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName, CallPriority.HIGH);
     }catch(RiotApiException e) {
       if(e.getErrorCode() == RiotApiException.SERVER_ERROR) {
-        event.reply("Riot server occured a issue. Please retry");
+        event.reply(LanguageManager.getText(server.getLangage(), "riotApiSummonerByNameError500"));
       }else if(e.getErrorCode() == RiotApiException.UNAVAILABLE) {
-        event.reply("Riot server are actually unavailable. Please retry later.");
+        event.reply(LanguageManager.getText(server.getLangage(), "riotApiSummonerByNameError503"));
       }else if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
-        event.reply("I can't access now to riot server. Please retry later.");
+        event.reply(LanguageManager.getText(server.getLangage(), "riotApiSummonerByNameError429"));
         logger.info("Receive a {} error code : {}", e.getErrorCode(), e.getMessage());
       }else if (e.getErrorCode() == RiotApiException.DATA_NOT_FOUND){
-        event.reply("The summonerName is incorrect. Please verify the SummonerName and retry.");
+        event.reply(LanguageManager.getText(server.getLangage(), "riotApiSummonerByNameError404"));
       }else {
-        event.reply("I got a unexpected error, please retry. Error code : " + e.getErrorCode());
+        event.reply(String.format(LanguageManager.getText(server.getLangage(), "riotApiSummonerByNameErrorUnexpected"), e.getErrorCode()));
         logger.warn("Unexpected error in add accountToPlayer command.", e);
       }
       return;
@@ -121,7 +119,8 @@ public class CreatePlayerCommand extends ZoeCommand {
     Player playerAlreadyWithTheAccount = server.isLeagueAccountAlreadyExist(new LeagueAccount(summoner, region));
     
     if(playerAlreadyWithTheAccount != null) {
-      event.reply("This account is already linked with the player " + playerAlreadyWithTheAccount.getDiscordUser().getName() + " !");
+      event.reply(String.format(LanguageManager.getText(server.getLangage(), "accountAlreadyLinkedToAnotherPlayer"),
+          playerAlreadyWithTheAccount.getDiscordUser().getName()));
       return;
     }
 
@@ -133,7 +132,8 @@ public class CreatePlayerCommand extends ZoeCommand {
         server.getGuild().addRoleToMember(member, server.getConfig().getZoeRoleOption().getRole()).queue();
       }
     }
-    event.reply("The player " + user.getName() + " has been added with the account \"" + summoner.getName() + "\".");
+    event.reply(String.format(LanguageManager.getText(server.getLangage(), "createPlayerDoneMessage"),
+        user.getName(), summoner.getName()));
   }
 
   public static Platform getPlatform(String regionName) {
@@ -164,19 +164,5 @@ public class CreatePlayerCommand extends ZoeCommand {
       return null;
     }
     return members.get(0).getUser();
-  }
-
-  private BiConsumer<CommandEvent, Command> getHelpMethod() {
-    return new BiConsumer<CommandEvent, Command>() {
-      @Override
-      public void accept(CommandEvent event, Command command) {
-        CommandUtil.sendTypingInFonctionOfChannelType(event);
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("Create player command :\n");
-        stringBuilder.append("--> `>create " + name + " " + arguments + "` : " + help);
-
-        event.reply(stringBuilder.toString());
-      }
-    };
   }
 }

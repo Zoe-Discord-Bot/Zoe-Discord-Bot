@@ -15,60 +15,38 @@ public class NameConversion {
     return stringToConvert;
   }
 
-  public static String convertGameModeToString(String stringToConvert) {
-
-    if(stringToConvert.equals("CLASSIC")) {
-      return "Faille de l'invocateur";
-    } else if(stringToConvert.equals("GAMEMOEDEX")) {
-      return "Mode de jeu en rotation";
-    } else {
-      return stringToConvert;
-    }
-  }
-
   public static String convertGameQueueIdToString(int id) {
     switch(id) {
       case 0:
-        return "Custom game";
+        return "gameTypeCustom";
       case 400:
-        return "5v5 Draft Pick | Summoner's Rift";
+        return "gameType5v5DraftSR";
       case 420:
-        return "5v5 Ranked Solo | Summoner's Rift";
+        return "gameType5v5RankSoloQSR";
       case 430:
-        return "5v5 Blind Pick | Summoner's Rift";
+        return "gameType5v5BlindSR";
       case 440:
-        return "5v5 Ranked Flex | Summoner's Rift";
+        return "gameType5v5RankedFlexSR";
       case 450:
-        return "ARAM | Howling Abyss";
+        return "gameTypeARAM";
       case 460:
-        return "3v3 Blind Pick | Twisted Treeline";
+        return "gameType3v3BlindTT";
       case 470:
-        return "3v3 Ranked Flex | Twisted Treeline";
+        return "gameType3v3RankFlexTT";
       case 700:
-        return "Clash | Summoner's Rift";
+        return "gameType5v5ClashSR";
       case 800:
       case 810:
       case 820:
-        return "Coop vs IA | Twisted Treeline";
+        return "gameTypeCoopVsIATT";
       case 830:
       case 840:
       case 850:
-        return "Coop vs IA | Summoner's Rift";
+        return "gameTypeCoopVsIASR";
       case 900:
-        return "URF | Summoner's Rift";
-      case 1200:
-        return "Raid du Nexus | Summoner's Rift";
+        return "gameTypeClassicUrf";
       default:
-        return "Temporary mode";
-    }
-  }
-
-  public static String convertGameTypeToString(String stringToConvert) {
-
-    if(stringToConvert.equals("MATCHED_GAME")) {
-      return "Matchmaking";
-    } else {
-      return stringToConvert;
+        return "gameTypeUnknown";
     }
   }
 

@@ -1,12 +1,11 @@
 package ch.kalunight.zoe.command.delete;
 
-import java.util.function.BiConsumer;
-import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.player_data.Team;
+import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
 
@@ -16,11 +15,11 @@ public class DeleteTeamCommand extends ZoeCommand {
 
   public DeleteTeamCommand() {
     this.name = USAGE_NAME;
-    this.help = "Delete the given team. Manage Channel permission needed.";
+    this.help = "deleteTeamHelpMessage";
     this.arguments = "teamName";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
-    this.helpBiConsumer = getHelpMethod();
+    this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(DeletePlayerCommand.USAGE_NAME, name, arguments, help);
   }
 
   @Override
@@ -31,24 +30,10 @@ public class DeleteTeamCommand extends ZoeCommand {
 
     Team team = server.getTeamByName(teamName);
     if(team == null) {
-      event.reply("There is no team called \"" + teamName + "\" !");
+      event.reply(String.format(LanguageManager.getText(server.getLangage(), "deleteTeamNotFound"), teamName));
     } else {
       server.getTeams().remove(team);
-      event.reply("The team \"" + teamName + "\" has been deleted !");
+      event.reply(String.format(LanguageManager.getText(server.getLangage(), "deleteTeamDoneMessage"), teamName));
     }
-  }
-
-  private BiConsumer<CommandEvent, Command> getHelpMethod() {
-    return new BiConsumer<CommandEvent, Command>() {
-      @Override
-      public void accept(CommandEvent event, Command command) {
-        CommandUtil.sendTypingInFonctionOfChannelType(event);
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("Delete team command :\n");
-        stringBuilder.append("--> `>delete " + name + " " + arguments + "` : " + help);
-
-        event.reply(stringBuilder.toString());
-      }
-    };
   }
 }

@@ -1,12 +1,11 @@
 package ch.kalunight.zoe.command.create;
 
-import java.util.function.BiConsumer;
-import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.player_data.Team;
+import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
 
@@ -19,8 +18,8 @@ public class CreateTeamCommand extends ZoeCommand {
     this.arguments = "nameOfTheTeam";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
-    this.help = "Create a new team. Allows you to group players together on the Info Panel. Manage Channel permission needed.";
-    this.helpBiConsumer = getHelpMethod();
+    this.help = "createTeamHelpMessage";
+    this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(CreateCommand.USAGE_NAME, name, arguments, help);
   }
 
   @Override
@@ -30,35 +29,21 @@ public class CreateTeamCommand extends ZoeCommand {
     Server server = ServerData.getServers().get(event.getGuild().getId());
     
     if(nameTeam.equals("--server")) {
-      event.reply("This name is already used by the system. Please us another name.");
+      event.reply(LanguageManager.getText(server.getLangage(), "nameAlreadyUsedByTheSystem"));
       return;
     }
 
     if(nameTeam.equals("")) {
-      event.reply("Please give me a team name. (E.g. : `>create team Fnatic`)");
+      event.reply(LanguageManager.getText(server.getLangage(), "createTeamNeedName"));
     } else {
       Team team = server.getTeamByName(nameTeam);
 
       if(team != null) {
-        event.reply("A team with the given name already exist !");
+        event.reply(LanguageManager.getText(server.getLangage(), "createTeamNameAlreadyExist"));
       } else {
         server.getTeams().add(new Team(event.getArgs()));
-        event.reply("The team \"" + event.getArgs() + "\" has been created !");
+        event.reply(LanguageManager.getText(server.getLangage(), "createTeamDoneMessage"));
       }
     }
-  }
-
-  private BiConsumer<CommandEvent, Command> getHelpMethod() {
-    return new BiConsumer<CommandEvent, Command>() {
-      @Override
-      public void accept(CommandEvent event, Command command) {
-        CommandUtil.sendTypingInFonctionOfChannelType(event);
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("Create Team command :\n");
-        stringBuilder.append("--> `>create " + name + " " + arguments + "` : " + help);
-
-        event.reply(stringBuilder.toString());
-      }
-    };
   }
 }

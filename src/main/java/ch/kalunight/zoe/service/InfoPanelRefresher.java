@@ -18,6 +18,7 @@ import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.player_data.LeagueAccount;
 import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.model.player_data.Team;
+import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.InfoPanelRefresherUtil;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageReaction;
@@ -84,7 +85,8 @@ public class InfoPanelRefresher implements Runnable {
           } else {
             int nbrMessageToAdd = infoPanels.size() - server.getControlePannel().getInfoPanel().size();
             for(int i = 0; i < nbrMessageToAdd; i++) {
-              server.getControlePannel().getInfoPanel().add(server.getInfoChannel().sendMessage("loading ...").complete());
+              server.getControlePannel().getInfoPanel().add(server.getInfoChannel()
+                  .sendMessage(LanguageManager.getText(server.getLangage(), "loading")).complete());
             }
           }
 
@@ -308,7 +310,7 @@ public class InfoPanelRefresher implements Runnable {
     final List<Team> teamList = server.getAllPlayerTeams();
     final StringBuilder stringMessage = new StringBuilder();
 
-    stringMessage.append("__**Information Panel**__\n \n");
+    stringMessage.append("__**" + LanguageManager.getText(server.getLangage(), "informationPanelTitle") + "**__\n \n");
 
     for(Team team : teamList) {
 
@@ -323,19 +325,21 @@ public class InfoPanelRefresher implements Runnable {
         List<LeagueAccount> leagueAccounts = player.getLeagueAccountsInGame();
 
         if(leagueAccounts.isEmpty()) {
-          stringMessage.append(player.getDiscordUser().getAsMention() + " : Not in game\n");
+          stringMessage.append(player.getDiscordUser().getAsMention() + " : " 
+        + LanguageManager.getText(server.getLangage(), "informationPanelNotInGame") + " \n");
         }else if (leagueAccounts.size() == 1) {
           stringMessage.append(player.getDiscordUser().getAsMention() + " : " 
               + InfoPanelRefresherUtil.getCurrentGameInfoStringForOneAccount(leagueAccounts.get(0)) + "\n");
         }else {
-          stringMessage.append(player.getDiscordUser().getAsMention() + " : Multiples accounts are in game\n"
+          stringMessage.append(player.getDiscordUser().getAsMention() + " : " 
+        + LanguageManager.getText(server.getLangage(), "informationPanelMultipleAccountInGame") + "\n"
               + InfoPanelRefresherUtil.getCurrentGameInfoStringForMultipleAccounts(leagueAccounts));
         }
       }
       stringMessage.append(" \n");
     }
 
-    stringMessage.append("*Refreshed every 3 minutes*");
+    stringMessage.append(LanguageManager.getText(server.getLangage(), "informationPanelRefreshedTime"));
 
     return stringMessage.toString();
   }

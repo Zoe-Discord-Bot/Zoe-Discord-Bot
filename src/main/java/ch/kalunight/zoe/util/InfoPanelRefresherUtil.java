@@ -6,6 +6,8 @@ import com.google.common.base.Preconditions;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.player_data.LeagueAccount;
 import ch.kalunight.zoe.model.player_data.Player;
+import ch.kalunight.zoe.model.static_data.SpellingLanguage;
+import ch.kalunight.zoe.translation.LanguageManager;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
 
@@ -15,11 +17,12 @@ public class InfoPanelRefresherUtil {
     //Hide default public constructor
   }
 
-  public static String getCurrentGameInfoStringForOneAccount(LeagueAccount account) {
+  public static String getCurrentGameInfoStringForOneAccount(LeagueAccount account, SpellingLanguage language) {
     Preconditions.checkNotNull(account);
 
-    String gameStatus = NameConversion.convertGameQueueIdToString(account.getCurrentGameInfo().getGameQueueConfigId()) 
-        + " with the account **" + account.getSummoner().getName() + "**";
+    String gameStatus = LanguageManager.getText(language, 
+        NameConversion.convertGameQueueIdToString(account.getCurrentGameInfo().getGameQueueConfigId())) 
+        + " " + LanguageManager.getText(language, "withTheAccount") + " **" + account.getSummoner().getName() + "**";
 
     double minutesOfGames = 0.0;
 
@@ -37,15 +40,17 @@ public class InfoPanelRefresherUtil {
     return gameStatus;
   }
 
-  public static String getCurrentGameInfoStringForMultipleAccounts(List<LeagueAccount> accounts) {
+  public static String getCurrentGameInfoStringForMultipleAccounts(List<LeagueAccount> accounts, SpellingLanguage language) {
     Preconditions.checkNotNull(accounts);
 
     StringBuilder stringBuilder = new StringBuilder();
 
     for(LeagueAccount account : accounts) {
-      stringBuilder.append("-Account **" + account.getSummoner().getName() + "** : ");
+      stringBuilder.append("-" + LanguageManager.getText(language, "account") 
+      + " **" + account.getSummoner().getName() + "** : ");
 
-      stringBuilder.append(NameConversion.convertGameQueueIdToString(account.getCurrentGameInfo().getGameQueueConfigId()));
+      stringBuilder.append(LanguageManager.getText(language,
+          NameConversion.convertGameQueueIdToString(account.getCurrentGameInfo().getGameQueueConfigId())));
 
       double minutesOfGames = 0.0;
 

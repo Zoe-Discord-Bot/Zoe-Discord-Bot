@@ -75,13 +75,13 @@ public class InfoCardsWorker implements Runnable {
 
     if(listOfPlayerInTheGame.size() == 1) {
       MessageEmbed messageCard = MessageBuilderRequest.createInfoCard1summoner(player.getDiscordUser(), account.getSummoner(),
-          currentGameInfo, account.getRegion());
+          currentGameInfo, account.getRegion(), server.getLangage());
       if(messageCard != null) {
         card = new InfoCard(listOfPlayerInTheGame, messageCard, currentGameInfo);
       }
     } else if(listOfPlayerInTheGame.size() > 1) {
       MessageEmbed messageCard =
-          MessageBuilderRequest.createInfoCardsMultipleSummoner(listOfPlayerInTheGame, currentGameInfo, account.getRegion());
+          MessageBuilderRequest.createInfoCardsMultipleSummoner(listOfPlayerInTheGame, currentGameInfo, account.getRegion(), server.getLangage());
 
       if(messageCard != null) {
         card = new InfoCard(listOfPlayerInTheGame, messageCard, currentGameInfo);

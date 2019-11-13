@@ -329,11 +329,11 @@ public class InfoPanelRefresher implements Runnable {
         + LanguageManager.getText(server.getLangage(), "informationPanelNotInGame") + " \n");
         }else if (leagueAccounts.size() == 1) {
           stringMessage.append(player.getDiscordUser().getAsMention() + " : " 
-              + InfoPanelRefresherUtil.getCurrentGameInfoStringForOneAccount(leagueAccounts.get(0)) + "\n");
+              + InfoPanelRefresherUtil.getCurrentGameInfoStringForOneAccount(leagueAccounts.get(0), server.getLangage()) + "\n");
         }else {
           stringMessage.append(player.getDiscordUser().getAsMention() + " : " 
         + LanguageManager.getText(server.getLangage(), "informationPanelMultipleAccountInGame") + "\n"
-              + InfoPanelRefresherUtil.getCurrentGameInfoStringForMultipleAccounts(leagueAccounts));
+              + InfoPanelRefresherUtil.getCurrentGameInfoStringForMultipleAccounts(leagueAccounts, server.getLangage()));
         }
       }
       stringMessage.append(" \n");

@@ -206,7 +206,7 @@
   "gameType5v5DraftSR" : "5v5 Draft Pick | Summoner's Rift",
   "gameType5v5RankSoloQSR" : "5v5 Ranked Solo | Summoner's Rift",
   "gameType5v5BlindSR" : "5v5 Blind Pick | Summoner's Rift",
-  "gameType5v5RankedFlexSR" : "5v5 Ranked Flex | Summoner's Rift"
+  "gameType5v5RankedFlexSR" : "5v5 Ranked Flex | Summoner's Rift",
   "gameTypeARAM" : "ARAM | Howling Abyss",
   "gameType3v3BlindTT" : "3v3 Blind Pick | Twisted Treeline",
   "gameType3v3RankFlexTT" : "3v3 Ranked Flex | Twisted Treeline",

@@ -55,7 +55,7 @@ public class MessageBuilderRequestUtil {
       teamRankString.append(rank + "\n");
 
       teamWinRateLastMonth.append(RiotRequest.getMasterysScore(participant.getSummonerId(), participant.getChampionId(), platform) + " | "
-          + RiotRequest.getWinrateLastMonthWithGivenChampion(participant.getSummonerId(), platform, participant.getChampionId()) + "\n");
+          + RiotRequest.getWinrateLastMonthWithGivenChampion(participant.getSummonerId(), platform, participant.getChampionId(), language) + "\n");
     }
   }
 
@@ -105,7 +105,7 @@ public class MessageBuilderRequestUtil {
       teamRankString.append(rank + "\n");
 
       teamWinrateString.append(RiotRequest.getMasterysScore(participant.getSummonerId(), participant.getChampionId(), platform) + " | "
-          + RiotRequest.getWinrateLastMonthWithGivenChampion(participant.getSummonerId(), platform, participant.getChampionId()) + "\n");
+          + RiotRequest.getWinrateLastMonthWithGivenChampion(participant.getSummonerId(), platform, participant.getChampionId(), language) + "\n");
     }
   }
 

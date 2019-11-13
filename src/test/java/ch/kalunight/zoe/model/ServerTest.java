@@ -22,7 +22,7 @@ public class ServerTest {
     server.getPlayers().add(player2);
 
     List<Team> expectedTeamsList = new ArrayList<>();
-    Team expectedTeam = new Team("No Team");
+    Team expectedTeam = new Team("Translation error");
     List<Player> expectedPlayers = new ArrayList<Player>();
     expectedPlayers.add(player1);
     expectedPlayers.add(player2);

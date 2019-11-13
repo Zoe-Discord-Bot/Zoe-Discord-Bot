@@ -1,8 +1,8 @@
 {
-    "startHelpMessage": "",
-    "command": "",
-    "commandPlural": "",
-    "endHelpMessage": "",
+    "startHelpMessage": "Voici mes commandes :",
+    "command": "Commande",
+    "commandPlural": "Commandes",
+    "endHelpMessage": "Si cela ne suffit pas, vous pouvez aussi rejoindre notre serveur officiel :",
     "helpMessageSendConfirmation": "",
     "missingPermissionOwnerMessage": "",
     "aboutCommandHelp": "",

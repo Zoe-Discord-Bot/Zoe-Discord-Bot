@@ -3,7 +3,7 @@
     "command": "Commande",
     "commandPlural": "Commandes",
     "endHelpMessage": "Si cela ne suffit pas, vous pouvez aussi rejoindre notre serveur officiel :",
-    "helpMessageSendConfirmation": "",
+    "helpMessageSendConfirmation": "Je vous ai envoyées toutes les commandes en message privé.",
     "missingPermissionOwnerMessage": "",
     "aboutCommandHelp": "",
     "aboutMessage": "",

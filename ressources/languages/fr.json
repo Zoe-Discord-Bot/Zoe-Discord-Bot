@@ -2,7 +2,7 @@
     "startHelpMessage": "Voici mes commandes :",
     "command": "Commande",
     "commandPlural": "Commandes",
-    "endHelpMessage": "Si cela ne suffit pas, vous pouvez aussi rejoindre notre serveur officiel :",
+    "endHelpMessage": "Pour avoir une aide supplémentaire, vous pouvez aussi rejoindre notre serveur officiel :",
     "helpMessageSendConfirmation": "Je vous ai envoyées toutes les commandes en message privé.",
     "missingPermissionOwnerMessage": "",
     "aboutCommandHelp": "",

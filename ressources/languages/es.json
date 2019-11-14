@@ -167,7 +167,7 @@
     "roleOptionLongDesc": "Opción para activar: **%s**\n\nActivar esta opción creará un rol llamado \"Zoe-Player\" y asignarlo a todos los jugadores registrados. Puedes actualizarlo como quieras. Si fue eliminado, esta opción se desactivará automáticamente.\n\n:white_check_mark: : Activar esta opción\n:x: : Cancelar la activación",
     "roleOptionLongDescDisable": "Opción que quieres desactivar: **%s**\n\nDesactivarla **borrará el rol Zoe-Player** y hará el canal de información legible por todo el mundo.\n\n:white_check_mark: : **Desactivar** esta opción.\n:x: : Cancelar la desactivación",
     "roleOptionActivateWaitMessage": "Bien, activaré eso rápidamente. Espera 2 segundos...",
-    "roleOptionDoneMessage": "¡La configuración ha terminado! Ahora solo usuarios registrados podrán ver el canal de información",
+    "roleOptionDoneMessage": "¡La configuración ha terminado! Ahora solo usuarios registrados podrán ver el canal de información.",
     "roleOptionCancelMessage": "Bueno, si algún día cambias de idea, sabes dónde estoy :3.",
     "roleOptionDisableWaitMessage": "Bien, desactivo la opción. Espera 2 segundos, por favor...",
     "roleOptionDoneMessageDisable": "¡La opción ha sido desactivada!",

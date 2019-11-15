@@ -254,5 +254,6 @@
     "infoCardsGameInfoOnTheGameOf": "Info on the game of",
     "infoCardsGameInfoAndOf": "and of",
     "account": "Account",
-    "firstGame": "First game"
+    "firstGame": "First game",
+	"nativeActualLanguage" : "#MESSAGE FOR TRANSLATOR: Don't tranlate that, put instead the name of your language in your language#English"
 }

@@ -156,7 +156,7 @@ public class CreatePlayerCommand extends ZoeCommand {
   }
 
   public static boolean isTheGivenUserAlreadyRegister(User user, Server server) {
-    return server.getPlayerByDiscordId(user.getId()) != null;
+    return server.getPlayerByDiscordId(user.getIdLong()) != null;
   }
 
   public static User getMentionedUser(List<Member> members) {

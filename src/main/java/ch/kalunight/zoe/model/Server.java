@@ -144,9 +144,9 @@ public class Server {
     }
   }
 
-  public Player getPlayerByDiscordId(String discordId) {
+  public Player getPlayerByDiscordId(long discordId) {
     for(Player player : players) {
-      if(player.getDiscordUser().getId().equals(discordId)) {
+      if(player.getDiscordId() == discordId) {
         return player;
       }
     }

@@ -29,7 +29,7 @@ public class LanguageManager {
 
       for(File file : LANGUAGE_FOLDER.listFiles()) {
 
-        SpellingLanguage language = SpellingLanguage.valueOf(file.getName().split("\\.")[0]);
+        SpellingLanguage language = SpellingLanguage.searchEnum(file.getName().split("\\.")[0]);
 
         try(final BufferedReader reader = new BufferedReader(new FileReader(file));) {
           JsonObject jsonObject = gson.fromJson(reader, JsonObject.class);

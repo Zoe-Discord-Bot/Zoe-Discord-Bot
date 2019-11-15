@@ -105,6 +105,10 @@ public class Player {
   public User getDiscordUser() {
     return Zoe.getJda().retrieveUserById(discordUserId).complete();
   }
+  
+  public long getDiscordId() {
+    return discordUserId;
+  }
 
   public void setDiscordUserId(long discordUserId) {
     this.discordUserId = discordUserId;

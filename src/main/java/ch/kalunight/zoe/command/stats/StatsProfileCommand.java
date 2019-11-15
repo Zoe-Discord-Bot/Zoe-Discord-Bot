@@ -109,7 +109,7 @@ public class StatsProfileCommand extends ZoeCommand {
     }
 
     User user = userList.get(0);
-    Player player = server.getPlayerByDiscordId(user.getId());
+    Player player = server.getPlayerByDiscordId(user.getIdLong());
 
     if(player == null) {
       event.reply(LanguageManager.getText(server.getLangage(), "statsProfileNeedARegisteredPlayer"));

@@ -267,12 +267,11 @@ public class Zoe {
   }
 
   public static void loadChampions() throws IOException {
-    JsonParser parser = new JsonParser();
     List<Champion> champions = new ArrayList<>();
 
     try(FileReader fr = new FileReader("ressources/champion.json")) {
 
-      JsonObject object = parser.parse(fr).getAsJsonObject().get("data").getAsJsonObject();
+      JsonObject object = JsonParser.parseReader(fr).getAsJsonObject().get("data").getAsJsonObject();
       Set<Map.Entry<String, JsonElement>> list = object.entrySet();
       Iterator<Map.Entry<String, JsonElement>> iterator = list.iterator();
 

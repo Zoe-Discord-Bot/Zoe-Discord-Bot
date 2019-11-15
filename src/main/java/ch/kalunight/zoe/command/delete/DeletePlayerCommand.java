@@ -49,7 +49,7 @@ public class DeletePlayerCommand extends ZoeCommand {
         return;
       }
       
-      Player player = server.getPlayerByDiscordId(user.getId());
+      Player player = server.getPlayerByDiscordId(user.getIdLong());
       
       if(player == null) {
         event.reply(String.format(LanguageManager.getText(server.getLangage(), "deletePlayerUserNotRegistered"), user.getName()));

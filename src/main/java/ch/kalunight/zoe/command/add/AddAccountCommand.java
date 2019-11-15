@@ -59,7 +59,7 @@ public class AddAccountCommand extends ZoeCommand {
       return;
     }
 
-    Player player = server.getPlayerByDiscordId(user.getId());
+    Player player = server.getPlayerByDiscordId(user.getIdLong());
     if(player == null) {
       event.reply(LanguageManager.getText(server.getLangage(), "mentionnedUserNotRegistered"));
       return;

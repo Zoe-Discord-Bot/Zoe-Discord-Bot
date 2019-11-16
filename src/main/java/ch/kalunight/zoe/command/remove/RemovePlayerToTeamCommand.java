@@ -33,7 +33,7 @@ public class RemovePlayerToTeamCommand extends ZoeCommand {
       return;
     }
 
-    Player player = server.getPlayerByDiscordId(event.getMessage().getMentionedMembers().get(0).getUser().getId());
+    Player player = server.getPlayerByDiscordId(event.getMessage().getMentionedMembers().get(0).getUser().getIdLong());
 
     if(player == null) {
       event.reply(LanguageManager.getText(server.getLangage(), "removePlayerToTeamMentionnedPlayerNotPlayer"));

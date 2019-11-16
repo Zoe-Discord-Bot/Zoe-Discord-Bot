@@ -25,7 +25,6 @@ import ch.kalunight.zoe.model.player_data.Tier;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.model.static_data.CustomEmote;
 import ch.kalunight.zoe.model.static_data.Mastery;
-import ch.kalunight.zoe.model.static_data.SpellingLanguage;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.NameConversion;
 import ch.kalunight.zoe.util.Ressources;
@@ -55,7 +54,7 @@ public class MessageBuilderRequest {
   private static final String SOLO_Q_RANK_STRING = "soloqTitleRespectSize";
   private MessageBuilderRequest() {}
 
-  public static MessageEmbed createInfoCard1summoner(User user, Summoner summoner, CurrentGameInfo match, Platform region, SpellingLanguage language) {
+  public static MessageEmbed createInfoCard1summoner(User user, Summoner summoner, CurrentGameInfo match, Platform region, String language) {
 
     String blueTeamTranslated = LanguageManager.getText(language, BLUE_TEAM_STRING);
     String redTeamTranslated = LanguageManager.getText(language, RED_TEAM_STRING);
@@ -121,7 +120,7 @@ public class MessageBuilderRequest {
   }
 
   public static MessageEmbed createInfoCardsMultipleSummoner(List<Player> players, CurrentGameInfo currentGameInfo,
-      Platform region, SpellingLanguage language) {
+      Platform region, String language) {
 
     String blueTeamTranslated = LanguageManager.getText(language, BLUE_TEAM_STRING);
     String redTeamTranslated = LanguageManager.getText(language, RED_TEAM_STRING);
@@ -196,7 +195,7 @@ public class MessageBuilderRequest {
   }
 
   public static MessageEmbed createProfileMessage(Player player, LeagueAccount leagueAccount,
-      List<ChampionMastery> masteries, SpellingLanguage language) throws RiotApiException {
+      List<ChampionMastery> masteries, String language) throws RiotApiException {
 
     String latestGameTranslated = LanguageManager.getText(language, "statsProfileLatestGames");
     

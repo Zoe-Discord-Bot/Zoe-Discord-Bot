@@ -54,7 +54,7 @@ public class RemoveAccountCommand extends ZoeCommand {
       return;
     }
     
-    Player player = server.getPlayerByDiscordId(user.getId());
+    Player player = server.getPlayerByDiscordId(user.getIdLong());
     if(player == null) {
       event.reply(LanguageManager.getText(server.getLangage(), "removeAccountUserNotRegistered"));
       return;

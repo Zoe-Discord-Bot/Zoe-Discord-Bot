@@ -6,7 +6,6 @@ import com.google.common.base.Preconditions;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.player_data.LeagueAccount;
 import ch.kalunight.zoe.model.player_data.Player;
-import ch.kalunight.zoe.model.static_data.SpellingLanguage;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
@@ -17,7 +16,7 @@ public class InfoPanelRefresherUtil {
     //Hide default public constructor
   }
 
-  public static String getCurrentGameInfoStringForOneAccount(LeagueAccount account, SpellingLanguage language) {
+  public static String getCurrentGameInfoStringForOneAccount(LeagueAccount account, String language) {
     Preconditions.checkNotNull(account);
 
     String gameStatus = LanguageManager.getText(language, 
@@ -40,7 +39,7 @@ public class InfoPanelRefresherUtil {
     return gameStatus;
   }
 
-  public static String getCurrentGameInfoStringForMultipleAccounts(List<LeagueAccount> accounts, SpellingLanguage language) {
+  public static String getCurrentGameInfoStringForMultipleAccounts(List<LeagueAccount> accounts, String language) {
     Preconditions.checkNotNull(accounts);
 
     StringBuilder stringBuilder = new StringBuilder();

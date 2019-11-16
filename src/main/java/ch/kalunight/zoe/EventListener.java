@@ -17,7 +17,6 @@ import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.config.option.CleanChannelOption.CleanChannelOptionInfo;
 import ch.kalunight.zoe.model.player_data.Player;
-import ch.kalunight.zoe.model.static_data.SpellingLanguage;
 import ch.kalunight.zoe.riotapi.CacheManager;
 import ch.kalunight.zoe.service.InfoPanelRefresher;
 import ch.kalunight.zoe.service.RiotApiUsageChannelRefresh;
@@ -35,6 +34,7 @@ import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.channel.text.TextChannelDeleteEvent;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberLeaveEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.role.RoleDeleteEvent;
 import net.dv8tion.jda.api.events.user.update.UserUpdateActivityOrderEvent;
@@ -136,7 +136,7 @@ public class EventListener extends ListenerAdapter {
         Server server = ServerData.getServers().get(guild.getId());
 
         if(server == null) {
-          ServerData.getServers().put(guild.getId(), new Server(guild.getIdLong(), SpellingLanguage.EN, new ServerConfiguration()));
+          ServerData.getServers().put(guild.getId(), new Server(guild.getIdLong(), LanguageManager.DEFAULT_LANGUAGE, new ServerConfiguration()));
         }
       }
     }
@@ -178,7 +178,7 @@ public class EventListener extends ListenerAdapter {
   public void onGuildJoin(GuildJoinEvent event) {
 
     if(!event.getGuild().getOwner().getUser().getId().equals(Zoe.getJda().getSelfUser().getId())) {
-      ServerData.getServers().put(event.getGuild().getId(), new Server(event.getGuild().getIdLong(), SpellingLanguage.EN, new ServerConfiguration()));
+      ServerData.getServers().put(event.getGuild().getId(), new Server(event.getGuild().getIdLong(), LanguageManager.DEFAULT_LANGUAGE, new ServerConfiguration()));
       ServerData.getServersIsInTreatment().put(event.getGuild().getId(), false);
       CommandUtil.sendMessageInGuildOrAtOwner(event.getGuild(), WELCOME_MESSAGE);
     }
@@ -207,6 +207,21 @@ public class EventListener extends ListenerAdapter {
     }
   }
 
+  @Override
+  public void onGuildMemberLeave(GuildMemberLeaveEvent event) {
+    if(event == null) {
+      return;
+    }
+    
+    Server server = ServerData.getServers().get(event.getGuild().getId());
+    
+    Player player = server.getPlayerByDiscordId(event.getUser().getIdLong());
+    
+    if(player != null) {
+      server.deletePlayer(player);
+    }
+  }
+  
   @Override
   public void onUserUpdateActivityOrder(UserUpdateActivityOrderEvent event) {
     if(event == null || event.getNewValue().isEmpty()) {

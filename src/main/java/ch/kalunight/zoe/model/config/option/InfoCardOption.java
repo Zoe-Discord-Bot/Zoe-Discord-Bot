@@ -9,7 +9,6 @@ import com.jagrosh.jdautilities.menu.ButtonMenu;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.Server;
-import ch.kalunight.zoe.model.static_data.SpellingLanguage;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
@@ -122,7 +121,7 @@ public class InfoCardOption extends ConfigurationOption {
 
 
   @Override
-  public String getChoiceText(SpellingLanguage langage) {
+  public String getChoiceText(String langage) {
     String status;
     
     if(optionActivated) {

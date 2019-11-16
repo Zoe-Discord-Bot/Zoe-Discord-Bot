@@ -1,22 +1,20 @@
 package ch.kalunight.zoe.translation;
 
-import ch.kalunight.zoe.model.static_data.SpellingLanguage;
-
 public class TranslationKey {
 
-  private SpellingLanguage language;
+  private String language;
   private String key;
-  
-  public TranslationKey(SpellingLanguage language, String translationKey) {
+
+  public TranslationKey(String language, String translationKey) {
     this.language = language;
     this.key = translationKey;
   }
 
-  public SpellingLanguage getLanguage() {
+  public String getLanguage() {
     return language;
   }
 
-  public void setLanguage(SpellingLanguage language) {
+  public void setLanguage(String language) {
     this.language = language;
   }
 
@@ -39,23 +37,26 @@ public class TranslationKey {
 
   @Override
   public boolean equals(Object obj) {
-    if(this == obj)
+    if (this == obj)
       return true;
-    if(obj == null)
+    if (obj == null)
       return false;
-    if(getClass() != obj.getClass())
+    if (getClass() != obj.getClass())
       return false;
     TranslationKey other = (TranslationKey) obj;
-    if(key == null) {
-      if(other.key != null)
+    if (key == null) {
+      if (other.key != null)
         return false;
-    } else if(!key.equals(other.key)) {
-      return false; 
+    } else if (!key.equals(other.key)) {
+      return false;
     }
-    if(language != other.language) {
+    if (language == null) {
+      if (other.language != null) {
+        return false;
+      }
+    } else if (!language.equals(other.language)) {
       return false;
     }
     return true;
   }
-  
 }

@@ -10,7 +10,6 @@ import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.player_data.LeagueAccount;
 import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.model.player_data.Team;
-import ch.kalunight.zoe.model.static_data.SpellingLanguage;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -31,10 +30,10 @@ public class Server {
   private List<Team> teams;
   private Long infoChannelId;
   private ControlPannel controlePannel;
-  private SpellingLanguage langage;
+  private String langage;
   private DateTime lastRefresh;
 
-  public Server(long guildId, SpellingLanguage langage, ServerConfiguration configuration) {
+  public Server(long guildId, String langage, ServerConfiguration configuration) {
     this.guildId = guildId;
     this.config = configuration;
     this.langage = langage;
@@ -202,11 +201,11 @@ public class Server {
     this.infoChannelId = infoChannelId;
   }
 
-  public SpellingLanguage getLangage() {
+  public String getLangage() {
     return langage;
   }
 
-  public void setLangage(SpellingLanguage langage) {
+  public void setLangage(String langage) {
     this.langage = langage;
   }
 

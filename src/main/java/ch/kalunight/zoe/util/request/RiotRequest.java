@@ -15,7 +15,6 @@ import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.model.player_data.Rank;
 import ch.kalunight.zoe.model.player_data.Tier;
 import ch.kalunight.zoe.model.static_data.Mastery;
-import ch.kalunight.zoe.model.static_data.SpellingLanguage;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.NameConversion;
 import ch.kalunight.zoe.util.Ressources;
@@ -65,7 +64,7 @@ public class RiotRequest {
   }
 
   public static String getWinrateLastMonthWithGivenChampion(String summonerId, Platform region,
-      int championKey, SpellingLanguage language) {
+      int championKey, String language) {
 
     Summoner summoner;
     try {
@@ -194,7 +193,7 @@ public class RiotRequest {
     return masteryString.toString();
   }
 
-  public static String getActualGameStatus(CurrentGameInfo currentGameInfo, SpellingLanguage language) {
+  public static String getActualGameStatus(CurrentGameInfo currentGameInfo, String language) {
 
     if(currentGameInfo == null) {
       return LanguageManager.getText(language, "informationPanelNotInGame");

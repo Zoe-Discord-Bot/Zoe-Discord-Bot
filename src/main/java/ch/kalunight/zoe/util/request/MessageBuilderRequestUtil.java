@@ -7,7 +7,6 @@ import java.util.List;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.model.static_data.Champion;
-import ch.kalunight.zoe.model.static_data.SpellingLanguage;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.NameConversion;
 import ch.kalunight.zoe.util.Ressources;
@@ -26,7 +25,7 @@ public class MessageBuilderRequestUtil {
   }
   
   public static void createTeamData1Summoner(Summoner summoner, List<CurrentGameParticipant> teamParticipant, StringBuilder teamString,
-      StringBuilder teamRankString, StringBuilder teamWinRateLastMonth, Platform platform, SpellingLanguage language) {
+      StringBuilder teamRankString, StringBuilder teamWinRateLastMonth, Platform platform, String language) {
 
     for(int i = 0; i < teamParticipant.size(); i++) {
       CurrentGameParticipant participant = teamParticipant.get(i);
@@ -73,7 +72,7 @@ public class MessageBuilderRequestUtil {
 
   public static void createTeamDataMultipleSummoner(List<CurrentGameParticipant> teamParticipant, List<String> listIdPlayers,
       StringBuilder teamString, StringBuilder teamRankString, StringBuilder teamWinrateString, Platform platform,
-      SpellingLanguage language) {
+      String language) {
 
     String unknownChampion = LanguageManager.getText(language, "unknown");
     
@@ -109,7 +108,7 @@ public class MessageBuilderRequestUtil {
     }
   }
 
-  public static void createTitle(List<Player> players, CurrentGameInfo currentGameInfo, StringBuilder title, SpellingLanguage language) {
+  public static void createTitle(List<Player> players, CurrentGameInfo currentGameInfo, StringBuilder title, String language) {
     ArrayList<Player> playersNotTwice = new ArrayList<>();
     
     for(Player player : players) {
@@ -147,7 +146,7 @@ public class MessageBuilderRequestUtil {
   }
   
   //TODO: Improve this method, make it automated adaptable
-  public static String getPastMoment(LocalDateTime pastMoment, SpellingLanguage language) {
+  public static String getPastMoment(LocalDateTime pastMoment, String language) {
     LocalDateTime now = LocalDateTime.now();
     if(pastMoment.isBefore(now.minusWeeks(1))) {
       return LanguageManager.getText(language, "aWeekAgo");

@@ -8,7 +8,7 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
-import ch.kalunight.zoe.model.static_data.SpellingLanguage;
+import ch.kalunight.zoe.translation.LanguageManager;
 
 public abstract class ZoeCommand extends Command {
 
@@ -26,7 +26,7 @@ public abstract class ZoeCommand extends Command {
     Server server = ServerData.getServers().get(event.getGuild().getId());
 
     if(server == null) {
-      server = new Server(event.getGuild().getIdLong(), SpellingLanguage.EN, new ServerConfiguration());
+      server = new Server(event.getGuild().getIdLong(), LanguageManager.DEFAULT_LANGUAGE, new ServerConfiguration());
       ServerData.getServers().put(event.getGuild().getId(), server);
     }
     

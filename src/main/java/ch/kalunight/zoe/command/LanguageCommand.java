@@ -49,7 +49,7 @@ public class LanguageCommand extends ZoeCommand{
     Server server = ServerData.getServers().get(event.getGuild().getId());
     
     event.getTextChannel().sendMessage(String.format(LanguageManager.getText(server.getLangage(),
-        "languageCommandStartMessage"), LanguageManager.getText(server.getLangage(), NATIVE_LANGUAGE_TRANSLATION_ID), "<https://discord.gg/XuZAfGK>")).complete();
+        "languageCommandStartMessage"), LanguageManager.getText(server.getLangage(), NATIVE_LANGUAGE_TRANSLATION_ID), "<https://discord.gg/AyAYWGM>")).complete();
     
     SelectionDialog.Builder builder = new SelectionDialog.Builder()
         .addUsers(event.getAuthor())

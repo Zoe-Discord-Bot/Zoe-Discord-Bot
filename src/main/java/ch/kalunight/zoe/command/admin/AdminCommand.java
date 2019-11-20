@@ -13,7 +13,8 @@ public class AdminCommand extends ZoeCommand {
     this.ownerCommand = true;
     this.hidden = true;
     this.help = "Send info about admin commands";
-    Command[] commandsChildren = {new AdminSendAnnonceMessageCommand(), new AdminCreateRAPIChannel(), new AdminDeleteRAPIChannel()};
+    Command[] commandsChildren = {new AdminSendAnnonceMessageCommand(), new AdminCreateRAPIChannel(), new AdminDeleteRAPIChannel(),
+        new RefreshLanguageCommand()};
     this.children = commandsChildren;
     this.helpBiConsumer = getHelpMethod();
   }

@@ -68,7 +68,7 @@
     "defineInfoChannelAlreadySet": "Le salon %s est déjà définit. Merci de supprimer le canal si vous souhaitez en définir un autre.",
     "defineInfoChannelMentionOfAChannelNeeded": "Vous avez besoin de mentionner un canal textuel comme cela : `>define infoChannel #le-meilleur-salon-textuel`",
     "defineInfoChannelMentionOfAChannel": "Merci de mentionner un salon de ce serveur ! (Je te vois avec tes tours de magie :eyes:)",
-    "defineInfoChannelMissingSpeakPermission": "",
+    "defineInfoChannelMissingSpeakPermission": "Je ne peux pas parler dans ce salon ! Donnez-moi la permission de parler dedans si vous voulez faire cela.",
     "defineInfoChannelImpossibleToDefineCleanChannel": "",
     "defineInfoChannelDoneMessage": "",
     "defineInfoChannelLoadingMessage": "",

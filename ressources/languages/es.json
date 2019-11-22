@@ -71,7 +71,7 @@
     "defineInfoChannelMissingSpeakPermission": "¡No puedo hablar en este canal! Dame permisos para escribir en este canal si quieres hacer eso.",
     "defineInfoChannelImpossibleToDefineCleanChannel": "No puedo definir el canal de información dentro del canal limpio (-> Mira la opción de configuración \"Canal limpio\").",
     "defineInfoChannelDoneMessage": "¡El canal ha sido definido! Debería actualizarse muy rápido.",
-    "defineInfoChannelLoadingMessage": "__**Panel de información**__\n\n*Cargando...*",
+    "defineInfoChannelLoadingMessage": "__**Panel de información**__\n\n*Cargando…*",
     "undefineInfoChannelHelpMessage": "Desvincula el canal de información actual. Esto **NO** borrará el canal, solamente pararé de hacer mi trabajo ahí. Permiso Gestionar Canales necesario.",
     "undefineInfoChannelMissingChannel": "¡No tengo canal de información definido! No puedo desvincular algo que no existe :P",
     "undefineInfoChannelDoneMessage": "¡He desvinculado el canal de información! He borrado todos los mensajes relacionados con mi actividad.",

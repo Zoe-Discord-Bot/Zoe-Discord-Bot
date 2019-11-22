@@ -187,10 +187,14 @@ public class Zoe {
       @Override
       public void accept(CommandEvent event) {
 
-        Server server = ServerData.getServers().get(event.getGuild().getId());
         String language = LanguageManager.DEFAULT_LANGUAGE;
-        if(server != null) {
-           language = server.getLangage();
+        try {
+          Server server = ServerData.getServers().get(event.getGuild().getId());
+          if(server != null) {
+             language = server.getLangage();
+          }
+        }catch(IllegalStateException e) {
+          //Not in a guild
         }
         
         StringBuilder stringBuilder = new StringBuilder();

@@ -29,7 +29,7 @@ public class LanguageCommand extends ZoeCommand{
     this.name = "language";
     String[] aliasesTable = {"lang", "l", "languages"};
     this.aliases = aliasesTable;
-    this.help = "LanguageCommandHelp";
+    this.help = "languageCommandHelp";
     this.hidden = false;
     this.ownerCommand = false;
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL, Permission.MESSAGE_ADD_REACTION};

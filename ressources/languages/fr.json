@@ -69,7 +69,7 @@
     "defineInfoChannelMentionOfAChannelNeeded": "Vous avez besoin de mentionner un canal textuel comme cela : `>define infoChannel #le-meilleur-salon-textuel`",
     "defineInfoChannelMentionOfAChannel": "Merci de mentionner un salon de ce serveur ! (Je te vois avec tes tours de magie :eyes:)",
     "defineInfoChannelMissingSpeakPermission": "Je ne peux pas parler dans ce salon ! Donnez-moi la permission de parler dedans si vous voulez faire cela.",
-    "defineInfoChannelImpossibleToDefineCleanChannel": "",
+    "defineInfoChannelImpossibleToDefineCleanChannel": "Je ne peux pas définir de canal d'information dans un \"salon propre\" (-> pour plus d'information regardez l'option \"Clean Channel\" avec la commande \">config\").",
     "defineInfoChannelDoneMessage": "",
     "defineInfoChannelLoadingMessage": "",
     "undefineInfoChannelHelpMessage": "",

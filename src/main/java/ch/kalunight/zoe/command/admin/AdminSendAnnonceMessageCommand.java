@@ -4,10 +4,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.function.BiConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.command.ZoeCommand;
@@ -32,7 +30,7 @@ public class AdminSendAnnonceMessageCommand extends ZoeCommand {
     this.help = "Send the annonce";
     this.ownerCommand = true;
     this.hidden = true;
-    this.helpBiConsumer = getHelpMethod();
+    this.helpBiConsumer = CommandUtil.getHelpMethodIsChildrenNoTranslation(AdminCommand.USAGE_NAME, name, arguments, help);
   }
 
   @Override
@@ -73,18 +71,5 @@ public class AdminSendAnnonceMessageCommand extends ZoeCommand {
    */
   private boolean isBlackListed(String serverId) {
     return blackListedSever.contains(serverId);
-  }
-
-  private BiConsumer<CommandEvent, Command> getHelpMethod() {
-    return new BiConsumer<CommandEvent, Command>() {
-      @Override
-      public void accept(CommandEvent event, Command command) {
-        CommandUtil.sendTypingInFonctionOfChannelType(event);
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("Admin SendUpdateMessage command :\n");
-        stringBuilder.append("--> `>admin " + name + " " + arguments + "` : " + help);
-        event.reply(stringBuilder.toString());
-      }
-    };
   }
 }

@@ -41,7 +41,6 @@ public class LanguageCommand extends ZoeCommand{
     this.helpBiConsumer = CommandUtil.getHelpMethod(name, help);
   }
   
-  
   @Override
   protected void executeCommand(CommandEvent event) {
     CommandUtil.sendTypingInFonctionOfChannelType(event);
@@ -62,14 +61,15 @@ public class LanguageCommand extends ZoeCommand{
     List<String> langagesList = new ArrayList<>();
     List<String> languageListTranslate = new ArrayList<>();
     for(String langage : LanguageManager.getListlanguages()) {
-      builder.addChoices(LanguageManager.getText(langage, NATIVE_LANGUAGE_TRANSLATION_ID) + " " + LanguageManager.getPourcentageTranslated(langage));
+      builder.addChoices(LanguageManager.getText(langage, NATIVE_LANGUAGE_TRANSLATION_ID) 
+          + " " + LanguageManager.getPourcentageTranslated(langage));
       languageListTranslate.add(LanguageManager.getText(langage, NATIVE_LANGUAGE_TRANSLATION_ID));
       langagesList.add(langage);
     }
     
     builder.setText(getUpdateMessageAfterChangeSelectAction(server.getLangage(), languageListTranslate));
     builder.setSelectionConsumer(getSelectionDoneAction(langagesList, server));
-    builder.setCanceled(getCancelAction(server.getLangage()));
+    builder.setCanceled(getCancelAction());
     
     builder.build().display(event.getChannel());
   }
@@ -98,12 +98,11 @@ public class LanguageCommand extends ZoeCommand{
     };
   }
   
-  private Consumer<Message> getCancelAction(String langage){
+  private Consumer<Message> getCancelAction(){
     return new Consumer<Message>() {
-
       @Override
       public void accept(Message message) {
-        message.getChannel().sendMessage(LanguageManager.getText(langage, "languageCommandSelectionEnded")).queue();
+        message.clearReactions().queue();
       }};
   }
 }

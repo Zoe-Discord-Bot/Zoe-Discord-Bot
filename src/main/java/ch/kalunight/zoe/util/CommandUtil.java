@@ -57,13 +57,13 @@ public class CommandUtil {
       logger.info("Impossible to send the message to the a owner.");
     }
   }
-  
+
   public static BiConsumer<CommandEvent, Command> getHelpMethod(String name, String helpId) {
     return new BiConsumer<CommandEvent, Command>() {
       @Override
       public void accept(CommandEvent event, Command command) {
         Server server = ServerData.getServers().get(event.getGuild().getId());
-        
+
         CommandUtil.sendTypingInFonctionOfChannelType(event);
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(name + " " + LanguageManager.getText(server.getLangage(), "command") + " :\n");
@@ -73,7 +73,7 @@ public class CommandUtil {
       }
     };
   }
-  
+
   public static BiConsumer<CommandEvent, Command> getHelpMethodHasChildren(String mainName, Command[] children) {
     return new BiConsumer<CommandEvent, Command>() {
       @Override
@@ -81,7 +81,7 @@ public class CommandUtil {
         CommandUtil.sendTypingInFonctionOfChannelType(event);
         Server server = ServerData.getServers().get(event.getGuild().getId());
         StringBuilder stringBuilder = new StringBuilder();
-        
+
         stringBuilder.append(mainName + " " + LanguageManager.getText(server.getLangage(), "commands") + " :\n");
         for(Command commandChildren : children) {
           stringBuilder.append("--> `>" + mainName + " " + commandChildren.getName() + " " + commandChildren.getArguments() + "` : "
@@ -92,7 +92,7 @@ public class CommandUtil {
       }
     };
   }
-  
+
   public static BiConsumer<CommandEvent, Command> getHelpMethodIsChildren(String mainCommandName,
       String commandName, String arguments, String helpId) {
     return new BiConsumer<CommandEvent, Command>() {
@@ -108,5 +108,36 @@ public class CommandUtil {
       }
     };
   }
-  
+
+  public static BiConsumer<CommandEvent, Command> getHelpMethodIsChildrenNoTranslation(String mainCommandName,
+      String commandName, String arguments, String help) {
+    return new BiConsumer<CommandEvent, Command>() {
+      @Override
+      public void accept(CommandEvent event, Command command) {
+        CommandUtil.sendTypingInFonctionOfChannelType(event);
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(mainCommandName + " " + commandName + " command :\n");
+        stringBuilder.append("--> `>" + mainCommandName + " " + commandName + " " + arguments + "` : " + help);
+        event.reply(stringBuilder.toString());
+      }
+    };
+  }
+
+  public static BiConsumer<CommandEvent, Command> getHelpMethodHasChildrenNoTranslation(String mainName, Command[] children){
+    return new BiConsumer<CommandEvent, Command>() {
+
+      @Override
+      public void accept(CommandEvent event, Command command) {
+        CommandUtil.sendTypingInFonctionOfChannelType(event);
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(mainName + " commands :\n");
+        for(Command commandChildren : children) {
+          stringBuilder.append("--> `>" + mainName + " " + commandChildren.getName() + " " + commandChildren.getArguments() + "` : "
+              + commandChildren.getHelp() + "\n");
+        }
+        event.reply(stringBuilder.toString());
+      }
+    };
+
+  }
 }

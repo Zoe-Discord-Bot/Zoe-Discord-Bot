@@ -3,10 +3,8 @@ package ch.kalunight.zoe.command.admin;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.util.function.BiConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
@@ -25,7 +23,7 @@ public class AdminDeleteRAPIChannel extends ZoeCommand {
     this.help = "Delete the RAPIChannel, even if the channel is in another guild.";
     this.ownerCommand = true;
     this.hidden = true;
-    this.helpBiConsumer = getHelpMethod();
+    this.helpBiConsumer = CommandUtil.getHelpMethodIsChildrenNoTranslation(AdminCommand.USAGE_NAME, name, arguments, help);
   }
 
   @Override
@@ -61,19 +59,6 @@ public class AdminDeleteRAPIChannel extends ZoeCommand {
     }
     
     event.reply("The channel has been correctly deleted.");
-  }
-
-  private BiConsumer<CommandEvent, Command> getHelpMethod() {
-    return new BiConsumer<CommandEvent, Command>() {
-      @Override
-      public void accept(CommandEvent event, Command command) {
-        CommandUtil.sendTypingInFonctionOfChannelType(event);
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("Admin " + name + " command :\n");
-        stringBuilder.append("--> `>admin " + name + " " + arguments + "` : " + help);
-        event.reply(stringBuilder.toString());
-      }
-    };
   }
 
 }

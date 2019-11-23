@@ -254,5 +254,8 @@
     "infoCardsGameInfoOnTheGameOf": "Información en la partida de",
     "infoCardsGameInfoAndOf": "y de",
     "account": "Cuenta",
-    "firstGame": "Primera partida"
+    "firstGame": "Primera partida",
+    "nativeActualLanguage": "#MENSAJE PARA TRADUCTORES: No traduzcas eso, pon el nombre del idioma en tu idioma#Español",
+    "languageCommandInSelectionMenu": "Idioma seleccionado: **%s**",
+    "languageCommandHelp": "Comando para seleccionar el idioma de Zoe"
 }

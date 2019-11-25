@@ -92,7 +92,7 @@ public class LanguageManager {
     }
     
     if(text == null) {
-      return "Translation error";
+      return "Translation error (Id: " + key + ")";
     }
     return text;
   }

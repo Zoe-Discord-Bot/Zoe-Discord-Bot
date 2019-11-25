@@ -5,9 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
-
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.SelectionDialog;
@@ -16,12 +13,13 @@ import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
+import ch.kalunight.zoe.util.LanguageUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Message;
 
 public class LanguageCommand extends ZoeCommand{
 
-  private static final String NATIVE_LANGUAGE_TRANSLATION_ID = "nativeActualLanguage";
+  public static final String NATIVE_LANGUAGE_TRANSLATION_ID = "nativeActualLanguage";
   
   private EventWaiter waiter;
   
@@ -67,20 +65,11 @@ public class LanguageCommand extends ZoeCommand{
       langagesList.add(langage);
     }
     
-    builder.setText(getUpdateMessageAfterChangeSelectAction(server.getLangage(), languageListTranslate));
+    builder.setText(LanguageUtil.getUpdateMessageAfterChangeSelectAction(server.getLangage(), languageListTranslate));
     builder.setSelectionConsumer(getSelectionDoneAction(langagesList, server));
-    builder.setCanceled(getCancelAction());
+    builder.setCanceled(LanguageUtil.getCancelActionSelection());
     
     builder.build().display(event.getChannel());
-  }
-  
-  private Function<Integer, String> getUpdateMessageAfterChangeSelectAction(String language, List<String> choices) {
-    return new Function<Integer, String>() {
-      @Override
-      public String apply(Integer index) {
-        return String.format(LanguageManager.getText(language, "languageCommandInSelectionMenu"), choices.get(index - 1));
-      }
-    };
   }
   
   private BiConsumer<Message, Integer> getSelectionDoneAction(List<String> languageList, Server server) {
@@ -96,13 +85,5 @@ public class LanguageCommand extends ZoeCommand{
             LanguageManager.getText(server.getLangage(), NATIVE_LANGUAGE_TRANSLATION_ID))).queue();
       }
     };
-  }
-  
-  private Consumer<Message> getCancelAction(){
-    return new Consumer<Message>() {
-      @Override
-      public void accept(Message message) {
-        message.clearReactions().queue();
-      }};
   }
 }

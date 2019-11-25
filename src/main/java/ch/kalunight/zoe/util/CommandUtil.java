@@ -1,15 +1,22 @@
 package ch.kalunight.zoe.util;
 
+import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.translation.LanguageManager;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.PrivateChannel;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
@@ -34,6 +41,24 @@ public class CommandUtil {
         logger.warn("event.getChannelType() return a unexpected type : {}", event.getChannelType());
         break;
     }
+  }
+
+  public static MessageChannel getFullSpeakableChannel(Guild guild) {
+    Set<Permission> permissionsNeeded = Collections.synchronizedSet(EnumSet.noneOf(Permission.class));
+    permissionsNeeded.add(Permission.MESSAGE_ADD_REACTION);
+    
+    Member zoeMember = guild.getMember(Zoe.getJda().getSelfUser());
+    
+    for(TextChannel textChannel : guild.getTextChannels()) {
+      if(textChannel.canTalk()) {
+        Set<Permission> permissions = zoeMember.getPermissions(textChannel);
+        
+        if(permissions.containsAll(permissionsNeeded)) {
+          return textChannel;
+        }
+      }
+    }
+    return null;
   }
 
   public static void sendMessageInGuildOrAtOwner(Guild guild, String messageToSend) {

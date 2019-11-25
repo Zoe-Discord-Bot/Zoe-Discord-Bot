@@ -257,5 +257,8 @@
     "firstGame": "First game",
     "nativeActualLanguage": "#MESSAGE FOR TRANSLATOR: Don't tranlate that, put instead the name of your language in your language#English",
     "languageCommandInSelectionMenu": "Language selected : **%s**",
-	"languageCommandHelp" : "Command to select the language of Zoe"
+	"languageCommandHelp" : "Command to select the language of Zoe",
+	"addingSystemLanguageSelected" : "Right, i will now in speak %s. (You can always change my language with the command `>l`). Now let's select a default region for the server :",
+	"addingSystemRegionSelected" : "Right, you have defined the region \"%s\". I will now give you some advice about my usage :",
+	"addingSystemEndMessage" : "The basic configuration is now complete. I hope you will enjoy my services :D"
 }

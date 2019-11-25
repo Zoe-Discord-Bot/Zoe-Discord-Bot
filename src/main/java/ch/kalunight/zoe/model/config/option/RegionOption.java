@@ -154,4 +154,8 @@ public class RegionOption extends ConfigurationOption {
   public Platform getRegion() {
     return region;
   }
+  
+  public void setRegion(Platform region) {
+    this.region = region;
+  }
 }

@@ -1,5 +1,6 @@
 package ch.kalunight.zoe;
 
+import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -12,6 +13,8 @@ import org.discordbots.api.client.DiscordBotListAPI;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.jagrosh.jdautilities.menu.SelectionDialog;
+import ch.kalunight.zoe.command.LanguageCommand;
 import ch.kalunight.zoe.model.ControlPannel;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
@@ -24,13 +27,16 @@ import ch.kalunight.zoe.service.ServerChecker;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import ch.kalunight.zoe.util.EventListenerUtil;
+import ch.kalunight.zoe.util.LanguageUtil;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.channel.text.TextChannelDeleteEvent;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
@@ -44,8 +50,10 @@ import net.rithms.riot.api.RiotApiException;
 public class EventListener extends ListenerAdapter {
 
   //Useless to translate
-  private static final String WELCOME_MESSAGE = "Hi! Thank you for adding me! To get help on my configuration type the command `>setup`. "
-      + "If you want to see all commands i have, type >`help`. You can also configurate my language with the command `>config`.";
+  private static final String WELCOME_MESSAGE = "Hello ! Thank you for adding me to your server ! "
+      + "I'm here to help you to configurate your server with some "
+      + "basic options. You can always do the command `>setup` or `>help` if you need help.\n\n"
+      + "First, please choose your language. (Will be defined for the server, i only speak in english in private message)";
   
 
   private static Logger logger = LoggerFactory.getLogger(EventListener.class);
@@ -180,8 +188,47 @@ public class EventListener extends ListenerAdapter {
     if(!event.getGuild().getOwner().getUser().getId().equals(Zoe.getJda().getSelfUser().getId())) {
       ServerData.getServers().put(event.getGuild().getId(), new Server(event.getGuild().getIdLong(), LanguageManager.DEFAULT_LANGUAGE, new ServerConfiguration()));
       ServerData.getServersIsInTreatment().put(event.getGuild().getId(), false);
-      CommandUtil.sendMessageInGuildOrAtOwner(event.getGuild(), WELCOME_MESSAGE);
+      askingConfig(event.getGuild(), event.getGuild().getOwner().getUser());
     }
+  }
+  
+  private void askingConfig(Guild guild, User owner) {
+    
+    Server server = ServerData.getServers().get(guild.getId());
+    
+    MessageChannel channel;
+    
+    MessageChannel channelOfGuild = CommandUtil.getFullSpeakableChannel(guild);
+    
+    if(channelOfGuild != null) {
+      channel = channelOfGuild;
+    }else {
+      channel = owner.openPrivateChannel().complete();
+    }
+    
+    channel.sendMessage(WELCOME_MESSAGE).complete();
+    
+    SelectionDialog.Builder builder = new SelectionDialog.Builder()
+        .setTimeout(60, TimeUnit.MINUTES)
+        .setColor(Color.GREEN)
+        .useLooping(true)
+        .setSelectedEnds("**", "**")
+        .setEventWaiter(Zoe.getEventWaiter());
+    
+    List<String> langagesList = new ArrayList<>();
+    List<String> translatedLanguageList = new ArrayList<>();
+    for(String langage : LanguageManager.getListlanguages()) {
+      builder.addChoices(LanguageManager.getText(langage, LanguageCommand.NATIVE_LANGUAGE_TRANSLATION_ID) 
+          + " " + LanguageManager.getPourcentageTranslated(langage));
+      translatedLanguageList.add(LanguageManager.getText(langage, LanguageCommand.NATIVE_LANGUAGE_TRANSLATION_ID));
+      langagesList.add(langage);
+    }
+    
+    builder.setText(LanguageUtil.getUpdateMessageAfterChangeSelectAction(LanguageManager.DEFAULT_LANGUAGE, translatedLanguageList));
+    builder.setSelectionConsumer(EventListenerUtil.getSelectionDoneAction(langagesList, server, channel));
+    builder.setCanceled(LanguageUtil.getCancelActionSelection());
+    
+    builder.build().display(channel);
   }
 
   @Override

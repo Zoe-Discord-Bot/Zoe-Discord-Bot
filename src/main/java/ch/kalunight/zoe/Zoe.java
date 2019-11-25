@@ -87,7 +87,7 @@ public class Zoe {
   public static final File SAVE_CONFIG_FOLDER = new File("ressources/serversconfigs");
 
   private static final ConcurrentLinkedQueue<List<CustomEmote>> emotesNeedToBeUploaded = new ConcurrentLinkedQueue<>();
-
+  
   private static final List<Object> eventListenerList = new ArrayList<>();  
 
   private static final Logger logger = LoggerFactory.getLogger(Zoe.class);
@@ -97,6 +97,8 @@ public class Zoe {
    */
   private static RateLimitRequestTank minuteApiTank;
 
+  private static EventWaiter eventWaiter;
+  
   private static List<Command> mainCommands;
 
   private static CachedRiotApi riotApi;
@@ -125,7 +127,7 @@ public class Zoe {
 
     client.setPrefix(BOT_PREFIX);
 
-    EventWaiter eventWaiter = new EventWaiter(ServerData.getResponseWaiter(), false);
+    eventWaiter = new EventWaiter(ServerData.getResponseWaiter(), false);
 
     for(Command command : getMainCommands(eventWaiter)) {
       client.addCommand(command);
@@ -671,5 +673,9 @@ public class Zoe {
 
   public static List<Object> getEventlistenerlist() {
     return eventListenerList;
+  }
+
+  public static EventWaiter getEventWaiter() {
+    return eventWaiter;
   }
 }

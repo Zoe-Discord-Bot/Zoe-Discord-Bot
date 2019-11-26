@@ -217,7 +217,7 @@ public class CleanChannelOption extends ConfigurationOption {
 
     if(textsChannel.size() == 1) {
       TextChannel textChannel = textsChannel.get(0); 
-      if(!server.getInfoChannel().equals(textChannel)) {
+      if(server.getInfoChannel() == null || !server.getInfoChannel().equals(textChannel)) {
 
         cleanChannel = textChannel;
         cleanChannelOption = tmpCleanChannelOption;
@@ -272,7 +272,7 @@ public class CleanChannelOption extends ConfigurationOption {
 
     if(cleanChannel != null) {
       status = String.format(LanguageManager.getText(langage, "cleanChannelOptionEnable"),
-          cleanChannelOption.name, cleanChannel.getAsMention());
+          LanguageManager.getText(langage, cleanChannelOption.name), cleanChannel.getAsMention());
     }else {
       cleanChannelOption = CleanChannelOptionInfo.DISABLE;
     }

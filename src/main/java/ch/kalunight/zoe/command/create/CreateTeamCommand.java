@@ -42,7 +42,7 @@ public class CreateTeamCommand extends ZoeCommand {
         event.reply(LanguageManager.getText(server.getLangage(), "createTeamNameAlreadyExist"));
       } else {
         server.getTeams().add(new Team(event.getArgs()));
-        event.reply(LanguageManager.getText(server.getLangage(), "createTeamDoneMessage"));
+        event.reply(String.format(LanguageManager.getText(server.getLangage(), "createTeamDoneMessage"), event.getArgs()));
       }
     }
   }

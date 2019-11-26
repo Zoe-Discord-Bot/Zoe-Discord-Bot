@@ -25,7 +25,7 @@ import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.rithms.riot.constant.Platform;
 
 public class EventListenerUtil {
-  
+
   private EventListenerUtil() {
     //Hide public constructor
   }
@@ -89,23 +89,24 @@ public class EventListenerUtil {
       CustomEmoteUtil.addToMasteryIfIsSame(emote);
     }
   }
-  
-  public static BiConsumer<Message, Integer> getSelectionDoneAction(List<String> languageList, Server server, MessageChannel channel) {
+
+  public static BiConsumer<Message, Integer> getSelectionDoneActionLangueSelection(List<String> languageList,
+      Server server, MessageChannel channel) {
     return new BiConsumer<Message, Integer>() {
       @Override
       public void accept(Message selectionMessage, Integer selectionOfLanguage) {
 
         try {
-        selectionMessage.clearReactions().queue();
+          selectionMessage.clearReactions().queue();
         }catch (IllegalStateException | InsufficientPermissionException e){
           //Exception Ok, appear in private message or when missing permissions.
         }
         server.setLangage(languageList.get(selectionOfLanguage - 1));
-        
+
         selectionMessage.getChannel().sendMessage(String.format(LanguageManager.getText(server.getLangage(), "addingSystemLanguageSelected"),
             LanguageManager.getText(server.getLangage(), LanguageCommand.NATIVE_LANGUAGE_TRANSLATION_ID))).queue();
-        
-        
+
+
         SelectionDialog.Builder selectAccountBuilder = new SelectionDialog.Builder()
             .setEventWaiter(Zoe.getEventWaiter())
             .useLooping(true)
@@ -119,26 +120,26 @@ public class EventListenerUtil {
         for(Platform regionMember : Platform.values()) {
           String actualChoice = String.format(LanguageManager.getText(server.getLangage(), "regionOptionRegionChoice"),
               regionMember.getName().toUpperCase());
-          
+
           regionChoices.add(actualChoice);
           selectAccountBuilder.addChoices(actualChoice);
           regionsList.add(regionMember);
         }
-        
+
         String anyChoice = LanguageManager.getText(server.getLangage(), "regionOptionDisableChoice");
         regionChoices.add(anyChoice);
         selectAccountBuilder.addChoices(anyChoice);
 
-        selectAccountBuilder.setText(getUpdateMessageAfterChangeSelectAction(server.getLangage(), regionChoices));
-        selectAccountBuilder.setSelectionConsumer(getSelectionDoneAction(server.getLangage(), regionsList, server));
+        selectAccountBuilder.setText(getUpdateMessageRegionAfterChangeSelectAction(server.getLangage(), regionChoices));
+        selectAccountBuilder.setSelectionConsumer(getSelectionDoneActionRegionSelection(server.getLangage(), regionsList, server));
 
         SelectionDialog dialog = selectAccountBuilder.build();
         dialog.display(channel);
       }
     };
   }
-  
-  private static Function<Integer, String> getUpdateMessageAfterChangeSelectAction(String language, List<String> choices) {
+
+  private static Function<Integer, String> getUpdateMessageRegionAfterChangeSelectAction(String language, List<String> choices) {
     return new Function<Integer, String>() {
       @Override
       public String apply(Integer index) {
@@ -150,18 +151,18 @@ public class EventListenerUtil {
       }
     };
   }
-  
-  private static BiConsumer<Message, Integer> getSelectionDoneAction(String language, List<Platform> regionsList, Server server) {
+
+  private static BiConsumer<Message, Integer> getSelectionDoneActionRegionSelection(String language, List<Platform> regionsList, Server server) {
     return new BiConsumer<Message, Integer>() {
       @Override
       public void accept(Message selectionMessage, Integer selectionOfRegion) {
 
         try {
-        selectionMessage.clearReactions().queue();
+          selectionMessage.clearReactions().queue();
         }catch (IllegalStateException | InsufficientPermissionException e){
           //Exception Ok, appear in private message or when missing permissions.
         }
-        
+
         String strRegion;
         if(regionsList.size() == selectionOfRegion - 1) {
           strRegion = LanguageManager.getText(language, "regionOptionAnyRegion");
@@ -178,7 +179,7 @@ public class EventListenerUtil {
       }
     };
   }
-  
+
   private static Consumer<Message> getSelectionCancelAction(){
     return new Consumer<Message>() {
       @Override

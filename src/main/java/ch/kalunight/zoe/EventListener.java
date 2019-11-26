@@ -225,7 +225,7 @@ public class EventListener extends ListenerAdapter {
     }
     
     builder.setText(LanguageUtil.getUpdateMessageAfterChangeSelectAction(LanguageManager.DEFAULT_LANGUAGE, translatedLanguageList));
-    builder.setSelectionConsumer(EventListenerUtil.getSelectionDoneAction(langagesList, server, channel));
+    builder.setSelectionConsumer(EventListenerUtil.getSelectionDoneActionLangueSelection(langagesList, server, channel));
     builder.setCanceled(LanguageUtil.getCancelActionSelection());
     
     builder.build().display(channel);

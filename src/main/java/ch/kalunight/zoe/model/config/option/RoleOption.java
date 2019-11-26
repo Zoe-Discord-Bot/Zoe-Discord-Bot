@@ -55,7 +55,8 @@ public class RoleOption extends ConfigurationOption {
         choiceBuilder.setTimeout(2, TimeUnit.MINUTES);
 
         if(role == null) {
-          choiceBuilder.setText(String.format(LanguageManager.getText(server.getLangage(), "roleOptionLongDesc"), description));
+          choiceBuilder.setText(String.format(LanguageManager.getText(server.getLangage(), "roleOptionLongDesc"), 
+              LanguageManager.getText(server.getLangage(), description)));
 
           choiceBuilder.setAction(receiveValidationAndCreateOption(event.getChannel(), event.getGuild(), server.getLangage()));
 

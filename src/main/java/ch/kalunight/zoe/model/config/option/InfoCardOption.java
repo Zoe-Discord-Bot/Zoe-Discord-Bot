@@ -80,7 +80,7 @@ public class InfoCardOption extends ConfigurationOption {
         messageChannel.sendTyping().complete();
         TextChannel textChannel = Zoe.getJda().getTextChannelById(messageChannel.getId());
         
-        Server server = ServerData.getServers().get(textChannel.getId());
+        Server server = ServerData.getServers().get(textChannel.getGuild().getId());
         
         if(emote.getName().equals("✅")) {
           optionActivated = false;
@@ -99,7 +99,7 @@ public class InfoCardOption extends ConfigurationOption {
         messageChannel.sendTyping().complete();
         TextChannel textChannel = Zoe.getJda().getTextChannelById(messageChannel.getId());
         
-        Server server = ServerData.getServers().get(textChannel.getId());
+        Server server = ServerData.getServers().get(textChannel.getGuild().getId());
         
         if(emoteUsed.getName().equals("✅")) {
           optionActivated = true;

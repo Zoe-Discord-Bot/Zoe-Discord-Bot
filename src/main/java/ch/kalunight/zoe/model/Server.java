@@ -196,6 +196,10 @@ public class Server {
     }
     return Zoe.getJda().getGuildById(guildId).getTextChannelById(infoChannelId);
   }
+  
+  public long getGuildId() {
+    return guildId;
+  }
 
   public void setInfoChannel(Long infoChannelId) {
     this.infoChannelId = infoChannelId;

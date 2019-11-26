@@ -178,8 +178,9 @@ public class Zoe {
 
     minuteApiTank = requestMinutesTank;
 
-    PriorityManagerRateLimitHandler defaultLimite = new PriorityManagerRateLimitHandler(priorityList); //create default priority with dev api key rate limit if no param
-
+    //create default priority with dev api key rate limit if no param
+    PriorityManagerRateLimitHandler defaultLimite = new PriorityManagerRateLimitHandler();
+    
     config.setRateLimitHandler(defaultLimite);
     riotApi = new CachedRiotApi(new RiotApi(config));
   }
@@ -367,10 +368,10 @@ public class Zoe {
 
       strBuilder.deleteCharAt(strBuilder.length() - 1);
 
-      try(PrintWriter writer = new PrintWriter(SAVE_CONFIG_FOLDER + "/" + server.getGuild().getId() + ".txt", "UTF-8");) {
+      try(PrintWriter writer = new PrintWriter(SAVE_CONFIG_FOLDER + "/" + server.getGuildId() + ".txt", "UTF-8");) {
         writer.write(strBuilder.toString());
       } catch(FileNotFoundException | UnsupportedEncodingException e) {
-        logger.error("Error in the saving of the config in the server ID : {}", server.getGuild().getId(), e);
+        logger.error("Error in the saving of the config in the server ID : {}", server.getGuildId(), e);
       }
     }
   }

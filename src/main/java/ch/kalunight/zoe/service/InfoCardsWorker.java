@@ -54,12 +54,12 @@ public class InfoCardsWorker implements Runnable {
         RiotApiUsageChannelRefresh.incrementInfocardCount();
         logger.debug("InfoCards worker has ended correctly for the game id: {}", currentGameInfo.getGameId());
       }else {
-        logger.info("Impossible to send message in the infochannel of the guild id: {}", server.getGuild().getId());
+        logger.info("Impossible to send message in the infochannel of the guild id: {}", server.getGuildId());
       }
       
     }catch(InsufficientPermissionException e) {
       logger.info("Missing permissions with the generation of infocards in the guild id {} : {}",
-          server.getGuild().getId(), e.getPermission());
+          server.getGuildId(), e.getPermission());
     }catch(Exception e) {
       logger.warn("A unexpected exception has been catched ! Error message : {}", e.getMessage(), e);
     }finally {

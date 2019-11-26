@@ -127,8 +127,9 @@ public class StatsProfileCommand extends ZoeCommand {
 
       for(LeagueAccount choiceAccount : player.getLolAccounts()) {
         selectAccountBuilder.addChoices(String.format(LanguageManager.getText(server.getLangage(), "showPlayerAccount"),
-            RiotRequest.getSoloqRank(choiceAccount.getSummoner().getId(), choiceAccount.getRegion(), CallPriority.HIGH),
-            choiceAccount.getRegion(), CallPriority.HIGH));
+            choiceAccount.getSummoner().getName(),
+            choiceAccount.getRegion().getName().toUpperCase(),
+            RiotRequest.getSoloqRank(choiceAccount.getSummoner().getId(), choiceAccount.getRegion(), CallPriority.HIGH)));
         accountsName.add(choiceAccount.getSummoner().getName());
       }
       

@@ -41,7 +41,7 @@ public class RegisterCommand extends ZoeCommand {
     
     if(!server.getConfig().getUserSelfAdding().isOptionActivated()) {
       event.reply(String.format(LanguageManager.getText(server.getLangage(), "registerCommandOptionRequired"),
-          server.getConfig().getUserSelfAdding().getDescription()));
+          LanguageManager.getText(server.getLangage(), server.getConfig().getUserSelfAdding().getDescription())));
       return;
     }
     

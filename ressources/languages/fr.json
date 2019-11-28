@@ -81,7 +81,7 @@
     "deleteInfoChannelDoneMessage": "Le canal d'information a été supprimé !",
     "deletePlayerHelpMessage": "Supprime le joueur donné",
     "deletePlayerMissingPermission": "Vous devez avoir la permission \"%s\" pour faire cela.",
-    "deletePlayerOtherPlayerMissingPermission": "",
+    "deletePlayerOtherPlayerMissingPermission": "Vous ne pouvez pas supprimer un joueur tant que vous n'avez pas la permission *%s*.",
     "deletePlayerMissingMentionPlayer": "",
     "deletePlayerUserNotRegistered": "",
     "deletePlayerDoneMessage": "",

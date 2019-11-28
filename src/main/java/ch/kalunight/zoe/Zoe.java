@@ -179,7 +179,7 @@ public class Zoe {
     minuteApiTank = requestMinutesTank;
 
     //create default priority with dev api key rate limit if no param
-    PriorityManagerRateLimitHandler defaultLimite = new PriorityManagerRateLimitHandler();
+    PriorityManagerRateLimitHandler defaultLimite = new PriorityManagerRateLimitHandler(priorityList);
     
     config.setRateLimitHandler(defaultLimite);
     riotApi = new CachedRiotApi(new RiotApi(config));

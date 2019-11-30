@@ -131,7 +131,7 @@
     "cleanChannelOptionChoiceChannel": "D'accord ! Voulez-vous le définir dans un salon existant ou bien voulez-vous créer un nouveau salon textuel ?\n\nOptions :\n%s : Définir un salon existant\n%s : Créer un nouveau salon",
     "cleanChannelOptionAlreadyDisable": "L'option est déjà désactivée !",
     "cleanChannelOptionNowDisable": "Okay ! L'option est maintenant désactivée, je n'effacerai plus les messages dans le salon propre.",
-    "cleanChannelOptionSendTextChannel": "Encore une étape et nous sommes bons ! Maintenant, merci **d'envoyer un message avec * Vous ne pouvez pas sélectionner le salon d'info.*",
+    "cleanChannelOptionSendTextChannel": "Encore une étape et nous sommes bons ! Maintenant, merci **d'envoyer un message avec en mention le nom du canal textuel sur lequel vous voulez définir**",
     "cleanChannelOptionTopicChannelZoeCommands": "Toutes les commandes de Zoe envoyées ici seront supprimer après trois secondes.",
     "cleanChannelOptionTopicChannelAll": "Tous les messages envoyés ici seront supprimés après 3 secondes.",
     "cleanChannelOptionCreatedDoneMessage": "Parfait ! J'ai crée un salon avec le nom \"salon propre\". Vous pouvez changer l'option de ce salon comme vous le voulez. Laissez-moi juste les permissions à l'intérieur et tous va fonctionner.",

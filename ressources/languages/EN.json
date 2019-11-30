@@ -3,7 +3,7 @@
     "command": "Command",
     "commandPlural": "Commands",
     "endHelpMessage": "For additional help, you can join our official server :",
-    "helpMessageSendConfirmation": "I send you all the commands in a private message.",
+    "helpMessageSendConfirmation": "I sent you all the commands in a private message.",
     "missingPermissionOwnerMessage": "Hi ! I'm a bot of your server %s.\nI need the \"%s\" permission in infochannel to work properly. If you need help you can join the help server here : %s\n This message will be sent at each time i reboot. Thank you in advance !",
     "aboutCommandHelp": "Give info about the bot.",
     "aboutMessage": "Hi, I'm a League Of Legends bot written in Java by KaluNight#0001. I offer the possibility to create an information panel that allows you to know if your friends are in game directly in a Discord channel while giving various information about the current games. You can contribute to my development on my Github [here](%s).\nOfficial Server Discord: %s\nTo add me to your server click [here](%s)!\n\n*I like butterflies, unicorns, and watching the end of finite realities!*\n\nZoe isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing League of Legends.",

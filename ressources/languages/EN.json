@@ -131,7 +131,7 @@
     "cleanChannelOptionChoiceChannel": "Right ! Do you want to define it in a existant channel or you want to create a new text channel ?\n\nOptions :\n%s : Define a exitant channel\n%s : Create a new channel",
     "cleanChannelOptionAlreadyDisable": "The option is already disable !",
     "cleanChannelOptionNowDisable": "Okay ! The option is now disable, i will no longer delete messages in the clean channel.",
-    "cleanChannelOptionSendTextChannel": "One more step and we are fine ! Now please **send a message with *You can't select the InfoChannel.*",
+    "cleanChannelOptionSendTextChannel": "One more step and we are fine ! Now please **send a message with the mention of the text channel you want to define**",
     "cleanChannelOptionTopicChannelZoeCommands": "All Zoe commands sended here will be deleted after 3 seconds.",
     "cleanChannelOptionTopicChannelAll": "All messages sended here will be deleted after 3 seconds.",
     "cleanChannelOptionCreatedDoneMessage": "Perfect ! I have created a channel with the name \"clean-channel\". You can change option of this channel like you want. Just let me my permissions inside and everything will work.",

@@ -50,7 +50,7 @@
     "createPlayerHelpMessage": "Crea un jugador con la información dada.",
     "permissionNeededCreateOtherPlayer": "No puedes crear otro jugador que no seas tú si no tienes *%s* permiso. Perdón por eso :/",
     "createPlayerAlreadyRegistered": "El miembro mencionado ya está registrado. Si quieres añadir una cuenta de LoL secundaria, por favor usa el comando `>add account`.",
-    "createPlayerMalformedWithoutRegionOption": "El comando está mal formado. Por favor, utiliza",
+    "createPlayerMalformedWithoutRegionOption": "El comando está mal formado. Por favor, utiliza : `>create player @DiscordPlayerMention (Region) (SummonerName)`",
     "createPlayerMalformedWithRegionOption": "El comando está mal formado. Por favor respeta esta síntaxis: `>create player @MenciónDeUsuario (Servidor) (NombreDeInvocador)`\nSi el servidor no es especificado, se usará el servidor por defecto (%s).",
     "createPlayerDoneMessage": "El jugador %s ha sido creado con la cuenta \"%s\".",
     "createTeamHelpMessage": "Crea un nuevo equipo. Permite agrupar jugadores en el panel de información. Permiso Gestionar canales necesario.",

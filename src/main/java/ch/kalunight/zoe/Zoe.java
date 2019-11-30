@@ -26,9 +26,9 @@ import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
-import com.jagrosh.jdautilities.examples.command.PingCommand;
 import ch.kalunight.zoe.command.AboutCommand;
 import ch.kalunight.zoe.command.ConfigCommand;
+import ch.kalunight.zoe.command.LanguageCommand;
 import ch.kalunight.zoe.command.PatchNotesCommand;
 import ch.kalunight.zoe.command.RefreshCommand;
 import ch.kalunight.zoe.command.ResetCommand;
@@ -53,8 +53,8 @@ import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.model.player_data.Team;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.model.static_data.CustomEmote;
-import ch.kalunight.zoe.model.static_data.SpellingLangage;
 import ch.kalunight.zoe.riotapi.CachedRiotApi;
+import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.Ressources;
 import net.dv8tion.jda.api.AccountType;
 import net.dv8tion.jda.api.JDA;
@@ -64,7 +64,6 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.PrivateChannel;
 import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.rithms.riot.api.ApiConfig;
@@ -81,14 +80,14 @@ public class Zoe {
 
   public static final String BOT_PREFIX = ">";
 
-  private static final File SAVE_TXT_FILE = new File("ressources/save.txt");
+  public static final File SAVE_TXT_FILE = new File("ressources/save.txt");
 
   public static final File RAPI_SAVE_TXT_FILE = new File("ressources/apiInfos.txt");
 
   public static final File SAVE_CONFIG_FOLDER = new File("ressources/serversconfigs");
 
   private static final ConcurrentLinkedQueue<List<CustomEmote>> emotesNeedToBeUploaded = new ConcurrentLinkedQueue<>();
-
+  
   private static final List<Object> eventListenerList = new ArrayList<>();  
 
   private static final Logger logger = LoggerFactory.getLogger(Zoe.class);
@@ -98,6 +97,8 @@ public class Zoe {
    */
   private static RateLimitRequestTank minuteApiTank;
 
+  private static EventWaiter eventWaiter;
+  
   private static List<Command> mainCommands;
 
   private static CachedRiotApi riotApi;
@@ -126,7 +127,7 @@ public class Zoe {
 
     client.setPrefix(BOT_PREFIX);
 
-    EventWaiter eventWaiter = new EventWaiter(ServerData.getResponseWaiter(), false);
+    eventWaiter = new EventWaiter(ServerData.getResponseWaiter(), false);
 
     for(Command command : getMainCommands(eventWaiter)) {
       client.addCommand(command);
@@ -177,8 +178,9 @@ public class Zoe {
 
     minuteApiTank = requestMinutesTank;
 
-    PriorityManagerRateLimitHandler defaultLimite = new PriorityManagerRateLimitHandler(priorityList); //create default priority with dev api key rate limit if no param
-
+    //create default priority with dev api key rate limit if no param
+    PriorityManagerRateLimitHandler defaultLimite = new PriorityManagerRateLimitHandler(priorityList);
+    
     config.setRateLimitHandler(defaultLimite);
     riotApi = new CachedRiotApi(new RiotApi(config));
   }
@@ -188,29 +190,39 @@ public class Zoe {
       @Override
       public void accept(CommandEvent event) {
 
+        String language = LanguageManager.DEFAULT_LANGUAGE;
+        try {
+          Server server = ServerData.getServers().get(event.getGuild().getId());
+          if(server != null) {
+             language = server.getLangage();
+          }
+        }catch(IllegalStateException e) {
+          //Not in a guild
+        }
+        
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("Here is my commands :\n\n");
+        stringBuilder.append(LanguageManager.getText(language, "startHelpMessage") + "\n\n");
 
         for(Command command : getMainCommands(null)) {
 
           if(!command.isHidden() && command.getChildren().length == 0) {
 
-            stringBuilder.append("Command **" + command.getName() + "** :\n");
-            stringBuilder.append("--> `>" + command.getName() + "` : " + command.getHelp() + "\n\n");
+            stringBuilder.append(LanguageManager.getText(language, "command") + " **" + command.getName() + "** :\n");
+            stringBuilder.append("--> `>" + command.getName() + "` : " + LanguageManager.getText(language, command.getHelp()) + "\n\n");
 
           }else if(!command.isHidden()){
 
-            stringBuilder.append("Commands **" + command.getName() + "** : \n");
+            stringBuilder.append(LanguageManager.getText(language, "commandPlural") + " **" + command.getName() + "** : \n");
             for(Command commandChild : command.getChildren()) {
               stringBuilder.append("--> `>" + command.getName() + " " + commandChild.getName() + " " + commandChild.getArguments() + "` : "
-                  + commandChild.getHelp() + "\n");
+                  + LanguageManager.getText(language, commandChild.getHelp()) + "\n");
             }
             stringBuilder.append(" \n");
           }
 
         }
 
-        stringBuilder.append("For additional help, you can join our official server : https://discord.gg/whc5PrC");
+        stringBuilder.append(LanguageManager.getText(language, "endHelpMessage") + " https://discord.gg/whc5PrC");
 
         PrivateChannel privateChannel = event.getAuthor().openPrivateChannel().complete();
 
@@ -219,7 +231,7 @@ public class Zoe {
         for(String helpMessage : helpMessages) {
           privateChannel.sendMessage(helpMessage).queue();
         }
-        event.reply("I send you all the commands in a private message.");
+        event.reply(LanguageManager.getText(language, "helpMessageSendConfirmation"));
       }
     };
   }
@@ -237,6 +249,7 @@ public class Zoe {
     // Basic commands
     commands.add(new AboutCommand());
     commands.add(new SetupCommand());
+    commands.add(new LanguageCommand(eventWaiter));
     commands.add(new ConfigCommand(eventWaiter));
     commands.add(new CreateCommand());
     commands.add(new DeleteCommand());
@@ -251,20 +264,17 @@ public class Zoe {
     commands.add(new ResetCommand(eventWaiter));
     commands.add(new PatchNotesCommand());
 
-    commands.add(new PingCommand());
-
     mainCommands = commands;
 
     return commands;
   }
 
   public static void loadChampions() throws IOException {
-    JsonParser parser = new JsonParser();
     List<Champion> champions = new ArrayList<>();
 
     try(FileReader fr = new FileReader("ressources/champion.json")) {
 
-      JsonObject object = parser.parse(fr).getAsJsonObject().get("data").getAsJsonObject();
+      JsonObject object = JsonParser.parseReader(fr).getAsJsonObject().get("data").getAsJsonObject();
       Set<Map.Entry<String, JsonElement>> list = object.entrySet();
       Iterator<Map.Entry<String, JsonElement>> iterator = list.iterator();
 
@@ -358,10 +368,10 @@ public class Zoe {
 
       strBuilder.deleteCharAt(strBuilder.length() - 1);
 
-      try(PrintWriter writer = new PrintWriter(SAVE_CONFIG_FOLDER + "/" + server.getGuild().getId() + ".txt", "UTF-8");) {
+      try(PrintWriter writer = new PrintWriter(SAVE_CONFIG_FOLDER + "/" + server.getGuildId() + ".txt", "UTF-8");) {
         writer.write(strBuilder.toString());
       } catch(FileNotFoundException | UnsupportedEncodingException e) {
-        logger.error("Error in the saving of the config in the server ID : {}", server.getGuild().getId(), e);
+        logger.error("Error in the saving of the config in the server ID : {}", server.getGuildId(), e);
       }
     }
   }
@@ -419,8 +429,13 @@ public class Zoe {
     StringBuilder playersOKOfTheServer = new StringBuilder();
 
     int nbrPlayersOk = 0;
-
+    int nbrPlayerNotOk = 0;
+    
     for(Player player : server.getPlayers()) {
+      if(player == null) {
+        nbrPlayerNotOk++;
+        continue;
+      }
       try {
         onePlayer = new StringBuilder();
         onePlayer.append(player.getDiscordUser().getId() + "\n");
@@ -436,6 +451,10 @@ public class Zoe {
       }catch (Exception e) {
         logger.warn("A player has not been saved ! Error when saving lol accounts and discords users", e);
       }
+    }
+    
+    for(int i = 0; i < nbrPlayerNotOk; i++) {
+      server.getPlayers().remove(null);
     }
 
     strBuilder.append(nbrPlayersOk + "\n");
@@ -456,12 +475,13 @@ public class Zoe {
             if(guild == null) {
               continue;
             }
-            SpellingLangage langage = SpellingLangage.valueOf(reader.readLine());
-            if(langage == null) {
-              langage = SpellingLangage.EN;
-            }
+            String langage = reader.readLine();
 
-            final Server server = new Server(guild, langage, loadConfig(guildId));
+            if(!LanguageManager.getListlanguages().contains(langage)) {
+              langage = LanguageManager.DEFAULT_LANGUAGE;
+            }
+            
+            final Server server = new Server(guild.getIdLong(), langage, loadConfig(guildId));
 
             final Long nbrPlayers = Long.parseLong(reader.readLine());
 
@@ -484,10 +504,9 @@ public class Zoe {
 
               try {
                 PrivateChannel privateChannel = guild.getOwner().getUser().openPrivateChannel().complete();
-                privateChannel.sendMessage("Hi ! I'm a bot of your server " + guild.getName() + ".\n"
-                    + "I need the \"" + e.getPermission().getName() + "\" permission in infochannel to work properly. "
-                    + "If you need help you can join the help server here : https://discord.gg/sRgyFvq\n"
-                    + "This message will be sended at each time i reboot. Thank you in advance !").queue();
+                privateChannel.sendMessage(
+                    String.format(LanguageManager.getText(server.getLangage(), "missingPermissionOwnerMessage"), 
+                    guild.getName(), e.getPermission().getName(), "https://discord.gg/sRgyFvq")).queue();                
                 logger.info("Message send to owner.");
               }catch(ErrorResponseException e1) {
                 logger.info("The owner ({}) of the server have bloqued the bot.", guild.getOwner().getUser().getAsTag());
@@ -553,7 +572,7 @@ public class Zoe {
 
   private static void setInfoPannel(final Guild guild, final Server server, final TextChannel pannel) {
     if(pannel != null) {
-      server.setInfoChannel(pannel);
+      server.setInfoChannel(pannel.getIdLong());
     }
   }
 
@@ -618,10 +637,9 @@ public class Zoe {
       }
       String mentionableString = reader.readLine();
 
-      User user = jda.getUserById(discordId);
       boolean mentionable = Boolean.getBoolean(mentionableString);
 
-      players.add(new Player(user, lolAccounts, mentionable));
+      players.add(new Player(Long.parseLong(discordId), lolAccounts, mentionable));
     }
     return players;
   }
@@ -656,5 +674,9 @@ public class Zoe {
 
   public static List<Object> getEventlistenerlist() {
     return eventListenerList;
+  }
+
+  public static EventWaiter getEventWaiter() {
+    return eventWaiter;
   }
 }

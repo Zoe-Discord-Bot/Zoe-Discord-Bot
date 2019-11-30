@@ -18,8 +18,10 @@ import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.player_data.LeagueAccount;
 import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.model.player_data.Team;
+import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.InfoPanelRefresherUtil;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageReaction;
 import net.dv8tion.jda.api.entities.PermissionOverride;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
@@ -35,29 +37,29 @@ public class InfoPanelRefresher implements Runnable {
   private static final Logger logger = LoggerFactory.getLogger(InfoPanelRefresher.class);
 
   private Server server;
-  
+
   private boolean needToWait = false;
 
   public InfoPanelRefresher(Server server) {
     this.server = server;
   }
-  
+
   public InfoPanelRefresher(Server server, boolean needToWait) {
     this.server = server;
     this.needToWait = needToWait;
   }
-  
+
 
   @Override
   public void run() {
     try {
 
       if(server.getInfoChannel() != null) {
-        
+
         if(needToWait) {
           TimeUnit.SECONDS.sleep(3);
         }
-        
+
         for(Player player : server.getPlayers()) {
           player.refreshAllLeagueAccounts(CallPriority.NORMAL);
         }
@@ -65,10 +67,12 @@ public class InfoPanelRefresher implements Runnable {
         cleanRegisteredPlayerNoLongerInGuild();
         server.clearOldMatchOfSendedGamesIdList();
         deleteOlderInfoCards();
-        
+
         ArrayList<String> infoPanels = CommandEvent.splitMessage(refreshPannel());
 
         if(server.getInfoChannel() != null && server.getGuild().getTextChannelById(server.getInfoChannel().getId()) != null) {
+
+          cleanInfoChannelCache();
 
           if(infoPanels.size() < server.getControlePannel().getInfoPanel().size()) {
             int nbrMessageToDelete = server.getControlePannel().getInfoPanel().size() - infoPanels.size();
@@ -81,7 +85,8 @@ public class InfoPanelRefresher implements Runnable {
           } else {
             int nbrMessageToAdd = infoPanels.size() - server.getControlePannel().getInfoPanel().size();
             for(int i = 0; i < nbrMessageToAdd; i++) {
-              server.getControlePannel().getInfoPanel().add(server.getInfoChannel().sendMessage("loading ...").complete());
+              server.getControlePannel().getInfoPanel().add(server.getInfoChannel()
+                  .sendMessage(LanguageManager.getText(server.getLangage(), "loading")).complete());
             }
           }
 
@@ -101,30 +106,74 @@ public class InfoPanelRefresher implements Runnable {
           }catch (Exception e) {
             logger.warn("An unexpected error when cleaning info channel has occure.", e);
           }
+
+          clearLoadingEmote();
         } else {
           server.setInfoChannel(null);
           server.setControlePannel(new ControlPannel());
         }
       }
     } catch(NullPointerException e) {
-      logger.info("The Thread has crashed normally because of deletion of infoChannel :", e);
+      logger.warn("The Thread has crashed prbably normally because of deletion of infoChannel :", e);
     }catch (InsufficientPermissionException e) {
-      logger.info("Permission {} missing for infochannel in the guild {}, try to autofix the issue... (Low chance to work)",
+      logger.debug("Permission {} missing for infochannel in the guild {}, try to autofix the issue... (Low chance to work)",
           e.getPermission().getName(), server.getGuild().getName());
       try {
         PermissionOverride permissionOverride = server.getInfoChannel()
             .putPermissionOverride(server.getGuild().getMember(Zoe.getJda().getSelfUser())).complete();
 
         permissionOverride.getManager().grant(e.getPermission()).complete();
-        logger.info("Autofix complete !");
+        logger.debug("Autofix complete !");
       }catch(Exception e1) {
-        logger.info("Autofix fail ! Error message : {} ", e1.getMessage());
+        logger.debug("Autofix fail ! Error message : {} ", e1.getMessage());
       }
     } catch(Exception e) {
-      logger.warn("The thread got a unexpected error :", e);
+      logger.error("The thread got a unexpected error :", e);
     } finally {
       server.setLastRefresh(DateTime.now());
       ServerData.getServersIsInTreatment().put(server.getGuild().getId(), false);
+    }
+  }
+
+  private void cleanInfoChannelCache() {
+    List<Message> messagesToRemove = new ArrayList<>();
+    for(Message partInfoPannel : server.getControlePannel().getInfoPanel()) {
+      try {
+        partInfoPannel.addReaction("U+23F3").complete();
+      }catch(ErrorResponseException e) {
+        //Try to check in a less pretty way
+        try {
+          server.getInfoChannel().retrieveMessageById(partInfoPannel.getId()).complete();
+        } catch (ErrorResponseException e1) {
+          messagesToRemove.add(partInfoPannel);
+        }
+      }
+    }
+    for(Message messageToRemove : messagesToRemove) {
+      server.getControlePannel().getInfoPanel().remove(messageToRemove);
+    }
+  }
+
+  private void clearLoadingEmote() {
+    for(Message messageToClearReaction : server.getControlePannel().getInfoPanel()) {
+
+      Message retrievedMessage;
+      try {
+        retrievedMessage = server.getInfoChannel().retrieveMessageById(messageToClearReaction.getId()).complete();
+      } catch (ErrorResponseException e) {
+        logger.warn("Error when deleting loading emote : {}", e.getMessage(), e);
+        continue;
+      }
+
+      if(retrievedMessage != null) {
+        for(MessageReaction messageReaction : retrievedMessage.getReactions()) {
+          try {
+            messageReaction.removeReaction(Zoe.getJda().getSelfUser()).queue();
+          } catch (ErrorResponseException e) {
+            logger.warn("Error when removing reaction : {}", e.getMessage(), e);
+          }
+        }
+      }
     }
   }
 
@@ -135,7 +184,7 @@ public class InfoPanelRefresher implements Runnable {
 
     while (iter.hasNext()) {
       Player player = iter.next();
-      if(player.getDiscordUser() == null || server.getGuild().getMemberById(player.getDiscordUser().getId()) == null) {
+      if(server.getGuild().getMemberById(player.getDiscordUser().getId()) == null) {
         iter.remove();
         for(Team team : server.getTeams()) {
           team.getPlayers().remove(player);
@@ -209,13 +258,13 @@ public class InfoPanelRefresher implements Runnable {
     if(!card.getPlayers().isEmpty()) {
       Player player = card.getPlayers().get(0);
       if(!player.getLeagueAccountsInTheGivenGame(card.getCurrentGameInfo()).isEmpty()) {
-        
+
         LeagueAccount account = player.getLeagueAccountsInTheGivenGame(card.getCurrentGameInfo()).get(0);
-        
+
         if(account.getCurrentGameInfo() == null || account.getCurrentGameInfo().getGameId() != card.getCurrentGameInfo().getGameId()) {
           cardsToRemove.add(card);
         }
-        
+
       }else {
         cardsToRemove.add(card);
       }
@@ -261,7 +310,7 @@ public class InfoPanelRefresher implements Runnable {
     final List<Team> teamList = server.getAllPlayerTeams();
     final StringBuilder stringMessage = new StringBuilder();
 
-    stringMessage.append("__**Information Panel**__\n \n");
+    stringMessage.append("__**" + LanguageManager.getText(server.getLangage(), "informationPanelTitle") + "**__\n \n");
 
     for(Team team : teamList) {
 
@@ -276,19 +325,21 @@ public class InfoPanelRefresher implements Runnable {
         List<LeagueAccount> leagueAccounts = player.getLeagueAccountsInGame();
 
         if(leagueAccounts.isEmpty()) {
-          stringMessage.append(player.getDiscordUser().getAsMention() + " : Not in game\n");
+          stringMessage.append(player.getDiscordUser().getAsMention() + " : " 
+        + LanguageManager.getText(server.getLangage(), "informationPanelNotInGame") + " \n");
         }else if (leagueAccounts.size() == 1) {
           stringMessage.append(player.getDiscordUser().getAsMention() + " : " 
-              + InfoPanelRefresherUtil.getCurrentGameInfoStringForOneAccount(leagueAccounts.get(0)) + "\n");
+              + InfoPanelRefresherUtil.getCurrentGameInfoStringForOneAccount(leagueAccounts.get(0), server.getLangage()) + "\n");
         }else {
-          stringMessage.append(player.getDiscordUser().getAsMention() + " : Multiples accounts are in game\n"
-              + InfoPanelRefresherUtil.getCurrentGameInfoStringForMultipleAccounts(leagueAccounts));
+          stringMessage.append(player.getDiscordUser().getAsMention() + " : " 
+        + LanguageManager.getText(server.getLangage(), "informationPanelMultipleAccountInGame") + "\n"
+              + InfoPanelRefresherUtil.getCurrentGameInfoStringForMultipleAccounts(leagueAccounts, server.getLangage()));
         }
       }
       stringMessage.append(" \n");
     }
 
-    stringMessage.append("*Refreshed every 3 minutes*");
+    stringMessage.append(LanguageManager.getText(server.getLangage(), "informationPanelRefreshedTime"));
 
     return stringMessage.toString();
   }

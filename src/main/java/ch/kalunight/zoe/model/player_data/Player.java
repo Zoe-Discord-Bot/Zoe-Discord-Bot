@@ -18,20 +18,20 @@ public class Player {
 
   private static final Logger logger = LoggerFactory.getLogger(Player.class);
 
-  private User discordUser;
+  private long discordUserId;
   private List<LeagueAccount> lolAccounts;
   private boolean mentionnable;
 
-  public Player(User discordUser, Summoner summoner, Platform region, boolean mentionnable) {
-    this.discordUser = discordUser;
+  public Player(long discordUserId, Summoner summoner, Platform region, boolean mentionnable) {
+    this.discordUserId = discordUserId;
     LeagueAccount lolAccount = new LeagueAccount(summoner, region);
     lolAccounts = Collections.synchronizedList(new ArrayList<>());
     lolAccounts.add(lolAccount);
     this.mentionnable = mentionnable;
   }
 
-  public Player(User discordUser, List<LeagueAccount> lolAccounts, boolean mentionnable) {
-    this.discordUser = discordUser;
+  public Player(long discordUserId, List<LeagueAccount> lolAccounts, boolean mentionnable) {
+    this.discordUserId = discordUserId;
     this.lolAccounts = lolAccounts;
     this.mentionnable = mentionnable;
   }
@@ -103,11 +103,15 @@ public class Player {
   }
 
   public User getDiscordUser() {
-    return discordUser;
+    return Zoe.getJda().retrieveUserById(discordUserId).complete();
+  }
+  
+  public long getDiscordId() {
+    return discordUserId;
   }
 
-  public void setDiscordUser(User discordUser) {
-    this.discordUser = discordUser;
+  public void setDiscordUserId(long discordUserId) {
+    this.discordUserId = discordUserId;
   }
 
   public boolean isMentionnable() {
@@ -124,6 +128,6 @@ public class Player {
 
   @Override
   public String toString() {
-    return "Player [discordUserName=" + discordUser.getName() + ", lolAccounts=" + lolAccounts + "]";
+    return "Player [discordUserId=" + discordUserId + ", lolAccounts=" + lolAccounts + "]";
   }
 }

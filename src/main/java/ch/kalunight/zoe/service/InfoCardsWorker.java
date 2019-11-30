@@ -3,9 +3,11 @@ package ch.kalunight.zoe.service;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.google.common.base.Stopwatch;
 import ch.kalunight.zoe.model.InfoCard;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.player_data.LeagueAccount;
@@ -40,18 +42,24 @@ public class InfoCardsWorker implements Runnable {
   @Override
   public void run() {
     try {
-      logger.debug("InfoCards worker lauched for the game id: {}", currentGameInfo.getGameId());
       if(controlPanel.canTalk()) {
-        generateInfoCard(controlPanel, account, currentGameInfo);    
+        logger.info("Start generate infocards for the account " + account.getSummoner().getName() 
+            + " (" + account.getRegion().getName() + ")");
+        
+        Stopwatch stopWatch = Stopwatch.createStarted();
+        generateInfoCard(controlPanel, account, currentGameInfo);
+        stopWatch.stop();
+        logger.info("Infocards generation done in {} secs.", stopWatch.elapsed(TimeUnit.SECONDS));
+        
         RiotApiUsageChannelRefresh.incrementInfocardCount();
         logger.debug("InfoCards worker has ended correctly for the game id: {}", currentGameInfo.getGameId());
       }else {
-        logger.info("Impossible to send message in the infochannel of the guild id: {}", server.getGuild().getId());
+        logger.info("Impossible to send message in the infochannel of the guild id: {}", server.getGuildId());
       }
       
     }catch(InsufficientPermissionException e) {
       logger.info("Missing permissions with the generation of infocards in the guild id {} : {}",
-          server.getGuild().getId(), e.getPermission());
+          server.getGuildId(), e.getPermission());
     }catch(Exception e) {
       logger.warn("A unexpected exception has been catched ! Error message : {}", e.getMessage(), e);
     }finally {
@@ -67,13 +75,13 @@ public class InfoCardsWorker implements Runnable {
 
     if(listOfPlayerInTheGame.size() == 1) {
       MessageEmbed messageCard = MessageBuilderRequest.createInfoCard1summoner(player.getDiscordUser(), account.getSummoner(),
-          currentGameInfo, account.getRegion());
+          currentGameInfo, account.getRegion(), server.getLangage());
       if(messageCard != null) {
         card = new InfoCard(listOfPlayerInTheGame, messageCard, currentGameInfo);
       }
     } else if(listOfPlayerInTheGame.size() > 1) {
       MessageEmbed messageCard =
-          MessageBuilderRequest.createInfoCardsMultipleSummoner(listOfPlayerInTheGame, currentGameInfo, account.getRegion());
+          MessageBuilderRequest.createInfoCardsMultipleSummoner(listOfPlayerInTheGame, currentGameInfo, account.getRegion(), server.getLangage());
 
       if(messageCard != null) {
         card = new InfoCard(listOfPlayerInTheGame, messageCard, currentGameInfo);

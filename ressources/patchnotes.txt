@@ -1,0 +1,10 @@
+**V1.3.1 -> V1.3.2**
+
+**One new option added + polish stats command**
+A user asked a new feature allowing the creation of a "clean" channel. Messages sent in this channel are deleted after three seconds. This option has been created to simplify the creation of a registration system for servers that wants all members to be registered. Option to be used with options 2 and 4 for this type of use.
+The command ">stats profile @mention" has been simplified, you can now directly use the command ">stats @mention".
+
+**Changlog :**
+-**New feature** You can create a "clean channel" (with the command >config). Created to be used with the option 2 and 4 for the creation of a "registration system".
+-Polish ">stats profile @mention", you can now use directly ">stats @mention" for the same result.
+-Bugs fix

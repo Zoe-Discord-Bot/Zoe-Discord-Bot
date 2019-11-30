@@ -1,46 +1,46 @@
 package ch.kalunight.zoe.command.create;
 
-import java.util.function.BiConsumer;
-import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
-import ch.kalunight.zoe.command.CommandUtil;
+import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.service.InfoPanelRefresher;
+import ch.kalunight.zoe.translation.LanguageManager;
+import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 
-public class CreateInfoChannelCommand extends Command {
+public class CreateInfoChannelCommand extends ZoeCommand {
 
   public CreateInfoChannelCommand() {
     this.name = "InfoChannel";
     this.arguments = "nameOfTheNewChannel";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
-    this.help = "Create a new InfoChannel where i can send info about players. Manage Channel permission needed.";
-    this.helpBiConsumer = getHelpMethod();
+    this.help = "createInfoChannelHelpMessage";
+    this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(CreateCommand.USAGE_NAME, name, arguments, help);
   }
 
   @Override
-  protected void execute(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) {
     event.getTextChannel().sendTyping().complete();
     Server server = ServerData.getServers().get(event.getGuild().getId());
 
     String nameChannel = event.getArgs();
 
     if(nameChannel == null || nameChannel.equals("")) {
-      event.reply("Please give a name for the channel in the command");
+      event.reply(LanguageManager.getText(server.getLangage(), "nameOfInfochannelNeeded"));
       return;
     }
 
     if(nameChannel.length() > 100) {
-      event.reply("Please give me a name smaller than 100 characters");
+      event.reply(LanguageManager.getText(server.getLangage(), "nameOfTheInfoChannelNeedToBeLess100Characters"));
       return;
     }
 
     if(server.getInfoChannel() != null) {
-      event.reply(server.getInfoChannel().getAsMention() + " already exist, please delete it first");
+      event.reply(LanguageManager.getText(server.getLangage(), "infochannelAlreadyExist"));
       return;
     }
 
@@ -48,34 +48,20 @@ public class CreateInfoChannelCommand extends Command {
       TextChannel infoChannel = event.getGuild().createTextChannel(nameChannel).complete();
       String id = infoChannel.getId();
       TextChannel textChannel = event.getGuild().getTextChannelById(id);
-      server.setInfoChannel(textChannel);
+      server.setInfoChannel(textChannel.getIdLong());
       
       if(server.getControlePannel().getInfoPanel().isEmpty()) {
         server.getControlePannel().getInfoPanel()
-        .add(server.getInfoChannel().sendMessage("__**Information Panel**__\n \n*Loading...*").complete());
+        .add(server.getInfoChannel().sendMessage(LanguageManager.getText(server.getLangage(), "infoChannelTitle")
+            + "\n \n" + LanguageManager.getText(server.getLangage(), "loading")).complete());
       }
       
       Runnable task = new InfoPanelRefresher(server);
       ServerData.getServerExecutor().execute(task);
 
-      event.reply("The channel got created !");
+      event.reply(LanguageManager.getText(server.getLangage(), "channelCreatedMessage"));
     } catch(InsufficientPermissionException e) {
-      event.reply("Impossible to create the infoChannel ! "
-          + "I don't have the permission to do that. Give me the Manage Channel Permission or use `>defineInfoChannel #MentionOfTheChannel`.");
+      event.reply(LanguageManager.getText(server.getLangage(), "impossibleToCreateInfoChannelMissingPerms"));
     }
-  }
-
-  private BiConsumer<CommandEvent, Command> getHelpMethod() {
-    return new BiConsumer<CommandEvent, Command>() {
-      @Override
-      public void accept(CommandEvent event, Command command) {
-        CommandUtil.sendTypingInFonctionOfChannelType(event);
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("Create infoChannel command :\n");
-        stringBuilder.append("--> `>create " + name + " " + arguments + "` : " + help);
-
-        event.reply(stringBuilder.toString());
-      }
-    };
   }
 }

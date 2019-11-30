@@ -15,6 +15,7 @@ import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.model.player_data.Rank;
 import ch.kalunight.zoe.model.player_data.Tier;
 import ch.kalunight.zoe.model.static_data.Mastery;
+import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.NameConversion;
 import ch.kalunight.zoe.util.Ressources;
 import net.rithms.riot.api.RiotApiException;
@@ -62,14 +63,15 @@ public class RiotRequest {
     return new FullTier(rank, tier, leaguePoints);
   }
 
-  public static String getWinrateLastMonthWithGivenChampion(String summonerId, Platform region, int championKey) {
+  public static String getWinrateLastMonthWithGivenChampion(String summonerId, Platform region,
+      int championKey, String language) {
 
     Summoner summoner;
     try {
       summoner = Zoe.getRiotApi().getSummoner(region, summonerId, CallPriority.NORMAL);
     } catch(RiotApiException e) {
       logger.warn("Impossible to get the summoner : {}", e.getMessage());
-      return "Unknown";
+      return LanguageManager.getText(language, "unknown");
     }
 
     List<MatchReference> referencesMatchList;
@@ -77,11 +79,11 @@ public class RiotRequest {
       referencesMatchList = getMatchHistoryOfLastMonthWithTheGivenChampion(region, championKey, summoner);
     } catch(RiotApiException e) {
       logger.info("Can't acces to history : {}", e.getMessage());
-      return "Unknown";
+      return LanguageManager.getText(language, "unknown");
     }
 
     if(referencesMatchList.isEmpty()) {
-      return "First game";
+      return LanguageManager.getText(language, "firstGame");
     }
 
     int nbrGames = 0;
@@ -112,12 +114,12 @@ public class RiotRequest {
           }
         }
       } catch(NullPointerException e) {
-        logger.warn("Error catched in match (some value are null, NullPointerException : {}", e);
+        logger.warn("Error catched in match (some value are null, NullPointerException : {}", e.getMessage(), e);
       }
     }
 
     if(nbrGames == 0) {
-      return "First game";
+      return LanguageManager.getText(language, "firstGame");
     } else if(nbrWins == 0) {
       return "0% (" + nbrWins + "W/" + (nbrGames - nbrWins) + "L)";
     }
@@ -191,13 +193,14 @@ public class RiotRequest {
     return masteryString.toString();
   }
 
-  public static String getActualGameStatus(CurrentGameInfo currentGameInfo) {
+  public static String getActualGameStatus(CurrentGameInfo currentGameInfo, String language) {
 
     if(currentGameInfo == null) {
-      return "Not in game";
+      return LanguageManager.getText(language, "informationPanelNotInGame");
     }
 
-    String gameStatus = NameConversion.convertGameQueueIdToString(currentGameInfo.getGameQueueConfigId()) + " ";
+    String gameStatus = LanguageManager.getText(language,
+        NameConversion.convertGameQueueIdToString(currentGameInfo.getGameQueueConfigId())) + " ";
 
     double minutesOfGames = 0.0;
 

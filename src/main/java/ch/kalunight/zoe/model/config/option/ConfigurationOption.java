@@ -27,7 +27,7 @@ public abstract class ConfigurationOption {
    * Pattern -> Description : Status (Enabled/Disabled)
    * @return description of the option and his status
    */
-  public abstract String getChoiceText();
+  public abstract String getChoiceText(String langage);
   
   /**
    * Get save of the option <br>

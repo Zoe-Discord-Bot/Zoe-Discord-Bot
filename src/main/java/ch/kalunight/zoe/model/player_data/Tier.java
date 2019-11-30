@@ -1,7 +1,7 @@
 package ch.kalunight.zoe.model.player_data;
 
 public enum Tier {
-  UNKNOWN("Inconnu", -1), UNRANKED("Unranked", -1), IRON("Iron", 1000), BRONZE("Bronze", 1400), SILVER("Silver", 1800), GOLD("Gold",
+  UNKNOWN("Unknown", -1), UNRANKED("Unranked", -1), IRON("Iron", 1000), BRONZE("Bronze", 1400), SILVER("Silver", 1800), GOLD("Gold",
       2200), PLATINUM("Platinum",
           2600), DIAMOND("Diamond", 3000), MASTER("Master", 3400), GRANDMASTER("Grand Master", 3400), CHALLENGER("Challenger", 3400);
 

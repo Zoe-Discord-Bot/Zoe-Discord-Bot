@@ -10,6 +10,7 @@ import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.player_data.Player;
+import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -25,7 +26,7 @@ public class RoleOption extends ConfigurationOption {
   private Role role;
 
   public RoleOption() {
-    super("player_role", "Hide the infochannel to non-player with a role");
+    super("player_role", "roleOptionDescription");
     role = null;
   }
 
@@ -36,9 +37,10 @@ public class RoleOption extends ConfigurationOption {
       @Override
       public void accept(CommandEvent event) {
         
+        Server server = ServerData.getServers().get(event.getGuild().getId());
+        
         if(!event.getGuild().getSelfMember().getPermissions().contains(Permission.MANAGE_ROLES)) {
-          event.reply("I need the manage roles permission to activate this option. "
-              + "Please give me this permission if you want to activate this option.");
+          event.reply(LanguageManager.getText(server.getLangage(), "roleOptionPermissionNeeded"));
           return;
         }
 
@@ -53,25 +55,19 @@ public class RoleOption extends ConfigurationOption {
         choiceBuilder.setTimeout(2, TimeUnit.MINUTES);
 
         if(role == null) {
-          choiceBuilder.setText("Option in activation : **" + description + "**\n\n"
-              + "Activate this option will create a role named \"Zoe-Player\" and assigne it to all players registered. "
-              + "You can update it like you want. If it got deleted, the option will be disable automatically.\n\n"
-              + ":white_check_mark: : Activate this option\n"
-              + ":x: : Cancel the activation");
+          choiceBuilder.setText(String.format(LanguageManager.getText(server.getLangage(), "roleOptionLongDesc"), 
+              LanguageManager.getText(server.getLangage(), description)));
 
-          choiceBuilder.setAction(receiveValidationAndCreateOption(event.getChannel(), event.getGuild()));
+          choiceBuilder.setAction(receiveValidationAndCreateOption(event.getChannel(), event.getGuild(), server.getLangage()));
 
           ButtonMenu menu = choiceBuilder.build();
 
           menu.display(event.getChannel());
 
         }else {
-          choiceBuilder.setText("Option you want to disable : **" + description + "**\n\n"
-              + "Disable it will **delete the Zoe-Player role** and will remake infochannel readable by everyone.\n\n"
-              + ":white_check_mark: : **Disable** the option.\n"
-              + ":x: : Cancel the deactivation");
+          choiceBuilder.setText(String.format(LanguageManager.getText(server.getLangage(), "roleOptionLongDescDisable"), description));
 
-          choiceBuilder.setAction(receiveValidationAndDisableOption(event.getChannel(), event.getGuild()));
+          choiceBuilder.setAction(receiveValidationAndDisableOption(event.getChannel(), event.getGuild(), server.getLangage()));
 
           ButtonMenu menu = choiceBuilder.build();
 
@@ -80,14 +76,14 @@ public class RoleOption extends ConfigurationOption {
       }};
   }
 
-  private Consumer<ReactionEmote> receiveValidationAndCreateOption(MessageChannel channel, Guild guild) {
+  private Consumer<ReactionEmote> receiveValidationAndCreateOption(MessageChannel channel, Guild guild, String langage) {
     return new Consumer<ReactionEmote>() {
 
       @Override
       public void accept(ReactionEmote emoteUsed) {
         channel.sendTyping().complete();
         if(emoteUsed.getName().equals("✅")) {
-          channel.sendMessage("Right, i will activate that quickly. Wait 2 seconds...").queue();
+          channel.sendMessage(LanguageManager.getText(langage, "roleOptionActivateWaitMessage")).complete();
           channel.sendTyping().complete();
           RoleAction action = guild.createRole();
           action.setName("Zoe-Player");
@@ -112,22 +108,22 @@ public class RoleOption extends ConfigurationOption {
             PermissionOverride everyone = server.getInfoChannel().putPermissionOverride(server.getGuild().getPublicRole()).complete();
             everyone.getManager().deny(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).complete();
           }
-          channel.sendMessage("The configuration has ended ! Now only registered player can see the infoChannel.").complete();
+          channel.sendMessage(LanguageManager.getText(langage, "roleOptionDoneMessage")).complete();
         }else {
-          channel.sendMessage("Well, if you have one day changed you mind. You know where i am.").queue();
+          channel.sendMessage(LanguageManager.getText(langage, "roleOptionCancelMessage")).queue();
         }
       }};
 
   }
 
-  private Consumer<ReactionEmote> receiveValidationAndDisableOption(MessageChannel channel, Guild guild) {
+  private Consumer<ReactionEmote> receiveValidationAndDisableOption(MessageChannel channel, Guild guild, String langage) {
     return new Consumer<ReactionEmote>() {
       
       @Override
       public void accept(ReactionEmote emoteUsed) {
         channel.sendTyping().complete();
         if(emoteUsed.getName().equals("✅")) {
-          channel.sendMessage("Right, i disable the option. Please wait 2 seconds...").complete();
+          channel.sendMessage(LanguageManager.getText(langage, "roleOptionDisableWaitMessage")).complete();
           channel.sendTyping().complete();
           role.delete().complete();
 
@@ -139,9 +135,9 @@ public class RoleOption extends ConfigurationOption {
           }
 
           role = null;
-          channel.sendMessage("The option has been disable !").queue();
+          channel.sendMessage(LanguageManager.getText(langage, "roleOptionDoneMessageDisable")).queue();
         }else {
-          channel.sendMessage("Right, the option is still activate.").queue();
+          channel.sendMessage(LanguageManager.getText(langage, "roleOptionDoneMessageStillActivate")).queue();
         }
       }};
   }
@@ -156,12 +152,12 @@ public class RoleOption extends ConfigurationOption {
   }
 
   @Override
-  public String getChoiceText() {
-    String status = "Disable";
+  public String getChoiceText(String langage) {
+    String status = LanguageManager.getText(langage, "optionDisable");
     if(role != null) {
-      status = "Enable";
+      status = LanguageManager.getText(langage, "optionEnable");
     }
-    return description + " : " + status;
+    return LanguageManager.getText(langage, description) + " : " + status;
   }
 
   @Override

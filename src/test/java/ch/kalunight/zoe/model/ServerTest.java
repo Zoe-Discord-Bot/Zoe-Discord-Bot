@@ -7,7 +7,7 @@ import org.testng.annotations.Test;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.model.player_data.Team;
-import ch.kalunight.zoe.model.static_data.SpellingLangage;
+import ch.kalunight.zoe.translation.LanguageManager;
 import net.rithms.riot.constant.Platform;
 
 public class ServerTest {
@@ -15,14 +15,14 @@ public class ServerTest {
   @Test
   public void getAllPlayersTeamGivenPlayersWithNoTeamShouldReturnPlayerWithOneTeam() {
     // GIVEN
-    Server server = new Server(null, SpellingLangage.EN, new ServerConfiguration());
-    Player player1 = new Player(null, null, Platform.EUW, false);
-    Player player2 = new Player(null, null, Platform.EUW, false);
+    Server server = new Server(0, LanguageManager.DEFAULT_LANGUAGE, new ServerConfiguration());
+    Player player1 = new Player(0, null, Platform.EUW, false);
+    Player player2 = new Player(0, null, Platform.EUW, false);
     server.getPlayers().add(player1);
     server.getPlayers().add(player2);
 
     List<Team> expectedTeamsList = new ArrayList<>();
-    Team expectedTeam = new Team("No Team");
+    Team expectedTeam = new Team("Translation error (Id: teamNameOfPlayerWithoutTeam)");
     List<Player> expectedPlayers = new ArrayList<Player>();
     expectedPlayers.add(player1);
     expectedPlayers.add(player2);

@@ -5,11 +5,12 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import org.joda.time.DateTime;
+import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.player_data.LeagueAccount;
 import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.model.player_data.Team;
-import ch.kalunight.zoe.model.static_data.SpellingLangage;
+import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
@@ -24,16 +25,16 @@ public class Server {
   private final List<Long> currentGamesIdAlreadySended = new ArrayList<>();
 
   private ServerConfiguration config;
-  private Guild guild;
+  private long guildId;
   private List<Player> players;
   private List<Team> teams;
-  private TextChannel infoChannel;
+  private Long infoChannelId;
   private ControlPannel controlePannel;
-  private SpellingLangage langage; // Not implement yet
+  private String langage;
   private DateTime lastRefresh;
 
-  public Server(Guild guild, SpellingLangage langage, ServerConfiguration configuration) {
-    this.guild = guild;
+  public Server(long guildId, String langage, ServerConfiguration configuration) {
+    this.guildId = guildId;
     this.config = configuration;
     this.langage = langage;
     players = Collections.synchronizedList(new ArrayList<>());
@@ -96,7 +97,7 @@ public class Server {
     List<Team> allTeams = new ArrayList<>();
     allTeams.addAll(teams);
     if(!playerWithNoTeam.isEmpty()) {
-      allTeams.add(new Team("No Team", playerWithNoTeam));
+      allTeams.add(new Team(LanguageManager.getText(langage, "teamNameOfPlayerWithoutTeam"), playerWithNoTeam));
     }
 
     return allTeams;
@@ -142,9 +143,9 @@ public class Server {
     }
   }
 
-  public Player getPlayerByDiscordId(String discordId) {
+  public Player getPlayerByDiscordId(long discordId) {
     for(Player player : players) {
-      if(player.getDiscordUser().getId().equals(discordId)) {
+      if(player.getDiscordId() == discordId) {
         return player;
       }
     }
@@ -186,22 +187,29 @@ public class Server {
   }
 
   public Guild getGuild() {
-    return guild;
+    return Zoe.getJda().getGuildById(guildId);
   }
 
   public TextChannel getInfoChannel() {
-    return infoChannel;
+    if(infoChannelId == null) {
+      return null;
+    }
+    return Zoe.getJda().getGuildById(guildId).getTextChannelById(infoChannelId);
+  }
+  
+  public long getGuildId() {
+    return guildId;
   }
 
-  public void setInfoChannel(TextChannel infoChannel) {
-    this.infoChannel = infoChannel;
+  public void setInfoChannel(Long infoChannelId) {
+    this.infoChannelId = infoChannelId;
   }
 
-  public SpellingLangage getLangage() {
+  public String getLangage() {
     return langage;
   }
 
-  public void setLangage(SpellingLangage langage) {
+  public void setLangage(String langage) {
     this.langage = langage;
   }
 

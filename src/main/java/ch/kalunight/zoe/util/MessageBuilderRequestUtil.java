@@ -165,7 +165,7 @@ public class MessageBuilderRequestUtil {
     }else if(pastMoment.isBefore(now.minusDays(1))) {
       return LanguageManager.getText(language, "yesterday");
     }else if(pastMoment.isBefore(now.minusHours(6))) {
-      return LanguageManager.getText(language, "Today");
+      return LanguageManager.getText(language, "today");
     }else if(pastMoment.isBefore(now.minusHours(5))) {
       return LanguageManager.getText(language, "5HoursAgo");
     }else if(pastMoment.isBefore(now.minusHours(4))) {

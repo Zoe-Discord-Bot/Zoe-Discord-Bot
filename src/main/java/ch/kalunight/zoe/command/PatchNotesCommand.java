@@ -4,6 +4,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.function.BiConsumer;
+
+import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.translation.LanguageManager;
@@ -41,6 +44,11 @@ public class PatchNotesCommand extends ZoeCommand {
     } catch(IOException e) {
       event.reply(LanguageManager.getText(ServerData.getServers().get(event.getGuild().getId()).getLangage(), "patchNoteUnavailable"));
     }
+  }
+
+  @Override
+  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
+    return helpBiConsumer;
   }
 
 }

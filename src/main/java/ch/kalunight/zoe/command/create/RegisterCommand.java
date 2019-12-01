@@ -1,8 +1,12 @@
 package ch.kalunight.zoe.command.create;
 
 import java.util.List;
+import java.util.function.BiConsumer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
@@ -118,5 +122,10 @@ public class RegisterCommand extends ZoeCommand {
       }
     }
     event.reply(String.format(LanguageManager.getText(server.getLangage(), "registerCommandDoneMessage"), summoner.getName()));
+  }
+
+  @Override
+  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
+    return helpBiConsumer;
   }
 }

@@ -3,8 +3,12 @@ package ch.kalunight.zoe.command.admin;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.util.function.BiConsumer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
@@ -65,6 +69,11 @@ public class AdminCreateRAPIChannel extends ZoeCommand {
 
     event.reply("Correctly created, will be refreshed in less than 2 minutes. "
         + "Please don't use this channel, all messages in it will be cleaned every 2 minutes.");
+  }
+
+  @Override
+  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
+    return helpBiConsumer;
   }
 
 }

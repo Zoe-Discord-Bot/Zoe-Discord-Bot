@@ -1,6 +1,9 @@
 package ch.kalunight.zoe.command.delete;
 
 import java.util.List;
+import java.util.function.BiConsumer;
+
+import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.command.ZoeCommand;
@@ -65,5 +68,10 @@ public class DeletePlayerCommand extends ZoeCommand {
             player.getDiscordUser().getName()));
       }
     }
+  }
+
+  @Override
+  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
+    return helpBiConsumer;
   }
 }

@@ -11,9 +11,9 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
-import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageChannel;
@@ -31,28 +31,28 @@ public class CommandUtil {
 
   public static void sendTypingInFonctionOfChannelType(CommandEvent event) {
     switch(event.getChannelType()) {
-      case PRIVATE:
-        event.getPrivateChannel().sendTyping().complete();
-        break;
-      case TEXT:
-        event.getTextChannel().sendTyping().complete();
-        break;
-      default:
-        logger.warn("event.getChannelType() return a unexpected type : {}", event.getChannelType());
-        break;
+    case PRIVATE:
+      event.getPrivateChannel().sendTyping().complete();
+      break;
+    case TEXT:
+      event.getTextChannel().sendTyping().complete();
+      break;
+    default:
+      logger.warn("event.getChannelType() return a unexpected type : {}", event.getChannelType());
+      break;
     }
   }
 
   public static MessageChannel getFullSpeakableChannel(Guild guild) {
     Set<Permission> permissionsNeeded = Collections.synchronizedSet(EnumSet.noneOf(Permission.class));
     permissionsNeeded.add(Permission.MESSAGE_ADD_REACTION);
-    
+
     Member zoeMember = guild.getMember(Zoe.getJda().getSelfUser());
-    
+
     for(TextChannel textChannel : guild.getTextChannels()) {
       if(textChannel.canTalk()) {
         Set<Permission> permissions = zoeMember.getPermissions(textChannel);
-        
+
         if(permissions.containsAll(permissionsNeeded)) {
           return textChannel;
         }
@@ -87,12 +87,15 @@ public class CommandUtil {
     return new BiConsumer<CommandEvent, Command>() {
       @Override
       public void accept(CommandEvent event, Command command) {
-        Server server = ServerData.getServers().get(event.getGuild().getId());
-
+        String language = LanguageManager.DEFAULT_LANGUAGE;
+        
+        if(event.getChannelType() == ChannelType.TEXT) {
+          language = ServerData.getServers().get(event.getGuild().getId()).getLangage();
+        }
         CommandUtil.sendTypingInFonctionOfChannelType(event);
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(name + " " + LanguageManager.getText(server.getLangage(), "command") + " :\n");
-        stringBuilder.append("--> `>" + name + " " + "` : " + LanguageManager.getText(server.getLangage(), helpId));
+        stringBuilder.append(name + " " + LanguageManager.getText(language, "command").toLowerCase() + " :\n");
+        stringBuilder.append("--> `>" + name + "` : " + LanguageManager.getText(language, helpId));
 
         event.reply(stringBuilder.toString());
       }
@@ -104,13 +107,19 @@ public class CommandUtil {
       @Override
       public void accept(CommandEvent event, Command command) {
         CommandUtil.sendTypingInFonctionOfChannelType(event);
-        Server server = ServerData.getServers().get(event.getGuild().getId());
+        
+        String language = LanguageManager.DEFAULT_LANGUAGE;
+        
+        if(event.getChannelType() == ChannelType.TEXT) {
+          language = ServerData.getServers().get(event.getGuild().getId()).getLangage();
+        }
+        
         StringBuilder stringBuilder = new StringBuilder();
 
-        stringBuilder.append(mainName + " " + LanguageManager.getText(server.getLangage(), "commands") + " :\n");
+        stringBuilder.append(mainName + " " + LanguageManager.getText(language, "commandPlural").toLowerCase() + " :\n");
         for(Command commandChildren : children) {
           stringBuilder.append("--> `>" + mainName + " " + commandChildren.getName() + " " + commandChildren.getArguments() + "` : "
-              + LanguageManager.getText(server.getLangage(), commandChildren.getHelp()) + "\n");
+              + LanguageManager.getText(language, commandChildren.getHelp()) + "\n");
         }
 
         event.reply(stringBuilder.toString());
@@ -125,10 +134,19 @@ public class CommandUtil {
       public void accept(CommandEvent event, Command command) {
         CommandUtil.sendTypingInFonctionOfChannelType(event);
         StringBuilder stringBuilder = new StringBuilder();
-        Server server = ServerData.getServers().get(event.getGuild().getId());
-        stringBuilder.append(mainCommandName + " " + commandName + " " + LanguageManager.getText(server.getLangage(), "command") + " :\n");
-        stringBuilder.append("--> `>" + mainCommandName + " " + commandName + " " + arguments + "` : " + helpId);
-
+        
+        String language = LanguageManager.DEFAULT_LANGUAGE;
+        
+        if(event.getChannelType() == ChannelType.TEXT) {
+          language = ServerData.getServers().get(event.getGuild().getId()).getLangage();
+        }
+        
+        stringBuilder.append(mainCommandName + " " + commandName + " " + LanguageManager.getText(language, "command").toLowerCase() + " :\n");
+        if(arguments == null || arguments == "") {
+          stringBuilder.append("--> `>" + mainCommandName + " " + commandName + "` : " + helpId);
+        }else {
+          stringBuilder.append("--> `>" + mainCommandName + " " + commandName + " " + arguments + "` : " + helpId);
+        }
         event.reply(stringBuilder.toString());
       }
     };

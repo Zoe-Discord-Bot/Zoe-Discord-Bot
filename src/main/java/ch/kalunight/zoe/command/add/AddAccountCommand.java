@@ -1,9 +1,12 @@
 package ch.kalunight.zoe.command.add;
 
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
@@ -126,6 +129,11 @@ public class AddAccountCommand extends ZoeCommand {
     player.getLolAccounts().add(newAccount);
     event.reply(String.format(LanguageManager.getText(server.getLangage(), "accountAddedToPlayer"),
         newAccount.getSummoner().getName(), user.getName()));
+  }
+
+  @Override
+  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
+    return helpBiConsumer;
   }
 
 }

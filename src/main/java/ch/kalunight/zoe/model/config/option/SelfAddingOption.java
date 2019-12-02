@@ -54,7 +54,8 @@ public class SelfAddingOption extends ConfigurationOption {
           
         }else {
           
-          choiceBuilder.setText(LanguageManager.getText(server.getLangage(), "selfAddingOptionDescLongDisable"));
+          choiceBuilder.setText(String.format(LanguageManager.getText(server.getLangage(), "selfAddingOptionDescLongDisable"),
+              LanguageManager.getText(server.getLangage(), description)));
           
           choiceBuilder.setAction(disableTheOption(server.getLangage(), event.getChannel()));
           

@@ -1,5 +1,8 @@
 package ch.kalunight.zoe.command;
 
+import java.util.function.BiConsumer;
+
+import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 
 import ch.kalunight.zoe.ServerData;
@@ -28,5 +31,10 @@ public class RefreshCommand extends ZoeCommand {
     
     ServerData.getServersAskedTreatment().put(server.getGuild().getId(), true);
     event.reply(LanguageManager.getText(server.getLangage(), "refreshCommandDoneMessage"));
+  }
+
+  @Override
+  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
+    return helpBiConsumer;
   }
 }

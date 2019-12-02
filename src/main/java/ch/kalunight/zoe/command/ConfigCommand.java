@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+
+import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.OrderedMenu;
@@ -81,5 +83,10 @@ public class ConfigCommand extends ZoeCommand {
       public void accept(Message message) {
         message.getChannel().sendMessage(LanguageManager.getText(language, "configurationEnded")).queue();
       }};
+  }
+
+  @Override
+  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
+    return helpBiConsumer;
   }
 }

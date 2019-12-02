@@ -1,5 +1,8 @@
 package ch.kalunight.zoe.command.remove;
 
+import java.util.function.BiConsumer;
+
+import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.command.ZoeCommand;
@@ -50,5 +53,10 @@ public class RemovePlayerToTeamCommand extends ZoeCommand {
     teamWhereRemove.getPlayers().remove(player);
     event.reply(String.format(LanguageManager.getText(server.getLangage(), "removePlayerToTeamDoneMessage"),
         player.getDiscordUser().getName(), teamWhereRemove.getName()));
+  }
+
+  @Override
+  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
+    return helpBiConsumer;
   }
 }

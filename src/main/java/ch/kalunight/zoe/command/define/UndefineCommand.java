@@ -1,5 +1,7 @@
 package ch.kalunight.zoe.command.define;
 
+import java.util.function.BiConsumer;
+
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
@@ -26,5 +28,10 @@ public class UndefineCommand extends ZoeCommand {
   protected void executeCommand(CommandEvent event) {
     event.reply(LanguageManager.getText(
         ServerData.getServers().get(event.getGuild().getId()).getLangage(), "mainUndefineCommandHelpMessage"));
+  }
+
+  @Override
+  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
+    return helpBiConsumer;
   }
 }

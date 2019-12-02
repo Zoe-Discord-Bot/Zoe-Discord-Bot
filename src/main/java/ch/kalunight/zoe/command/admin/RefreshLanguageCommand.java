@@ -1,7 +1,11 @@
 package ch.kalunight.zoe.command.admin;
 
+import java.util.function.BiConsumer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.translation.LanguageManager;
@@ -32,5 +36,10 @@ public class RefreshLanguageCommand extends ZoeCommand {
       return;
     }
     event.reply("Done !");
+  }
+
+  @Override
+  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
+    return helpBiConsumer;
   }
 }

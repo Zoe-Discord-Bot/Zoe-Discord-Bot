@@ -4,8 +4,12 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.function.BiConsumer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.command.ZoeCommand;
@@ -71,5 +75,10 @@ public class AdminSendAnnonceMessageCommand extends ZoeCommand {
    */
   private boolean isBlackListed(String serverId) {
     return blackListedSever.contains(serverId);
+  }
+
+  @Override
+  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
+    return helpBiConsumer;
   }
 }

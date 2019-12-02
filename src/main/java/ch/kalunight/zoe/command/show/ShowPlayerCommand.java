@@ -2,6 +2,9 @@ package ch.kalunight.zoe.command.show;
 
 import java.awt.Color;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
+
+import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.Paginator;
@@ -92,5 +95,10 @@ public class ShowPlayerCommand extends ZoeCommand {
         .build();
     p.paginate(event.getChannel(), page);
 
+  }
+
+  @Override
+  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
+    return helpBiConsumer;
   }
 }

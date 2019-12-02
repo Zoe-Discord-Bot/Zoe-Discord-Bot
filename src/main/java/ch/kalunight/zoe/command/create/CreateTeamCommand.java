@@ -1,5 +1,8 @@
 package ch.kalunight.zoe.command.create;
 
+import java.util.function.BiConsumer;
+
+import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.command.ZoeCommand;
@@ -45,5 +48,10 @@ public class CreateTeamCommand extends ZoeCommand {
         event.reply(String.format(LanguageManager.getText(server.getLangage(), "createTeamDoneMessage"), event.getArgs()));
       }
     }
+  }
+
+  @Override
+  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
+    return helpBiConsumer;
   }
 }

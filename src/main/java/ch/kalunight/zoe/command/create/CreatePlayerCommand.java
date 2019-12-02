@@ -3,10 +3,13 @@ package ch.kalunight.zoe.command.create;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
@@ -164,5 +167,11 @@ public class CreatePlayerCommand extends ZoeCommand {
       return null;
     }
     return members.get(0).getUser();
+  }
+
+  @Override
+  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
+    // TODO Auto-generated method stub
+    return helpBiConsumer;
   }
 }

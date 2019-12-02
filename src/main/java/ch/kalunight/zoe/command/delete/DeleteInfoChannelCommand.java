@@ -1,5 +1,8 @@
 package ch.kalunight.zoe.command.delete;
 
+import java.util.function.BiConsumer;
+
+import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.command.ZoeCommand;
@@ -43,5 +46,10 @@ public class DeleteInfoChannelCommand extends ZoeCommand {
       server.setControlePannel(new ControlPannel());
       event.reply(LanguageManager.getText(server.getLangage(), "deleteInfoChannelDoneMessage"));
     }
+  }
+
+  @Override
+  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
+    return helpBiConsumer;
   }
 }

@@ -1,8 +1,10 @@
 package ch.kalunight.zoe.command.remove;
 
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
 
+import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 
 import ch.kalunight.zoe.ServerData;
@@ -84,5 +86,10 @@ public class RemoveAccountCommand extends ZoeCommand {
     player.getLolAccounts().remove(account);
     event.reply(String.format(LanguageManager.getText(server.getLangage(), "removeAccountDoneMessage"),
         account.getSummoner().getName(), user.getName()));
+  }
+
+  @Override
+  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
+    return helpBiConsumer;
   }
 }

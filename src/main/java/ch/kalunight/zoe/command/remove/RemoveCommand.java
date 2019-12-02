@@ -1,5 +1,7 @@
 package ch.kalunight.zoe.command.remove;
 
+import java.util.function.BiConsumer;
+
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
@@ -21,5 +23,10 @@ public class RemoveCommand extends ZoeCommand {
   @Override
   protected void executeCommand(CommandEvent event) {
     event.reply(LanguageManager.getText(ServerData.getServers().get(event.getGuild().getId()).getLangage(), "mainRemoveCommandHelpMessage"));
+  }
+
+  @Override
+  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
+    return helpBiConsumer;
   }
 }

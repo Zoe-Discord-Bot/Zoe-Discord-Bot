@@ -26,6 +26,7 @@ import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.model.static_data.CustomEmote;
 import ch.kalunight.zoe.model.static_data.Mastery;
 import ch.kalunight.zoe.translation.LanguageManager;
+import ch.kalunight.zoe.util.MessageBuilderRequestUtil;
 import ch.kalunight.zoe.util.NameConversion;
 import ch.kalunight.zoe.util.Ressources;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -136,7 +137,7 @@ public class MessageBuilderRequest {
 
     StringBuilder title = new StringBuilder();
 
-    MessageBuilderRequestUtil.createTitle(players, currentGameInfo, title, language);
+    MessageBuilderRequestUtil.createTitle(players, currentGameInfo, title, language, true);
 
     message.setTitle(title.toString());
 
@@ -331,7 +332,9 @@ public class MessageBuilderRequest {
       }
     }
 
+    message.addBlankField(true);
     message.addField(field);
+    
 
     Set<LeagueEntry> rankPosition = null;
     try {
@@ -383,7 +386,8 @@ public class MessageBuilderRequest {
     }
 
     message.addField(field);
-
+    message.addBlankField(true);
+    
     message.setImage("attachment://" + player.getDiscordUser().getId() + ".png");
 
     message.setColor(new Color(206, 20, 221));

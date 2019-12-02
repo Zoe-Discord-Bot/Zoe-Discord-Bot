@@ -17,6 +17,8 @@ import org.knowm.xchart.CategoryChartBuilder;
 import org.knowm.xchart.style.Styler.ChartTheme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.SelectionDialog;
@@ -303,5 +305,10 @@ public class StatsProfileCommand extends ZoeCommand {
       listHeigherChampion.add(heigherActual);
     }
     return listHeigherChampion;
+  }
+
+  @Override
+  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
+    return helpBiConsumer;
   }
 }

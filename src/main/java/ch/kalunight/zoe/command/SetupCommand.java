@@ -1,5 +1,8 @@
 package ch.kalunight.zoe.command;
 
+import java.util.function.BiConsumer;
+
+import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.model.Server;
@@ -23,5 +26,10 @@ public class SetupCommand extends ZoeCommand {
     Server server = ServerData.getServers().get(event.getGuild().getId());
     
     event.reply(LanguageManager.getText(server.getLangage(), "setupMessage"));
+  }
+
+  @Override
+  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
+    return helpBiConsumer;
   }
 }

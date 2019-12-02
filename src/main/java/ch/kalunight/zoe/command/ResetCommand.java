@@ -1,6 +1,9 @@
 package ch.kalunight.zoe.command;
 
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
+
+import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import ch.kalunight.zoe.ServerData;
@@ -73,5 +76,10 @@ public class ResetCommand extends ZoeCommand {
       spellingLangage = server.getLangage();
     }
     event.getTextChannel().sendMessage(LanguageManager.getText(spellingLangage, "resetTimeoutMessage")).queue();
+  }
+
+  @Override
+  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
+    return helpBiConsumer;
   }
 }

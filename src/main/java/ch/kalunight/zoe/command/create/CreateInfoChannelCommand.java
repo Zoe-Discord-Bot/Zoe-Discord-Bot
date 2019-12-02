@@ -1,5 +1,8 @@
 package ch.kalunight.zoe.command.create;
 
+import java.util.function.BiConsumer;
+
+import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.command.ZoeCommand;
@@ -14,7 +17,7 @@ import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 public class CreateInfoChannelCommand extends ZoeCommand {
 
   public CreateInfoChannelCommand() {
-    this.name = "InfoChannel";
+    this.name = "infoChannel";
     this.arguments = "nameOfTheNewChannel";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
@@ -63,5 +66,10 @@ public class CreateInfoChannelCommand extends ZoeCommand {
     } catch(InsufficientPermissionException e) {
       event.reply(LanguageManager.getText(server.getLangage(), "impossibleToCreateInfoChannelMissingPerms"));
     }
+  }
+
+  @Override
+  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
+    return helpBiConsumer;
   }
 }

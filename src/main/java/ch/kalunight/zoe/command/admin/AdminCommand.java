@@ -1,5 +1,7 @@
 package ch.kalunight.zoe.command.admin;
 
+import java.util.function.BiConsumer;
+
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.command.ZoeCommand;
@@ -23,5 +25,10 @@ public class AdminCommand extends ZoeCommand {
   @Override
   protected void executeCommand(CommandEvent event) {
     event.reply("Admins command, type `>admin help` for help");
+  }
+
+  @Override
+  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
+    return helpBiConsumer;
   }
 }

@@ -1,6 +1,8 @@
 package ch.kalunight.zoe.command;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.command.Command;
@@ -42,6 +44,8 @@ public abstract class ZoeCommand extends Command {
   }
   
   protected abstract void executeCommand(CommandEvent event);
+  
+  public abstract BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event);
 
   public static void clearStats() {
     commandExecuted.set(0);

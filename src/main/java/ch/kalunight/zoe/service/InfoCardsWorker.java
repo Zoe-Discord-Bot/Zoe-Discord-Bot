@@ -1,8 +1,6 @@
 package ch.kalunight.zoe.service;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -13,7 +11,7 @@ import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.player_data.LeagueAccount;
 import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.util.InfoPanelRefresherUtil;
-import ch.kalunight.zoe.util.NameConversion;
+import ch.kalunight.zoe.util.MessageBuilderRequestUtil;
 import ch.kalunight.zoe.util.request.MessageBuilderRequest;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -92,35 +90,12 @@ public class InfoCardsWorker implements Runnable {
       List<Player> players = card.getPlayers();
 
       StringBuilder title = new StringBuilder();
-      generateInfoCardTitle(card, players, title);
+      MessageBuilderRequestUtil.createTitle(players, currentGameInfo, title, server.getLangage(), false);
 
       card.setTitle(controlPanel.sendMessage(title.toString()).complete());
       card.setMessage(controlPanel.sendMessage(card.getCard()).complete());
 
       server.getControlePannel().getInfoCards().add(card);
-    }
-  }
-
-  private void generateInfoCardTitle(InfoCard card, List<Player> players, StringBuilder title) {
-    title.append("Info on the game of");
-
-    List<String> playersName = NameConversion.getListNameOfPlayers(players);
-
-    Set<Player> cardPlayersNotTwice = new HashSet<>();
-    for(Player playerToCheck : card.getPlayers()) {
-      cardPlayersNotTwice.add(playerToCheck);
-    }
-
-    for(int j = 0; j < cardPlayersNotTwice.size(); j++) {
-      if(j == 0) {
-        title.append(" " + playersName.get(j));
-      } else if(j + 1 == playersName.size()) {
-        title.append(" and of " + playersName.get(j));
-      } else if(j + 2 == playersName.size()) {
-        title.append(" " + playersName.get(j));
-      } else {
-        title.append(" " + playersName.get(j) + ",");
-      }
     }
   }
 

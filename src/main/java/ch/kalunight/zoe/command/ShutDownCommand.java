@@ -2,8 +2,12 @@ package ch.kalunight.zoe.command;
 
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
+import java.util.function.BiConsumer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
@@ -88,5 +92,10 @@ public class ShutDownCommand extends ZoeCommand {
       logger.error("La sauvegarde n'a pas pu être effectué !");
     }
     logger.info("Save has been done ! Zoe Process are now totally down ! Some process can remain and will be shutdown automatically.");
+  }
+
+  @Override
+  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
+    return helpBiConsumer;
   }
 }

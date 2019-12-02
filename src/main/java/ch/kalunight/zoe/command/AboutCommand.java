@@ -1,6 +1,9 @@
 package ch.kalunight.zoe.command;
 
 import java.awt.Color;
+import java.util.function.BiConsumer;
+
+import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.model.Server;
@@ -68,5 +71,10 @@ public class AboutCommand extends ZoeCommand {
   @Override
   public String toString() {
     return name + "command : " + help;
+  }
+
+  @Override
+  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
+    return helpBiConsumer;
   }
 }

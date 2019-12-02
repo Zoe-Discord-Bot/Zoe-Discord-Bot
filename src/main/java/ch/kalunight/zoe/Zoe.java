@@ -7,6 +7,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -16,6 +18,9 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
 import org.discordbots.api.client.DiscordBotListAPI;
+import org.jooq.DSLContext;
+import org.jooq.SQLDialect;
+import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.gson.JsonElement;
@@ -76,6 +81,7 @@ import net.rithms.riot.api.request.ratelimit.PriorityRateLimit;
 import net.rithms.riot.api.request.ratelimit.RateLimitRequestTank;
 import net.rithms.riot.constant.CallPriority;
 import net.rithms.riot.constant.Platform;
+import static org.jooq.impl.DSL.*;
 
 public class Zoe {
 
@@ -112,6 +118,8 @@ public class Zoe {
 
   public static void main(String[] args) {
 
+    loadDB();
+	  
     System.setProperty("logback.configurationFile", "logback.xml");
 
     CommandClientBuilder client = new CommandClientBuilder();
@@ -161,6 +169,21 @@ public class Zoe {
     } catch(Exception e) {
       logger.error(e.getMessage());
       System.exit(1);
+    }
+  }
+
+  private static void loadDB() {
+    String userName = "zoeadmin";
+    String password = "xf345sD2#a@v";
+    String url = "jdbc:postgresql://localhost:5432/zoe";
+
+    try (Connection conn = DriverManager.getConnection(url, userName, password)) {
+      
+      
+    } 
+
+    catch (Exception e) {
+        e.printStackTrace();
     }
   }
 

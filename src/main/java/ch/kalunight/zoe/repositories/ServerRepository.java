@@ -5,6 +5,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.joda.time.DateTime;
+import ch.kalunight.zoe.model.dto.DTO;
 
 public class ServerRepository {
 
@@ -13,6 +14,8 @@ public class ServerRepository {
   
   private static final String INSERT_INTO_SERVER = "INSERT INTO server (serv_guildId, serv_language, serv_lastRefresh) "
       + "VALUES (%d, '%s', '%s')";
+  
+  private static final String DELETE_SERVER_WITH_SERV_ID = "DELETE FROM server WHERE serv_id = %d";
   
   private ServerRepository() {
     //Hide default public constructor
@@ -33,7 +36,22 @@ public class ServerRepository {
     }
   }
   
-  public static void createNewServer(long guildId, String language, DateTime lastRefresh) throws SQLException {
+  public static DTO.Server getServer(long guildId) throws SQLException{
+    ResultSet result = null;
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+      
+      String finalQuery = String.format(SELECT_SERVER_WITH_GUILDID, guildId);
+      result = query.executeQuery(finalQuery);
+      result.next();
+      return new DTO.Server(result);
+    }finally {
+      RepoRessources.closeResultSet(result);
+    }
+  }
+  
+  public static void createNewServer(long guildId, String language) throws SQLException {
+    DateTime lastRefresh = DateTime.now().minusMinutes(3);
     ResultSet result = null;
     try (Connection conn = RepoRessources.getConnection();
         Statement statement = conn.createStatement();) {
@@ -52,6 +70,15 @@ public class ServerRepository {
       ConfigRepository.initDefaultConfig(statement, servId);
     }finally {
       RepoRessources.closeResultSet(result);
+    }
+  }
+
+  public static void deleteServer(long guildId) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement();) {
+      
+      String finalQuery = String.format(DELETE_SERVER_WITH_SERV_ID, guildId);
+      query.execute(finalQuery);
     }
   }
   

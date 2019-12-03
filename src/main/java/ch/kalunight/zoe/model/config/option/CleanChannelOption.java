@@ -312,4 +312,12 @@ public class CleanChannelOption extends ConfigurationOption {
     return cleanChannel;
   }
 
+  public void setCleanChannelOption(CleanChannelOptionInfo cleanChannelOption) {
+    this.cleanChannelOption = cleanChannelOption;
+  }
+
+  public void setCleanChannel(TextChannel cleanChannel) {
+    this.cleanChannel = cleanChannel;
+  }
+
 }

@@ -83,4 +83,24 @@ public class ServerConfiguration {
   public CleanChannelOption getCleanChannelOption() {
     return cleanChannelOption;
   }
+
+  public void setUserSelfAdding(SelfAddingOption userSelfAdding) {
+    this.userSelfAdding = userSelfAdding;
+  }
+
+  public void setDefaultRegion(RegionOption defaultRegion) {
+    this.defaultRegion = defaultRegion;
+  }
+
+  public void setZoeRoleOption(RoleOption zoeRoleOption) {
+    this.zoeRoleOption = zoeRoleOption;
+  }
+
+  public void setInfoCardsOption(InfoCardOption infoCardsOption) {
+    this.infoCardsOption = infoCardsOption;
+  }
+
+  public void setCleanChannelOption(CleanChannelOption cleanChannelOption) {
+    this.cleanChannelOption = cleanChannelOption;
+  }
 }

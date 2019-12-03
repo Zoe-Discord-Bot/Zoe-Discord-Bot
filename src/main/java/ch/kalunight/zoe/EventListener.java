@@ -56,7 +56,6 @@ public class EventListener extends ListenerAdapter {
       + "basic options. You can always do the command `>setup` or `>help` if you need help.\n\n"
       + "First, please choose your language. (Will be defined for the server, i only speak in english in private message)";
 
-
   private static Logger logger = LoggerFactory.getLogger(EventListener.class);
 
   @Override
@@ -134,12 +133,10 @@ public class EventListener extends ListenerAdapter {
   }
 
   private void setupNonInitializedGuild() throws SQLException {
-    int defaultInitTime = 3;
 
     for(Guild guild : Zoe.getJda().getGuilds()) {
       if(!guild.getOwnerId().equals(Zoe.getJda().getSelfUser().getId()) && !ServerRepository.checkServerExist(guild.getIdLong())) {
-        ServerRepository.createNewServer(guild.getIdLong(), LanguageManager.DEFAULT_LANGUAGE,
-            DateTime.now().minusMinutes(defaultInitTime));
+        ServerRepository.createNewServer(guild.getIdLong(), LanguageManager.DEFAULT_LANGUAGE);
       }
     }
   }

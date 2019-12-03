@@ -138,4 +138,8 @@ public class SelfAddingOption extends ConfigurationOption {
     return optionActivated;
   }
 
+  public void setOptionActivated(boolean optionActivated) {
+    this.optionActivated = optionActivated;
+  }
+
 }

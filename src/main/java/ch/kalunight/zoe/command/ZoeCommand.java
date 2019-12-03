@@ -1,16 +1,16 @@
 package ch.kalunight.zoe.command;
 
+import java.sql.SQLException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import ch.kalunight.zoe.ServerData;
-import ch.kalunight.zoe.model.Server;
-import ch.kalunight.zoe.model.config.ServerConfiguration;
+import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
+import ch.kalunight.zoe.util.CommandUtil;
 
 public abstract class ZoeCommand extends Command {
 
@@ -20,22 +20,32 @@ public abstract class ZoeCommand extends Command {
 
   private static final Logger logger = LoggerFactory.getLogger(ZoeCommand.class);
   
+  protected DTO.Server server; //TODO : Check if it's done 1 per 1 or in a async way
+  
   @Override
   protected void execute(CommandEvent event) {
+    CommandUtil.sendTypingInFonctionOfChannelType(event);
     logger.info("Command \"{}\" executed", this.getClass().getName());
     commandExecuted.incrementAndGet();
-    
-    Server server = ServerData.getServers().get(event.getGuild().getId());
 
-    if(server == null) {
-      server = new Server(event.getGuild().getIdLong(), LanguageManager.DEFAULT_LANGUAGE, new ServerConfiguration());
-      ServerData.getServers().put(event.getGuild().getId(), server);
+    try {
+      server = ServerRepository.getServer(event.getGuild().getIdLong());
+      if(server == null) {
+        ServerRepository.createNewServer(event.getGuild().getIdLong(), LanguageManager.DEFAULT_LANGUAGE);
+        server = ServerRepository.getServer(event.getGuild().getIdLong());
+      }
+    } catch(SQLException e) {
+      event.reply("Issue with the db ! Please retry later. Sorry about that :/");
+      logger.error("Issue with the db when check if server missing !", e);
+      commandFinishedWithError.incrementAndGet();
+      return;
     }
     
     try {
       executeCommand(event);
     } catch (Exception e) {
       logger.error("Unexpected exception in {} commands. Error : {}", this.getClass().getName(), e.getMessage(), e);
+      event.reply("An error as occured ! It has been saved and sended to the dev. Sorry About that :/");
       commandFinishedWithError.incrementAndGet();
       return;
     }
@@ -43,7 +53,7 @@ public abstract class ZoeCommand extends Command {
     commandFinishedCorrectly.incrementAndGet();
   }
   
-  protected abstract void executeCommand(CommandEvent event);
+  protected abstract void executeCommand(CommandEvent event) throws SQLException;
   
   public abstract BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event);
 

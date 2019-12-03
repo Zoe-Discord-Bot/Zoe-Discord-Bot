@@ -188,5 +188,4 @@ public class RoleOption extends ConfigurationOption {
   public void setRole(Role role) {
     this.role = role;
   }
-
 }

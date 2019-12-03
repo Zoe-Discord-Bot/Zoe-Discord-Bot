@@ -20,7 +20,7 @@ public class Server {
   /**
    * Default time to force refresh of channel
    */
-  private static final int DEFAULT_INIT_TIME = 3;
+  public static final int DEFAULT_INIT_TIME = 3;
 
   private final List<Long> currentGamesIdAlreadySended = new ArrayList<>();
 

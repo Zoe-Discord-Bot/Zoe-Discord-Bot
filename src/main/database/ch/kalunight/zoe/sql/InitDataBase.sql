@@ -5,14 +5,14 @@ create user zoeAdmin with encrypted password 'xf345sD2#a@v'; --Random test passw
 grant all privileges on database zoe to zoeAdmin;
 
 CREATE TABLE server (
-  serv_id 										BIGINT 				NOT NULL,
-  serv_guildId 									BIGINT 				NOT NULL,
+  serv_id 										SERIAL,
+  serv_guildId 									BIGINT 				NOT NULL UNIQUE,
   serv_language 								VARCHAR 			NOT NULL,
-  serv_lastRefresh timestamp
+  serv_lastRefresh 								TIMESTAMP			WITHOUT TIME ZONE
 );
 
 CREATE TABLE player (
-  player_id 									BIGINT 				NOT NULL,
+  player_id 									SERIAL,
   player_fk_server 								BIGINT 				NOT NULL,
   player_fk_team 								BIGINT,
   player_discordId 								BIGINT				NOT NULL,
@@ -20,69 +20,69 @@ CREATE TABLE player (
 );
 
 CREATE TABLE team (
-  team_id 										BIGINT 				NOT NULL,
+  team_id 										SERIAL,
   team_fk_server 								BIGINT 				NOT NULL,
   team_name 									VARCHAR 			NOT NULL
 );
 
 CREATE TABLE server_configuration (
-  servConfig_id 								BIGINT 				NOT NULL,
+  servConfig_id 								SERIAL,
   servConfig_fk_server 							BIGINT 				NOT NULL
 );
 
 CREATE TABLE self_adding_option (
-  selfOption_id 								BIGINT 				NOT NULL,
+  selfOption_id 								SERIAL,
   selfOption_fk_serverConfig 					BIGINT 				NOT NULL,
   selfOption_activate 							boolean 			DEFAULT TRUE
 );
 
 CREATE TABLE region_option (
-  regionOption_id 								BIGINT 				NOT NULL,
+  regionOption_id 								SERIAL,
   regionOption_fk_serverConfig 					BIGINT 				NOT NULL,
   regionOption_region 							VARCHAR
 );
 
 CREATE TABLE clean_channel_option (
-  cleanOption_id								BIGINT				NOT NULL,
+  cleanOption_id								SERIAL,
   cleanOption_fk_serverConfig					BIGINT				NOT NULL,
   cleanOption_channelId							BIGINT,
   cleanOption_option							VARCHAR
 );
 
 CREATE TABLE game_info_card_option (
-  gameCardOption_id								BIGINT				NOT NULL,
+  gameCardOption_id								SERIAL,
   gameCardOption_fk_serverConfig				BIGINT				NOT NULL,
   gameCardOption_activate						boolean
 );
 
 CREATE TABLE role_option (
-  roleOption_id									BIGINT				NOT NULL,
+  roleOption_id									SERIAL,
   roleOption_fk_serverConfig					BIGINT				NOT NULL,
   roleOption_roleId								BIGINT
 );
 
 CREATE TABLE info_channel (
-  infoChannel_id								BIGINT				NOT NULL,
+  infoChannel_id								SERIAL,
   infoChannel_fk_server							BIGINT				NOT NULL,
   infoChannel_channelId							BIGINT
 );
 
 CREATE TABLE info_panel_message (
-  infoPanel_id									BIGINT				NOT NULL,
+  infoPanel_id									SERIAL,
   infoPanel_fk_infoChannel						BIGINT				NOT NULL,
   infoPanel_messageId							BIGINT				NOT NULL
 );
 
 CREATE TABLE game_info_card (
-  gameCard_id									BIGINT				NOT NULL,
+  gameCard_id									SERIAL,
   gameCard_fk_infoChannel						BIGINT				NOT NULL,
   gameCard_titleMessageId						BIGINT				NOT NULL,
   gameCard_infoCardMessageId					BIGINT				NOT NULL,
-  gameCard_creationTime							timestamp
+  gameCard_creationTime							TIMESTAMP			WITHOUT TIME ZONE
 );
 
 CREATE TABLE league_account (
-  leagueAccount_id								BIGINT				NOT NULL,
+  leagueAccount_id								SERIAL,
   leagueAccount_fk_player						BIGINT				NOT NULL,
   leagueAccount_fk_gameCard						BIGINT,
   leagueAccount_summonerId						BIGINT				NOT NULL,

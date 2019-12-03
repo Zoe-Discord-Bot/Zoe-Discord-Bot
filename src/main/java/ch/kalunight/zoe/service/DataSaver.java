@@ -29,13 +29,6 @@ public class DataSaver extends TimerTask {
   @Override
   public void run() {
     try {
-      if(nextSaveTime.isBeforeNow()) {
-        logger.info("Saving started !");
-        setNextSaveTime(DateTime.now().plusMinutes(TIME_BETWEEN_EACH_SAVE_IN_MINUTES));
-        Zoe.saveDataTxt();
-        logger.info("Saving ended !");
-      }
-      
       if(nextCleanCacheTime.isBeforeNow()) {
         logger.info("Cleaning cache started !");
         setNextCleanCacheTime(DateTime.now().plusHours(TIME_BETWEEN_CLEAN_CACHE_IN_HOURS));

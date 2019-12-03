@@ -1,26 +1,16 @@
 package ch.kalunight.zoe;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
 import org.discordbots.api.client.DiscordBotListAPI;
-import org.jooq.DSLContext;
-import org.jooq.SQLDialect;
-import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.gson.JsonElement;
@@ -49,13 +39,7 @@ import ch.kalunight.zoe.command.delete.DeleteCommand;
 import ch.kalunight.zoe.command.remove.RemoveCommand;
 import ch.kalunight.zoe.command.show.ShowCommand;
 import ch.kalunight.zoe.command.stats.StatsCommand;
-import ch.kalunight.zoe.model.ControlPannel;
-import ch.kalunight.zoe.model.Server;
-import ch.kalunight.zoe.model.config.ServerConfiguration;
-import ch.kalunight.zoe.model.config.option.ConfigurationOption;
-import ch.kalunight.zoe.model.player_data.LeagueAccount;
 import ch.kalunight.zoe.model.player_data.Player;
-import ch.kalunight.zoe.model.player_data.Team;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.model.static_data.CustomEmote;
 import ch.kalunight.zoe.riotapi.CachedRiotApi;
@@ -66,22 +50,12 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.ChannelType;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.PrivateChannel;
-import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.exceptions.ErrorResponseException;
-import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.RiotApi;
-import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.api.request.ratelimit.PriorityManagerRateLimitHandler;
 import net.rithms.riot.api.request.ratelimit.PriorityRateLimit;
 import net.rithms.riot.api.request.ratelimit.RateLimitRequestTank;
-import net.rithms.riot.constant.CallPriority;
-import net.rithms.riot.constant.Platform;
-import static org.jooq.impl.DSL.*;
 
 public class Zoe {
 
@@ -117,8 +91,6 @@ public class Zoe {
   private static DiscordBotListAPI botListApi;
 
   public static void main(String[] args) {
-
-    loadDB();
 	  
     System.setProperty("logback.configurationFile", "logback.xml");
 
@@ -169,21 +141,6 @@ public class Zoe {
     } catch(Exception e) {
       logger.error(e.getMessage());
       System.exit(1);
-    }
-  }
-
-  private static void loadDB() {
-    String userName = "zoeadmin";
-    String password = "xf345sD2#a@v";
-    String url = "jdbc:postgresql://localhost:5432/zoe";
-
-    try (Connection conn = DriverManager.getConnection(url, userName, password)) {
-      
-      
-    } 
-
-    catch (Exception e) {
-        e.printStackTrace();
     }
   }
 
@@ -333,341 +290,6 @@ public class Zoe {
       logger.warn("Error in the search of player", e);
     }
     return null;
-  }
-
-  public static synchronized void saveDataTxt() throws FileNotFoundException, UnsupportedEncodingException {
-    final StringBuilder strMainBuilder = new StringBuilder();
-
-    final Map<String, Server> servers = ServerData.getServers();
-    final List<Guild> guilds = Zoe.getJda().getGuilds();
-
-    for(Guild guild : guilds) {
-      try {
-        if(guild.getOwnerId().equals(Zoe.getJda().getSelfUser().getId())) {
-          continue;
-        }
-        Server server = servers.get(guild.getId());
-        StringBuilder strBuilder = new StringBuilder();
-
-        if(server != null) {
-          strBuilder.append("--server\n");
-          strBuilder.append(guild.getId() + "\n");
-          strBuilder.append(server.getLangage().toString() + "\n");
-
-          savePlayers(server, strBuilder);
-
-          saveTeams(server, strBuilder);
-
-          saveInfoChannel(server, strBuilder);
-
-          saveControlPanel(server, strBuilder);
-        }
-        strMainBuilder.append(strBuilder.toString());
-      }catch(Exception e) {
-        logger.warn("A guild occured a error, it hasn't been saved.", e);
-      }
-    }
-
-    try(PrintWriter writer = new PrintWriter(SAVE_TXT_FILE, "UTF-8");) {
-      writer.write(strMainBuilder.toString());
-    }
-
-    saveServerConfiguration(servers);
-  }
-
-  private static void saveServerConfiguration(Map<String, Server> servers) {
-    if(!SAVE_CONFIG_FOLDER.exists()) {
-      SAVE_CONFIG_FOLDER.mkdir();
-    }
-
-    Iterator<Entry<String, Server>> iterator = servers.entrySet().iterator();
-
-    while(iterator.hasNext()) {
-      Server server = iterator.next().getValue();
-
-      List<ConfigurationOption> options = server.getConfig().getAllConfigurationOption();
-
-      StringBuilder strBuilder = new StringBuilder();
-      for(ConfigurationOption option : options) {
-        strBuilder.append(option.getSave() + "\n");
-      }
-
-      strBuilder.deleteCharAt(strBuilder.length() - 1);
-
-      try(PrintWriter writer = new PrintWriter(SAVE_CONFIG_FOLDER + "/" + server.getGuildId() + ".txt", "UTF-8");) {
-        writer.write(strBuilder.toString());
-      } catch(FileNotFoundException | UnsupportedEncodingException e) {
-        logger.error("Error in the saving of the config in the server ID : {}", server.getGuildId(), e);
-      }
-    }
-  }
-
-  private static void saveControlPanel(Server server, StringBuilder strBuilder) {
-    if(server.getControlePannel() != null) {
-      strBuilder.append(server.getControlePannel().getInfoPanel().size() + "\n");
-      for(Message message : server.getControlePannel().getInfoPanel()) {
-        strBuilder.append(message.getId() + "\n");
-      }
-    }else {
-      strBuilder.append("0\n");
-    }
-  }
-
-  private static void saveInfoChannel(Server server, StringBuilder strBuilder) {
-    if(server.getInfoChannel() != null) {
-      strBuilder.append(server.getInfoChannel().getId() + "\n");
-    } else {
-      strBuilder.append("-1\n");
-    }
-  }
-
-  private static void saveTeams(Server server, StringBuilder strBuilder) {
-    StringBuilder oneTeam;
-    StringBuilder teamAlreadySaved = new StringBuilder();
-
-    int nbrTeamSaved = 0;
-
-    for(Team team : server.getTeams()) {
-      try {
-        oneTeam = new StringBuilder();
-
-        oneTeam.append(team.getName() + "\n");
-
-        oneTeam.append(team.getPlayers().size() + "\n");
-
-        for(Player player : team.getPlayers()) {
-          oneTeam.append(player.getDiscordUser().getId() + "\n");
-        }
-
-        nbrTeamSaved++;
-        teamAlreadySaved.append(oneTeam.toString());
-      }catch(Exception e) {
-        logger.warn("A team has not been saved !", e);
-      }
-    }
-
-    strBuilder.append(nbrTeamSaved + "\n");
-    strBuilder.append(teamAlreadySaved.toString());
-  }
-
-  private static void savePlayers(Server server, StringBuilder strBuilder) {
-    StringBuilder onePlayer;
-    StringBuilder playersOKOfTheServer = new StringBuilder();
-
-    int nbrPlayersOk = 0;
-    int nbrPlayerNotOk = 0;
-
-    for(Player player : server.getPlayers()) {
-      if(player == null) {
-        nbrPlayerNotOk++;
-        continue;
-      }
-      try {
-        onePlayer = new StringBuilder();
-        onePlayer.append(player.getDiscordUser().getId() + "\n");
-        onePlayer.append(player.getLolAccounts().size() + "\n");
-        for(LeagueAccount account : player.getLolAccounts()) {
-          onePlayer.append(account.getSummoner().getId() + "\n");
-          onePlayer.append(account.getRegion().getName() + "\n");
-        }
-        onePlayer.append(player.isMentionnable() + "\n");
-
-        nbrPlayersOk++;
-        playersOKOfTheServer.append(onePlayer.toString());
-      }catch (Exception e) {
-        logger.warn("A player has not been saved ! Error when saving lol accounts and discords users", e);
-      }
-    }
-
-    for(int i = 0; i < nbrPlayerNotOk; i++) {
-      server.getPlayers().remove(null);
-    }
-
-    strBuilder.append(nbrPlayersOk + "\n");
-    strBuilder.append(playersOKOfTheServer.toString());
-  }
-
-  public static void loadDataTxt() throws IOException, RiotApiException {
-
-    try(final BufferedReader reader = new BufferedReader(new FileReader(SAVE_TXT_FILE));) {
-      String line;
-
-      while((line = reader.readLine()) != null) {
-
-        try {
-          if(line.equalsIgnoreCase("--server")) {
-            final String guildId = reader.readLine();
-            final Guild guild = jda.getGuildById(guildId);
-            if(guild == null) {
-              continue;
-            }
-            String langage = reader.readLine();
-
-            if(!LanguageManager.getListlanguages().contains(langage)) {
-              langage = LanguageManager.DEFAULT_LANGUAGE;
-            }
-
-            final Server server = new Server(guild.getIdLong(), langage, loadConfig(guildId));
-
-            final Long nbrPlayers = Long.parseLong(reader.readLine());
-
-            final List<Player> players = createPlayers(reader, nbrPlayers);
-
-            final Long nbrTeams = Long.parseLong(reader.readLine());
-
-            final List<Team> teams = createTeams(reader, players, nbrTeams);
-
-            final TextChannel pannel = guild.getTextChannelById(reader.readLine());
-
-            setInfoPannel(guild, server, pannel);
-
-            int nbrMessageControlPannel = Integer.parseInt(reader.readLine());
-            ControlPannel controlPannel = new ControlPannel();
-            try {
-              controlPannel = getControlePannel(reader, server, nbrMessageControlPannel);
-            }catch(InsufficientPermissionException e) {
-              logger.info("Zoe missing a permission in a guild !");
-
-              try {
-                PrivateChannel privateChannel = guild.getOwner().getUser().openPrivateChannel().complete();
-                privateChannel.sendMessage(
-                    String.format(LanguageManager.getText(server.getLangage(), "missingPermissionOwnerMessage"), 
-                        guild.getName(), e.getPermission().getName(), "https://discord.gg/sRgyFvq")).queue();                
-                logger.info("Message send to owner.");
-              }catch(ErrorResponseException e1) {
-                logger.info("The owner ({}) of the server have bloqued the bot.", guild.getOwner().getUser().getAsTag());
-              }
-            }
-
-            server.setPlayers(players);
-            server.setTeams(teams);
-            server.setControlePannel(controlPannel);
-            ServerData.getServers().put(guildId, server);
-            ServerData.getServersIsInTreatment().put(guildId, false);
-          }
-        }catch(RiotApiException e) {
-          throw e;
-        }catch(Exception e) {
-          logger.error("A guild as been loaded badly !", e);
-        }
-      }
-    }
-  }
-
-  private static ServerConfiguration loadConfig(String guildId) throws IOException {
-    ServerConfiguration serverConfiguration = new ServerConfiguration();
-    List<ConfigurationOption> options = serverConfiguration.getAllConfigurationOption();
-
-    File file = new File(SAVE_CONFIG_FOLDER + "/" + guildId + ".txt");
-    if(file.exists()) {
-      try(final BufferedReader reader = new BufferedReader(new FileReader(SAVE_CONFIG_FOLDER + "/" + guildId + ".txt"));) {
-        String line;
-
-        while((line = reader.readLine()) != null) {
-          for(ConfigurationOption option : options) {
-            if(option.isTheOption(line)) {
-              option.restoreSave(line);
-            }
-          }
-        }
-      }
-      return serverConfiguration;
-    }else {
-      return serverConfiguration;
-    }
-  }
-
-  private static ControlPannel getControlePannel(final BufferedReader reader, final Server server, int nbrMessageControlPannel)
-      throws IOException {
-    ControlPannel controlPannel = new ControlPannel();
-
-    for(int i = 0; i < nbrMessageControlPannel; i++) {
-      String messageId = reader.readLine();
-
-      if(server.getInfoChannel() != null) {
-        try {
-          Message message = server.getInfoChannel().retrieveMessageById(messageId).complete();
-          controlPannel.getInfoPanel().add(message);
-        } catch(ErrorResponseException e) {
-          logger.debug("The message got delete : {}", e.getMessage());
-        }
-      }
-    }
-    return controlPannel;
-  }
-
-  private static void setInfoPannel(final Guild guild, final Server server, final TextChannel pannel) {
-    if(pannel != null) {
-      server.setInfoChannel(pannel.getIdLong());
-    }
-  }
-
-  private static List<Team> createTeams(BufferedReader reader, List<Player> players, Long nbrTeams) throws IOException {
-    List<Team> teams = new ArrayList<>();
-
-    for(Long i = 0L; i < nbrTeams; i++) {
-      String teamName = reader.readLine();
-      int nbrPlayersInTeam = Integer.parseInt(reader.readLine());
-
-      List<Player> listPlayers = new ArrayList<>();
-
-      for(int j = 0; j < nbrPlayersInTeam; j++) {
-        String discordId = reader.readLine();
-
-        Player player = searchPlayerWithDiscordId(players, discordId);
-
-        if(player != null) {
-          listPlayers.add(player);
-        }
-      }
-      teams.add(new Team(teamName, listPlayers));
-    }
-    return teams;
-  }
-
-  private static List<Player> createPlayers(BufferedReader reader, Long nbrPlayers) throws IOException, RiotApiException {
-    List<Player> players = new ArrayList<>();
-
-    for(Long i = 0L; i < nbrPlayers; i++) {
-      String discordId = reader.readLine();
-      List<LeagueAccount> lolAccounts = new ArrayList<>();
-      int accountNbr = Integer.parseInt(reader.readLine());
-      for(int j = 0; j < accountNbr; j++) {
-        String summonerId = reader.readLine();
-        String summonerRegion = reader.readLine();
-        Platform region = Platform.getPlatformByName(summonerRegion);
-
-        boolean needToRetry = false;
-        Summoner summoner = null;
-
-        do {
-          try {
-            summoner = riotApi.getSummoner(region, summonerId, CallPriority.HIGH);
-            needToRetry = false;
-          }catch(RiotApiException e) {
-            if(e.getErrorCode() == RiotApiException.SERVER_ERROR) {
-              needToRetry = true;
-              logger.info("Error code 500 when loading a summoner, retry ...");
-            } else if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND){
-              logger.info("League account {} {} not found when loading. Probably rename/transfer.", region.getName(), summonerId);
-            }else {
-              throw e;
-            }
-          }
-        } while(needToRetry);
-
-        if(summoner != null) {
-          lolAccounts.add(new LeagueAccount(summoner, region));
-        }
-
-      }
-      String mentionableString = reader.readLine();
-
-      boolean mentionable = Boolean.getBoolean(mentionableString);
-
-      players.add(new Player(Long.parseLong(discordId), lolAccounts, mentionable));
-    }
-    return players;
   }
 
   public static CachedRiotApi getRiotApi() {

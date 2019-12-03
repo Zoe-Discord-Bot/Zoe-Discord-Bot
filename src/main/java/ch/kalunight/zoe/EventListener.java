@@ -5,6 +5,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TimerTask;
@@ -20,6 +21,7 @@ import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.config.option.CleanChannelOption.CleanChannelOptionInfo;
 import ch.kalunight.zoe.model.player_data.Player;
+import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.riotapi.CacheManager;
 import ch.kalunight.zoe.service.InfoPanelRefresher;
 import ch.kalunight.zoe.service.RiotApiUsageChannelRefresh;
@@ -45,7 +47,6 @@ import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.role.RoleDeleteEvent;
 import net.dv8tion.jda.api.events.user.update.UserUpdateActivityOrderEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.rithms.riot.api.RiotApiException;
 
 public class EventListener extends ListenerAdapter {
 
@@ -54,7 +55,7 @@ public class EventListener extends ListenerAdapter {
       + "I'm here to help you to configurate your server with some "
       + "basic options. You can always do the command `>setup` or `>help` if you need help.\n\n"
       + "First, please choose your language. (Will be defined for the server, i only speak in english in private message)";
-  
+
 
   private static Logger logger = LoggerFactory.getLogger(EventListener.class);
 
@@ -63,7 +64,14 @@ public class EventListener extends ListenerAdapter {
     Zoe.getJda().getPresence().setStatus(OnlineStatus.DO_NOT_DISTURB);
     Zoe.getJda().getPresence().setActivity(Activity.playing("Booting ..."));
 
-    setupNonInitializedGuild();
+    logger.info("Setup non initialized Guild ...");
+    try {
+      setupNonInitializedGuild();
+    } catch(SQLException e) {
+      logger.error("Issue when setup non initialized Guild !", e);
+      System.exit(1);
+    }
+    logger.info("Setup non initialized Guild Done !");
 
     logger.info("Loading of champions ...");
     try {
@@ -83,7 +91,7 @@ public class EventListener extends ListenerAdapter {
       System.exit(1);
     }
     logger.info("Loading of translation finished !");
-    
+
     logger.info("Loading of emotes ...");
     try {
       EventListenerUtil.loadCustomEmotes();
@@ -95,19 +103,6 @@ public class EventListener extends ListenerAdapter {
     logger.info("Setup cache ...");
     CacheManager.setupCache();
     logger.info("Setup cache finished !");
-    
-    logger.info("Loading of guilds ...");
-    try {
-      Zoe.loadDataTxt();
-    } catch(IOException e) {
-      logger.error("Critical error with the loading of guilds (File issue) !", e);
-      System.exit(1);
-    } catch(RiotApiException e) {
-      logger.error("Critical error with the Riot API when loadings of guilds (Riot Api issue) !", e);
-      System.exit(1);
-    }
-
-    logger.info("Loading of guilds finished !");
 
     logger.info("Loading of RAPI Status Channel ...");
 
@@ -138,14 +133,13 @@ public class EventListener extends ListenerAdapter {
     logger.info("Booting finished !");
   }
 
-  private void setupNonInitializedGuild() {
-    for(Guild guild : Zoe.getJda().getGuilds()) {
-      if(!guild.getOwnerId().equals(Zoe.getJda().getSelfUser().getId())) {
-        Server server = ServerData.getServers().get(guild.getId());
+  private void setupNonInitializedGuild() throws SQLException {
+    int defaultInitTime = 3;
 
-        if(server == null) {
-          ServerData.getServers().put(guild.getId(), new Server(guild.getIdLong(), LanguageManager.DEFAULT_LANGUAGE, new ServerConfiguration()));
-        }
+    for(Guild guild : Zoe.getJda().getGuilds()) {
+      if(!guild.getOwnerId().equals(Zoe.getJda().getSelfUser().getId()) && !ServerRepository.checkServerExist(guild.getIdLong())) {
+        ServerRepository.createNewServer(guild.getIdLong(), LanguageManager.DEFAULT_LANGUAGE,
+            DateTime.now().minusMinutes(defaultInitTime));
       }
     }
   }
@@ -191,30 +185,30 @@ public class EventListener extends ListenerAdapter {
       askingConfig(event.getGuild(), event.getGuild().getOwner().getUser());
     }
   }
-  
+
   private void askingConfig(Guild guild, User owner) {
-    
+
     Server server = ServerData.getServers().get(guild.getId());
-    
+
     MessageChannel channel;
-    
+
     MessageChannel channelOfGuild = CommandUtil.getFullSpeakableChannel(guild);
-    
+
     if(channelOfGuild != null) {
       channel = channelOfGuild;
     }else {
       channel = owner.openPrivateChannel().complete();
     }
-    
+
     channel.sendMessage(WELCOME_MESSAGE).complete();
-    
+
     SelectionDialog.Builder builder = new SelectionDialog.Builder()
         .setTimeout(60, TimeUnit.MINUTES)
         .setColor(Color.GREEN)
         .useLooping(true)
         .setSelectedEnds("**", "**")
         .setEventWaiter(Zoe.getEventWaiter());
-    
+
     List<String> langagesList = new ArrayList<>();
     List<String> translatedLanguageList = new ArrayList<>();
     for(String langage : LanguageManager.getListlanguages()) {
@@ -223,11 +217,11 @@ public class EventListener extends ListenerAdapter {
       translatedLanguageList.add(LanguageManager.getText(langage, LanguageCommand.NATIVE_LANGUAGE_TRANSLATION_ID));
       langagesList.add(langage);
     }
-    
+
     builder.setText(LanguageUtil.getUpdateMessageAfterChangeSelectAction(LanguageManager.DEFAULT_LANGUAGE, translatedLanguageList));
     builder.setSelectionConsumer(EventListenerUtil.getSelectionDoneActionLangueSelection(langagesList, server, channel));
     builder.setCanceled(LanguageUtil.getCancelActionSelection());
-    
+
     builder.build().display(channel);
   }
 
@@ -259,16 +253,16 @@ public class EventListener extends ListenerAdapter {
     if(event == null) {
       return;
     }
-    
+
     Server server = ServerData.getServers().get(event.getGuild().getId());
-    
+
     Player player = server.getPlayerByDiscordId(event.getUser().getIdLong());
-    
+
     if(player != null) {
       server.deletePlayer(player);
     }
   }
-  
+
   @Override
   public void onUserUpdateActivityOrder(UserUpdateActivityOrderEvent event) {
     if(event == null || event.getNewValue().isEmpty()) {
@@ -276,7 +270,7 @@ public class EventListener extends ListenerAdapter {
     }
 
     for(Activity activity : event.getNewValue()) {
-      
+
       if(activity.isRich() && EventListenerUtil.checkIfIsGame(activity.asRichPresence()) && event.getGuild() != null) {
         Server server = ServerData.getServers().get(event.getGuild().getId());
 

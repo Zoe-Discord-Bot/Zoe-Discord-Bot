@@ -42,14 +42,14 @@ public class ConfigRepository {
       + "(roleOption_fk_serverConfig) VALUES (%d)";
 
   private static final String SELECT_ALL_OPTIONS_SETTINGS = 
-      "SELECT" + 
+      "SELECT " + 
           "clean_channel_option.cleanoption_channelid, " + 
           "clean_channel_option.cleanoption_option, " + 
           "self_adding_option.selfoption_activate, " + 
           "role_option.roleoption_roleid, " + 
           "region_option.regionoption_region, " + 
-          "game_info_card_option.gamecardoption_activate " + 
-          "clean_channel_option.cleanoption_id " +
+          "game_info_card_option.gamecardoption_activate, " + 
+          "clean_channel_option.cleanoption_id, " +
           "role_option.roleOption_id " +
           "FROM server " + 
           "INNER JOIN server_configuration ON server.serv_id = server_configuration.servconfig_fk_server " + 
@@ -60,9 +60,13 @@ public class ConfigRepository {
           "INNER JOIN clean_channel_option ON server_configuration.servconfig_id = clean_channel_option.cleanoption_fk_serverconfig " + 
           "WHERE serv_guildId = %d";
 
-  private static final String UPDATE_CLEAN_CHANNEL_OPTION_WITH_CLEAN_OPTION_ID =
-      "UPDATE clean_channel_option SET cleanOption_option = '%s', cleanOption_channelId = %d " +
-      "WHERE cleanOption_id = %d";
+  private static final String UPDATE_CLEAN_CHANNEL_OPTION_WITH_GUILD_ID =
+      "UPDATE clean_channel_option " +
+      "SET cleanOption_option = '%s', cleanOption_channelId = %d " +
+      "FROM server " +
+      "INNER JOIN server_configuration ON server.serv_id = server_configuration.servconfig_fk_server " +
+      "INNER JOIN clean_channel_option ON server_configuration.servconfig_id = clean_channel_option.cleanoption_fk_serverconfig " +
+      "WHERE server.serv_guildId = %d";
   
   private static final String UPDATE_ROLE_OPTION_WITH_ROLE_OPTION_ID =
       "UPDATE role_option SET roleOption_roleId = %d " +
@@ -123,20 +127,23 @@ public class ConfigRepository {
       result = query.executeQuery(finalQuery);
       result.next();
 
-      SelfAddingOption selfAddingOption = new SelfAddingOption();
+      SelfAddingOption selfAddingOption = new SelfAddingOption(guildId);
       selfAddingOption.setOptionActivated(result.getBoolean("selfOption_activate"));
 
-      RegionOption regionOption = new RegionOption();
-      regionOption.setRegion(Platform.valueOf(result.getString("regionOption_region")));
+      RegionOption regionOption = new RegionOption(guildId);
+      String region = result.getString("regionOption_region");
+      if(region != null) {
+        regionOption.setRegion(Platform.valueOf(region));
+      }
 
       CleanChannelOption cleanChannelOption = getCleanChannelOption(guildId, result);
 
-      InfoCardOption infoCardOption = new InfoCardOption();
+      InfoCardOption infoCardOption = new InfoCardOption(guildId);
       infoCardOption.setOptionActivated(result.getBoolean("gameCardOption_activate"));
 
       RoleOption roleOption = getRoleOption(result, guildId);
 
-      ServerConfiguration serverConfig = new ServerConfiguration();
+      ServerConfiguration serverConfig = new ServerConfiguration(guildId);
       serverConfig.setUserSelfAdding(selfAddingOption);
       serverConfig.setDefaultRegion(regionOption);
       serverConfig.setCleanChannelOption(cleanChannelOption);
@@ -150,7 +157,7 @@ public class ConfigRepository {
   }
 
   private static RoleOption getRoleOption(ResultSet result, long guildId) throws SQLException {
-    RoleOption roleOption = new RoleOption();
+    RoleOption roleOption = new RoleOption(guildId);
     long roleId = result.getLong("roleOption_roleId");
 
     if(roleId == 0) {
@@ -183,7 +190,7 @@ public class ConfigRepository {
   }
 
   private static CleanChannelOption getCleanChannelOption(long guildId, ResultSet result) throws SQLException {
-    CleanChannelOption cleanChannelOption = new CleanChannelOption();
+    CleanChannelOption cleanChannelOption = new CleanChannelOption(guildId);
     cleanChannelOption.setCleanChannelOption(CleanChannelOptionInfo.valueOf(result.getString("cleanOption_option")));
 
     if(!cleanChannelOption.getCleanChannelOption().equals(CleanChannelOptionInfo.DISABLE)) {
@@ -192,7 +199,7 @@ public class ConfigRepository {
         TextChannel cleanChannel = Zoe.getJda().getGuildById(guildId).getTextChannelById(cleanChannelId);
         if(cleanChannel == null) {
           logger.info("clean channel has been deleted. We update the db.");
-          updateCleanChannelOption(result.getLong("cleanOption_id"), 0, CleanChannelOptionInfo.DISABLE.toString());
+          updateCleanChannelOption(guildId, 0, CleanChannelOptionInfo.DISABLE.toString());
           cleanChannelOption.setCleanChannelOption(CleanChannelOptionInfo.DISABLE);
         }
         cleanChannelOption.setCleanChannel(cleanChannel);
@@ -205,14 +212,14 @@ public class ConfigRepository {
     return cleanChannelOption;
   }
 
-  public static void updateCleanChannelOption(long cleanOptionId, long cleanOptionChannelId, String cleanChannelOptionMode)
+  public static void updateCleanChannelOption(long guildId, long cleanOptionChannelId, String cleanChannelOptionMode)
       throws SQLException {
 
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
 
-      String finalQuery = String.format(UPDATE_CLEAN_CHANNEL_OPTION_WITH_CLEAN_OPTION_ID, 
-          cleanChannelOptionMode, cleanOptionChannelId, cleanOptionId);
+      String finalQuery = String.format(UPDATE_CLEAN_CHANNEL_OPTION_WITH_GUILD_ID, 
+          cleanChannelOptionMode, cleanOptionChannelId, guildId);
       query.executeUpdate(finalQuery);
     }
   }

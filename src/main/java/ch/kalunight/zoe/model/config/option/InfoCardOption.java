@@ -9,6 +9,7 @@ import com.jagrosh.jdautilities.menu.ButtonMenu;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.Server;
+import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
@@ -21,19 +22,17 @@ public class InfoCardOption extends ConfigurationOption {
   
   private boolean optionActivated;
   
-  public InfoCardOption() {
-    super("infocards", INFOCARDS_DESC_ID);
+  public InfoCardOption(long guildId) {
+    super(guildId, INFOCARDS_DESC_ID);
     this.optionActivated = true;
   }
 
   @Override
-  public Consumer<CommandEvent> getChangeConsumer(EventWaiter waiter) {
+  public Consumer<CommandEvent> getChangeConsumer(EventWaiter waiter, DTO.Server server) {
     return new Consumer<CommandEvent>() {
       
       @Override
       public void accept(CommandEvent event) {
-        
-        Server server = ServerData.getServers().get(event.getGuild().getId());
         
         ButtonMenu.Builder choiceBuilder = new ButtonMenu.Builder();
         
@@ -47,8 +46,8 @@ public class InfoCardOption extends ConfigurationOption {
         
         if(!optionActivated) {
 
-          choiceBuilder.setText(String.format(LanguageManager.getText(server.getLangage(),
-              "infocardsOptionLongDescEnable"), LanguageManager.getText(server.getLangage(), INFOCARDS_DESC_ID)));
+          choiceBuilder.setText(String.format(LanguageManager.getText(server.serv_language,
+              "infocardsOptionLongDescEnable"), LanguageManager.getText(server.serv_language, INFOCARDS_DESC_ID)));
           
           choiceBuilder.setAction(activateTheOption(event.getChannel()));
           
@@ -58,8 +57,8 @@ public class InfoCardOption extends ConfigurationOption {
           
         }else {
           
-          choiceBuilder.setText(String.format(LanguageManager.getText(server.getLangage(), "infocardsOptionLongDescDisable"),
-              LanguageManager.getText(server.getLangage(), INFOCARDS_DESC_ID)));
+          choiceBuilder.setText(String.format(LanguageManager.getText(server.serv_language, "infocardsOptionLongDescDisable"),
+              LanguageManager.getText(server.serv_language, INFOCARDS_DESC_ID)));
           
           choiceBuilder.setAction(disableTheOption(event.getChannel()));
           
@@ -130,18 +129,6 @@ public class InfoCardOption extends ConfigurationOption {
       status = LanguageManager.getText(langage, "optionDisable");
     }
     return LanguageManager.getText(langage, description) + " : " + status;
-  }
-
-  @Override
-  public String getSave() {
-    return id + ":" + optionActivated;
-  }
-
-  @Override
-  public void restoreSave(String save) {
-    String[] saveDatas = save.split(":");
-    
-    optionActivated = Boolean.parseBoolean(saveDatas[1]);
   }
 
   public boolean isOptionActivated() {

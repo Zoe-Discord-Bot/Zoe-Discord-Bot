@@ -59,7 +59,8 @@ public class ResetCommand extends ZoeCommand {
       messageReceivedEvent.getTextChannel().sendMessage(LanguageManager.getText(spellingLangage, "resetConfirmationMessage")).queue();
       
       ServerData.getServers().put(messageReceivedEvent.getGuild().getId(), 
-          new Server(messageReceivedEvent.getGuild().getIdLong(), spellingLangage, new ServerConfiguration()));
+          new Server(messageReceivedEvent.getGuild().getIdLong(), spellingLangage,
+          new ServerConfiguration(messageReceivedEvent.getGuild().getIdLong())));
       
       messageReceivedEvent.getTextChannel().sendMessage(LanguageManager.getText(spellingLangage, "resetDoneMessage")).queue();
     }else {

@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 import org.discordbots.api.client.DiscordBotListAPI;
 import org.joda.time.DateTime;
@@ -25,7 +24,6 @@ import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.riotapi.CacheManager;
 import ch.kalunight.zoe.service.InfoPanelRefresher;
 import ch.kalunight.zoe.service.RiotApiUsageChannelRefresh;
-import ch.kalunight.zoe.service.ServerChecker;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import ch.kalunight.zoe.util.EventListenerUtil;
@@ -141,9 +139,9 @@ public class EventListener extends ListenerAdapter {
     }
   }
 
-  private void setupContinousRefreshThread() {
-    TimerTask mainThread = new ServerChecker();
-    ServerData.getServerCheckerThreadTimer().schedule(mainThread, 0);
+  private void setupContinousRefreshThread() { // TODO : DISABLE FOR DEV PURPOSE
+    //TimerTask mainThread = new ServerChecker();
+    //ServerData.getServerCheckerThreadTimer().schedule(mainThread, 0);
   }
 
   private void initRAPIStatusChannel() {
@@ -177,7 +175,8 @@ public class EventListener extends ListenerAdapter {
   public void onGuildJoin(GuildJoinEvent event) {
 
     if(!event.getGuild().getOwner().getUser().getId().equals(Zoe.getJda().getSelfUser().getId())) {
-      ServerData.getServers().put(event.getGuild().getId(), new Server(event.getGuild().getIdLong(), LanguageManager.DEFAULT_LANGUAGE, new ServerConfiguration()));
+      ServerData.getServers().put(event.getGuild().getId(), new Server(event.getGuild().getIdLong(), LanguageManager.DEFAULT_LANGUAGE, 
+          new ServerConfiguration(event.getGuild().getIdLong())));
       ServerData.getServersIsInTreatment().put(event.getGuild().getId(), false);
       askingConfig(event.getGuild(), event.getGuild().getOwner().getUser());
     }

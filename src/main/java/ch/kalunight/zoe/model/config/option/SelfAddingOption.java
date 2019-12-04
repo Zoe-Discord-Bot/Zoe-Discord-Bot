@@ -6,8 +6,7 @@ import java.util.function.Consumer;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.ButtonMenu;
-import ch.kalunight.zoe.ServerData;
-import ch.kalunight.zoe.model.Server;
+import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
@@ -17,13 +16,13 @@ public class SelfAddingOption extends ConfigurationOption {
 
   private boolean optionActivated;
 
-  public SelfAddingOption() {
-    super("self_adding", "selfAddingOptionDesc");
+  public SelfAddingOption(long guildId) {
+    super(guildId, "selfAddingOptionDesc");
     optionActivated = false;
   }
 
   @Override
-  public Consumer<CommandEvent> getChangeConsumer(EventWaiter waiter) {
+  public Consumer<CommandEvent> getChangeConsumer(EventWaiter waiter, DTO.Server server) {
     return new Consumer<CommandEvent>() {
       
       @Override
@@ -39,14 +38,12 @@ public class SelfAddingOption extends ConfigurationOption {
 
         choiceBuilder.setTimeout(2, TimeUnit.MINUTES);
         
-        Server server = ServerData.getServers().get(event.getGuild().getId());
-        
         if(!optionActivated) {
 
-          choiceBuilder.setText(String.format(LanguageManager.getText(server.getLangage(), "selfAddingOptionDescLong"), 
-              LanguageManager.getText(server.getLangage(), description)));
+          choiceBuilder.setText(String.format(LanguageManager.getText(server.serv_language, "selfAddingOptionDescLong"), 
+              LanguageManager.getText(server.serv_language, description)));
           
-          choiceBuilder.setAction(activateTheOption(server.getLangage(), event.getChannel()));
+          choiceBuilder.setAction(activateTheOption(server.serv_language, event.getChannel()));
           
           ButtonMenu menu = choiceBuilder.build();
                     
@@ -54,10 +51,10 @@ public class SelfAddingOption extends ConfigurationOption {
           
         }else {
           
-          choiceBuilder.setText(String.format(LanguageManager.getText(server.getLangage(), "selfAddingOptionDescLongDisable"),
-              LanguageManager.getText(server.getLangage(), description)));
+          choiceBuilder.setText(String.format(LanguageManager.getText(server.serv_language, "selfAddingOptionDescLongDisable"),
+              LanguageManager.getText(server.serv_language, description)));
           
-          choiceBuilder.setAction(disableTheOption(server.getLangage(), event.getChannel()));
+          choiceBuilder.setAction(disableTheOption(server.serv_language, event.getChannel()));
           
           ButtonMenu menu = choiceBuilder.build();
           
@@ -122,18 +119,6 @@ public class SelfAddingOption extends ConfigurationOption {
     return LanguageManager.getText(langage, description) + " : " + status;
   }
 
-  @Override
-  public String getSave() {
-    return id + ":" + optionActivated;
-  }
-
-  @Override
-  public void restoreSave(String save) {
-    String[] saveDatas = save.split(":");
-    
-    optionActivated = Boolean.parseBoolean(saveDatas[1]);
-  }
-  
   public boolean isOptionActivated() {
     return optionActivated;
   }

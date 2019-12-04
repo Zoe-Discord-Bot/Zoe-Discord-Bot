@@ -15,7 +15,7 @@ public class ServerTest {
   @Test
   public void getAllPlayersTeamGivenPlayersWithNoTeamShouldReturnPlayerWithOneTeam() {
     // GIVEN
-    Server server = new Server(0, LanguageManager.DEFAULT_LANGUAGE, new ServerConfiguration());
+    Server server = new Server(0, LanguageManager.DEFAULT_LANGUAGE, new ServerConfiguration(0));
     Player player1 = new Player(0, null, Platform.EUW, false);
     Player player2 = new Player(0, null, Platform.EUW, false);
     server.getPlayers().add(player1);

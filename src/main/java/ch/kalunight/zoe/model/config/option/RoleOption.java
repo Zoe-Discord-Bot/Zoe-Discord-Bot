@@ -9,6 +9,7 @@ import com.jagrosh.jdautilities.menu.ButtonMenu;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.Server;
+import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.Permission;
@@ -25,22 +26,20 @@ public class RoleOption extends ConfigurationOption {
 
   private Role role;
 
-  public RoleOption() {
-    super("player_role", "roleOptionDescription");
+  public RoleOption(long guildId) {
+    super(guildId, "roleOptionDescription");
     role = null;
   }
 
   @Override
-  public Consumer<CommandEvent> getChangeConsumer(EventWaiter waiter) {
+  public Consumer<CommandEvent> getChangeConsumer(EventWaiter waiter, DTO.Server server) {
     return new Consumer<CommandEvent>() {
 
       @Override
       public void accept(CommandEvent event) {
         
-        Server server = ServerData.getServers().get(event.getGuild().getId());
-        
         if(!event.getGuild().getSelfMember().getPermissions().contains(Permission.MANAGE_ROLES)) {
-          event.reply(LanguageManager.getText(server.getLangage(), "roleOptionPermissionNeeded"));
+          event.reply(LanguageManager.getText(server.serv_language, "roleOptionPermissionNeeded"));
           return;
         }
 
@@ -55,19 +54,19 @@ public class RoleOption extends ConfigurationOption {
         choiceBuilder.setTimeout(2, TimeUnit.MINUTES);
 
         if(role == null) {
-          choiceBuilder.setText(String.format(LanguageManager.getText(server.getLangage(), "roleOptionLongDesc"), 
-              LanguageManager.getText(server.getLangage(), description)));
+          choiceBuilder.setText(String.format(LanguageManager.getText(server.serv_language, "roleOptionLongDesc"), 
+              LanguageManager.getText(server.serv_language, description)));
 
-          choiceBuilder.setAction(receiveValidationAndCreateOption(event.getChannel(), event.getGuild(), server.getLangage()));
+          choiceBuilder.setAction(receiveValidationAndCreateOption(event.getChannel(), event.getGuild(), server.serv_language));
 
           ButtonMenu menu = choiceBuilder.build();
 
           menu.display(event.getChannel());
 
         }else {
-          choiceBuilder.setText(String.format(LanguageManager.getText(server.getLangage(), "roleOptionLongDescDisable"), description));
+          choiceBuilder.setText(String.format(LanguageManager.getText(server.serv_language, "roleOptionLongDescDisable"), description));
 
-          choiceBuilder.setAction(receiveValidationAndDisableOption(event.getChannel(), event.getGuild(), server.getLangage()));
+          choiceBuilder.setAction(receiveValidationAndDisableOption(event.getChannel(), event.getGuild(), server.serv_language  ));
 
           ButtonMenu menu = choiceBuilder.build();
 
@@ -158,27 +157,6 @@ public class RoleOption extends ConfigurationOption {
       status = LanguageManager.getText(langage, "optionEnable");
     }
     return LanguageManager.getText(langage, description) + " : " + status;
-  }
-
-  @Override
-  public String getSave() {
-    String save = NO_VALUE_REPRESENTATION;
-    if(role != null) {
-      save = role.getId() + ":" + role.getGuild().getId();
-    }
-    return id + ":" + save;
-  }
-
-  @Override
-  public void restoreSave(String save) {
-    String[] saveDatas = save.split(":");
-
-    if(!saveDatas[1].equals(NO_VALUE_REPRESENTATION)) {
-      Guild guild = Zoe.getJda().getGuildById(saveDatas[2]);
-      if(guild != null) {
-        role = guild.getRoleById(saveDatas[1]);
-      }
-    }
   }
 
   public Role getRole() {

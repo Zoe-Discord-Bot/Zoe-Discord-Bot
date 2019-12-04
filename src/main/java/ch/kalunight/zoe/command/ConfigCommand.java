@@ -69,7 +69,7 @@ public class ConfigCommand extends ZoeCommand {
       
       @Override
       public void accept(Message messageEmbended, Integer selectionNumber) {
-        options.get(selectionNumber - 1).getChangeConsumer(waiter).accept(event);
+        options.get(selectionNumber - 1).getChangeConsumer(waiter, server).accept(event);
       }};
   }
   

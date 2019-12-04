@@ -4,12 +4,12 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import org.joda.time.DateTime;
+import java.time.LocalDateTime;
 import ch.kalunight.zoe.model.dto.DTO;
 
 public class ServerRepository {
 
-  private static final String SELECT_SERVER_WITH_GUILDID = "SELECT serv_id, serv_language, serv_lastRefresh FROM server "
+  private static final String SELECT_SERVER_WITH_GUILDID = "SELECT serv_id, serv_guildId, serv_language, serv_lastRefresh FROM server "
       + "WHERE serv_guildId = %d";
   
   private static final String INSERT_INTO_SERVER = "INSERT INTO server (serv_guildId, serv_language, serv_lastRefresh) "
@@ -51,7 +51,7 @@ public class ServerRepository {
   }
   
   public static void createNewServer(long guildId, String language) throws SQLException {
-    DateTime lastRefresh = DateTime.now().minusMinutes(3);
+    LocalDateTime lastRefresh = LocalDateTime.now().minusMinutes(3);
     ResultSet result = null;
     try (Connection conn = RepoRessources.getConnection();
         Statement statement = conn.createStatement();) {

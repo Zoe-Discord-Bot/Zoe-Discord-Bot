@@ -51,12 +51,12 @@ public class ServerConfiguration {
     return options;
   }
   
-  public ServerConfiguration() {
-    this.defaultRegion = new RegionOption();
-    this.zoeRoleOption = new RoleOption();
-    this.userSelfAdding = new SelfAddingOption();
-    this.infoCardsOption = new InfoCardOption();
-    this.cleanChannelOption = new CleanChannelOption();
+  public ServerConfiguration(long guildId) {
+    this.defaultRegion = new RegionOption(guildId);
+    this.zoeRoleOption = new RoleOption(guildId);
+    this.userSelfAdding = new SelfAddingOption(guildId);
+    this.infoCardsOption = new InfoCardOption(guildId);
+    this.cleanChannelOption = new CleanChannelOption(guildId);
     this.everyoneCanMoveOfTeam = false;
   }
 

@@ -1,19 +1,21 @@
 package ch.kalunight.zoe.model.config.option;
 
+import java.sql.SQLException;
 import java.util.function.Consumer;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
+import ch.kalunight.zoe.model.dto.DTO;
 
 public abstract class ConfigurationOption {
 
   protected static final String NO_VALUE_REPRESENTATION = "null";
   
-  protected String id;
+  protected long guildId;
   protected String description;
   
-  public ConfigurationOption(String id, String description) {
+  public ConfigurationOption(long guildId, String description) {
+    this.guildId = guildId;
     this.description = description;
-    this.id = id;
   }
   
   /**
@@ -21,34 +23,14 @@ public abstract class ConfigurationOption {
    * @param waiter of Zoe. Used to wait user action.
    * @return Consumer who is the interface
    */
-  public abstract Consumer<CommandEvent> getChangeConsumer(EventWaiter waiter);
+  public abstract Consumer<CommandEvent> getChangeConsumer(EventWaiter waiter, DTO.Server server);
 
   /**
    * Pattern -> Description : Status (Enabled/Disabled)
    * @return description of the option and his status
+   * @throws SQLException
    */
-  public abstract String getChoiceText(String langage);
-  
-  /**
-   * Get save of the option <br>
-   * Pattern -> id:data1:data2:data3:...
-   * @return String representation of the option
-   */
-  public abstract String getSave();
-  
-  /**
-   * Read and restore the option with the string representation given by {@link ConfigurationOption#getSave()}.
-   */
-  public abstract void restoreSave(String save);
-  
-  /**
-   * Check if the given save is for this option.
-   * @param save to check
-   * @return true if the given save is for this option
-   */
-  public boolean isTheOption(String save) {
-    return save.split(":")[0].equals(id);
-  }
+  public abstract String getChoiceText(String langage) throws SQLException;
   
   public String getDescription() {
     return description;

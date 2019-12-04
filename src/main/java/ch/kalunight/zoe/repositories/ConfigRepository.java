@@ -60,13 +60,13 @@ public class ConfigRepository {
           "INNER JOIN clean_channel_option ON server_configuration.servconfig_id = clean_channel_option.cleanoption_fk_serverconfig " + 
           "WHERE serv_guildId = %d";
 
-  private static final String UPDATE_CLEAN_CHANNEL_OPTION_WITH_GUILD_ID = //TODO Need to be fixed
+  private static final String UPDATE_CLEAN_CHANNEL_OPTION_WITH_GUILD_ID =
       "UPDATE clean_channel_option " +
       "SET cleanOption_option = '%s', cleanOption_channelId = %d " +
-      "FROM server " +
-      "INNER JOIN server_configuration ON server.serv_id = server_configuration.servconfig_fk_server " +
-      "INNER JOIN clean_channel_option ON server_configuration.servconfig_id = clean_channel_option.cleanoption_fk_serverconfig " +
-      "WHERE server.serv_guildId = %d";
+      "FROM server, server_configuration " +
+      "WHERE server.serv_guildId = %d AND " +
+      "server.serv_id = server_configuration.servConfig_fk_server AND " +
+      "server_configuration.servConfig_id = clean_channel_option.cleanOption_fk_serverConfig";
   
   private static final String UPDATE_ROLE_OPTION_WITH_ROLE_OPTION_ID =
       "UPDATE role_option SET roleOption_roleId = %d " +

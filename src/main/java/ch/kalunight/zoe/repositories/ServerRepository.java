@@ -57,7 +57,7 @@ public class ServerRepository {
         Statement statement = conn.createStatement();) {
       
       //Create Server
-      String finalQuery = String.format(INSERT_INTO_SERVER, guildId, language, lastRefresh.toString());
+      String finalQuery = String.format(INSERT_INTO_SERVER, guildId, language, lastRefresh.format(DTO.DB_TIME_PATTERN));
       statement.executeUpdate(finalQuery);
       
       //Get serv_id from server

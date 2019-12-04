@@ -101,7 +101,7 @@ public class CleanChannelOption extends ConfigurationOption {
         choiceBuilder.setText(
             String.format(LanguageManager.getText(server.serv_language, "cleanChannelOptionLongDesc"),
                 LanguageManager.getText(server.serv_language, description))
-            + CleanChannelOptionInfo.DISABLE.emoji 
+            + "\n" + CleanChannelOptionInfo.DISABLE.emoji 
             + " -> " + LanguageManager.getText(server.serv_language, CleanChannelOptionInfo.DISABLE.name)
             + " : " + LanguageManager.getText(server.serv_language, CleanChannelOptionInfo.DISABLE.description) + "\n"
             + CleanChannelOptionInfo.ONLY_ZOE_COMMANDS.emoji

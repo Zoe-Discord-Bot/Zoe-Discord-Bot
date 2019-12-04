@@ -82,6 +82,7 @@ public class GameInfoCardOption extends ConfigurationOption {
             optionActivated = false;
           } catch (SQLException e) {
             sqlErrorReport(messageChannel, server, e);
+            return;
           }
           messageChannel.sendMessage(LanguageManager.getText(server.serv_language, "cleanChannelOptionBeenDisable")).queue();
         }else {
@@ -103,6 +104,7 @@ public class GameInfoCardOption extends ConfigurationOption {
             optionActivated = true;
           } catch (SQLException e) {
             sqlErrorReport(messageChannel, server, e);
+            return;
           }
           messageChannel.sendMessage(LanguageManager.getText(server.serv_language, "cleanChannelOptionBeenActivated")).queue();
         }else {

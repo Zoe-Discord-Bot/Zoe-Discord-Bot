@@ -1,24 +1,20 @@
 package ch.kalunight.zoe.model.config.option;
 
 import java.awt.Color;
+import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.ButtonMenu;
-import ch.kalunight.zoe.ServerData;
-import ch.kalunight.zoe.Zoe;
-import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.dto.DTO;
-import ch.kalunight.zoe.model.player_data.Player;
+import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.MessageReaction.ReactionEmote;
-import net.dv8tion.jda.api.entities.PermissionOverride;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.requests.restaction.RoleAction;
 
@@ -57,7 +53,7 @@ public class RoleOption extends ConfigurationOption {
           choiceBuilder.setText(String.format(LanguageManager.getText(server.serv_language, "roleOptionLongDesc"), 
               LanguageManager.getText(server.serv_language, description)));
 
-          choiceBuilder.setAction(receiveValidationAndCreateOption(event.getChannel(), event.getGuild(), server.serv_language));
+          choiceBuilder.setAction(receiveValidationAndCreateOption(event.getChannel(), event.getGuild(), server));
 
           ButtonMenu menu = choiceBuilder.build();
 
@@ -66,7 +62,7 @@ public class RoleOption extends ConfigurationOption {
         }else {
           choiceBuilder.setText(String.format(LanguageManager.getText(server.serv_language, "roleOptionLongDescDisable"), description));
 
-          choiceBuilder.setAction(receiveValidationAndDisableOption(event.getChannel(), event.getGuild(), server.serv_language  ));
+          choiceBuilder.setAction(receiveValidationAndDisableOption(event.getChannel(), event.getGuild(), server));
 
           ButtonMenu menu = choiceBuilder.build();
 
@@ -75,23 +71,28 @@ public class RoleOption extends ConfigurationOption {
       }};
   }
 
-  private Consumer<ReactionEmote> receiveValidationAndCreateOption(MessageChannel channel, Guild guild, String langage) {
+  private Consumer<ReactionEmote> receiveValidationAndCreateOption(MessageChannel channel, Guild guild, DTO.Server server) {
     return new Consumer<ReactionEmote>() {
 
       @Override
       public void accept(ReactionEmote emoteUsed) {
         channel.sendTyping().complete();
         if(emoteUsed.getName().equals("✅")) {
-          channel.sendMessage(LanguageManager.getText(langage, "roleOptionActivateWaitMessage")).complete();
+          channel.sendMessage(LanguageManager.getText(server.serv_language, "roleOptionActivateWaitMessage")).complete();
           channel.sendTyping().complete();
           RoleAction action = guild.createRole();
           action.setName("Zoe-Player");
           action.setMentionable(false);
           action.setColor(Color.PINK);
           role = action.complete();
+          try {
+            ConfigRepository.updateRoleOption(guildId, role.getIdLong());
+          } catch (SQLException e) {
+            sqlErrorReport(channel, server, e);
+            return;
+          }
 
-          Server server = ServerData.getServers().get(guild.getId());
-          for(Player player : server.getPlayers()) {
+          /*for(Player player : server.getPlayers()) {
             Member member = guild.getMember(player.getDiscordUser());
             guild.addRoleToMember(member, role).queue();
           }
@@ -106,37 +107,42 @@ public class RoleOption extends ConfigurationOption {
 
             PermissionOverride everyone = server.getInfoChannel().putPermissionOverride(server.getGuild().getPublicRole()).complete();
             everyone.getManager().deny(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).complete();
-          }
-          channel.sendMessage(LanguageManager.getText(langage, "roleOptionDoneMessage")).complete();
+          }*/
+          channel.sendMessage(LanguageManager.getText(server.serv_language, "roleOptionDoneMessage")).complete();
         }else {
-          channel.sendMessage(LanguageManager.getText(langage, "roleOptionCancelMessage")).queue();
+          channel.sendMessage(LanguageManager.getText(server.serv_language, "roleOptionCancelMessage")).queue();
         }
       }};
 
   }
 
-  private Consumer<ReactionEmote> receiveValidationAndDisableOption(MessageChannel channel, Guild guild, String langage) {
+  private Consumer<ReactionEmote> receiveValidationAndDisableOption(MessageChannel channel, Guild guild, DTO.Server server) {
     return new Consumer<ReactionEmote>() {
       
       @Override
       public void accept(ReactionEmote emoteUsed) {
         channel.sendTyping().complete();
         if(emoteUsed.getName().equals("✅")) {
-          channel.sendMessage(LanguageManager.getText(langage, "roleOptionDisableWaitMessage")).complete();
+          channel.sendMessage(LanguageManager.getText(server.serv_language, "roleOptionDisableWaitMessage")).complete();
           channel.sendTyping().complete();
           role.delete().complete();
+          try {
+            ConfigRepository.updateRoleOption(guildId, 0);
+          } catch (SQLException e) {
+            sqlErrorReport(channel, server, e);
+            return;
+          }
+          
 
-          Server server = ServerData.getServers().get(guild.getId());
-
-          if(server != null && server.getInfoChannel() != null) {
+          /*if(server != null && server.getInfoChannel() != null) {
             PermissionOverride everyone = server.getInfoChannel().getPermissionOverride(server.getGuild().getPublicRole());
             everyone.getManager().grant(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).complete();
-          }
+          }*/
 
           role = null;
-          channel.sendMessage(LanguageManager.getText(langage, "roleOptionDoneMessageDisable")).queue();
+          channel.sendMessage(LanguageManager.getText(server.serv_language, "roleOptionDoneMessageDisable")).queue();
         }else {
-          channel.sendMessage(LanguageManager.getText(langage, "roleOptionDoneMessageStillActivate")).queue();
+          channel.sendMessage(LanguageManager.getText(server.serv_language, "roleOptionDoneMessageStillActivate")).queue();
         }
       }};
   }

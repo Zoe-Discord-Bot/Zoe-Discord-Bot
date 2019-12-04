@@ -76,9 +76,29 @@ public class ConfigRepository {
       "server.serv_id = server_configuration.servConfig_fk_server AND " +
       "server_configuration.servConfig_id = game_info_card_option.gameCardOption_fk_serverConfig";
   
-  private static final String UPDATE_ROLE_OPTION_WITH_ROLE_OPTION_ID =
-      "UPDATE role_option SET roleOption_roleId = %d " +
-      "WHERE roleOption_id = %d";
+  private static final String UPDATE_REGION_OPTION_WITH_GUILD_ID =
+      "UPDATE region_option " +
+      "SET regionOption_region = '%s' " +
+      "FROM server, server_configuration " +
+      "WHERE server.serv_guildId = %d AND " +
+      "server.serv_id = server_configuration.servConfig_fk_server AND " +
+      "server_configuration.servConfig_id = region_option.regionOption_fk_serverConfig";
+  
+  private static final String UPDATE_ROLE_OPTION_WITH_GUILD_ID =
+      "UPDATE role_option " +
+      "SET roleOption_roleId = %d " +
+      "FROM server, server_configuration " +
+      "WHERE server.serv_guildId = %d AND " +
+      "server.serv_id = server_configuration.servConfig_fk_server AND " +
+      "server_configuration.servConfig_id = role_option.roleOption_fk_serverConfig";
+  
+  private static final String UPDATE_SELF_ADDING_OPTION_WITH_GUILD_ID =
+      "UPDATE self_adding_option " +
+      "SET selfOption_activate = %s " +
+      "FROM server, server_configuration " +
+      "WHERE server.serv_guildId = %d AND " +
+      "server.serv_id = server_configuration.servConfig_fk_server AND " +
+      "server_configuration.servConfig_id = self_adding_option.selfOption_fk_serverConfig";
   
 
   private static final Logger logger = LoggerFactory.getLogger(ConfigRepository.class);
@@ -140,7 +160,7 @@ public class ConfigRepository {
 
       RegionOption regionOption = new RegionOption(guildId);
       String region = result.getString("regionOption_region");
-      if(region != null) {
+      if(region != null && !region.equals("")) {
         regionOption.setRegion(Platform.valueOf(region));
       }
 
@@ -177,7 +197,7 @@ public class ConfigRepository {
       roleOption.setRole(role);
       if(role == null) {
         logger.info("Zoe role has been deleted. We update the db.");
-        updateRoleOption(result.getLong("roleOption_id"), 0);
+        updateRoleOption(guildId, 0);
       }
     }catch(NullPointerException e) {
       logger.warn("A guild has been detected like non existant. Will be deleted from DB now.");
@@ -185,16 +205,6 @@ public class ConfigRepository {
       throw e;
     }
     return roleOption;
-  }
-
-  private static void updateRoleOption(long roleOptionId, long roleId) throws SQLException {
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement();) {
-
-      String finalQuery = String.format(UPDATE_ROLE_OPTION_WITH_ROLE_OPTION_ID, 
-          roleId, roleOptionId);
-      query.executeUpdate(finalQuery);
-    }
   }
 
   private static CleanChannelOption getCleanChannelOption(long guildId, ResultSet result) throws SQLException {
@@ -244,4 +254,44 @@ public class ConfigRepository {
       query.executeUpdate(finalQuery);
     }
   }
+  
+  public static void updateRegionOption(long guildId, Platform platform)
+      throws SQLException {
+
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement();) {
+
+      String platformString = "";
+      
+      if(platform != null) {
+        platformString = platform.name();
+      }
+      
+      String finalQuery = String.format(UPDATE_REGION_OPTION_WITH_GUILD_ID, 
+          platformString, guildId);
+      query.executeUpdate(finalQuery);
+    }
+  }
+  
+
+  public static void updateRoleOption(long guildId, long roleId) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement();) {
+
+      String finalQuery = String.format(UPDATE_ROLE_OPTION_WITH_GUILD_ID, 
+          roleId, guildId);
+      query.executeUpdate(finalQuery);
+    }
+  }
+
+  public static void updateSelfAddingOption(long guildId, boolean activate) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement();) {
+
+      String finalQuery = String.format(UPDATE_SELF_ADDING_OPTION_WITH_GUILD_ID, 
+          activate, guildId);
+      query.executeUpdate(finalQuery);
+    }
+  }
+
 }

@@ -60,7 +60,7 @@ public class ConfigRepository {
           "INNER JOIN clean_channel_option ON server_configuration.servconfig_id = clean_channel_option.cleanoption_fk_serverconfig " + 
           "WHERE serv_guildId = %d";
 
-  private static final String UPDATE_CLEAN_CHANNEL_OPTION_WITH_GUILD_ID =
+  private static final String UPDATE_CLEAN_CHANNEL_OPTION_WITH_GUILD_ID = //TODO Need to be fixed
       "UPDATE clean_channel_option " +
       "SET cleanOption_option = '%s', cleanOption_channelId = %d " +
       "FROM server " +

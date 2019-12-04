@@ -3,7 +3,7 @@ package ch.kalunight.zoe.model.config;
 import java.util.ArrayList;
 import java.util.List;
 import ch.kalunight.zoe.model.config.option.ConfigurationOption;
-import ch.kalunight.zoe.model.config.option.InfoCardOption;
+import ch.kalunight.zoe.model.config.option.GameInfoCardOption;
 import ch.kalunight.zoe.model.config.option.RegionOption;
 import ch.kalunight.zoe.model.config.option.CleanChannelOption;
 import ch.kalunight.zoe.model.config.option.RoleOption;
@@ -29,7 +29,7 @@ public class ServerConfiguration {
   /**
    * This option activate the system of automatically send infocards in infochannel. Enable as default.
    */
-  private InfoCardOption infoCardsOption;
+  private GameInfoCardOption infoCardsOption;
   
   /**
    * This option let config a "Clean Channel"
@@ -55,7 +55,7 @@ public class ServerConfiguration {
     this.defaultRegion = new RegionOption(guildId);
     this.zoeRoleOption = new RoleOption(guildId);
     this.userSelfAdding = new SelfAddingOption(guildId);
-    this.infoCardsOption = new InfoCardOption(guildId);
+    this.infoCardsOption = new GameInfoCardOption(guildId);
     this.cleanChannelOption = new CleanChannelOption(guildId);
     this.everyoneCanMoveOfTeam = false;
   }
@@ -76,7 +76,7 @@ public class ServerConfiguration {
     return userSelfAdding;
   }
 
-  public InfoCardOption getInfoCardsOption() {
+  public GameInfoCardOption getInfoCardsOption() {
     return infoCardsOption;
   }
 
@@ -96,7 +96,7 @@ public class ServerConfiguration {
     this.zoeRoleOption = zoeRoleOption;
   }
 
-  public void setInfoCardsOption(InfoCardOption infoCardsOption) {
+  public void setInfoCardsOption(GameInfoCardOption infoCardsOption) {
     this.infoCardsOption = infoCardsOption;
   }
 

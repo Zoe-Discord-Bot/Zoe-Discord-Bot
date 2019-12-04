@@ -10,7 +10,7 @@ import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.config.option.CleanChannelOption;
 import ch.kalunight.zoe.model.config.option.CleanChannelOption.CleanChannelOptionInfo;
-import ch.kalunight.zoe.model.config.option.InfoCardOption;
+import ch.kalunight.zoe.model.config.option.GameInfoCardOption;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.rithms.riot.constant.Platform;
@@ -67,6 +67,14 @@ public class ConfigRepository {
       "WHERE server.serv_guildId = %d AND " +
       "server.serv_id = server_configuration.servConfig_fk_server AND " +
       "server_configuration.servConfig_id = clean_channel_option.cleanOption_fk_serverConfig";
+  
+  private static final String UPDATE_GAME_INFO_CARD_OPTION_WITH_GUILD_ID =
+      "UPDATE game_info_card_option " +
+      "SET gameCardOption_activate = %s " +
+      "FROM server, server_configuration " +
+      "WHERE server.serv_guildId = %d AND " +
+      "server.serv_id = server_configuration.servConfig_fk_server AND " +
+      "server_configuration.servConfig_id = game_info_card_option.gameCardOption_fk_serverConfig";
   
   private static final String UPDATE_ROLE_OPTION_WITH_ROLE_OPTION_ID =
       "UPDATE role_option SET roleOption_roleId = %d " +
@@ -138,7 +146,7 @@ public class ConfigRepository {
 
       CleanChannelOption cleanChannelOption = getCleanChannelOption(guildId, result);
 
-      InfoCardOption infoCardOption = new InfoCardOption(guildId);
+      GameInfoCardOption infoCardOption = new GameInfoCardOption(guildId);
       infoCardOption.setOptionActivated(result.getBoolean("gameCardOption_activate"));
 
       RoleOption roleOption = getRoleOption(result, guildId);
@@ -223,5 +231,17 @@ public class ConfigRepository {
       query.executeUpdate(finalQuery);
     }
   }
+ 
+  
+  public static void updateGameInfoCardOption(long guildId, boolean activate)
+      throws SQLException {
 
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement();) {
+
+      String finalQuery = String.format(UPDATE_GAME_INFO_CARD_OPTION_WITH_GUILD_ID, 
+          activate, guildId);
+      query.executeUpdate(finalQuery);
+    }
+  }
 }

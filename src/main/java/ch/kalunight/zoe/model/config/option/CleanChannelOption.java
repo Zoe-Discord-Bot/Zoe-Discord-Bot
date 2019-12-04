@@ -36,8 +36,6 @@ public class CleanChannelOption extends ConfigurationOption {
   private static final String UNICODE_THREE = "3\u20E3";
   private static final String EMOJI_THREE = ":three:";
 
-  Logger logger = LoggerFactory.getLogger(CleanChannelOption.class);
-
   public enum CleanChannelOptionInfo {
     DISABLE("cleanChannelOptionDisable", "cleanChannelOptionDisableDesc", UNICODE_ONE, EMOJI_ONE),
     ONLY_ZOE_COMMANDS("cleanChannelOptionZoeCommands", "cleanChannelOptionZoeCommandsDesc", UNICODE_TWO, EMOJI_TWO),
@@ -319,11 +317,6 @@ public class CleanChannelOption extends ConfigurationOption {
 
   public void setCleanChannel(TextChannel cleanChannel) {
     this.cleanChannel = cleanChannel;
-  }
-
-  private void sqlErrorReport(MessageChannel channel, DTO.Server server, SQLException e1) {
-    logger.error("SQL issue in clean channel option", e1);
-    channel.sendMessage(LanguageManager.getText(server.serv_language, "errorSQLPleaseRetry")).complete();
   }
 
 }

@@ -2,13 +2,21 @@ package ch.kalunight.zoe.model.config.option;
 
 import java.sql.SQLException;
 import java.util.function.Consumer;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.translation.LanguageManager;
+import net.dv8tion.jda.api.entities.MessageChannel;
 
 public abstract class ConfigurationOption {
 
   protected static final String NO_VALUE_REPRESENTATION = "null";
+  
+  Logger logger = LoggerFactory.getLogger(CleanChannelOption.class);
   
   protected long guildId;
   protected String description;
@@ -34,5 +42,10 @@ public abstract class ConfigurationOption {
   
   public String getDescription() {
     return description;
+  }
+  
+  protected void sqlErrorReport(MessageChannel channel, DTO.Server server, SQLException e) {
+    logger.error("SQL issue when updating option", e);
+    channel.sendMessage(LanguageManager.getText(server.serv_language, "errorSQLPleaseRetry")).complete();
   }
 }

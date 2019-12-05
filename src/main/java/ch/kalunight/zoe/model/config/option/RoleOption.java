@@ -9,6 +9,7 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.ButtonMenu;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.repositories.ConfigRepository;
+import ch.kalunight.zoe.repositories.RepoRessources;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
@@ -88,7 +89,7 @@ public class RoleOption extends ConfigurationOption {
           try {
             ConfigRepository.updateRoleOption(guildId, role.getIdLong());
           } catch (SQLException e) {
-            sqlErrorReport(channel, server, e);
+            RepoRessources.sqlErrorReport(channel, server, e);
             return;
           }
 
@@ -129,7 +130,7 @@ public class RoleOption extends ConfigurationOption {
           try {
             ConfigRepository.updateRoleOption(guildId, 0);
           } catch (SQLException e) {
-            sqlErrorReport(channel, server, e);
+            RepoRessources.sqlErrorReport(channel, server, e);
             return;
           }
           

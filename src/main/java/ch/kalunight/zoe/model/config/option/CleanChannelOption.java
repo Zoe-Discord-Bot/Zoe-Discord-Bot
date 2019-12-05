@@ -15,6 +15,7 @@ import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.repositories.ConfigRepository;
+import ch.kalunight.zoe.repositories.RepoRessources;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
@@ -164,7 +165,7 @@ public class CleanChannelOption extends ConfigurationOption {
           try {
             ConfigRepository.updateCleanChannelOption(guildId, 0, tmpCleanChannelOption.toString());
           } catch(SQLException e) {
-            sqlErrorReport(channel, server, e);
+            RepoRessources.sqlErrorReport(channel, server, e);
             return;
           }
 
@@ -196,7 +197,7 @@ public class CleanChannelOption extends ConfigurationOption {
                 try {
                   selectChannel(e, server);
                 } catch(SQLException e1) {
-                  sqlErrorReport(channel, server, e1);
+                  RepoRessources.sqlErrorReport(channel, server, e1);
                   return;
                 }
               },
@@ -212,7 +213,7 @@ public class CleanChannelOption extends ConfigurationOption {
           try {
             ConfigRepository.updateCleanChannelOption(guildId, cleanChannel.getIdLong(), cleanChannelOption.toString());
           } catch(SQLException e) {
-            sqlErrorReport(cleanChannel, server, e);
+            RepoRessources.sqlErrorReport(cleanChannel, server, e);
             return;
           }
 

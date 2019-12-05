@@ -17,6 +17,8 @@ public class ServerRepository {
   
   private static final String DELETE_SERVER_WITH_SERV_ID = "DELETE FROM server WHERE serv_id = %d";
   
+  private static final String UPDATE_LANGUAGE_WITH_GUILD_ID = "UPDATE server SET serv_language = '%s' WHERE serv_guildId = %d";
+  
   private ServerRepository() {
     //Hide default public constructor
   }
@@ -78,6 +80,15 @@ public class ServerRepository {
         Statement query = conn.createStatement();) {
       
       String finalQuery = String.format(DELETE_SERVER_WITH_SERV_ID, guildId);
+      query.execute(finalQuery);
+    }
+  }
+  
+  public static void updateLanguage(long guildId, String language) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement();) {
+      
+      String finalQuery = String.format(UPDATE_LANGUAGE_WITH_GUILD_ID, language, guildId);
       query.execute(finalQuery);
     }
   }

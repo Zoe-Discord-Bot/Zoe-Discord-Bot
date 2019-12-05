@@ -16,8 +16,6 @@ public abstract class ConfigurationOption {
 
   protected static final String NO_VALUE_REPRESENTATION = "null";
   
-  Logger logger = LoggerFactory.getLogger(CleanChannelOption.class);
-  
   protected long guildId;
   protected String description;
   
@@ -42,10 +40,5 @@ public abstract class ConfigurationOption {
   
   public String getDescription() {
     return description;
-  }
-  
-  protected void sqlErrorReport(MessageChannel channel, DTO.Server server, SQLException e) {
-    logger.error("SQL issue when updating option", e);
-    channel.sendMessage(LanguageManager.getText(server.serv_language, "errorSQLPleaseReport")).complete();
   }
 }

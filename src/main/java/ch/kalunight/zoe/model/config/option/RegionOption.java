@@ -13,6 +13,7 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.SelectionDialog;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.repositories.ConfigRepository;
+import ch.kalunight.zoe.repositories.RepoRessources;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.entities.Message;
 import net.rithms.riot.constant.Platform;
@@ -119,7 +120,7 @@ public class RegionOption extends ConfigurationOption {
         try {
           ConfigRepository.updateRegionOption(guildId, region);
         } catch (SQLException e) {
-          sqlErrorReport(selectionMessage.getChannel(), server, e);
+          RepoRessources.sqlErrorReport(selectionMessage.getChannel(), server, e);
           return;
         }
 

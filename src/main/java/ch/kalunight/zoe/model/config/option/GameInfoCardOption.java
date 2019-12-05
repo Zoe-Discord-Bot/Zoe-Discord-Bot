@@ -9,6 +9,7 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.ButtonMenu;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.repositories.ConfigRepository;
+import ch.kalunight.zoe.repositories.RepoRessources;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
@@ -81,7 +82,7 @@ public class GameInfoCardOption extends ConfigurationOption {
             ConfigRepository.updateGameInfoCardOption(guildId, false);
             optionActivated = false;
           } catch (SQLException e) {
-            sqlErrorReport(messageChannel, server, e);
+            RepoRessources.sqlErrorReport(messageChannel, server, e);
             return;
           }
           messageChannel.sendMessage(LanguageManager.getText(server.serv_language, "cleanChannelOptionBeenDisable")).queue();
@@ -103,7 +104,7 @@ public class GameInfoCardOption extends ConfigurationOption {
             ConfigRepository.updateGameInfoCardOption(guildId, true);
             optionActivated = true;
           } catch (SQLException e) {
-            sqlErrorReport(messageChannel, server, e);
+            RepoRessources.sqlErrorReport(messageChannel, server, e);
             return;
           }
           messageChannel.sendMessage(LanguageManager.getText(server.serv_language, "cleanChannelOptionBeenActivated")).queue();

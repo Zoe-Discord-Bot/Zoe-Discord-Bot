@@ -15,7 +15,7 @@ public class ServerRepository {
   private static final String INSERT_INTO_SERVER = "INSERT INTO server (serv_guildId, serv_language, serv_lastRefresh) "
       + "VALUES (%d, '%s', '%s')";
   
-  private static final String DELETE_SERVER_WITH_SERV_ID = "DELETE FROM server WHERE serv_id = %d";
+  private static final String DELETE_SERVER_WITH_SERV_GUILDID = "DELETE FROM server WHERE serv_guildId = %d";
   
   private static final String UPDATE_LANGUAGE_WITH_GUILD_ID = "UPDATE server SET serv_language = '%s' WHERE serv_guildId = %d";
   
@@ -79,7 +79,7 @@ public class ServerRepository {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
       
-      String finalQuery = String.format(DELETE_SERVER_WITH_SERV_ID, guildId);
+      String finalQuery = String.format(DELETE_SERVER_WITH_SERV_GUILDID, guildId);
       query.execute(finalQuery);
     }
   }

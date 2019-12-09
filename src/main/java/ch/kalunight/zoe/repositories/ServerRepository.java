@@ -15,6 +15,9 @@ public class ServerRepository {
   private static final String INSERT_INTO_SERVER = "INSERT INTO server (serv_guildId, serv_language, serv_lastRefresh) "
       + "VALUES (%d, '%s', '%s')";
   
+  private static final String INSERT_INTO_SERVER_STATUS = "INSERT INTO server_status (servStatus_fk_server)"
+      + "VALUES (%d)";
+  
   private static final String DELETE_SERVER_WITH_SERV_GUILDID = "DELETE FROM server WHERE serv_guildId = %d";
   
   private static final String UPDATE_LANGUAGE_WITH_GUILD_ID = "UPDATE server SET serv_language = '%s' WHERE serv_guildId = %d";
@@ -70,6 +73,11 @@ public class ServerRepository {
       result.close();
       
       ConfigRepository.initDefaultConfig(statement, servId);
+      
+      //Create Server status
+      finalQuery = String.format(INSERT_INTO_SERVER_STATUS, servId);
+      statement.execute(finalQuery);
+      
     }finally {
       RepoRessources.closeResultSet(result);
     }

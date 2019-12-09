@@ -15,6 +15,7 @@ import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.ControlPannel;
 import ch.kalunight.zoe.model.InfoCard;
 import ch.kalunight.zoe.model.Server;
+import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.player_data.LeagueAccount;
 import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.model.player_data.Team;
@@ -36,15 +37,15 @@ public class InfoPanelRefresher implements Runnable {
 
   private static final Logger logger = LoggerFactory.getLogger(InfoPanelRefresher.class);
 
-  private Server server;
+  private DTO.Server server;
 
   private boolean needToWait = false;
 
-  public InfoPanelRefresher(Server server) {
+  public InfoPanelRefresher(DTO.Server server) {
     this.server = server;
   }
 
-  public InfoPanelRefresher(Server server, boolean needToWait) {
+  public InfoPanelRefresher(DTO.Server server, boolean needToWait) {
     this.server = server;
     this.needToWait = needToWait;
   }

@@ -20,7 +20,7 @@ public abstract class ZoeCommand extends Command {
 
   private static final Logger logger = LoggerFactory.getLogger(ZoeCommand.class);
   
-  protected DTO.Server server; //TODO : Check if it's done 1 per 1 or in a async way
+  protected DTO.Server server; //TODO : Check if it's done 1 per 1 or in a async way -> POSSIBLE CONFLICT ISSUE
   
   @Override
   protected void execute(CommandEvent event) {

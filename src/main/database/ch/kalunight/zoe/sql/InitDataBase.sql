@@ -25,6 +25,12 @@ CREATE TABLE team (
   team_name 									VARCHAR 			NOT NULL
 );
 
+CREATE TABLE server_status (
+  servStatus_id									SERIAL,
+  servStatus_fk_server							BIGINT				NOT NULL,
+  servStatus_inTreatment						boolean				DEFAULT false
+);
+
 CREATE TABLE server_configuration (
   servConfig_id 								SERIAL,
   servConfig_fk_server 							BIGINT 				NOT NULL
@@ -100,6 +106,9 @@ ALTER TABLE ONLY player
 ALTER TABLE ONLY team 
   ADD CONSTRAINT team_pkey PRIMARY KEY (team_id);
   
+ALTER TABLE ONLY server_status 
+  ADD CONSTRAINT server_status_pkey PRIMARY KEY (servStatus_id);
+  
 ALTER TABLE ONLY server_configuration 
   ADD CONSTRAINT server_config_pkey PRIMARY KEY (servConfig_id);
 
@@ -142,6 +151,11 @@ ALTER TABLE team
   ADD CONSTRAINT team_fk_server_const 
   FOREIGN KEY (team_fk_server) REFERENCES server (serv_id);
   
+ALTER TABLE server_status
+  ADD CONSTRAINT servStatus_fk_server_const 
+  FOREIGN KEY (servStatus_fk_server) REFERENCES server (serv_id)
+  ON DELETE CASCADE;
+  
 ALTER TABLE server_configuration
   ADD CONSTRAINT servConfig_fk_server_const 
   FOREIGN KEY (servConfig_fk_server) REFERENCES server (serv_id)
@@ -174,20 +188,25 @@ ALTER TABLE role_option
   
 ALTER TABLE info_channel
   ADD CONSTRAINT info_channel_fk_server_const 
-  FOREIGN KEY (infoChannel_fk_server) REFERENCES server (serv_id);
+  FOREIGN KEY (infoChannel_fk_server) REFERENCES server (serv_id)
+  ON DELETE CASCADE;
   
 ALTER TABLE info_panel_message
   ADD CONSTRAINT info_panel_message_fk_infoChannel_const 
-  FOREIGN KEY (infoPanel_fk_infoChannel) REFERENCES info_channel (infoChannel_id);
+  FOREIGN KEY (infoPanel_fk_infoChannel) REFERENCES info_channel (infoChannel_id)
+  ON DELETE CASCADE;
   
 ALTER TABLE game_info_card
   ADD CONSTRAINT game_info_card_fk_infoChannel_const 
-  FOREIGN KEY (gameCard_fk_infoChannel) REFERENCES info_channel (infoChannel_id);
+  FOREIGN KEY (gameCard_fk_infoChannel) REFERENCES info_channel (infoChannel_id)
+  ON DELETE CASCADE;
   
 ALTER TABLE league_account
   ADD CONSTRAINT league_account_fk_gameCard_const 
-  FOREIGN KEY (leagueAccount_fk_gameCard) REFERENCES game_info_card (gameCard_id);
+  FOREIGN KEY (leagueAccount_fk_gameCard) REFERENCES game_info_card (gameCard_id)
+  ON DELETE CASCADE;
   
 ALTER TABLE league_account
   ADD CONSTRAINT league_account_fk_player_const 
-  FOREIGN KEY (leagueAccount_fk_player) REFERENCES player (player_id);
+  FOREIGN KEY (leagueAccount_fk_player) REFERENCES player (player_id)
+  ON DELETE CASCADE;

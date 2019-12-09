@@ -4,8 +4,6 @@ import java.util.function.BiConsumer;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import ch.kalunight.zoe.ServerData;
-import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 
@@ -23,9 +21,7 @@ public class SetupCommand extends ZoeCommand {
   protected void executeCommand(CommandEvent event) {
     CommandUtil.sendTypingInFonctionOfChannelType(event);
     
-    Server server = ServerData.getServers().get(event.getGuild().getId());
-    
-    event.reply(LanguageManager.getText(server.getLangage(), "setupMessage"));
+    event.reply(LanguageManager.getText(server.serv_language, "setupMessage"));
   }
 
   @Override

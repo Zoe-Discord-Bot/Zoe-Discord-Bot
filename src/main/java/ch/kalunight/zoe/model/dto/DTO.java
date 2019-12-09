@@ -27,4 +27,16 @@ public class DTO {
     }
   }
   
+  public static class InfoChannel {
+    public long infoChannel_id;
+    public long infochannel_fk_server;
+    public long infochannel_channelid;
+    
+    public InfoChannel(ResultSet baseData) throws SQLException {
+      infoChannel_id = baseData.getLong("infochannel_id");
+      infochannel_fk_server = baseData.getLong("infochannel_fk_server");
+      infochannel_channelid = baseData.getLong("infochannel_channelid");
+    }
+  }
+  
 }

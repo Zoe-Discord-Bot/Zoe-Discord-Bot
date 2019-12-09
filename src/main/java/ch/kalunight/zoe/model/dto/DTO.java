@@ -4,10 +4,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import net.rithms.riot.constant.Platform;
 
 public class DTO {
   
-  public static final DateTimeFormatter DB_TIME_PATTERN = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+  public static final DateTimeFormatter DB_TIME_PATTERN = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
   
   private DTO() {
     //hide default constructor
@@ -39,4 +40,41 @@ public class DTO {
     }
   }
   
+  public static class Player {
+    public long player_id;
+    public long player_fk_server;
+    public long player_fk_team;
+    public long player_discordId;
+    public boolean player_mentionnable;
+    
+    public Player(ResultSet baseData) throws SQLException {
+      player_id = baseData.getLong("player_id");
+      player_fk_server = baseData.getLong("player_fk_server");
+      player_fk_team = baseData.getLong("player_fk_team");
+      player_discordId = baseData.getLong("player_discordId");
+      player_mentionnable = baseData.getBoolean("player_mentionnable");
+    }
+  }
+  
+  public static class LeagueAccount {
+    public long leagueAccount_id;
+    public long leagueAccount_fk_player;
+    public long leagueAccount_fk_gamecard;
+    public String leagueAccount_summonerId;
+    public String leagueAccount_accoundId;
+    public String leagueAccount_puuid;
+    public Platform leagueAccount_server;
+    public String leagueAccount_currentGame;
+    
+    public LeagueAccount(ResultSet baseData) throws SQLException {
+      leagueAccount_id = baseData.getLong("leagueAccount_id");
+      leagueAccount_fk_player = baseData.getLong("leagueAccount_fk_player");
+      leagueAccount_fk_gamecard = baseData.getLong("leagueAccount_fk_gamecard");
+      leagueAccount_summonerId = baseData.getString("leagueAccount_summonerId");
+      leagueAccount_accoundId = baseData.getString("leagueAccount_accountId");
+      leagueAccount_puuid = baseData.getString("leagueAccount_puuid");
+      leagueAccount_server = Platform.getPlatformByName(baseData.getString("leagueAccount_server"));
+      leagueAccount_currentGame = baseData.getString("leagueAccount_currentGame");
+    }
+  }
 }

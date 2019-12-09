@@ -91,7 +91,9 @@ CREATE TABLE league_account (
   leagueAccount_id								SERIAL,
   leagueAccount_fk_player						BIGINT				NOT NULL,
   leagueAccount_fk_gameCard						BIGINT,
-  leagueAccount_summonerId						BIGINT				NOT NULL,
+  leagueAccount_summonerId						VARCHAR				NOT NULL,
+  leagueAccount_accountId						VARCHAR				NOT NULL,
+  leagueAccount_puuid							VARCHAR				NOT NULL,
   leagueAccount_server							VARCHAR				NOT NULL,
   leagueAccount_currentGame						JSON
 );

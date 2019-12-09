@@ -27,7 +27,7 @@ public class RepoRessources {
   public static Connection getConnection() throws SQLException {
     return DriverManager.getConnection(RepoRessources.DB_URL, RepoRessources.DB_USERNAME, RepoRessources.DB_PASSWORD);
   }
-  
+
   public static void closeResultSet(ResultSet result) throws SQLException {
     if(result != null && !result.isClosed()) {
       result.close();

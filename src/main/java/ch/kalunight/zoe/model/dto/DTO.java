@@ -77,4 +77,16 @@ public class DTO {
       leagueAccount_currentGame = baseData.getString("leagueAccount_currentGame");
     }
   }
+  
+  public static class Team {
+    public long team_id;
+    public long team_fk_server;
+    public String team_name;
+    
+    public Team(ResultSet baseData) throws SQLException {
+      team_id = baseData.getLong("team_id");
+      team_fk_server = baseData.getLong("team_fk_server");
+      team_name = baseData.getString("team_name");
+    }
+  }
 }

@@ -2,6 +2,7 @@ package ch.kalunight.zoe.command.stats;
 
 import java.awt.Color;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,12 +27,16 @@ import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.model.Server;
+import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.player_data.LeagueAccount;
 import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.model.static_data.Champion;
+import ch.kalunight.zoe.repositories.LeagueAccountRepository;
+import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import ch.kalunight.zoe.util.Ressources;
+import ch.kalunight.zoe.util.RiotApiUtil;
 import ch.kalunight.zoe.util.request.MessageBuilderRequest;
 import ch.kalunight.zoe.util.request.RiotRequest;
 import net.dv8tion.jda.api.MessageBuilder;
@@ -41,6 +46,7 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.champion_mastery.dto.ChampionMastery;
+import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.constant.CallPriority;
 
 public class StatsProfileCommand extends ZoeCommand {
@@ -51,7 +57,7 @@ public class StatsProfileCommand extends ZoeCommand {
   private static final Map<Double, Object> MASTERIES_TABLE_OF_LOW_VALUE_Y_AXIS = new HashMap<>();
 
   private static final Logger logger = LoggerFactory.getLogger(StatsProfileCommand.class);
-  
+
   private final EventWaiter waiter;
 
   static {
@@ -75,7 +81,7 @@ public class StatsProfileCommand extends ZoeCommand {
     MASTERIES_TABLE_OF_HIGH_VALUE_Y_AXIS.put(2500000.0, "2.5M");
     MASTERIES_TABLE_OF_HIGH_VALUE_Y_AXIS.put(3000000.0, "3M");
   }
-  
+
 
   public StatsProfileCommand(EventWaiter eventWaiter) {
     this.name = "profile";
@@ -91,10 +97,9 @@ public class StatsProfileCommand extends ZoeCommand {
   }
 
   @Override
-  protected void executeCommand(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) throws SQLException {
     CommandUtil.sendTypingInFonctionOfChannelType(event);
-    
-    Server server = ServerData.getServers().get(event.getGuild().getId());
+
     SelectionDialog.Builder selectAccountBuilder = new SelectionDialog.Builder()
         .setEventWaiter(waiter)
         .useLooping(true)
@@ -105,71 +110,100 @@ public class StatsProfileCommand extends ZoeCommand {
 
     List<User> userList = event.getMessage().getMentionedUsers();
     if(userList.size() != 1) {
-      
-      event.reply(LanguageManager.getText(server.getLangage(), "statsProfileMentionOnePlayer"));
+
+      event.reply(LanguageManager.getText(server.serv_language, "statsProfileMentionOnePlayer"));
       return;
     }
 
     User user = userList.get(0);
-    Player player = server.getPlayerByDiscordId(user.getIdLong());
-
+    DTO.Player player = PlayerRepository.getPlayer(server.serv_guildId, user.getIdLong());
     if(player == null) {
-      event.reply(LanguageManager.getText(server.getLangage(), "statsProfileNeedARegisteredPlayer"));
+      event.reply(LanguageManager.getText(server.serv_language, "statsProfileNeedARegisteredPlayer"));
       return;
     }
 
-    if(player.getLolAccounts().size() == 1) {
-      generateStatsMessage(event, player, player.getLolAccounts().get(0), server);
+    List<DTO.LeagueAccount> accounts = LeagueAccountRepository.getLeaguesAccounts(server.serv_guildId, user.getIdLong());
+
+    if(accounts.size() == 1) {
+      Summoner summoner;
+      try {
+        summoner = Zoe.getRiotApi().getSummoner(accounts.get(0).leagueAccount_server,
+            accounts.get(0).leagueAccount_summonerId, CallPriority.HIGH);
+      }catch(RiotApiException e) {
+        RiotApiUtil.handleRiotApi(event, e, server.serv_language);
+        return;
+      }
+      generateStatsMessage(event, player, accounts.get(0), summoner, server);
     }else {
       selectAccountBuilder
       .addUsers(event.getAuthor())
-      .setSelectionConsumer(getSelectionDoneAction(event, player, server));
+      .setSelectionConsumer(getSelectionDoneAction(event, player, server, accounts));
 
       List<String> accountsName = new ArrayList<>();
 
-      for(LeagueAccount choiceAccount : player.getLolAccounts()) {
-        selectAccountBuilder.addChoices(String.format(LanguageManager.getText(server.getLangage(), "showPlayerAccount"),
-            choiceAccount.getSummoner().getName(),
-            choiceAccount.getRegion().getName().toUpperCase(),
-            RiotRequest.getSoloqRank(choiceAccount.getSummoner().getId(), choiceAccount.getRegion(), CallPriority.HIGH)));
-        accountsName.add(choiceAccount.getSummoner().getName());
+      for(DTO.LeagueAccount choiceAccount : accounts) {
+        Summoner summoner;
+        try {
+          summoner = Zoe.getRiotApi().getSummoner(choiceAccount.leagueAccount_server,
+              choiceAccount.leagueAccount_summonerId, CallPriority.HIGH);
+        }catch(RiotApiException e) {
+          RiotApiUtil.handleRiotApi(event, e, server.serv_language);
+          return;
+        }
+
+        selectAccountBuilder.addChoices(String.format(LanguageManager.getText(server.serv_language, "showPlayerAccount"),
+            summoner.getName(),
+            choiceAccount.leagueAccount_server.getName().toUpperCase(),
+            RiotRequest.getSoloqRank(summoner.getId(), choiceAccount.leagueAccount_server, CallPriority.HIGH)));
+        accountsName.add(summoner.getName());
       }
-      
+
       selectAccountBuilder.setText(getUpdateMessageAfterChangeSelectAction(accountsName, server));
-      
+
       SelectionDialog selectAccount = selectAccountBuilder.build();
       selectAccount.display(event.getChannel());
     }
   }
 
-  private Function<Integer, String> getUpdateMessageAfterChangeSelectAction(List<String> choices, Server server) {
+  private Function<Integer, String> getUpdateMessageAfterChangeSelectAction(List<String> choices, DTO.Server server) {
     return new Function<Integer, String>() {
       @Override
       public String apply(Integer index) {
-        return String.format(LanguageManager.getText(server.getLangage(), "statsProfileSelectText"), choices.get(index - 1));
+        return String.format(LanguageManager.getText(server.serv_language, "statsProfileSelectText"), choices.get(index - 1));
       }
     };
   }
 
-  private BiConsumer<Message, Integer> getSelectionDoneAction(CommandEvent event, Player player, Server server) {
+  private BiConsumer<Message, Integer> getSelectionDoneAction(CommandEvent event, DTO.Player player,
+      DTO.Server server, List<DTO.LeagueAccount> lolAccounts) {
     return new BiConsumer<Message, Integer>() {
       @Override
       public void accept(Message selectionMessage, Integer selectionOfUser) {
-        LeagueAccount account = player.getLolAccounts().get(selectionOfUser - 1);
+        DTO.LeagueAccount account = lolAccounts.get(selectionOfUser - 1);
 
         selectionMessage.clearReactions().queue();
+
+        Summoner summoner;
+        try {
+          summoner = Zoe.getRiotApi().getSummoner(account.leagueAccount_server,
+              account.leagueAccount_summonerId, CallPriority.HIGH);
+        } catch(RiotApiException e) {
+          RiotApiUtil.handleRiotApi(event, e, server.serv_language);
+          return;
+        }
         
         selectionMessage.getTextChannel().sendMessage(String.format(
-            LanguageManager.getText(server.getLangage(), "statsProfileSelectionDoneMessage"),
-            account.getSummoner().getName(), player.getDiscordUser().getName())).queue();
-        
-        generateStatsMessage(event, player, player.getLolAccounts().get(selectionOfUser - 1), server);
+            LanguageManager.getText(server.serv_language, "statsProfileSelectionDoneMessage"),
+            summoner.getName(), Zoe.getJda().retrieveUserById(player.player_discordId).complete()
+            .getName())).queue();
+
+        generateStatsMessage(event, player, account, summoner, server);
       }
 
     };
   }
 
-  private Consumer<Message> getSelectionCancelAction(Server server){
+  private Consumer<Message> getSelectionCancelAction(DTO.Server server){
     return new Consumer<Message>() {
       @Override
       public void accept(Message message) {
@@ -179,9 +213,10 @@ public class StatsProfileCommand extends ZoeCommand {
     };
   }
 
-  private void generateStatsMessage(CommandEvent event, Player player, LeagueAccount lolAccount, Server server) {
+  private void generateStatsMessage(CommandEvent event, DTO.Player player, DTO.LeagueAccount lolAccount,
+      Summoner summoner, DTO.Server server) {
     event.getTextChannel().sendTyping().queue();
-    
+
     List<ChampionMastery> championsMasteries;
     try {
       championsMasteries = Zoe.getRiotApi().getChampionMasteriesBySummoner(lolAccount.getRegion(), lolAccount.getSummoner().getId(), CallPriority.HIGH);

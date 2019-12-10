@@ -1,5 +1,6 @@
 package ch.kalunight.zoe.command.stats;
 
+import java.sql.SQLException;
 import java.util.function.BiConsumer;
 
 import com.jagrosh.jdautilities.command.Command;
@@ -24,7 +25,7 @@ public class StatsCommand extends ZoeCommand {
   }
   
   @Override
-  protected void executeCommand(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) throws SQLException {
     if(!event.getMessage().getMentionedMembers().isEmpty()) {
       for(Command command : Zoe.getMainCommands(null)) {
         for(Command commandChild : command.getChildren()) {

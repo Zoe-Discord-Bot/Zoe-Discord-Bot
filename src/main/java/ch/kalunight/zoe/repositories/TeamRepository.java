@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
 import ch.kalunight.zoe.model.dto.DTO;
 
 public class TeamRepository {
@@ -20,12 +21,14 @@ public class TeamRepository {
   
   private static final String SELECT_TEAM_BY_SERVER_AND_DISCORD_ID = "SELECT " + 
       "team.team_id,team.team_fk_server,team.team_name " + 
-      "FROM team " + 
-      "INNER JOIN server ON team.team_fk_server = server.serv_id " + 
-      "INNER JOIN player ON server.serv_id = player.player_fk_server " + 
-      "INNER JOIN player AS player_1 ON team.team_id = player_1.player_fk_team " + 
+      "FROM server " + 
+      "INNER JOIN team ON server.serv_id = team.team_fk_server " + 
+      "INNER JOIN player ON team.team_id = player.player_fk_team " + 
+      "INNER JOIN player AS player_1 ON server.serv_id = player_1.player_fk_server " + 
       "WHERE player.player_discordid = %d " + 
       "AND server.serv_guildid = %d";
+  
+  private static final String DELETE_TEAM_WITH_TEAMID = "DELETE FROM team WHERE team_id = %d";
   
   private TeamRepository() {
     //hide default public constructor
@@ -36,6 +39,18 @@ public class TeamRepository {
         Statement query = conn.createStatement();) {
       
       String finalQuery = String.format(INSERT_INTO_TEAM, servId, teamName);
+      query.execute(finalQuery);
+    }
+  }
+  
+  public static void deleteTeam(long teamId, List<Long> playersId) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement();) {
+      
+      for(Long playerId : playersId) {
+        PlayerRepository.updateTeamOfPlayerDefineNull(playerId);
+      }
+      String finalQuery = String.format(DELETE_TEAM_WITH_TEAMID, teamId);
       query.execute(finalQuery);
     }
   }

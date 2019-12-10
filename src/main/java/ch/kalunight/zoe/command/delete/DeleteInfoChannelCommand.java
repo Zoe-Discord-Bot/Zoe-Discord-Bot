@@ -1,16 +1,16 @@
 package ch.kalunight.zoe.command.delete;
 
+import java.sql.SQLException;
 import java.util.function.BiConsumer;
-
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.command.ZoeCommand;
-import ch.kalunight.zoe.model.ControlPannel;
-import ch.kalunight.zoe.model.Server;
+import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.repositories.InfoChannelRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 
 public class DeleteInfoChannelCommand extends ZoeCommand {
@@ -25,26 +25,25 @@ public class DeleteInfoChannelCommand extends ZoeCommand {
   }
 
   @Override
-  protected void executeCommand(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) throws SQLException {
     event.getTextChannel().sendTyping().complete();
+    
+    DTO.InfoChannel infochannel = InfoChannelRepository.getInfoChannel(server.serv_guildId);
 
-    Server server = ServerData.getServers().get(event.getGuild().getId());
-
-    if(server.getInfoChannel() == null) {
-      event.reply(LanguageManager.getText(server.getLangage(), "deleteInfoChannelChannelNotSetted"));
+    if(infochannel == null) {
+      event.reply(LanguageManager.getText(server.serv_language, "deleteInfoChannelChannelNotSetted"));
     } else {
       try {
-        server.getInfoChannel().delete().queue();
+        TextChannel textChannel = event.getGuild().getTextChannelById(infochannel.infochannel_channelid);
+        textChannel.delete().queue();
       } catch(InsufficientPermissionException e) {
-        server.setInfoChannel(null);
-        server.setControlePannel(new ControlPannel());
-        event.reply(LanguageManager.getText(server.getLangage(), "deleteInfoChannelDeletedMissingPermission"));
+        InfoChannelRepository.deleteInfoChannel(server.serv_guildId);
+        event.reply(LanguageManager.getText(server.serv_language, "deleteInfoChannelDeletedMissingPermission"));
         return;
       }
 
-      server.setInfoChannel(null);
-      server.setControlePannel(new ControlPannel());
-      event.reply(LanguageManager.getText(server.getLangage(), "deleteInfoChannelDoneMessage"));
+      InfoChannelRepository.deleteInfoChannel(server.serv_guildId);
+      event.reply(LanguageManager.getText(server.serv_language, "deleteInfoChannelDoneMessage"));
     }
   }
 

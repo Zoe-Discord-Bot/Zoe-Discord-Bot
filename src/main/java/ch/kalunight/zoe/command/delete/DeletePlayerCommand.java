@@ -1,14 +1,17 @@
 package ch.kalunight.zoe.command.delete;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.function.BiConsumer;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
-import ch.kalunight.zoe.model.Server;
-import ch.kalunight.zoe.model.player_data.Player;
+import ch.kalunight.zoe.model.config.ServerConfiguration;
+import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.repositories.ConfigRepository;
+import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
@@ -27,15 +30,15 @@ public class DeletePlayerCommand extends ZoeCommand {
   }
 
   @Override
-  protected void executeCommand(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) throws SQLException {
     event.getTextChannel().sendTyping().complete();
     
-    Server server = ServerData.getServers().get(event.getGuild().getId());
+    ServerConfiguration config = ConfigRepository.getServerConfiguration(server.serv_guildId);
     
-    if(!server.getConfig().getUserSelfAdding().isOptionActivated() && 
+    if(!config.getUserSelfAdding().isOptionActivated() && 
         !event.getMember().getPermissions().contains(Permission.MANAGE_CHANNEL)) {
       
-        event.reply(String.format(LanguageManager.getText(server.getLangage(), "deletePlayerMissingPermission"),
+        event.reply(String.format(LanguageManager.getText(server.serv_language, "deletePlayerMissingPermission"),
             Permission.MANAGE_CHANNEL.getName()));
         return;
     }
@@ -43,29 +46,29 @@ public class DeletePlayerCommand extends ZoeCommand {
     List<Member> members = event.getMessage().getMentionedMembers();
 
     if(members.size() != 1) {
-      event.reply(LanguageManager.getText(server.getLangage(), "deletePlayerMissingMentionPlayer"));
+      event.reply(LanguageManager.getText(server.serv_language, "deletePlayerMissingMentionPlayer"));
     } else {
       User user = members.get(0).getUser();
       if(!user.equals(event.getAuthor()) && !event.getMember().getPermissions().contains(Permission.MANAGE_CHANNEL)) {
-        event.reply(String.format(LanguageManager.getText(server.getLangage(), "deletePlayerOtherPlayerMissingPermission"), 
+        event.reply(String.format(LanguageManager.getText(server.serv_language, "deletePlayerOtherPlayerMissingPermission"), 
             Permission.MANAGE_CHANNEL.getName()));
         return;
       }
       
-      Player player = server.getPlayerByDiscordId(user.getIdLong());
+      DTO.Player player = PlayerRepository.getPlayer(server.serv_guildId, user.getIdLong());
       
       if(player == null) {
-        event.reply(String.format(LanguageManager.getText(server.getLangage(), "deletePlayerUserNotRegistered"), user.getName()));
+        event.reply(String.format(LanguageManager.getText(server.serv_language, "deletePlayerUserNotRegistered"), user.getName()));
       } else {
-        server.deletePlayer(player);
-        if(server.getConfig().getZoeRoleOption().getRole() != null) {
-          Member member = server.getGuild().getMember(user);
+        PlayerRepository.deletePlayer(player.player_id);
+        if(config.getZoeRoleOption().getRole() != null) {
+          Member member = event.getGuild().getMember(user);
           if(member != null) {
-            server.getGuild().removeRoleFromMember(member, server.getConfig().getZoeRoleOption().getRole()).queue();
+            event.getGuild().removeRoleFromMember(member, config.getZoeRoleOption().getRole()).queue();
           }
         }
-        event.reply(String.format(LanguageManager.getText(server.getLangage(), "deletePlayerDoneMessage"),
-            player.getDiscordUser().getName()));
+        event.reply(String.format(LanguageManager.getText(server.serv_language, "deletePlayerDoneMessage"),
+            Zoe.getJda().retrieveUserById(player.player_discordId).complete().getName()));
       }
     }
   }

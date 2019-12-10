@@ -1,10 +1,8 @@
 package ch.kalunight.zoe.command.add;
 
 import java.util.function.BiConsumer;
-
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
@@ -26,7 +24,7 @@ public class AddCommand extends ZoeCommand {
 
   @Override
   protected void executeCommand(CommandEvent event) {
-    event.reply(LanguageManager.getText(ServerData.getServers().get(event.getGuild().getId()).getLangage(), "mainAddCommandHelpMessage"));
+    event.reply(LanguageManager.getText(server.serv_language, "mainAddCommandHelpMessage"));
   }
 
   @Override

@@ -19,7 +19,9 @@ import ch.kalunight.zoe.model.ControlPannel;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.config.option.CleanChannelOption.CleanChannelOptionInfo;
+import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.player_data.Player;
+import ch.kalunight.zoe.repositories.InfoChannelRepository;
 import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.riotapi.CacheManager;
 import ch.kalunight.zoe.service.InfoPanelRefresher;
@@ -54,7 +56,7 @@ public class EventListener extends ListenerAdapter {
       + "basic options. You can always do the command `>setup` or `>help` if you need help.\n\n"
       + "First, please choose your language. (Will be defined for the server, i only speak in english in private message)";
 
-  private static Logger logger = LoggerFactory.getLogger(EventListener.class);
+  private static final Logger logger = LoggerFactory.getLogger(EventListener.class);
 
   @Override
   public void onReady(ReadyEvent event) {
@@ -223,10 +225,13 @@ public class EventListener extends ListenerAdapter {
 
   @Override
   public void onTextChannelDelete(TextChannelDeleteEvent event) {
-    Server server = ServerData.getServers().get(event.getGuild().getId());
-    if(server.getInfoChannel() != null && server.getInfoChannel().getId().equals(event.getChannel().getId())) {
-      server.setControlePannel(new ControlPannel());
-      server.setInfoChannel(null);
+    try {
+      DTO.InfoChannel infochannel = InfoChannelRepository.getInfoChannel(event.getGuild().getIdLong());
+      if(infochannel != null && infochannel.infochannel_channelid == event.getChannel().getIdLong()) {
+        InfoChannelRepository.deleteInfoChannel(event.getGuild().getIdLong());
+      }
+    }catch(SQLException e) {
+      logger.error("Issue with db when reacting to the textChannelDelete Event.");
     }
   }
 

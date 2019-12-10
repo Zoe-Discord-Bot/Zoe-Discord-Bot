@@ -48,7 +48,11 @@ public class PlayerRepository {
   private static final String INSERT_INTO_PLAYER = "INSERT INTO player " +
       "(player_fk_server, player_discordId, player_mentionnable) VALUES (%d, %d, %s)";
   
+  private static final String DELETE_PLAYER_WITH_PLAYER_ID = "DELETE FROM player WHERE player_id = %d";
+  
   private static final String UPDATE_TEAM_OF_PLAYER = "UPDATE player SET player_fk_team = %d WHERE player_id = %d";
+  
+  private static final String UPDATE_TEAM_OF_PLAYER_DEFINE_NULL = "UPDATE player SET player_fk_team = %s WHERE player_id = %d";
   
   private PlayerRepository() {
     //hide default public constructor
@@ -68,6 +72,24 @@ public class PlayerRepository {
         Statement query = conn.createStatement();) {
       
       String finalQuery = String.format(UPDATE_TEAM_OF_PLAYER, teamId, playerId);
+      query.executeUpdate(finalQuery);
+    }
+  }
+  
+  public static void updateTeamOfPlayerDefineNull(long playerId) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement();) {
+      
+      String finalQuery = String.format(UPDATE_TEAM_OF_PLAYER_DEFINE_NULL, "NULL", playerId);
+      query.executeUpdate(finalQuery);
+    }
+  }
+  
+  public static void deletePlayer(long playerId) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement();) {
+      
+      String finalQuery = String.format(DELETE_PLAYER_WITH_PLAYER_ID, playerId);
       query.executeUpdate(finalQuery);
     }
   }

@@ -6,8 +6,12 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.DTO;
+import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
+import net.rithms.riot.constant.CallPriority;
+import net.rithms.riot.constant.Platform;
 
 public class LeagueAccountRepository {
 
@@ -31,6 +35,8 @@ public class LeagueAccountRepository {
       "WHERE server.serv_guildid = %d " + 
       "AND player.player_discordid = %d";
   
+  private static final String DELETE_LEAGUE_ACCOUNT_WITH_ID = "DELETE FROM league_account WHERE leagueaccount_id = %d";
+  
   private LeagueAccountRepository() {
     //hide default public constructor
   }
@@ -53,7 +59,6 @@ public class LeagueAccountRepository {
       String finalQuery = String.format(SELECT_LEAGUES_ACCOUNTS_WITH_GUILDID_AND_PLAYER_DISCORD_ID, guildId, discordPlayerId);
       result = query.executeQuery(finalQuery);
       
-      
       List<DTO.LeagueAccount> accounts = new ArrayList<>();
       result.next();
       while(!result.isAfterLast()) {
@@ -67,5 +72,33 @@ public class LeagueAccountRepository {
     }
   }
   
+  public static DTO.LeagueAccount getLeagueAccountByName(long guildId, long discordPlayerId,
+      String summonerName, Platform region) throws SQLException, RiotApiException {
+    ResultSet result = null;
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+      
+      for(DTO.LeagueAccount account : getLeaguesAccounts(guildId, discordPlayerId)) {
+        if(account.leagueAccount_server.equals(region)) {
+          Summoner summoner = Zoe.getRiotApi().getSummoner(region, account.leagueAccount_summonerId, CallPriority.HIGH);
+          if(summoner.getName().equals(summonerName)) {
+            return account;
+          }
+        }
+      }
+      return null;
+    }finally {
+      RepoRessources.closeResultSet(result);
+    }
+  }
+  
+  public static void deleteAccountWithId(long leagueAccountId) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement();) {
+      
+      String finalQuery = String.format(DELETE_LEAGUE_ACCOUNT_WITH_ID, leagueAccountId);
+      query.executeUpdate(finalQuery);
+    }
+  }
   
 }

@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import javax.annotation.Nullable;
 import ch.kalunight.zoe.model.dto.DTO;
 
@@ -16,6 +18,15 @@ public class InfoChannelRepository {
       "FROM info_channel " + 
       "INNER JOIN server ON info_channel.infochannel_fk_server = server.serv_id " +
       "WHERE serv_guildId = %d";
+  
+  private static final String SELECT_INFO_PANEL_WITH_GUILDID = "SELECT " + 
+      "info_panel_message.infopanel_id, " + 
+      "info_panel_message.infopanel_fk_infochannel, " + 
+      "info_panel_message.infopanel_messageid " + 
+      "FROM server " + 
+      "INNER JOIN info_channel ON server.serv_id = info_channel.infochannel_fk_server " + 
+      "INNER JOIN info_panel_message ON info_channel.infochannel_id = info_panel_message.infopanel_fk_infochannel " + 
+      "WHERE server.serv_guildid = %d";
   
   private static final String INSERT_INTO_INFOCHANNEL = "INSERT INTO info_channel (infochannel_fk_server, infochannel_channelid) " +
       "VALUES (%d, %d)";
@@ -51,6 +62,27 @@ public class InfoChannelRepository {
         return null;
       }
       return new DTO.InfoChannel(result);
+    }finally {
+      RepoRessources.closeResultSet(result);
+    }
+  }
+  
+  public static List<DTO.InfoPanelMessage> getInfoPanelMessages(long guildId) throws SQLException {
+    ResultSet result = null;
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+      
+      String finalQuery = String.format(SELECT_INFO_PANEL_WITH_GUILDID, guildId);
+      result = query.executeQuery(finalQuery);
+      
+      List<DTO.InfoPanelMessage> infopanel = new ArrayList<>();
+      result.next();
+      while(!result.isAfterLast()) {
+        infopanel.add(new DTO.InfoPanelMessage(result));
+        result.next();
+      }
+      
+      return infopanel;
     }finally {
       RepoRessources.closeResultSet(result);
     }

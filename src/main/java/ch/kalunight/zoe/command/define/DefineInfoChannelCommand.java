@@ -1,17 +1,19 @@
 package ch.kalunight.zoe.command.define;
 
+import java.sql.SQLException;
 import java.util.function.BiConsumer;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.command.ZoeCommand;
-import ch.kalunight.zoe.model.ControlPannel;
-import ch.kalunight.zoe.model.Server;
-import ch.kalunight.zoe.service.InfoPanelRefresher;
+import ch.kalunight.zoe.model.config.ServerConfiguration;
+import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.repositories.ConfigRepository;
+import ch.kalunight.zoe.repositories.InfoChannelRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 
 public class DefineInfoChannelCommand extends ZoeCommand {
@@ -26,40 +28,43 @@ public class DefineInfoChannelCommand extends ZoeCommand {
   }
 
   @Override
-  protected void executeCommand(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) throws SQLException {
     event.getTextChannel().sendTyping().complete();
-    Server server = ServerData.getServers().get(event.getGuild().getId());
 
-    if(server.getInfoChannel() != null) {
-      event.reply(String.format(LanguageManager.getText(server.getLangage(), "defineInfoChannelAlreadySet"), 
-          server.getInfoChannel().getAsMention()));
+    DTO.InfoChannel infochannel = InfoChannelRepository.getInfoChannel(server.serv_guildId);
+
+    if(infochannel != null) {
+      TextChannel textChannel = event.getGuild().getTextChannelById(infochannel.infochannel_channelid);
+      event.reply(String.format(LanguageManager.getText(server.serv_language, "defineInfoChannelAlreadySet"), 
+          textChannel.getAsMention()));
     } else {
       if(event.getMessage().getMentionedChannels().size() != 1) {
-        event.reply(LanguageManager.getText(server.getLangage(), "defineInfoChannelMentionOfAChannelNeeded"));
+        event.reply(LanguageManager.getText(server.serv_language, "defineInfoChannelMentionOfAChannelNeeded"));
       } else {
         TextChannel textChannel = event.getMessage().getMentionedChannels().get(0);
 
-        if(!textChannel.getGuild().equals(server.getGuild())) {
-          event.reply(LanguageManager.getText(server.getLangage(), "defineInfoChannelMentionOfAChannel"));
+        if(textChannel.getGuild().getIdLong() != server.serv_guildId) {
+          event.reply(LanguageManager.getText(server.serv_language, "defineInfoChannelMentionOfAChannel"));
 
         } else {
           if(!event.getMessage().getMentionedChannels().get(0).canTalk()) {
-            event.reply(LanguageManager.getText(server.getLangage(), "defineInfoChannelMissingSpeakPermission"));
+            event.reply(LanguageManager.getText(server.serv_language, "defineInfoChannelMissingSpeakPermission"));
           } else {
-            if(textChannel.equals(server.getConfig().getCleanChannelOption().getCleanChannel())) {
-              event.reply(LanguageManager.getText(server.getLangage(), "defineInfoChannelImpossibleToDefineCleanChannel"));
+            ServerConfiguration config = ConfigRepository.getServerConfiguration(server.serv_guildId);
+            if(textChannel.equals(config.getCleanChannelOption().getCleanChannel())) {
+              event.reply(LanguageManager.getText(server.serv_language, "defineInfoChannelImpossibleToDefineCleanChannel"));
             }else {
-              server.setInfoChannel(textChannel.getIdLong());
-              server.setControlePannel(new ControlPannel());
-              event.reply(LanguageManager.getText(server.getLangage(), "defineInfoChannelDoneMessage"));
+              InfoChannelRepository.createInfoChannel(server.serv_id, textChannel.getIdLong());
+              event.reply(LanguageManager.getText(server.serv_language, "defineInfoChannelDoneMessage"));
 
-              if(server.getControlePannel().getInfoPanel().isEmpty()) {
-                server.getControlePannel().getInfoPanel()
-                .add(server.getInfoChannel().sendMessage(LanguageManager.getText(server.getLangage(), "defineInfoChannelLoadingMessage"))
-                    .complete());
-              }
-              InfoPanelRefresher infoPanelRefresher = new InfoPanelRefresher(server);
-              ServerData.getServerExecutor().submit(infoPanelRefresher);
+              Message message = textChannel.sendMessage(LanguageManager.getText(server.serv_language, "defineInfoChannelLoadingMessage"))
+                  .complete();
+
+              infochannel = InfoChannelRepository.getInfoChannel(server.serv_guildId);
+              InfoChannelRepository.createInfoPanelMessage(infochannel.infoChannel_id, message.getIdLong());
+              
+              //InfoPanelRefresher infoPanelRefresher = new InfoPanelRefresher(server);
+              //ServerData.getServerExecutor().submit(infoPanelRefresher);
             }
           }
         }

@@ -7,9 +7,6 @@ import java.util.NoSuchElementException;
 import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.Zoe;
@@ -22,6 +19,7 @@ import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
+import ch.kalunight.zoe.util.RiotApiUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
@@ -35,8 +33,6 @@ public class CreatePlayerCommand extends ZoeCommand {
   public static final String USAGE_NAME = "player";
 
   private static final Pattern PARENTHESES_PATTERN = Pattern.compile("\\(([^)]+)\\)");
-
-  private static final Logger logger = LoggerFactory.getLogger(CreatePlayerCommand.class);
 
   public CreatePlayerCommand() {
     this.name = USAGE_NAME;
@@ -105,19 +101,7 @@ public class CreatePlayerCommand extends ZoeCommand {
     try {
       summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName, CallPriority.HIGH);
     }catch(RiotApiException e) {
-      if(e.getErrorCode() == RiotApiException.SERVER_ERROR) {
-        event.reply(LanguageManager.getText(server.serv_language, "riotApiSummonerByNameError500"));
-      }else if(e.getErrorCode() == RiotApiException.UNAVAILABLE) {
-        event.reply(LanguageManager.getText(server.serv_language, "riotApiSummonerByNameError503"));
-      }else if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
-        event.reply(LanguageManager.getText(server.serv_language, "riotApiSummonerByNameError429"));
-        logger.info("Receive a {} error code : {}", e.getErrorCode(), e.getMessage());
-      }else if (e.getErrorCode() == RiotApiException.DATA_NOT_FOUND){
-        event.reply(LanguageManager.getText(server.serv_language, "riotApiSummonerByNameError404"));
-      }else {
-        event.reply(String.format(LanguageManager.getText(server.serv_language, "riotApiSummonerByNameErrorUnexpected"), e.getErrorCode()));
-        logger.warn("Unexpected error in add accountToPlayer command.", e);
-      }
+      RiotApiUtil.handleRiotApi(event, e, server.serv_language);
       return;
     }
     

@@ -1,16 +1,16 @@
 package ch.kalunight.zoe.command.add;
 
+import java.sql.SQLException;
 import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.command.ZoeCommand;
-import ch.kalunight.zoe.model.Server;
-import ch.kalunight.zoe.model.player_data.Player;
-import ch.kalunight.zoe.model.player_data.Team;
+import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.repositories.PlayerRepository;
+import ch.kalunight.zoe.repositories.TeamRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
@@ -30,22 +30,23 @@ public class AddPlayerToTeamCommand extends ZoeCommand {
   }
 
   @Override
-  protected void executeCommand(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) throws SQLException {
     event.getTextChannel().sendTyping().complete();
-    Server server = ServerData.getServers().get(event.getGuild().getId());
     
     if(event.getMessage().getMentionedMembers().size() != 1) {
-      event.reply(LanguageManager.getText(server.getLangage(), "mentionOfPlayerNeeded"));
+      event.reply(LanguageManager.getText(server.serv_language, "mentionOfPlayerNeeded"));
     } else {
-      Player player = server.getPlayerByDiscordId(event.getMessage().getMentionedMembers().get(0).getUser().getIdLong());
-
+      
+      DTO.Player player = PlayerRepository.getPlayer(server.serv_guildId,
+          event.getMessage().getMentionedMembers().get(0).getUser().getIdLong());
+      
       if(player == null) {
-        event.reply(LanguageManager.getText(server.getLangage(), "mentionOfUserNeedToBeAPlayer"));
+        event.reply(LanguageManager.getText(server.serv_language, "mentionOfUserNeedToBeAPlayer"));
       } else {
 
-        Team team = server.getTeamByPlayer(player);
+        DTO.Team team = TeamRepository.getTeamByPlayerAndGuild(server.serv_guildId, player.player_discordId);
         if(team != null) {
-          event.reply(String.format(LanguageManager.getText(server.getLangage(), "mentionnedPlayerIsAlreadyInATeam"), team.getName()));
+          event.reply(String.format(LanguageManager.getText(server.serv_language, "mentionnedPlayerIsAlreadyInATeam"), team.team_name));
         } else {
           Matcher matcher = PARENTHESES_PATTERN.matcher(event.getArgs());
           String teamName = "";
@@ -53,12 +54,12 @@ public class AddPlayerToTeamCommand extends ZoeCommand {
             teamName = matcher.group(1);
           }
 
-          Team teamToAdd = server.getTeamByName(teamName);
+          DTO.Team teamToAdd = TeamRepository.getTeam(server.serv_guildId, teamName);
           if(teamToAdd == null) {
-            event.reply(LanguageManager.getText(server.getLangage(), "givenTeamNotExist"));
+            event.reply(LanguageManager.getText(server.serv_language, "givenTeamNotExist"));
           } else {
-            teamToAdd.getPlayers().add(player);
-            event.reply(LanguageManager.getText(server.getLangage(), "playerAddedInTheTeam"));
+            PlayerRepository.updateTeamOfPlayer(player.player_id, teamToAdd.team_id);
+            event.reply(LanguageManager.getText(server.serv_language, "playerAddedInTheTeam"));
           }
         }
       }

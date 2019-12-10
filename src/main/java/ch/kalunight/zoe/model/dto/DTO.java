@@ -40,6 +40,18 @@ public class DTO {
     }
   }
   
+  public static class InfoPanelMessage {
+    public long infopanel_id;
+    public long infopanel_fk_infochannel;
+    public long infopanel_messageId;
+    
+    public InfoPanelMessage(ResultSet baseData) throws SQLException {
+      infopanel_id = baseData.getLong("infopanel_id");
+      infopanel_fk_infochannel = baseData.getLong("infopanel_fk_infochannel");
+      infopanel_messageId = baseData.getLong("infopanel_messageid");
+    }
+  }
+  
   public static class Player {
     public long player_id;
     public long player_fk_server;

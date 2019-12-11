@@ -1,5 +1,8 @@
 package ch.kalunight.zoe;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -11,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import ch.kalunight.zoe.model.Server;
+import ch.kalunight.zoe.model.dto.DTO;
 import net.dv8tion.jda.api.entities.TextChannel;
 
 public class ServerData {
@@ -22,7 +26,7 @@ public class ServerData {
    */
   private static final ConcurrentHashMap<String, Server> servers = new ConcurrentHashMap<>();
 
-  private static final ConcurrentHashMap<String, Boolean> serversAskedTreatment = new ConcurrentHashMap<>();
+  private static final List<DTO.Server> serversAskedTreatment = Collections.synchronizedList(new ArrayList<DTO.Server>()); 
 
   private static final ConcurrentHashMap<String, Boolean> serversIsInTreatment = new ConcurrentHashMap<>();
 
@@ -53,7 +57,7 @@ public class ServerData {
   }
 
   /**
-   * Check is the server will be refreshed or actually in treatment.
+   * Check if the server will be refreshed or if is actually in treatment.
    * @param server to check
    * @return true is the server is in treatment or if he will be refreshed
    */
@@ -111,7 +115,7 @@ public class ServerData {
     return serversIsInTreatment;
   }
 
-  public static ConcurrentMap<String, Boolean> getServersAskedTreatment() {
+  public static List<DTO.Server> getServersAskedTreatment() {
     return serversAskedTreatment;
   }
 

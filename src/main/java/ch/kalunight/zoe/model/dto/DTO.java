@@ -30,6 +30,18 @@ public class DTO {
     }
   }
   
+  public static class ServerStatus {
+    public long servstatus_id;
+    public long servstatus_fk_server;
+    public boolean servstatus_inTreatment;
+    
+    public ServerStatus(ResultSet baseData) throws SQLException {
+      servstatus_id = baseData.getLong("servstatus_id");
+      servstatus_fk_server = baseData.getLong("servstatus_fk_server");
+      servstatus_inTreatment = baseData.getBoolean("servstatus_intreatment");
+    }
+  }
+  
   public static class InfoChannel {
     public long infoChannel_id;
     public long infochannel_fk_server;

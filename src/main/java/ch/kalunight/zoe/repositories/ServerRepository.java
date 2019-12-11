@@ -5,6 +5,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import ch.kalunight.zoe.model.dto.DTO;
 
 public class ServerRepository {
@@ -21,6 +23,17 @@ public class ServerRepository {
   private static final String DELETE_SERVER_WITH_SERV_GUILDID = "DELETE FROM server WHERE serv_guildId = %d";
   
   private static final String UPDATE_LANGUAGE_WITH_GUILD_ID = "UPDATE server SET serv_language = '%s' WHERE serv_guildId = %d";
+  
+  private static final String UPDATE_TIMESTAMP_WITH_GUILD_ID = "UPDATE server SET serv_language = '%s' WHERE serv_guildId = %d";
+  
+  private static final String SELECT_SERVER_WITH_TIMESTAMP_AFTER = "SELECT " + 
+      "server.serv_id,server.serv_guildid,server.serv_language,server.serv_lastrefresh " + 
+      "FROM info_channel " + 
+      "INNER JOIN server ON info_channel.infochannel_fk_server = server.serv_id " + 
+      "INNER JOIN server_status ON server.serv_id = server_status.servstatus_fk_server " + 
+      "WHERE info_channel.infochannel_id IS NOT NULL\r\n" + 
+      "AND server.serv_lastrefresh > %s " + 
+      "AND server_status.servstatus_intreatment = %s";
   
   private ServerRepository() {
     //Hide default public constructor
@@ -97,7 +110,39 @@ public class ServerRepository {
         Statement query = conn.createStatement();) {
       
       String finalQuery = String.format(UPDATE_LANGUAGE_WITH_GUILD_ID, language, guildId);
-      query.execute(finalQuery);
+      query.executeUpdate(finalQuery);
+    }
+  }
+  
+  public static void updateTimeStamp(long guildId, LocalDateTime timeStamp) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement();) {
+      
+      String finalQuery = String.format(UPDATE_TIMESTAMP_WITH_GUILD_ID, DTO.DB_TIME_PATTERN.format(timeStamp), guildId);
+      query.executeUpdate(finalQuery);
+    }
+  }
+  
+  public static List<DTO.Server> getGuildWhoNeedToBeRefresh() throws SQLException {
+    ResultSet result = null;
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+      
+      String finalQuery = String.format(SELECT_SERVER_WITH_TIMESTAMP_AFTER,
+          DTO.DB_TIME_PATTERN.format(LocalDateTime.now().minusMinutes(3)),
+          false);
+      result = query.executeQuery(finalQuery);
+      
+      List<DTO.Server> accounts = new ArrayList<>();
+      result.next();
+      while(!result.isAfterLast()) {
+        accounts.add(new DTO.Server(result));
+        result.next();
+      }
+      
+      return accounts;
+    }finally {
+      RepoRessources.closeResultSet(result);
     }
   }
   

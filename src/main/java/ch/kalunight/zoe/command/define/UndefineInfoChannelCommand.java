@@ -33,6 +33,8 @@ public class UndefineInfoChannelCommand extends ZoeCommand {
   protected void executeCommand(CommandEvent event) {
     event.getTextChannel().sendTyping().complete();
     
+    DTO.Server server = getServer(event.getGuild().getIdLong());
+    
     DTO.InfoChannel infochannel = InfoChannelRepository.getInfoChannel(server.serv_guildId);
 
     if(infochannel == null) {

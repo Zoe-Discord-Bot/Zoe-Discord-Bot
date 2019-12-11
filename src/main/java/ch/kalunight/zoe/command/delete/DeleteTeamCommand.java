@@ -31,6 +31,9 @@ public class DeleteTeamCommand extends ZoeCommand {
   @Override
   protected void executeCommand(CommandEvent event) throws SQLException {
     event.getTextChannel().sendTyping().complete();
+    
+    DTO.Server server = getServer(event.getGuild().getIdLong());
+    
     String teamName = event.getArgs();
     
     DTO.Team team = TeamRepository.getTeam(server.serv_guildId, teamName);

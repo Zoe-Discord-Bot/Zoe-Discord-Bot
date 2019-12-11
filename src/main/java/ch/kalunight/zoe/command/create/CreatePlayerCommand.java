@@ -45,6 +45,8 @@ public class CreatePlayerCommand extends ZoeCommand {
   public void executeCommand(CommandEvent event) throws SQLException {
     event.getTextChannel().sendTyping().complete();
     
+    DTO.Server server = getServer(event.getGuild().getIdLong());
+    
     ServerConfiguration config = ConfigRepository.getServerConfiguration(server.serv_guildId);
     
     if(!config.getUserSelfAdding().isOptionActivated() && !event.getMember().getPermissions().contains(Permission.MANAGE_CHANNEL)) {
@@ -109,9 +111,8 @@ public class CreatePlayerCommand extends ZoeCommand {
         .getPlayerByLeagueAccountAndGuild(server.serv_guildId, summoner.getId(), region.getName());
     
     if(playerAlreadyWithTheAccount != null) {
-      User userAlreadyWithTheAccount = Zoe.getJda().retrieveUserById(playerAlreadyWithTheAccount.player_discordId).complete();
       event.reply(String.format(LanguageManager.getText(server.serv_language, "accountAlreadyLinkedToAnotherPlayer"),
-          userAlreadyWithTheAccount.getName()));
+          playerAlreadyWithTheAccount.user.getName()));
       return;
     }
 

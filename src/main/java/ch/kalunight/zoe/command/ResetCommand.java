@@ -7,6 +7,7 @@ import java.util.function.BiConsumer;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
+import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.repositories.RepoRessources;
 import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
@@ -34,6 +35,8 @@ public class ResetCommand extends ZoeCommand {
   protected void executeCommand(CommandEvent event) {
     CommandUtil.sendTypingInFonctionOfChannelType(event);
     
+    DTO.Server server = getServer(event.getGuild().getIdLong());
+    
     event.reply(LanguageManager.getText(server.serv_language, "resetWarningMessage"));
     
     waiter.waitForEvent(MessageReceivedEvent.class,
@@ -45,6 +48,8 @@ public class ResetCommand extends ZoeCommand {
 
   private void reset(MessageReceivedEvent messageReceivedEvent) {
     String spellingLangage = LanguageManager.DEFAULT_LANGUAGE;
+    
+    DTO.Server server = getServer(messageReceivedEvent.getGuild().getIdLong());
     
     if(server != null) {
       spellingLangage = server.serv_language;
@@ -69,6 +74,7 @@ public class ResetCommand extends ZoeCommand {
   }
   
   private void cancelReset(MessageReceivedEvent event) {
+    DTO.Server server = getServer(event.getGuild().getIdLong());
     event.getTextChannel().sendMessage(LanguageManager.getText(server.serv_language, "resetTimeoutMessage")).queue();
   }
 

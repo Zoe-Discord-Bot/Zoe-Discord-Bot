@@ -47,6 +47,8 @@ public class LanguageCommand extends ZoeCommand{
   protected void executeCommand(CommandEvent event) {
     CommandUtil.sendTypingInFonctionOfChannelType(event);
     
+    DTO.Server server = getServer(event.getGuild().getIdLong());
+    
     event.getTextChannel().sendMessage(String.format(LanguageManager.getText(server.serv_language,
         "languageCommandStartMessage"), LanguageManager.getText(server.serv_language, NATIVE_LANGUAGE_TRANSLATION_ID), "<https://discord.gg/AyAYWGM>")).complete();
     

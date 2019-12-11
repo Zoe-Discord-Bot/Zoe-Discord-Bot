@@ -42,6 +42,8 @@ public class RemoveAccountCommand extends ZoeCommand {
   protected void executeCommand(CommandEvent event) throws SQLException {
     event.getTextChannel().sendTyping().complete();
     
+    DTO.Server server = getServer(event.getGuild().getIdLong());
+    
     ServerConfiguration config = ConfigRepository.getServerConfiguration(server.serv_guildId);
     
     if(!config.getUserSelfAdding().isOptionActivated() &&

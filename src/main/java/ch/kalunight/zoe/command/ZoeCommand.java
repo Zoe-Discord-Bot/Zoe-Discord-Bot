@@ -1,6 +1,7 @@
 package ch.kalunight.zoe.command;
 
 import java.sql.SQLException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import org.slf4j.Logger;
@@ -20,7 +21,7 @@ public abstract class ZoeCommand extends Command {
 
   private static final Logger logger = LoggerFactory.getLogger(ZoeCommand.class);
   
-  protected DTO.Server server; //TODO : Check if it's done 1 per 1 or in a async way -> POSSIBLE CONFLICT ISSUE
+  private static final ConcurrentHashMap<Long, DTO.Server> servers = new ConcurrentHashMap<>();
   
   @Override
   protected void execute(CommandEvent event) {
@@ -29,10 +30,12 @@ public abstract class ZoeCommand extends Command {
     commandExecuted.incrementAndGet();
 
     try {
-      server = ServerRepository.getServer(event.getGuild().getIdLong());
+      DTO.Server server = ServerRepository.getServer(event.getGuild().getIdLong());
+      servers.put(event.getGuild().getIdLong(), server);
       if(server == null) {
         ServerRepository.createNewServer(event.getGuild().getIdLong(), LanguageManager.DEFAULT_LANGUAGE);
         server = ServerRepository.getServer(event.getGuild().getIdLong());
+        servers.put(event.getGuild().getIdLong(), server);
       }
     } catch(SQLException e) {
       event.reply("Issue with the db ! Please retry later. Sorry about that :/");
@@ -61,6 +64,14 @@ public abstract class ZoeCommand extends Command {
     commandExecuted.set(0);
     commandFinishedCorrectly.set(0);
     commandFinishedWithError.set(0);
+  }
+  
+  protected static DTO.Server getServer(long guildId){
+    return servers.get(guildId);
+  }
+  
+  public static void clearServerCache() {
+    servers.clear();
   }
   
   public static AtomicInteger getCommandExecuted() {

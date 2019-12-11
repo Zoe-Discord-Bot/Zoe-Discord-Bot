@@ -27,7 +27,11 @@ public class CreateTeamCommand extends ZoeCommand {
 
   @Override
   protected void executeCommand(CommandEvent event) throws SQLException {
+    
     event.getTextChannel().sendTyping().complete();
+    
+    DTO.Server server = getServer(event.getGuild().getIdLong());
+    
     String nameTeam = event.getArgs();
     
     if(nameTeam.equals("--server")) {

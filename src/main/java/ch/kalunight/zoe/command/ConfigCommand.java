@@ -13,6 +13,7 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.OrderedMenu;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.config.option.ConfigurationOption;
+import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
@@ -39,6 +40,8 @@ public class ConfigCommand extends ZoeCommand {
   
   @Override
   protected void executeCommand(CommandEvent event) throws SQLException {
+    
+    DTO.Server server = getServer(event.getGuild().getIdLong());
     
     OrderedMenu.Builder builder = new OrderedMenu.Builder()
         .addUsers(event.getAuthor())
@@ -69,6 +72,7 @@ public class ConfigCommand extends ZoeCommand {
       
       @Override
       public void accept(Message messageEmbended, Integer selectionNumber) {
+        DTO.Server server = getServer(event.getGuild().getIdLong());
         options.get(selectionNumber - 1).getChangeConsumer(waiter, server).accept(event);
       }};
   }

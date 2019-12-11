@@ -30,6 +30,8 @@ public class CreateInfoChannelCommand extends ZoeCommand {
   protected void executeCommand(CommandEvent event) throws SQLException {
     event.getTextChannel().sendTyping().complete();
 
+    DTO.Server server = getServer(event.getGuild().getIdLong());
+    
     String nameChannel = event.getArgs();
 
     if(nameChannel == null || nameChannel.equals("")) {

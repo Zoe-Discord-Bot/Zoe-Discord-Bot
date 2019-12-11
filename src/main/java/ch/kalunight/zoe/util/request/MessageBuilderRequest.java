@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.stats.StatsProfileCommand;
+import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.model.player_data.LeagueAccount;
 import ch.kalunight.zoe.model.player_data.Player;
@@ -61,7 +62,7 @@ public class MessageBuilderRequest {
     String redTeamTranslated = LanguageManager.getText(language, RED_TEAM_STRING);
     String masteriesWRThisMonthTranslated = LanguageManager.getText(language, MASTERIES_WR_THIS_MONTH_STRING);
     String soloqRankTitleTranslated = LanguageManager.getText(language, SOLO_Q_RANK_STRING);
-    
+
     EmbedBuilder message = new EmbedBuilder();
 
     message.setAuthor(user.getName(), null, user.getAvatarUrl());
@@ -127,7 +128,7 @@ public class MessageBuilderRequest {
     String redTeamTranslated = LanguageManager.getText(language, RED_TEAM_STRING);
     String masteriesWRThisMonthTranslated = LanguageManager.getText(language, MASTERIES_WR_THIS_MONTH_STRING);
     String soloqRankTitleTranslated = LanguageManager.getText(language, SOLO_Q_RANK_STRING);
-    
+
     Set<LeagueAccount> playersAccountsOfTheGame = new HashSet<>();
     for(Player player : players) {
       playersAccountsOfTheGame.addAll(player.getLeagueAccountsInTheGivenGame(currentGameInfo));
@@ -195,26 +196,18 @@ public class MessageBuilderRequest {
     return message.build();
   }
 
-  public static MessageEmbed createProfileMessage(Player player, LeagueAccount leagueAccount,
+  public static MessageEmbed createProfileMessage(DTO.Player player, DTO.LeagueAccount leagueAccount,
       List<ChampionMastery> masteries, String language) throws RiotApiException {
 
     String latestGameTranslated = LanguageManager.getText(language, "statsProfileLatestGames");
-    
+
     EmbedBuilder message = new EmbedBuilder();
 
-    Summoner summoner;
-    try {
-      summoner = Zoe.getRiotApi().getSummoner(leagueAccount.getRegion(), leagueAccount.getSummoner().getId(), CallPriority.HIGH);
-      leagueAccount.setSummoner(summoner);
-    } catch(RiotApiException e) {
-      summoner = leagueAccount.getSummoner();
-      if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
-        throw e;
-      }
-    }
+    Summoner summoner = Zoe.getRiotApi().getSummoner(leagueAccount.leagueAccount_server,
+        leagueAccount.leagueAccount_summonerId, CallPriority.HIGH);
 
     message.setTitle(String.format(LanguageManager.getText(language, "statsProfileTitle"),
-        player.getDiscordUser().getName(), leagueAccount.getSummoner().getName(), summoner.getSummonerLevel()));
+        player.user.getName(), summoner.getName(), summoner.getSummonerLevel()));
 
     List<ChampionMastery> threeBestchampionMasteries = StatsProfileCommand.getBestMasteries(masteries, 3);
 
@@ -266,7 +259,7 @@ public class MessageBuilderRequest {
     MatchList matchList = null;
 
     try {
-      matchList = Zoe.getRiotApi().getMatchListByAccountId(leagueAccount.getRegion(), leagueAccount.getSummoner().getAccountId(), 
+      matchList = Zoe.getRiotApi().getMatchListByAccountId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_accoundId, 
           null, null, null, DateTime.now().minusWeeks(1).plusSeconds(10).getMillis(), DateTime.now().getMillis(), -1, -1, CallPriority.HIGH);
     } catch(RiotApiException e) {
       if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
@@ -285,7 +278,8 @@ public class MessageBuilderRequest {
       if(matchsReference.size() < 3) {
         for(MatchReference matchReference : matchsReference) {
           try {
-            threeMostRecentMatch.add(Zoe.getRiotApi().getMatch(leagueAccount.getRegion(), matchReference.getGameId(), CallPriority.HIGH));
+            threeMostRecentMatch.add(Zoe.getRiotApi().getMatch(leagueAccount.leagueAccount_server,
+                matchReference.getGameId(), CallPriority.HIGH));
           } catch(RiotApiException e) {
             if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
               throw e;
@@ -298,7 +292,7 @@ public class MessageBuilderRequest {
           MatchReference matchReference = matchsReference.get(i);
 
           try {
-            threeMostRecentMatch.add(Zoe.getRiotApi().getMatch(leagueAccount.getRegion(), matchReference.getGameId(), CallPriority.HIGH));
+            threeMostRecentMatch.add(Zoe.getRiotApi().getMatch(leagueAccount.leagueAccount_server, matchReference.getGameId(), CallPriority.HIGH));
           } catch(RiotApiException e) {
             if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
               throw e;
@@ -316,7 +310,7 @@ public class MessageBuilderRequest {
           LocalDateTime matchTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(match.getGameCreation()), ZoneId.ofOffset("UTC", ZoneOffset.UTC));
           Champion champion = new Champion(-1, unknownTranslated, unknownTranslated, null);
           try {
-            champion = Ressources.getChampionDataById(match.getParticipantBySummonerId(leagueAccount.getSummoner().getId()).getChampionId());
+            champion = Ressources.getChampionDataById(match.getParticipantBySummonerId(leagueAccount.leagueAccount_summonerId).getChampionId());
           }catch(NullPointerException e) {
             logger.debug("Data errored, can't detect champion");
           }
@@ -334,11 +328,11 @@ public class MessageBuilderRequest {
 
     message.addBlankField(true);
     message.addField(field);
-    
+
 
     Set<LeagueEntry> rankPosition = null;
     try {
-      rankPosition = Zoe.getRiotApi().getLeagueEntriesBySummonerId(leagueAccount.getRegion(), leagueAccount.getSummoner().getId(), CallPriority.HIGH);
+      rankPosition = Zoe.getRiotApi().getLeagueEntriesBySummonerId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId, CallPriority.HIGH);
     }catch (RiotApiException e) {
       if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
         throw e;
@@ -353,7 +347,6 @@ public class MessageBuilderRequest {
       String unrankedTranslated = LanguageManager.getText(language, "unranked");
       String soloqRank = String.format(LanguageManager.getText(language, "statsProfileQueueSoloq"), unrankedTranslated);
       String flexRank = String.format(LanguageManager.getText(language, "statsProfileQueueFlex"), unrankedTranslated);
-      String twistedThreeLine = String.format(LanguageManager.getText(language, "statsProfileQueue3x3"), unrankedTranslated);
 
       while(iteratorPosition.hasNext()) {
         LeagueEntry leaguePosition = iteratorPosition.next();
@@ -366,10 +359,7 @@ public class MessageBuilderRequest {
           soloqRank = String.format(LanguageManager.getText(language, "statsProfileQueueSoloq"), 
               Ressources.getTierEmote().get(tier).getUsableEmote() + " " + fullTier.toString());
         } else if(leaguePosition.getQueueType().equals("RANKED_FLEX_SR")) {
-          flexRank = String.format(LanguageManager.getText(language, "statsProfileQueueSoloq"),
-              Ressources.getTierEmote().get(tier).getUsableEmote() + " " + fullTier.toString());
-        }else if(leaguePosition.getQueueType().equals("RANKED_FLEX_TT")) {
-          twistedThreeLine = String.format(LanguageManager.getText(language, "statsProfileQueueSoloq"), 
+          flexRank = String.format(LanguageManager.getText(language, "statsProfileQueueFlex"),
               Ressources.getTierEmote().get(tier).getUsableEmote() + " " + fullTier.toString());
         }
       }
@@ -377,8 +367,7 @@ public class MessageBuilderRequest {
       stringBuilder = new StringBuilder();
 
       stringBuilder.append(soloqRank + "\n");
-      stringBuilder.append(flexRank + "\n");
-      stringBuilder.append(twistedThreeLine);
+      stringBuilder.append(flexRank);
 
       field = new Field(LanguageManager.getText(language, "statsProfileRankedStats"), stringBuilder.toString(), true);
     }else {
@@ -387,14 +376,14 @@ public class MessageBuilderRequest {
 
     message.addField(field);
     message.addBlankField(true);
-    
-    message.setImage("attachment://" + player.getDiscordUser().getId() + ".png");
+
+    message.setImage("attachment://" + player.player_discordId + ".png");
 
     message.setColor(new Color(206, 20, 221));
 
     message.setFooter(String.format(LanguageManager.getText(language, "statsProfileFooterProfileOfPlayer"),
-        player.getDiscordUser().getName()), 
-        player.getDiscordUser().getAvatarUrl());
+        player.user.getName()), 
+        player.user.getAvatarUrl());
     message.setTimestamp(Instant.now());
 
     return message.build();

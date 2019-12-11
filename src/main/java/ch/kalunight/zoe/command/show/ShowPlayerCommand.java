@@ -48,6 +48,8 @@ public class ShowPlayerCommand extends ZoeCommand {
   protected void executeCommand(CommandEvent event) throws SQLException {
     CommandUtil.sendTypingInFonctionOfChannelType(event);
 
+    DTO.Server server = getServer(event.getGuild().getIdLong());
+    
     Paginator.Builder pbuilder = new Paginator.Builder()
         .setColumns(1)
         .setItemsPerPage(5)

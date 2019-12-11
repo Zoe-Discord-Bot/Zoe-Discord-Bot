@@ -4,6 +4,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import ch.kalunight.zoe.Zoe;
+import net.dv8tion.jda.api.entities.User;
 import net.rithms.riot.constant.Platform;
 
 public class DTO {
@@ -58,6 +60,7 @@ public class DTO {
     public long player_fk_team;
     public long player_discordId;
     public boolean player_mentionnable;
+    public User user;
     
     public Player(ResultSet baseData) throws SQLException {
       player_id = baseData.getLong("player_id");
@@ -65,6 +68,7 @@ public class DTO {
       player_fk_team = baseData.getLong("player_fk_team");
       player_discordId = baseData.getLong("player_discordId");
       player_mentionnable = baseData.getBoolean("player_mentionnable");
+      user = Zoe.getJda().retrieveUserById(player_discordId).complete();
     }
   }
   

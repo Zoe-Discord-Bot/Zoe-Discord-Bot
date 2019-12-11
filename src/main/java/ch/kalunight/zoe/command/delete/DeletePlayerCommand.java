@@ -6,7 +6,6 @@ import java.util.function.BiConsumer;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.dto.DTO;
@@ -32,6 +31,8 @@ public class DeletePlayerCommand extends ZoeCommand {
   @Override
   protected void executeCommand(CommandEvent event) throws SQLException {
     event.getTextChannel().sendTyping().complete();
+    
+    DTO.Server server = getServer(event.getGuild().getIdLong());
     
     ServerConfiguration config = ConfigRepository.getServerConfiguration(server.serv_guildId);
     
@@ -68,7 +69,7 @@ public class DeletePlayerCommand extends ZoeCommand {
           }
         }
         event.reply(String.format(LanguageManager.getText(server.serv_language, "deletePlayerDoneMessage"),
-            Zoe.getJda().retrieveUserById(player.player_discordId).complete().getName()));
+            player.user.getName()));
       }
     }
   }

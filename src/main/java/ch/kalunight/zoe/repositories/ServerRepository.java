@@ -1,6 +1,7 @@
 package ch.kalunight.zoe.repositories;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -12,7 +13,7 @@ import ch.kalunight.zoe.model.dto.DTO;
 public class ServerRepository {
 
   private static final String SELECT_SERVER_WITH_GUILDID = "SELECT serv_id, serv_guildId, serv_language, serv_lastRefresh FROM server "
-      + "WHERE serv_guildId = %d";
+      + "WHERE serv_guildId = ?";
   
   private static final String INSERT_INTO_SERVER = "INSERT INTO server (serv_guildId, serv_language, serv_lastRefresh) "
       + "VALUES (%d, '%s', '%s')";
@@ -42,10 +43,10 @@ public class ServerRepository {
   public static boolean checkServerExist(long guildId) throws SQLException {
     ResultSet result = null;
     try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+        PreparedStatement stmt = conn.prepareStatement(SELECT_SERVER_WITH_GUILDID, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
       
-      String finalQuery = String.format(SELECT_SERVER_WITH_GUILDID, guildId);
-      result = query.executeQuery(finalQuery);
+      stmt.setLong(1, guildId);
+      result = stmt.executeQuery();
       int rowCount = result.last() ? result.getRow() : 0;
       
       return rowCount == 1;
@@ -57,10 +58,10 @@ public class ServerRepository {
   public static DTO.Server getServer(long guildId) throws SQLException{
     ResultSet result = null;
     try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+        PreparedStatement stmt = conn.prepareStatement(SELECT_SERVER_WITH_GUILDID, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
       
-      String finalQuery = String.format(SELECT_SERVER_WITH_GUILDID, guildId);
-      result = query.executeQuery(finalQuery);
+      stmt.setLong(1, guildId);
+      result = stmt.executeQuery();
       result.next();
       return new DTO.Server(result);
     }finally {
@@ -72,15 +73,16 @@ public class ServerRepository {
     LocalDateTime lastRefresh = LocalDateTime.now().minusMinutes(3);
     ResultSet result = null;
     try (Connection conn = RepoRessources.getConnection();
-        Statement statement = conn.createStatement();) {
+        Statement statement = conn.createStatement();
+        PreparedStatement stmt = conn.prepareStatement(SELECT_SERVER_WITH_GUILDID, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
       
       //Create Server
       String finalQuery = String.format(INSERT_INTO_SERVER, guildId, language, lastRefresh.format(DTO.DB_TIME_PATTERN));
       statement.executeUpdate(finalQuery);
       
       //Get serv_id from server
-      finalQuery = String.format(SELECT_SERVER_WITH_GUILDID, guildId);
-      result = statement.executeQuery(finalQuery);
+      stmt.setLong(1, guildId);
+      result = stmt.executeQuery();
       result.next();
       long servId = result.getLong("serv_id");
       result.close();

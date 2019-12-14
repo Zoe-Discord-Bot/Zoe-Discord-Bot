@@ -4,6 +4,7 @@ import java.util.function.BiConsumer;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.command.ZoeCommand;
+import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
@@ -24,6 +25,7 @@ public class AddCommand extends ZoeCommand {
 
   @Override
   protected void executeCommand(CommandEvent event) {
+    DTO.Server server = getServer(event.getGuild().getIdLong());
     event.reply(LanguageManager.getText(server.serv_language, "mainAddCommandHelpMessage"));
   }
 

@@ -75,8 +75,7 @@ public class LeagueAccountRepository {
   public static DTO.LeagueAccount getLeagueAccountByName(long guildId, long discordPlayerId,
       String summonerName, Platform region) throws SQLException, RiotApiException {
     ResultSet result = null;
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+    try (Connection conn = RepoRessources.getConnection();) {
       
       for(DTO.LeagueAccount account : getLeaguesAccounts(guildId, discordPlayerId)) {
         if(account.leagueAccount_server.equals(region)) {

@@ -32,6 +32,7 @@ public class AddPlayerToTeamCommand extends ZoeCommand {
   @Override
   protected void executeCommand(CommandEvent event) throws SQLException {
     event.getTextChannel().sendTyping().complete();
+    DTO.Server server = getServer(event.getGuild().getIdLong());
     
     if(event.getMessage().getMentionedMembers().size() != 1) {
       event.reply(LanguageManager.getText(server.serv_language, "mentionOfPlayerNeeded"));

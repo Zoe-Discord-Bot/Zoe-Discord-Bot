@@ -213,9 +213,9 @@ public class InfoPanelRefresher implements Runnable {
         CurrentGameInfo currentGame = Zoe.getRiotApi().getActiveGameBySummoner(
             leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId, CallPriority.NORMAL);
 
-        leagueAccount.leagueAccount_currentGame = gson.toJson(currentGame);
+        leagueAccount.leagueAccount_currentGame = currentGame;
         LeagueAccountRepository.updateAccountWithId(
-            leagueAccount.leagueAccount_id, leagueAccount.leagueAccount_currentGame);
+            leagueAccount.leagueAccount_id, gson.toJson(currentGame));
       }
     }
   }

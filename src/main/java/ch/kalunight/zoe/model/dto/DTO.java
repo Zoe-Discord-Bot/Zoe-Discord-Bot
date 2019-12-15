@@ -8,14 +8,20 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import ch.kalunight.zoe.Zoe;
 import net.dv8tion.jda.api.entities.User;
+import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.constant.Platform;
 
 public class DTO {
   
   public static final DateTimeFormatter DB_TIME_PATTERN = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+  
+  private static final Gson gson = new GsonBuilder().create();
   
   private DTO() {
     //hide default constructor
@@ -59,6 +65,22 @@ public class DTO {
     }
   }
   
+  public static class GameInfoCard {
+    public long gamecard_id;
+    public long gamecard_fk_infochannel;
+    public long gamecard_titlemessageid;
+    public long gamecard_infocardmessageid;
+    public LocalDateTime gamecard_creationtime;
+    
+    public GameInfoCard(ResultSet baseData) throws SQLException {
+      gamecard_id = baseData.getLong("gamecard_id");
+      gamecard_fk_infochannel = baseData.getLong("gamecard_fk_infochannel");
+      gamecard_titlemessageid = baseData.getLong("gamecard_titlemessageid");
+      gamecard_infocardmessageid = baseData.getLong("gamecard_infocardmessageid");
+      gamecard_creationtime = LocalDateTime.parse(baseData.getString("gamecard_creationtime"), DB_TIME_PATTERN);
+    }
+  }
+  
   public static class InfoPanelMessage {
     public long infopanel_id;
     public long infopanel_fk_infochannel;
@@ -98,7 +120,7 @@ public class DTO {
     public String leagueAccount_accoundId;
     public String leagueAccount_puuid;
     public Platform leagueAccount_server;
-    public String leagueAccount_currentGame;
+    public CurrentGameInfo leagueAccount_currentGame;
     public Summoner summoner;
     
     public LeagueAccount(ResultSet baseData) throws SQLException {
@@ -109,7 +131,9 @@ public class DTO {
       leagueAccount_accoundId = baseData.getString("leagueAccount_accountId");
       leagueAccount_puuid = baseData.getString("leagueAccount_puuid");
       leagueAccount_server = Platform.getPlatformByName(baseData.getString("leagueAccount_server"));
-      leagueAccount_currentGame = baseData.getString("leagueAccount_currentGame");
+      if(baseData.getString("leagueAccount_currentGame") != null) {
+        leagueAccount_currentGame = gson.fromJson(baseData.getString("leagueAccount_currentGame"), CurrentGameInfo.class);
+      }
     }
   }
   

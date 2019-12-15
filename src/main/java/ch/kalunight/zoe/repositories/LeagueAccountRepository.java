@@ -36,6 +36,20 @@ public class LeagueAccountRepository {
       "WHERE server.serv_guildid = %d " + 
       "AND player.player_discordid = %d";
   
+  private static final String SELECT_LEAGUES_ACCOUNTS_WITH_GAME_INFO_CARD_ID = 
+      "SELECT " + 
+      "league_account.leagueaccount_id, " + 
+      "league_account.leagueaccount_fk_player, " + 
+      "league_account.leagueaccount_fk_gamecard, " + 
+      "league_account.leagueaccount_summonerid, " + 
+      "league_account.leagueaccount_accountid, " + 
+      "league_account.leagueaccount_puuid, " + 
+      "league_account.leagueaccount_server, " + 
+      "league_account.leagueaccount_currentgame " + 
+      "FROM game_info_card " + 
+      "INNER JOIN league_account ON game_info_card.gamecard_id = league_account.leagueaccount_fk_gamecard " + 
+      "WHERE game_info_card.gamecard_id = %d";
+  
   private static final String DELETE_LEAGUE_ACCOUNT_WITH_ID = "DELETE FROM league_account WHERE leagueaccount_id = %d";
   
   private static final String UPDATE_LEAGUE_ACCOUNT_CURRENT_GAMES_WITH_ID = 
@@ -43,6 +57,27 @@ public class LeagueAccountRepository {
   
   private LeagueAccountRepository() {
     //hide default public constructor
+  }
+  
+  public static List<DTO.LeagueAccount> getLeaguesAccountsWithGameCardsId(long gameCardsId) throws SQLException {
+    ResultSet result = null;
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+      
+      String finalQuery = String.format(SELECT_LEAGUES_ACCOUNTS_WITH_GAME_INFO_CARD_ID, gameCardsId);
+      result = query.executeQuery(finalQuery);
+      
+      List<DTO.LeagueAccount> accounts = Collections.synchronizedList(new ArrayList<>());
+      result.next();
+      while(!result.isAfterLast()) {
+        accounts.add(new DTO.LeagueAccount(result));
+        result.next();
+      }
+      
+      return accounts;
+    }finally {
+      RepoRessources.closeResultSet(result);
+    }
   }
   
   public static void createLeagueAccount(long playerId, Summoner summoner, String server) throws SQLException {

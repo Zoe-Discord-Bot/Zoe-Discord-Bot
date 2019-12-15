@@ -23,9 +23,11 @@ import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.player_data.LeagueAccount;
 import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.model.player_data.Team;
+import ch.kalunight.zoe.repositories.GameInfoCardRepository;
 import ch.kalunight.zoe.repositories.InfoChannelRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
+import ch.kalunight.zoe.repositories.TeamRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.InfoPanelRefresherUtil;
 import net.dv8tion.jda.api.entities.Guild;
@@ -50,6 +52,8 @@ public class InfoPanelRefresher implements Runnable {
 
   private DTO.Server server;
 
+  private List<DTO.GameInfoCard> gameInfoCards;
+  
   private TextChannel infochannel;
 
   private Guild guild;
@@ -75,6 +79,7 @@ public class InfoPanelRefresher implements Runnable {
       DTO.InfoChannel infoChannelDTO = InfoChannelRepository.getInfoChannel(server.serv_guildId);
       if(infochannel != null) {
         infochannel = guild.getTextChannelById(infoChannelDTO.infochannel_channelid);
+        gameInfoCards = GameInfoCardRepository.getGameInfoCard(server.serv_guildId);
       }
 
       if(infochannel != null) {
@@ -85,7 +90,7 @@ public class InfoPanelRefresher implements Runnable {
 
         List<DTO.Player> playersDTO = PlayerRepository.getPlayers(server.serv_guildId);
 
-        cleanRegisteredPlayerNoLongerInGuild();
+        cleanRegisteredPlayerNoLongerInGuild(playersDTO);
         refreshAllLeagueAccount(playersDTO);
         clearOldMatchOfSendedGamesIdList(playersDTO);
         deleteOlderInfoCards();
@@ -150,6 +155,9 @@ public class InfoPanelRefresher implements Runnable {
       }catch(Exception e1) {
         logger.debug("Autofix fail ! Error message : {} ", e1.getMessage());
       }
+      
+    } catch (SQLException e) {
+      logger.error("SQL Exception when refresh the infopanel !", e);
     } catch(Exception e) {
       logger.error("The thread got a unexpected error :", e);
     } finally {
@@ -158,37 +166,40 @@ public class InfoPanelRefresher implements Runnable {
     }
   }
 
-  public void clearOldMatchOfSendedGamesIdList(List<DTO.Player> players) {
+  public void clearOldMatchOfSendedGamesIdList(List<DTO.Player> players) throws SQLException {
 
-    final List<CurrentGameInfo> allCurrentGamesOfPlayers = new ArrayList<>();
+    final List<DTO.LeagueAccount> allCurrentGamesOfPlayers = new ArrayList<>();
     for(DTO.Player player : players) {
       for(DTO.LeagueAccount leagueAccount : player.leagueAccounts) {
         if(leagueAccount.leagueAccount_currentGame != null) {
-          CurrentGameInfo currentGameInfo = gson.fromJson(leagueAccount.leagueAccount_currentGame, CurrentGameInfo.class);
-          allCurrentGamesOfPlayers.add(currentGameInfo);
+          allCurrentGamesOfPlayers.add(leagueAccount);
         }
       }
     }
 
-    final Iterator<CurrentGameInfo> iterator = allCurrentGamesOfPlayers.iterator();
+    final Iterator<DTO.LeagueAccount> iterator = allCurrentGamesOfPlayers.iterator();
 
     final List<Long> gameIdToSave = new ArrayList<>();
 
     while(iterator.hasNext()) {
 
-      final CurrentGameInfo currentGameInfo = iterator.next();
+      final DTO.LeagueAccount currentGameInfo = iterator.next();
 
       if(currentGameInfo != null) {
-        gameIdToSave.add(currentGameInfo.getGameId());
+        gameIdToSave.add(currentGameInfo.leagueAccount_currentGame.getGameId());
       }
     }
 
-    Iterator<Long> idCurrentGamesIterator = currentGamesIdAlreadySended.iterator();
+    Iterator<DTO.GameInfoCard> gameInfoCardsIterator = gameInfoCards.iterator();
 
-    while(idCurrentGamesIterator.hasNext()) {
-      Long actualCurrentGamesId = idCurrentGamesIterator.next();
-      if(!gameIdToSave.contains(actualCurrentGamesId)) {
-        idCurrentGamesIterator.remove();
+    while(gameInfoCardsIterator.hasNext()) {
+      DTO.GameInfoCard actualgameInfoCard = gameInfoCardsIterator.next();
+      List<DTO.LeagueAccount> leaguesAccountInGames = LeagueAccountRepository.getLeaguesAccountsWithGameCardsId(actualgameInfoCard.gamecard_id);
+      DTO.LeagueAccount leagueAccount = leaguesAccountInGames.get(0);
+      
+      if(!gameIdToSave.contains(leagueAccount.leagueAccount_currentGame.getGameId())) {
+        gameInfoCardsIterator.remove();
+        GameInfoCardRepository.deleteGameInfoCardsWithId(actualgameInfoCard.gamecard_id);
       }
     }
   }
@@ -252,17 +263,15 @@ public class InfoPanelRefresher implements Runnable {
   }
 
 
-  private void cleanRegisteredPlayerNoLongerInGuild() {
+  private void cleanRegisteredPlayerNoLongerInGuild(List<DTO.Player> listPlayers) throws SQLException {
 
-    Iterator<Player> iter = server.getPlayers().iterator();
+    Iterator<DTO.Player> iter = listPlayers.iterator();
 
     while (iter.hasNext()) {
-      Player player = iter.next();
-      if(server.getGuild().getMemberById(player.getDiscordUser().getId()) == null) {
+      DTO.Player player = iter.next();
+      if(guild.getMemberById(player.user.getId()) == null) {
         iter.remove();
-        for(Team team : server.getTeams()) {
-          team.getPlayers().remove(player);
-        }
+        PlayerRepository.updateTeamOfPlayerDefineNull(player.player_id);
       }
     }
   }

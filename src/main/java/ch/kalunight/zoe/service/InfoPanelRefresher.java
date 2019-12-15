@@ -19,8 +19,11 @@ import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.player_data.LeagueAccount;
 import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.model.player_data.Team;
+import ch.kalunight.zoe.repositories.InfoChannelRepository;
+import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.InfoPanelRefresherUtil;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageReaction;
 import net.dv8tion.jda.api.entities.PermissionOverride;
@@ -39,15 +42,21 @@ public class InfoPanelRefresher implements Runnable {
 
   private DTO.Server server;
 
+  private TextChannel infochannel;
+
+  private Guild guild;
+
   private boolean needToWait = false;
 
   public InfoPanelRefresher(DTO.Server server) {
     this.server = server;
+    guild = Zoe.getJda().getGuildById(server.serv_guildId);
   }
 
   public InfoPanelRefresher(DTO.Server server, boolean needToWait) {
     this.server = server;
     this.needToWait = needToWait;
+    guild = Zoe.getJda().getGuildById(server.serv_guildId);
   }
 
 
@@ -55,13 +64,22 @@ public class InfoPanelRefresher implements Runnable {
   public void run() {
     try {
 
-      if(server.getInfoChannel() != null) {
+      DTO.InfoChannel infoChannelDTO = InfoChannelRepository.getInfoChannel(server.serv_guildId);
+      if(infochannel != null) {
+        infochannel = guild.getTextChannelById(infoChannelDTO.infochannel_channelid);
+      }
+
+      if(infochannel != null) {
 
         if(needToWait) {
           TimeUnit.SECONDS.sleep(3);
         }
 
-        for(Player player : server.getPlayers()) {
+        List<DTO.Player> playersDTO = PlayerRepository.getPlayers(server.serv_guildId);
+        
+        
+        
+        for(DTO.LeagueAccount account : server.getPlayers()) {
           player.refreshAllLeagueAccounts(CallPriority.NORMAL);
         }
 
@@ -327,13 +345,13 @@ public class InfoPanelRefresher implements Runnable {
 
         if(leagueAccounts.isEmpty()) {
           stringMessage.append(player.getDiscordUser().getAsMention() + " : " 
-        + LanguageManager.getText(server.getLangage(), "informationPanelNotInGame") + " \n");
+              + LanguageManager.getText(server.getLangage(), "informationPanelNotInGame") + " \n");
         }else if (leagueAccounts.size() == 1) {
           stringMessage.append(player.getDiscordUser().getAsMention() + " : " 
               + InfoPanelRefresherUtil.getCurrentGameInfoStringForOneAccount(leagueAccounts.get(0), server.getLangage()) + "\n");
         }else {
           stringMessage.append(player.getDiscordUser().getAsMention() + " : " 
-        + LanguageManager.getText(server.getLangage(), "informationPanelMultipleAccountInGame") + "\n"
+              + LanguageManager.getText(server.getLangage(), "informationPanelMultipleAccountInGame") + "\n"
               + InfoPanelRefresherUtil.getCurrentGameInfoStringForMultipleAccounts(leagueAccounts, server.getLangage()));
         }
       }

@@ -6,6 +6,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.Zoe;
+import ch.kalunight.zoe.model.dto.DTO;
 import net.dv8tion.jda.api.entities.User;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
@@ -19,7 +20,7 @@ public class Player {
   private static final Logger logger = LoggerFactory.getLogger(Player.class);
 
   private long discordUserId;
-  private List<LeagueAccount> lolAccounts;
+  private List<DTO.LeagueAccount> lolAccounts;
   private boolean mentionnable;
 
   public Player(long discordUserId, Summoner summoner, Platform region, boolean mentionnable) {

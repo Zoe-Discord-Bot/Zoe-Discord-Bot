@@ -1,5 +1,6 @@
 package ch.kalunight.zoe.service;
 
+import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -9,6 +10,9 @@ import java.util.stream.Collectors;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
@@ -20,6 +24,7 @@ import ch.kalunight.zoe.model.player_data.LeagueAccount;
 import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.model.player_data.Team;
 import ch.kalunight.zoe.repositories.InfoChannelRepository;
+import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.InfoPanelRefresherUtil;
@@ -31,6 +36,7 @@ import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.requests.ErrorResponse;
+import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.constant.CallPriority;
 
@@ -39,6 +45,8 @@ public class InfoPanelRefresher implements Runnable {
   private static final int INFO_CARDS_MINUTES_LIVE_TIME = 20;
 
   private static final Logger logger = LoggerFactory.getLogger(InfoPanelRefresher.class);
+
+  private static final Gson gson = new GsonBuilder().create();
 
   private DTO.Server server;
 
@@ -76,16 +84,12 @@ public class InfoPanelRefresher implements Runnable {
         }
 
         List<DTO.Player> playersDTO = PlayerRepository.getPlayers(server.serv_guildId);
-        
-        
-        
-        for(DTO.LeagueAccount account : server.getPlayers()) {
-          player.refreshAllLeagueAccounts(CallPriority.NORMAL);
-        }
 
         cleanRegisteredPlayerNoLongerInGuild();
-        server.clearOldMatchOfSendedGamesIdList();
+        refreshAllLeagueAccount(playersDTO);
+        clearOldMatchOfSendedGamesIdList(playersDTO);
         deleteOlderInfoCards();
+
 
         ArrayList<String> infoPanels = CommandEvent.splitMessage(refreshPannel());
 
@@ -151,6 +155,57 @@ public class InfoPanelRefresher implements Runnable {
     } finally {
       server.setLastRefresh(DateTime.now());
       ServerData.getServersIsInTreatment().put(server.getGuild().getId(), false);
+    }
+  }
+
+  public void clearOldMatchOfSendedGamesIdList(List<DTO.Player> players) {
+
+    final List<CurrentGameInfo> allCurrentGamesOfPlayers = new ArrayList<>();
+    for(DTO.Player player : players) {
+      for(DTO.LeagueAccount leagueAccount : player.leagueAccounts) {
+        if(leagueAccount.leagueAccount_currentGame != null) {
+          CurrentGameInfo currentGameInfo = gson.fromJson(leagueAccount.leagueAccount_currentGame, CurrentGameInfo.class);
+          allCurrentGamesOfPlayers.add(currentGameInfo);
+        }
+      }
+    }
+
+    final Iterator<CurrentGameInfo> iterator = allCurrentGamesOfPlayers.iterator();
+
+    final List<Long> gameIdToSave = new ArrayList<>();
+
+    while(iterator.hasNext()) {
+
+      final CurrentGameInfo currentGameInfo = iterator.next();
+
+      if(currentGameInfo != null) {
+        gameIdToSave.add(currentGameInfo.getGameId());
+      }
+    }
+
+    Iterator<Long> idCurrentGamesIterator = currentGamesIdAlreadySended.iterator();
+
+    while(idCurrentGamesIterator.hasNext()) {
+      Long actualCurrentGamesId = idCurrentGamesIterator.next();
+      if(!gameIdToSave.contains(actualCurrentGamesId)) {
+        idCurrentGamesIterator.remove();
+      }
+    }
+  }
+
+  private void refreshAllLeagueAccount(List<DTO.Player> playersDTO) throws SQLException, RiotApiException {
+    for(DTO.Player player : playersDTO) {
+      player.leagueAccounts =
+          LeagueAccountRepository.getLeaguesAccounts(server.serv_guildId, player.player_discordId);
+
+      for(DTO.LeagueAccount leagueAccount : player.leagueAccounts) {
+        CurrentGameInfo currentGame = Zoe.getRiotApi().getActiveGameBySummoner(
+            leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId, CallPriority.NORMAL);
+
+        leagueAccount.leagueAccount_currentGame = gson.toJson(currentGame);
+        LeagueAccountRepository.updateAccountWithId(
+            leagueAccount.leagueAccount_id, leagueAccount.leagueAccount_currentGame);
+      }
     }
   }
 

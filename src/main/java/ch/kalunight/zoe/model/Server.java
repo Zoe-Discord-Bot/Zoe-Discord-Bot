@@ -111,38 +111,6 @@ public class Server {
     }
   }
 
-  public void clearOldMatchOfSendedGamesIdList() {
-    
-    final List<CurrentGameInfo> allCurrentGamesOfPlayers = new ArrayList<>();
-    for(Player player : players) {
-      for(LeagueAccount leagueAccount : player.getLolAccounts()) {
-        allCurrentGamesOfPlayers.add(leagueAccount.getCurrentGameInfo());
-      }
-    }
-    
-    final Iterator<CurrentGameInfo> iterator = allCurrentGamesOfPlayers.iterator();
-
-    final List<Long> gameIdToSave = new ArrayList<>();
-
-    while(iterator.hasNext()) {
-
-      final CurrentGameInfo currentGameInfo = iterator.next();
-      
-      if(currentGameInfo != null) {
-        gameIdToSave.add(currentGameInfo.getGameId());
-      }
-    }
-
-    Iterator<Long> idCurrentGamesIterator = currentGamesIdAlreadySended.iterator();
-
-    while(idCurrentGamesIterator.hasNext()) {
-      Long actualCurrentGamesId = idCurrentGamesIterator.next();
-      if(!gameIdToSave.contains(actualCurrentGamesId)) {
-        idCurrentGamesIterator.remove();
-      }
-    }
-  }
-
   public Player getPlayerByDiscordId(long discordId) {
     for(Player player : players) {
       if(player.getDiscordId() == discordId) {

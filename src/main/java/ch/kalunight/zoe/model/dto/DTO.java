@@ -4,8 +4,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import ch.kalunight.zoe.Zoe;
 import net.dv8tion.jda.api.entities.User;
+import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.constant.Platform;
 
 public class DTO {
@@ -73,6 +78,7 @@ public class DTO {
     public long player_discordId;
     public boolean player_mentionnable;
     public User user;
+    public List<DTO.LeagueAccount> leagueAccounts = Collections.synchronizedList(new ArrayList<>());
     
     public Player(ResultSet baseData) throws SQLException {
       player_id = baseData.getLong("player_id");
@@ -93,6 +99,7 @@ public class DTO {
     public String leagueAccount_puuid;
     public Platform leagueAccount_server;
     public String leagueAccount_currentGame;
+    public Summoner summoner;
     
     public LeagueAccount(ResultSet baseData) throws SQLException {
       leagueAccount_id = baseData.getLong("leagueAccount_id");

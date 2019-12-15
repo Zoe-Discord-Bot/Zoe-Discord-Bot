@@ -5,6 +5,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.DTO;
@@ -37,6 +38,9 @@ public class LeagueAccountRepository {
   
   private static final String DELETE_LEAGUE_ACCOUNT_WITH_ID = "DELETE FROM league_account WHERE leagueaccount_id = %d";
   
+  private static final String UPDATE_LEAGUE_ACCOUNT_CURRENT_GAMES_WITH_ID = 
+      "UPDATE leagueAccount SET leagueAccount_currentGame = '%s' WHERE leagueaccount_id = %d";
+  
   private LeagueAccountRepository() {
     //hide default public constructor
   }
@@ -59,7 +63,7 @@ public class LeagueAccountRepository {
       String finalQuery = String.format(SELECT_LEAGUES_ACCOUNTS_WITH_GUILDID_AND_PLAYER_DISCORD_ID, guildId, discordPlayerId);
       result = query.executeQuery(finalQuery);
       
-      List<DTO.LeagueAccount> accounts = new ArrayList<>();
+      List<DTO.LeagueAccount> accounts = Collections.synchronizedList(new ArrayList<>());
       result.next();
       while(!result.isAfterLast()) {
         accounts.add(new DTO.LeagueAccount(result));
@@ -96,6 +100,15 @@ public class LeagueAccountRepository {
         Statement query = conn.createStatement();) {
       
       String finalQuery = String.format(DELETE_LEAGUE_ACCOUNT_WITH_ID, leagueAccountId);
+      query.executeUpdate(finalQuery);
+    }
+  }
+  
+  public static void updateAccountWithId(long leagueAccountId, String currentGameJson) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement();) {
+      
+      String finalQuery = String.format(UPDATE_LEAGUE_ACCOUNT_CURRENT_GAMES_WITH_ID, leagueAccountId, leagueAccountId);
       query.executeUpdate(finalQuery);
     }
   }

@@ -5,8 +5,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.player_data.Team;
+import ch.kalunight.zoe.translation.LanguageManager;
 
 public class TeamRepository {
 
@@ -28,6 +32,13 @@ public class TeamRepository {
       "INNER JOIN player AS player_1 ON server.serv_id = player_1.player_fk_server " + 
       "WHERE player.player_discordid = %d " + 
       "AND server.serv_guildid = %d";
+  
+  private static final String SELECT_TEAMS_BY_GUILD_ID = 
+      "SELECT " + 
+      "team.team_id,team.team_fk_server,team.team_name " + 
+      "FROM team " + 
+      "INNER JOIN server ON team.team_fk_server = server.serv_id " + 
+      "WHERE server.serv_guildid = %d";
   
   private static final String DELETE_TEAM_WITH_TEAMID = "DELETE FROM team WHERE team_id = %d";
   
@@ -57,6 +68,40 @@ public class TeamRepository {
     }
   }
   
+  public static List<Team> getAllPlayerInTeams(long guildId, String language) throws SQLException {
+    List<DTO.Player> playerWithNoTeam = new ArrayList<>();
+    List<DTO.Player> players = PlayerRepository.getPlayers(guildId);
+    List<DTO.Team> teamsDto = TeamRepository.getTeamsByGuild(guildId);
+    List<Team> teams = new ArrayList<>();
+    for(DTO.Player player : players) {
+      player.leagueAccounts = LeagueAccountRepository.getLeaguesAccounts(guildId, player.player_discordId);
+    }
+    
+    for(DTO.Team team : teamsDto) {
+      for(DTO.Player player : players) {
+        if(team.team_id == player.player_fk_team) {
+          team.players.add(player);
+        }
+      }
+    }
+    
+    playerWithNoTeam.addAll(players);
+
+    for(Team team : teams) {
+      for(DTO.Player player : team.getPlayers()) {
+        playerWithNoTeam.remove(player);
+      }
+    }
+
+    List<Team> allTeams = new ArrayList<>();
+    allTeams.addAll(teams);
+    if(!playerWithNoTeam.isEmpty()) {
+      allTeams.add(new Team(LanguageManager.getText(language, "teamNameOfPlayerWithoutTeam"), playerWithNoTeam));
+    }
+
+    return allTeams;
+  }
+  
   public static DTO.Team getTeamByPlayerAndGuild(long guildId, long discordId) throws SQLException {
     ResultSet result = null;
     try (Connection conn = RepoRessources.getConnection();
@@ -69,6 +114,27 @@ public class TeamRepository {
         return null;
       }
       return new DTO.Team(result);
+    }finally {
+      RepoRessources.closeResultSet(result);
+    }
+  }
+  
+  public static List<DTO.Team> getTeamsByGuild(long guildId) throws SQLException {
+    ResultSet result = null;
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+      
+      String finalQuery = String.format(SELECT_TEAMS_BY_GUILD_ID, guildId);
+      result = query.executeQuery(finalQuery);
+      
+      List<DTO.Team> teams = Collections.synchronizedList(new ArrayList<>());
+      result.next();
+      while(!result.isAfterLast()) {
+        teams.add(new DTO.Team(result));
+        result.next();
+      }
+      
+      return teams;
     }finally {
       RepoRessources.closeResultSet(result);
     }

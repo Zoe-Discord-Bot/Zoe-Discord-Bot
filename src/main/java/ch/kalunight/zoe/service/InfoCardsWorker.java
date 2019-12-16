@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Stopwatch;
 import ch.kalunight.zoe.model.InfoCard;
 import ch.kalunight.zoe.model.Server;
+import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.player_data.LeagueAccount;
 import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.util.InfoPanelRefresherUtil;
@@ -22,15 +23,15 @@ public class InfoCardsWorker implements Runnable {
 
   private static final Logger logger = LoggerFactory.getLogger(InfoCardsWorker.class);
 
-  private Server server;
+  private DTO.Server server;
 
   private TextChannel controlPanel;
 
-  private LeagueAccount account;
+  private DTO.LeagueAccount account;
 
-  private CurrentGameInfo currentGameInfo;
+  private DTO.CurrentGameInfo currentGameInfo;
 
-  public InfoCardsWorker(Server server, TextChannel controlPanel, LeagueAccount account, CurrentGameInfo currentGameInfo) {
+  public InfoCardsWorker(DTO.Server server, TextChannel controlPanel, DTO.LeagueAccount account, DTO.CurrentGameInfo currentGameInfo) {
     this.server = server;
     this.controlPanel = controlPanel;
     this.account = account;

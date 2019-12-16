@@ -13,7 +13,6 @@ import com.google.gson.GsonBuilder;
 
 import ch.kalunight.zoe.Zoe;
 import net.dv8tion.jda.api.entities.User;
-import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.constant.Platform;
 
@@ -68,6 +67,7 @@ public class DTO {
   public static class GameInfoCard {
     public long gamecard_id;
     public long gamecard_fk_infochannel;
+    public long gamecard_fk_currentgame;
     public long gamecard_titlemessageid;
     public long gamecard_infocardmessageid;
     public LocalDateTime gamecard_creationtime;
@@ -75,6 +75,7 @@ public class DTO {
     public GameInfoCard(ResultSet baseData) throws SQLException {
       gamecard_id = baseData.getLong("gamecard_id");
       gamecard_fk_infochannel = baseData.getLong("gamecard_fk_infochannel");
+      gamecard_fk_currentgame = baseData.getLong("gamecard_fk_currentgame");
       gamecard_titlemessageid = baseData.getLong("gamecard_titlemessageid");
       gamecard_infocardmessageid = baseData.getLong("gamecard_infocardmessageid");
       gamecard_creationtime = LocalDateTime.parse(baseData.getString("gamecard_creationtime"), DB_TIME_PATTERN);
@@ -116,23 +117,34 @@ public class DTO {
     public long leagueAccount_id;
     public long leagueAccount_fk_player;
     public long leagueAccount_fk_gamecard;
+    public long leagueAccount_fk_currentgame;
     public String leagueAccount_summonerId;
     public String leagueAccount_accoundId;
     public String leagueAccount_puuid;
     public Platform leagueAccount_server;
-    public CurrentGameInfo leagueAccount_currentGame;
     public Summoner summoner;
     
     public LeagueAccount(ResultSet baseData) throws SQLException {
       leagueAccount_id = baseData.getLong("leagueAccount_id");
       leagueAccount_fk_player = baseData.getLong("leagueAccount_fk_player");
       leagueAccount_fk_gamecard = baseData.getLong("leagueAccount_fk_gamecard");
+      leagueAccount_fk_currentgame = baseData.getLong("leagueAccount_fk_currentgame");
       leagueAccount_summonerId = baseData.getString("leagueAccount_summonerId");
       leagueAccount_accoundId = baseData.getString("leagueAccount_accountId");
       leagueAccount_puuid = baseData.getString("leagueAccount_puuid");
       leagueAccount_server = Platform.getPlatformByName(baseData.getString("leagueAccount_server"));
-      if(baseData.getString("leagueAccount_currentGame") != null) {
-        leagueAccount_currentGame = gson.fromJson(baseData.getString("leagueAccount_currentGame"), CurrentGameInfo.class);
+    }
+  }
+  
+  public static class CurrentGameInfo {
+    public long currentgame_id;
+    public net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo currentgame_currentgame;
+    
+    public CurrentGameInfo(ResultSet baseData) throws SQLException {
+      currentgame_id = baseData.getLong("currentgame_id");
+      if(baseData.getString("currentgame_currentgame") != null) {
+        currentgame_currentgame = gson.fromJson(baseData.getString("currentgame_currentgame"),
+            net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo.class);
       }
     }
   }
@@ -141,6 +153,7 @@ public class DTO {
     public long team_id;
     public long team_fk_server;
     public String team_name;
+    public List<DTO.Player> players = Collections.synchronizedList(new ArrayList<>());
     
     public Team(ResultSet baseData) throws SQLException {
       team_id = baseData.getLong("team_id");

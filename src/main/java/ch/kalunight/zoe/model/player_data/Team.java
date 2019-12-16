@@ -3,13 +3,14 @@ package ch.kalunight.zoe.model.player_data;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import ch.kalunight.zoe.model.dto.DTO;
 
 public class Team {
 
   private String name;
-  private List<Player> players;
+  private List<DTO.Player> players;
 
-  public Team(String name, List<Player> players) {
+  public Team(String name, List<DTO.Player> players) {
     this.name = name;
     this.players = Collections.synchronizedList(players);
   }
@@ -19,8 +20,8 @@ public class Team {
     players = new ArrayList<>();
   }
 
-  public boolean isPlayerInTheTeam(Player playerToCheck) {
-    for(Player player : players) {
+  public boolean isPlayerInTheTeam(DTO.Player playerToCheck) {
+    for(DTO.Player player : players) {
       if(player.equals(playerToCheck)) {
         return true;
       }
@@ -36,11 +37,11 @@ public class Team {
     this.name = name;
   }
 
-  public List<Player> getPlayers() {
+  public List<DTO.Player> getPlayers() {
     return players;
   }
 
-  public void setPlayers(List<Player> players) {
+  public void setPlayers(List<DTO.Player> players) {
     this.players = players;
   }
 }

@@ -82,8 +82,9 @@ CREATE TABLE info_panel_message (
 CREATE TABLE game_info_card (
   gameCard_id									SERIAL,
   gameCard_fk_infoChannel						BIGINT				NOT NULL,
-  gameCard_titleMessageId						BIGINT				NOT NULL,
-  gameCard_infoCardMessageId					BIGINT				NOT NULL,
+  gameCard_fk_currentGame						BIGINT				NOT NULL,
+  gameCard_titleMessageId						BIGINT,
+  gameCard_infoCardMessageId					BIGINT,
   gameCard_creationTime							TIMESTAMP			WITHOUT TIME ZONE
 );
 
@@ -91,11 +92,16 @@ CREATE TABLE league_account (
   leagueAccount_id								SERIAL,
   leagueAccount_fk_player						BIGINT				NOT NULL,
   leagueAccount_fk_gameCard						BIGINT,
+  leagueAccount_fk_currentGame					BIGINT,
   leagueAccount_summonerId						VARCHAR				NOT NULL,
   leagueAccount_accountId						VARCHAR				NOT NULL,
   leagueAccount_puuid							VARCHAR				NOT NULL,
-  leagueAccount_server							VARCHAR				NOT NULL,
-  leagueAccount_currentGame						JSON
+  leagueAccount_server							VARCHAR				NOT NULL
+);
+
+CREATE TABLE current_game_info (
+  currentGame_id								SERIAL,
+  currentGame_currentGame						JSON
 );
 
 -- Constraints
@@ -140,6 +146,9 @@ ALTER TABLE ONLY game_info_card
   
 ALTER TABLE ONLY league_account
   ADD CONSTRAINT league_account_pkey PRIMARY KEY (leagueAccount_id);
+  
+ALTER TABLE ONLY current_game_info
+  ADD CONSTRAINT current_game_info_pkey PRIMARY KEY (currentGame_id);
   
 ALTER TABLE player 
   ADD CONSTRAINT player_fk_server_const 
@@ -212,3 +221,14 @@ ALTER TABLE league_account
   ADD CONSTRAINT league_account_fk_player_const 
   FOREIGN KEY (leagueAccount_fk_player) REFERENCES player (player_id)
   ON DELETE CASCADE;
+
+ALTER TABLE league_account
+  ADD CONSTRAINT league_account_fk_currentGame_const 
+  FOREIGN KEY (leagueAccount_fk_currentGame) REFERENCES current_game_info (currentGame_id);
+  
+ALTER TABLE game_info_card
+  ADD CONSTRAINT game_info_card_fk_currentGame_const 
+  FOREIGN KEY (gameCard_fk_currentGame) REFERENCES current_game_info (currentGame_id)
+  ON DELETE CASCADE;
+  
+  

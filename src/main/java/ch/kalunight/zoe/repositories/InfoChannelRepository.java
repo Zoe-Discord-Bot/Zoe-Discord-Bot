@@ -45,6 +45,9 @@ public class InfoChannelRepository {
       "USING server " +
       "WHERE server.serv_id = info_channel.infochannel_fk_server AND server.serv_guildid = %d";
   
+  private static final String DELETE_INFO_PANEL_MESSAGE_ID = 
+      "DELETE FROM info_panel_message WHERE infopanel_id = %d";
+  
   private InfoChannelRepository() {
     //Hide default public constructor
   }
@@ -120,6 +123,15 @@ public class InfoChannelRepository {
         Statement query = conn.createStatement();) {
       
       String finalQuery = String.format(DELETE_INFOCHANNEL_WITH_GUILD_ID, guildId);
+      query.execute(finalQuery);
+    }
+  }
+  
+  public static void deleteInfoPanelMessage(long infoPanelId) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement();) {
+      
+      String finalQuery = String.format(DELETE_INFO_PANEL_MESSAGE_ID, infoPanelId);
       query.execute(finalQuery);
     }
   }

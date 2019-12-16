@@ -441,7 +441,6 @@ public class InfoPanelRefresher implements Runnable {
   private void createInfoCards(TextChannel controlPanel) throws SQLException {
 
     ArrayList<DTO.LeagueAccount> accountAlreadyGenerated = new ArrayList<>();
-    List<DTO.LeagueAccount> allLeaguesAccounts = LeagueAccountRepository.getAllLeaguesAccounts(server.serv_guildId);
     
     for(DTO.LeagueAccount account : LeagueAccountRepository.getAllLeaguesAccounts(server.serv_guildId)) {
 
@@ -454,7 +453,7 @@ public class InfoPanelRefresher implements Runnable {
               .getGameInfoCardsWithCurrentGame(server.serv_guildId, currentGameInfo.currentgame_id, account.leagueAccount_id);
           if(gameInfoCard == null) {
             accountAlreadyGenerated.addAll(InfoPanelRefresherUtil
-                .checkIfOthersAccountsInKnowInTheMatch(currentGameInfo, server, allLeaguesAccounts));
+                .checkIfOthersAccountsInKnowInTheMatch(currentGameInfo, server));
             
             DTO.InfoChannel infoChannelDTO = InfoChannelRepository.getInfoChannel(server.serv_guildId);
             GameInfoCardRepository.createGameCards(infoChannelDTO.infoChannel_id, currentGameInfo.currentgame_id);

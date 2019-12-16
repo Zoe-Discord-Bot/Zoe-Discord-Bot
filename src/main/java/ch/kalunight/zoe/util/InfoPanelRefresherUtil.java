@@ -10,6 +10,8 @@ import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.player_data.LeagueAccount;
 import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.repositories.CurrentGameInfoRepository;
+import ch.kalunight.zoe.repositories.LeagueAccountRepository;
+import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
@@ -85,8 +87,9 @@ public class InfoPanelRefresherUtil {
   }
 
   public static List<DTO.LeagueAccount> checkIfOthersAccountsInKnowInTheMatch(
-      DTO.CurrentGameInfo currentGameInfo, DTO.Server server, List<DTO.LeagueAccount> allLeaguesAccounts){
+      DTO.CurrentGameInfo currentGameInfo, DTO.Server server) throws SQLException{
 
+    List<DTO.LeagueAccount> allLeaguesAccounts = LeagueAccountRepository.getAllLeaguesAccounts(server.serv_guildId);
     ArrayList<DTO.LeagueAccount> listOfAccounts = new ArrayList<>();
 
     for(DTO.LeagueAccount leagueAccount : allLeaguesAccounts) {
@@ -99,19 +102,20 @@ public class InfoPanelRefresherUtil {
     return listOfAccounts;
   }
 
-  public static List<Player> checkIfOthersPlayersIsKnowInTheMatch(CurrentGameInfo currentGameInfo, Server server) {
+  public static List<DTO.Player> checkIfOthersPlayersIsKnowInTheMatch(DTO.CurrentGameInfo currentGameInfo, DTO.Server server)
+      throws SQLException {
 
-    ArrayList<Player> listOfPlayers = new ArrayList<>();
-
-    for(Player player : server.getPlayers()) {
-      for(LeagueAccount leagueAccount : player.getLolAccounts()) {
-        for(CurrentGameParticipant participant : currentGameInfo.getParticipants()) {
-          if(participant.getSummonerId().equals(leagueAccount.getSummoner().getId())) {
-            listOfPlayers.add(player);
-          }
-        }
+    ArrayList<DTO.Player> listOfPlayers = new ArrayList<>();
+    List<DTO.LeagueAccount> leagueAccounts = checkIfOthersAccountsInKnowInTheMatch(currentGameInfo, server);
+    
+    for(DTO.LeagueAccount leagueAccount : leagueAccounts) {
+      DTO.Player player = PlayerRepository.getPlayerByLeagueAccountAndGuild(
+          server.serv_guildId, leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server.getName());
+      if(!listOfPlayers.contains(player)) {
+        listOfPlayers.add(player);
       }
     }
+    
     return listOfPlayers;
   }
 }

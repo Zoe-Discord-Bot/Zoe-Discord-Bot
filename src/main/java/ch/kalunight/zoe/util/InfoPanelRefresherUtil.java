@@ -4,19 +4,12 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import com.google.common.base.Preconditions;
-import ch.kalunight.zoe.Zoe;
-import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.dto.DTO;
-import ch.kalunight.zoe.model.player_data.LeagueAccount;
-import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.repositories.CurrentGameInfoRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
-import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
-import net.rithms.riot.constant.CallPriority;
 
 public class InfoPanelRefresherUtil {
 
@@ -25,16 +18,14 @@ public class InfoPanelRefresherUtil {
   }
 
   public static String getCurrentGameInfoStringForOneAccount(DTO.LeagueAccount account, String language) 
-      throws SQLException, RiotApiException {
+      throws SQLException {
     Preconditions.checkNotNull(account);
 
     DTO.CurrentGameInfo currentGameInfo = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(account.leagueAccount_id);
-    account.summoner = Zoe.getRiotApi().getSummoner(
-        account.leagueAccount_server, account.leagueAccount_summonerId, CallPriority.NORMAL);
 
     String gameStatus = LanguageManager.getText(language, 
         NameConversion.convertGameQueueIdToString(currentGameInfo.currentgame_currentgame.getGameQueueConfigId())) 
-        + " " + LanguageManager.getText(language, "withTheAccount") + " **" + account.summoner.getName() + "**";
+        + " " + LanguageManager.getText(language, "withTheAccount") + " **" + account.leagueAccount_name + "**";
 
     double minutesOfGames = 0.0;
 
@@ -53,19 +44,17 @@ public class InfoPanelRefresherUtil {
   }
 
   public static String getCurrentGameInfoStringForMultipleAccounts(List<DTO.LeagueAccount> accounts, String language) 
-      throws SQLException, RiotApiException {
+      throws SQLException {
     Preconditions.checkNotNull(accounts);
 
     StringBuilder stringBuilder = new StringBuilder();
 
     for(DTO.LeagueAccount account : accounts) {
-      account.summoner = Zoe.getRiotApi().getSummoner(
-          account.leagueAccount_server, account.leagueAccount_summonerId, CallPriority.NORMAL);
 
       DTO.CurrentGameInfo currentGameInfo = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(account.leagueAccount_id);
 
       stringBuilder.append("-" + LanguageManager.getText(language, "account") 
-      + " **" + account.summoner.getName() + "** : ");
+      + " **" + account.leagueAccount_name + "** : ");
 
       stringBuilder.append(LanguageManager.getText(language,
           NameConversion.convertGameQueueIdToString(currentGameInfo.currentgame_currentgame.getGameQueueConfigId())));

@@ -64,8 +64,8 @@ public class GameInfoCardRepository {
       "UPDATE game_info_card SET gamecard_fk_currentgame = %d WHERE gamecard_id = %d";
   
   private static final String UPDATE_GAME_INFO_CARDS_MESSAGES_WITH_ID =
-      "UPDATE game_info_card SET gamecard_titlemessageid = %d " +
-      "gamecard_infocardmessageid = %d " +
+      "UPDATE game_info_card SET gamecard_titlemessageid = %d, " +
+      "gamecard_infocardmessageid = %d, " +
       "gamecard_creationtime = '%s' WHERE gamecard_id = %d";
   
   private static final String INSERT_INTO_GAME_INFO_CARD = "INSERT INTO game_info_card " +

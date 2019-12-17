@@ -117,7 +117,7 @@ public class InfoPanelRefresher implements Runnable {
     try {
 
       DTO.InfoChannel infoChannelDTO = InfoChannelRepository.getInfoChannel(server.serv_guildId);
-      if(infochannel != null) {
+      if(infoChannelDTO != null) {
         infochannel = guild.getTextChannelById(infoChannelDTO.infochannel_channelid);
         gameInfoCards = GameInfoCardRepository.getGameInfoCards(server.serv_guildId);
       }
@@ -130,6 +130,8 @@ public class InfoPanelRefresher implements Runnable {
 
         List<DTO.Player> playersDTO = PlayerRepository.getPlayers(server.serv_guildId);
 
+        cleanInfoChannelCache();
+        
         cleanRegisteredPlayerNoLongerInGuild(playersDTO);
         refreshAllLeagueAccountCurrentGames(playersDTO);
         clearOldMatchOfSendedGamesIdList(playersDTO);
@@ -138,8 +140,6 @@ public class InfoPanelRefresher implements Runnable {
         ArrayList<String> infoPanels = CommandEvent.splitMessage(refreshPannel());
 
         if(infochannel != null && guild.getTextChannelById(infochannel.getId()) != null) {
-
-          cleanInfoChannelCache();
 
           List<DTO.InfoPanelMessage> infoPanelMessages = InfoChannelRepository.getInfoPanelMessages(server.serv_guildId);
 
@@ -183,8 +183,6 @@ public class InfoPanelRefresher implements Runnable {
           InfoChannelRepository.deleteInfoChannel(guild.getIdLong());
         }
       }
-    } catch(NullPointerException e) {
-      logger.warn("The Thread has crashed prbably normally because of deletion of infoChannel :", e);
     }catch (InsufficientPermissionException e) {
       logger.debug("Permission {} missing for infochannel in the guild {}, try to autofix the issue... (Low chance to work)",
           e.getPermission().getName(), guild.getName());
@@ -219,7 +217,7 @@ public class InfoPanelRefresher implements Runnable {
       for(DTO.LeagueAccount leagueAccount : player.leagueAccounts) {
         DTO.CurrentGameInfo currentGameInfo = 
             CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(leagueAccount.leagueAccount_id);
-        if(currentGameInfo.currentgame_currentgame != null) {
+        if(currentGameInfo != null && currentGameInfo.currentgame_currentgame != null) {
           allCurrentGamesOfPlayers.add(currentGameInfo);
         }
       }
@@ -243,6 +241,10 @@ public class InfoPanelRefresher implements Runnable {
     while(gameInfoCardsIterator.hasNext()) {
       DTO.GameInfoCard actualgameInfoCard = gameInfoCardsIterator.next();
       List<DTO.LeagueAccount> leaguesAccountInGames = LeagueAccountRepository.getLeaguesAccountsWithGameCardsId(actualgameInfoCard.gamecard_id);
+      if(leaguesAccountInGames.isEmpty()) {
+        //is in loading
+        continue;
+      }
       DTO.LeagueAccount leagueAccount = leaguesAccountInGames.get(0);
       DTO.CurrentGameInfo currentGameInfo = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(leagueAccount.leagueAccount_id);
 
@@ -253,7 +255,7 @@ public class InfoPanelRefresher implements Runnable {
     }
   }
 
-  private void refreshAllLeagueAccountCurrentGames(List<DTO.Player> playersDTO) throws SQLException, RiotApiException {
+  private void refreshAllLeagueAccountCurrentGames(List<DTO.Player> playersDTO) throws SQLException {
     List<CurrentGameWithRegion> gameAlreadyAskedToRiot = new ArrayList<>();
 
     for(DTO.Player player : playersDTO) {
@@ -264,21 +266,40 @@ public class InfoPanelRefresher implements Runnable {
 
         DTO.CurrentGameInfo currentGameDb = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(leagueAccount.leagueAccount_id);
 
-        CurrentGameWithRegion currentGameDbRegion = 
-            new CurrentGameWithRegion(currentGameDb.currentgame_currentgame, leagueAccount.leagueAccount_server);
+        CurrentGameWithRegion currentGameDbRegion = null;
+        if(currentGameDb != null) {
+          currentGameDbRegion = 
+              new CurrentGameWithRegion(currentGameDb.currentgame_currentgame, leagueAccount.leagueAccount_server);
+        }
 
-        if(gameAlreadyAskedToRiot.contains(currentGameDbRegion)) {
+        if(currentGameDb == null || !gameAlreadyAskedToRiot.contains(currentGameDbRegion)) {
 
-          CurrentGameInfo currentGame = Zoe.getRiotApi().getActiveGameBySummoner(
-              leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId, CallPriority.NORMAL);
+          CurrentGameInfo currentGame;
+          try {
+            currentGame = Zoe.getRiotApi().getActiveGameBySummoner(
+                leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId, CallPriority.NORMAL);
+          } catch(RiotApiException e) {
+            if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+              currentGame = null;
+            }else {
+              continue;
+            }
+          }
 
-          gameAlreadyAskedToRiot.add(new CurrentGameWithRegion(currentGame, leagueAccount.leagueAccount_server));
+          if(currentGame != null) {
+            gameAlreadyAskedToRiot.add(new CurrentGameWithRegion(currentGame, leagueAccount.leagueAccount_server));
+          }
 
-          if(currentGameDb.currentgame_currentgame == null && currentGame != null) {
+          if(currentGameDb == null && currentGame != null) {
             CurrentGameInfoRepository.createCurrentGame(currentGame, leagueAccount);
-          }else if(currentGameDb.currentgame_currentgame != null && currentGame != null) {
-            CurrentGameInfoRepository.updateCurrentGame(currentGame, leagueAccount);
-          }else {
+          }else if(currentGameDb != null && currentGame != null) {
+            if(currentGame.getGameId() == currentGameDb.currentgame_currentgame.getGameId()) {
+              CurrentGameInfoRepository.updateCurrentGame(currentGame, leagueAccount);
+            }else {
+              CurrentGameInfoRepository.deleteCurrentGame(leagueAccount);
+              CurrentGameInfoRepository.createCurrentGame(currentGame, leagueAccount);
+            }
+          }else if(currentGameDb != null && currentGame == null) {
             CurrentGameInfoRepository.deleteCurrentGame(leagueAccount);
           }
         }
@@ -390,7 +411,7 @@ public class InfoPanelRefresher implements Runnable {
 
     for(DTO.GameInfoCard gameInfoCard : gameInfoCardsOfTheServer) {
 
-      if(gameInfoCard.gamecard_creationtime.plusMinutes(INFO_CARDS_MINUTES_LIVE_TIME).isBefore(LocalDateTime.now())) {
+      if(gameInfoCard.gamecard_creationtime != null && gameInfoCard.gamecard_creationtime.plusMinutes(INFO_CARDS_MINUTES_LIVE_TIME).isBefore(LocalDateTime.now())) {
         checkIfGameLongerExist(cardsToRemove, gameInfoCard);
       }
     }
@@ -441,7 +462,7 @@ public class InfoPanelRefresher implements Runnable {
   private void createInfoCards(TextChannel controlPanel) throws SQLException {
 
     ArrayList<DTO.LeagueAccount> accountAlreadyGenerated = new ArrayList<>();
-    
+
     for(DTO.LeagueAccount account : LeagueAccountRepository.getAllLeaguesAccounts(server.serv_guildId)) {
 
       if(!accountAlreadyGenerated.contains(account)) {
@@ -454,9 +475,11 @@ public class InfoPanelRefresher implements Runnable {
           if(gameInfoCard == null) {
             accountAlreadyGenerated.addAll(InfoPanelRefresherUtil
                 .checkIfOthersAccountsInKnowInTheMatch(currentGameInfo, server));
-            
+
             DTO.InfoChannel infoChannelDTO = InfoChannelRepository.getInfoChannel(server.serv_guildId);
             GameInfoCardRepository.createGameCards(infoChannelDTO.infoChannel_id, currentGameInfo.currentgame_id);
+            DTO.GameInfoCard gameCard = GameInfoCardRepository.getGameInfoCardsWithCurrentGameId(server.serv_guildId, currentGameInfo.currentgame_id);
+            LeagueAccountRepository.updateAccountGameCardWithAccountId(account.leagueAccount_id, gameCard.gamecard_id);
             ServerData.getInfocardsGenerator().execute(new InfoCardsWorker(server, controlPanel, account, currentGameInfo));
           }
         }
@@ -482,17 +505,25 @@ public class InfoPanelRefresher implements Runnable {
       for(DTO.Player player : playersList) {
 
         List<DTO.LeagueAccount> leagueAccounts = player.leagueAccounts;
-
-        if(leagueAccounts.isEmpty()) {
+        
+        List<DTO.LeagueAccount> accountsInGame = new ArrayList<>();
+        for(DTO.LeagueAccount leagueAccount : leagueAccounts) {
+          DTO.CurrentGameInfo currentGameInfo = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(leagueAccount.leagueAccount_id);
+          if(currentGameInfo != null) {
+            accountsInGame.add(leagueAccount);
+          }
+        }
+        
+        if(accountsInGame.isEmpty()) {
           stringMessage.append(player.user.getAsMention() + " : " 
               + LanguageManager.getText(server.serv_language, "informationPanelNotInGame") + " \n");
-        }else if (leagueAccounts.size() == 1) {
-          stringMessage.append(player.user.getAsMention() + " : " 
-              + InfoPanelRefresherUtil.getCurrentGameInfoStringForOneAccount(leagueAccounts.get(0), server.serv_language) + "\n");
+        }else if (accountsInGame.size() == 1) {
+            stringMessage.append(player.user.getAsMention() + " : " 
+                + InfoPanelRefresherUtil.getCurrentGameInfoStringForOneAccount(accountsInGame.get(0), server.serv_language) + "\n");
         }else {
           stringMessage.append(player.user.getAsMention() + " : " 
               + LanguageManager.getText(server.serv_language, "informationPanelMultipleAccountInGame") + "\n"
-              + InfoPanelRefresherUtil.getCurrentGameInfoStringForMultipleAccounts(leagueAccounts, server.serv_language));
+              + InfoPanelRefresherUtil.getCurrentGameInfoStringForMultipleAccounts(accountsInGame, server.serv_language));
         }
       }
       stringMessage.append(" \n");

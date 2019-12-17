@@ -128,7 +128,11 @@ public class TeamRepository {
       result = query.executeQuery(finalQuery);
       
       List<DTO.Team> teams = Collections.synchronizedList(new ArrayList<>());
-      result.next();
+      int rowCount = result.last() ? result.getRow() : 0;
+      if(rowCount == 0) {
+        return teams;
+      }
+      result.first();
       while(!result.isAfterLast()) {
         teams.add(new DTO.Team(result));
         result.next();

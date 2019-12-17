@@ -19,7 +19,7 @@ public class CurrentGameInfoRepository {
           "INNER JOIN league_account ON current_game_info.currentgame_id = league_account.leagueaccount_fk_currentgame " + 
           "WHERE league_account.leagueaccount_id = %d";
 
-  private static final String INSERT_CURRENT_GAME = "INSERT INTO current_game " +
+  private static final String INSERT_CURRENT_GAME = "INSERT INTO current_game_info " +
       "(currentgame_currentgame) " +
       "VALUES ('%s') RETURNING currentgame_id";
 

@@ -1,5 +1,6 @@
 package ch.kalunight.zoe;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -15,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.repositories.ServerStatusRepository;
 import net.dv8tion.jda.api.entities.TextChannel;
 
 public class ServerData {
@@ -59,16 +61,21 @@ public class ServerData {
   /**
    * Check if the server will be refreshed or if is actually in treatment.
    * @param server to check
-   * @return true is the server is in treatment or if he will be refreshed
+   * @return true if the server is in treatment or if he asked to be treated
+   * @throws SQLException 
    */
-  public static boolean isServerWillBeTreated(Server server) {
+  public static boolean isServerWillBeTreated(DTO.Server server) throws SQLException {
 
-    String serverId = server.getGuild().getId();
-
-    if(serversAskedTreatment.containsKey(serverId) && serversIsInTreatment.containsKey(serverId)) {
-      return serversAskedTreatment.get(serverId) || serversIsInTreatment.get(serverId);
+    boolean serverAskedTreatment = false;
+    for(DTO.Server serverWhoAsk : serversAskedTreatment) {
+      if(serverWhoAsk.serv_guildId == server.serv_guildId) {
+        serverAskedTreatment = true;
+      }
     }
-    return false;
+    
+    DTO.ServerStatus serverStatus = ServerStatusRepository.getServerStatus(server.serv_guildId);
+    
+    return serverAskedTreatment || serverStatus.servstatus_inTreatment;
   }
 
   public static void shutDownTaskExecutor(TextChannel channel) throws InterruptedException {

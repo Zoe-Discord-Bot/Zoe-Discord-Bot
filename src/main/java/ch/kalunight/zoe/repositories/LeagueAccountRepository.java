@@ -17,8 +17,9 @@ import net.rithms.riot.constant.Platform;
 public class LeagueAccountRepository {
 
   private static final String INSERT_LEAGUE_ACCOUNT = "INSERT INTO league_account " +
-      "(leagueaccount_fk_player, leagueaccount_summonerid, leagueaccount_accountid, leagueaccount_puuid, leagueaccount_server) " +
-      "VALUES (%d, '%s', '%s', '%s', '%s')";
+      "(leagueaccount_fk_player, leagueaccount_name, " +
+      "leagueaccount_summonerid, leagueaccount_accountid, leagueaccount_puuid, leagueaccount_server) " +
+      "VALUES (%d, '%s', '%s', '%s', '%s', '%s')";
   
   private static final String SELECT_LEAGUES_ACCOUNTS_WITH_GUILDID_AND_PLAYER_DISCORD_ID =
       "SELECT " + 
@@ -26,7 +27,8 @@ public class LeagueAccountRepository {
       "league_account.leagueaccount_fk_player, " + 
       "league_account.leagueaccount_fk_gamecard, " + 
       "league_account.leagueaccount_fk_currentgame, " +
-      "league_account.leagueaccount_summonerid, " +
+      "league_account.leagueaccount_name, " + 
+      "league_account.leagueaccount_summonerid, " + 
       "league_account.leagueaccount_accountid, " +
       "league_account.leagueaccount_puuid, " + 
       "league_account.leagueaccount_server " +
@@ -42,6 +44,7 @@ public class LeagueAccountRepository {
       "league_account.leagueaccount_fk_player, " + 
       "league_account.leagueaccount_fk_gamecard, " +
       "league_account.leagueaccount_fk_currentgame, " +
+      "league_account.leagueaccount_name, " + 
       "league_account.leagueaccount_summonerid, " + 
       "league_account.leagueaccount_accountid, " + 
       "league_account.leagueaccount_puuid, " + 
@@ -55,7 +58,8 @@ public class LeagueAccountRepository {
       "league_account.leagueaccount_id, " + 
       "league_account.leagueaccount_fk_player, " + 
       "league_account.leagueaccount_fk_gamecard, " + 
-      "league_account.leagueaccount_fk_currentgame, " + 
+      "league_account.leagueaccount_fk_currentgame, " +
+      "league_account.leagueaccount_name, " + 
       "league_account.leagueaccount_summonerid, " + 
       "league_account.leagueaccount_accountid, " + 
       "league_account.leagueaccount_puuid, " + 
@@ -68,7 +72,13 @@ public class LeagueAccountRepository {
   private static final String DELETE_LEAGUE_ACCOUNT_WITH_ID = "DELETE FROM league_account WHERE leagueaccount_id = %d";
   
   private static final String UPDATE_LEAGUE_ACCOUNT_CURRENT_GAME_WITH_ID = 
-      "UPDATE league_account SET leagueaccount_fk_currentgame  = %d WHERE leagueaccount_id = %d";
+      "UPDATE league_account SET leagueaccount_fk_currentgame = %s WHERE leagueaccount_id = %d";
+  
+  private static final String UPDATE_LEAGUE_ACCOUNT_GAME_CARD_WITH_ID = 
+      "UPDATE league_account SET leagueaccount_fk_gamecard = %s WHERE leagueaccount_id = %d";
+  
+  private static final String UPDATE_LEAGUE_ACCOUNT_NAME_WITH_ID =
+      "UPDATE league_account SET leagueaccount_name = %s WHERE leagueaccount_id = %d";
   
   private LeagueAccountRepository() {
     //hide default public constructor
@@ -83,7 +93,11 @@ public class LeagueAccountRepository {
       result = query.executeQuery(finalQuery);
       
       List<DTO.LeagueAccount> accounts = Collections.synchronizedList(new ArrayList<>());
-      result.next();
+      int rowCount = result.last() ? result.getRow() : 0;
+      if(rowCount == 0) {
+        return accounts;
+      }
+      result.first();
       while(!result.isAfterLast()) {
         accounts.add(new DTO.LeagueAccount(result));
         result.next();
@@ -99,7 +113,7 @@ public class LeagueAccountRepository {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
       
-      String finalQuery = String.format(INSERT_LEAGUE_ACCOUNT, playerId, summoner.getId(),
+      String finalQuery = String.format(INSERT_LEAGUE_ACCOUNT, playerId, summoner.getName(), summoner.getId(),
           summoner.getAccountId(), summoner.getPuuid(), server);
       query.execute(finalQuery);
     }
@@ -170,7 +184,30 @@ public class LeagueAccountRepository {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
       
-      String finalQuery = String.format(UPDATE_LEAGUE_ACCOUNT_CURRENT_GAME_WITH_ID, currentGameId, leagueAccountId);
+      String finalQuery;
+      if(currentGameId == 0) {
+        finalQuery = String.format(UPDATE_LEAGUE_ACCOUNT_CURRENT_GAME_WITH_ID, "NULL", leagueAccountId);
+      }else {
+        finalQuery = String.format(UPDATE_LEAGUE_ACCOUNT_CURRENT_GAME_WITH_ID, Long.toString(currentGameId), leagueAccountId);
+      }
+      query.executeUpdate(finalQuery);
+    }
+  }
+  
+  public static void updateAccountNameWithAccountId(long leagueAccountId, String name) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement();) {
+      
+      String finalQuery = String.format(UPDATE_LEAGUE_ACCOUNT_NAME_WITH_ID, name, leagueAccountId);
+      query.executeUpdate(finalQuery);
+    }
+  }
+  
+  public static void updateAccountGameCardWithAccountId(long leagueAccountId, long gameCardId) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement();) {
+      
+      String finalQuery = String.format(UPDATE_LEAGUE_ACCOUNT_GAME_CARD_WITH_ID, gameCardId, leagueAccountId);
       query.executeUpdate(finalQuery);
     }
   }

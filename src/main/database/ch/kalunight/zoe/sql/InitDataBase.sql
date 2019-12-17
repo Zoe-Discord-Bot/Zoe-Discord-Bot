@@ -82,7 +82,7 @@ CREATE TABLE info_panel_message (
 CREATE TABLE game_info_card (
   gameCard_id									SERIAL,
   gameCard_fk_infoChannel						BIGINT				NOT NULL,
-  gameCard_fk_currentGame						BIGINT				NOT NULL,
+  gameCard_fk_currentGame						BIGINT				NOT NULL UNIQUE,
   gameCard_titleMessageId						BIGINT,
   gameCard_infoCardMessageId					BIGINT,
   gameCard_creationTime							TIMESTAMP			WITHOUT TIME ZONE
@@ -93,10 +93,11 @@ CREATE TABLE league_account (
   leagueAccount_fk_player						BIGINT				NOT NULL,
   leagueAccount_fk_gameCard						BIGINT,
   leagueAccount_fk_currentGame					BIGINT,
+  leagueAccount_name							VARCHAR				NOT NULL,
   leagueAccount_summonerId						VARCHAR				NOT NULL,
   leagueAccount_accountId						VARCHAR				NOT NULL,
   leagueAccount_puuid							VARCHAR				NOT NULL,
-  leagueAccount_server							VARCHAR				NOT NULL
+  leagueAccount_server							VARCHAR				NOT NULL		
 );
 
 CREATE TABLE current_game_info (
@@ -114,7 +115,7 @@ ALTER TABLE ONLY player
 ALTER TABLE ONLY team 
   ADD CONSTRAINT team_pkey PRIMARY KEY (team_id);
   
-ALTER TABLE ONLY server_status 
+ALTER TABLE ONLY server_status
   ADD CONSTRAINT server_status_pkey PRIMARY KEY (servStatus_id);
   
 ALTER TABLE ONLY server_configuration 
@@ -230,5 +231,7 @@ ALTER TABLE game_info_card
   ADD CONSTRAINT game_info_card_fk_currentGame_const 
   FOREIGN KEY (gameCard_fk_currentGame) REFERENCES current_game_info (currentGame_id)
   ON DELETE CASCADE;
-  
+	
+CREATE INDEX idx_server_guildid 
+  ON server(serv_guildId);
   

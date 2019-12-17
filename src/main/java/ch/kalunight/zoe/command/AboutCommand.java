@@ -7,7 +7,6 @@ import java.util.function.BiConsumer;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.model.dto.DTO;
-import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -35,7 +34,7 @@ public class AboutCommand extends ZoeCommand {
 
     String langage = LanguageManager.DEFAULT_LANGUAGE;
     if(event.getChannelType() == ChannelType.TEXT) {
-      DTO.Server server = ServerRepository.getServer(event.getGuild().getIdLong());
+      DTO.Server server = getServer(event.getGuild().getIdLong());
       langage = server.serv_language;
     }
     EmbedBuilder builder = new EmbedBuilder();

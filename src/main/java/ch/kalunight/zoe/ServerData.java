@@ -14,7 +14,6 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.repositories.ServerStatusRepository;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -22,11 +21,6 @@ import net.dv8tion.jda.api.entities.TextChannel;
 public class ServerData {
 
   private static final Logger logger = LoggerFactory.getLogger(ServerData.class);
-
-  /**
-   * Server storage, Key is guild discord id of the concerned server.
-   */
-  private static final ConcurrentHashMap<String, Server> servers = new ConcurrentHashMap<>();
 
   private static final List<DTO.Server> serversAskedTreatment = Collections.synchronizedList(new ArrayList<DTO.Server>()); 
 
@@ -113,11 +107,7 @@ public class ServerData {
     logger.info("Shutdown of InfoCards Generator has been completed !");
     channel.sendMessage("Shutdown of InfoCards Generator has been completed !").complete();
   }
-
-  public static ConcurrentMap<String, Server> getServers() {
-    return servers;
-  }
-
+  
   public static ConcurrentMap<String, Boolean> getServersIsInTreatment() {
     return serversIsInTreatment;
   }

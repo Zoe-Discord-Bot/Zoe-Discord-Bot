@@ -4,7 +4,6 @@ import java.util.function.BiConsumer;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
@@ -22,7 +21,7 @@ public class RemoveCommand extends ZoeCommand {
 
   @Override
   protected void executeCommand(CommandEvent event) {
-    event.reply(LanguageManager.getText(ServerData.getServers().get(event.getGuild().getId()).getLangage(), "mainRemoveCommandHelpMessage"));
+    event.reply(LanguageManager.getText(getServer(event.getGuild().getIdLong()).serv_language, "mainRemoveCommandHelpMessage"));
   }
 
   @Override

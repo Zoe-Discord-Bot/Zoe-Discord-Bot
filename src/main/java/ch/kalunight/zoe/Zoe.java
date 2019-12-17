@@ -39,18 +39,15 @@ import ch.kalunight.zoe.command.delete.DeleteCommand;
 import ch.kalunight.zoe.command.remove.RemoveCommand;
 import ch.kalunight.zoe.command.show.ShowCommand;
 import ch.kalunight.zoe.command.stats.StatsCommand;
-import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.model.static_data.CustomEmote;
 import ch.kalunight.zoe.riotapi.CachedRiotApi;
-import ch.kalunight.zoe.translation.LanguageManager;
+import ch.kalunight.zoe.util.CommandUtil;
 import ch.kalunight.zoe.util.Ressources;
 import net.dv8tion.jda.api.AccountType;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
-import net.dv8tion.jda.api.entities.ChannelType;
-import net.dv8tion.jda.api.entities.PrivateChannel;
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.RiotApi;
 import net.rithms.riot.api.request.ratelimit.PriorityManagerRateLimitHandler;
@@ -71,7 +68,7 @@ public class Zoe {
 
   private static final List<Object> eventListenerList = new ArrayList<>();  
 
-  private static final Logger logger = LoggerFactory.getLogger(Zoe.class);
+  public static final Logger logger = LoggerFactory.getLogger(Zoe.class);
 
   /**
    * USED ONLY FOR STATS ANALYSE. DON'T MODIFY DATA INSIDE.
@@ -114,7 +111,7 @@ public class Zoe {
       client.addCommand(command);
     }
 
-    Consumer<CommandEvent> helpCommand = getHelpCommand();
+    Consumer<CommandEvent> helpCommand = CommandUtil.getHelpCommand();
 
     client.setHelpConsumer(helpCommand);
 
@@ -164,59 +161,6 @@ public class Zoe {
 
     config.setRateLimitHandler(defaultLimite);
     riotApi = new CachedRiotApi(new RiotApi(config));
-  }
-
-  private static Consumer<CommandEvent> getHelpCommand() {
-    return new Consumer<CommandEvent>() {
-      @Override
-      public void accept(CommandEvent event) {
-
-        String language = LanguageManager.DEFAULT_LANGUAGE;
-
-        if(event.getChannelType() == ChannelType.TEXT) {
-          language = ServerData.getServers().get(event.getGuild().getId()).getLangage();
-          event.reply(LanguageManager.getText(language, "helpMessageSendConfirmation"));
-        }
-
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(LanguageManager.getText(language, "startHelpMessage") + "\n\n");
-
-        for(Command command : getMainCommands(null)) {
-
-          if(!command.isHidden() && command.getChildren().length == 0) {
-
-            stringBuilder.append(LanguageManager.getText(language, "command") + " **" + command.getName() + "** :\n");
-            stringBuilder.append("--> `>" + command.getName() + "` : " + LanguageManager.getText(language, command.getHelp()) + "\n\n");
-
-          }else if(!command.isHidden()){
-
-            stringBuilder.append(LanguageManager.getText(language, "commandPlural") + " **" + command.getName() + "** : \n");
-            for(Command commandChild : command.getChildren()) {
-
-              if(commandChild.getArguments() == null || commandChild.getArguments().equals("")) {
-                stringBuilder.append("--> `>" + command.getName() + " " + commandChild.getName() + "` : "
-                    + LanguageManager.getText(language, commandChild.getHelp()) + "\n");
-              }else {
-                stringBuilder.append("--> `>" + command.getName() + " " + commandChild.getName() + " " + commandChild.getArguments() + "` : "
-                    + LanguageManager.getText(language, commandChild.getHelp()) + "\n");
-              }
-            }
-            stringBuilder.append(" \n");
-          }
-
-        }
-
-        stringBuilder.append(LanguageManager.getText(language, "endHelpMessage") + " https://discord.gg/whc5PrC");
-
-        PrivateChannel privateChannel = event.getAuthor().openPrivateChannel().complete();
-
-        List<String> helpMessages = CommandEvent.splitMessage(stringBuilder.toString());
-
-        for(String helpMessage : helpMessages) {
-          privateChannel.sendMessage(helpMessage).queue();
-        }
-      }
-    };
   }
 
   public static List<Command> getMainCommands(EventWaiter eventWaiter) {
@@ -273,23 +217,6 @@ public class Zoe {
 
       Ressources.setChampions(champions);
     }
-  }
-
-  public static Player searchPlayerWithDiscordId(List<Player> players, String discordId) {
-    if(players == null || discordId == null) {
-      return null;
-    }
-
-    try {
-      for(Player player : players) {
-        if(player.getDiscordUser().getId().equals(discordId)) {
-          return player;
-        }
-      }
-    }catch(Exception e) {
-      logger.warn("Error in the search of player", e);
-    }
-    return null;
   }
 
   public static CachedRiotApi getRiotApi() {

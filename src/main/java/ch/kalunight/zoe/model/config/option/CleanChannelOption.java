@@ -5,15 +5,17 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.ButtonMenu;
-import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
-import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.repositories.ConfigRepository;
+import ch.kalunight.zoe.repositories.InfoChannelRepository;
 import ch.kalunight.zoe.repositories.RepoRessources;
+import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
@@ -34,6 +36,8 @@ public class CleanChannelOption extends ConfigurationOption {
 
   private static final String UNICODE_THREE = "3\u20E3";
   private static final String EMOJI_THREE = ":three:";
+  
+  private static final Logger logger = LoggerFactory.getLogger(CleanChannelOption.class);
 
   public enum CleanChannelOptionInfo {
     DISABLE("cleanChannelOptionDisable", "cleanChannelOptionDisableDesc", UNICODE_ONE, EMOJI_ONE),
@@ -236,7 +240,8 @@ public class CleanChannelOption extends ConfigurationOption {
 
     if(textsChannel.size() == 1) {
       TextChannel textChannel = textsChannel.get(0); 
-      if(true/*TODO server.getInfoChannel() == null || !server.getInfoChannel().equals(textChannel)*/) {
+      DTO.InfoChannel infochannel = InfoChannelRepository.getInfoChannel(server.serv_guildId);
+      if(infochannel == null || infochannel.infochannel_channelid != textChannel.getIdLong()) {
 
         cleanChannel = textChannel;
         cleanChannelOption = tmpCleanChannelOption;
@@ -264,9 +269,14 @@ public class CleanChannelOption extends ConfigurationOption {
 
     String langage = LanguageManager.DEFAULT_LANGUAGE;
     if(textChannel != null) {
-      Server server = ServerData.getServers().get(textChannel.getGuild().getId());
+      DTO.Server server = null;
+      try {
+        server = ServerRepository.getServer(textChannel.getGuild().getIdLong());
+      } catch(SQLException e) {
+        logger.error("SQL Error when getting the server in CleanChannelOption setup !", e);
+      }
       if(server != null) {
-        langage = server.getLangage();
+        langage = server.serv_language;
       }
     }
     channel.sendMessage(LanguageManager.getText(langage, "cleanChannelOptionResponseTimeOut")).queue();

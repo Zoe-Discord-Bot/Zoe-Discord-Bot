@@ -2,9 +2,7 @@ package ch.kalunight.zoe.service;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import org.joda.time.DateTime;
@@ -18,8 +16,6 @@ import org.knowm.xchart.style.Styler.ChartTheme;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
-import ch.kalunight.zoe.model.Server;
-import ch.kalunight.zoe.model.player_data.Player;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -45,25 +41,8 @@ public class RiotApiUsageChannelRefresh implements Runnable {
 
       RateLimitRequestTank minutesRAPITank = Zoe.getMinuteApiTank();
 
-      Iterator<Entry<String, Server>> serversListIterator = ServerData.getServers().entrySet().iterator();
-
-      int nbrPlayers = 0;
-      int nbrAccount = 0;
-
-      while(serversListIterator.hasNext()) {
-        Server server = serversListIterator.next().getValue();
-        if(server != null) {
-          nbrPlayers += server.getPlayers().size();
-          for(Player player : server.getPlayers()) {
-            nbrAccount += player.getLolAccounts().size();
-          }
-        }
-      }
-
       rapiInfoChannel.sendMessage("**Generic Stats**"
           + "\nTotal number of Servers : " + Zoe.getJda().getGuilds().size()
-          + "\nTotal number of players : " + nbrPlayers 
-          + "\nTotal number of League accounts : " + nbrAccount 
           + "\nTask in Server Executor Queue : " + ServerData.getServerExecutor().getQueue().size()
           + "\nTask in InfoCards Generator Queue : " + ServerData.getInfocardsGenerator().getQueue().size()
           + "\nInfocards Generated last 2 minutes : " + getInfocardCreatedCount()).queue();

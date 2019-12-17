@@ -4,17 +4,12 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.common.base.Stopwatch;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.InfoCard;
-import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.dto.DTO;
-import ch.kalunight.zoe.model.dto.DTO.GameInfoCard;
-import ch.kalunight.zoe.model.player_data.LeagueAccount;
-import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.repositories.GameInfoCardRepository;
 import ch.kalunight.zoe.repositories.InfoChannelRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
@@ -22,10 +17,10 @@ import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.util.InfoPanelRefresherUtil;
 import ch.kalunight.zoe.util.MessageBuilderRequestUtil;
 import ch.kalunight.zoe.util.request.MessageBuilderRequest;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
-import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.constant.CallPriority;
 
 public class InfoCardsWorker implements Runnable {
@@ -83,41 +78,51 @@ public class InfoCardsWorker implements Runnable {
     }
   }
 
-  private void generateInfoCard(TextChannel controlPanel, DTO.LeagueAccount account, DTO.CurrentGameInfo currentGameInfo) {
+  private void generateInfoCard(TextChannel controlPanel, DTO.LeagueAccount account, DTO.CurrentGameInfo currentGameInfo)
+      throws SQLException {
 
     List<DTO.Player> listOfPlayerInTheGame = InfoPanelRefresherUtil.checkIfOthersPlayersIsKnowInTheMatch(currentGameInfo, server);
     DTO.Player player = PlayerRepository.getPlayerByLeagueAccountAndGuild(
         server.serv_guildId, account.leagueAccount_summonerId, account.leagueAccount_server.getName());
-    
+
     InfoCard card = null;
 
     if(listOfPlayerInTheGame.size() == 1) {
       MessageEmbed messageCard = MessageBuilderRequest.createInfoCard1summoner(player.user, account.summoner,
-          currentGameInfo, account.leagueAccount_server, server.serv_language);
+          currentGameInfo.currentgame_currentgame, account.leagueAccount_server, server.serv_language);
       if(messageCard != null) {
-        card = new InfoCard(listOfPlayerInTheGame, messageCard, currentGameInfo);
+        card = new InfoCard(listOfPlayerInTheGame, messageCard, currentGameInfo.currentgame_currentgame);
       }
     } else if(listOfPlayerInTheGame.size() > 1) {
       MessageEmbed messageCard =
-          MessageBuilderRequest.createInfoCardsMultipleSummoner(listOfPlayerInTheGame, currentGameInfo,
-              account.leagueAccount_server, server.serv_language);
+          MessageBuilderRequest.createInfoCardsMultipleSummoner(listOfPlayerInTheGame, currentGameInfo.currentgame_currentgame,
+              account.leagueAccount_server, server);
 
       if(messageCard != null) {
-        card = new InfoCard(listOfPlayerInTheGame, messageCard, currentGameInfo);
+        card = new InfoCard(listOfPlayerInTheGame, messageCard, currentGameInfo.currentgame_currentgame);
       }
     }
 
     if(card != null) {
-      List<Player> players = card.getPlayers();
+      List<DTO.Player> players = card.getPlayers();
 
       StringBuilder title = new StringBuilder();
-      MessageBuilderRequestUtil.createTitle(players, currentGameInfo, title, server.serv_language, false);
-
-      card.setTitle(controlPanel.sendMessage(title.toString()).complete());
-      card.setMessage(controlPanel.sendMessage(card.getCard()).complete());
+      MessageBuilderRequestUtil.createTitle(players, currentGameInfo.currentgame_currentgame, title, server.serv_language, false);
 
       DTO.InfoChannel infochannel = InfoChannelRepository.getInfoChannel(server.serv_guildId);
-      GameInfoCardRepository.createGameCards(infochannel.infoChannel_id, currentGameInfo.currentgame_id); //TODO Add title and message
+      TextChannel infoChannel = Zoe.getJda().getGuildById(server.serv_guildId).getTextChannelById(infochannel.infoChannel_id);
+
+      DTO.GameInfoCard gameCard = GameInfoCardRepository.getGameInfoCardsWithCurrentGameId(server.serv_guildId, currentGameInfo.currentgame_id);
+      if(infoChannel != null) {
+        Message titleMessage = infoChannel.sendMessage(title.toString()).complete();
+        Message bodyMessage = infoChannel.sendMessage(card.getCard()).complete();
+
+        GameInfoCardRepository.updateGameInfoCardsMessagesWithId(titleMessage.getIdLong(), bodyMessage.getIdLong(),
+            LocalDateTime.now(), gameCard.gamecard_id);
+      }else {
+        GameInfoCardRepository.deleteGameInfoCardsWithId(gameCard.gamecard_id);
+        InfoChannelRepository.deleteInfoChannel(server.serv_guildId);
+      }
     }
   }
 

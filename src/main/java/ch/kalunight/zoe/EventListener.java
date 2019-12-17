@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 import org.discordbots.api.client.DiscordBotListAPI;
 import org.joda.time.DateTime;
@@ -26,6 +27,7 @@ import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.riotapi.CacheManager;
 import ch.kalunight.zoe.service.InfoPanelRefresher;
 import ch.kalunight.zoe.service.RiotApiUsageChannelRefresh;
+import ch.kalunight.zoe.service.ServerChecker;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import ch.kalunight.zoe.util.EventListenerUtil;
@@ -141,9 +143,9 @@ public class EventListener extends ListenerAdapter {
     }
   }
 
-  private void setupContinousRefreshThread() { // TODO : DISABLE FOR DEV PURPOSE
-    //TimerTask mainThread = new ServerChecker();
-    //ServerData.getServerCheckerThreadTimer().schedule(mainThread, 0);
+  private void setupContinousRefreshThread() {
+    TimerTask mainThread = new ServerChecker();
+    ServerData.getServerCheckerThreadTimer().schedule(mainThread, 0);
   }
 
   private void initRAPIStatusChannel() {

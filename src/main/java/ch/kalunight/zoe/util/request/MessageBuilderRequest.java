@@ -1,6 +1,7 @@
 package ch.kalunight.zoe.util.request;
 
 import java.awt.Color;
+import java.sql.SQLException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -19,8 +20,6 @@ import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.stats.StatsProfileCommand;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.player_data.FullTier;
-import ch.kalunight.zoe.model.player_data.LeagueAccount;
-import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.model.player_data.Rank;
 import ch.kalunight.zoe.model.player_data.Tier;
 import ch.kalunight.zoe.model.static_data.Champion;
@@ -121,24 +120,25 @@ public class MessageBuilderRequest {
     return message.build();
   }
 
-  public static MessageEmbed createInfoCardsMultipleSummoner(List<Player> players, CurrentGameInfo currentGameInfo,
-      Platform region, String language) {
+  public static MessageEmbed createInfoCardsMultipleSummoner(List<DTO.Player> players, CurrentGameInfo currentGameInfo,
+      Platform region, DTO.Server server) throws SQLException {
 
-    String blueTeamTranslated = LanguageManager.getText(language, BLUE_TEAM_STRING);
-    String redTeamTranslated = LanguageManager.getText(language, RED_TEAM_STRING);
-    String masteriesWRThisMonthTranslated = LanguageManager.getText(language, MASTERIES_WR_THIS_MONTH_STRING);
-    String soloqRankTitleTranslated = LanguageManager.getText(language, SOLO_Q_RANK_STRING);
+    String blueTeamTranslated = LanguageManager.getText(server.serv_language, BLUE_TEAM_STRING);
+    String redTeamTranslated = LanguageManager.getText(server.serv_language, RED_TEAM_STRING);
+    String masteriesWRThisMonthTranslated = LanguageManager.getText(server.serv_language, MASTERIES_WR_THIS_MONTH_STRING);
+    String soloqRankTitleTranslated = LanguageManager.getText(server.serv_language, SOLO_Q_RANK_STRING);
 
-    Set<LeagueAccount> playersAccountsOfTheGame = new HashSet<>();
-    for(Player player : players) {
-      playersAccountsOfTheGame.addAll(player.getLeagueAccountsInTheGivenGame(currentGameInfo));
+    Set<DTO.LeagueAccount> playersAccountsOfTheGame = new HashSet<>();
+    for(DTO.Player player : players) {
+      playersAccountsOfTheGame.addAll(
+          MessageBuilderRequestUtil.getLeagueAccountsInTheGivenGame(currentGameInfo, region, player, server.serv_guildId));
     }
 
     EmbedBuilder message = new EmbedBuilder();
 
     StringBuilder title = new StringBuilder();
 
-    MessageBuilderRequestUtil.createTitle(players, currentGameInfo, title, language, true);
+    MessageBuilderRequestUtil.createTitle(players, currentGameInfo, title, server.serv_language, true);
 
     message.setTitle(title.toString());
 
@@ -150,8 +150,8 @@ public class MessageBuilderRequest {
 
     ArrayList<String> listIdPlayers = new ArrayList<>();
 
-    for(LeagueAccount leagueAccount : playersAccountsOfTheGame) {
-      listIdPlayers.add(leagueAccount.getSummoner().getId());
+    for(DTO.LeagueAccount leagueAccount : playersAccountsOfTheGame) {
+      listIdPlayers.add(leagueAccount.leagueAccount_summonerId);
     }
 
     StringBuilder blueTeamString = new StringBuilder();
@@ -159,7 +159,7 @@ public class MessageBuilderRequest {
     StringBuilder blueTeamWinrateString = new StringBuilder();
 
     MessageBuilderRequestUtil.createTeamDataMultipleSummoner(blueTeam, listIdPlayers, blueTeamString, blueTeamRankString,
-        blueTeamWinrateString, region, language);
+        blueTeamWinrateString, region, server.serv_language);
 
     message.addField(blueTeamTranslated, blueTeamString.toString(), true);
     message.addField(soloqRankTitleTranslated, blueTeamRankString.toString(), true);
@@ -170,7 +170,7 @@ public class MessageBuilderRequest {
     StringBuilder redTeamWinrateString = new StringBuilder();
 
     MessageBuilderRequestUtil.createTeamDataMultipleSummoner(redTeam, listIdPlayers, redTeamString, redTeamRankString, redTeamWinrateString,
-        region, language);
+        region, server.serv_language);
 
     message.addField(redTeamTranslated, redTeamString.toString(), true);
     message.addField(soloqRankTitleTranslated, redTeamRankString.toString(), true);
@@ -189,7 +189,7 @@ public class MessageBuilderRequest {
 
     String gameLenght = String.format("%02d", minutesGameLength) + ":" + String.format("%02d", secondesGameLength);
 
-    message.setFooter(LanguageManager.getText(language, "infoCardsGameFooter") + " : " + gameLenght, null);
+    message.setFooter(LanguageManager.getText(server.serv_language, "infoCardsGameFooter") + " : " + gameLenght, null);
 
     message.setColor(Color.GREEN);
 

@@ -10,7 +10,6 @@ import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import net.dv8tion.jda.api.entities.Guild;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
-import net.rithms.riot.constant.CallPriority;
 
 public class SummonerCacheRefresh implements Runnable {
 
@@ -39,7 +38,7 @@ public class SummonerCacheRefresh implements Runnable {
   private void refreshAccountName(DTO.LeagueAccount account) throws SQLException {
     try {
       Summoner summoner = 
-          Zoe.getRiotApi().getSummoner(account.leagueAccount_server, account.leagueAccount_summonerId, CallPriority.NORMAL);
+          Zoe.getRiotApi().getSummoner(account.leagueAccount_server, account.leagueAccount_summonerId);
       LeagueAccountRepository.updateAccountNameWithAccountId(account.leagueAccount_id, summoner.getName());
     }catch(RiotApiException e) {
       if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {

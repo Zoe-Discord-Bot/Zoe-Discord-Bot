@@ -21,7 +21,6 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
-import net.rithms.riot.constant.CallPriority;
 
 public class InfoCardsWorker implements Runnable {
 
@@ -48,7 +47,7 @@ public class InfoCardsWorker implements Runnable {
       if(controlPanel.canTalk()) {
         if(account.summoner == null) {
           account.summoner = Zoe.getRiotApi()
-              .getSummoner(account.leagueAccount_server, account.leagueAccount_summonerId, CallPriority.NORMAL);
+              .getSummoner(account.leagueAccount_server, account.leagueAccount_summonerId);
         }
         logger.info("Start generate infocards for the account " + account.summoner.getName() 
         + " (" + account.leagueAccount_server.getName() + ")");

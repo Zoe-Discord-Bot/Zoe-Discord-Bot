@@ -52,11 +52,10 @@
 			<type>pom</type>
 		</dependency>
 
-		<!-- We use a modified version of riot-api-java, look here : https://github.com/KaluNight/riot-api-java -->
 		<dependency>
-			<groupId>com.github.KaluNight</groupId>
+			<groupId>com.github.taycaldwell</groupId>
 			<artifactId>riot-api-java</artifactId>
-			<version>4.3.6</version>
+			<version>4.3.0</version>
 		</dependency>
 
 		<dependency>

@@ -23,7 +23,6 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.User;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
-import net.rithms.riot.constant.CallPriority;
 import net.rithms.riot.constant.Platform;
 
 public class AddAccountCommand extends ZoeCommand {
@@ -100,7 +99,7 @@ public class AddAccountCommand extends ZoeCommand {
 
     Summoner summoner;
     try {
-      summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName, CallPriority.HIGH);
+      summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);
     }catch(RiotApiException e) {
       RiotApiUtil.handleRiotApi(event, e, server.serv_language);
       return;

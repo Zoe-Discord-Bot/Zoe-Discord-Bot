@@ -43,7 +43,6 @@ import net.dv8tion.jda.api.entities.User;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.champion_mastery.dto.ChampionMastery;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
-import net.rithms.riot.constant.CallPriority;
 
 public class StatsProfileCommand extends ZoeCommand {
 
@@ -139,7 +138,7 @@ public class StatsProfileCommand extends ZoeCommand {
         Summoner summoner;
         try {
           summoner = Zoe.getRiotApi().getSummoner(choiceAccount.leagueAccount_server,
-              choiceAccount.leagueAccount_summonerId, CallPriority.HIGH);
+              choiceAccount.leagueAccount_summonerId);
         }catch(RiotApiException e) {
           RiotApiUtil.handleRiotApi(event, e, server.serv_language);
           return;
@@ -148,7 +147,7 @@ public class StatsProfileCommand extends ZoeCommand {
         selectAccountBuilder.addChoices(String.format(LanguageManager.getText(server.serv_language, "showPlayerAccount"),
             summoner.getName(),
             choiceAccount.leagueAccount_server.getName().toUpperCase(),
-            RiotRequest.getSoloqRank(summoner.getId(), choiceAccount.leagueAccount_server, CallPriority.HIGH)));
+            RiotRequest.getSoloqRank(summoner.getId(), choiceAccount.leagueAccount_server)));
         accountsName.add(summoner.getName());
       }
 
@@ -180,7 +179,7 @@ public class StatsProfileCommand extends ZoeCommand {
         Summoner summoner;
         try {
           summoner = Zoe.getRiotApi().getSummoner(account.leagueAccount_server,
-              account.leagueAccount_summonerId, CallPriority.HIGH);
+              account.leagueAccount_summonerId);
         } catch(RiotApiException e) {
           RiotApiUtil.handleRiotApi(event, e, server.serv_language);
           return;
@@ -213,7 +212,7 @@ public class StatsProfileCommand extends ZoeCommand {
     List<ChampionMastery> championsMasteries;
     try {
       championsMasteries = Zoe.getRiotApi().getChampionMasteriesBySummoner(lolAccount.leagueAccount_server,
-          lolAccount.leagueAccount_summonerId, CallPriority.HIGH);
+          lolAccount.leagueAccount_summonerId);
     } catch(RiotApiException e) {
       if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
         event.reply(LanguageManager.getText(server.serv_language, "statsProfileRateLimitError"));

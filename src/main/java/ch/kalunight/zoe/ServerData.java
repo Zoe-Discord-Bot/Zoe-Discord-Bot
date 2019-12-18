@@ -28,25 +28,25 @@ public class ServerData {
 
   private static final Timer serverCheckerThreadTimer = new Timer("ServerChecker-Timer-Executor");
 
-  private static int nbProcs = Runtime.getRuntime().availableProcessors();
+  public static final int NBR_PROC = Runtime.getRuntime().availableProcessors();
 
   private static final ThreadPoolExecutor SERVER_EXECUTOR =
-      new ThreadPoolExecutor(nbProcs, nbProcs, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
 
   private static final ThreadPoolExecutor INFOCARDS_GENERATOR =
-      new ThreadPoolExecutor(nbProcs, nbProcs, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
 
   /**
    * Used by event waiter, define in {@link Zoe#main(String[])}
    */
-  private static final ScheduledThreadPoolExecutor RESPONSE_WAITER = new ScheduledThreadPoolExecutor(nbProcs);
+  private static final ScheduledThreadPoolExecutor RESPONSE_WAITER = new ScheduledThreadPoolExecutor(NBR_PROC);
 
   private ServerData() {
     // Hide public default constructor
   }
 
   static {
-    logger.info("ThreadPools has been lauched with {} threads", nbProcs);
+    logger.info("ThreadPools has been lauched with {} threads", NBR_PROC);
     SERVER_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Server-Executor-Thread %d").build());
     INFOCARDS_GENERATOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe InfoCards-Generator-Thread %d").build());
     RESPONSE_WAITER.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Response-Waiter-Thread %d").build());

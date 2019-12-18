@@ -37,7 +37,6 @@ import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
-import net.rithms.riot.constant.CallPriority;
 import net.rithms.riot.constant.Platform;
 
 public class InfoPanelRefresher implements Runnable {
@@ -277,7 +276,7 @@ public class InfoPanelRefresher implements Runnable {
           CurrentGameInfo currentGame;
           try {
             currentGame = Zoe.getRiotApi().getActiveGameBySummoner(
-                leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId, CallPriority.NORMAL);
+                leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
           } catch(RiotApiException e) {
             if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
               currentGame = null;

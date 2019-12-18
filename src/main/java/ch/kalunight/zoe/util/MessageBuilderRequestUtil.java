@@ -14,7 +14,6 @@ import ch.kalunight.zoe.util.request.RiotRequest;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
-import net.rithms.riot.constant.CallPriority;
 import net.rithms.riot.constant.Platform;
 
 public class MessageBuilderRequestUtil {
@@ -54,7 +53,7 @@ public class MessageBuilderRequestUtil {
         champion = new Champion(-1, "-1", LanguageManager.getText(language, "unknown"), null);
       }
 
-      FullTier fullTier = RiotRequest.getSoloqRank(participant.getSummonerId(), platform, CallPriority.NORMAL);
+      FullTier fullTier = RiotRequest.getSoloqRank(participant.getSummonerId(), platform);
       String rank;
       try {
         rank = Ressources.getTierEmote().get(fullTier.getTier()).getEmote().getAsMention() + " " + fullTier.toString();
@@ -104,7 +103,7 @@ public class MessageBuilderRequestUtil {
         champion = new Champion(-1, unknownChampion, unknownChampion, null);
       }
 
-      FullTier fullTier = RiotRequest.getSoloqRank(participant.getSummonerId(), platform, CallPriority.NORMAL);
+      FullTier fullTier = RiotRequest.getSoloqRank(participant.getSummonerId(), platform);
       String rank;
       try {
         rank = Ressources.getTierEmote().get(fullTier.getTier()).getEmote().getAsMention() + " " + fullTier.toString();

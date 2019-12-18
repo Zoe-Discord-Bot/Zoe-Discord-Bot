@@ -23,7 +23,6 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
-import net.rithms.riot.constant.CallPriority;
 
 public class ShowPlayerCommand extends ZoeCommand {
 
@@ -92,7 +91,7 @@ public class ShowPlayerCommand extends ZoeCommand {
         Summoner summoner;
         try {
           summoner = Zoe.getRiotApi().getSummoner(leagueAccount.leagueAccount_server,
-              leagueAccount.leagueAccount_summonerId, CallPriority.HIGH);
+              leagueAccount.leagueAccount_summonerId);
         } catch(RiotApiException e) {
           RiotApiUtil.handleRiotApi(event, e, server.serv_language);
           return;
@@ -100,7 +99,7 @@ public class ShowPlayerCommand extends ZoeCommand {
         playerInfo.append(String.format(LanguageManager.getText(server.serv_language, "showPlayerAccount"),
             summoner.getName(), leagueAccount.leagueAccount_server.getName().toUpperCase(),
             RiotRequest.getSoloqRank(leagueAccount.leagueAccount_summonerId,
-                leagueAccount.leagueAccount_server, CallPriority.HIGH)) + "\n");
+                leagueAccount.leagueAccount_server)) + "\n");
       }
       pbuilder.addItems(playerInfo.toString().substring(0, playerInfo.toString().length() - 1));
     }

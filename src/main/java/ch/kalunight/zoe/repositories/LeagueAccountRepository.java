@@ -11,7 +11,6 @@ import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.DTO;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
-import net.rithms.riot.constant.CallPriority;
 import net.rithms.riot.constant.Platform;
 
 public class LeagueAccountRepository {
@@ -128,7 +127,11 @@ public class LeagueAccountRepository {
       result = query.executeQuery(finalQuery);
       
       List<DTO.LeagueAccount> accounts = Collections.synchronizedList(new ArrayList<>());
-      result.next();
+      int rowCount = result.last() ? result.getRow() : 0;
+      if(rowCount == 0) {
+        return accounts;
+      }
+      result.first();
       while(!result.isAfterLast()) {
         accounts.add(new DTO.LeagueAccount(result));
         result.next();
@@ -149,7 +152,11 @@ public class LeagueAccountRepository {
       result = query.executeQuery(finalQuery);
       
       List<DTO.LeagueAccount> accounts = Collections.synchronizedList(new ArrayList<>());
-      result.next();
+      int rowCount = result.last() ? result.getRow() : 0;
+      if(rowCount == 0) {
+        return accounts;
+      }
+      result.first();
       while(!result.isAfterLast()) {
         accounts.add(new DTO.LeagueAccount(result));
         result.next();
@@ -168,7 +175,7 @@ public class LeagueAccountRepository {
       
       for(DTO.LeagueAccount account : getLeaguesAccounts(guildId, discordPlayerId)) {
         if(account.leagueAccount_server.equals(region)) {
-          Summoner summoner = Zoe.getRiotApi().getSummoner(region, account.leagueAccount_summonerId, CallPriority.HIGH);
+          Summoner summoner = Zoe.getRiotApi().getSummoner(region, account.leagueAccount_summonerId);
           if(summoner.getName().equals(summonerName)) {
             return account;
           }

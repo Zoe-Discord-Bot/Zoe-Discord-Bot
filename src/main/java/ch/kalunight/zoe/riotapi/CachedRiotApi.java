@@ -1,10 +1,15 @@
 package ch.kalunight.zoe.riotapi;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import net.rithms.riot.api.RiotApi;
+import net.rithms.riot.api.RiotApiAsync;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.champion_mastery.dto.ChampionMastery;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
@@ -12,7 +17,6 @@ import net.rithms.riot.api.endpoints.match.dto.Match;
 import net.rithms.riot.api.endpoints.match.dto.MatchList;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
-import net.rithms.riot.constant.CallPriority;
 import net.rithms.riot.constant.Platform;
 
 /**
@@ -21,6 +25,10 @@ import net.rithms.riot.constant.Platform;
 public class CachedRiotApi {
 
   public static final boolean CACHE_ENABLE = false;
+  
+  public static final int RIOT_API_HUGE_LIMIT = 15000;
+  public static final Duration RIOT_API_HUGE_TIME = Duration.ofMinutes(10);
+  private static LocalDateTime lastReset = LocalDateTime.now();
   
   private final RiotApi riotApi;
 
@@ -31,7 +39,18 @@ public class CachedRiotApi {
   private final AtomicInteger leagueEntryRequestCount = new AtomicInteger(0);
   private final AtomicInteger championMasteryRequestCount = new AtomicInteger(0);
   private final AtomicInteger currentGameInfoRequestCount = new AtomicInteger(0);
+  private static final Map<Platform, AtomicInteger> callByEndpoints = Collections.synchronizedMap(new EnumMap<Platform, AtomicInteger>(Platform.class));
 
+  static {
+    for(Platform platform : Platform.values()) {
+      callByEndpoints.put(platform, new AtomicInteger(0));
+    }
+  }
+  
+  public static void increaseCallCountForGivenRegion(Platform platform) {
+    callByEndpoints.get(platform).incrementAndGet();
+  }
+  
   public CachedRiotApi(RiotApi riotApi) {
     this.riotApi = riotApi;
   }
@@ -40,11 +59,11 @@ public class CachedRiotApi {
     CacheManager.cleanMatchCache();
   }
   
-  public Match getMatch(Platform platform, long matchId, CallPriority priority) throws RiotApiException {
+  public Match getMatch(Platform platform, long matchId) throws RiotApiException {
     Match match = CacheManager.getMatch(platform, Long.toString(matchId));
 
     if(match == null) {
-      match = riotApi.getMatch(platform, matchId, priority);
+      match = riotApi.getMatch(platform, matchId);
 
       CacheManager.putMatch(platform, match);
 
@@ -52,72 +71,81 @@ public class CachedRiotApi {
     }
     
     allMatchRequestCount.incrementAndGet();
+    increaseCallCountForGivenRegion(platform);
     
     return match;
   }
   
   public MatchList getMatchListByAccountId(Platform platform, String accountId, Set<Integer> champion, Set<Integer> queue,
-      Set<Integer> season, long beginTime, long endTime, int beginIndex, int endIndex, CallPriority priority) throws RiotApiException {
-    MatchList matchList = riotApi.getMatchListByAccountId(platform, accountId, champion, queue, season, beginTime, endTime, beginIndex, endIndex, priority);
+      Set<Integer> season, long beginTime, long endTime, int beginIndex, int endIndex) throws RiotApiException {
+    MatchList matchList = riotApi.getMatchListByAccountId(platform, accountId, champion, queue, season, beginTime, endTime, beginIndex, endIndex);
 
     matchListRequestCount.incrementAndGet();
+    increaseCallCountForGivenRegion(platform);
 
     return matchList;
   }
 
-  public Summoner getSummoner(Platform platform, String summonerId, CallPriority priority) throws RiotApiException {
-    Summoner summoner = riotApi.getSummoner(platform, summonerId, priority);
+  public Summoner getSummoner(Platform platform, String summonerId) throws RiotApiException {
+    Summoner summoner = riotApi.getSummoner(platform, summonerId);
 
     summonerRequestCount.incrementAndGet();
-
+    increaseCallCountForGivenRegion(platform);
+    
     return summoner;
   }
 
-  public Summoner getSummonerByName(Platform platform, String summonerName, CallPriority priority) throws RiotApiException {
-    Summoner summoner = riotApi.getSummonerByName(platform, summonerName, priority);
+  public Summoner getSummonerByName(Platform platform, String summonerName) throws RiotApiException {
+    Summoner summoner = riotApi.getSummonerByName(platform, summonerName);
 
     summonerRequestCount.incrementAndGet();
-
+    increaseCallCountForGivenRegion(platform);
+    
     return summoner;
   }
 
-  public Summoner getSummonerByPuuid(Platform platform, String puuid, CallPriority priority) throws RiotApiException {
-    Summoner summoner = riotApi.getSummonerByPuuid(platform, puuid, priority);
+  public Summoner getSummonerByPuuid(Platform platform, String puuid) throws RiotApiException {
+    Summoner summoner = riotApi.getSummonerByPuuid(platform, puuid);
 
     summonerRequestCount.incrementAndGet();
-
+    increaseCallCountForGivenRegion(platform);
+    
     return summoner;
   }
 
-  public Set<LeagueEntry> getLeagueEntriesBySummonerId(Platform platform, String summonerId, CallPriority callPriority) throws RiotApiException {
-    Set<LeagueEntry> leagueEntries = riotApi.getLeagueEntriesBySummonerId(platform, summonerId, callPriority);
+  public Set<LeagueEntry> getLeagueEntriesBySummonerId(Platform platform, String summonerId) throws RiotApiException {
+    Set<LeagueEntry> leagueEntries = riotApi.getLeagueEntriesBySummonerId(platform, summonerId);
 
     leagueEntryRequestCount.incrementAndGet();
-
+    increaseCallCountForGivenRegion(platform);
+    
     return leagueEntries;
   }
 
-  public CurrentGameInfo getActiveGameBySummoner(Platform platform, String summonerId, CallPriority priority) throws RiotApiException {
-    CurrentGameInfo gameInfo = riotApi.getActiveGameBySummoner(platform, summonerId, priority);
+  public CurrentGameInfo getActiveGameBySummoner(Platform platform, String summonerId) throws RiotApiException {
+    CurrentGameInfo gameInfo = riotApi.getActiveGameBySummoner(platform, summonerId);
 
     currentGameInfoRequestCount.incrementAndGet();
-
+    increaseCallCountForGivenRegion(platform);
+    
     return gameInfo;
   }
 
-  public ChampionMastery getChampionMasteriesBySummonerByChampion(Platform platform, String summonerId, int championId, CallPriority priority) throws RiotApiException {
-    ChampionMastery mastery = riotApi.getChampionMasteriesBySummonerByChampion(platform, summonerId, championId, priority);
+  public ChampionMastery getChampionMasteriesBySummonerByChampion(Platform platform, String summonerId, int championId) throws RiotApiException {
+    ChampionMastery mastery = riotApi.getChampionMasteriesBySummonerByChampion(platform, summonerId, championId);
 
     championMasteryRequestCount.incrementAndGet();
-
+    increaseCallCountForGivenRegion(platform);
+    
     return mastery;
   }
 
-  public List<ChampionMastery> getChampionMasteriesBySummoner(Platform platform, String summonerId, CallPriority priority) throws RiotApiException {
-    List<ChampionMastery> masteries = riotApi.getChampionMasteriesBySummoner(platform, summonerId, priority);
+  public List<ChampionMastery> getChampionMasteriesBySummoner(Platform platform, String summonerId) throws RiotApiException {
+    List<ChampionMastery> masteries = riotApi.getChampionMasteriesBySummoner(platform, summonerId);
 
     championMasteryRequestCount.incrementAndGet();
-
+    increaseCallCountForGivenRegion(platform);
+    
     return masteries;
   }
 
@@ -135,6 +163,44 @@ public class CachedRiotApi {
     return apiMatchRequestCount.intValue() + allMatchRequestCount.intValue() + matchListRequestCount.intValue()
         + summonerRequestCount.intValue() + leagueEntryRequestCount.intValue() + championMasteryRequestCount.intValue()
         + currentGameInfoRequestCount.intValue();
+  }
+  
+  public RiotApiAsync getAsyncRiotApi() {
+    return riotApi.getAsyncApi();
+  }
+  
+  public void resetApiCallPerPlatform() {
+    setLastReset(LocalDateTime.now());
+    synchronized(callByEndpoints) {
+      for(Platform platform : Platform.values()) {
+        callByEndpoints.put(platform, new AtomicInteger(0));
+      }
+    }
+  }
+  
+  public boolean isRequestsCanBeExecuted(int nbrRequest) {
+    //TODO : To high detection with api call calculator. made it blocker
+    return true;
+  }
+  
+  public void addApiCallForARegion(int nbrCalls, Platform platform) {
+    callByEndpoints.get(platform).addAndGet(nbrCalls);
+  }
+  
+  public boolean isApiCallPerPlatformNeedToBeReset() {
+    return lastReset.isBefore(LocalDateTime.now().plus(RIOT_API_HUGE_TIME));
+  }
+  
+  public int getApiCallPerPlatform(Platform platform) {
+    return callByEndpoints.get(platform).intValue();
+  }
+  
+  public int getApiCallRemainingPerRegion(Platform platform) {
+    int remainingCall = RIOT_API_HUGE_LIMIT - callByEndpoints.get(platform).intValue();
+    if(remainingCall < 0) {
+      return 0;
+    }
+    return remainingCall;
   }
 
   public int getApiMatchRequestCount() {
@@ -163,5 +229,9 @@ public class CachedRiotApi {
 
   public int getCurrentGameInfoRequestCount() {
     return currentGameInfoRequestCount.intValue();
+  }
+
+  public static void setLastReset(LocalDateTime lastReset) {
+    CachedRiotApi.lastReset = lastReset;
   }
 }

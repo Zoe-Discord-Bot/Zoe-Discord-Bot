@@ -16,11 +16,11 @@ import org.knowm.xchart.style.Styler.ChartTheme;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
+import ch.kalunight.zoe.riotapi.CachedRiotApi;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
-import net.rithms.riot.api.request.ratelimit.RateLimitRequestTank;
 import net.rithms.riot.constant.Platform;
 
 public class RiotApiUsageChannelRefresh implements Runnable {
@@ -35,11 +35,9 @@ public class RiotApiUsageChannelRefresh implements Runnable {
 
   @Override
   public void run() {
-    if(rapiInfoChannel != null && Zoe.getMinuteApiTank() != null) {
+    if(rapiInfoChannel != null) {
 
       cleanChannel();
-
-      RateLimitRequestTank minutesRAPITank = Zoe.getMinuteApiTank();
 
       rapiInfoChannel.sendMessage("**Generic Stats**"
           + "\nTotal number of Servers : " + Zoe.getJda().getGuilds().size()
@@ -69,7 +67,7 @@ public class RiotApiUsageChannelRefresh implements Runnable {
       List<Platform> platformOrder = new ArrayList<>();
       List<Message> descriptions = new ArrayList<>();
       for(Platform platform : Platform.values()) {
-        long numberOfRequestRemaining = minutesRAPITank.getNumberOfRequestRemaining(platform);
+        long numberOfRequestRemaining = - Zoe.getRiotApi().getApiCallRemainingPerRegion(platform);
 
         PieChart pieChart = new PieChartBuilder()
             .title("Request data for " + platform.getName())
@@ -82,7 +80,7 @@ public class RiotApiUsageChannelRefresh implements Runnable {
         styler.setAnnotationDistance(1.1);
         styler.setHasAnnotations(true);
 
-        pieChart.addSeries("Calls Used", minutesRAPITank.getNumberOfRequestForThisPeriod() - numberOfRequestRemaining);
+        pieChart.addSeries("Calls Used", CachedRiotApi.RIOT_API_HUGE_LIMIT - numberOfRequestRemaining);
         pieChart.addSeries("Calls avaible", numberOfRequestRemaining);
 
         try {
@@ -91,8 +89,8 @@ public class RiotApiUsageChannelRefresh implements Runnable {
 
           MessageBuilder description = new MessageBuilder();
           description.append("Status of Api for " + platform.getName() + ". Max Calls : " 
-              + minutesRAPITank.getNumberOfRequestForThisPeriod() + " Calls Used : " 
-              + (minutesRAPITank.getNumberOfRequestForThisPeriod() - numberOfRequestRemaining));
+              + CachedRiotApi.RIOT_API_HUGE_LIMIT + " Calls Used : " 
+              + (CachedRiotApi.RIOT_API_HUGE_LIMIT - numberOfRequestRemaining));
 
           descriptions.add(description.build());
         } catch(IOException e) {
@@ -102,6 +100,10 @@ public class RiotApiUsageChannelRefresh implements Runnable {
 
       for(int i = 0; i < graphs.size(); i++) {
         rapiInfoChannel.sendMessage(descriptions.get(i)).addFile(graphs.get(i), "graphFor" + platformOrder.get(i).getName() + ".png").queue();
+      }
+      
+      if(Zoe.getRiotApi().isApiCallPerPlatformNeedToBeReset()) {
+        Zoe.getRiotApi().resetApiCallPerPlatform();
       }
     }
   }

@@ -50,9 +50,6 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.RiotApi;
-import net.rithms.riot.api.request.ratelimit.PriorityManagerRateLimitHandler;
-import net.rithms.riot.api.request.ratelimit.PriorityRateLimit;
-import net.rithms.riot.api.request.ratelimit.RateLimitRequestTank;
 
 public class Zoe {
 
@@ -69,11 +66,6 @@ public class Zoe {
   private static final List<Object> eventListenerList = new ArrayList<>();  
 
   public static final Logger logger = LoggerFactory.getLogger(Zoe.class);
-
-  /**
-   * USED ONLY FOR STATS ANALYSE. DON'T MODIFY DATA INSIDE.
-   */
-  private static RateLimitRequestTank minuteApiTank;
 
   private static EventWaiter eventWaiter;
 
@@ -144,22 +136,7 @@ public class Zoe {
   private static void initRiotApi(String riotTocken) {
     ApiConfig config = new ApiConfig().setKey(riotTocken);
 
-    PriorityRateLimit secondsLimit = new PriorityRateLimit(50, 25);
-    RateLimitRequestTank requestSecondsTank = new RateLimitRequestTank(10, 250, secondsLimit);
-
-    PriorityRateLimit minuteLimit = new PriorityRateLimit(500, 100);
-    RateLimitRequestTank requestMinutesTank = new RateLimitRequestTank(600, 15000, minuteLimit);
-
-    List<RateLimitRequestTank> priorityList = new ArrayList<>();
-    priorityList.add(requestSecondsTank);
-    priorityList.add(requestMinutesTank);
-
-    minuteApiTank = requestMinutesTank;
-
-    //create default priority with dev api key rate limit if no param
-    PriorityManagerRateLimitHandler defaultLimite = new PriorityManagerRateLimitHandler(priorityList);
-
-    config.setRateLimitHandler(defaultLimite);
+    config.setMaxAsyncThreads(ServerData.NBR_PROC);
     riotApi = new CachedRiotApi(new RiotApi(config));
   }
 
@@ -218,7 +195,7 @@ public class Zoe {
       Ressources.setChampions(champions);
     }
   }
-
+  
   public static CachedRiotApi getRiotApi() {
     return riotApi;
   }
@@ -241,10 +218,6 @@ public class Zoe {
 
   public static String getDiscordBotListTocken() {
     return discordBotListTocken;
-  }
-
-  public static RateLimitRequestTank getMinuteApiTank() {
-    return minuteApiTank;
   }
 
   public static List<Object> getEventlistenerlist() {

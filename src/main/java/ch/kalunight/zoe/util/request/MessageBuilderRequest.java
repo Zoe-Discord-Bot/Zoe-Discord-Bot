@@ -42,7 +42,6 @@ import net.rithms.riot.api.endpoints.match.dto.MatchReference;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
-import net.rithms.riot.constant.CallPriority;
 import net.rithms.riot.constant.Platform;
 
 public class MessageBuilderRequest {
@@ -204,7 +203,7 @@ public class MessageBuilderRequest {
     EmbedBuilder message = new EmbedBuilder();
 
     Summoner summoner = Zoe.getRiotApi().getSummoner(leagueAccount.leagueAccount_server,
-        leagueAccount.leagueAccount_summonerId, CallPriority.HIGH);
+        leagueAccount.leagueAccount_summonerId);
 
     message.setTitle(String.format(LanguageManager.getText(language, "statsProfileTitle"),
         player.user.getName(), summoner.getName(), summoner.getSummonerLevel()));
@@ -260,7 +259,7 @@ public class MessageBuilderRequest {
 
     try {
       matchList = Zoe.getRiotApi().getMatchListByAccountId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_accoundId, 
-          null, null, null, DateTime.now().minusWeeks(1).plusSeconds(10).getMillis(), DateTime.now().getMillis(), -1, -1, CallPriority.HIGH);
+          null, null, null, DateTime.now().minusWeeks(1).plusSeconds(10).getMillis(), DateTime.now().getMillis(), -1, -1);
     } catch(RiotApiException e) {
       if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
         throw e;
@@ -279,7 +278,7 @@ public class MessageBuilderRequest {
         for(MatchReference matchReference : matchsReference) {
           try {
             threeMostRecentMatch.add(Zoe.getRiotApi().getMatch(leagueAccount.leagueAccount_server,
-                matchReference.getGameId(), CallPriority.HIGH));
+                matchReference.getGameId()));
           } catch(RiotApiException e) {
             if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
               throw e;
@@ -292,7 +291,7 @@ public class MessageBuilderRequest {
           MatchReference matchReference = matchsReference.get(i);
 
           try {
-            threeMostRecentMatch.add(Zoe.getRiotApi().getMatch(leagueAccount.leagueAccount_server, matchReference.getGameId(), CallPriority.HIGH));
+            threeMostRecentMatch.add(Zoe.getRiotApi().getMatch(leagueAccount.leagueAccount_server, matchReference.getGameId()));
           } catch(RiotApiException e) {
             if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
               throw e;
@@ -332,7 +331,8 @@ public class MessageBuilderRequest {
 
     Set<LeagueEntry> rankPosition = null;
     try {
-      rankPosition = Zoe.getRiotApi().getLeagueEntriesBySummonerId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId, CallPriority.HIGH);
+      rankPosition = Zoe.getRiotApi().getLeagueEntriesBySummonerId(leagueAccount.leagueAccount_server,
+          leagueAccount.leagueAccount_summonerId);
     }catch (RiotApiException e) {
       if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
         throw e;

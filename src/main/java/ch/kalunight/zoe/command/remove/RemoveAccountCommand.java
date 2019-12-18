@@ -21,7 +21,6 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.User;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
-import net.rithms.riot.constant.CallPriority;
 import net.rithms.riot.constant.Platform;
 
 public class RemoveAccountCommand extends ZoeCommand {
@@ -102,8 +101,7 @@ public class RemoveAccountCommand extends ZoeCommand {
     
     Summoner summoner;
     try {
-    summoner = Zoe.getRiotApi().getSummoner(account.leagueAccount_server,
-        account.leagueAccount_summonerId, CallPriority.HIGH);
+    summoner = Zoe.getRiotApi().getSummoner(account.leagueAccount_server, account.leagueAccount_summonerId);
     LeagueAccountRepository.deleteAccountWithId(account.leagueAccount_id);
     }catch(RiotApiException e) {
       RiotApiUtil.handleRiotApi(event, e, server.serv_language);

@@ -41,13 +41,9 @@ import net.rithms.riot.constant.Platform;
 
 public class InfoPanelRefresher implements Runnable {
 
-  private static final int INFO_CARDS_MINUTES_LIVE_TIME = 20;
-
   private static final Logger logger = LoggerFactory.getLogger(InfoPanelRefresher.class);
 
   private DTO.Server server;
-
-  private List<DTO.GameInfoCard> gameInfoCards;
 
   private TextChannel infochannel;
 
@@ -118,7 +114,6 @@ public class InfoPanelRefresher implements Runnable {
       DTO.InfoChannel infoChannelDTO = InfoChannelRepository.getInfoChannel(server.serv_guildId);
       if(infoChannelDTO != null) {
         infochannel = guild.getTextChannelById(infoChannelDTO.infochannel_channelid);
-        gameInfoCards = GameInfoCardRepository.getGameInfoCards(server.serv_guildId);
       }
 
       if(infochannel != null) {
@@ -130,11 +125,8 @@ public class InfoPanelRefresher implements Runnable {
         List<DTO.Player> playersDTO = PlayerRepository.getPlayers(server.serv_guildId);
 
         cleanInfoChannelCache();
-        
         cleanRegisteredPlayerNoLongerInGuild(playersDTO);
-        refreshAllLeagueAccountCurrentGames(playersDTO);
-        clearOldMatchOfSendedGamesIdList(playersDTO);
-        deleteOlderInfoCards();
+        refreshAllLeagueAccountCurrentGamesAndDeleteOlderInfoCard(playersDTO);
 
         ArrayList<String> infoPanels = CommandEvent.splitMessage(refreshPannel());
 
@@ -209,52 +201,7 @@ public class InfoPanelRefresher implements Runnable {
     }
   }
 
-  public void clearOldMatchOfSendedGamesIdList(List<DTO.Player> players) throws SQLException {
-
-    final List<DTO.CurrentGameInfo> allCurrentGamesOfPlayers = new ArrayList<>();
-    for(DTO.Player player : players) {
-      for(DTO.LeagueAccount leagueAccount : player.leagueAccounts) {
-        DTO.CurrentGameInfo currentGameInfo = 
-            CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(leagueAccount.leagueAccount_id);
-        if(currentGameInfo != null && currentGameInfo.currentgame_currentgame != null) {
-          allCurrentGamesOfPlayers.add(currentGameInfo);
-        }
-      }
-    }
-
-    final Iterator<DTO.CurrentGameInfo> iterator = allCurrentGamesOfPlayers.iterator();
-
-    final List<Long> gameIdToSave = new ArrayList<>();
-
-    while(iterator.hasNext()) {
-
-      final DTO.CurrentGameInfo currentGameInfo = iterator.next();
-
-      if(currentGameInfo != null) {
-        gameIdToSave.add(currentGameInfo.currentgame_currentgame.getGameId());
-      }
-    }
-
-    Iterator<DTO.GameInfoCard> gameInfoCardsIterator = gameInfoCards.iterator();
-
-    while(gameInfoCardsIterator.hasNext()) {
-      DTO.GameInfoCard actualgameInfoCard = gameInfoCardsIterator.next();
-      List<DTO.LeagueAccount> leaguesAccountInGames = LeagueAccountRepository.getLeaguesAccountsWithGameCardsId(actualgameInfoCard.gamecard_id);
-      if(leaguesAccountInGames.isEmpty()) {
-        //is in loading
-        continue;
-      }
-      DTO.LeagueAccount leagueAccount = leaguesAccountInGames.get(0);
-      DTO.CurrentGameInfo currentGameInfo = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(leagueAccount.leagueAccount_id);
-
-      if(!gameIdToSave.contains(currentGameInfo.currentgame_currentgame.getGameId())) {
-        gameInfoCardsIterator.remove();
-        GameInfoCardRepository.deleteGameInfoCardsWithId(actualgameInfoCard.gamecard_id);
-      }
-    }
-  }
-
-  private void refreshAllLeagueAccountCurrentGames(List<DTO.Player> playersDTO) throws SQLException {
+  private void refreshAllLeagueAccountCurrentGamesAndDeleteOlderInfoCard(List<DTO.Player> playersDTO) throws SQLException {
     List<CurrentGameWithRegion> gameAlreadyAskedToRiot = new ArrayList<>();
 
     for(DTO.Player player : playersDTO) {
@@ -295,15 +242,32 @@ public class InfoPanelRefresher implements Runnable {
             if(currentGame.getGameId() == currentGameDb.currentgame_currentgame.getGameId()) {
               CurrentGameInfoRepository.updateCurrentGame(currentGame, leagueAccount);
             }else {
-              CurrentGameInfoRepository.deleteCurrentGame(leagueAccount);
+              deleteDiscordInfoCard(server.serv_guildId, currentGameDb.currentgame_id);
+              CurrentGameInfoRepository.deleteCurrentGame(currentGameDb, server);
               CurrentGameInfoRepository.createCurrentGame(currentGame, leagueAccount);
             }
           }else if(currentGameDb != null && currentGame == null) {
-            CurrentGameInfoRepository.deleteCurrentGame(leagueAccount);
+            deleteDiscordInfoCard(server.serv_guildId, currentGameDb.currentgame_id);
+            CurrentGameInfoRepository.deleteCurrentGame(currentGameDb, server);
           }
         }
       }
     }
+  }
+
+  private void deleteDiscordInfoCard(long guildId, long currentGameId) throws SQLException {
+    DTO.GameInfoCard gameCard = GameInfoCardRepository.getGameInfoCardsWithCurrentGameId(guildId, currentGameId);
+    
+    List<DTO.LeagueAccount> leaguesAccounts = LeagueAccountRepository.getLeaguesAccountsWithCurrentGameId(currentGameId);
+
+    for(DTO.LeagueAccount leagueAccount: leaguesAccounts) {
+      LeagueAccountRepository.updateAccountCurrentGameWithAccountId(leagueAccount.leagueAccount_id, 0);
+    }
+    
+    GameInfoCardRepository.deleteGameInfoCardsWithId(gameCard.gamecard_id);
+    
+    removeMessage(infochannel.retrieveMessageById(gameCard.gamecard_infocardmessageid).complete());
+    removeMessage(infochannel.retrieveMessageById(gameCard.gamecard_titlemessageid).complete());
   }
 
   private void cleanInfoChannelCache() throws SQLException {
@@ -403,46 +367,6 @@ public class InfoPanelRefresher implements Runnable {
     createInfoCards(infochannel);
   }
 
-  private void deleteOlderInfoCards() throws SQLException {
-    List<DTO.GameInfoCard> cardsToRemove = new ArrayList<>();
-
-    List<DTO.GameInfoCard> gameInfoCardsOfTheServer = GameInfoCardRepository.getGameInfoCards(server.serv_guildId);
-
-    for(DTO.GameInfoCard gameInfoCard : gameInfoCardsOfTheServer) {
-
-      if(gameInfoCard.gamecard_creationtime != null && gameInfoCard.gamecard_creationtime.plusMinutes(INFO_CARDS_MINUTES_LIVE_TIME).isBefore(LocalDateTime.now())) {
-        checkIfGameLongerExist(cardsToRemove, gameInfoCard);
-      }
-    }
-
-    for(DTO.GameInfoCard gameInfoCard : cardsToRemove) {
-      try {
-
-        removeMessage(infochannel.retrieveMessageById(gameInfoCard.gamecard_infocardmessageid).complete());
-        removeMessage(infochannel.retrieveMessageById(gameInfoCard.gamecard_titlemessageid).complete());
-
-        GameInfoCardRepository.deleteGameInfoCardsWithId(gameInfoCard.gamecard_id);
-      } catch(Exception e) {
-        logger.warn("Impossible to delete message, retry next time : {}", e.getMessage(), e);
-      }
-    }
-  }
-
-  private void checkIfGameLongerExist(List<DTO.GameInfoCard> cardsToRemove, DTO.GameInfoCard card) throws SQLException {
-    List<DTO.LeagueAccount> leagueAccounts = LeagueAccountRepository.getLeaguesAccountsWithGameCardsId(card.gamecard_id);
-    if(!leagueAccounts.isEmpty()) {
-      DTO.LeagueAccount leagueAccount = leagueAccounts.get(0);
-
-      DTO.CurrentGameInfo currentGameInfo = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(leagueAccount.leagueAccount_id);
-      if(currentGameInfo.currentgame_currentgame == null) {
-        cardsToRemove.add(card);
-      }
-
-    }else {
-      cardsToRemove.add(card);
-    }
-  }
-
   private void removeMessage(Message message) {
     try {
       if(message != null) {
@@ -504,7 +428,7 @@ public class InfoPanelRefresher implements Runnable {
       for(DTO.Player player : playersList) {
 
         List<DTO.LeagueAccount> leagueAccounts = player.leagueAccounts;
-        
+
         List<DTO.LeagueAccount> accountsInGame = new ArrayList<>();
         for(DTO.LeagueAccount leagueAccount : leagueAccounts) {
           DTO.CurrentGameInfo currentGameInfo = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(leagueAccount.leagueAccount_id);
@@ -512,13 +436,13 @@ public class InfoPanelRefresher implements Runnable {
             accountsInGame.add(leagueAccount);
           }
         }
-        
+
         if(accountsInGame.isEmpty()) {
           stringMessage.append(player.user.getAsMention() + " : " 
               + LanguageManager.getText(server.serv_language, "informationPanelNotInGame") + " \n");
         }else if (accountsInGame.size() == 1) {
-            stringMessage.append(player.user.getAsMention() + " : " 
-                + InfoPanelRefresherUtil.getCurrentGameInfoStringForOneAccount(accountsInGame.get(0), server.serv_language) + "\n");
+          stringMessage.append(player.user.getAsMention() + " : " 
+              + InfoPanelRefresherUtil.getCurrentGameInfoStringForOneAccount(accountsInGame.get(0), server.serv_language) + "\n");
         }else {
           stringMessage.append(player.user.getAsMention() + " : " 
               + LanguageManager.getText(server.serv_language, "informationPanelMultipleAccountInGame") + "\n"

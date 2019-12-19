@@ -70,6 +70,20 @@ public class LeagueAccountRepository {
   
   private static final String DELETE_LEAGUE_ACCOUNT_WITH_ID = "DELETE FROM league_account WHERE leagueaccount_id = %d";
   
+  private static final String SELECT_LEAGUES_ACCOUNTS_WITH_CURRENT_GAME_ID =
+      "SELECT " + 
+      "league_account.leagueaccount_id, " + 
+      "league_account.leagueaccount_fk_player, " + 
+      "league_account.leagueaccount_fk_gamecard, " + 
+      "league_account.leagueaccount_fk_currentgame, " + 
+      "league_account.leagueaccount_name, " + 
+      "league_account.leagueaccount_summonerid, " + 
+      "league_account.leagueaccount_accountid, " + 
+      "league_account.leagueaccount_puuid, " + 
+      "league_account.leagueaccount_server " + 
+      "FROM league_account " + 
+      "WHERE league_account.leagueaccount_fk_currentgame = %d";
+  
   private static final String UPDATE_LEAGUE_ACCOUNT_CURRENT_GAME_WITH_ID = 
       "UPDATE league_account SET leagueaccount_fk_currentgame = %s WHERE leagueaccount_id = %d";
   
@@ -81,6 +95,31 @@ public class LeagueAccountRepository {
   
   private LeagueAccountRepository() {
     //hide default public constructor
+  }
+  
+  public static List<DTO.LeagueAccount> getLeaguesAccountsWithCurrentGameId(long currentGameId) throws SQLException {
+    ResultSet result = null;
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+      
+      String finalQuery = String.format(SELECT_LEAGUES_ACCOUNTS_WITH_CURRENT_GAME_ID, currentGameId);
+      result = query.executeQuery(finalQuery);
+      
+      List<DTO.LeagueAccount> accounts = Collections.synchronizedList(new ArrayList<>());
+      int rowCount = result.last() ? result.getRow() : 0;
+      if(rowCount == 0) {
+        return accounts;
+      }
+      result.first();
+      while(!result.isAfterLast()) {
+        accounts.add(new DTO.LeagueAccount(result));
+        result.next();
+      }
+      
+      return accounts;
+    }finally {
+      RepoRessources.closeResultSet(result);
+    }
   }
   
   public static List<DTO.LeagueAccount> getLeaguesAccountsWithGameCardsId(long gameCardsId) throws SQLException {

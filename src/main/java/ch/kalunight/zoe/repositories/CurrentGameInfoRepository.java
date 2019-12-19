@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
+
 import javax.annotation.Nullable;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -27,7 +29,7 @@ public class CurrentGameInfoRepository {
       "UPDATE current_game_info SET currentgame_currentgame = '%s' WHERE currentgame_id = %d";
 
   private static final String DELETE_CURRENT_GAME_WITH_ID = "DELETE FROM current_game_info WHERE currentgame_id = %d";
-  
+
   private static final Gson gson = new GsonBuilder().create();
 
   private CurrentGameInfoRepository() {
@@ -83,18 +85,24 @@ public class CurrentGameInfoRepository {
       }
     }
   }
-  
-  public static void deleteCurrentGame(DTO.LeagueAccount leagueAccount) throws SQLException {
+
+  public static void deleteCurrentGame(DTO.CurrentGameInfo currentGameDb, DTO.Server server) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
 
-      DTO.CurrentGameInfo currentGameInfo = getCurrentGameWithLeagueAccountID(leagueAccount.leagueAccount_id);
+      List<DTO.LeagueAccount> leaguesAccounts = LeagueAccountRepository.getLeaguesAccountsWithCurrentGameId(currentGameDb.currentgame_id);
 
-      if(currentGameInfo != null) {
+      for(DTO.LeagueAccount leagueAccount: leaguesAccounts) {
         LeagueAccountRepository.updateAccountCurrentGameWithAccountId(leagueAccount.leagueAccount_id, 0);
-        String finalQuery = String.format(DELETE_CURRENT_GAME_WITH_ID, currentGameInfo.currentgame_id);
-        query.execute(finalQuery);
       }
+
+      DTO.GameInfoCard gameInfoCard = GameInfoCardRepository.getGameInfoCardsWithCurrentGameId(server.serv_guildId, currentGameDb.currentgame_id);
+
+      if(gameInfoCard != null) {
+        GameInfoCardRepository.updateGameInfoCardsCurrentGamesWithId(0, gameInfoCard.gamecard_id);
+      }
+      String finalQuery = String.format(DELETE_CURRENT_GAME_WITH_ID, currentGameDb.currentgame_id);
+      query.execute(finalQuery);
     }
   }
 

@@ -100,13 +100,6 @@ public class RiotRequest {
       requestMatch.addListeners(requestAdapterMatch);
       requestsMatch.add(requestMatch);
     }
-    
-    if(Zoe.getRiotApi().isRequestsCanBeExecuted(requestsMatch.size())) {
-      Zoe.getRiotApi().addApiCallForARegion(requestsMatch.size(), region);
-      for(AsyncRequest request : requestsMatch) {
-        request.execute();
-      }
-    }
 
     try {
       riotApiAsync.awaitAll();

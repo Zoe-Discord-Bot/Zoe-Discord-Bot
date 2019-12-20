@@ -82,9 +82,10 @@ CREATE TABLE info_panel_message (
 CREATE TABLE game_info_card (
   gameCard_id									SERIAL,
   gameCard_fk_infoChannel						BIGINT				NOT NULL,
-  gameCard_fk_currentGame						BIGINT				NOT NULL UNIQUE,
+  gameCard_fk_currentGame						BIGINT				UNIQUE,
   gameCard_titleMessageId						BIGINT,
   gameCard_infoCardMessageId					BIGINT,
+  gameCard_status								VARCHAR,
   gameCard_creationTime							TIMESTAMP			WITHOUT TIME ZONE
 );
 

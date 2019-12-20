@@ -15,6 +15,7 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.GameInfoCardStatus;
 import ch.kalunight.zoe.model.player_data.Team;
 import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.CurrentGameInfoRepository;
@@ -124,55 +125,31 @@ public class InfoPanelRefresher implements Runnable {
 
         List<DTO.Player> playersDTO = PlayerRepository.getPlayers(server.serv_guildId);
 
-        cleanInfoChannelCache();
+        cleanOldInfoChannelMessage();
         cleanRegisteredPlayerNoLongerInGuild(playersDTO);
         refreshAllLeagueAccountCurrentGamesAndDeleteOlderInfoCard(playersDTO);
+        List<DTO.GameInfoCard> gameCards = refreshGameCardStatus();
 
-        ArrayList<String> infoPanels = CommandEvent.splitMessage(refreshPannel());
+        refreshInfoPanel(infoChannelDTO);
 
-        if(infochannel != null && guild.getTextChannelById(infochannel.getId()) != null) {
-
-          List<DTO.InfoPanelMessage> infoPanelMessages = InfoChannelRepository.getInfoPanelMessages(server.serv_guildId);
-
-          if(infoPanels.size() < infoPanelMessages.size()) {
-            int nbrMessageToDelete = infoPanelMessages.size() - infoPanels.size();
-            for(int i = 0; i < nbrMessageToDelete; i++) {
-              DTO.InfoPanelMessage infoPanelMessage = infoPanelMessages.get(i);
-              Message message = infochannel.retrieveMessageById(infoPanelMessage.infopanel_messageId).complete();
-              message.delete().queue();
-              InfoChannelRepository.deleteInfoPanelMessage(infoPanelMessage.infopanel_id);
-            }
-
-          } else {
-            int nbrMessageToAdd = infoPanels.size() - infoPanelMessages.size();
-            for(int i = 0; i < nbrMessageToAdd; i++) {
-              Message message = infochannel.sendMessage(LanguageManager.getText(server.serv_language, "loading")).complete();
-              InfoChannelRepository.createInfoPanelMessage(infoChannelDTO.infoChannel_id, message.getIdLong());
-            }
-          }
-
-          for(int i = 0; i < infoPanels.size(); i++) {
-            DTO.InfoPanelMessage infoPanel = infoPanelMessages.get(i);
-            infochannel.retrieveMessageById(infoPanel.infopanel_messageId).complete().editMessage(infoPanels.get(i)).queue();
-          }
-
-          if(ConfigRepository.getServerConfiguration(server.serv_guildId).getInfoCardsOption().isOptionActivated()) {
-            manageInfoCards();
-          }
-
-          try {
-            cleaningInfoChannel();
-          }catch (InsufficientPermissionException e) {
-            logger.info("Error in a infochannel when cleaning : {}", e.getMessage());
-
-          }catch (Exception e) {
-            logger.warn("An unexpected error when cleaning info channel has occure.", e);
-          }
-
-          clearLoadingEmote();
-        } else {
-          InfoChannelRepository.deleteInfoChannel(guild.getIdLong());
+        if(ConfigRepository.getServerConfiguration(server.serv_guildId).getInfoCardsOption().isOptionActivated()) {
+          createMissingInfoCard();
+          treathGameCardWithStatus(gameCards);
+          //manageInfoCards();
         }
+
+        try {
+          cleaningInfoChannel();
+        }catch (InsufficientPermissionException e) {
+          logger.info("Error in a infochannel when cleaning : {}", e.getMessage());
+
+        }catch (Exception e) {
+          logger.warn("An unexpected error when cleaning info channel has occure.", e);
+        }
+
+        clearLoadingEmote();
+      }else {
+        InfoChannelRepository.deleteInfoChannel(server.serv_guildId);
       }
     }catch (InsufficientPermissionException e) {
       logger.debug("Permission {} missing for infochannel in the guild {}, try to autofix the issue... (Low chance to work)",
@@ -198,6 +175,107 @@ public class InfoPanelRefresher implements Runnable {
       } catch(SQLException e) {
         logger.error("SQL Exception when updating timeStamp and treatment !", e);
       }
+    }
+  }
+
+  private void treathGameCardWithStatus(List<DTO.GameInfoCard> gameInfoCards) throws SQLException {
+
+    for(DTO.GameInfoCard gameInfoCard : gameInfoCards) {
+      switch(gameInfoCard.gamecard_status) {
+      case IN_CREATION:
+        GameInfoCardRepository.updateGameInfoCardStatusWithId(gameInfoCard.gamecard_id, GameInfoCardStatus.IN_TREATMENT);
+        
+        List<DTO.LeagueAccount> accountsLinked = LeagueAccountRepository
+        .getLeaguesAccountsWithGameCardsId(gameInfoCard.gamecard_id);
+        
+        DTO.LeagueAccount account = accountsLinked.get(0);
+        
+        DTO.CurrentGameInfo currentGame = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(account.leagueAccount_id);
+        
+        ServerData.getInfocardsGenerator().execute(
+            new InfoCardsWorker(server, infochannel, accountsLinked.get(0), currentGame));
+        break;
+      case IN_WAIT_OF_DELETING:
+        GameInfoCardRepository.deleteGameInfoCardsWithId(gameInfoCard.gamecard_id);
+        deleteDiscordInfoCard(server.serv_guildId, gameInfoCard);
+        break;
+      default:
+        break;
+      }
+    }
+  }
+
+  private void refreshInfoPanel(DTO.InfoChannel infoChannelDTO) throws SQLException, RiotApiException {
+    ArrayList<String> infoPanels = CommandEvent.splitMessage(refreshPannel());
+
+    List<DTO.InfoPanelMessage> infoPanelMessages = InfoChannelRepository.getInfoPanelMessages(server.serv_guildId);
+
+    if(infoPanels.size() < infoPanelMessages.size()) {
+      int nbrMessageToDelete = infoPanelMessages.size() - infoPanels.size();
+      for(int i = 0; i < nbrMessageToDelete; i++) {
+        DTO.InfoPanelMessage infoPanelMessage = infoPanelMessages.get(i);
+        Message message = infochannel.retrieveMessageById(infoPanelMessage.infopanel_messageId).complete();
+        message.delete().queue();
+        InfoChannelRepository.deleteInfoPanelMessage(infoPanelMessage.infopanel_id);
+      }
+
+    } else {
+      int nbrMessageToAdd = infoPanels.size() - infoPanelMessages.size();
+      for(int i = 0; i < nbrMessageToAdd; i++) {
+        Message message = infochannel.sendMessage(LanguageManager.getText(server.serv_language, "loading")).complete();
+        InfoChannelRepository.createInfoPanelMessage(infoChannelDTO.infoChannel_id, message.getIdLong());
+      }
+    }
+
+    for(int i = 0; i < infoPanels.size(); i++) {
+      DTO.InfoPanelMessage infoPanel = infoPanelMessages.get(i);
+      infochannel.retrieveMessageById(infoPanel.infopanel_messageId).complete().editMessage(infoPanels.get(i)).queue();
+    }
+  }
+
+  private void createGameInfoCardForNewGame() {
+    // TODO Auto-generated method stub
+
+  }
+
+  private List<DTO.GameInfoCard> refreshGameCardStatus() throws SQLException {
+    List<DTO.GameInfoCard> gameInfoCards = GameInfoCardRepository.getGameInfoCards(server.serv_guildId);
+
+    for(DTO.GameInfoCard gameInfoCard : gameInfoCards) {
+      if(gameInfoCard.gamecard_status == GameInfoCardStatus.IN_WAIT_OF_MATCH_ENDING) {
+        if(gameInfoCard.gamecard_fk_currentgame == 0) {
+          GameInfoCardRepository.updateGameInfoCardStatusWithId(
+              gameInfoCard.gamecard_id, GameInfoCardStatus.IN_WAIT_OF_DELETING);
+          gameInfoCard.gamecard_status = GameInfoCardStatus.IN_WAIT_OF_DELETING;
+        }
+      }
+    }
+    return gameInfoCards;
+  }
+
+  private void createMissingInfoCard() throws SQLException {
+    List<DTO.CurrentGameInfo> currentGamesWithoutCard = 
+        CurrentGameInfoRepository.getCurrentGameWithoutLinkWithGameCardAndWithGuildId(server.serv_guildId);
+
+    DTO.InfoChannel infochannel = InfoChannelRepository.getInfoChannel(server.serv_guildId);
+
+    for(DTO.CurrentGameInfo currentGame : currentGamesWithoutCard) {
+      GameInfoCardRepository.createGameCards(
+          infochannel.infoChannel_id, currentGame.currentgame_id, GameInfoCardStatus.IN_CREATION);
+
+      linkAccountWithGameCard(currentGame);
+    }
+  }
+
+  private void linkAccountWithGameCard(DTO.CurrentGameInfo currentGame) throws SQLException {
+    DTO.GameInfoCard gameCard = GameInfoCardRepository.
+        getGameInfoCardsWithCurrentGameId(server.serv_guildId, currentGame.currentgame_id);
+
+    List<DTO.LeagueAccount> leaguesAccountInTheGame = 
+        LeagueAccountRepository.getLeaguesAccountsWithCurrentGameId(currentGame.currentgame_id);
+
+    for(DTO.LeagueAccount leagueAccount : leaguesAccountInTheGame) {
+      LeagueAccountRepository.updateAccountGameCardWithAccountId(leagueAccount.leagueAccount_id, gameCard.gamecard_id);
     }
   }
 
@@ -242,12 +320,10 @@ public class InfoPanelRefresher implements Runnable {
             if(currentGame.getGameId() == currentGameDb.currentgame_currentgame.getGameId()) {
               CurrentGameInfoRepository.updateCurrentGame(currentGame, leagueAccount);
             }else {
-              deleteDiscordInfoCard(server.serv_guildId, currentGameDb.currentgame_id);
               CurrentGameInfoRepository.deleteCurrentGame(currentGameDb, server);
               CurrentGameInfoRepository.createCurrentGame(currentGame, leagueAccount);
             }
           }else if(currentGameDb != null && currentGame == null) {
-            deleteDiscordInfoCard(server.serv_guildId, currentGameDb.currentgame_id);
             CurrentGameInfoRepository.deleteCurrentGame(currentGameDb, server);
           }
         }
@@ -255,22 +331,20 @@ public class InfoPanelRefresher implements Runnable {
     }
   }
 
-  private void deleteDiscordInfoCard(long guildId, long currentGameId) throws SQLException {
-    DTO.GameInfoCard gameCard = GameInfoCardRepository.getGameInfoCardsWithCurrentGameId(guildId, currentGameId);
-    
-    List<DTO.LeagueAccount> leaguesAccounts = LeagueAccountRepository.getLeaguesAccountsWithCurrentGameId(currentGameId);
+  private void deleteDiscordInfoCard(long guildId, DTO.GameInfoCard gameCard) throws SQLException {
+    List<DTO.LeagueAccount> leaguesAccounts = LeagueAccountRepository.getLeaguesAccountsWithGameCardsId(gameCard.gamecard_id);
 
     for(DTO.LeagueAccount leagueAccount: leaguesAccounts) {
       LeagueAccountRepository.updateAccountCurrentGameWithAccountId(leagueAccount.leagueAccount_id, 0);
     }
-    
+
     GameInfoCardRepository.deleteGameInfoCardsWithId(gameCard.gamecard_id);
-    
+
     removeMessage(infochannel.retrieveMessageById(gameCard.gamecard_infocardmessageid).complete());
     removeMessage(infochannel.retrieveMessageById(gameCard.gamecard_titlemessageid).complete());
   }
 
-  private void cleanInfoChannelCache() throws SQLException {
+  private void cleanOldInfoChannelMessage() throws SQLException {
     List<DTO.InfoPanelMessage> messagesToRemove = new ArrayList<>();
     List<DTO.InfoPanelMessage> infopanels = InfoChannelRepository.getInfoPanelMessages(server.serv_guildId);
     for(DTO.InfoPanelMessage partInfoPannel : infopanels) {

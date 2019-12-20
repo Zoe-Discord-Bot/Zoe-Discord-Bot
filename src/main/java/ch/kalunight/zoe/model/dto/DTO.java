@@ -70,6 +70,7 @@ public class DTO {
     public long gamecard_fk_currentgame;
     public long gamecard_titlemessageid;
     public long gamecard_infocardmessageid;
+    public GameInfoCardStatus gamecard_status;
     public LocalDateTime gamecard_creationtime;
 
     public GameInfoCard(ResultSet baseData) throws SQLException {
@@ -78,6 +79,7 @@ public class DTO {
       gamecard_fk_currentgame = baseData.getLong("gamecard_fk_currentgame");
       gamecard_titlemessageid = baseData.getLong("gamecard_titlemessageid");
       gamecard_infocardmessageid = baseData.getLong("gamecard_infocardmessageid");
+      gamecard_status = GameInfoCardStatus.valueOf(baseData.getString("gamecard_status"));
       if(baseData.getString("gamecard_creationtime") != null) {
         gamecard_creationtime = LocalDateTime.parse(baseData.getString("gamecard_creationtime"), DB_TIME_PATTERN);
       }

@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -21,6 +22,16 @@ public class CurrentGameInfoRepository {
           "INNER JOIN league_account ON current_game_info.currentgame_id = league_account.leagueaccount_fk_currentgame " + 
           "WHERE league_account.leagueaccount_id = %d";
 
+  private static final String SELECT_CURRENT_GAME_WITHOUT_GAME_INFO_CARD_WITH_GUILD_ID =
+      "SELECT " +
+      "current_game_info.currentgame_id, current_game_info.currentgame_currentgame " + 
+      "FROM current_game_info " +
+      "LEFT JOIN game_info_card ON current_game_info.currentgame_id = game_info_card.gameCard_fk_currentGame " +
+      "INNER JOIN info_channel ON game_info_card.gamecard_fk_infochannel = info_channel.infochannel_id " + 
+      "INNER JOIN server ON info_channel.infochannel_fk_server = server.serv_id " + 
+      "WHERE server.serv_guildid = %d " + 
+      "AND game_info_card.gameCard_fk_currentGame IS NULL";
+
   private static final String INSERT_CURRENT_GAME = "INSERT INTO current_game_info " +
       "(currentgame_currentgame) " +
       "VALUES ('%s') RETURNING currentgame_id";
@@ -36,6 +47,29 @@ public class CurrentGameInfoRepository {
     //hide default public constructor
   }
 
+  public static List<DTO.CurrentGameInfo> getCurrentGameWithoutLinkWithGameCardAndWithGuildId(long guildId) throws SQLException {
+    ResultSet result = null;
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+
+      String finalQuery = String.format(SELECT_CURRENT_GAME_WITHOUT_GAME_INFO_CARD_WITH_GUILD_ID, guildId);
+      result = query.executeQuery(finalQuery);
+
+      List<DTO.CurrentGameInfo> gameCards = new ArrayList<>();
+      if(0 != (result.last() ? result.getRow() : 0)) {
+        result.first();
+        while(!result.isAfterLast()) {
+          gameCards.add(new DTO.CurrentGameInfo(result));
+          result.next();
+        }
+      }
+
+      return gameCards;
+    }finally {
+      RepoRessources.closeResultSet(result);
+    }
+  }
+  
   @Nullable
   public static DTO.CurrentGameInfo getCurrentGameWithLeagueAccountID(long leagueAccountId) throws SQLException {
     ResultSet result = null;

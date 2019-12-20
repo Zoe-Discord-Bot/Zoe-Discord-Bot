@@ -73,10 +73,10 @@ public class GameInfoCardRepository {
           "gamecard_creationtime = '%s' WHERE gamecard_id = %d";
   
   private static final String UPDATE_GAME_INFO_CARD_STATUS_WITH_ID =
-      "UPDATE game_info_card SET gamecard_status = %s WHERE gamecard_id = %d";
+      "UPDATE game_info_card SET gamecard_status = '%s' WHERE gamecard_id = %d";
 
   private static final String INSERT_INTO_GAME_INFO_CARD = "INSERT INTO game_info_card " +
-      "(gamecard_fk_infochannel, gamecard_fk_currentgame, gamecard_status) VALUES (%d, %d, %s)";
+      "(gamecard_fk_infochannel, gamecard_fk_currentgame, gamecard_status) VALUES (%d, %d, '%s')";
 
   private GameInfoCardRepository() {
     //hide default public constructor
@@ -87,7 +87,7 @@ public class GameInfoCardRepository {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
 
-      String finalQuery = String.format(UPDATE_GAME_INFO_CARDS_MESSAGES_WITH_ID, status.toString(), gameCardId);
+      String finalQuery = String.format(UPDATE_GAME_INFO_CARD_STATUS_WITH_ID, status.toString(), gameCardId);
       query.executeUpdate(finalQuery);
     }
   }

@@ -10,6 +10,7 @@ import com.google.common.base.Stopwatch;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.InfoCard;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.GameInfoCardStatus;
 import ch.kalunight.zoe.repositories.GameInfoCardRepository;
 import ch.kalunight.zoe.repositories.InfoChannelRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
@@ -33,12 +34,16 @@ public class InfoCardsWorker implements Runnable {
   private DTO.LeagueAccount account;
 
   private DTO.CurrentGameInfo currentGameInfo;
+  
+  private DTO.GameInfoCard gameInfoCard;
 
-  public InfoCardsWorker(DTO.Server server, TextChannel controlPanel, DTO.LeagueAccount account, DTO.CurrentGameInfo currentGameInfo) {
+  public InfoCardsWorker(DTO.Server server, TextChannel controlPanel, DTO.LeagueAccount account, DTO.CurrentGameInfo currentGameInfo,
+      DTO.GameInfoCard gameInfoCard) {
     this.server = server;
     this.controlPanel = controlPanel;
     this.account = account;
     this.currentGameInfo = currentGameInfo;
+    this.gameInfoCard = gameInfoCard;
   }
 
   @Override
@@ -49,6 +54,7 @@ public class InfoCardsWorker implements Runnable {
           account.summoner = Zoe.getRiotApi()
               .getSummoner(account.leagueAccount_server, account.leagueAccount_summonerId);
         }
+        
         logger.info("Start generate infocards for the account " + account.summoner.getName() 
         + " (" + account.leagueAccount_server.getName() + ")");
 
@@ -70,6 +76,7 @@ public class InfoCardsWorker implements Runnable {
       logger.warn("A unexpected exception has been catched ! Error message : {}", e.getMessage(), e);
     }finally {
       try {
+        GameInfoCardRepository.updateGameInfoCardStatusWithId(gameInfoCard.gamecard_id, GameInfoCardStatus.IN_WAIT_OF_DELETING);
         ServerRepository.updateTimeStamp(server.serv_guildId, LocalDateTime.now());
       } catch(SQLException e) {
         logger.error("SQL error when updating the timestamp of the server !", e);

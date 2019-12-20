@@ -23,6 +23,7 @@ import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.InfoChannelRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.repositories.ServerRepository;
+import ch.kalunight.zoe.repositories.ServerStatusRepository;
 import ch.kalunight.zoe.riotapi.CacheManager;
 import ch.kalunight.zoe.service.InfoPanelRefresher;
 import ch.kalunight.zoe.service.RiotApiUsageChannelRefresh;
@@ -133,12 +134,12 @@ public class EventListener extends ListenerAdapter {
   }
 
   private void setupNonInitializedGuild() throws SQLException {
-
     for(Guild guild : Zoe.getJda().getGuilds()) {
       if(!guild.getOwnerId().equals(Zoe.getJda().getSelfUser().getId()) && !ServerRepository.checkServerExist(guild.getIdLong())) {
         ServerRepository.createNewServer(guild.getIdLong(), LanguageManager.DEFAULT_LANGUAGE);
       }
     }
+    ServerStatusRepository.updateAllServerInTreatment(false);
   }
 
   private void setupContinousRefreshThread() {

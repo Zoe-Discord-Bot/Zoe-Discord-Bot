@@ -64,10 +64,10 @@ public class InfoPanelRefresher implements Runnable {
   }
 
   private class CurrentGameWithRegion {
-    public CurrentGameInfo currentGameInfo;
+    public DTO.CurrentGameInfo currentGameInfo;
     public Platform platform;
 
-    public CurrentGameWithRegion(CurrentGameInfo currentGameInfo, Platform platform) {
+    public CurrentGameWithRegion(DTO.CurrentGameInfo currentGameInfo, Platform platform) {
       this.currentGameInfo = currentGameInfo;
       this.platform = platform;
     }
@@ -96,7 +96,7 @@ public class InfoPanelRefresher implements Runnable {
       if(currentGameInfo == null) {
         if(other.currentGameInfo != null)
           return false;
-      } else if(currentGameInfo.getGameId() != other.currentGameInfo.getGameId())
+      } else if(currentGameInfo.currentgame_currentgame.getGameId() != other.currentGameInfo.currentgame_currentgame.getGameId())
         return false;
       if(platform != other.platform)
         return false;
@@ -128,14 +128,13 @@ public class InfoPanelRefresher implements Runnable {
         cleanOldInfoChannelMessage();
         cleanRegisteredPlayerNoLongerInGuild(playersDTO);
         refreshAllLeagueAccountCurrentGamesAndDeleteOlderInfoCard(playersDTO);
-        List<DTO.GameInfoCard> gameCards = refreshGameCardStatus();
+        refreshGameCardStatus();
 
         refreshInfoPanel(infoChannelDTO);
 
         if(ConfigRepository.getServerConfiguration(server.serv_guildId).getInfoCardsOption().isOptionActivated()) {
           createMissingInfoCard();
-          treathGameCardWithStatus(gameCards);
-          //manageInfoCards();
+          treathGameCardWithStatus();
         }
 
         try {
@@ -178,22 +177,24 @@ public class InfoPanelRefresher implements Runnable {
     }
   }
 
-  private void treathGameCardWithStatus(List<DTO.GameInfoCard> gameInfoCards) throws SQLException {
+  private void treathGameCardWithStatus() throws SQLException {
+
+    List<DTO.GameInfoCard> gameInfoCards = GameInfoCardRepository.getGameInfoCards(server.serv_guildId);
 
     for(DTO.GameInfoCard gameInfoCard : gameInfoCards) {
       switch(gameInfoCard.gamecard_status) {
       case IN_CREATION:
         GameInfoCardRepository.updateGameInfoCardStatusWithId(gameInfoCard.gamecard_id, GameInfoCardStatus.IN_TREATMENT);
-        
+
         List<DTO.LeagueAccount> accountsLinked = LeagueAccountRepository
-        .getLeaguesAccountsWithGameCardsId(gameInfoCard.gamecard_id);
-        
+            .getLeaguesAccountsWithGameCardsId(gameInfoCard.gamecard_id);
+
         DTO.LeagueAccount account = accountsLinked.get(0);
-        
+
         DTO.CurrentGameInfo currentGame = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(account.leagueAccount_id);
-        
+
         ServerData.getInfocardsGenerator().execute(
-            new InfoCardsWorker(server, infochannel, accountsLinked.get(0), currentGame));
+            new InfoCardsWorker(server, infochannel, accountsLinked.get(0), currentGame, gameInfoCard));
         break;
       case IN_WAIT_OF_DELETING:
         GameInfoCardRepository.deleteGameInfoCardsWithId(gameInfoCard.gamecard_id);
@@ -233,11 +234,6 @@ public class InfoPanelRefresher implements Runnable {
     }
   }
 
-  private void createGameInfoCardForNewGame() {
-    // TODO Auto-generated method stub
-
-  }
-
   private List<DTO.GameInfoCard> refreshGameCardStatus() throws SQLException {
     List<DTO.GameInfoCard> gameInfoCards = GameInfoCardRepository.getGameInfoCards(server.serv_guildId);
 
@@ -257,11 +253,25 @@ public class InfoPanelRefresher implements Runnable {
     List<DTO.CurrentGameInfo> currentGamesWithoutCard = 
         CurrentGameInfoRepository.getCurrentGameWithoutLinkWithGameCardAndWithGuildId(server.serv_guildId);
 
+    List<DTO.CurrentGameInfo> alreadyGeneratedGames = new ArrayList<>();
+
     DTO.InfoChannel infochannel = InfoChannelRepository.getInfoChannel(server.serv_guildId);
 
     for(DTO.CurrentGameInfo currentGame : currentGamesWithoutCard) {
-      GameInfoCardRepository.createGameCards(
-          infochannel.infoChannel_id, currentGame.currentgame_id, GameInfoCardStatus.IN_CREATION);
+      boolean alreadyGenerated = false;
+      for(DTO.CurrentGameInfo alreadyGeneratedGame : alreadyGeneratedGames) {
+        if(alreadyGeneratedGame.currentgame_currentgame.getGameId() == currentGame.currentgame_currentgame.getGameId()) {
+          alreadyGenerated = true;
+        }
+      }
+
+
+      if(!alreadyGenerated) {
+        GameInfoCardRepository.createGameCards(
+            infochannel.infoChannel_id, currentGame.currentgame_id, GameInfoCardStatus.IN_CREATION);
+        alreadyGeneratedGames.add(currentGame);
+      }
+
 
       linkAccountWithGameCard(currentGame);
     }
@@ -288,12 +298,26 @@ public class InfoPanelRefresher implements Runnable {
 
       for(DTO.LeagueAccount leagueAccount : player.leagueAccounts) {
 
+        boolean alreadyLoaded = false;
+        for(CurrentGameWithRegion currentGameWithRegion : gameAlreadyAskedToRiot) {
+          if(leagueAccount.leagueAccount_server.equals(currentGameWithRegion.platform)
+              && currentGameWithRegion.currentGameInfo.currentgame_currentgame.getParticipantByParticipantId(leagueAccount.leagueAccount_summonerId) != null) {
+            LeagueAccountRepository.updateAccountCurrentGameWithAccountId(leagueAccount.leagueAccount_id, 
+                currentGameWithRegion.currentGameInfo.currentgame_id);
+            alreadyLoaded = true;
+          }
+        }
+
+        if(alreadyLoaded) {
+          continue;
+        }
+
         DTO.CurrentGameInfo currentGameDb = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(leagueAccount.leagueAccount_id);
 
         CurrentGameWithRegion currentGameDbRegion = null;
         if(currentGameDb != null) {
           currentGameDbRegion = 
-              new CurrentGameWithRegion(currentGameDb.currentgame_currentgame, leagueAccount.leagueAccount_server);
+              new CurrentGameWithRegion(currentGameDb, leagueAccount.leagueAccount_server);
         }
 
         if(currentGameDb == null || !gameAlreadyAskedToRiot.contains(currentGameDbRegion)) {
@@ -310,10 +334,6 @@ public class InfoPanelRefresher implements Runnable {
             }
           }
 
-          if(currentGame != null) {
-            gameAlreadyAskedToRiot.add(new CurrentGameWithRegion(currentGame, leagueAccount.leagueAccount_server));
-          }
-
           if(currentGameDb == null && currentGame != null) {
             CurrentGameInfoRepository.createCurrentGame(currentGame, leagueAccount);
           }else if(currentGameDb != null && currentGame != null) {
@@ -325,6 +345,10 @@ public class InfoPanelRefresher implements Runnable {
             }
           }else if(currentGameDb != null && currentGame == null) {
             CurrentGameInfoRepository.deleteCurrentGame(currentGameDb, server);
+          }
+          if(currentGame != null) {
+            DTO.CurrentGameInfo currentGameInfo = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(leagueAccount.leagueAccount_id);
+            gameAlreadyAskedToRiot.add(new CurrentGameWithRegion(currentGameInfo, leagueAccount.leagueAccount_server));
           }
         }
       }
@@ -437,10 +461,6 @@ public class InfoPanelRefresher implements Runnable {
     }
   }
 
-  private void manageInfoCards() throws SQLException {
-    createInfoCards(infochannel);
-  }
-
   private void removeMessage(Message message) {
     try {
       if(message != null) {
@@ -456,35 +476,7 @@ public class InfoPanelRefresher implements Runnable {
     }
   }
 
-  private void createInfoCards(TextChannel controlPanel) throws SQLException {
-
-    ArrayList<DTO.LeagueAccount> accountAlreadyGenerated = new ArrayList<>();
-
-    for(DTO.LeagueAccount account : LeagueAccountRepository.getAllLeaguesAccounts(server.serv_guildId)) {
-
-      if(!accountAlreadyGenerated.contains(account)) {
-
-        DTO.CurrentGameInfo currentGameInfo = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(account.leagueAccount_id);
-
-        if(currentGameInfo != null) {
-          DTO.GameInfoCard gameInfoCard = GameInfoCardRepository
-              .getGameInfoCardsWithCurrentGame(server.serv_guildId, currentGameInfo.currentgame_id, account.leagueAccount_id);
-          if(gameInfoCard == null) {
-            accountAlreadyGenerated.addAll(InfoPanelRefresherUtil
-                .checkIfOthersAccountsInKnowInTheMatch(currentGameInfo, server));
-
-            DTO.InfoChannel infoChannelDTO = InfoChannelRepository.getInfoChannel(server.serv_guildId);
-            GameInfoCardRepository.createGameCards(infoChannelDTO.infoChannel_id, currentGameInfo.currentgame_id);
-            DTO.GameInfoCard gameCard = GameInfoCardRepository.getGameInfoCardsWithCurrentGameId(server.serv_guildId, currentGameInfo.currentgame_id);
-            LeagueAccountRepository.updateAccountGameCardWithAccountId(account.leagueAccount_id, gameCard.gamecard_id);
-            ServerData.getInfocardsGenerator().execute(new InfoCardsWorker(server, controlPanel, account, currentGameInfo));
-          }
-        }
-      }
-    }
-  }
-
-  private String refreshPannel() throws SQLException, RiotApiException {
+  private String refreshPannel() throws SQLException {
 
     final List<Team> teamList = TeamRepository.getAllPlayerInTeams(server.serv_guildId, server.serv_language);
     final StringBuilder stringMessage = new StringBuilder();

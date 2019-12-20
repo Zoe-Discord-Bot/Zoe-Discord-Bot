@@ -23,14 +23,15 @@ public class CurrentGameInfoRepository {
           "WHERE league_account.leagueaccount_id = %d";
 
   private static final String SELECT_CURRENT_GAME_WITHOUT_GAME_INFO_CARD_WITH_GUILD_ID =
-      "SELECT " +
-      "current_game_info.currentgame_id, current_game_info.currentgame_currentgame " + 
-      "FROM current_game_info " +
-      "LEFT JOIN game_info_card ON current_game_info.currentgame_id = game_info_card.gameCard_fk_currentGame " +
-      "INNER JOIN info_channel ON game_info_card.gamecard_fk_infochannel = info_channel.infochannel_id " + 
-      "INNER JOIN server ON info_channel.infochannel_fk_server = server.serv_id " + 
-      "WHERE server.serv_guildid = %d " + 
-      "AND game_info_card.gameCard_fk_currentGame IS NULL";
+      "SELECT " + 
+      "current_game_info.currentgame_id,current_game_info.currentgame_currentgame " + 
+      "FROM game_info_card " + 
+      "RIGHT JOIN current_game_info ON game_info_card.gamecard_fk_currentgame = current_game_info.currentgame_id " + 
+      "INNER JOIN league_account ON current_game_info.currentgame_id = league_account.leagueaccount_fk_currentgame " + 
+      "INNER JOIN player ON league_account.leagueaccount_fk_player = player.player_id " + 
+      "INNER JOIN server ON player.player_fk_server = server.serv_id " + 
+      "WHERE game_info_card.gamecard_fk_currentgame IS NULL " + 
+      "AND server.serv_guildid = %d";
 
   private static final String INSERT_CURRENT_GAME = "INSERT INTO current_game_info " +
       "(currentgame_currentgame) " +

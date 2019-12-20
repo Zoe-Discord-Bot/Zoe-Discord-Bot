@@ -18,9 +18,20 @@ public class ServerStatusRepository {
 
   private static final String UPDATE_IN_TREATMENT_WITH_SERVER_STATUS_ID = "UPDATE server_status SET servstatus_intreatment = %s " +
       "WHERE servstatus_id = %d";
+  
+  private static final String UPDATE_IN_TREATMENT_ALL_SERVER = "UPDATE server_status SET servstatus_intreatment = %s";
 
   private ServerStatusRepository() {
     //hide default public constructor
+  }
+  
+  public static void updateAllServerInTreatment(boolean inTreatment) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement();) {
+      
+      String finalQuery = String.format(UPDATE_IN_TREATMENT_ALL_SERVER, inTreatment);
+      query.executeUpdate(finalQuery);
+    }
   }
 
   public static void updateInTreatment(long serverStatusId, boolean inTreatment) throws SQLException {

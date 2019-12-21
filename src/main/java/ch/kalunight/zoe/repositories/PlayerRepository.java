@@ -85,10 +85,16 @@ public class PlayerRepository {
     }
   }
 
-  public static void deletePlayer(long playerId) throws SQLException {
+  public static void deletePlayer(long playerId, long guildId) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
 
+      List<DTO.LeagueAccount> leaguesAccounts = LeagueAccountRepository.getLeaguesAccountsWithPlayerID(guildId, playerId);
+      
+      for(DTO.LeagueAccount leagueAccount : leaguesAccounts) {
+        LeagueAccountRepository.deleteAccountWithId(leagueAccount.leagueAccount_id);
+      }
+      
       String finalQuery = String.format(DELETE_PLAYER_WITH_PLAYER_ID, playerId);
       query.executeUpdate(finalQuery);
     }

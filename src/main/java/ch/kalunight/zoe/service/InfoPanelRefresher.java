@@ -126,6 +126,7 @@ public class InfoPanelRefresher implements Runnable {
         List<DTO.Player> playersDTO = PlayerRepository.getPlayers(server.serv_guildId);
 
         cleanOldInfoChannelMessage();
+        cleanUnlinkInfoCardAndCurrentGame();
         cleanRegisteredPlayerNoLongerInGuild(playersDTO);
         refreshAllLeagueAccountCurrentGamesAndDeleteOlderInfoCard(playersDTO);
         refreshGameCardStatus();
@@ -174,6 +175,21 @@ public class InfoPanelRefresher implements Runnable {
       } catch(SQLException e) {
         logger.error("SQL Exception when updating timeStamp and treatment !", e);
       }
+    }
+  }
+
+  private void cleanUnlinkInfoCardAndCurrentGame() throws SQLException {
+    List<DTO.CurrentGameInfo> currentGamesInfo = CurrentGameInfoRepository.getCurrentGamesWithoutLinkAccounts(server.serv_guildId);
+    
+    for(DTO.CurrentGameInfo currentGame : currentGamesInfo) {
+      DTO.GameInfoCard gameCard = GameInfoCardRepository.getGameInfoCardsWithCurrentGameId(server.serv_guildId, currentGame.currentgame_id);
+      
+      if(gameCard.gamecard_infocardmessageid != 0) {
+        infochannel.retrieveMessageById(gameCard.gamecard_infocardmessageid).queue(message -> removeMessage(message));
+        infochannel.retrieveMessageById(gameCard.gamecard_titlemessageid).queue(message -> removeMessage(message));
+      }
+      GameInfoCardRepository.deleteGameInfoCardsWithId(gameCard.gamecard_id);
+      CurrentGameInfoRepository.deleteCurrentGame(currentGame, server);
     }
   }
 
@@ -364,8 +380,8 @@ public class InfoPanelRefresher implements Runnable {
 
     GameInfoCardRepository.deleteGameInfoCardsWithId(gameCard.gamecard_id);
 
-    removeMessage(infochannel.retrieveMessageById(gameCard.gamecard_infocardmessageid).complete());
-    removeMessage(infochannel.retrieveMessageById(gameCard.gamecard_titlemessageid).complete());
+    infochannel.retrieveMessageById(gameCard.gamecard_infocardmessageid).queue(message -> removeMessage(message));
+    infochannel.retrieveMessageById(gameCard.gamecard_titlemessageid).queue(message -> removeMessage(message));
   }
 
   private void cleanOldInfoChannelMessage() throws SQLException {
@@ -464,7 +480,7 @@ public class InfoPanelRefresher implements Runnable {
   private void removeMessage(Message message) {
     try {
       if(message != null) {
-        message.delete().complete();
+        message.delete().queue();
       }
     } catch(ErrorResponseException e) {
       if(e.getErrorResponse() == ErrorResponse.UNKNOWN_MESSAGE) {

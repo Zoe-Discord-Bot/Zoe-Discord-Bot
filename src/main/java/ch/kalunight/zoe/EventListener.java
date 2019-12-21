@@ -264,7 +264,7 @@ public class EventListener extends ListenerAdapter {
       DTO.Player player = PlayerRepository.getPlayer(event.getGuild().getIdLong(), event.getUser().getIdLong());
 
       if(player != null) {
-        PlayerRepository.deletePlayer(player.player_id);
+        PlayerRepository.deletePlayer(player.player_id, event.getGuild().getIdLong());
       }
     }catch(SQLException e) {
       logger.error("Issue with db when reacting to the GuildMemberLeaveEvent event.", e);

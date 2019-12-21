@@ -76,7 +76,7 @@ public class InfoCardsWorker implements Runnable {
       logger.warn("A unexpected exception has been catched ! Error message : {}", e.getMessage(), e);
     }finally {
       try {
-        GameInfoCardRepository.updateGameInfoCardStatusWithId(gameInfoCard.gamecard_id, GameInfoCardStatus.IN_WAIT_OF_DELETING);
+        GameInfoCardRepository.updateGameInfoCardStatusWithId(gameInfoCard.gamecard_id, GameInfoCardStatus.IN_WAIT_OF_MATCH_ENDING);
         ServerRepository.updateTimeStamp(server.serv_guildId, LocalDateTime.now());
       } catch(SQLException e) {
         logger.error("SQL error when updating the timestamp of the server !", e);

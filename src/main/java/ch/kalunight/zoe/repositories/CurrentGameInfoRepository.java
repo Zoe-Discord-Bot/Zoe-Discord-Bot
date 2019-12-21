@@ -32,6 +32,17 @@ public class CurrentGameInfoRepository {
       "INNER JOIN server ON player.player_fk_server = server.serv_id " + 
       "WHERE game_info_card.gamecard_fk_currentgame IS NULL " + 
       "AND server.serv_guildid = %d";
+  
+  private static final String SELECT_CURRENT_GAME_WITHOUT_ACCOUNT_LINKED =
+      "SELECT " + 
+      "current_game_info.currentgame_id,current_game_info.currentgame_currentgame " + 
+      "FROM game_info_card " + 
+      "INNER JOIN current_game_info ON game_info_card.gamecard_fk_currentgame = current_game_info.currentgame_id " + 
+      "LEFT JOIN league_account ON current_game_info.currentgame_id = league_account.leagueaccount_fk_currentgame " + 
+      "INNER JOIN info_channel ON game_info_card.gamecard_fk_infochannel = info_channel.infochannel_id " + 
+      "INNER JOIN server ON info_channel.infochannel_fk_server = server.serv_id " + 
+      "WHERE server.serv_guildid = %d " + 
+      "AND league_account.leagueaccount_id IS NULL";
 
   private static final String INSERT_CURRENT_GAME = "INSERT INTO current_game_info " +
       "(currentgame_currentgame) " +
@@ -48,6 +59,8 @@ public class CurrentGameInfoRepository {
     //hide default public constructor
   }
 
+  
+  
   public static List<DTO.CurrentGameInfo> getCurrentGameWithoutLinkWithGameCardAndWithGuildId(long guildId) throws SQLException {
     ResultSet result = null;
     try (Connection conn = RepoRessources.getConnection();
@@ -138,6 +151,31 @@ public class CurrentGameInfoRepository {
       }
       String finalQuery = String.format(DELETE_CURRENT_GAME_WITH_ID, currentGameDb.currentgame_id);
       query.execute(finalQuery);
+    }
+  }
+
+
+
+  public static List<DTO.CurrentGameInfo> getCurrentGamesWithoutLinkAccounts(long guildId) throws SQLException {
+    ResultSet result = null;
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+
+      String finalQuery = String.format(SELECT_CURRENT_GAME_WITHOUT_ACCOUNT_LINKED, guildId);
+      result = query.executeQuery(finalQuery);
+
+      List<DTO.CurrentGameInfo> gameCards = new ArrayList<>();
+      if(0 != (result.last() ? result.getRow() : 0)) {
+        result.first();
+        while(!result.isAfterLast()) {
+          gameCards.add(new DTO.CurrentGameInfo(result));
+          result.next();
+        }
+      }
+
+      return gameCards;
+    }finally {
+      RepoRessources.closeResultSet(result);
     }
   }
 

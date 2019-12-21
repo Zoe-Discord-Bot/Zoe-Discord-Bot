@@ -182,7 +182,7 @@ public class GameInfoCardRepository {
       List<DTO.LeagueAccount> leaguesAccounts = LeagueAccountRepository.getLeaguesAccountsWithGameCardsId(gameCardId);
 
       for(DTO.LeagueAccount leagueAccount : leaguesAccounts) {
-        LeagueAccountRepository.updateAccountGameCardWithAccountId(leagueAccount.leagueAccount_id, gameCardId);
+        LeagueAccountRepository.updateAccountGameCardWithAccountId(leagueAccount.leagueAccount_id, 0);
       }
 
       String finalQuery = String.format(DELETE_GAME_INFO_CARDS_WITH_ID, gameCardId);

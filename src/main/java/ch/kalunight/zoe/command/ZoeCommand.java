@@ -2,6 +2,7 @@ package ch.kalunight.zoe.command;
 
 import java.sql.SQLException;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import org.slf4j.Logger;
@@ -10,6 +11,7 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.repositories.ServerRepository;
+import ch.kalunight.zoe.repositories.ServerStatusRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 
@@ -43,6 +45,24 @@ public abstract class ZoeCommand extends Command {
       commandFinishedWithError.incrementAndGet();
       return;
     }
+    
+    try {
+      DTO.ServerStatus status = ServerStatusRepository.getServerStatus(event.getGuild().getIdLong());
+      
+      while(status.servstatus_inTreatment) {
+          TimeUnit.SECONDS.sleep(1);
+          status = ServerStatusRepository.getServerStatus(event.getGuild().getIdLong());
+      }
+      
+    } catch (SQLException e) {
+      event.reply("Issue with the db ! Please retry later. Sorry about that :/");
+      logger.error("Issue with the db when check if the server is in treatment !", e);
+    } catch (InterruptedException e) {
+      logger.error("Thread got interupted !", e);
+      Thread.currentThread().interrupt();
+    }
+    
+    
     
     try {
       executeCommand(event);

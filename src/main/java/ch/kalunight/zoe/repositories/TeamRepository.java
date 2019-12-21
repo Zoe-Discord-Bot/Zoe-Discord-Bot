@@ -77,21 +77,24 @@ public class TeamRepository {
       player.leagueAccounts = LeagueAccountRepository.getLeaguesAccounts(guildId, player.player_discordId);
     }
     
+    List<DTO.Player> playerWithATeam = new ArrayList<>();
+    
     for(DTO.Team team : teamsDto) {
+      Team teamToAdd = new Team(team.team_name);
+      teams.add(teamToAdd);
       for(DTO.Player player : players) {
         if(team.team_id == player.player_fk_team) {
-          team.players.add(player);
+          teamToAdd.getPlayers().add(player);
+          playerWithATeam.add(player);
         }
       }
     }
     
-    playerWithNoTeam.addAll(players);
-
-    for(Team team : teams) {
-      for(DTO.Player player : team.getPlayers()) {
-        playerWithNoTeam.remove(player);
-      }
+    for(DTO.Player player : playerWithATeam) {
+      players.remove(player);
     }
+    
+    playerWithNoTeam.addAll(players);
 
     List<Team> allTeams = new ArrayList<>();
     allTeams.addAll(teams);

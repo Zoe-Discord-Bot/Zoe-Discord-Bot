@@ -484,7 +484,7 @@ public class InfoPanelRefresher implements Runnable {
       }
     } catch(ErrorResponseException e) {
       if(e.getErrorResponse() == ErrorResponse.UNKNOWN_MESSAGE) {
-        logger.info("Message already deleted : {}", e.getMessage());
+        logger.info("Message already deleted");
       } else {
         logger.warn("Unhandle error : {}", e.getMessage());
         throw e;

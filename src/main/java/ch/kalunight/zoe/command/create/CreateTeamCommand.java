@@ -34,6 +34,11 @@ public class CreateTeamCommand extends ZoeCommand {
     
     String nameTeam = event.getArgs();
     
+    if(!checkNameValid(nameTeam)) {
+      event.reply(LanguageManager.getText(server.serv_language, "nameUseIllegalCharacter"));
+      return;
+    }
+    
     if(nameTeam.equals("--server")) {
       event.reply(LanguageManager.getText(server.serv_language, "nameAlreadyUsedByTheSystem"));
       return;
@@ -50,6 +55,28 @@ public class CreateTeamCommand extends ZoeCommand {
         TeamRepository.createTeam(server.serv_id, nameTeam);
         event.reply(String.format(LanguageManager.getText(server.serv_language, "createTeamDoneMessage"), event.getArgs()));
       }
+    }
+  }
+
+  private boolean checkNameValid(String nameToCheck) {
+    
+    boolean nameInvalid = false;
+    
+    nameInvalid = nameToCheck.contains("*");
+    if(nameInvalid) {
+      return false;
+    }
+    
+    nameInvalid = nameToCheck.contains("_");
+    if(nameInvalid) {
+      return false;
+    }
+    
+    nameInvalid = nameToCheck.contains("`");
+    if(nameInvalid) {
+      return false;
+    }else {
+      return true;
     }
   }
 

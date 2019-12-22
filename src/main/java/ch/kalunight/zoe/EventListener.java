@@ -11,10 +11,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
+
 import org.discordbots.api.client.DiscordBotListAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.jagrosh.jdautilities.menu.SelectionDialog;
+
 import ch.kalunight.zoe.command.LanguageCommand;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.config.option.CleanChannelOption.CleanChannelOptionInfo;
@@ -46,7 +49,7 @@ import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberLeaveEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.role.RoleDeleteEvent;
-import net.dv8tion.jda.api.events.user.update.UserUpdateActivityOrderEvent;
+import net.dv8tion.jda.api.events.user.UserActivityStartEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 public class EventListener extends ListenerAdapter {
@@ -272,14 +275,14 @@ public class EventListener extends ListenerAdapter {
   }
 
   @Override
-  public void onUserUpdateActivityOrder(UserUpdateActivityOrderEvent event) {
+  public void onUserActivityStart(UserActivityStartEvent event) {
     try {
-      if(event == null || event.getNewValue().isEmpty()) {
+      if(event == null || event.getNewActivity() == null) {
         return;
       }
 
-      for(Activity activity : event.getNewValue()) {
-
+      Activity activity = event.getNewActivity();
+      
         if(activity.isRich() && EventListenerUtil.checkIfIsGame(activity.asRichPresence()) && event.getGuild() != null) {
           DTO.Server server = ServerRepository.getServer(event.getGuild().getIdLong());
 
@@ -294,11 +297,10 @@ public class EventListener extends ListenerAdapter {
               && server.serv_lastRefresh.isBefore(LocalDateTime.now().minusSeconds(30))) {
 
             ServerData.getServersIsInTreatment().put(event.getGuild().getId(), true);
+            ServerRepository.updateTimeStamp(server.serv_guildId, LocalDateTime.now());
             ServerData.getServerExecutor().execute(new InfoPanelRefresher(server, true));
-            break;
           }
         }
-      }
     }catch(SQLException e) {
       logger.error("SQL Error when treating discord status update event !", e);
     }catch(Exception e) {

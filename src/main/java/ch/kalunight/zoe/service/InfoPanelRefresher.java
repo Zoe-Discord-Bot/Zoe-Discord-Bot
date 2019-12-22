@@ -138,15 +138,7 @@ public class InfoPanelRefresher implements Runnable {
           treathGameCardWithStatus();
         }
 
-        try {
-          cleaningInfoChannel();
-        }catch (InsufficientPermissionException e) {
-          logger.info("Error in a infochannel when cleaning : {}", e.getMessage());
-
-        }catch (Exception e) {
-          logger.warn("An unexpected error when cleaning info channel has occure.", e);
-        }
-
+        cleanInfoChannel();
         clearLoadingEmote();
       }else {
         InfoChannelRepository.deleteInfoChannel(server.serv_guildId);
@@ -175,6 +167,17 @@ public class InfoPanelRefresher implements Runnable {
       } catch(SQLException e) {
         logger.error("SQL Exception when updating timeStamp and treatment !", e);
       }
+    }
+  }
+
+  private void cleanInfoChannel() {
+    try {
+      cleaningInfoChannel();
+    }catch (InsufficientPermissionException e) {
+      logger.info("Error in a infochannel when cleaning : {}", e.getMessage());
+
+    }catch (Exception e) {
+      logger.warn("An unexpected error when cleaning info channel has occure.", e);
     }
   }
 
@@ -222,7 +225,7 @@ public class InfoPanelRefresher implements Runnable {
     }
   }
 
-  private void refreshInfoPanel(DTO.InfoChannel infoChannelDTO) throws SQLException, RiotApiException {
+  private void refreshInfoPanel(DTO.InfoChannel infoChannelDTO) throws SQLException {
     ArrayList<String> infoPanels = CommandEvent.splitMessage(refreshPannel());
 
     List<DTO.InfoPanelMessage> infoPanelMessages = InfoChannelRepository.getInfoPanelMessages(server.serv_guildId);
@@ -243,7 +246,10 @@ public class InfoPanelRefresher implements Runnable {
         InfoChannelRepository.createInfoPanelMessage(infoChannelDTO.infoChannel_id, message.getIdLong());
       }
     }
-
+    
+    infoPanelMessages.clear();
+    infoPanelMessages.addAll(InfoChannelRepository.getInfoPanelMessages(server.serv_guildId));
+    
     for(int i = 0; i < infoPanels.size(); i++) {
       DTO.InfoPanelMessage infoPanel = infoPanelMessages.get(i);
       infochannel.retrieveMessageById(infoPanel.infopanel_messageId).complete().editMessage(infoPanels.get(i)).queue();
@@ -388,13 +394,13 @@ public class InfoPanelRefresher implements Runnable {
     List<DTO.InfoPanelMessage> messagesToRemove = new ArrayList<>();
     List<DTO.InfoPanelMessage> infopanels = InfoChannelRepository.getInfoPanelMessages(server.serv_guildId);
     for(DTO.InfoPanelMessage partInfoPannel : infopanels) {
-      Message message = infochannel.retrieveMessageById(partInfoPannel.infopanel_messageId).complete();
       try {
+        Message message = infochannel.retrieveMessageById(partInfoPannel.infopanel_messageId).complete();
         message.addReaction("U+23F3").complete();
       }catch(ErrorResponseException e) {
         //Try to check in a less pretty way
         try {
-          infochannel.retrieveMessageById(message.getId()).complete();
+          infochannel.retrieveMessageById(partInfoPannel.infopanel_messageId).complete();
         } catch (ErrorResponseException e1) {
           messagesToRemove.add(partInfoPannel);
         }

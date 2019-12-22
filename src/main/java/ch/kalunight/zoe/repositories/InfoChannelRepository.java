@@ -79,7 +79,11 @@ public class InfoChannelRepository {
       result = query.executeQuery(finalQuery);
       
       List<DTO.InfoPanelMessage> infopanel = new ArrayList<>();
-      result.next();
+      int rowCount = result.last() ? result.getRow() : 0;
+      if(rowCount == 0) {
+        return infopanel;
+      }
+      result.first();
       while(!result.isAfterLast()) {
         infopanel.add(new DTO.InfoPanelMessage(result));
         result.next();

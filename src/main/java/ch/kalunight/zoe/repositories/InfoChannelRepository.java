@@ -6,7 +6,13 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
 import javax.annotation.Nullable;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ch.kalunight.zoe.model.dto.DTO;
 
 public class InfoChannelRepository {
@@ -47,6 +53,8 @@ public class InfoChannelRepository {
   
   private static final String DELETE_INFO_PANEL_MESSAGE_ID = 
       "DELETE FROM info_panel_message WHERE infopanel_id = %d";
+  
+  private static final Logger logger = LoggerFactory.getLogger(InfoChannelRepository.class);
   
   private InfoChannelRepository() {
     //Hide default public constructor
@@ -122,12 +130,53 @@ public class InfoChannelRepository {
     }
   }
   
-  public static void deleteInfoChannel(long guildId) throws SQLException {
+  public static void deleteInfoChannel(DTO.Server server) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
       
-      String finalQuery = String.format(DELETE_INFOCHANNEL_WITH_GUILD_ID, guildId);
+      DTO.ServerStatus status = ServerStatusRepository.getServerStatus(server.serv_guildId);
+      
+      while(status.servstatus_inTreatment) {
+          TimeUnit.SECONDS.sleep(1);
+          status = ServerStatusRepository.getServerStatus(server.serv_guildId);
+      }
+      
+      List<DTO.LeagueAccount> leaguesAccounts = LeagueAccountRepository.getAllLeaguesAccounts(server.serv_guildId);
+      List<DTO.CurrentGameInfo> currentGamesLinked = new ArrayList<>();
+      
+      for(DTO.LeagueAccount leagueAccount : leaguesAccounts) {
+        currentGamesLinked.add(CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(leagueAccount.leagueAccount_id));
+        LeagueAccountRepository.updateAccountCurrentGameWithAccountId(leagueAccount.leagueAccount_id, 0);
+        LeagueAccountRepository.updateAccountGameCardWithAccountId(leagueAccount.leagueAccount_id, 0);
+      }
+      
+      currentGamesLinked.addAll(CurrentGameInfoRepository.getCurrentGamesWithoutLinkAccounts(server.serv_guildId));
+      
+      List<DTO.GameInfoCard> gameInfoCards = GameInfoCardRepository.getGameInfoCards(server.serv_guildId);
+      
+      for(DTO.GameInfoCard gameInfoCard : gameInfoCards) {
+        GameInfoCardRepository.deleteGameInfoCardsWithId(gameInfoCard.gamecard_id);
+      }
+      
+      for(DTO.CurrentGameInfo currentGame : currentGamesLinked) {
+        try {
+          CurrentGameInfoRepository.deleteCurrentGame(currentGame, server);
+        }catch(SQLException e) {
+          logger.error("Issue when deleting a game !", e);
+        }
+      }
+      
+      List<DTO.InfoPanelMessage> infoPanelMessages = InfoChannelRepository.getInfoPanelMessages(server.serv_guildId);
+      
+      for(DTO.InfoPanelMessage infoPanelMessage : infoPanelMessages) {
+        InfoChannelRepository.deleteInfoPanelMessage(infoPanelMessage.infopanel_id);
+      }
+      
+      String finalQuery = String.format(DELETE_INFOCHANNEL_WITH_GUILD_ID, server.serv_guildId);
       query.execute(finalQuery);
+    } catch (InterruptedException e) {
+      logger.error("A thread got interrupted in deletion of infochannel !", e);
+      Thread.currentThread().interrupt();
     }
   }
   

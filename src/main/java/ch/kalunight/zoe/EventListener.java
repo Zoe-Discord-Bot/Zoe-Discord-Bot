@@ -241,7 +241,7 @@ public class EventListener extends ListenerAdapter {
     try {
       DTO.InfoChannel infochannel = InfoChannelRepository.getInfoChannel(event.getGuild().getIdLong());
       if(infochannel != null && infochannel.infochannel_channelid == event.getChannel().getIdLong()) {
-        InfoChannelRepository.deleteInfoChannel(event.getGuild().getIdLong());
+        InfoChannelRepository.deleteInfoChannel(ServerRepository.getServer(event.getGuild().getIdLong()));
       }
     }catch(SQLException e) {
       logger.error("Issue with db when reacting to the textChannelDelete Event.", e);

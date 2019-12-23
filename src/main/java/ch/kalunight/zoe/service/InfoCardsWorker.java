@@ -127,7 +127,7 @@ public class InfoCardsWorker implements Runnable {
             LocalDateTime.now(), gameCard.gamecard_id);
       }else {
         GameInfoCardRepository.deleteGameInfoCardsWithId(gameCard.gamecard_id);
-        InfoChannelRepository.deleteInfoChannel(server.serv_guildId);
+        InfoChannelRepository.deleteInfoChannel(server);
       }
     }
   }

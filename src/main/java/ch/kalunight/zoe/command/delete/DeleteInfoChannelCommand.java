@@ -39,12 +39,12 @@ public class DeleteInfoChannelCommand extends ZoeCommand {
         TextChannel textChannel = event.getGuild().getTextChannelById(infochannel.infochannel_channelid);
         textChannel.delete().queue();
       } catch(InsufficientPermissionException e) {
-        InfoChannelRepository.deleteInfoChannel(server.serv_guildId);
+        InfoChannelRepository.deleteInfoChannel(server);
         event.reply(LanguageManager.getText(server.serv_language, "deleteInfoChannelDeletedMissingPermission"));
         return;
       }
 
-      InfoChannelRepository.deleteInfoChannel(server.serv_guildId);
+      InfoChannelRepository.deleteInfoChannel(server);
       event.reply(LanguageManager.getText(server.serv_language, "deleteInfoChannelDoneMessage"));
     }
   }

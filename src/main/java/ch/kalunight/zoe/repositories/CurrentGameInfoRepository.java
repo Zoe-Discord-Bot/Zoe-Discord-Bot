@@ -155,7 +155,6 @@ public class CurrentGameInfoRepository {
   }
 
 
-
   public static List<DTO.CurrentGameInfo> getCurrentGamesWithoutLinkAccounts(long guildId) throws SQLException {
     ResultSet result = null;
     try (Connection conn = RepoRessources.getConnection();

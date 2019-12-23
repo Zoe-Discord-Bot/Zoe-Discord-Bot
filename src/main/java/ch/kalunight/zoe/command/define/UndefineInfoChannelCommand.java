@@ -56,7 +56,7 @@ public class UndefineInfoChannelCommand extends ZoeCommand {
         textChannel.retrieveMessageById(message.infopanel_messageId).complete().delete().complete();
       }
 
-      InfoChannelRepository.deleteInfoChannel(server.serv_guildId);
+      InfoChannelRepository.deleteInfoChannel(server);
       event.reply(LanguageManager.getText(server.serv_language, "undefineInfoChannelDoneMessage"));
     }
   }

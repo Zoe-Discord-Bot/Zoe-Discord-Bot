@@ -141,7 +141,7 @@ public class InfoPanelRefresher implements Runnable {
         cleanInfoChannel();
         clearLoadingEmote();
       }else {
-        InfoChannelRepository.deleteInfoChannel(server.serv_guildId);
+        InfoChannelRepository.deleteInfoChannel(server);
       }
     }catch (InsufficientPermissionException e) {
       logger.debug("Permission {} missing for infochannel in the guild {}, try to autofix the issue... (Low chance to work)",
@@ -183,13 +183,13 @@ public class InfoPanelRefresher implements Runnable {
 
   private void cleanUnlinkInfoCardAndCurrentGame() throws SQLException {
     List<DTO.CurrentGameInfo> currentGamesInfo = CurrentGameInfoRepository.getCurrentGamesWithoutLinkAccounts(server.serv_guildId);
-    
+
     for(DTO.CurrentGameInfo currentGame : currentGamesInfo) {
       DTO.GameInfoCard gameCard = GameInfoCardRepository.getGameInfoCardsWithCurrentGameId(server.serv_guildId, currentGame.currentgame_id);
-      
+
       if(gameCard.gamecard_infocardmessageid != 0) {
-        removeMessage(infochannel.retrieveMessageById(gameCard.gamecard_infocardmessageid).complete());
-        removeMessage(infochannel.retrieveMessageById(gameCard.gamecard_titlemessageid).complete());
+        retrieveAndRemoveMessage(gameCard.gamecard_infocardmessageid);
+        retrieveAndRemoveMessage(gameCard.gamecard_titlemessageid);
       }
       GameInfoCardRepository.deleteGameInfoCardsWithId(gameCard.gamecard_id);
       CurrentGameInfoRepository.deleteCurrentGame(currentGame, server);
@@ -246,10 +246,10 @@ public class InfoPanelRefresher implements Runnable {
         InfoChannelRepository.createInfoPanelMessage(infoChannelDTO.infoChannel_id, message.getIdLong());
       }
     }
-    
+
     infoPanelMessages.clear();
     infoPanelMessages.addAll(InfoChannelRepository.getInfoPanelMessages(server.serv_guildId));
-    
+
     for(int i = 0; i < infoPanels.size(); i++) {
       DTO.InfoPanelMessage infoPanel = infoPanelMessages.get(i);
       infochannel.retrieveMessageById(infoPanel.infopanel_messageId).complete().editMessage(infoPanels.get(i)).queue();
@@ -386,8 +386,16 @@ public class InfoPanelRefresher implements Runnable {
 
     GameInfoCardRepository.deleteGameInfoCardsWithId(gameCard.gamecard_id);
 
-    removeMessage(infochannel.retrieveMessageById(gameCard.gamecard_infocardmessageid).complete());
-    removeMessage(infochannel.retrieveMessageById(gameCard.gamecard_titlemessageid).complete());
+    retrieveAndRemoveMessage(gameCard.gamecard_infocardmessageid);
+    retrieveAndRemoveMessage(gameCard.gamecard_titlemessageid);
+  }
+
+  private void retrieveAndRemoveMessage(long messageId) {
+    try {
+      removeMessage(infochannel.retrieveMessageById(messageId).complete());
+    }catch(ErrorResponseException e) {
+      logger.info("The wanted info panel message doesn't exist anymore.");
+    }
   }
 
   private void cleanOldInfoChannelMessage() throws SQLException {

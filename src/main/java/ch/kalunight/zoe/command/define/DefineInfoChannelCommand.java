@@ -64,9 +64,6 @@ public class DefineInfoChannelCommand extends ZoeCommand {
 
               infochannel = InfoChannelRepository.getInfoChannel(server.serv_guildId);
               InfoChannelRepository.createInfoPanelMessage(infochannel.infoChannel_id, message.getIdLong());
-              
-              //InfoPanelRefresher infoPanelRefresher = new InfoPanelRefresher(server);
-              //ServerData.getServerExecutor().submit(infoPanelRefresher);
             }
           }
         }

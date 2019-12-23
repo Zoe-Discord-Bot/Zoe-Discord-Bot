@@ -252,7 +252,7 @@ public class InfoPanelRefresher implements Runnable {
 
     for(int i = 0; i < infoPanels.size(); i++) {
       DTO.InfoPanelMessage infoPanel = infoPanelMessages.get(i);
-      infochannel.retrieveMessageById(infoPanel.infopanel_messageId).complete().editMessage(infoPanels.get(i)).queue();
+        infochannel.retrieveMessageById(infoPanel.infopanel_messageId).complete().editMessage(infoPanels.get(i)).queue();
     }
   }
 

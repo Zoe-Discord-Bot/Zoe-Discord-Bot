@@ -229,6 +229,10 @@ public class CachedRiotApi {
   
   public void addApiCallForARegion(int nbrCalls, Platform platform) {
     callByEndpoints.get(platform).addAndGet(nbrCalls);
+    List<LocalDateTime> shortRangeLimit = shortRangeRateLimitHandler.get(platform);
+    for(int i = 0; i < nbrCalls; i++) {
+      shortRangeLimit.add(LocalDateTime.now());
+    }
   }
   
   public boolean isApiCallPerPlatformNeedToBeReset() {

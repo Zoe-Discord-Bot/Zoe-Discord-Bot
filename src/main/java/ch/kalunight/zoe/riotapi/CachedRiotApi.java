@@ -2,12 +2,18 @@ package ch.kalunight.zoe.riotapi;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import net.rithms.riot.api.RiotApi;
 import net.rithms.riot.api.RiotApiAsync;
 import net.rithms.riot.api.RiotApiException;
@@ -28,6 +34,12 @@ public class CachedRiotApi {
   
   public static final int RIOT_API_HUGE_LIMIT = 15000;
   public static final Duration RIOT_API_HUGE_TIME = Duration.ofMinutes(10);
+  
+  public static final int RIOT_API_LOW_LIMIT = 250;
+  public static final Duration RIOT_API_LOW_TIME = Duration.ofSeconds(10);
+  
+  private static final Logger logger = LoggerFactory.getLogger(CachedRiotApi.class);
+  
   private static LocalDateTime lastReset = LocalDateTime.now();
   
   private final RiotApi riotApi;
@@ -40,15 +52,19 @@ public class CachedRiotApi {
   private final AtomicInteger championMasteryRequestCount = new AtomicInteger(0);
   private final AtomicInteger currentGameInfoRequestCount = new AtomicInteger(0);
   private static final Map<Platform, AtomicInteger> callByEndpoints = Collections.synchronizedMap(new EnumMap<Platform, AtomicInteger>(Platform.class));
+  private static final Map<Platform, List<LocalDateTime>> shortRangeRateLimitHandler = 
+      Collections.synchronizedMap(new EnumMap<Platform, List<LocalDateTime>>(Platform.class));
 
   static {
     for(Platform platform : Platform.values()) {
       callByEndpoints.put(platform, new AtomicInteger(0));
+      shortRangeRateLimitHandler.put(platform, new ArrayList<>());
     }
   }
   
   public static void increaseCallCountForGivenRegion(Platform platform) {
     callByEndpoints.get(platform).incrementAndGet();
+    shortRangeRateLimitHandler.get(platform).add(LocalDateTime.now());
   }
   
   public CachedRiotApi(RiotApi riotApi) {
@@ -178,9 +194,37 @@ public class CachedRiotApi {
     }
   }
   
-  public boolean isRequestsCanBeExecuted(int nbrRequest) {
+  public synchronized boolean isRequestsCanBeExecuted(int nbrRequest, Platform platform) {
     //TODO : To high detection with api call calculator. made it blocker
+    
+    List<LocalDateTime> callsPerTime = shortRangeRateLimitHandler.get(platform);
+    
+    do {
+      refreshRateLimit(callsPerTime);
+      try {
+        TimeUnit.SECONDS.sleep(1);
+      } catch (InterruptedException e) {
+        logger.error("Interuption when waiting for the rate limit !", e);
+        Thread.currentThread().interrupt();
+      }
+    }while(callsPerTime.size() < RIOT_API_LOW_LIMIT);
+    
+    
     return true;
+  }
+
+  private void refreshRateLimit(List<LocalDateTime> callsPerTime) {
+    List<LocalDateTime> callsToDelete = new ArrayList<>();
+    
+    for(LocalDateTime call : callsPerTime) {
+      if(call.isBefore(LocalDateTime.now().minus(RIOT_API_LOW_TIME))){
+        callsToDelete.add(call);
+      }
+    }
+    
+    for(LocalDateTime callToDelete : callsToDelete) {
+      callsPerTime.remove(callToDelete);
+    }
   }
   
   public void addApiCallForARegion(int nbrCalls, Platform platform) {

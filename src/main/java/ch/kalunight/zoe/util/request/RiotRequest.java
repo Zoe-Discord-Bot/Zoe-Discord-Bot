@@ -69,6 +69,9 @@ public class RiotRequest {
   public static String getWinrateLastMonthWithGivenChampion(String summonerId, Platform region,
       int championKey, String language) {
 
+    Zoe.getRiotApi().isRequestsCanBeExecuted(1, region);
+    Zoe.getRiotApi().addApiCallForARegion(1, region);
+    
     Summoner summoner;
     try {
       summoner = Zoe.getRiotApi().getSummoner(region, summonerId);
@@ -77,6 +80,9 @@ public class RiotRequest {
       return LanguageManager.getText(language, "unknown");
     }
 
+    Zoe.getRiotApi().isRequestsCanBeExecuted(4, region);
+    Zoe.getRiotApi().addApiCallForARegion(4, region);
+    
     List<MatchReference> referencesMatchList;
     try {
       referencesMatchList = getMatchHistoryOfLastMonthWithTheGivenChampion(region, championKey, summoner);
@@ -89,6 +95,9 @@ public class RiotRequest {
       return LanguageManager.getText(language, "firstGame");
     }
 
+    Zoe.getRiotApi().isRequestsCanBeExecuted(referencesMatchList.size(), region);
+    Zoe.getRiotApi().addApiCallForARegion(referencesMatchList.size(), region);
+    
     WinRateReceiver winRateReceiver = new WinRateReceiver();
     RiotApiAsync riotApiAsync = Zoe.getRiotApi().getAsyncRiotApi();
     
@@ -96,8 +105,7 @@ public class RiotRequest {
     
     for(MatchReference matchReference : referencesMatchList) {
       AsyncRequest requestMatch = riotApiAsync.getMatch(region, matchReference.getGameId());
-      RequestAdapter requestAdapterMatch = getMatchRequestAdapter(summoner, winRateReceiver);
-      requestMatch.addListeners(requestAdapterMatch);
+      requestMatch.addListeners(getMatchRequestAdapter(summoner, winRateReceiver));
       requestsMatch.add(requestMatch);
     }
 
@@ -177,6 +185,9 @@ public class RiotRequest {
   }
 
   public static String getMasterysScore(String summonerId, int championId, Platform platform) {
+    Zoe.getRiotApi().isRequestsCanBeExecuted(1, platform);
+    Zoe.getRiotApi().addApiCallForARegion(1, platform);
+    
     ChampionMastery mastery = null;
     try {
       mastery = Zoe.getRiotApi().getChampionMasteriesBySummonerByChampion(platform, summonerId, championId);

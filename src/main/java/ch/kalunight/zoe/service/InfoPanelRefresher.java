@@ -159,7 +159,7 @@ public class InfoPanelRefresher implements Runnable {
     } catch (SQLException e) {
       logger.error("SQL Exception when refresh the infopanel !", e);
     } catch(Exception e) {
-      logger.error("The thread got a unexpected error :", e);
+      logger.error("The thread got a unexpected error (The channel got probably deleted when the refresh append)", e);
     } finally {
       try {
         ServerRepository.updateTimeStamp(server.serv_guildId, LocalDateTime.now());

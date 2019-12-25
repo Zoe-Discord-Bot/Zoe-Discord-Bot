@@ -35,8 +35,8 @@ public class CachedRiotApi {
   public static final int RIOT_API_HUGE_LIMIT = 15000;
   public static final Duration RIOT_API_HUGE_TIME = Duration.ofMinutes(10);
   
-  public static final int RIOT_API_LOW_LIMIT = 10;
-  public static final Duration RIOT_API_LOW_TIME = Duration.ofSeconds(2);
+  public static final int RIOT_API_LOW_LIMIT = 250;
+  public static final Duration RIOT_API_LOW_TIME = Duration.ofSeconds(11);
   
   private static final Logger logger = LoggerFactory.getLogger(CachedRiotApi.class);
   

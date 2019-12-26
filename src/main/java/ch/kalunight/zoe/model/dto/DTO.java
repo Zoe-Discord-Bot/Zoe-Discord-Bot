@@ -113,7 +113,9 @@ public class DTO {
       player_fk_team = baseData.getLong("player_fk_team");
       player_discordId = baseData.getLong("player_discordId");
       player_mentionnable = baseData.getBoolean("player_mentionnable");
-      user = Zoe.getJda().retrieveUserById(player_discordId).complete();
+      if(Zoe.getJda() != null) {
+        user = Zoe.getJda().retrieveUserById(player_discordId).complete();
+      }
     }
   }
 

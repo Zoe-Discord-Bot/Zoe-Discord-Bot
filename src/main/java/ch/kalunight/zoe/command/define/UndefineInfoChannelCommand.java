@@ -1,18 +1,20 @@
 package ch.kalunight.zoe.command.define;
 
+import java.sql.SQLException;
+import java.util.List;
 import java.util.function.BiConsumer;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
-import ch.kalunight.zoe.model.ControlPannel;
-import ch.kalunight.zoe.model.InfoCard;
-import ch.kalunight.zoe.model.Server;
+import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.repositories.GameInfoCardRepository;
+import ch.kalunight.zoe.repositories.InfoChannelRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.TextChannel;
 
 public class UndefineInfoChannelCommand extends ZoeCommand {
 
@@ -26,23 +28,36 @@ public class UndefineInfoChannelCommand extends ZoeCommand {
   }
 
   @Override
-  protected void executeCommand(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) throws SQLException {
     event.getTextChannel().sendTyping().complete();
-    Server server = ServerData.getServers().get(event.getGuild().getId());
+    
+    DTO.Server server = getServer(event.getGuild().getIdLong());
+    
+    DTO.InfoChannel infochannel = InfoChannelRepository.getInfoChannel(server.serv_guildId);
 
-    if(server.getInfoChannel() == null) {
-      event.reply(LanguageManager.getText(server.getLangage(), "undefineInfoChannelMissingChannel"));
+    if(infochannel == null) {
+      event.reply(LanguageManager.getText(server.serv_language, "undefineInfoChannelMissingChannel"));
     } else {
-      for(InfoCard infoCard : server.getControlePannel().getInfoCards()) {
-        infoCard.getMessage().delete().queue();
-        infoCard.getTitle().delete().queue();
+      TextChannel channel = Zoe.getJda().getGuildById(server.serv_guildId).getTextChannelById(infochannel.infochannel_channelid);
+      
+      List<DTO.GameInfoCard> gameCards = GameInfoCardRepository.getGameInfoCards(server.serv_guildId);
+      
+      for(DTO.GameInfoCard infoCard : gameCards) {
+        GameInfoCardRepository.deleteGameInfoCardsWithId(infoCard.gamecard_id);
+        if(infoCard.gamecard_infocardmessageid != 0) {
+          channel.retrieveMessageById(infoCard.gamecard_infocardmessageid).queue(sucess -> sucess.delete().queue());
+          channel.retrieveMessageById(infoCard.gamecard_titlemessageid).queue(sucess -> sucess.delete().queue());
+        }
       }
-      for(Message message : server.getControlePannel().getInfoPanel()) {
-        message.delete().queue();
+      
+      List<DTO.InfoPanelMessage> infoPanels = InfoChannelRepository.getInfoPanelMessages(server.serv_guildId);
+      for(DTO.InfoPanelMessage message : infoPanels) {
+        TextChannel textChannel = event.getGuild().getTextChannelById(infochannel.infochannel_channelid);
+        textChannel.retrieveMessageById(message.infopanel_messageId).complete().delete().complete();
       }
-      server.setInfoChannel(null);
-      server.setControlePannel(new ControlPannel());
-      event.reply(LanguageManager.getText(server.getLangage(), "undefineInfoChannelDoneMessage"));
+
+      InfoChannelRepository.deleteInfoChannel(server);
+      event.reply(LanguageManager.getText(server.serv_language, "undefineInfoChannelDoneMessage"));
     }
   }
 

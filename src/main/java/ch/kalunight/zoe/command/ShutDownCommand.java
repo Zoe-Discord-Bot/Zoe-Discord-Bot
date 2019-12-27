@@ -1,7 +1,5 @@
 package ch.kalunight.zoe.command;
 
-import java.io.FileNotFoundException;
-import java.io.UnsupportedEncodingException;
 import java.util.function.BiConsumer;
 
 import org.slf4j.Logger;
@@ -58,20 +56,15 @@ public class ShutDownCommand extends ZoeCommand {
     try {
       ServerData.shutDownTaskExecutor(channel);
     } catch(InterruptedException e) {
-      event.reply("Thread got interupted ! Save end shut down without finish task : " + e.getMessage());
+      event.reply("Thread got interupted ! Shut down without finish task : " + e.getMessage());
       logger.error("Error in shutDownTaskExecutor : {}", e.getMessage(), e);
       Zoe.getJda().shutdownNow();
-      try {
-        Zoe.saveDataTxt();
-      } catch(FileNotFoundException | UnsupportedEncodingException e1) {
-        logger.error("La sauvegarde n'a pas pu être effectué !");
-      }
       System.exit(1);
       Thread.currentThread().interrupt();
     }
 
     logger.info("All ThreadPoolExecutors has safely stop. Now shutdown JDA...");
-    channel.sendMessage("All ThreadPoolExecutors has safely stop. Now shutdown JDA and save data. (ShutDown is complete)").complete();
+    channel.sendMessage("All ThreadPoolExecutors has safely stop. Now shutdown JDA. (ShutDown is complete)").complete();
     channel.sendMessage("Please wait 30 sec before update Zoe, some process can take some time before to automatically shutdown.").complete();
     
     Zoe.getJda().shutdown();
@@ -85,13 +78,7 @@ public class ShutDownCommand extends ZoeCommand {
     }
     
     logger.info("JDA has been ShutDown !");
-
-    try {
-      Zoe.saveDataTxt();
-    } catch(FileNotFoundException | UnsupportedEncodingException e) {
-      logger.error("La sauvegarde n'a pas pu être effectué !");
-    }
-    logger.info("Save has been done ! Zoe Process are now totally down ! Some process can remain and will be shutdown automatically.");
+    logger.info("Zoe Process are now totally down ! Some process can remain and will be shutdown automatically.");
   }
 
   @Override

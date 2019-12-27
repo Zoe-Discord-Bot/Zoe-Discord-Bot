@@ -2,9 +2,7 @@ package ch.kalunight.zoe.service;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import org.joda.time.DateTime;
@@ -18,13 +16,11 @@ import org.knowm.xchart.style.Styler.ChartTheme;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
-import ch.kalunight.zoe.model.Server;
-import ch.kalunight.zoe.model.player_data.Player;
+import ch.kalunight.zoe.riotapi.CachedRiotApi;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
-import net.rithms.riot.api.request.ratelimit.RateLimitRequestTank;
 import net.rithms.riot.constant.Platform;
 
 public class RiotApiUsageChannelRefresh implements Runnable {
@@ -39,31 +35,12 @@ public class RiotApiUsageChannelRefresh implements Runnable {
 
   @Override
   public void run() {
-    if(rapiInfoChannel != null && Zoe.getMinuteApiTank() != null) {
+    if(rapiInfoChannel != null) {
 
       cleanChannel();
 
-      RateLimitRequestTank minutesRAPITank = Zoe.getMinuteApiTank();
-
-      Iterator<Entry<String, Server>> serversListIterator = ServerData.getServers().entrySet().iterator();
-
-      int nbrPlayers = 0;
-      int nbrAccount = 0;
-
-      while(serversListIterator.hasNext()) {
-        Server server = serversListIterator.next().getValue();
-        if(server != null) {
-          nbrPlayers += server.getPlayers().size();
-          for(Player player : server.getPlayers()) {
-            nbrAccount += player.getLolAccounts().size();
-          }
-        }
-      }
-
       rapiInfoChannel.sendMessage("**Generic Stats**"
           + "\nTotal number of Servers : " + Zoe.getJda().getGuilds().size()
-          + "\nTotal number of players : " + nbrPlayers 
-          + "\nTotal number of League accounts : " + nbrAccount 
           + "\nTask in Server Executor Queue : " + ServerData.getServerExecutor().getQueue().size()
           + "\nTask in InfoCards Generator Queue : " + ServerData.getInfocardsGenerator().getQueue().size()
           + "\nInfocards Generated last 2 minutes : " + getInfocardCreatedCount()).queue();
@@ -90,7 +67,7 @@ public class RiotApiUsageChannelRefresh implements Runnable {
       List<Platform> platformOrder = new ArrayList<>();
       List<Message> descriptions = new ArrayList<>();
       for(Platform platform : Platform.values()) {
-        long numberOfRequestRemaining = minutesRAPITank.getNumberOfRequestRemaining(platform);
+        long numberOfRequestRemaining = Zoe.getRiotApi().getApiCallRemainingPerRegion(platform);
 
         PieChart pieChart = new PieChartBuilder()
             .title("Request data for " + platform.getName())
@@ -103,7 +80,7 @@ public class RiotApiUsageChannelRefresh implements Runnable {
         styler.setAnnotationDistance(1.1);
         styler.setHasAnnotations(true);
 
-        pieChart.addSeries("Calls Used", minutesRAPITank.getNumberOfRequestForThisPeriod() - numberOfRequestRemaining);
+        pieChart.addSeries("Calls Used", CachedRiotApi.RIOT_API_HUGE_LIMIT - numberOfRequestRemaining);
         pieChart.addSeries("Calls avaible", numberOfRequestRemaining);
 
         try {
@@ -112,8 +89,8 @@ public class RiotApiUsageChannelRefresh implements Runnable {
 
           MessageBuilder description = new MessageBuilder();
           description.append("Status of Api for " + platform.getName() + ". Max Calls : " 
-              + minutesRAPITank.getNumberOfRequestForThisPeriod() + " Calls Used : " 
-              + (minutesRAPITank.getNumberOfRequestForThisPeriod() - numberOfRequestRemaining));
+              + CachedRiotApi.RIOT_API_HUGE_LIMIT + " Calls Used : " 
+              + (CachedRiotApi.RIOT_API_HUGE_LIMIT - numberOfRequestRemaining));
 
           descriptions.add(description.build());
         } catch(IOException e) {
@@ -123,6 +100,10 @@ public class RiotApiUsageChannelRefresh implements Runnable {
 
       for(int i = 0; i < graphs.size(); i++) {
         rapiInfoChannel.sendMessage(descriptions.get(i)).addFile(graphs.get(i), "graphFor" + platformOrder.get(i).getName() + ".png").queue();
+      }
+      
+      if(Zoe.getRiotApi().isApiCallPerPlatformNeedToBeReset()) {
+        Zoe.getRiotApi().resetApiCallPerPlatform();
       }
     }
   }

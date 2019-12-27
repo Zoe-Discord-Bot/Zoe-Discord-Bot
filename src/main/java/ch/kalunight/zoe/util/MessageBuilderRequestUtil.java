@@ -1,18 +1,19 @@
 package ch.kalunight.zoe.util;
 
+import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.player_data.FullTier;
-import ch.kalunight.zoe.model.player_data.Player;
 import ch.kalunight.zoe.model.static_data.Champion;
+import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.request.RiotRequest;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
-import net.rithms.riot.constant.CallPriority;
 import net.rithms.riot.constant.Platform;
 
 public class MessageBuilderRequestUtil {
@@ -23,6 +24,24 @@ public class MessageBuilderRequestUtil {
     // Hide default public constructor
   }
 
+  public static List<DTO.LeagueAccount> getLeagueAccountsInTheGivenGame(CurrentGameInfo currentGameInfo, Platform server,
+      DTO.Player player, long guildId) throws SQLException{
+    
+    List<DTO.LeagueAccount> lolAccountsInGame = new ArrayList<>();
+    List<DTO.LeagueAccount> leaguesAccounts = LeagueAccountRepository.getLeaguesAccounts(guildId, player.player_discordId);
+    
+    for(DTO.LeagueAccount leagueAccount : leaguesAccounts) {
+      for(CurrentGameParticipant participant : currentGameInfo.getParticipants()) {
+        if(participant.getSummonerId().equals(leagueAccount.leagueAccount_summonerId) 
+            && server.equals(leagueAccount.leagueAccount_server)) {
+          
+          lolAccountsInGame.add(leagueAccount);
+        }
+      }
+    }
+    return lolAccountsInGame;
+  }
+  
   public static void createTeamData1Summoner(Summoner summoner, List<CurrentGameParticipant> teamParticipant, StringBuilder teamString,
       StringBuilder teamRankString, StringBuilder teamWinRateLastMonth, Platform platform, String language) {
 
@@ -34,7 +53,7 @@ public class MessageBuilderRequestUtil {
         champion = new Champion(-1, "-1", LanguageManager.getText(language, "unknown"), null);
       }
 
-      FullTier fullTier = RiotRequest.getSoloqRank(participant.getSummonerId(), platform, CallPriority.NORMAL);
+      FullTier fullTier = RiotRequest.getSoloqRank(participant.getSummonerId(), platform);
       String rank;
       try {
         rank = Ressources.getTierEmote().get(fullTier.getTier()).getEmote().getAsMention() + " " + fullTier.toString();
@@ -84,7 +103,7 @@ public class MessageBuilderRequestUtil {
         champion = new Champion(-1, unknownChampion, unknownChampion, null);
       }
 
-      FullTier fullTier = RiotRequest.getSoloqRank(participant.getSummonerId(), platform, CallPriority.NORMAL);
+      FullTier fullTier = RiotRequest.getSoloqRank(participant.getSummonerId(), platform);
       String rank;
       try {
         rank = Ressources.getTierEmote().get(fullTier.getTier()).getEmote().getAsMention() + " " + fullTier.toString();
@@ -107,11 +126,11 @@ public class MessageBuilderRequestUtil {
     }
   }
 
-  public static void createTitle(List<Player> players, CurrentGameInfo currentGameInfo, StringBuilder title,
+  public static void createTitle(List<DTO.Player> players, CurrentGameInfo currentGameInfo, StringBuilder title,
       String language, boolean gameInfo) {
-    ArrayList<Player> playersNotTwice = new ArrayList<>();
+    ArrayList<DTO.Player> playersNotTwice = new ArrayList<>();
 
-    for(Player player : players) {
+    for(DTO.Player player : players) {
       if(!playersNotTwice.contains(player)) {
         playersNotTwice.add(player);
       }
@@ -123,13 +142,13 @@ public class MessageBuilderRequestUtil {
 
     for(int i = 0; i < playersNotTwice.size(); i++) {
       if(i == 0) {
-        title.append(" " + playersNotTwice.get(i).getDiscordUser().getName());
+        title.append(" " + playersNotTwice.get(i).user.getName());
       } else if(i + 1 == playersNotTwice.size()) {
-        title.append(" " + andOfTranslated + " " + playersNotTwice.get(i).getDiscordUser().getName());
+        title.append(" " + andOfTranslated + " " + playersNotTwice.get(i).user.getName());
       } else if(i + 2 == playersNotTwice.size()) {
-        title.append(" " + playersNotTwice.get(i).getDiscordUser().getName());
+        title.append(" " + playersNotTwice.get(i).user.getName());
       } else {
-        title.append(" " + playersNotTwice.get(i).getDiscordUser().getName() + ",");
+        title.append(" " + playersNotTwice.get(i).user.getName() + ",");
       }
     }
 

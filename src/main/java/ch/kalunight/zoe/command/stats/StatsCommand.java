@@ -1,13 +1,14 @@
 package ch.kalunight.zoe.command.stats;
 
+import java.sql.SQLException;
 import java.util.function.BiConsumer;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
-import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
+import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
   
@@ -24,7 +25,7 @@ public class StatsCommand extends ZoeCommand {
   }
   
   @Override
-  protected void executeCommand(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) throws SQLException {
     if(!event.getMessage().getMentionedMembers().isEmpty()) {
       for(Command command : Zoe.getMainCommands(null)) {
         for(Command commandChild : command.getChildren()) {
@@ -36,7 +37,9 @@ public class StatsCommand extends ZoeCommand {
       }
     }
     
-    event.reply(LanguageManager.getText(ServerData.getServers().get(event.getGuild().getId()).getLangage(), "mainStatsCommandHelpMessage"));
+    DTO.Server server = getServer(event.getGuild().getIdLong());
+    
+    event.reply(LanguageManager.getText(server.serv_language, "mainStatsCommandHelpMessage"));
   }
 
   @Override

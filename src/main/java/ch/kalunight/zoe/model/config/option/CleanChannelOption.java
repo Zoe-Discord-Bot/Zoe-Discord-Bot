@@ -1,6 +1,7 @@
 package ch.kalunight.zoe.model.config.option;
 
 import java.awt.Color;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -9,9 +10,12 @@ import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.ButtonMenu;
-import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
-import ch.kalunight.zoe.model.Server;
+import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.repositories.ConfigRepository;
+import ch.kalunight.zoe.repositories.InfoChannelRepository;
+import ch.kalunight.zoe.repositories.RepoRessources;
+import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
@@ -32,8 +36,8 @@ public class CleanChannelOption extends ConfigurationOption {
 
   private static final String UNICODE_THREE = "3\u20E3";
   private static final String EMOJI_THREE = ":three:";
-
-  Logger logger = LoggerFactory.getLogger(CleanChannelOption.class);
+  
+  private static final Logger logger = LoggerFactory.getLogger(CleanChannelOption.class);
 
   public enum CleanChannelOptionInfo {
     DISABLE("cleanChannelOptionDisable", "cleanChannelOptionDisableDesc", UNICODE_ONE, EMOJI_ONE),
@@ -62,23 +66,21 @@ public class CleanChannelOption extends ConfigurationOption {
    */
   private CleanChannelOptionInfo tmpCleanChannelOption;
 
-  public CleanChannelOption() {
-    super("clean_channel", "cleanChannelOptionDesc");   
+  public CleanChannelOption(long guildId) {
+    super(guildId, "cleanChannelOptionDesc");   
     cleanChannelOption = CleanChannelOptionInfo.DISABLE;
     cleanChannel = null;
   }
 
   @Override
-  public Consumer<CommandEvent> getChangeConsumer(EventWaiter waiter) {
+  public Consumer<CommandEvent> getChangeConsumer(EventWaiter waiter, DTO.Server server) {
     return new Consumer<CommandEvent>() {
 
       @Override
       public void accept(CommandEvent event) {
 
-        Server server = ServerData.getServers().get(event.getGuild().getId());
-
         if(!event.getGuild().getSelfMember().getPermissions().contains(Permission.MESSAGE_MANAGE)) {
-          event.reply(LanguageManager.getText(server.getLangage(), "cleanChannelOptionPermissionNeeded"));
+          event.reply(LanguageManager.getText(server.serv_language, "cleanChannelOptionPermissionNeeded"));
           return;
         }
 
@@ -98,19 +100,19 @@ public class CleanChannelOption extends ConfigurationOption {
         choiceBuilder.setTimeout(2, TimeUnit.MINUTES);
 
         choiceBuilder.setText(
-            String.format(LanguageManager.getText(server.getLangage(), "cleanChannelOptionLongDesc"),
-                LanguageManager.getText(server.getLangage(), description))
-            + CleanChannelOptionInfo.DISABLE.emoji 
-            + " -> " + LanguageManager.getText(server.getLangage(), CleanChannelOptionInfo.DISABLE.name)
-            + " : " + LanguageManager.getText(server.getLangage(), CleanChannelOptionInfo.DISABLE.description) + "\n"
+            String.format(LanguageManager.getText(server.serv_language, "cleanChannelOptionLongDesc"),
+                LanguageManager.getText(server.serv_language, description))
+            + "\n" + CleanChannelOptionInfo.DISABLE.emoji 
+            + " -> " + LanguageManager.getText(server.serv_language, CleanChannelOptionInfo.DISABLE.name)
+            + " : " + LanguageManager.getText(server.serv_language, CleanChannelOptionInfo.DISABLE.description) + "\n"
             + CleanChannelOptionInfo.ONLY_ZOE_COMMANDS.emoji
-            + " -> " + LanguageManager.getText(server.getLangage(), CleanChannelOptionInfo.ONLY_ZOE_COMMANDS.name)
-            + " : " + LanguageManager.getText(server.getLangage(), CleanChannelOptionInfo.ONLY_ZOE_COMMANDS.description) + "\n"
+            + " -> " + LanguageManager.getText(server.serv_language, CleanChannelOptionInfo.ONLY_ZOE_COMMANDS.name)
+            + " : " + LanguageManager.getText(server.serv_language, CleanChannelOptionInfo.ONLY_ZOE_COMMANDS.description) + "\n"
             + CleanChannelOptionInfo.ALL.emoji
-            + " -> " + LanguageManager.getText(server.getLangage(), CleanChannelOptionInfo.ALL.name)
-            + " : " + LanguageManager.getText(server.getLangage(), CleanChannelOptionInfo.ALL.description) + "\n");
+            + " -> " + LanguageManager.getText(server.serv_language, CleanChannelOptionInfo.ALL.name)
+            + " : " + LanguageManager.getText(server.serv_language, CleanChannelOptionInfo.ALL.description) + "\n");
 
-        choiceBuilder.setAction(updateOption(event.getChannel(), event.getGuild(), waiter, event.getAuthor()));
+        choiceBuilder.setAction(updateOption(event.getChannel(), event.getGuild(), waiter, event.getAuthor(), server));
 
         ButtonMenu menu = choiceBuilder.build();
 
@@ -118,13 +120,13 @@ public class CleanChannelOption extends ConfigurationOption {
       }};
   }
 
-  private Consumer<ReactionEmote> updateOption(MessageChannel channel, Guild guild, EventWaiter eventWaiter, User user) {
+  private Consumer<ReactionEmote> updateOption(MessageChannel channel, Guild guild, EventWaiter eventWaiter,
+      User user, DTO.Server server) {
     return new Consumer<ReactionEmote>() {
 
       @Override
       public void accept(ReactionEmote emoteUsed) {
         channel.sendTyping().complete();
-        Server server = ServerData.getServers().get(guild.getId());
 
         if(emoteUsed.getName().equals(CleanChannelOptionInfo.ONLY_ZOE_COMMANDS.unicode)) {
           tmpCleanChannelOption = CleanChannelOptionInfo.ONLY_ZOE_COMMANDS;
@@ -133,7 +135,7 @@ public class CleanChannelOption extends ConfigurationOption {
         }else if(emoteUsed.getName().equals(CleanChannelOptionInfo.DISABLE.unicode)){
           tmpCleanChannelOption = CleanChannelOptionInfo.DISABLE;
         }else {
-          channel.sendMessage(LanguageManager.getText(server.getLangage(), "cleanChannelOptionCanceled")).queue();
+          channel.sendMessage(LanguageManager.getText(server.serv_language, "cleanChannelOptionCanceled")).queue();
           return;
         }
 
@@ -150,10 +152,10 @@ public class CleanChannelOption extends ConfigurationOption {
 
           choiceBuilder.setTimeout(2, TimeUnit.MINUTES);
 
-          choiceBuilder.setText(String.format(LanguageManager.getText(server.getLangage(), "cleanChannelOptionChoiceChannel"),
+          choiceBuilder.setText(String.format(LanguageManager.getText(server.serv_language, "cleanChannelOptionChoiceChannel"),
               EMOJI_ONE, EMOJI_TWO));
 
-          choiceBuilder.setAction(defineNewChannel(channel, guild, eventWaiter, user));
+          choiceBuilder.setAction(defineNewChannel(channel, guild, eventWaiter, user, server));
 
           ButtonMenu menu = choiceBuilder.build();
 
@@ -162,79 +164,103 @@ public class CleanChannelOption extends ConfigurationOption {
 
           cleanChannel = null;
 
+          try {
+            ConfigRepository.updateCleanChannelOption(guildId, 0, tmpCleanChannelOption.toString());
+          } catch(SQLException e) {
+            RepoRessources.sqlErrorReport(channel, server, e);
+            return;
+          }
+
           if(tmpCleanChannelOption.equals(cleanChannelOption)) {
-            channel.sendMessage(LanguageManager.getText(server.getLangage(), "cleanChannelOptionAlreadyDisable")).queue();
+            channel.sendMessage(LanguageManager.getText(server.serv_language, "cleanChannelOptionAlreadyDisable")).queue();
           }else {
             cleanChannelOption = tmpCleanChannelOption;
-            channel.sendMessage(LanguageManager.getText(server.getLangage(), "cleanChannelOptionNowDisable")).queue();
+            channel.sendMessage(LanguageManager.getText(server.serv_language, "cleanChannelOptionNowDisable")).queue();
           }
         }
       }};
   }
 
 
-  private Consumer<ReactionEmote> defineNewChannel(MessageChannel channel, Guild guild, EventWaiter eventWaiter, User user) {
+  private Consumer<ReactionEmote> defineNewChannel(MessageChannel channel, Guild guild, EventWaiter eventWaiter,
+      User user, DTO.Server server) {
     return new Consumer<ReactionEmote>() {
 
       @Override
       public void accept(ReactionEmote reactionEmote) {
         channel.sendTyping().complete();
-        Server server = ServerData.getServers().get(guild.getId());
         if(reactionEmote.getName().equals(UNICODE_ONE)) {
 
-          channel.sendMessage(LanguageManager.getText(server.getLangage(), "cleanChannelOptionSendTextChannel")).queue();
+          channel.sendMessage(LanguageManager.getText(server.serv_language, "cleanChannelOptionSendTextChannel")).queue();
 
           eventWaiter.waitForEvent(MessageReceivedEvent.class,
               e -> e.getAuthor().equals(user) && e.getChannel().equals(channel),
-              e -> selectChannel(e), 2, TimeUnit.MINUTES,
+              e -> {
+                try {
+                  selectChannel(e, server);
+                } catch(SQLException e1) {
+                  RepoRessources.sqlErrorReport(channel, server, e1);
+                  return;
+                }
+              },
+              2, TimeUnit.MINUTES,
               () -> endCreateChannelTime(channel));
+
         }else if(reactionEmote.getName().equals(UNICODE_TWO)) {
 
           cleanChannel = guild.getTextChannelById(guild.createTextChannel("clean-channel").complete().getId());
 
           cleanChannelOption = tmpCleanChannelOption;
 
-          if(cleanChannelOption.equals(CleanChannelOptionInfo.ONLY_ZOE_COMMANDS)) {
-            cleanChannel.getManager().setTopic(LanguageManager.getText(server.getLangage(),
-                "cleanChannelOptionTopicChannelZoeCommands")).queue();
-          }else {
-            cleanChannel.getManager().setTopic(LanguageManager.getText(server.getLangage(), "cleanChannelOptionTopicChannelAll")).queue();
+          try {
+            ConfigRepository.updateCleanChannelOption(guildId, cleanChannel.getIdLong(), cleanChannelOption.toString());
+          } catch(SQLException e) {
+            RepoRessources.sqlErrorReport(cleanChannel, server, e);
+            return;
           }
 
-          channel.sendMessage(LanguageManager.getText(server.getLangage(), "cleanChannelOptionCreatedDoneMessage")).queue();
+          if(cleanChannelOption.equals(CleanChannelOptionInfo.ONLY_ZOE_COMMANDS)) {
+            cleanChannel.getManager().setTopic(LanguageManager.getText(server.serv_language,
+                "cleanChannelOptionTopicChannelZoeCommands")).queue();
+          }else {
+            cleanChannel.getManager().setTopic(LanguageManager.getText(server.serv_language, "cleanChannelOptionTopicChannelAll")).queue();
+          }
+
+          channel.sendMessage(LanguageManager.getText(server.serv_language, "cleanChannelOptionCreatedDoneMessage")).queue();
 
         }
       }
     };
   }
 
-  private void selectChannel(MessageReceivedEvent event) {
+  private void selectChannel(MessageReceivedEvent event, DTO.Server server) throws SQLException {
     event.getTextChannel().sendTyping().complete();
-
-    Server server = ServerData.getServers().get(event.getGuild().getId());
 
     List<TextChannel> textsChannel = event.getMessage().getMentionedChannels();
 
     if(textsChannel.size() == 1) {
       TextChannel textChannel = textsChannel.get(0); 
-      if(server.getInfoChannel() == null || !server.getInfoChannel().equals(textChannel)) {
+      DTO.InfoChannel infochannel = InfoChannelRepository.getInfoChannel(server.serv_guildId);
+      if(infochannel == null || infochannel.infochannel_channelid != textChannel.getIdLong()) {
 
         cleanChannel = textChannel;
         cleanChannelOption = tmpCleanChannelOption;
 
+        ConfigRepository.updateCleanChannelOption(guildId, cleanChannel.getIdLong(), cleanChannelOption.toString());
+
         if(cleanChannelOption.equals(CleanChannelOptionInfo.ONLY_ZOE_COMMANDS)) {
-          textChannel.sendMessage(LanguageManager.getText(server.getLangage(), "cleanChannelOptionInfoMessageZoeCommands")).complete();
+          textChannel.sendMessage(LanguageManager.getText(server.serv_language, "cleanChannelOptionInfoMessageZoeCommands")).complete();
         }else {
-          textChannel.sendMessage(LanguageManager.getText(server.getLangage(), "cleanChannelOptionInfoMessageAll")).complete();
+          textChannel.sendMessage(LanguageManager.getText(server.serv_language, "cleanChannelOptionInfoMessageAll")).complete();
         }
 
-        event.getTextChannel().sendMessage(LanguageManager.getText(server.getLangage(), "cleanChannelOptionSettedDoneMessage")).queue();
+        event.getTextChannel().sendMessage(LanguageManager.getText(server.serv_language, "cleanChannelOptionSettedDoneMessage")).queue();
 
       }else {
-        event.getTextChannel().sendMessage(LanguageManager.getText(server.getLangage(), "cleanChannelOptionSelectInfoChannel")).queue();
+        event.getTextChannel().sendMessage(LanguageManager.getText(server.serv_language, "cleanChannelOptionSelectInfoChannel")).queue();
       }
     }else {
-      event.getTextChannel().sendMessage(LanguageManager.getText(server.getLangage(), "cleanChannelOptionOneTextChannelRequired")).queue();
+      event.getTextChannel().sendMessage(LanguageManager.getText(server.serv_language, "cleanChannelOptionOneTextChannelRequired")).queue();
     }
   }
 
@@ -243,9 +269,14 @@ public class CleanChannelOption extends ConfigurationOption {
 
     String langage = LanguageManager.DEFAULT_LANGUAGE;
     if(textChannel != null) {
-      Server server = ServerData.getServers().get(textChannel.getGuild().getId());
+      DTO.Server server = null;
+      try {
+        server = ServerRepository.getServer(textChannel.getGuild().getIdLong());
+      } catch(SQLException e) {
+        logger.error("SQL Error when getting the server in CleanChannelOption setup !", e);
+      }
       if(server != null) {
-        langage = server.getLangage();
+        langage = server.serv_language;
       }
     }
     channel.sendMessage(LanguageManager.getText(langage, "cleanChannelOptionResponseTimeOut")).queue();
@@ -261,11 +292,12 @@ public class CleanChannelOption extends ConfigurationOption {
   }
 
   @Override
-  public String getChoiceText(String langage) {
+  public String getChoiceText(String langage) throws SQLException {
 
     if(cleanChannel != null && Zoe.getJda().getTextChannelById(cleanChannel.getId()) == null) {
       cleanChannel = null;
       cleanChannelOption = CleanChannelOptionInfo.DISABLE;
+      ConfigRepository.updateCleanChannelOption(guildId, 0, cleanChannelOption.toString());
     }
 
     String status = LanguageManager.getText(langage, "optionDisable");
@@ -280,36 +312,20 @@ public class CleanChannelOption extends ConfigurationOption {
     return LanguageManager.getText(langage, description) + " : " + status;
   }
 
-  @Override
-  public String getSave() {
-    String save = id + ":" + cleanChannelOption.toString();
-    if(cleanChannel != null) {
-      save += ":" + cleanChannel.getId();
-    }
-
-    return save;
-  }
-
-  @Override
-  public void restoreSave(String save) {
-    String[] saveDatas = save.split(":");
-
-    cleanChannelOption = CleanChannelOptionInfo.valueOf(saveDatas[1]);
-
-    if(saveDatas.length > 2) {
-      cleanChannel = Zoe.getJda().getTextChannelById(saveDatas[2]);
-      if(cleanChannel == null) {
-        cleanChannelOption = CleanChannelOptionInfo.DISABLE;
-      }
-    }
-  }
-
   public CleanChannelOptionInfo getCleanChannelOption() {
     return cleanChannelOption;
   }
 
   public TextChannel getCleanChannel() {
     return cleanChannel;
+  }
+
+  public void setCleanChannelOption(CleanChannelOptionInfo cleanChannelOption) {
+    this.cleanChannelOption = cleanChannelOption;
+  }
+
+  public void setCleanChannel(TextChannel cleanChannel) {
+    this.cleanChannel = cleanChannel;
   }
 
 }

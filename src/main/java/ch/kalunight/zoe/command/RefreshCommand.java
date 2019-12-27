@@ -6,7 +6,7 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 
 import ch.kalunight.zoe.ServerData;
-import ch.kalunight.zoe.model.Server;
+import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 
@@ -27,10 +27,11 @@ public class RefreshCommand extends ZoeCommand {
   @Override
   protected void executeCommand(CommandEvent event) {
     CommandUtil.sendTypingInFonctionOfChannelType(event);
-    Server server = ServerData.getServers().get(event.getGuild().getId());
     
-    ServerData.getServersAskedTreatment().put(server.getGuild().getId(), true);
-    event.reply(LanguageManager.getText(server.getLangage(), "refreshCommandDoneMessage"));
+    DTO.Server server = getServer(event.getGuild().getIdLong());
+    
+    ServerData.getServersAskedTreatment().add(server);
+    event.reply(LanguageManager.getText(server.serv_language, "refreshCommandDoneMessage"));
   }
 
   @Override

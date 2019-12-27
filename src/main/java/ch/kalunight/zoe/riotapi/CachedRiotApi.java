@@ -210,7 +210,7 @@ public class CachedRiotApi {
         refreshRateLimit(callsPerTime);
         try {
           if((callsPerTime.size() + nbrRequest) > RIOT_API_LOW_LIMIT) {
-            TimeUnit.SECONDS.sleep(1);
+            TimeUnit.MILLISECONDS.sleep(50);
           }
         } catch (InterruptedException e) {
           logger.error("Interuption when waiting for the rate limit !", e);
@@ -251,7 +251,7 @@ public class CachedRiotApi {
     return callByEndpoints.get(platform).intValue();
   }
 
-  public int getApiCallRemainingPerRegion(Platform platform) {
+  public int getApiCallRemainingPerRegion(Platform platform) {  
     int remainingCall = RIOT_API_HUGE_LIMIT - callByEndpoints.get(platform).intValue();
     if(remainingCall < 0) {
       return 0;

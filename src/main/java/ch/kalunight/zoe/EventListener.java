@@ -53,7 +53,7 @@ import net.dv8tion.jda.api.events.user.UserActivityStartEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 public class EventListener extends ListenerAdapter {
-
+  
   //Useless to translate
   private static final String WELCOME_MESSAGE = "Hello ! Thank you for adding me to your server ! "
       + "I'm here to help you to configurate your server with some "

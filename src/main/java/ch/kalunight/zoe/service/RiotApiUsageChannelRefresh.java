@@ -67,7 +67,7 @@ public class RiotApiUsageChannelRefresh implements Runnable {
       List<Platform> platformOrder = new ArrayList<>();
       List<Message> descriptions = new ArrayList<>();
       for(Platform platform : Platform.values()) {
-        long numberOfRequestRemaining = - Zoe.getRiotApi().getApiCallRemainingPerRegion(platform);
+        long numberOfRequestRemaining = Zoe.getRiotApi().getApiCallRemainingPerRegion(platform);
 
         PieChart pieChart = new PieChartBuilder()
             .title("Request data for " + platform.getName())

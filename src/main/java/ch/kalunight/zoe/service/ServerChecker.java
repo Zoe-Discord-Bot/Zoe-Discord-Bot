@@ -1,15 +1,18 @@
 package ch.kalunight.zoe.service;
 
+import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.TimerTask;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
-import ch.kalunight.zoe.model.Server;
+import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.repositories.ServerRepository;
+import ch.kalunight.zoe.repositories.ServerStatusRepository;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
-import net.dv8tion.jda.api.entities.Guild;
 
 public class ServerChecker extends TimerTask {
 
@@ -24,45 +27,38 @@ public class ServerChecker extends TimerTask {
   private static DateTime nextStatusRefresh = DateTime.now();
 
   private static DateTime nextRAPIChannelRefresh = DateTime.now().plusMinutes(TIME_BETWEEN_EACH_RAPI_CHANNEL_REFRESH_IN_MINUTES);
-  
+
   private static final Logger logger = LoggerFactory.getLogger(ServerChecker.class);
 
   @Override
   public void run() {
-    
+
     logger.debug("ServerChecker thread started !");
-    
+
     try {
-      for(Guild guild : Zoe.getJda().getGuilds()) {
-        if(guild.getOwnerId().equals(Zoe.getJda().getSelfUser().getId())) {
-          continue;
-        }
-        Server server = ServerData.getServers().get(guild.getId());
 
-        if(ServerData.getServersIsInTreatment().get(guild.getId()) == null) {
-          ServerData.getServersIsInTreatment().put(guild.getId(), false);
-        }
+      for(DTO.Server server : ServerRepository.getGuildWhoNeedToBeRefresh()) {
+        
+        DTO.ServerStatus status = ServerStatusRepository.getServerStatus(server.serv_guildId);
+        ServerStatusRepository.updateInTreatment(status.servstatus_id, true);
+        ServerRepository.updateTimeStamp(server.serv_guildId, LocalDateTime.now());
+        
+        Runnable task = new InfoPanelRefresher(server);
+        ServerData.getServerExecutor().execute(task);
+      }
 
-        if(ServerData.getServersAskedTreatment().get(guild.getId()) == null) {
-          ServerData.getServersAskedTreatment().put(guild.getId(), false);
-        }
-
-        if(Boolean.TRUE.equals(ServerData.getServersAskedTreatment().get(server.getGuild().getId())) 
-            && Boolean.FALSE.equals(ServerData.getServersIsInTreatment().get(server.getGuild().getId()))) {
+      for(DTO.Server serverAskedTreatment : ServerData.getServersAskedTreatment()) {
+        DTO.ServerStatus status = ServerStatusRepository.getServerStatus(serverAskedTreatment.serv_guildId);
+        if(!status.servstatus_inTreatment) {
+          ServerStatusRepository.updateInTreatment(status.servstatus_id, true);
+          ServerRepository.updateTimeStamp(serverAskedTreatment.serv_guildId, LocalDateTime.now());
           
-          ServerData.getServersAskedTreatment().put(server.getGuild().getId(), false);
-          ServerData.getServersIsInTreatment().put(guild.getId(), true);
-          Runnable task = new InfoPanelRefresher(server);
-          ServerData.getServerExecutor().execute(task);
-        }
-
-        if(server.isNeedToBeRefreshed() && server.getInfoChannel() != null && !ServerData.getServersIsInTreatment().get(guild.getId())) {
-
-          Runnable task = new InfoPanelRefresher(server);
-          ServerData.getServersIsInTreatment().put(guild.getId(), true);
+          Runnable task = new InfoPanelRefresher(serverAskedTreatment);
           ServerData.getServerExecutor().execute(task);
         }
       }
+
+      ServerData.getServersAskedTreatment().clear();
 
       if(nextRAPIChannelRefresh.isBeforeNow() && RiotApiUsageChannelRefresh.getRapiInfoChannel() != null) {
         ServerData.getServerExecutor().execute(new RiotApiUsageChannelRefresh());
@@ -87,10 +83,12 @@ public class ServerChecker extends TimerTask {
 
         setNextStatusRefresh(nextStatusRefresh.plusHours(TIME_BETWEEN_EACH_STATUS_REFRESH_IN_HOURS));
       }
+    }catch(SQLException e) {
+      logger.error("Critical DB Issue in the server checker thread !", e);
     }finally {
       logger.debug("ServerChecker thread ended !");
-      //logger.debug("Zoe Server-Executor Queue : {}", ServerData.getServerExecutor().getQueue().size());
-      //logger.debug("Zoe InfoCards-Generator Queue : {}", ServerData.getInfocardsGenerator().getQueue().size());
+      logger.debug("Zoe Server-Executor Queue : {}", ServerData.getServerExecutor().getQueue().size());
+      logger.debug("Zoe InfoCards-Generator Queue : {}", ServerData.getInfocardsGenerator().getQueue().size());
       ServerData.getServerCheckerThreadTimer().schedule(new DataSaver(), 0);
     }
   }

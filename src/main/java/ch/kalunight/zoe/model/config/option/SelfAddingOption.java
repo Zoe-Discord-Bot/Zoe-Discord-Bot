@@ -1,13 +1,15 @@
 package ch.kalunight.zoe.model.config.option;
 
 import java.awt.Color;
+import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.ButtonMenu;
-import ch.kalunight.zoe.ServerData;
-import ch.kalunight.zoe.model.Server;
+import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.repositories.ConfigRepository;
+import ch.kalunight.zoe.repositories.RepoRessources;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
@@ -17,13 +19,13 @@ public class SelfAddingOption extends ConfigurationOption {
 
   private boolean optionActivated;
 
-  public SelfAddingOption() {
-    super("self_adding", "selfAddingOptionDesc");
+  public SelfAddingOption(long guildId) {
+    super(guildId, "selfAddingOptionDesc");
     optionActivated = false;
   }
 
   @Override
-  public Consumer<CommandEvent> getChangeConsumer(EventWaiter waiter) {
+  public Consumer<CommandEvent> getChangeConsumer(EventWaiter waiter, DTO.Server server) {
     return new Consumer<CommandEvent>() {
       
       @Override
@@ -39,14 +41,12 @@ public class SelfAddingOption extends ConfigurationOption {
 
         choiceBuilder.setTimeout(2, TimeUnit.MINUTES);
         
-        Server server = ServerData.getServers().get(event.getGuild().getId());
-        
         if(!optionActivated) {
 
-          choiceBuilder.setText(String.format(LanguageManager.getText(server.getLangage(), "selfAddingOptionDescLong"), 
-              LanguageManager.getText(server.getLangage(), description)));
+          choiceBuilder.setText(String.format(LanguageManager.getText(server.serv_language, "selfAddingOptionDescLong"), 
+              LanguageManager.getText(server.serv_language, description)));
           
-          choiceBuilder.setAction(activateTheOption(server.getLangage(), event.getChannel()));
+          choiceBuilder.setAction(activateTheOption(server, event.getChannel()));
           
           ButtonMenu menu = choiceBuilder.build();
                     
@@ -54,9 +54,10 @@ public class SelfAddingOption extends ConfigurationOption {
           
         }else {
           
-          choiceBuilder.setText(LanguageManager.getText(server.getLangage(), "selfAddingOptionDescLongDisable"));
+          choiceBuilder.setText(String.format(LanguageManager.getText(server.serv_language, "selfAddingOptionDescLongDisable"),
+              LanguageManager.getText(server.serv_language, description)));
           
-          choiceBuilder.setAction(disableTheOption(server.getLangage(), event.getChannel()));
+          choiceBuilder.setAction(disableTheOption(server, event.getChannel()));
           
           ButtonMenu menu = choiceBuilder.build();
           
@@ -66,7 +67,7 @@ public class SelfAddingOption extends ConfigurationOption {
     };
   }
   
-  private Consumer<ReactionEmote> disableTheOption(String langage, MessageChannel messageChannel) {
+  private Consumer<ReactionEmote> disableTheOption(DTO.Server server, MessageChannel messageChannel) {
     return new Consumer<ReactionEmote>() {
 
       @Override
@@ -76,14 +77,20 @@ public class SelfAddingOption extends ConfigurationOption {
         
         if(emote.getName().equals("✅")) {
           optionActivated = false;
-          messageChannel.sendMessage(LanguageManager.getText(langage, "selfAddingOptionBeenDisable")).queue();
+          try {
+            ConfigRepository.updateSelfAddingOption(guildId, optionActivated);
+          } catch (SQLException e) {
+            RepoRessources.sqlErrorReport(messageChannel, server, e);
+            return;
+          }
+          messageChannel.sendMessage(LanguageManager.getText(server.serv_language, "selfAddingOptionBeenDisable")).queue();
         }else {
-          messageChannel.sendMessage(LanguageManager.getText(langage, "selfAddingOptionStillEnable")).queue();
+          messageChannel.sendMessage(LanguageManager.getText(server.serv_language, "selfAddingOptionStillEnable")).queue();
         }
     }};
   }
   
-  private Consumer<ReactionEmote> activateTheOption(String langage, MessageChannel messageChannel) {
+  private Consumer<ReactionEmote> activateTheOption(DTO.Server server, MessageChannel messageChannel) {
     return new Consumer<ReactionEmote>() {
 
       @Override
@@ -93,9 +100,16 @@ public class SelfAddingOption extends ConfigurationOption {
         
         if(emoteUsed.getName().equals("✅")) {
           optionActivated = true;
-          messageChannel.sendMessage(LanguageManager.getText(langage, "selfAddingOptionBeenActivated")).queue();
+          try {
+            ConfigRepository.updateSelfAddingOption(guildId, optionActivated);
+          } catch (SQLException e) {
+            RepoRessources.sqlErrorReport(messageChannel, server, e);
+            return;
+          }
+          
+          messageChannel.sendMessage(LanguageManager.getText(server.serv_language, "selfAddingOptionBeenActivated")).queue();
         }else {
-          messageChannel.sendMessage(LanguageManager.getText(langage, "selfAddingOptionStillDisable")).queue();
+          messageChannel.sendMessage(LanguageManager.getText(server.serv_language, "selfAddingOptionStillDisable")).queue();
         }
       }};
   }
@@ -121,20 +135,12 @@ public class SelfAddingOption extends ConfigurationOption {
     return LanguageManager.getText(langage, description) + " : " + status;
   }
 
-  @Override
-  public String getSave() {
-    return id + ":" + optionActivated;
-  }
-
-  @Override
-  public void restoreSave(String save) {
-    String[] saveDatas = save.split(":");
-    
-    optionActivated = Boolean.parseBoolean(saveDatas[1]);
-  }
-  
   public boolean isOptionActivated() {
     return optionActivated;
+  }
+
+  public void setOptionActivated(boolean optionActivated) {
+    this.optionActivated = optionActivated;
   }
 
 }

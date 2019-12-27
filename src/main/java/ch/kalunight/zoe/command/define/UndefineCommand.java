@@ -1,8 +1,10 @@
 package ch.kalunight.zoe.command.define;
 
+import java.sql.SQLException;
+import java.util.function.BiConsumer;
+
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
@@ -23,8 +25,13 @@ public class UndefineCommand extends ZoeCommand {
   }
 
   @Override
-  protected void executeCommand(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) throws SQLException {
     event.reply(LanguageManager.getText(
-        ServerData.getServers().get(event.getGuild().getId()).getLangage(), "mainUndefineCommandHelpMessage"));
+        getServer(event.getGuild().getIdLong()).serv_language, "mainUndefineCommandHelpMessage"));
+  }
+
+  @Override
+  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
+    return helpBiConsumer;
   }
 }

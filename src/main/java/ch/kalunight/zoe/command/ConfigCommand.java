@@ -1,17 +1,20 @@
 package ch.kalunight.zoe.command;
 
 import java.awt.Color;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+
+import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.OrderedMenu;
-import ch.kalunight.zoe.ServerData;
-import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.config.option.ConfigurationOption;
+import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
@@ -36,10 +39,9 @@ public class ConfigCommand extends ZoeCommand {
   }
   
   @Override
-  protected void executeCommand(CommandEvent event) {
-    CommandUtil.sendTypingInFonctionOfChannelType(event);
+  protected void executeCommand(CommandEvent event) throws SQLException {
     
-    Server server = ServerData.getServers().get(event.getGuild().getId());
+    DTO.Server server = getServer(event.getGuild().getIdLong());
     
     OrderedMenu.Builder builder = new OrderedMenu.Builder()
         .addUsers(event.getAuthor())
@@ -47,20 +49,20 @@ public class ConfigCommand extends ZoeCommand {
         .setTimeout(2, TimeUnit.MINUTES)
         .useNumbers()
         .setColor(Color.BLUE)
-        .setText(LanguageManager.getText(server.getLangage(), "configCommandMenuText"))
-        .setDescription(LanguageManager.getText(server.getLangage(), "configCommandMenuDescription"))
+        .setText(LanguageManager.getText(server.serv_language, "configCommandMenuText"))
+        .setDescription(LanguageManager.getText(server.serv_language, "configCommandMenuDescription"))
         .useCancelButton(true)
         .setEventWaiter(waiter);
     
-    ServerConfiguration serverConfiguration = server.getConfig();
+    ServerConfiguration serverConfiguration = ConfigRepository.getServerConfiguration(event.getGuild().getIdLong());
     
     List<ConfigurationOption> options = serverConfiguration.getAllConfigurationOption();
     for(ConfigurationOption option : options) {
-      builder.addChoice(option.getChoiceText(server.getLangage()));
+      builder.addChoice(option.getChoiceText(server.serv_language));
     }
     
     builder.setSelection(getSelectionAction(options, event))
-    .setCancel(getCancelAction(server.getLangage()));
+    .setCancel(getCancelAction(server.serv_language));
     
     builder.build().display(event.getChannel());
   }
@@ -70,7 +72,8 @@ public class ConfigCommand extends ZoeCommand {
       
       @Override
       public void accept(Message messageEmbended, Integer selectionNumber) {
-        options.get(selectionNumber - 1).getChangeConsumer(waiter).accept(event);
+        DTO.Server server = getServer(event.getGuild().getIdLong());
+        options.get(selectionNumber - 1).getChangeConsumer(waiter, server).accept(event);
       }};
   }
   
@@ -81,5 +84,10 @@ public class ConfigCommand extends ZoeCommand {
       public void accept(Message message) {
         message.getChannel().sendMessage(LanguageManager.getText(language, "configurationEnded")).queue();
       }};
+  }
+
+  @Override
+  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
+    return helpBiConsumer;
   }
 }

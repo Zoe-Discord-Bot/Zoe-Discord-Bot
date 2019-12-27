@@ -1,10 +1,12 @@
 package ch.kalunight.zoe.command.show;
 
+import java.util.function.BiConsumer;
+
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
-import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.command.ZoeCommand;
+import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
@@ -24,6 +26,12 @@ public class ShowCommand extends ZoeCommand {
 
   @Override
   protected void executeCommand(CommandEvent event) {
-    event.reply(LanguageManager.getText(ServerData.getServers().get(event.getGuild().getId()).getLangage(), "mainShowCommandHelpMessage"));
+    DTO.Server server = getServer(event.getGuild().getIdLong());
+    event.reply(LanguageManager.getText(server.serv_language, "mainShowCommandHelpMessage"));
+  }
+
+  @Override
+  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
+    return helpBiConsumer;
   }
 }

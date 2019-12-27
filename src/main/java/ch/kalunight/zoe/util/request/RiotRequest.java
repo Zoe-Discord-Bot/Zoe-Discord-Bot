@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.kalunight.zoe.Zoe;
+import ch.kalunight.zoe.model.WinRateReceiver;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.model.player_data.Rank;
 import ch.kalunight.zoe.model.player_data.Tier;
@@ -18,6 +19,7 @@ import ch.kalunight.zoe.model.static_data.Mastery;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.NameConversion;
 import ch.kalunight.zoe.util.Ressources;
+import net.rithms.riot.api.RiotApiAsync;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.champion_mastery.dto.ChampionMastery;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
@@ -27,7 +29,8 @@ import net.rithms.riot.api.endpoints.match.dto.MatchReference;
 import net.rithms.riot.api.endpoints.match.dto.Participant;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
-import net.rithms.riot.constant.CallPriority;
+import net.rithms.riot.api.request.AsyncRequest;
+import net.rithms.riot.api.request.RequestAdapter;
 import net.rithms.riot.constant.Platform;
 
 public class RiotRequest {
@@ -38,11 +41,11 @@ public class RiotRequest {
 
   private RiotRequest() {}
 
-  public static FullTier getSoloqRank(String summonerId, Platform region, CallPriority priority) {
+  public static FullTier getSoloqRank(String summonerId, Platform region) {
 
     Set<LeagueEntry> listLeague;
     try {
-      listLeague = Zoe.getRiotApi().getLeagueEntriesBySummonerId(region, summonerId, priority);
+      listLeague = Zoe.getRiotApi().getLeagueEntriesBySummonerId(region, summonerId);
     } catch(RiotApiException e) {
       logger.info("Error with riot api : {}", e.getMessage());
       return new FullTier(Tier.UNKNOWN, Rank.UNKNOWN, 0);
@@ -66,14 +69,18 @@ public class RiotRequest {
   public static String getWinrateLastMonthWithGivenChampion(String summonerId, Platform region,
       int championKey, String language) {
 
+    Zoe.getRiotApi().isRequestsCanBeExecuted(1, region, false);
+    
     Summoner summoner;
     try {
-      summoner = Zoe.getRiotApi().getSummoner(region, summonerId, CallPriority.NORMAL);
+      summoner = Zoe.getRiotApi().getSummoner(region, summonerId);
     } catch(RiotApiException e) {
       logger.warn("Impossible to get the summoner : {}", e.getMessage());
       return LanguageManager.getText(language, "unknown");
     }
 
+    Zoe.getRiotApi().isRequestsCanBeExecuted(4, region, false);
+    
     List<MatchReference> referencesMatchList;
     try {
       referencesMatchList = getMatchHistoryOfLastMonthWithTheGivenChampion(region, championKey, summoner);
@@ -86,38 +93,29 @@ public class RiotRequest {
       return LanguageManager.getText(language, "firstGame");
     }
 
-    int nbrGames = 0;
-    int nbrWins = 0;
-
+    Zoe.getRiotApi().isRequestsCanBeExecuted(referencesMatchList.size(), region, true);
+    
+    WinRateReceiver winRateReceiver = new WinRateReceiver();
+    RiotApiAsync riotApiAsync = Zoe.getRiotApi().getAsyncRiotApi();
+    
+    List<AsyncRequest> requestsMatch = new ArrayList<>();
+    
     for(MatchReference matchReference : referencesMatchList) {
-
-      Match match;
-      try {
-        try {
-          match = Zoe.getRiotApi().getMatch(region, matchReference.getGameId(), CallPriority.NORMAL);
-        } catch(RiotApiException e) {
-          logger.debug("Match ungetable from api : {}", e.getMessage());
-          continue;
-        }
-
-        Participant participant = match.getParticipantByAccountId(summoner.getAccountId());
-
-        if(participant != null && participant.getTimeline().getCreepsPerMinDeltas() != null) { // Check if the game has been canceled
-
-          String result = match.getTeamByTeamId(participant.getTeamId()).getWin();
-          if(result.equalsIgnoreCase("Win") || result.equalsIgnoreCase("Fail")) {
-            nbrGames++;
-          }
-
-          if(result.equalsIgnoreCase("Win")) {
-            nbrWins++;
-          }
-        }
-      } catch(NullPointerException e) {
-        logger.warn("Error catched in match (some value are null, NullPointerException : {}", e.getMessage(), e);
-      }
+      AsyncRequest requestMatch = riotApiAsync.getMatch(region, matchReference.getGameId());
+      requestMatch.addListeners(getMatchRequestAdapter(summoner, winRateReceiver));
+      requestsMatch.add(requestMatch);
     }
 
+    try {
+      riotApiAsync.awaitAll();
+    } catch (InterruptedException e) {
+      logger.error("riotApiAsync requests process got interupted !", e);
+      Thread.currentThread().interrupt();
+    }
+    
+    int nbrWins = winRateReceiver.win.intValue();
+    int nbrGames = nbrWins + winRateReceiver.loose.intValue();
+    
     if(nbrGames == 0) {
       return LanguageManager.getText(language, "firstGame");
     } else if(nbrWins == 0) {
@@ -125,6 +123,29 @@ public class RiotRequest {
     }
 
     return df.format((nbrWins / (double) nbrGames) * 100) + "% (" + nbrWins + "W/" + (nbrGames - nbrWins) + "L)";
+  }
+
+  private static RequestAdapter getMatchRequestAdapter(Summoner summoner, WinRateReceiver winRateReceiver) {
+    return new RequestAdapter() {
+      @Override
+      public void onRequestSucceeded(AsyncRequest request) {
+        Match match = request.getDto();
+        
+        Participant participant = match.getParticipantByAccountId(summoner.getAccountId());
+
+        if(participant != null && participant.getTimeline().getCreepsPerMinDeltas() != null) { // Check if the game has been canceled
+
+          String result = match.getTeamByTeamId(participant.getTeamId()).getWin();
+          if(result.equalsIgnoreCase("Fail")) {
+            winRateReceiver.loose.incrementAndGet();
+          }
+
+          if(result.equalsIgnoreCase("Win")) {
+            winRateReceiver.win.incrementAndGet();
+          }
+        }
+      }
+    };
   }
 
   private static List<MatchReference> getMatchHistoryOfLastMonthWithTheGivenChampion(Platform region, int championKey, Summoner summoner)
@@ -143,7 +164,7 @@ public class RiotRequest {
 
       try {
         matchList = Zoe.getRiotApi().getMatchListByAccountId(region, summoner.getAccountId(), championToFilter, null, null,
-            beginTime.getMillis(), actualTime.getMillis(), -1, -1, CallPriority.NORMAL);
+            beginTime.getMillis(), actualTime.getMillis(), -1, -1);
         if(matchList.getMatches() != null) {
           referencesMatchList.addAll(matchList.getMatches());
         }
@@ -161,9 +182,11 @@ public class RiotRequest {
   }
 
   public static String getMasterysScore(String summonerId, int championId, Platform platform) {
+    Zoe.getRiotApi().isRequestsCanBeExecuted(1, platform, false);
+    
     ChampionMastery mastery = null;
     try {
-      mastery = Zoe.getRiotApi().getChampionMasteriesBySummonerByChampion(platform, summonerId, championId, CallPriority.NORMAL);
+      mastery = Zoe.getRiotApi().getChampionMasteriesBySummonerByChampion(platform, summonerId, championId);
     } catch(RiotApiException e) {
       logger.debug("Impossible to get mastery score : {}", e.getMessage());
       if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {

@@ -1,16 +1,20 @@
 package ch.kalunight.zoe.command;
 
 import java.awt.Color;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
+
+import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.SelectionDialog;
 
-import ch.kalunight.zoe.ServerData;
-import ch.kalunight.zoe.model.Server;
+import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.repositories.RepoRessources;
+import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import ch.kalunight.zoe.util.LanguageUtil;
@@ -43,10 +47,10 @@ public class LanguageCommand extends ZoeCommand{
   protected void executeCommand(CommandEvent event) {
     CommandUtil.sendTypingInFonctionOfChannelType(event);
     
-    Server server = ServerData.getServers().get(event.getGuild().getId());
+    DTO.Server server = getServer(event.getGuild().getIdLong());
     
-    event.getTextChannel().sendMessage(String.format(LanguageManager.getText(server.getLangage(),
-        "languageCommandStartMessage"), LanguageManager.getText(server.getLangage(), NATIVE_LANGUAGE_TRANSLATION_ID), "<https://discord.gg/AyAYWGM>")).complete();
+    event.getTextChannel().sendMessage(String.format(LanguageManager.getText(server.serv_language,
+        "languageCommandStartMessage"), LanguageManager.getText(server.serv_language, NATIVE_LANGUAGE_TRANSLATION_ID), "<https://discord.gg/AyAYWGM>")).complete();
     
     SelectionDialog.Builder builder = new SelectionDialog.Builder()
         .addUsers(event.getAuthor())
@@ -65,25 +69,36 @@ public class LanguageCommand extends ZoeCommand{
       langagesList.add(langage);
     }
     
-    builder.setText(LanguageUtil.getUpdateMessageAfterChangeSelectAction(server.getLangage(), languageListTranslate));
+    builder.setText(LanguageUtil.getUpdateMessageAfterChangeSelectAction(server.serv_language, languageListTranslate));
     builder.setSelectionConsumer(getSelectionDoneAction(langagesList, server));
     builder.setCanceled(LanguageUtil.getCancelActionSelection());
     
     builder.build().display(event.getChannel());
   }
   
-  private BiConsumer<Message, Integer> getSelectionDoneAction(List<String> languageList, Server server) {
+  private BiConsumer<Message, Integer> getSelectionDoneAction(List<String> languageList, DTO.Server server) {
     return new BiConsumer<Message, Integer>() {
       @Override
       public void accept(Message selectionMessage, Integer selectionOfLanguage) {
 
         selectionMessage.clearReactions().queue();
 
-        server.setLangage(languageList.get(selectionOfLanguage - 1));
+        try {
+          ServerRepository.updateLanguage(server.serv_guildId, languageList.get(selectionOfLanguage - 1));
+          server.serv_language = languageList.get(selectionOfLanguage - 1);
+        } catch (SQLException e) {
+          RepoRessources.sqlErrorReport(selectionMessage.getChannel(), server, e);
+          return;
+        }
         
-        selectionMessage.getTextChannel().sendMessage(String.format(LanguageManager.getText(server.getLangage(), "languageCommandSelected"),
-            LanguageManager.getText(server.getLangage(), NATIVE_LANGUAGE_TRANSLATION_ID))).queue();
+        selectionMessage.getTextChannel().sendMessage(String.format(LanguageManager.getText(server.serv_language, "languageCommandSelected"),
+            LanguageManager.getText(server.serv_language, NATIVE_LANGUAGE_TRANSLATION_ID))).queue();
       }
     };
+  }
+
+  @Override
+  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
+    return helpBiConsumer;
   }
 }

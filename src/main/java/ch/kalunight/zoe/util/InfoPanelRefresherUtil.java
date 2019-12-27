@@ -1,13 +1,14 @@
 package ch.kalunight.zoe.util;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import com.google.common.base.Preconditions;
-import ch.kalunight.zoe.model.Server;
-import ch.kalunight.zoe.model.player_data.LeagueAccount;
-import ch.kalunight.zoe.model.player_data.Player;
+import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.repositories.CurrentGameInfoRepository;
+import ch.kalunight.zoe.repositories.LeagueAccountRepository;
+import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
-import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
 
 public class InfoPanelRefresherUtil {
@@ -16,17 +17,20 @@ public class InfoPanelRefresherUtil {
     //Hide default public constructor
   }
 
-  public static String getCurrentGameInfoStringForOneAccount(LeagueAccount account, String language) {
+  public static String getCurrentGameInfoStringForOneAccount(DTO.LeagueAccount account, String language) 
+      throws SQLException {
     Preconditions.checkNotNull(account);
 
+    DTO.CurrentGameInfo currentGameInfo = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(account.leagueAccount_id);
+
     String gameStatus = LanguageManager.getText(language, 
-        NameConversion.convertGameQueueIdToString(account.getCurrentGameInfo().getGameQueueConfigId())) 
-        + " " + LanguageManager.getText(language, "withTheAccount") + " **" + account.getSummoner().getName() + "**";
+        NameConversion.convertGameQueueIdToString(currentGameInfo.currentgame_currentgame.getGameQueueConfigId())) 
+        + " " + LanguageManager.getText(language, "withTheAccount") + " **" + account.leagueAccount_name + "**";
 
     double minutesOfGames = 0.0;
 
-    if(account.getCurrentGameInfo().getGameLength() != 0l) {
-      minutesOfGames = account.getCurrentGameInfo().getGameLength() + 180.0;
+    if(currentGameInfo.currentgame_currentgame.getGameLength() != 0l) {
+      minutesOfGames = currentGameInfo.currentgame_currentgame.getGameLength() + 180.0;
     }
 
     minutesOfGames = minutesOfGames / 60.0;
@@ -39,22 +43,26 @@ public class InfoPanelRefresherUtil {
     return gameStatus;
   }
 
-  public static String getCurrentGameInfoStringForMultipleAccounts(List<LeagueAccount> accounts, String language) {
+  public static String getCurrentGameInfoStringForMultipleAccounts(List<DTO.LeagueAccount> accounts, String language) 
+      throws SQLException {
     Preconditions.checkNotNull(accounts);
 
     StringBuilder stringBuilder = new StringBuilder();
 
-    for(LeagueAccount account : accounts) {
+    for(DTO.LeagueAccount account : accounts) {
+
+      DTO.CurrentGameInfo currentGameInfo = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(account.leagueAccount_id);
+
       stringBuilder.append("-" + LanguageManager.getText(language, "account") 
-      + " **" + account.getSummoner().getName() + "** : ");
+      + " **" + account.leagueAccount_name + "** : ");
 
       stringBuilder.append(LanguageManager.getText(language,
-          NameConversion.convertGameQueueIdToString(account.getCurrentGameInfo().getGameQueueConfigId())));
+          NameConversion.convertGameQueueIdToString(currentGameInfo.currentgame_currentgame.getGameQueueConfigId())));
 
       double minutesOfGames = 0.0;
 
-      if(account.getCurrentGameInfo().getGameLength() != 0l) {
-        minutesOfGames = account.getCurrentGameInfo().getGameLength() + 180.0;
+      if(currentGameInfo.currentgame_currentgame.getGameLength() != 0l) {
+        minutesOfGames = currentGameInfo.currentgame_currentgame.getGameLength() + 180.0;
       }
 
       minutesOfGames = minutesOfGames / 60.0;
@@ -66,36 +74,37 @@ public class InfoPanelRefresherUtil {
     }
     return stringBuilder.toString();
   }
-  
-  public static List<LeagueAccount> checkIfOthersAccountsInKnowInTheMatch(CurrentGameInfo currentGameInfo, Server server){
 
-    ArrayList<LeagueAccount> listOfAccounts = new ArrayList<>();
+  public static List<DTO.LeagueAccount> checkIfOthersAccountsInKnowInTheMatch(
+      DTO.CurrentGameInfo currentGameInfo, DTO.Server server) throws SQLException{
 
-    for(Player player : server.getPlayers()) {
-      for(LeagueAccount leagueAccount : player.getLolAccounts()) {
-        for(CurrentGameParticipant participant : currentGameInfo.getParticipants()) {
-          if(participant.getSummonerId().equals(leagueAccount.getSummoner().getId()) && !listOfAccounts.contains(leagueAccount)) {
-            listOfAccounts.add(leagueAccount);
-          }
+    List<DTO.LeagueAccount> allLeaguesAccounts = LeagueAccountRepository.getAllLeaguesAccounts(server.serv_guildId);
+    ArrayList<DTO.LeagueAccount> listOfAccounts = new ArrayList<>();
+
+    for(DTO.LeagueAccount leagueAccount : allLeaguesAccounts) {
+      for(CurrentGameParticipant participant : currentGameInfo.currentgame_currentgame.getParticipants()) {
+        if(participant.getSummonerId().equals(leagueAccount.leagueAccount_summonerId) && !listOfAccounts.contains(leagueAccount)) {
+          listOfAccounts.add(leagueAccount);
         }
       }
     }
     return listOfAccounts;
   }
-  
-  public static List<Player> checkIfOthersPlayersIsKnowInTheMatch(CurrentGameInfo currentGameInfo, Server server) {
 
-    ArrayList<Player> listOfPlayers = new ArrayList<>();
+  public static List<DTO.Player> checkIfOthersPlayersIsKnowInTheMatch(DTO.CurrentGameInfo currentGameInfo, DTO.Server server)
+      throws SQLException {
 
-    for(Player player : server.getPlayers()) {
-      for(LeagueAccount leagueAccount : player.getLolAccounts()) {
-        for(CurrentGameParticipant participant : currentGameInfo.getParticipants()) {
-          if(participant.getSummonerId().equals(leagueAccount.getSummoner().getId())) {
-            listOfPlayers.add(player);
-          }
-        }
+    ArrayList<DTO.Player> listOfPlayers = new ArrayList<>();
+    List<DTO.LeagueAccount> leagueAccounts = checkIfOthersAccountsInKnowInTheMatch(currentGameInfo, server);
+    
+    for(DTO.LeagueAccount leagueAccount : leagueAccounts) {
+      DTO.Player player = PlayerRepository.getPlayerByLeagueAccountAndGuild(
+          server.serv_guildId, leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server.getName());
+      if(!listOfPlayers.contains(player)) {
+        listOfPlayers.add(player);
       }
     }
+    
     return listOfPlayers;
   }
 }

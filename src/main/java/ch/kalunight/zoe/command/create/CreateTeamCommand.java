@@ -1,10 +1,13 @@
 package ch.kalunight.zoe.command.create;
 
+import java.sql.SQLException;
+import java.util.function.BiConsumer;
+
+import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.command.ZoeCommand;
-import ch.kalunight.zoe.model.Server;
-import ch.kalunight.zoe.model.player_data.Team;
+import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.repositories.TeamRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
@@ -23,27 +26,62 @@ public class CreateTeamCommand extends ZoeCommand {
   }
 
   @Override
-  protected void executeCommand(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) throws SQLException {
+    
     event.getTextChannel().sendTyping().complete();
+    
+    DTO.Server server = getServer(event.getGuild().getIdLong());
+    
     String nameTeam = event.getArgs();
-    Server server = ServerData.getServers().get(event.getGuild().getId());
+    
+    if(!checkNameValid(nameTeam)) {
+      event.reply(LanguageManager.getText(server.serv_language, "nameUseIllegalCharacter"));
+      return;
+    }
     
     if(nameTeam.equals("--server")) {
-      event.reply(LanguageManager.getText(server.getLangage(), "nameAlreadyUsedByTheSystem"));
+      event.reply(LanguageManager.getText(server.serv_language, "nameAlreadyUsedByTheSystem"));
       return;
     }
 
     if(nameTeam.equals("")) {
-      event.reply(LanguageManager.getText(server.getLangage(), "createTeamNeedName"));
+      event.reply(LanguageManager.getText(server.serv_language, "createTeamNeedName"));
     } else {
-      Team team = server.getTeamByName(nameTeam);
+      DTO.Team team = TeamRepository.getTeam(server.serv_guildId, nameTeam);
 
       if(team != null) {
-        event.reply(LanguageManager.getText(server.getLangage(), "createTeamNameAlreadyExist"));
+        event.reply(LanguageManager.getText(server.serv_language, "createTeamNameAlreadyExist"));
       } else {
-        server.getTeams().add(new Team(event.getArgs()));
-        event.reply(LanguageManager.getText(server.getLangage(), "createTeamDoneMessage"));
+        TeamRepository.createTeam(server.serv_id, nameTeam);
+        event.reply(String.format(LanguageManager.getText(server.serv_language, "createTeamDoneMessage"), event.getArgs()));
       }
     }
+  }
+
+  private boolean checkNameValid(String nameToCheck) {
+    
+    boolean nameInvalid = false;
+    
+    nameInvalid = nameToCheck.contains("*");
+    if(nameInvalid) {
+      return false;
+    }
+    
+    nameInvalid = nameToCheck.contains("_");
+    if(nameInvalid) {
+      return false;
+    }
+    
+    nameInvalid = nameToCheck.contains("`");
+    if(nameInvalid) {
+      return false;
+    }else {
+      return true;
+    }
+  }
+
+  @Override
+  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
+    return helpBiConsumer;
   }
 }

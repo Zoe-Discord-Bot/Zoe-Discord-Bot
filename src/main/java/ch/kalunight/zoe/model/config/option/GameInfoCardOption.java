@@ -1,39 +1,37 @@
 package ch.kalunight.zoe.model.config.option;
 
 import java.awt.Color;
+import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.ButtonMenu;
-import ch.kalunight.zoe.ServerData;
-import ch.kalunight.zoe.Zoe;
-import ch.kalunight.zoe.model.Server;
+import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.repositories.ConfigRepository;
+import ch.kalunight.zoe.repositories.RepoRessources;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
-import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.MessageReaction.ReactionEmote;
 
-public class InfoCardOption extends ConfigurationOption {
+public class GameInfoCardOption extends ConfigurationOption {
 
   private static final String INFOCARDS_DESC_ID = "infocardsOptionDesc";
   
   private boolean optionActivated;
   
-  public InfoCardOption() {
-    super("infocards", INFOCARDS_DESC_ID);
+  public GameInfoCardOption(long guildId) {
+    super(guildId, INFOCARDS_DESC_ID);
     this.optionActivated = true;
   }
 
   @Override
-  public Consumer<CommandEvent> getChangeConsumer(EventWaiter waiter) {
+  public Consumer<CommandEvent> getChangeConsumer(EventWaiter waiter, DTO.Server server) {
     return new Consumer<CommandEvent>() {
       
       @Override
       public void accept(CommandEvent event) {
-        
-        Server server = ServerData.getServers().get(event.getGuild().getId());
         
         ButtonMenu.Builder choiceBuilder = new ButtonMenu.Builder();
         
@@ -47,10 +45,10 @@ public class InfoCardOption extends ConfigurationOption {
         
         if(!optionActivated) {
 
-          choiceBuilder.setText(String.format(LanguageManager.getText(server.getLangage(),
-              "infocardsOptionLongDescEnable"), LanguageManager.getText(server.getLangage(), INFOCARDS_DESC_ID)));
+          choiceBuilder.setText(String.format(LanguageManager.getText(server.serv_language,
+              "infocardsOptionLongDescEnable"), LanguageManager.getText(server.serv_language, INFOCARDS_DESC_ID)));
           
-          choiceBuilder.setAction(activateTheOption(event.getChannel()));
+          choiceBuilder.setAction(activateTheOption(event.getChannel(), server));
           
           ButtonMenu menu = choiceBuilder.build();
                     
@@ -58,10 +56,10 @@ public class InfoCardOption extends ConfigurationOption {
           
         }else {
           
-          choiceBuilder.setText(String.format(LanguageManager.getText(server.getLangage(), "infocardsOptionLongDescDisable"),
-              LanguageManager.getText(server.getLangage(), INFOCARDS_DESC_ID)));
+          choiceBuilder.setText(String.format(LanguageManager.getText(server.serv_language, "infocardsOptionLongDescDisable"),
+              LanguageManager.getText(server.serv_language, INFOCARDS_DESC_ID)));
           
-          choiceBuilder.setAction(disableTheOption(event.getChannel()));
+          choiceBuilder.setAction(disableTheOption(event.getChannel(), server));
           
           ButtonMenu menu = choiceBuilder.build();
           
@@ -72,40 +70,46 @@ public class InfoCardOption extends ConfigurationOption {
       };
   }
   
-  private Consumer<ReactionEmote> disableTheOption(MessageChannel messageChannel) {
+  private Consumer<ReactionEmote> disableTheOption(MessageChannel messageChannel, DTO.Server server) {
     return new Consumer<ReactionEmote>() {
 
       @Override
       public void accept(ReactionEmote emote) {
         messageChannel.sendTyping().complete();
-        TextChannel textChannel = Zoe.getJda().getTextChannelById(messageChannel.getId());
-        
-        Server server = ServerData.getServers().get(textChannel.getId());
         
         if(emote.getName().equals("✅")) {
-          optionActivated = false;
-          messageChannel.sendMessage(LanguageManager.getText(server.getLangage(), "cleanChannelOptionBeenDisable")).queue();
+          try {
+            ConfigRepository.updateGameInfoCardOption(guildId, false);
+            optionActivated = false;
+          } catch (SQLException e) {
+            RepoRessources.sqlErrorReport(messageChannel, server, e);
+            return;
+          }
+          messageChannel.sendMessage(LanguageManager.getText(server.serv_language, "cleanChannelOptionBeenDisable")).queue();
         }else {
-          messageChannel.sendMessage(LanguageManager.getText(server.getLangage(), "cleanChannelOptionStillEnable")).queue();
+          messageChannel.sendMessage(LanguageManager.getText(server.serv_language, "cleanChannelOptionStillEnable")).queue();
         }
     }};
   }
   
-  private Consumer<ReactionEmote> activateTheOption(MessageChannel messageChannel) {
+  private Consumer<ReactionEmote> activateTheOption(MessageChannel messageChannel, DTO.Server server) {
     return new Consumer<ReactionEmote>() {
 
       @Override
       public void accept(ReactionEmote emoteUsed) {
         messageChannel.sendTyping().complete();
-        TextChannel textChannel = Zoe.getJda().getTextChannelById(messageChannel.getId());
-        
-        Server server = ServerData.getServers().get(textChannel.getId());
         
         if(emoteUsed.getName().equals("✅")) {
-          optionActivated = true;
-          messageChannel.sendMessage(LanguageManager.getText(server.getLangage(), "cleanChannelOptionBeenActivated")).queue();
+          try {
+            ConfigRepository.updateGameInfoCardOption(guildId, true);
+            optionActivated = true;
+          } catch (SQLException e) {
+            RepoRessources.sqlErrorReport(messageChannel, server, e);
+            return;
+          }
+          messageChannel.sendMessage(LanguageManager.getText(server.serv_language, "cleanChannelOptionBeenActivated")).queue();
         }else {
-          messageChannel.sendMessage(LanguageManager.getText(server.getLangage(), "cleanChannelOptionStillDisable")).queue();
+          messageChannel.sendMessage(LanguageManager.getText(server.serv_language, "cleanChannelOptionStillDisable")).queue();
         }
       }};
   }
@@ -130,18 +134,6 @@ public class InfoCardOption extends ConfigurationOption {
       status = LanguageManager.getText(langage, "optionDisable");
     }
     return LanguageManager.getText(langage, description) + " : " + status;
-  }
-
-  @Override
-  public String getSave() {
-    return id + ":" + optionActivated;
-  }
-
-  @Override
-  public void restoreSave(String save) {
-    String[] saveDatas = save.split(":");
-    
-    optionActivated = Boolean.parseBoolean(saveDatas[1]);
   }
 
   public boolean isOptionActivated() {

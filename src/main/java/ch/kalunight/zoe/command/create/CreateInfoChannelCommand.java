@@ -1,20 +1,25 @@
 package ch.kalunight.zoe.command.create;
 
+import java.sql.SQLException;
+import java.util.function.BiConsumer;
+
+import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import ch.kalunight.zoe.ServerData;
+
 import ch.kalunight.zoe.command.ZoeCommand;
-import ch.kalunight.zoe.model.Server;
-import ch.kalunight.zoe.service.InfoPanelRefresher;
+import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.repositories.InfoChannelRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 
 public class CreateInfoChannelCommand extends ZoeCommand {
 
   public CreateInfoChannelCommand() {
-    this.name = "InfoChannel";
+    this.name = "infoChannel";
     this.arguments = "nameOfTheNewChannel";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
@@ -23,45 +28,53 @@ public class CreateInfoChannelCommand extends ZoeCommand {
   }
 
   @Override
-  protected void executeCommand(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) throws SQLException {
     event.getTextChannel().sendTyping().complete();
-    Server server = ServerData.getServers().get(event.getGuild().getId());
 
+    DTO.Server server = getServer(event.getGuild().getIdLong());
+    
     String nameChannel = event.getArgs();
 
     if(nameChannel == null || nameChannel.equals("")) {
-      event.reply(LanguageManager.getText(server.getLangage(), "nameOfInfochannelNeeded"));
+      event.reply(LanguageManager.getText(server.serv_language, "nameOfInfochannelNeeded"));
       return;
     }
 
     if(nameChannel.length() > 100) {
-      event.reply(LanguageManager.getText(server.getLangage(), "nameOfTheInfoChannelNeedToBeLess100Characters"));
+      event.reply(LanguageManager.getText(server.serv_language, "nameOfTheInfoChannelNeedToBeLess100Characters"));
       return;
     }
 
-    if(server.getInfoChannel() != null) {
-      event.reply(LanguageManager.getText(server.getLangage(), "infochannelAlreadyExist"));
-      return;
+    DTO.InfoChannel dbInfochannel = InfoChannelRepository.getInfoChannel(server.serv_guildId);
+
+    if(dbInfochannel != null && dbInfochannel.infochannel_channelid != 0) {
+
+      TextChannel infoChannel = event.getGuild().getTextChannelById(dbInfochannel.infochannel_channelid);
+      if(infoChannel == null) {
+        InfoChannelRepository.deleteInfoChannel(server);
+      }else {
+        event.reply(String.format(LanguageManager.getText(server.serv_language, "infochannelAlreadyExist"), infoChannel.getAsMention()));
+        return;
+      }
     }
 
     try {
       TextChannel infoChannel = event.getGuild().createTextChannel(nameChannel).complete();
-      String id = infoChannel.getId();
-      TextChannel textChannel = event.getGuild().getTextChannelById(id);
-      server.setInfoChannel(textChannel.getIdLong());
-      
-      if(server.getControlePannel().getInfoPanel().isEmpty()) {
-        server.getControlePannel().getInfoPanel()
-        .add(server.getInfoChannel().sendMessage(LanguageManager.getText(server.getLangage(), "infoChannelTitle")
-            + "\n \n" + LanguageManager.getText(server.getLangage(), "loading")).complete());
-      }
-      
-      Runnable task = new InfoPanelRefresher(server);
-      ServerData.getServerExecutor().execute(task);
+      InfoChannelRepository.createInfoChannel(server.serv_id, infoChannel.getIdLong());
+      Message message = infoChannel.sendMessage(LanguageManager.getText(server.serv_language, "infoChannelTitle")
+            + "\n \n" + LanguageManager.getText(server.serv_language, "loading")).complete();
 
-      event.reply(LanguageManager.getText(server.getLangage(), "channelCreatedMessage"));
+      dbInfochannel = InfoChannelRepository.getInfoChannel(server.serv_guildId);
+      InfoChannelRepository.createInfoPanelMessage(dbInfochannel.infoChannel_id, message.getIdLong());
+
+      event.reply(LanguageManager.getText(server.serv_language, "channelCreatedMessage"));
     } catch(InsufficientPermissionException e) {
-      event.reply(LanguageManager.getText(server.getLangage(), "impossibleToCreateInfoChannelMissingPerms"));
+      event.reply(LanguageManager.getText(server.serv_language, "impossibleToCreateInfoChannelMissingPerms"));
     }
+  }
+
+  @Override
+  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
+    return helpBiConsumer;
   }
 }

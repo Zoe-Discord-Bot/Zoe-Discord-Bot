@@ -1,15 +1,21 @@
 package ch.kalunight.zoe.model.config.option;
 
 import java.awt.Color;
+import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.ButtonMenu;
-import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
-import ch.kalunight.zoe.model.Server;
-import ch.kalunight.zoe.model.player_data.Player;
+import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.DTO.Player;
+import ch.kalunight.zoe.repositories.ConfigRepository;
+import ch.kalunight.zoe.repositories.InfoChannelRepository;
+import ch.kalunight.zoe.repositories.PlayerRepository;
+import ch.kalunight.zoe.repositories.RepoRessources;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
@@ -19,28 +25,29 @@ import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.MessageReaction.ReactionEmote;
 import net.dv8tion.jda.api.entities.PermissionOverride;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.requests.restaction.RoleAction;
 
 public class RoleOption extends ConfigurationOption {
 
+  private static final Logger logger = LoggerFactory.getLogger(RoleOption.class);
+  
   private Role role;
 
-  public RoleOption() {
-    super("player_role", "roleOptionDescription");
+  public RoleOption(long guildId) {
+    super(guildId, "roleOptionDescription");
     role = null;
   }
 
   @Override
-  public Consumer<CommandEvent> getChangeConsumer(EventWaiter waiter) {
+  public Consumer<CommandEvent> getChangeConsumer(EventWaiter waiter, DTO.Server server) {
     return new Consumer<CommandEvent>() {
 
       @Override
       public void accept(CommandEvent event) {
-        
-        Server server = ServerData.getServers().get(event.getGuild().getId());
-        
+
         if(!event.getGuild().getSelfMember().getPermissions().contains(Permission.MANAGE_ROLES)) {
-          event.reply(LanguageManager.getText(server.getLangage(), "roleOptionPermissionNeeded"));
+          event.reply(LanguageManager.getText(server.serv_language, "roleOptionPermissionNeeded"));
           return;
         }
 
@@ -55,18 +62,19 @@ public class RoleOption extends ConfigurationOption {
         choiceBuilder.setTimeout(2, TimeUnit.MINUTES);
 
         if(role == null) {
-          choiceBuilder.setText(String.format(LanguageManager.getText(server.getLangage(), "roleOptionLongDesc"), description));
+          choiceBuilder.setText(String.format(LanguageManager.getText(server.serv_language, "roleOptionLongDesc"), 
+              LanguageManager.getText(server.serv_language, description)));
 
-          choiceBuilder.setAction(receiveValidationAndCreateOption(event.getChannel(), event.getGuild(), server.getLangage()));
+          choiceBuilder.setAction(receiveValidationAndCreateOption(event.getChannel(), event.getGuild(), server));
 
           ButtonMenu menu = choiceBuilder.build();
 
           menu.display(event.getChannel());
 
         }else {
-          choiceBuilder.setText(String.format(LanguageManager.getText(server.getLangage(), "roleOptionLongDescDisable"), description));
+          choiceBuilder.setText(String.format(LanguageManager.getText(server.serv_language, "roleOptionLongDescDisable"), description));
 
-          choiceBuilder.setAction(receiveValidationAndDisableOption(event.getChannel(), event.getGuild(), server.getLangage()));
+          choiceBuilder.setAction(receiveValidationAndDisableOption(event.getChannel(), event.getGuild(), server));
 
           ButtonMenu menu = choiceBuilder.build();
 
@@ -75,68 +83,95 @@ public class RoleOption extends ConfigurationOption {
       }};
   }
 
-  private Consumer<ReactionEmote> receiveValidationAndCreateOption(MessageChannel channel, Guild guild, String langage) {
+  private Consumer<ReactionEmote> receiveValidationAndCreateOption(MessageChannel channel, Guild guild, DTO.Server server) {
     return new Consumer<ReactionEmote>() {
 
       @Override
       public void accept(ReactionEmote emoteUsed) {
         channel.sendTyping().complete();
-        if(emoteUsed.getName().equals("✅")) {
-          channel.sendMessage(LanguageManager.getText(langage, "roleOptionActivateWaitMessage")).complete();
-          channel.sendTyping().complete();
-          RoleAction action = guild.createRole();
-          action.setName("Zoe-Player");
-          action.setMentionable(false);
-          action.setColor(Color.PINK);
-          role = action.complete();
+        try {
+          if(emoteUsed.getName().equals("✅")) {
+            channel.sendMessage(LanguageManager.getText(server.serv_language, "roleOptionActivateWaitMessage")).complete();
+            channel.sendTyping().complete();
+            RoleAction action = guild.createRole();
+            action.setName("Zoe-Player");
+            action.setMentionable(false);
+            action.setColor(Color.PINK);
+            role = action.complete();
+            try {
+              ConfigRepository.updateRoleOption(guildId, role.getIdLong());
+            } catch (SQLException e) {
+              RepoRessources.sqlErrorReport(channel, server, e);
+              return;
+            }
 
-          Server server = ServerData.getServers().get(guild.getId());
-          for(Player player : server.getPlayers()) {
-            Member member = guild.getMember(player.getDiscordUser());
-            guild.addRoleToMember(member, role).queue();
+
+            for(Player player : PlayerRepository.getPlayers(guildId)) {
+              Member member = guild.getMember(player.user);
+              guild.addRoleToMember(member, role).queue();
+            }
+
+            DTO.InfoChannel infochannelDb = InfoChannelRepository.getInfoChannel(guildId);
+            if(infochannelDb != null) {
+              TextChannel infochannel = guild.getTextChannelById(infochannelDb.infochannel_channelid);
+              PermissionOverride permissionZoePlayer = infochannel.putPermissionOverride(role).complete();
+              permissionZoePlayer.getManager().grant(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).complete();
+
+              PermissionOverride permissionZoe = infochannel
+                  .putPermissionOverride(guild.getMember(Zoe.getJda().getSelfUser())).complete();
+              permissionZoe.getManager().grant(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).complete();
+
+              PermissionOverride everyone = infochannel.putPermissionOverride(guild.getPublicRole()).complete();
+              everyone.getManager().deny(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).complete();
+            }
+            channel.sendMessage(LanguageManager.getText(server.serv_language, "roleOptionDoneMessage")).complete();
+          }else {
+            channel.sendMessage(LanguageManager.getText(server.serv_language, "roleOptionCancelMessage")).queue();
           }
-
-          if(server.getInfoChannel() != null) {
-            PermissionOverride permissionZoePlayer = server.getInfoChannel().putPermissionOverride(role).complete();
-            permissionZoePlayer.getManager().grant(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).complete();
-
-            PermissionOverride permissionZoe = server.getInfoChannel()
-                .putPermissionOverride(server.getGuild().getMember(Zoe.getJda().getSelfUser())).complete();
-            permissionZoe.getManager().grant(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).complete();
-
-            PermissionOverride everyone = server.getInfoChannel().putPermissionOverride(server.getGuild().getPublicRole()).complete();
-            everyone.getManager().deny(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).complete();
-          }
-          channel.sendMessage(LanguageManager.getText(langage, "roleOptionDoneMessage")).complete();
-        }else {
-          channel.sendMessage(LanguageManager.getText(langage, "roleOptionCancelMessage")).queue();
+        }catch(SQLException e) {
+          logger.error("SQL Error when configure role option !", e);
+          channel.sendMessage(LanguageManager.getText(server.serv_language, "errorSQLPleaseReport")).queue();
         }
       }};
 
   }
 
-  private Consumer<ReactionEmote> receiveValidationAndDisableOption(MessageChannel channel, Guild guild, String langage) {
+  private Consumer<ReactionEmote> receiveValidationAndDisableOption(MessageChannel channel, Guild guild, DTO.Server server) {
     return new Consumer<ReactionEmote>() {
-      
+
       @Override
       public void accept(ReactionEmote emoteUsed) {
         channel.sendTyping().complete();
         if(emoteUsed.getName().equals("✅")) {
-          channel.sendMessage(LanguageManager.getText(langage, "roleOptionDisableWaitMessage")).complete();
+          channel.sendMessage(LanguageManager.getText(server.serv_language, "roleOptionDisableWaitMessage")).complete();
           channel.sendTyping().complete();
           role.delete().complete();
+          try {
+            ConfigRepository.updateRoleOption(guildId, 0);
+          } catch (SQLException e) {
+            RepoRessources.sqlErrorReport(channel, server, e);
+            return;
+          }
 
-          Server server = ServerData.getServers().get(guild.getId());
-
-          if(server != null && server.getInfoChannel() != null) {
-            PermissionOverride everyone = server.getInfoChannel().getPermissionOverride(server.getGuild().getPublicRole());
+          DTO.InfoChannel infoChannelDb;
+          try {
+            infoChannelDb = InfoChannelRepository.getInfoChannel(server.serv_guildId);
+          } catch(SQLException e) {
+            logger.error("SQL Error when configure role option !", e);
+            channel.sendMessage(LanguageManager.getText(server.serv_language, "errorSQLPleaseReport")).queue();
+            return;
+          }
+          
+          if(infoChannelDb != null) {
+            TextChannel infochannel = guild.getTextChannelById(guildId);
+            PermissionOverride everyone = infochannel.getPermissionOverride(guild.getPublicRole());
             everyone.getManager().grant(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).complete();
           }
 
           role = null;
-          channel.sendMessage(LanguageManager.getText(langage, "roleOptionDoneMessageDisable")).queue();
+          channel.sendMessage(LanguageManager.getText(server.serv_language, "roleOptionDoneMessageDisable")).queue();
         }else {
-          channel.sendMessage(LanguageManager.getText(langage, "roleOptionDoneMessageStillActivate")).queue();
+          channel.sendMessage(LanguageManager.getText(server.serv_language, "roleOptionDoneMessageStillActivate")).queue();
         }
       }};
   }
@@ -159,27 +194,6 @@ public class RoleOption extends ConfigurationOption {
     return LanguageManager.getText(langage, description) + " : " + status;
   }
 
-  @Override
-  public String getSave() {
-    String save = NO_VALUE_REPRESENTATION;
-    if(role != null) {
-      save = role.getId() + ":" + role.getGuild().getId();
-    }
-    return id + ":" + save;
-  }
-
-  @Override
-  public void restoreSave(String save) {
-    String[] saveDatas = save.split(":");
-
-    if(!saveDatas[1].equals(NO_VALUE_REPRESENTATION)) {
-      Guild guild = Zoe.getJda().getGuildById(saveDatas[2]);
-      if(guild != null) {
-        role = guild.getRoleById(saveDatas[1]);
-      }
-    }
-  }
-
   public Role getRole() {
     return role;
   }
@@ -187,5 +201,4 @@ public class RoleOption extends ConfigurationOption {
   public void setRole(Role role) {
     this.role = role;
   }
-
 }

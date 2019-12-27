@@ -1,9 +1,5 @@
 package ch.kalunight.zoe.util;
 
-import java.util.ArrayList;
-import java.util.List;
-import ch.kalunight.zoe.model.player_data.Player;
-
 public class NameConversion {
 
   private NameConversion() {}
@@ -48,20 +44,5 @@ public class NameConversion {
       default:
         return "gameTypeUnknown";
     }
-  }
-
-  public static List<String> getListNameOfPlayers(List<Player> players) {
-    List<String> playersName = new ArrayList<>();
-
-    for(int j = 0; j < players.size(); j++) {
-      String name = "";
-      if(players.get(j).isMentionnable()) {
-        name = players.get(j).getDiscordUser().getAsMention();
-      } else {
-        name = players.get(j).getDiscordUser().getName();
-      }
-      playersName.add(name);
-    }
-    return playersName;
   }
 }

@@ -4,8 +4,11 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.sql.SQLException;
+import java.util.function.BiConsumer;
+import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 
@@ -25,7 +28,7 @@ public class PatchNotesCommand extends ZoeCommand {
   }
   
   @Override
-  protected void executeCommand(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) throws SQLException {
     CommandUtil.sendTypingInFonctionOfChannelType(event);
     
     try(final BufferedReader reader = new BufferedReader(new FileReader(patchNoteFile));) {
@@ -39,8 +42,14 @@ public class PatchNotesCommand extends ZoeCommand {
       
       event.reply(builder.toString());
     } catch(IOException e) {
-      event.reply(LanguageManager.getText(ServerData.getServers().get(event.getGuild().getId()).getLangage(), "patchNoteUnavailable"));
+      DTO.Server server = getServer(event.getGuild().getIdLong());
+      event.reply(LanguageManager.getText(server.serv_language, "patchNoteUnavailable"));
     }
+  }
+
+  @Override
+  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
+    return helpBiConsumer;
   }
 
 }

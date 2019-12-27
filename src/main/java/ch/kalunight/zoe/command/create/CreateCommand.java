@@ -1,9 +1,11 @@
 package ch.kalunight.zoe.command.create;
 
+import java.util.function.BiConsumer;
+
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.command.ZoeCommand;
+import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
@@ -24,6 +26,12 @@ public class CreateCommand extends ZoeCommand {
 
   @Override
   protected void executeCommand(CommandEvent event) {
-    event.reply(LanguageManager.getText(ServerData.getServers().get(event.getGuild().getId()).getLangage(), "mainCreateCommandHelpMessage"));
+    DTO.Server server = getServer(event.getGuild().getIdLong());
+    event.reply(LanguageManager.getText(server.serv_language, "mainCreateCommandHelpMessage"));
+  }
+
+  @Override
+  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
+    return helpBiConsumer;
   }
 }

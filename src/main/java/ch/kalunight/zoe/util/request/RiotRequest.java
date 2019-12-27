@@ -69,8 +69,7 @@ public class RiotRequest {
   public static String getWinrateLastMonthWithGivenChampion(String summonerId, Platform region,
       int championKey, String language) {
 
-    Zoe.getRiotApi().isRequestsCanBeExecuted(1, region);
-    Zoe.getRiotApi().addApiCallForARegion(1, region);
+    Zoe.getRiotApi().isRequestsCanBeExecuted(1, region, false);
     
     Summoner summoner;
     try {
@@ -80,8 +79,7 @@ public class RiotRequest {
       return LanguageManager.getText(language, "unknown");
     }
 
-    Zoe.getRiotApi().isRequestsCanBeExecuted(4, region);
-    Zoe.getRiotApi().addApiCallForARegion(4, region);
+    Zoe.getRiotApi().isRequestsCanBeExecuted(4, region, false);
     
     List<MatchReference> referencesMatchList;
     try {
@@ -95,8 +93,7 @@ public class RiotRequest {
       return LanguageManager.getText(language, "firstGame");
     }
 
-    Zoe.getRiotApi().isRequestsCanBeExecuted(referencesMatchList.size(), region);
-    Zoe.getRiotApi().addApiCallForARegion(referencesMatchList.size(), region);
+    Zoe.getRiotApi().isRequestsCanBeExecuted(referencesMatchList.size(), region, true);
     
     WinRateReceiver winRateReceiver = new WinRateReceiver();
     RiotApiAsync riotApiAsync = Zoe.getRiotApi().getAsyncRiotApi();
@@ -185,8 +182,7 @@ public class RiotRequest {
   }
 
   public static String getMasterysScore(String summonerId, int championId, Platform platform) {
-    Zoe.getRiotApi().isRequestsCanBeExecuted(1, platform);
-    Zoe.getRiotApi().addApiCallForARegion(1, platform);
+    Zoe.getRiotApi().isRequestsCanBeExecuted(1, platform, false);
     
     ChampionMastery mastery = null;
     try {

@@ -58,11 +58,11 @@ public class CachedRiotApi {
   static {
     for(Platform platform : Platform.values()) {
       callByEndpoints.put(platform, new AtomicInteger(0));
-      shortRangeRateLimitHandler.put(platform, new ArrayList<>());
+      shortRangeRateLimitHandler.put(platform, Collections.synchronizedList(new ArrayList<>()));
     }
   }
 
-  public static void increaseCallCountForGivenRegion(Platform platform) {
+  private static void increaseCallCountForGivenRegion(Platform platform) {
     callByEndpoints.get(platform).incrementAndGet();
     shortRangeRateLimitHandler.get(platform).add(LocalDateTime.now());
   }
@@ -194,10 +194,14 @@ public class CachedRiotApi {
     }
   }
 
-  public boolean isRequestsCanBeExecuted(int nbrRequest, Platform platform) {
+  public boolean isRequestsCanBeExecuted(int nbrRequest, Platform platform, boolean addRequest) {
     synchronized(shortRangeRateLimitHandler) {
       List<LocalDateTime> callsPerTime = shortRangeRateLimitHandler.get(platform);
 
+      if(addRequest) {
+        addApiCallForARegion(nbrRequest, platform);
+      }
+      
       if(nbrRequest > RIOT_API_LOW_LIMIT) {
         return true;
       }
@@ -232,12 +236,10 @@ public class CachedRiotApi {
   }
 
   public void addApiCallForARegion(int nbrCalls, Platform platform) {
-    synchronized(shortRangeRateLimitHandler) {
-      callByEndpoints.get(platform).addAndGet(nbrCalls);
-      List<LocalDateTime> shortRangeLimit = shortRangeRateLimitHandler.get(platform);
-      for(int i = 0; i < nbrCalls; i++) {
-        shortRangeLimit.add(LocalDateTime.now());
-      }
+    callByEndpoints.get(platform).addAndGet(nbrCalls);
+    List<LocalDateTime> shortRangeLimit = shortRangeRateLimitHandler.get(platform);
+    for(int i = 0; i < nbrCalls; i++) {
+      shortRangeLimit.add(LocalDateTime.now());
     }
   }
 

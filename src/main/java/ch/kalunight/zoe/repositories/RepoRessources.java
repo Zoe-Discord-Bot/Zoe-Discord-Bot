@@ -15,8 +15,8 @@ import net.dv8tion.jda.api.entities.MessageChannel;
 public class RepoRessources {
 
   public static String DB_USERNAME = "zoeadmin";
-  public static String DB_PASSWORD = "xf345sD2#a@v";
-  public static String DB_URL = "jdbc:postgresql://localhost:5432/zoe";
+  public static String DB_PASSWORD = "";
+  public static String DB_URL = "";
   
   private static final Logger logger = LoggerFactory.getLogger(RepoRessources.class);
   
@@ -37,6 +37,14 @@ public class RepoRessources {
   public static void sqlErrorReport(MessageChannel channel, DTO.Server server, SQLException e) {
     logger.error("SQL issue when updating option", e);
     channel.sendMessage(LanguageManager.getText(server.serv_language, "errorSQLPleaseReport")).complete();
+  }
+  
+  public static void setDB_PASSWORD(String dB_PASSWORD) {
+    DB_PASSWORD = dB_PASSWORD;
+  }
+
+  public static void setDB_URL(String dB_URL) {
+    DB_URL = dB_URL;
   }
   
 }

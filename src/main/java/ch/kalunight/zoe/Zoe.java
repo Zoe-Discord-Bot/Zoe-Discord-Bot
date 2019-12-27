@@ -41,6 +41,7 @@ import ch.kalunight.zoe.command.show.ShowCommand;
 import ch.kalunight.zoe.command.stats.StatsCommand;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.model.static_data.CustomEmote;
+import ch.kalunight.zoe.repositories.RepoRessources;
 import ch.kalunight.zoe.riotapi.CachedRiotApi;
 import ch.kalunight.zoe.util.CommandUtil;
 import ch.kalunight.zoe.util.Ressources;
@@ -80,17 +81,29 @@ public class Zoe {
   private static DiscordBotListAPI botListApi;
 
   public static void main(String[] args) {
-	  
+
     System.setProperty("logback.configurationFile", "logback.xml");
 
     CommandClientBuilder client = new CommandClientBuilder();
 
-    String discordTocken = args[0];
-    String riotTocken = args[1];
-    client.setOwnerId(args[2]);
+    String discordTocken;
+    String riotTocken;
 
     try {
-      discordBotListTocken = args[3];
+      discordTocken = args[0];
+      riotTocken = args[1];
+      client.setOwnerId(args[2]);
+
+      RepoRessources.setDB_URL(args[3]);
+      RepoRessources.setDB_PASSWORD(args[4]);
+    }catch(Exception e) {
+      logger.error("Error with parameters : 1. Discord Tocken 2. Riot tocken 3. Owner Id 4. DB url 5. DB password");
+      throw e;
+    }
+
+
+    try {
+      discordBotListTocken = args[5];
     } catch(Exception e) {
       logger.info("Discord api list tocken not implement");
     }
@@ -195,7 +208,7 @@ public class Zoe {
       Ressources.setChampions(champions);
     }
   }
-  
+
   public static CachedRiotApi getRiotApi() {
     return riotApi;
   }

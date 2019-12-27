@@ -5,21 +5,28 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
+
 import org.discordbots.api.client.DiscordBotListAPI;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.jagrosh.jdautilities.menu.SelectionDialog;
+
 import ch.kalunight.zoe.command.LanguageCommand;
-import ch.kalunight.zoe.model.ControlPannel;
-import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.config.option.CleanChannelOption.CleanChannelOptionInfo;
-import ch.kalunight.zoe.model.player_data.Player;
+import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.repositories.ConfigRepository;
+import ch.kalunight.zoe.repositories.InfoChannelRepository;
+import ch.kalunight.zoe.repositories.PlayerRepository;
+import ch.kalunight.zoe.repositories.ServerRepository;
+import ch.kalunight.zoe.repositories.ServerStatusRepository;
 import ch.kalunight.zoe.riotapi.CacheManager;
 import ch.kalunight.zoe.service.InfoPanelRefresher;
 import ch.kalunight.zoe.service.RiotApiUsageChannelRefresh;
@@ -34,7 +41,6 @@ import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageChannel;
-import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.ReadyEvent;
@@ -43,27 +49,32 @@ import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberLeaveEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.role.RoleDeleteEvent;
-import net.dv8tion.jda.api.events.user.update.UserUpdateActivityOrderEvent;
+import net.dv8tion.jda.api.events.user.UserActivityStartEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.rithms.riot.api.RiotApiException;
 
 public class EventListener extends ListenerAdapter {
-
+  
   //Useless to translate
   private static final String WELCOME_MESSAGE = "Hello ! Thank you for adding me to your server ! "
       + "I'm here to help you to configurate your server with some "
       + "basic options. You can always do the command `>setup` or `>help` if you need help.\n\n"
       + "First, please choose your language. (Will be defined for the server, i only speak in english in private message)";
-  
 
-  private static Logger logger = LoggerFactory.getLogger(EventListener.class);
+  private static final Logger logger = LoggerFactory.getLogger(EventListener.class);
 
   @Override
   public void onReady(ReadyEvent event) {
     Zoe.getJda().getPresence().setStatus(OnlineStatus.DO_NOT_DISTURB);
     Zoe.getJda().getPresence().setActivity(Activity.playing("Booting ..."));
 
-    setupNonInitializedGuild();
+    logger.info("Setup non initialized Guild ...");
+    try {
+      setupNonInitializedGuild();
+    } catch(SQLException e) {
+      logger.error("Issue when setup non initialized Guild !", e);
+      System.exit(1);
+    }
+    logger.info("Setup non initialized Guild Done !");
 
     logger.info("Loading of champions ...");
     try {
@@ -83,7 +94,7 @@ public class EventListener extends ListenerAdapter {
       System.exit(1);
     }
     logger.info("Loading of translation finished !");
-    
+
     logger.info("Loading of emotes ...");
     try {
       EventListenerUtil.loadCustomEmotes();
@@ -95,19 +106,6 @@ public class EventListener extends ListenerAdapter {
     logger.info("Setup cache ...");
     CacheManager.setupCache();
     logger.info("Setup cache finished !");
-    
-    logger.info("Loading of guilds ...");
-    try {
-      Zoe.loadDataTxt();
-    } catch(IOException e) {
-      logger.error("Critical error with the loading of guilds (File issue) !", e);
-      System.exit(1);
-    } catch(RiotApiException e) {
-      logger.error("Critical error with the Riot API when loadings of guilds (Riot Api issue) !", e);
-      System.exit(1);
-    }
-
-    logger.info("Loading of guilds finished !");
 
     logger.info("Loading of RAPI Status Channel ...");
 
@@ -138,16 +136,13 @@ public class EventListener extends ListenerAdapter {
     logger.info("Booting finished !");
   }
 
-  private void setupNonInitializedGuild() {
+  private void setupNonInitializedGuild() throws SQLException {
     for(Guild guild : Zoe.getJda().getGuilds()) {
-      if(!guild.getOwnerId().equals(Zoe.getJda().getSelfUser().getId())) {
-        Server server = ServerData.getServers().get(guild.getId());
-
-        if(server == null) {
-          ServerData.getServers().put(guild.getId(), new Server(guild.getIdLong(), LanguageManager.DEFAULT_LANGUAGE, new ServerConfiguration()));
-        }
+      if(!guild.getOwnerId().equals(Zoe.getJda().getSelfUser().getId()) && !ServerRepository.checkServerExist(guild.getIdLong())) {
+        ServerRepository.createNewServer(guild.getIdLong(), LanguageManager.DEFAULT_LANGUAGE);
       }
     }
+    ServerStatusRepository.updateAllServerInTreatment(false);
   }
 
   private void setupContinousRefreshThread() {
@@ -184,37 +179,47 @@ public class EventListener extends ListenerAdapter {
 
   @Override
   public void onGuildJoin(GuildJoinEvent event) {
-
-    if(!event.getGuild().getOwner().getUser().getId().equals(Zoe.getJda().getSelfUser().getId())) {
-      ServerData.getServers().put(event.getGuild().getId(), new Server(event.getGuild().getIdLong(), LanguageManager.DEFAULT_LANGUAGE, new ServerConfiguration()));
-      ServerData.getServersIsInTreatment().put(event.getGuild().getId(), false);
-      askingConfig(event.getGuild(), event.getGuild().getOwner().getUser());
+    try {
+      if(!event.getGuild().getOwner().getUser().getId().equals(Zoe.getJda().getSelfUser().getId())) {
+        DTO.Server server = ServerRepository.getServer(event.getGuild().getIdLong());
+        if(server == null) {
+          ServerRepository.createNewServer(event.getGuild().getIdLong(), LanguageManager.DEFAULT_LANGUAGE);
+          askingConfig(event.getGuild(), event.getGuild().getOwner().getUser());
+        }else {
+          CommandUtil.getFullSpeakableChannel(
+              event.getGuild()).sendMessage(LanguageManager.getText(server.serv_language, "guildJoinHiAgain")).queue();
+        }
+      }
+    }catch(SQLException e) {
+      logger.error("SQL error when joining a guild !", e);
+    }catch(Exception e) {
+      logger.error("Unknown error when joining a guild !", e);
     }
   }
-  
-  private void askingConfig(Guild guild, User owner) {
-    
-    Server server = ServerData.getServers().get(guild.getId());
-    
+
+  private void askingConfig(Guild guild, User owner) throws SQLException {
+
+    DTO.Server server = ServerRepository.getServer(guild.getIdLong());
+
     MessageChannel channel;
-    
+
     MessageChannel channelOfGuild = CommandUtil.getFullSpeakableChannel(guild);
-    
+
     if(channelOfGuild != null) {
       channel = channelOfGuild;
     }else {
       channel = owner.openPrivateChannel().complete();
     }
-    
+
     channel.sendMessage(WELCOME_MESSAGE).complete();
-    
+
     SelectionDialog.Builder builder = new SelectionDialog.Builder()
         .setTimeout(60, TimeUnit.MINUTES)
         .setColor(Color.GREEN)
         .useLooping(true)
         .setSelectedEnds("**", "**")
         .setEventWaiter(Zoe.getEventWaiter());
-    
+
     List<String> langagesList = new ArrayList<>();
     List<String> translatedLanguageList = new ArrayList<>();
     for(String langage : LanguageManager.getListlanguages()) {
@@ -223,34 +228,32 @@ public class EventListener extends ListenerAdapter {
       translatedLanguageList.add(LanguageManager.getText(langage, LanguageCommand.NATIVE_LANGUAGE_TRANSLATION_ID));
       langagesList.add(langage);
     }
-    
+
     builder.setText(LanguageUtil.getUpdateMessageAfterChangeSelectAction(LanguageManager.DEFAULT_LANGUAGE, translatedLanguageList));
     builder.setSelectionConsumer(EventListenerUtil.getSelectionDoneActionLangueSelection(langagesList, server, channel));
     builder.setCanceled(LanguageUtil.getCancelActionSelection());
-    
+
     builder.build().display(channel);
   }
 
   @Override
   public void onTextChannelDelete(TextChannelDeleteEvent event) {
-    Server server = ServerData.getServers().get(event.getGuild().getId());
-    if(server.getInfoChannel() != null && server.getInfoChannel().getId().equals(event.getChannel().getId())) {
-      server.setControlePannel(new ControlPannel());
-      server.setInfoChannel(null);
+    try {
+      DTO.InfoChannel infochannel = InfoChannelRepository.getInfoChannel(event.getGuild().getIdLong());
+      if(infochannel != null && infochannel.infochannel_channelid == event.getChannel().getIdLong()) {
+        InfoChannelRepository.deleteInfoChannel(ServerRepository.getServer(event.getGuild().getIdLong()));
+      }
+    }catch(SQLException e) {
+      logger.error("Issue with db when reacting to the textChannelDelete Event.", e);
     }
   }
 
   @Override
   public void onRoleDelete(RoleDeleteEvent event) {
-    Server server = ServerData.getServers().get(event.getGuild().getId());
-
-    if(server != null) {
-
-      Role optionRole = server.getConfig().getZoeRoleOption().getRole();
-
-      if(optionRole != null && optionRole.equals(event.getRole())) {
-        server.getConfig().getZoeRoleOption().setRole(null);
-      }
+    try {
+      ConfigRepository.getServerConfiguration(event.getGuild().getIdLong());
+    } catch(SQLException e) {
+      logger.error("Issue with db when reacting to the RoleDeleteEvent event.", e);
     }
   }
 
@@ -259,47 +262,49 @@ public class EventListener extends ListenerAdapter {
     if(event == null) {
       return;
     }
-    
-    Server server = ServerData.getServers().get(event.getGuild().getId());
-    
-    Player player = server.getPlayerByDiscordId(event.getUser().getIdLong());
-    
-    if(player != null) {
-      server.deletePlayer(player);
+
+    try {
+      DTO.Player player = PlayerRepository.getPlayer(event.getGuild().getIdLong(), event.getUser().getIdLong());
+
+      if(player != null) {
+        PlayerRepository.deletePlayer(player.player_id, event.getGuild().getIdLong());
+      }
+    }catch(SQLException e) {
+      logger.error("Issue with db when reacting to the GuildMemberLeaveEvent event.", e);
     }
   }
-  
+
   @Override
-  public void onUserUpdateActivityOrder(UserUpdateActivityOrderEvent event) {
-    if(event == null || event.getNewValue().isEmpty()) {
-      return;
-    }
+  public void onUserActivityStart(UserActivityStartEvent event) {
+    try {
+      if(event == null || event.getNewActivity() == null) {
+        return;
+      }
 
-    for(Activity activity : event.getNewValue()) {
+      Activity activity = event.getNewActivity();
       
-      if(activity.isRich() && EventListenerUtil.checkIfIsGame(activity.asRichPresence()) && event.getGuild() != null) {
-        Server server = ServerData.getServers().get(event.getGuild().getId());
+        if(activity.isRich() && EventListenerUtil.checkIfIsGame(activity.asRichPresence()) && event.getGuild() != null) {
+          DTO.Server server = ServerRepository.getServer(event.getGuild().getIdLong());
 
-        if(server == null) {
-          return;
-        }
+          if(server == null) {
+            return;
+          }
 
-        Player registedPlayer = null;
+          DTO.Player registedPlayer = PlayerRepository.getPlayer(event.getGuild().getIdLong(), event.getUser().getIdLong());
+          DTO.InfoChannel infochannel = InfoChannelRepository.getInfoChannel(event.getGuild().getIdLong());
 
-        for(Player player : server.getPlayers()) {
-          if(player.getDiscordUser().equals(event.getUser())) {
-            registedPlayer = player;
+          if(infochannel != null && registedPlayer != null && !ServerData.isServerWillBeTreated(server) 
+              && server.serv_lastRefresh.isBefore(LocalDateTime.now().minusSeconds(30))) {
+
+            ServerData.getServersIsInTreatment().put(event.getGuild().getId(), true);
+            ServerRepository.updateTimeStamp(server.serv_guildId, LocalDateTime.now());
+            ServerData.getServerExecutor().execute(new InfoPanelRefresher(server, true));
           }
         }
-
-        if(server.getInfoChannel() != null && registedPlayer != null && !ServerData.isServerWillBeTreated(server) 
-            && server.getLastRefresh().isBefore(DateTime.now().minusSeconds(30))) {
-
-          ServerData.getServersIsInTreatment().put(event.getGuild().getId(), true);
-          ServerData.getServerExecutor().execute(new InfoPanelRefresher(server, true));
-          break;
-        }
-      }
+    }catch(SQLException e) {
+      logger.error("SQL Error when treating discord status update event !", e);
+    }catch(Exception e) {
+      logger.error("Unknown Error when treating discord status update event !", e);
     }
   }
 
@@ -309,12 +314,15 @@ public class EventListener extends ListenerAdapter {
       return;
     }
 
-    Server server = ServerData.getServers().get(event.getGuild().getId());
-    if(server == null) {
+    ServerConfiguration config;
+    try {
+      config = ConfigRepository.getServerConfiguration(event.getGuild().getIdLong());
+    } catch(SQLException e) {
+      logger.error("SQL Error when treating message receive !", e);
       return;
     }
 
-    if(server.getConfig().getCleanChannelOption().getCleanChannelOption().equals(CleanChannelOptionInfo.DISABLE)) {
+    if(config.getCleanChannelOption().getCleanChannelOption().equals(CleanChannelOptionInfo.DISABLE)) {
       return;
     }
 
@@ -328,15 +336,15 @@ public class EventListener extends ListenerAdapter {
       return;
     }
 
-    if(server.getConfig().getCleanChannelOption().getCleanChannelOption().equals(CleanChannelOptionInfo.ONLY_ZOE_COMMANDS)
-        && event.getChannel().equals(server.getConfig().getCleanChannelOption().getCleanChannel())) {
+    if(config.getCleanChannelOption().getCleanChannelOption().equals(CleanChannelOptionInfo.ONLY_ZOE_COMMANDS)
+        && event.getChannel().equals(config.getCleanChannelOption().getCleanChannel())) {
 
       if(event.getMessage().getContentRaw().startsWith(Zoe.BOT_PREFIX) || member.getUser().equals(Zoe.getJda().getSelfUser())) {
         event.getMessage().delete().queueAfter(3, TimeUnit.SECONDS);
       }
 
-    }else if(server.getConfig().getCleanChannelOption().getCleanChannelOption().equals(CleanChannelOptionInfo.ALL)
-        && server.getConfig().getCleanChannelOption().getCleanChannel().equals(event.getChannel())) {
+    }else if(config.getCleanChannelOption().getCleanChannelOption().equals(CleanChannelOptionInfo.ALL)
+        && config.getCleanChannelOption().getCleanChannel().equals(event.getChannel())) {
       event.getMessage().delete().queueAfter(3, TimeUnit.SECONDS);
     }
   }

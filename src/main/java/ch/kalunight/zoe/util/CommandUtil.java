@@ -1,16 +1,18 @@
 package ch.kalunight.zoe.util;
 
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
+import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.ChannelType;
@@ -90,7 +92,11 @@ public class CommandUtil {
         String language = LanguageManager.DEFAULT_LANGUAGE;
         
         if(event.getChannelType() == ChannelType.TEXT) {
-          language = ServerData.getServers().get(event.getGuild().getId()).getLangage();
+          try {
+            language = ServerRepository.getServer(event.getGuild().getIdLong()).serv_language;
+          } catch(SQLException e) {
+            logger.error("SQL when getting a server in help command!", e);
+          }
         }
         CommandUtil.sendTypingInFonctionOfChannelType(event);
         StringBuilder stringBuilder = new StringBuilder();
@@ -111,7 +117,11 @@ public class CommandUtil {
         String language = LanguageManager.DEFAULT_LANGUAGE;
         
         if(event.getChannelType() == ChannelType.TEXT) {
-          language = ServerData.getServers().get(event.getGuild().getId()).getLangage();
+          try {
+            language = ServerRepository.getServer(event.getGuild().getIdLong()).serv_language;
+          } catch(SQLException e) {
+            logger.error("SQL when getting a server in help command!", e);
+          }
         }
         
         StringBuilder stringBuilder = new StringBuilder();
@@ -138,7 +148,11 @@ public class CommandUtil {
         String language = LanguageManager.DEFAULT_LANGUAGE;
         
         if(event.getChannelType() == ChannelType.TEXT) {
-          language = ServerData.getServers().get(event.getGuild().getId()).getLangage();
+          try {
+            language = ServerRepository.getServer(event.getGuild().getIdLong()).serv_language;
+          } catch(SQLException e) {
+            logger.error("SQL when getting a server in help command!", e);
+          }
         }
         
         stringBuilder.append(mainCommandName + " " + commandName + " " + LanguageManager.getText(language, "command").toLowerCase() + " :\n");
@@ -182,5 +196,63 @@ public class CommandUtil {
       }
     };
 
+  }
+
+  public static Consumer<CommandEvent> getHelpCommand() {
+    return new Consumer<CommandEvent>() {
+      @Override
+      public void accept(CommandEvent event) {
+  
+        String language = LanguageManager.DEFAULT_LANGUAGE;
+  
+        if(event.getChannelType() == ChannelType.TEXT) {
+          try {
+            language = ServerRepository.getServer(event.getGuild().getIdLong()).serv_language;
+          } catch(SQLException e) {
+            Zoe.logger.error("Error when doing help command message !", e);
+            language = LanguageManager.DEFAULT_LANGUAGE;
+          }
+          event.reply(LanguageManager.getText(language, "helpMessageSendConfirmation"));
+        }
+  
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(LanguageManager.getText(language, "startHelpMessage") + "\n\n");
+  
+        for(Command command : Zoe.getMainCommands(null)) {
+  
+          if(!command.isHidden() && command.getChildren().length == 0) {
+  
+            stringBuilder.append(LanguageManager.getText(language, "command") + " **" + command.getName() + "** :\n");
+            stringBuilder.append("--> `>" + command.getName() + "` : " + LanguageManager.getText(language, command.getHelp()) + "\n\n");
+  
+          }else if(!command.isHidden()){
+  
+            stringBuilder.append(LanguageManager.getText(language, "commandPlural") + " **" + command.getName() + "** : \n");
+            for(Command commandChild : command.getChildren()) {
+  
+              if(commandChild.getArguments() == null || commandChild.getArguments().equals("")) {
+                stringBuilder.append("--> `>" + command.getName() + " " + commandChild.getName() + "` : "
+                    + LanguageManager.getText(language, commandChild.getHelp()) + "\n");
+              }else {
+                stringBuilder.append("--> `>" + command.getName() + " " + commandChild.getName() + " " + commandChild.getArguments() + "` : "
+                    + LanguageManager.getText(language, commandChild.getHelp()) + "\n");
+              }
+            }
+            stringBuilder.append(" \n");
+          }
+  
+        }
+  
+        stringBuilder.append(LanguageManager.getText(language, "endHelpMessage") + " https://discord.gg/whc5PrC");
+  
+        PrivateChannel privateChannel = event.getAuthor().openPrivateChannel().complete();
+  
+        List<String> helpMessages = CommandEvent.splitMessage(stringBuilder.toString());
+  
+        for(String helpMessage : helpMessages) {
+          privateChannel.sendMessage(helpMessage).queue();
+        }
+      }
+    };
   }
 }

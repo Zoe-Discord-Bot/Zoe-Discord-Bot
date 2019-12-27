@@ -2,32 +2,32 @@ package ch.kalunight.zoe.model;
 
 import java.util.List;
 import org.joda.time.DateTime;
-import ch.kalunight.zoe.model.player_data.Player;
+import ch.kalunight.zoe.model.dto.DTO;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 
 public class InfoCard {
 
-  private List<Player> players;
+  private List<DTO.Player> players;
   private MessageEmbed card;
   private Message title;
   private Message message;
   private DateTime creationTime;
   private CurrentGameInfo currentGameInfo;
 
-  public InfoCard(List<Player> players, MessageEmbed card, CurrentGameInfo currentGameInfo) {
+  public InfoCard(List<DTO.Player> players, MessageEmbed card, CurrentGameInfo currentGameInfo) {
     this.players = players;
     this.card = card;
     this.currentGameInfo = currentGameInfo;
     this.creationTime = DateTime.now();
   }
 
-  public List<Player> getPlayers() {
+  public List<DTO.Player> getPlayers() {
     return players;
   }
 
-  public void setPlayers(List<Player> players) {
+  public void setPlayers(List<DTO.Player> players) {
     this.players = players;
   }
 

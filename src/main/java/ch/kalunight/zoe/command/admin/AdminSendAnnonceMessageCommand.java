@@ -1,9 +1,7 @@
 package ch.kalunight.zoe.command.admin;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.function.BiConsumer;
 
 import org.slf4j.Logger;
@@ -11,9 +9,8 @@ import org.slf4j.LoggerFactory;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
-import ch.kalunight.zoe.model.Server;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.PrivateChannel;
@@ -45,22 +42,18 @@ public class AdminSendAnnonceMessageCommand extends ZoeCommand {
       return;
     }
 
-    Iterator<Entry<String, Server>> servers = ServerData.getServers().entrySet().iterator();
-
     List<String> userAlreadySendedId = new ArrayList<>();
     
-    while(servers.hasNext()) {
-      Entry<String, Server> server = servers.next();
+    for(Guild guild : Zoe.getJda().getGuilds()) {
 
       try {
-        Guild actualGuild = server.getValue().getGuild();
-        if(!isBlackListed(actualGuild.getId()) && !userAlreadySendedId.contains(actualGuild.getOwnerId())) {
-          PrivateChannel privateChannel = actualGuild.getOwner().getUser().openPrivateChannel().complete();
+        if(!isBlackListed(guild.getId()) && !userAlreadySendedId.contains(guild.getOwnerId())) {
+          PrivateChannel privateChannel = guild.getOwner().getUser().openPrivateChannel().complete();
           List<String> messagesToSend = CommandEvent.splitMessage(event.getArgs());
           for(String message : messagesToSend) {
             privateChannel.sendMessage(message).queue();
           }
-          userAlreadySendedId.add(actualGuild.getOwnerId());
+          userAlreadySendedId.add(guild.getOwnerId());
         }
       } catch(Exception e) {
         logger.warn("Error in sending of the annonce", e);

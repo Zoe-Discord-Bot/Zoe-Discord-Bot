@@ -5,7 +5,7 @@
 
 	<groupId>ch.kalunight</groupId>
 	<artifactId>zoe</artifactId>
-	<version>1.2.2</version>
+	<version>1.4.0</version>
 	<packaging>jar</packaging>
 
 	<name>zoe</name>
@@ -25,6 +25,8 @@
 		</plugins>
 	</build>
 
+
+
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
@@ -39,7 +41,7 @@
 		<dependency>
 			<groupId>net.dv8tion</groupId>
 			<artifactId>JDA</artifactId>
-			<version>4.0.0_68</version>
+			<version>4.1.0_84</version>
 		</dependency>
 
 		<dependency>
@@ -50,11 +52,10 @@
 			<type>pom</type>
 		</dependency>
 
-		<!-- We use a modified version of riot-api-java, look here : https://github.com/KaluNight/riot-api-java -->
 		<dependency>
-			<groupId>com.github.KaluNight</groupId>
+			<groupId>com.github.taycaldwell</groupId>
 			<artifactId>riot-api-java</artifactId>
-			<version>4.3.6</version>
+			<version>4.3.0</version>
 		</dependency>
 
 		<dependency>
@@ -85,6 +86,12 @@
 			<groupId>com.github.DiscordBotList</groupId>
 			<artifactId>DBL-Java-Library</artifactId>
 			<version>2.0.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>42.2.8</version>
 		</dependency>
 
 		<!-- Test libs -->

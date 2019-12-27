@@ -1,24 +1,28 @@
 package ch.kalunight.zoe.command.show;
 
 import java.awt.Color;
+import java.sql.SQLException;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
-
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.Paginator;
-import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
-import ch.kalunight.zoe.model.Server;
-import ch.kalunight.zoe.model.player_data.LeagueAccount;
-import ch.kalunight.zoe.model.player_data.Player;
+import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.repositories.LeagueAccountRepository;
+import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
+import ch.kalunight.zoe.util.RiotApiUtil;
 import ch.kalunight.zoe.util.request.RiotRequest;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.exceptions.PermissionException;
-import net.rithms.riot.constant.CallPriority;
+import net.rithms.riot.api.RiotApiException;
+import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 
 public class ShowPlayerCommand extends ZoeCommand {
 
@@ -40,9 +44,11 @@ public class ShowPlayerCommand extends ZoeCommand {
   }
 
   @Override
-  protected void executeCommand(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) throws SQLException {
     CommandUtil.sendTypingInFonctionOfChannelType(event);
 
+    DTO.Server server = getServer(event.getGuild().getIdLong());
+    
     Paginator.Builder pbuilder = new Paginator.Builder()
         .setColumns(1)
         .setItemsPerPage(5)
@@ -60,37 +66,46 @@ public class ShowPlayerCommand extends ZoeCommand {
         .setTimeout(1, TimeUnit.MINUTES);
 
     int page = 1;
-
-    Server server = ServerData.getServers().get(event.getGuild().getId());
-
-    if(server.getPlayers().isEmpty()) {
-      event.reply(LanguageManager.getText(server.getLangage(), "showPlayerServerEmpty"));
+    
+    List<DTO.Player> players = PlayerRepository.getPlayers(server.serv_guildId);
+    
+    if(players.isEmpty()) {
+      event.reply(LanguageManager.getText(server.serv_language, "showPlayerServerEmpty"));
       return;
     }
-
-    for(Player player : server.getPlayers()) {
+    
+    int accountsNmb = 0;
+    for(DTO.Player player : players) {
       StringBuilder playerInfo = new StringBuilder();
-      playerInfo.append(String.format(LanguageManager.getText(server.getLangage(), "showPlayerName"),
-          player.getDiscordUser().getName()) + "\n");
+      User user = event.getGuild().getMemberById(player.player_discordId).getUser();
+      playerInfo.append(String.format(LanguageManager.getText(server.serv_language, "showPlayerName"),
+          user.getName()) + "\n");
 
-      if(player.getLolAccounts().isEmpty()) {
-        playerInfo.append(LanguageManager.getText(server.getLangage(), "showPlayerNoAccount") + "\n");
+      List<DTO.LeagueAccount> leagueAccounts = LeagueAccountRepository.getLeaguesAccounts(server.serv_guildId, user.getIdLong());
+      
+      if(leagueAccounts.isEmpty()) {
+        playerInfo.append(LanguageManager.getText(server.serv_language, "showPlayerNoAccount") + "\n");
       }
-
-      for(LeagueAccount leagueAccount : player.getLolAccounts()) {
-        playerInfo.append(String.format(LanguageManager.getText(server.getLangage(), "showPlayerAccount"),
-            leagueAccount.getSummoner().getName(), leagueAccount.getRegion().getName().toUpperCase(),
-            RiotRequest.getSoloqRank(leagueAccount.getSummoner().getId(), leagueAccount.getRegion(), CallPriority.HIGH)) + "\n");
+      accountsNmb += leagueAccounts.size();
+      for(DTO.LeagueAccount leagueAccount : leagueAccounts) {
+        Summoner summoner;
+        try {
+          summoner = Zoe.getRiotApi().getSummoner(leagueAccount.leagueAccount_server,
+              leagueAccount.leagueAccount_summonerId);
+        } catch(RiotApiException e) {
+          RiotApiUtil.handleRiotApi(event, e, server.serv_language);
+          return;
+        }
+        playerInfo.append(String.format(LanguageManager.getText(server.serv_language, "showPlayerAccount"),
+            summoner.getName(), leagueAccount.leagueAccount_server.getName().toUpperCase(),
+            RiotRequest.getSoloqRank(leagueAccount.leagueAccount_summonerId,
+                leagueAccount.leagueAccount_server)) + "\n");
       }
       pbuilder.addItems(playerInfo.toString().substring(0, playerInfo.toString().length() - 1));
     }
 
-    int accountsNmb = 0;
-    for(Player player : server.getPlayers()) {
-      accountsNmb += player.getLolAccounts().size();
-    }
     Paginator p = pbuilder.setColor(Color.GREEN)
-        .setText(String.format(LanguageManager.getText(server.getLangage(), "showPlayerEmbedTitle"), server.getPlayers().size(), accountsNmb))
+        .setText(String.format(LanguageManager.getText(server.serv_language, "showPlayerEmbedTitle"), players.size(), accountsNmb))
         .setUsers(event.getAuthor())
         .build();
     p.paginate(event.getChannel(), page);

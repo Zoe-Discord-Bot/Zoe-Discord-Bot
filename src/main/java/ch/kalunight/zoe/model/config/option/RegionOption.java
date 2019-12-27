@@ -1,6 +1,7 @@
 package ch.kalunight.zoe.model.config.option;
 
 import java.awt.Color;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -10,8 +11,9 @@ import java.util.function.Function;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.SelectionDialog;
-import ch.kalunight.zoe.ServerData;
-import ch.kalunight.zoe.model.Server;
+import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.repositories.ConfigRepository;
+import ch.kalunight.zoe.repositories.RepoRessources;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.entities.Message;
 import net.rithms.riot.constant.Platform;
@@ -20,8 +22,8 @@ public class RegionOption extends ConfigurationOption {
 
   private Platform region;
 
-  public RegionOption() {
-    super("default_region", "regionOptionDesc");
+  public RegionOption(long guildId) {
+    super(guildId, "regionOptionDesc");
     this.region = null;
   }
 
@@ -37,19 +39,18 @@ public class RegionOption extends ConfigurationOption {
   }
 
   @Override
-  public Consumer<CommandEvent> getChangeConsumer(EventWaiter waiter) {
+  public Consumer<CommandEvent> getChangeConsumer(EventWaiter waiter, DTO.Server server) {
     return new Consumer<CommandEvent>() {
 
       @Override
       public void accept(CommandEvent event) {
         event.getChannel().sendTyping().complete();
-        Server server = ServerData.getServers().get(event.getGuild().getId());
         
         String message;
         if(region == null) {
-          message = LanguageManager.getText(server.getLangage(), "regionOptionAnyRegionSelected");
+          message = LanguageManager.getText(server.serv_language, "regionOptionAnyRegionSelected");
         }else {
-          message = String.format(LanguageManager.getText(server.getLangage(), "regionOptionRegionSelected"),
+          message = String.format(LanguageManager.getText(server.serv_language, "regionOptionRegionSelected"),
               region.getName().toUpperCase());
         }
 
@@ -61,13 +62,13 @@ public class RegionOption extends ConfigurationOption {
             .useLooping(true)
             .setColor(Color.BLUE)
             .setSelectedEnds("**", "**")
-            .setCanceled(getSelectionCancelAction(server.getLangage()))
+            .setCanceled(getSelectionCancelAction(server.serv_language))
             .setTimeout(2, TimeUnit.MINUTES);
 
         List<Platform> regionsList = new ArrayList<>();
         List<String> regionChoices = new ArrayList<>();
         for(Platform regionMember : Platform.values()) {
-          String actualChoice = String.format(LanguageManager.getText(server.getLangage(), "regionOptionRegionChoice"),
+          String actualChoice = String.format(LanguageManager.getText(server.serv_language, "regionOptionRegionChoice"),
               regionMember.getName().toUpperCase());
           
           regionChoices.add(actualChoice);
@@ -75,12 +76,12 @@ public class RegionOption extends ConfigurationOption {
           regionsList.add(regionMember);
         }
         
-        String anyChoice = LanguageManager.getText(server.getLangage(), "regionOptionDisableChoice");
+        String anyChoice = LanguageManager.getText(server.serv_language, "regionOptionDisableChoice");
         regionChoices.add(anyChoice);
         selectAccountBuilder.addChoices(anyChoice);
 
-        selectAccountBuilder.setText(getUpdateMessageAfterChangeSelectAction(server.getLangage(), regionChoices));
-        selectAccountBuilder.setSelectionConsumer(getSelectionDoneAction(server.getLangage(), regionsList));
+        selectAccountBuilder.setText(getUpdateMessageAfterChangeSelectAction(server.serv_language, regionChoices));
+        selectAccountBuilder.setSelectionConsumer(getSelectionDoneAction(server.serv_language, regionsList, server));
 
         SelectionDialog dialog = selectAccountBuilder.build();
         dialog.display(event.getChannel());
@@ -100,7 +101,7 @@ public class RegionOption extends ConfigurationOption {
     };
   }
 
-  private BiConsumer<Message, Integer> getSelectionDoneAction(String language, List<Platform> regionsList) {
+  private BiConsumer<Message, Integer> getSelectionDoneAction(String language, List<Platform> regionsList, DTO.Server server) {
     return new BiConsumer<Message, Integer>() {
       @Override
       public void accept(Message selectionMessage, Integer selectionOfRegion) {
@@ -114,6 +115,13 @@ public class RegionOption extends ConfigurationOption {
         }else {
           strRegion = regionsList.get(selectionOfRegion - 1).getName().toUpperCase();
           region = regionsList.get(selectionOfRegion - 1);
+        }
+        
+        try {
+          ConfigRepository.updateRegionOption(guildId, region);
+        } catch (SQLException e) {
+          RepoRessources.sqlErrorReport(selectionMessage.getChannel(), server, e);
+          return;
         }
 
         selectionMessage.getTextChannel().sendMessage(String.format(LanguageManager.getText(language, "regionOptionDoneMessage"),
@@ -130,25 +138,6 @@ public class RegionOption extends ConfigurationOption {
         message.editMessage(LanguageManager.getText(language, "regionOptionSelectionCanceledMessage")).queue();
       }
     };
-  }
-
-  @Override
-  public String getSave() {
-    String regionStr = NO_VALUE_REPRESENTATION;
-    if(region != null) {
-      regionStr = region.getId();
-    }
-
-    return id + ":" + regionStr;
-  }
-
-  @Override
-  public void restoreSave(String save) {
-    String[] saveDatas = save.split(":");
-
-    if(!saveDatas[1].equals(NO_VALUE_REPRESENTATION)) {
-      region = Platform.getPlatformById(saveDatas[1]);
-    }
   }
 
   public Platform getRegion() {

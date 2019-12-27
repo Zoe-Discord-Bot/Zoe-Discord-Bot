@@ -1,14 +1,15 @@
 package ch.kalunight.zoe.command;
 
+import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
-import ch.kalunight.zoe.ServerData;
-import ch.kalunight.zoe.model.Server;
-import ch.kalunight.zoe.model.config.ServerConfiguration;
+import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.repositories.RepoRessources;
+import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
@@ -34,9 +35,9 @@ public class ResetCommand extends ZoeCommand {
   protected void executeCommand(CommandEvent event) {
     CommandUtil.sendTypingInFonctionOfChannelType(event);
     
-    Server server = ServerData.getServers().get(event.getGuild().getId());
+    DTO.Server server = getServer(event.getGuild().getIdLong());
     
-    event.reply(LanguageManager.getText(server.getLangage(), "resetWarningMessage"));
+    event.reply(LanguageManager.getText(server.serv_language, "resetWarningMessage"));
     
     waiter.waitForEvent(MessageReceivedEvent.class,
         e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel())
@@ -46,20 +47,25 @@ public class ResetCommand extends ZoeCommand {
   }
 
   private void reset(MessageReceivedEvent messageReceivedEvent) {
-    Server server = ServerData.getServers().get(messageReceivedEvent.getGuild().getId());
-    
     String spellingLangage = LanguageManager.DEFAULT_LANGUAGE;
     
+    DTO.Server server = getServer(messageReceivedEvent.getGuild().getIdLong());
+    
     if(server != null) {
-      spellingLangage = server.getLangage();
+      spellingLangage = server.serv_language;
     }
     
     if(messageReceivedEvent.getMessage().getContentRaw().equals("YES")) {
       
       messageReceivedEvent.getTextChannel().sendMessage(LanguageManager.getText(spellingLangage, "resetConfirmationMessage")).queue();
       
-      ServerData.getServers().put(messageReceivedEvent.getGuild().getId(), 
-          new Server(messageReceivedEvent.getGuild().getIdLong(), spellingLangage, new ServerConfiguration()));
+      try {
+        ServerRepository.deleteServer(messageReceivedEvent.getGuild().getIdLong());
+        ServerRepository.createNewServer(messageReceivedEvent.getGuild().getIdLong(), spellingLangage);
+      } catch (SQLException e) {
+        RepoRessources.sqlErrorReport(messageReceivedEvent.getChannel(), server, e);
+        return;
+      }
       
       messageReceivedEvent.getTextChannel().sendMessage(LanguageManager.getText(spellingLangage, "resetDoneMessage")).queue();
     }else {
@@ -68,14 +74,8 @@ public class ResetCommand extends ZoeCommand {
   }
   
   private void cancelReset(MessageReceivedEvent event) {
-    Server server = ServerData.getServers().get(event.getGuild().getId());
-    
-    String spellingLangage = LanguageManager.DEFAULT_LANGUAGE;
-    
-    if(server != null) {
-      spellingLangage = server.getLangage();
-    }
-    event.getTextChannel().sendMessage(LanguageManager.getText(spellingLangage, "resetTimeoutMessage")).queue();
+    DTO.Server server = getServer(event.getGuild().getIdLong());
+    event.getTextChannel().sendMessage(LanguageManager.getText(server.serv_language, "resetTimeoutMessage")).queue();
   }
 
   @Override

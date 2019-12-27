@@ -1,12 +1,12 @@
 package ch.kalunight.zoe.command;
 
 import java.awt.Color;
+import java.sql.SQLException;
 import java.util.function.BiConsumer;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import ch.kalunight.zoe.ServerData;
-import ch.kalunight.zoe.model.Server;
+import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -28,14 +28,14 @@ public class AboutCommand extends ZoeCommand {
   }
 
   @Override
-  protected void executeCommand(CommandEvent event) {
+  protected void executeCommand(CommandEvent event) throws SQLException {
 
     CommandUtil.sendTypingInFonctionOfChannelType(event);
 
     String langage = LanguageManager.DEFAULT_LANGUAGE;
     if(event.getChannelType() == ChannelType.TEXT) {
-      Server server = ServerData.getServers().get(event.getGuild().getId());
-      langage = server.getLangage();
+      DTO.Server server = getServer(event.getGuild().getIdLong());
+      langage = server.serv_language;
     }
     EmbedBuilder builder = new EmbedBuilder();
 

@@ -261,7 +261,7 @@
     "addingSystemLanguageSelected": "Right, i will now in speak %s. (You can always change my language with the command `>l`). Now let's select a default region for the server :",
     "addingSystemRegionSelected": "Right, you have defined the region \"%s\". I will now give you some advice about my usage :",
     "addingSystemEndMessage": "The basic configuration is now complete. I hope you will enjoy my services :D",
-	"errorSQLPleaseReport" : "I got a issue with the DataBase. Please report this issue here : https://discord.gg/YZwBvAx",
-	"guildJoinHiAgain" : "Hello again ! All your setup as been saved since the last time i was there. If you need to remind how i work, try the commands `>setup` and `>help`. If you want to reset the server, do the command `>reset`.",
-	"nameUseIllegalCharacter" : "You can't use this name ! You can't use formating characters.'"
+    "errorSQLPleaseReport": "I got a issue with the DataBase. Please report this issue here : https://discord.gg/YZwBvAx",
+    "guildJoinHiAgain": "Hello again ! All your setup as been saved since the last time i was there. If you need to remind how i work, try the commands `>setup` and `>help`. If you want to reset the server, do the command `>reset`.",
+    "nameUseIllegalCharacter": "You can't use this name ! You can't use formating characters."
 }

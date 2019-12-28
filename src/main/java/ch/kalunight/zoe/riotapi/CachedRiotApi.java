@@ -74,7 +74,7 @@ public class CachedRiotApi {
   public synchronized void cleanCache() {
     CacheManager.cleanMatchCache();
   }
-
+  
   public Match getMatch(Platform platform, long matchId) throws RiotApiException {
     Match match = CacheManager.getMatch(platform, Long.toString(matchId));
 
@@ -195,7 +195,7 @@ public class CachedRiotApi {
   }
 
   public boolean isRequestsCanBeExecuted(int nbrRequest, Platform platform, boolean addRequest) {
-    synchronized(shortRangeRateLimitHandler) {
+    synchronized(shortRangeRateLimitHandler.get(platform)) {
       List<LocalDateTime> callsPerTime = shortRangeRateLimitHandler.get(platform);
 
       if(addRequest) {

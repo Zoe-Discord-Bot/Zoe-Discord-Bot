@@ -57,7 +57,7 @@ public class SavedMatch {
       }
     }
     
-    return playerBlueSide && blueSideHasWin;
+    return (playerBlueSide && blueSideHasWin) || (!playerBlueSide && !blueSideHasWin);
   }
   
   public List<SavedMatchPlayer> getAccountsIdBlueSide() {

@@ -31,7 +31,7 @@ public class SavedMatchCacheRepository {
   private static final String INSERT_MATCH_CATCH = "INSERT INTO match_cache "
       + "(mCatch_gameId, mCatch_platform, mCatch_savedMatch, mCatch_creationTime) VALUES (%d, '%s', '%s', '%s')";
   
-  private static final String DELETE_MATCH_CACHE_OLD_OF_1_MONTHS = "DELETE FROM match_cache WHERE mcatch_creationtime > '%s'";
+  private static final String DELETE_MATCH_CACHE_OLD_OF_1_MONTHS = "DELETE FROM match_cache WHERE mcatch_creationtime < '%s'";
   
   private static final Gson gson = new GsonBuilder().create();
   

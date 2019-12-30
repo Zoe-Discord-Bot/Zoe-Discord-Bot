@@ -1,10 +1,14 @@
 package ch.kalunight.zoe.util.request;
 
+import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -12,10 +16,13 @@ import org.slf4j.LoggerFactory;
 
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.WinRateReceiver;
+import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.SavedMatch;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.model.player_data.Rank;
 import ch.kalunight.zoe.model.player_data.Tier;
 import ch.kalunight.zoe.model.static_data.Mastery;
+import ch.kalunight.zoe.riotapi.CacheManager;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.NameConversion;
 import ch.kalunight.zoe.util.Ressources;
@@ -38,6 +45,8 @@ public class RiotRequest {
   private static final Logger logger = LoggerFactory.getLogger(RiotRequest.class);
 
   private static final DecimalFormat df = new DecimalFormat("###.#");
+  
+  private static final Random random = new Random();
 
   private RiotRequest() {}
 
@@ -67,10 +76,10 @@ public class RiotRequest {
   }
 
   public static String getWinrateLastMonthWithGivenChampion(String summonerId, Platform region,
-      int championKey, String language) {
+      int championKey, String language) throws SQLException {
 
     Zoe.getRiotApi().isRequestsCanBeExecuted(1, region, false);
-    
+
     Summoner summoner;
     try {
       summoner = Zoe.getRiotApi().getSummoner(region, summonerId);
@@ -80,7 +89,7 @@ public class RiotRequest {
     }
 
     Zoe.getRiotApi().isRequestsCanBeExecuted(4, region, false);
-    
+
     List<MatchReference> referencesMatchList;
     try {
       referencesMatchList = getMatchHistoryOfLastMonthWithTheGivenChampion(region, championKey, summoner);
@@ -94,16 +103,30 @@ public class RiotRequest {
     }
 
     Zoe.getRiotApi().isRequestsCanBeExecuted(referencesMatchList.size(), region, true);
-    
+
+
+    AtomicBoolean gameLoadingConflict = new AtomicBoolean(false);
     WinRateReceiver winRateReceiver = new WinRateReceiver();
     RiotApiAsync riotApiAsync = Zoe.getRiotApi().getAsyncRiotApi();
-    
+
     List<AsyncRequest> requestsMatch = new ArrayList<>();
-    
+
     for(MatchReference matchReference : referencesMatchList) {
-      AsyncRequest requestMatch = riotApiAsync.getMatch(region, matchReference.getGameId());
-      requestMatch.addListeners(getMatchRequestAdapter(summoner, winRateReceiver));
-      requestsMatch.add(requestMatch);
+      DTO.MatchCache matchCache = Zoe.getRiotApi().getCachedMatch(region, matchReference.getGameId());
+
+      if(matchCache != null) {
+        SavedMatch cacheMatch = matchCache.mCatch_savedMatch;
+
+        if(cacheMatch.isGivenAccountWinner(summoner.getAccountId())) {
+          winRateReceiver.win.incrementAndGet();
+        }else {
+          winRateReceiver.loose.incrementAndGet();
+        }
+      }else {
+        AsyncRequest requestMatch = riotApiAsync.getMatch(region, matchReference.getGameId());
+        requestMatch.addListeners(getMatchRequestAdapter(region, summoner, winRateReceiver, gameLoadingConflict));
+        requestsMatch.add(requestMatch);
+      }
     }
 
     try {
@@ -112,10 +135,19 @@ public class RiotRequest {
       logger.error("riotApiAsync requests process got interupted !", e);
       Thread.currentThread().interrupt();
     }
-    
+
+    if(gameLoadingConflict.get()) {
+      try {
+        TimeUnit.SECONDS.sleep(random.nextInt((10 - 2) + 1) + 2l); //Max 10 min 2
+      } catch (InterruptedException e) {
+        logger.error("gameLoadingConflict wait process got interupted !", e);
+        Thread.currentThread().interrupt();
+      }
+    }
+
     int nbrWins = winRateReceiver.win.intValue();
     int nbrGames = nbrWins + winRateReceiver.loose.intValue();
-    
+
     if(nbrGames == 0) {
       return LanguageManager.getText(language, "firstGame");
     } else if(nbrWins == 0) {
@@ -125,24 +157,32 @@ public class RiotRequest {
     return df.format((nbrWins / (double) nbrGames) * 100) + "% (" + nbrWins + "W/" + (nbrGames - nbrWins) + "L)";
   }
 
-  private static RequestAdapter getMatchRequestAdapter(Summoner summoner, WinRateReceiver winRateReceiver) {
+  private static RequestAdapter getMatchRequestAdapter(Platform platform, Summoner summoner, WinRateReceiver winRateReceiver,
+      AtomicBoolean gameLoadingConflict) {
     return new RequestAdapter() {
       @Override
       public void onRequestSucceeded(AsyncRequest request) {
-        Match match = request.getDto();
-        
-        Participant participant = match.getParticipantByAccountId(summoner.getAccountId());
+        try {
+          Match match = request.getDto();
 
-        if(participant != null && participant.getTimeline().getCreepsPerMinDeltas() != null) { // Check if the game has been canceled
+          Participant participant = match.getParticipantByAccountId(summoner.getAccountId());
 
-          String result = match.getTeamByTeamId(participant.getTeamId()).getWin();
-          if(result.equalsIgnoreCase("Fail")) {
-            winRateReceiver.loose.incrementAndGet();
+          if(participant != null && participant.getTimeline().getCreepsPerMinDeltas() != null) { // Check if the game has been canceled
+
+            String result = match.getTeamByTeamId(participant.getTeamId()).getWin();
+            if(result.equalsIgnoreCase("Fail")) {
+              winRateReceiver.loose.incrementAndGet();
+              CacheManager.createCacheMatch(platform, match);
+            }
+
+            if(result.equalsIgnoreCase("Win")) {
+              winRateReceiver.win.incrementAndGet();
+              CacheManager.createCacheMatch(platform, match);
+            }
           }
-
-          if(result.equalsIgnoreCase("Win")) {
-            winRateReceiver.win.incrementAndGet();
-          }
+        }catch(SQLException e) {
+          logger.info("SQL error (unique constraint error, normaly nothing severe)");
+          gameLoadingConflict.set(true);
         }
       }
     };
@@ -183,7 +223,7 @@ public class RiotRequest {
 
   public static String getMasterysScore(String summonerId, int championId, Platform platform) {
     Zoe.getRiotApi().isRequestsCanBeExecuted(1, platform, false);
-    
+
     ChampionMastery mastery = null;
     try {
       mastery = Zoe.getRiotApi().getChampionMasteriesBySummonerByChampion(platform, summonerId, championId);

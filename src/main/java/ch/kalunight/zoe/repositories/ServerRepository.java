@@ -62,7 +62,10 @@ public class ServerRepository {
       
       stmt.setLong(1, guildId);
       result = stmt.executeQuery();
-      result.next();
+      int rowCount = result.last() ? result.getRow() : 0;
+      if(rowCount == 0) {
+        return null;
+      }
       return new DTO.Server(result);
     }finally {
       RepoRessources.closeResultSet(result);

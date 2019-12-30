@@ -104,7 +104,11 @@ public class EventListener extends ListenerAdapter {
     }
 
     logger.info("Setup cache ...");
-    CacheManager.setupCache();
+    try {
+      CacheManager.setupCache();
+    } catch (SQLException e) {
+      logger.error("SQL error when setup cache !", e);
+    }
     logger.info("Setup cache finished !");
 
     logger.info("Loading of RAPI Status Channel ...");

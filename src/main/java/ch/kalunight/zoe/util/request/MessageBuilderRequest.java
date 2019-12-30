@@ -54,7 +54,8 @@ public class MessageBuilderRequest {
   private static final String SOLO_Q_RANK_STRING = "soloqTitleRespectSize";
   private MessageBuilderRequest() {}
 
-  public static MessageEmbed createInfoCard1summoner(User user, Summoner summoner, CurrentGameInfo match, Platform region, String language) {
+  public static MessageEmbed createInfoCard1summoner(User user, Summoner summoner, CurrentGameInfo match, Platform region, String language) 
+      throws SQLException {
 
     String blueTeamTranslated = LanguageManager.getText(language, BLUE_TEAM_STRING);
     String redTeamTranslated = LanguageManager.getText(language, RED_TEAM_STRING);

@@ -72,6 +72,11 @@ public class CreateTeamCommand extends ZoeCommand {
       return false;
     }
     
+    nameInvalid = nameToCheck.contains(">");
+    if(nameInvalid) {
+      return false;
+    }
+    
     nameInvalid = nameToCheck.contains("`");
     if(nameInvalid) {
       return false;

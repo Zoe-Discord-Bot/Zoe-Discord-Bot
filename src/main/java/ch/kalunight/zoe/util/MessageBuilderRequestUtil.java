@@ -43,7 +43,7 @@ public class MessageBuilderRequestUtil {
   }
   
   public static void createTeamData1Summoner(Summoner summoner, List<CurrentGameParticipant> teamParticipant, StringBuilder teamString,
-      StringBuilder teamRankString, StringBuilder teamWinRateLastMonth, Platform platform, String language) {
+      StringBuilder teamRankString, StringBuilder teamWinRateLastMonth, Platform platform, String language) throws SQLException {
 
     for(int i = 0; i < teamParticipant.size(); i++) {
       CurrentGameParticipant participant = teamParticipant.get(i);
@@ -90,7 +90,7 @@ public class MessageBuilderRequestUtil {
 
   public static void createTeamDataMultipleSummoner(List<CurrentGameParticipant> teamParticipant, List<String> listIdPlayers,
       StringBuilder teamString, StringBuilder teamRankString, StringBuilder teamWinrateString, Platform platform,
-      String language) {
+      String language) throws SQLException {
 
     String unknownChampion = LanguageManager.getText(language, "unknown");
 

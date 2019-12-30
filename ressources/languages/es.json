@@ -260,5 +260,8 @@
     "languageCommandHelp": "Comando para seleccionar el idioma de Zoe",
     "addingSystemEndMessage": "La configuración básica está completa. Espero que disfrutes mis servicios :D",
     "addingSystemRegionSelected": "Vale, has definido la región \"%s\". Ahora te daré algunos consejos sobre mi uso:",
-    "addingSystemLanguageSelected": "Perfecto, ahora hablaré en %s. (Siempre podrás cambiar mi idioma con el comando `>l`). Ahora vamos a seleccionar una región predeterminada para el servidor:"
+    "addingSystemLanguageSelected": "Perfecto, ahora hablaré en %s. (Siempre podrás cambiar mi idioma con el comando `>l`). Ahora vamos a seleccionar una región predeterminada para el servidor:",
+    "nameUseIllegalCharacter": "¡No puedes usar este nombre! No puedes usar carácteres de formato.",
+    "guildJoinHiAgain": "¡Hola de nuevo! Toda tu configuración fue guardada desde la última vez que estaba. Si necesitas recordar cómo funciono, prueba los comandos `>setup` y `>help`. Si quieres resetear el servidor, haz el comando `>reset`.",
+    "errorSQLPleaseReport": "Tuve un problema con la base de datos. Por favor, informe de este problema aquí: https://discord.gg/YZwBvAx"
 }

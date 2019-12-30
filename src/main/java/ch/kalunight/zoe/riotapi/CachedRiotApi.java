@@ -1,5 +1,6 @@
 package ch.kalunight.zoe.riotapi;
 
+import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.kalunight.zoe.model.dto.DTO;
 import net.rithms.riot.api.RiotApi;
 import net.rithms.riot.api.RiotApiAsync;
 import net.rithms.riot.api.RiotApiException;
@@ -30,7 +32,7 @@ import net.rithms.riot.constant.Platform;
  */
 public class CachedRiotApi {
 
-  public static final boolean CACHE_ENABLE = false;
+  public static final boolean CACHE_ENABLE = true;
 
   public static final int RIOT_API_HUGE_LIMIT = 15000;
   public static final Duration RIOT_API_HUGE_TIME = Duration.ofMinutes(10);
@@ -71,25 +73,24 @@ public class CachedRiotApi {
     this.riotApi = riotApi;
   }
 
-  public synchronized void cleanCache() {
+  public synchronized void cleanCache() throws SQLException {
     CacheManager.cleanMatchCache();
   }
 
   public Match getMatch(Platform platform, long matchId) throws RiotApiException {
-    Match match = CacheManager.getMatch(platform, Long.toString(matchId));
 
-    if(match == null) {
-      match = riotApi.getMatch(platform, matchId);
+    Match match = riotApi.getMatch(platform, matchId);
 
-      CacheManager.putMatch(platform, match);
-
-      apiMatchRequestCount.incrementAndGet();
-    }
+    apiMatchRequestCount.incrementAndGet();
 
     allMatchRequestCount.incrementAndGet();
     increaseCallCountForGivenRegion(platform);
 
     return match;
+  }
+
+  public DTO.MatchCache getCachedMatch(Platform platform, long gameID) throws SQLException {
+    return CacheManager.getMatch(platform, gameID);
   }
 
   public MatchList getMatchListByAccountId(Platform platform, String accountId, Set<Integer> champion, Set<Integer> queue,
@@ -195,14 +196,13 @@ public class CachedRiotApi {
   }
 
   public boolean isRequestsCanBeExecuted(int nbrRequest, Platform platform, boolean addRequest) {
-    synchronized(shortRangeRateLimitHandler) {
+    synchronized(shortRangeRateLimitHandler.get(platform)) {
       List<LocalDateTime> callsPerTime = shortRangeRateLimitHandler.get(platform);
 
-      if(addRequest) {
-        addApiCallForARegion(nbrRequest, platform);
-      }
-      
       if(nbrRequest > RIOT_API_LOW_LIMIT) {
+        if(addRequest) {
+          addApiCallForARegion(nbrRequest, platform);
+        }
         return true;
       }
 
@@ -217,6 +217,10 @@ public class CachedRiotApi {
           Thread.currentThread().interrupt();
         }
       }while((callsPerTime.size() + nbrRequest) > RIOT_API_LOW_LIMIT);
+      
+      if(addRequest) {
+        addApiCallForARegion(nbrRequest, platform);
+      }
     }
     return true;
   }
@@ -244,7 +248,7 @@ public class CachedRiotApi {
   }
 
   public boolean isApiCallPerPlatformNeedToBeReset() {
-    return lastReset.isBefore(LocalDateTime.now().plus(RIOT_API_HUGE_TIME));
+    return lastReset.isBefore(LocalDateTime.now().minus(RIOT_API_HUGE_TIME));
   }
 
   public int getApiCallPerPlatform(Platform platform) {

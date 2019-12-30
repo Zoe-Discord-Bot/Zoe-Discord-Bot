@@ -258,7 +258,7 @@
     "nativeActualLanguage": "Français",
     "languageCommandHelp": "Commande pour sélectionner le langage de Zoe",
     "languageCommandInSelectionMenu": "Language sélectionné : **%s**",
-    "addingSystemRegionSelected": "Parfait, vous avez définit la région \"%s\". Je vais maintenant quelques conseils sur mon utilisation :",
+    "addingSystemRegionSelected": "Parfait, vous avez définit la région \"%s\". Voici maintenant quelques conseils sur mon utilisation :",
     "addingSystemEndMessage": "La configuration de base est maintenant complète. J'espère que vous apprécierez mes services :D",
     "addingSystemLanguageSelected": "Très bien, je parle maintenant en %s. (Vous pouvez toujours changer mon langage avec la commande `>l`). Maintenant sélectionnez un serveur LoL pour ce serveur Discord :",
     "nameUseIllegalCharacter": "Vous ne pouvez pas utiliser ce nom ! Merci de ne pas utilisé des caractères de formatage.",

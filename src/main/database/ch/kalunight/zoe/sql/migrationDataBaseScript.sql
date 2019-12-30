@@ -9,6 +9,9 @@ CREATE TABLE match_cache (
 ALTER TABLE ONLY match_cache
   ADD CONSTRAINT match_cache_pkey PRIMARY KEY (mCatch_id);
 
+ALTER TABLE match_cache
+  ADD UNIQUE (mCatch_gameId, mCatch_platform);
+
 CREATE INDEX idx_match_cache_gameId 
   ON match_cache(mCatch_gameId);
 

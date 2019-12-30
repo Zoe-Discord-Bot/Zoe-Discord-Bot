@@ -31,6 +31,8 @@ public class SavedMatchCacheRepository {
   private static final String INSERT_MATCH_CATCH = "INSERT INTO match_cache "
       + "(mCatch_gameId, mCatch_platform, mCatch_savedMatch, mCatch_creationTime) VALUES (%d, '%s', '%s', '%s')";
   
+  private static final String DELETE_MATCH_CACHE_OLD_OF_1_MONTHS = "DELETE FROM match_cache WHERE mcatch_creationtime > '%s'";
+  
   private static final Gson gson = new GsonBuilder().create();
   
   private SavedMatchCacheRepository() {
@@ -45,7 +47,16 @@ public class SavedMatchCacheRepository {
       
       LocalDateTime creationTime = Instant.ofEpochMilli(match.getGameCreation()).atZone(ZoneId.systemDefault()).toLocalDateTime();
       
-      String finalQuery = String.format(INSERT_MATCH_CATCH, gameId, server.getName(), gson.toJson(savedMatch), creationTime);
+      String finalQuery = String.format(INSERT_MATCH_CATCH, gameId, server.getName(), gson.toJson(savedMatch), DTO.DB_TIME_PATTERN.format(creationTime));
+      query.execute(finalQuery);
+    }
+  }
+  
+  public static void cleanOldMatchCatch() throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement();) {
+      
+      String finalQuery = String.format(DELETE_MATCH_CACHE_OLD_OF_1_MONTHS, DTO.DB_TIME_PATTERN.format(LocalDateTime.now().minusMonths(1)));
       query.execute(finalQuery);
     }
   }

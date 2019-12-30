@@ -1,5 +1,6 @@
 package ch.kalunight.zoe.model.dto;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import net.rithms.riot.api.endpoints.match.dto.Match;
@@ -12,10 +13,12 @@ public class SavedMatch {
   private List<SavedMatchPlayer> accountsIdBlueSide;
   private List<SavedMatchPlayer> accountsIdRedSide;
 
-  private boolean blueSideAsWin;
+  private boolean blueSideHasWin;
   
   public SavedMatch(Match match) {
-
+    accountsIdBlueSide = new ArrayList<>();
+    accountsIdRedSide = new ArrayList<>();
+    
     for(Participant participant : match.getParticipants()) {
 
       Player player = null;
@@ -38,10 +41,23 @@ public class SavedMatch {
     }
     
     if(match.getTeamByTeamId(100).getWin().equals("Win")) {
-      blueSideAsWin = true;
+      blueSideHasWin = true;
     }else {
-      blueSideAsWin = false;
+      blueSideHasWin = false;
     }
+  }
+  
+  public boolean isGivenAccountWinner(String accountId) {
+    boolean playerBlueSide = false;
+    
+    for(SavedMatchPlayer player : accountsIdBlueSide) {
+      if(player.getAccountId().equals(accountId)) {
+        playerBlueSide = true;
+        break;
+      }
+    }
+    
+    return playerBlueSide && blueSideHasWin;
   }
   
   public List<SavedMatchPlayer> getAccountsIdBlueSide() {
@@ -60,12 +76,12 @@ public class SavedMatch {
     this.accountsIdRedSide = accountsIdRedSide;
   }
 
-  public boolean isBlueSideAsWin() {
-    return blueSideAsWin;
+  public boolean isBlueSideHasWin() {
+    return blueSideHasWin;
   }
 
-  public void setBlueSideAsWin(boolean blueSideAsWin) {
-    this.blueSideAsWin = blueSideAsWin;
+  public void setBlueSideHasWin(boolean blueSideAsWin) {
+    this.blueSideHasWin = blueSideAsWin;
   }
 
 }

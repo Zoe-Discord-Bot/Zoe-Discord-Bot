@@ -159,14 +159,14 @@ public class DTO {
   
   public static class MatchCache {
     public long mCatch_id;
-    public long mCatch_gameId;
+    public String mCatch_gameId;
     public Platform mCatch_platform;
     public SavedMatch mCatch_savedMatch;
     public LocalDateTime mCatch_creationTime;
     
     public MatchCache(ResultSet baseData) throws SQLException {
       mCatch_id = baseData.getLong("mCatch_id");
-      mCatch_gameId = baseData.getLong("mCatch_gameId");
+      mCatch_gameId = baseData.getString("mCatch_gameId");
       mCatch_platform = Platform.getPlatformByName(baseData.getString("mCatch_platform"));
       mCatch_savedMatch = gson.fromJson(baseData.getString("mCatch_savedMatch"), SavedMatch.class);
       mCatch_creationTime = LocalDateTime.parse(baseData.getString("mCatch_creationTime"), DB_TIME_PATTERN);

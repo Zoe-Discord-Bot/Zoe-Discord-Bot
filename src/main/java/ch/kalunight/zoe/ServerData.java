@@ -35,6 +35,9 @@ public class ServerData {
 
   private static final ThreadPoolExecutor INFOCARDS_GENERATOR =
       new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+  
+  private static final ThreadPoolExecutor MATCH_WORKER = 
+      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
 
   /**
    * Used by event waiter, define in {@link Zoe#main(String[])}
@@ -49,6 +52,7 @@ public class ServerData {
     logger.info("ThreadPools has been lauched with {} threads", NBR_PROC);
     SERVER_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Server-Executor-Thread %d").build());
     INFOCARDS_GENERATOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe InfoCards-Generator-Thread %d").build());
+    MATCH_WORKER.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Match-Worker-Thread %d").build());
     RESPONSE_WAITER.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Response-Waiter-Thread %d").build());
   }
 
@@ -105,6 +109,16 @@ public class ServerData {
       INFOCARDS_GENERATOR.shutdownNow();
     }
     logger.info("Shutdown of InfoCards Generator has been completed !");
+    
+    channel.sendMessage("Start to shutdown Match Worker, this can take 5 minutes max...").complete();
+    MATCH_WORKER.shutdown();
+
+    MATCH_WORKER.awaitTermination(5, TimeUnit.MINUTES);
+    if(!MATCH_WORKER.isShutdown()) {
+      MATCH_WORKER.shutdownNow();
+    }
+    logger.info("Shutdown of Match Worker has been completed !");
+    
     channel.sendMessage("Shutdown of InfoCards Generator has been completed !").complete();
   }
   
@@ -126,6 +140,10 @@ public class ServerData {
 
   public static ScheduledThreadPoolExecutor getResponseWaiter() {
     return RESPONSE_WAITER;
+  }
+  
+  public static ThreadPoolExecutor getMatchWorker() {
+    return MATCH_WORKER;
   }
 
   public static Timer getServerCheckerThreadTimer() {

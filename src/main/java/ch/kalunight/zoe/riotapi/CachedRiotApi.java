@@ -25,6 +25,7 @@ import net.rithms.riot.api.endpoints.match.dto.Match;
 import net.rithms.riot.api.endpoints.match.dto.MatchList;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
+import net.rithms.riot.api.request.ratelimit.RateLimitException;
 import net.rithms.riot.constant.Platform;
 
 /**
@@ -37,8 +38,8 @@ public class CachedRiotApi {
   public static final int RIOT_API_HUGE_LIMIT = 15000;
   public static final Duration RIOT_API_HUGE_TIME = Duration.ofMinutes(10);
 
-  public static final int RIOT_API_LOW_LIMIT = 250;
-  public static final Duration RIOT_API_LOW_TIME = Duration.ofSeconds(11);
+  public static final int RIOT_API_LOW_LIMIT = 19;
+  public static final Duration RIOT_API_LOW_TIME = Duration.ofSeconds(2);
 
   private static final Logger logger = LoggerFactory.getLogger(CachedRiotApi.class);
 
@@ -166,6 +167,36 @@ public class CachedRiotApi {
     return masteries;
   }
 
+  public Match getMatchWithRateLimit(Platform server, long gameId) {
+    Match match = null;
+    boolean needToRetry;
+    do {
+      isRequestsCanBeExecuted(1, server, true);
+      apiMatchRequestCount.incrementAndGet();
+      allMatchRequestCount.incrementAndGet();
+      
+      needToRetry = true;
+      try {
+        match = riotApi.getMatch(server, gameId);
+        needToRetry = false;
+      }catch(RateLimitException e) {
+        try {
+          logger.info("Waiting rate limit ({} sec) to retry", e.getRetryAfter());
+          TimeUnit.SECONDS.sleep(e.getRetryAfter());
+        } catch (InterruptedException e1) {
+          logger.error("Thread Interupted when waiting the rate limit !", e1);
+          Thread.currentThread().interrupt();
+        }
+      } catch (RiotApiException e) {
+        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+          return null;
+        }
+      }
+    }while(needToRetry);
+    
+    return match;
+  }
+
   public synchronized void clearCounts() {
     apiMatchRequestCount.set(0);
     allMatchRequestCount.set(0);
@@ -217,7 +248,7 @@ public class CachedRiotApi {
           Thread.currentThread().interrupt();
         }
       }while((callsPerTime.size() + nbrRequest) > RIOT_API_LOW_LIMIT);
-      
+
       if(addRequest) {
         addApiCallForARegion(nbrRequest, platform);
       }

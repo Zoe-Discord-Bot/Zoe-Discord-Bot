@@ -88,7 +88,7 @@ public class MatchReceiverWorker implements Runnable {
       }
       
     }catch(SQLException e) {
-      logger.info("SQL error (unique constraint error, normaly nothing severe)");
+      logger.info("SQL error (unique constraint error, normaly nothing severe) Error : {}", e.getMessage());
       gameLoadingConflict.set(true);
     }finally {
       matchsInWork.remove(matchReference);

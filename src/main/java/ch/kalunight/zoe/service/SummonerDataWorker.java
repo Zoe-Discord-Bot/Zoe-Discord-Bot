@@ -73,6 +73,8 @@ public class SummonerDataWorker implements Runnable {
 
       playerData.setWinRateData(RiotRequest.getMasterysScore(participant.getSummonerId(), participant.getChampionId(), platform) + " | "
           + RiotRequest.getWinrateLastMonthWithGivenChampion(participant.getSummonerId(), platform, participant.getChampionId(), language));
+    } catch (Exception e) {
+      logger.error("Unexpected error in SummonerDataWorker !", e);
     } finally {
       playersDataInWork.remove(playerData);
     }

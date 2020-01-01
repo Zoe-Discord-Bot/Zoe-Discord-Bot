@@ -105,6 +105,21 @@ public class ServerRepository {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
       
+      DTO.Server server = ServerRepository.getServer(guildId);
+      
+      List<DTO.Player> players = PlayerRepository.getPlayers(guildId);
+      
+      for(DTO.Player player : players) {
+        PlayerRepository.deletePlayer(player.player_id, guildId);
+      }
+      
+      InfoChannelRepository.deleteInfoChannel(server);
+      
+      List<DTO.Team> teams = TeamRepository.getTeamsByGuild(guildId);
+      for(DTO.Team team : teams) {
+        TeamRepository.deleteTeam(team.team_id, new ArrayList<>());
+      }
+      
       String finalQuery = String.format(DELETE_SERVER_WITH_SERV_GUILDID, guildId);
       query.execute(finalQuery);
     }

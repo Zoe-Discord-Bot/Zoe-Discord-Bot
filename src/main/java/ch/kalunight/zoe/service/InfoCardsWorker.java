@@ -51,7 +51,7 @@ public class InfoCardsWorker implements Runnable {
       if(controlPanel.canTalk()) {
         if(account.summoner == null) {
           account.summoner = Zoe.getRiotApi()
-              .getSummoner(account.leagueAccount_server, account.leagueAccount_summonerId);
+              .getSummonerWithRateLimit(account.leagueAccount_server, account.leagueAccount_summonerId);
         }
         
         logger.info("Start generate infocards for the account " + account.summoner.getName() 

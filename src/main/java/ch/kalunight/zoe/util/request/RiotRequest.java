@@ -72,17 +72,13 @@ public class RiotRequest {
   public static String getWinrateLastMonthWithGivenChampion(String summonerId, Platform region,
       int championKey, String language) throws SQLException {
 
-    Zoe.getRiotApi().isRequestsCanBeExecuted(1, region, false);
-
     Summoner summoner;
     try {
-      summoner = Zoe.getRiotApi().getSummoner(region, summonerId);
+      summoner = Zoe.getRiotApi().getSummonerWithRateLimit(region, summonerId);
     } catch(RiotApiException e) {
       logger.warn("Impossible to get the summoner : {}", e.getMessage());
       return LanguageManager.getText(language, "unknown");
     }
-
-    Zoe.getRiotApi().isRequestsCanBeExecuted(4, region, false);
 
     List<MatchReference> referencesMatchList;
     try {
@@ -142,9 +138,9 @@ public class RiotRequest {
       MatchList matchList = null;
 
       try {
-        matchList = Zoe.getRiotApi().getMatchListByAccountId(region, summoner.getAccountId(), championToFilter, null, null,
+        matchList = Zoe.getRiotApi().getMatchListByAccountIdWithRateLimit(region, summoner.getAccountId(), championToFilter, null, null,
             beginTime.getMillis(), actualTime.getMillis(), -1, -1);
-        if(matchList.getMatches() != null) {
+        if(matchList != null && matchList.getMatches() != null) {
           referencesMatchList.addAll(matchList.getMatches());
         }
       } catch(RiotApiException e) {
@@ -161,11 +157,9 @@ public class RiotRequest {
   }
 
   public static String getMasterysScore(String summonerId, int championId, Platform platform) {
-    Zoe.getRiotApi().isRequestsCanBeExecuted(1, platform, false);
-
     ChampionMastery mastery = null;
     try {
-      mastery = Zoe.getRiotApi().getChampionMasteriesBySummonerByChampion(platform, summonerId, championId);
+      mastery = Zoe.getRiotApi().getChampionMasteriesBySummonerByChampionWithRateLimit(platform, summonerId, championId);
     } catch(RiotApiException e) {
       logger.debug("Impossible to get mastery score : {}", e.getMessage());
       if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {

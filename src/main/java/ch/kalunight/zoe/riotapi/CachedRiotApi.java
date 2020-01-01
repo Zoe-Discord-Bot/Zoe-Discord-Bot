@@ -3,7 +3,6 @@ package ch.kalunight.zoe.riotapi;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
@@ -38,9 +37,6 @@ public class CachedRiotApi {
   public static final int RIOT_API_HUGE_LIMIT = 15000;
   public static final Duration RIOT_API_HUGE_TIME = Duration.ofMinutes(10);
 
-  public static final int RIOT_API_LOW_LIMIT = 19;
-  public static final Duration RIOT_API_LOW_TIME = Duration.ofSeconds(2);
-
   private static final Logger logger = LoggerFactory.getLogger(CachedRiotApi.class);
 
   private static LocalDateTime lastReset = LocalDateTime.now();
@@ -55,19 +51,15 @@ public class CachedRiotApi {
   private final AtomicInteger championMasteryRequestCount = new AtomicInteger(0);
   private final AtomicInteger currentGameInfoRequestCount = new AtomicInteger(0);
   private static final Map<Platform, AtomicInteger> callByEndpoints = Collections.synchronizedMap(new EnumMap<Platform, AtomicInteger>(Platform.class));
-  private static final Map<Platform, List<LocalDateTime>> shortRangeRateLimitHandler = 
-      Collections.synchronizedMap(new EnumMap<Platform, List<LocalDateTime>>(Platform.class));
 
   static {
     for(Platform platform : Platform.values()) {
       callByEndpoints.put(platform, new AtomicInteger(0));
-      shortRangeRateLimitHandler.put(platform, Collections.synchronizedList(new ArrayList<>()));
     }
   }
 
   private static void increaseCallCountForGivenRegion(Platform platform) {
     callByEndpoints.get(platform).incrementAndGet();
-    shortRangeRateLimitHandler.get(platform).add(LocalDateTime.now());
   }
 
   public CachedRiotApi(RiotApi riotApi) {
@@ -103,6 +95,37 @@ public class CachedRiotApi {
 
     return matchList;
   }
+  
+  public MatchList getMatchListByAccountIdWithRateLimit(Platform platform, String accountId, Set<Integer> champion, Set<Integer> queue,
+      Set<Integer> season, long beginTime, long endTime, int beginIndex, int endIndex) throws RiotApiException {
+    
+    MatchList matchList = null;
+    boolean needToRetry;
+    do {
+      matchListRequestCount.incrementAndGet();
+      increaseCallCountForGivenRegion(platform);
+      
+      needToRetry = true;
+      try {
+        matchList = riotApi.getMatchListByAccountId(platform, accountId, champion, queue, season, beginTime, endTime, beginIndex, endIndex);
+        needToRetry = false;
+      }catch(RateLimitException e) {
+        try {
+          logger.info("Waiting rate limit ({} sec) to retry in getMatchList", e.getRetryAfter());
+          TimeUnit.SECONDS.sleep(e.getRetryAfter());
+        } catch (InterruptedException e1) {
+          logger.error("Thread Interupted when waiting the rate limit in getSummoner !", e1);
+          Thread.currentThread().interrupt();
+        }
+      } catch (RiotApiException e) {
+        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+          return null;
+        }
+      }
+    }while(needToRetry);
+
+    return matchList;
+  }
 
   public Summoner getSummoner(Platform platform, String summonerId) throws RiotApiException {
     Summoner summoner = riotApi.getSummoner(platform, summonerId);
@@ -113,6 +136,35 @@ public class CachedRiotApi {
     return summoner;
   }
 
+  public Summoner getSummonerWithRateLimit(Platform platform, String summonerId) throws RiotApiException {
+    Summoner summoner = null;
+    boolean needToRetry;
+    do {
+      summonerRequestCount.incrementAndGet();
+      increaseCallCountForGivenRegion(platform);
+      
+      needToRetry = true;
+      try {
+        summoner = riotApi.getSummoner(platform, summonerId);
+        needToRetry = false;
+      }catch(RateLimitException e) {
+        try {
+          logger.info("Waiting rate limit ({} sec) to retry in getSummoner", e.getRetryAfter());
+          TimeUnit.SECONDS.sleep(e.getRetryAfter());
+        } catch (InterruptedException e1) {
+          logger.error("Thread Interupted when waiting the rate limit in getSummoner !", e1);
+          Thread.currentThread().interrupt();
+        }
+      } catch (RiotApiException e) {
+        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+          return null;
+        }
+      }
+    }while(needToRetry);
+    
+    return summoner;
+  }
+  
   public Summoner getSummonerByName(Platform platform, String summonerName) throws RiotApiException {
     Summoner summoner = riotApi.getSummonerByName(platform, summonerName);
 
@@ -157,6 +209,36 @@ public class CachedRiotApi {
 
     return mastery;
   }
+  
+  public ChampionMastery getChampionMasteriesBySummonerByChampionWithRateLimit(Platform platform, String summonerId, int championId) throws RiotApiException {
+    ChampionMastery mastery = null;
+    boolean needToRetry;
+    do {
+      championMasteryRequestCount.incrementAndGet();
+      increaseCallCountForGivenRegion(platform);
+      
+      needToRetry = true;
+      try {
+        mastery = riotApi.getChampionMasteriesBySummonerByChampion(platform, summonerId, championId);
+        needToRetry = false;
+      }catch(RateLimitException e) {
+        try {
+          logger.info("Waiting rate limit ({} sec) to retry", e.getRetryAfter());
+          TimeUnit.SECONDS.sleep(e.getRetryAfter());
+        } catch (InterruptedException e1) {
+          logger.error("Thread Interupted when waiting the rate limit !", e1);
+          Thread.currentThread().interrupt();
+        }
+      } catch (RiotApiException e) {
+        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+          return null;
+        }
+      }
+    }while(needToRetry);
+
+    
+    return mastery;
+  }
 
   public List<ChampionMastery> getChampionMasteriesBySummoner(Platform platform, String summonerId) throws RiotApiException {
     List<ChampionMastery> masteries = riotApi.getChampionMasteriesBySummoner(platform, summonerId);
@@ -171,12 +253,12 @@ public class CachedRiotApi {
     Match match = null;
     boolean needToRetry;
     do {
-      isRequestsCanBeExecuted(1, server, true);
       apiMatchRequestCount.incrementAndGet();
       allMatchRequestCount.incrementAndGet();
       
       needToRetry = true;
       try {
+        increaseCallCountForGivenRegion(server);
         match = riotApi.getMatch(server, gameId);
         needToRetry = false;
       }catch(RateLimitException e) {
@@ -226,56 +308,8 @@ public class CachedRiotApi {
     }
   }
 
-  public boolean isRequestsCanBeExecuted(int nbrRequest, Platform platform, boolean addRequest) {
-    synchronized(shortRangeRateLimitHandler.get(platform)) {
-      List<LocalDateTime> callsPerTime = shortRangeRateLimitHandler.get(platform);
-
-      if(nbrRequest > RIOT_API_LOW_LIMIT) {
-        if(addRequest) {
-          addApiCallForARegion(nbrRequest, platform);
-        }
-        return true;
-      }
-
-      do {
-        refreshRateLimit(callsPerTime);
-        try {
-          if((callsPerTime.size() + nbrRequest) > RIOT_API_LOW_LIMIT) {
-            TimeUnit.MILLISECONDS.sleep(50);
-          }
-        } catch (InterruptedException e) {
-          logger.error("Interuption when waiting for the rate limit !", e);
-          Thread.currentThread().interrupt();
-        }
-      }while((callsPerTime.size() + nbrRequest) > RIOT_API_LOW_LIMIT);
-
-      if(addRequest) {
-        addApiCallForARegion(nbrRequest, platform);
-      }
-    }
-    return true;
-  }
-
-  private void refreshRateLimit(List<LocalDateTime> callsPerTime) {
-    List<LocalDateTime> callsToDelete = new ArrayList<>();
-
-    for(LocalDateTime call : callsPerTime) {
-      if(call.isBefore(LocalDateTime.now().minus(RIOT_API_LOW_TIME))){
-        callsToDelete.add(call);
-      }
-    }
-
-    for(LocalDateTime callToDelete : callsToDelete) {
-      callsPerTime.remove(callToDelete);
-    }
-  }
-
   public void addApiCallForARegion(int nbrCalls, Platform platform) {
     callByEndpoints.get(platform).addAndGet(nbrCalls);
-    List<LocalDateTime> shortRangeLimit = shortRangeRateLimitHandler.get(platform);
-    for(int i = 0; i < nbrCalls; i++) {
-      shortRangeLimit.add(LocalDateTime.now());
-    }
   }
 
   public boolean isApiCallPerPlatformNeedToBeReset() {

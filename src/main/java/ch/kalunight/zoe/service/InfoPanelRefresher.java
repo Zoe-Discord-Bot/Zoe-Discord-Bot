@@ -113,11 +113,11 @@ public class InfoPanelRefresher implements Runnable {
     try {
 
       DTO.InfoChannel infoChannelDTO = InfoChannelRepository.getInfoChannel(server.serv_guildId);
-      if(infoChannelDTO != null) {
+      if(infoChannelDTO != null && guild != null) {
         infochannel = guild.getTextChannelById(infoChannelDTO.infochannel_channelid);
       }
 
-      if(infochannel != null) {
+      if(infochannel != null && guild != null) {
 
         if(needToWait) {
           TimeUnit.SECONDS.sleep(3);

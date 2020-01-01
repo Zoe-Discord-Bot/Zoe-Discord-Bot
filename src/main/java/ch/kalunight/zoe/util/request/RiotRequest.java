@@ -168,6 +168,10 @@ public class RiotRequest {
       return "?";
     }
 
+    if(mastery == null) {
+      return "0";
+    }
+    
     StringBuilder masteryString = new StringBuilder();
 
     long points = mastery.getChampionPoints();

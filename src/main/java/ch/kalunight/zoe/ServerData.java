@@ -109,6 +109,7 @@ public class ServerData {
       INFOCARDS_GENERATOR.shutdownNow();
     }
     logger.info("Shutdown of InfoCards Generator has been completed !");
+    channel.sendMessage("Shutdown of InfoCards Generator has been completed !").complete();
     
     channel.sendMessage("Start to shutdown Match Worker, this can take 5 minutes max...").complete();
     MATCH_WORKER.shutdown();
@@ -119,7 +120,7 @@ public class ServerData {
     }
     logger.info("Shutdown of Match Worker has been completed !");
     
-    channel.sendMessage("Shutdown of InfoCards Generator has been completed !").complete();
+    channel.sendMessage("Shutdown of Match Worker has been completed !").complete();
   }
   
   public static ConcurrentMap<String, Boolean> getServersIsInTreatment() {

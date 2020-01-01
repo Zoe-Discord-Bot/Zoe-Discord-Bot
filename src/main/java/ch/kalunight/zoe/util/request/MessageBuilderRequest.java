@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.stats.StatsProfileCommand;
+import ch.kalunight.zoe.model.InfocardPlayerData;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.model.player_data.Rank;
@@ -25,14 +26,13 @@ import ch.kalunight.zoe.model.player_data.Tier;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.model.static_data.CustomEmote;
 import ch.kalunight.zoe.model.static_data.Mastery;
+import ch.kalunight.zoe.service.SummonerDataWorker;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.MessageBuilderRequestUtil;
-import ch.kalunight.zoe.util.NameConversion;
 import ch.kalunight.zoe.util.Ressources;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.MessageEmbed.Field;
-import net.dv8tion.jda.api.entities.User;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.champion_mastery.dto.ChampionMastery;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
@@ -54,73 +54,7 @@ public class MessageBuilderRequest {
   private static final String SOLO_Q_RANK_STRING = "soloqTitleRespectSize";
   private MessageBuilderRequest() {}
 
-  public static MessageEmbed createInfoCard1summoner(User user, Summoner summoner, CurrentGameInfo match, Platform region, String language) 
-      throws SQLException {
-
-    String blueTeamTranslated = LanguageManager.getText(language, BLUE_TEAM_STRING);
-    String redTeamTranslated = LanguageManager.getText(language, RED_TEAM_STRING);
-    String masteriesWRThisMonthTranslated = LanguageManager.getText(language, MASTERIES_WR_THIS_MONTH_STRING);
-    String soloqRankTitleTranslated = LanguageManager.getText(language, SOLO_Q_RANK_STRING);
-
-    EmbedBuilder message = new EmbedBuilder();
-
-    message.setAuthor(user.getName(), null, user.getAvatarUrl());
-
-    message.setTitle(
-        LanguageManager.getText(language, "infoCardsGameInfoTitle") 
-        + " " + user.getName() + " : "
-        + LanguageManager.getText(language, NameConversion.convertGameQueueIdToString(match.getGameQueueConfigId())));
-
-    int blueTeamID = 100;
-
-    ArrayList<CurrentGameParticipant> blueTeam = new ArrayList<>();
-    ArrayList<CurrentGameParticipant> redTeam = new ArrayList<>();
-
-    MessageBuilderRequestUtil.getTeamPlayer(match, blueTeamID, blueTeam, redTeam);
-
-    StringBuilder blueTeamString = new StringBuilder();
-    StringBuilder blueTeamRankString = new StringBuilder();
-    StringBuilder blueTeamWinRateLastMonth = new StringBuilder();
-
-    MessageBuilderRequestUtil.createTeamData1Summoner(summoner, blueTeam, blueTeamString,
-        blueTeamRankString, blueTeamWinRateLastMonth, region, language);
-
-    message.addField(blueTeamTranslated, blueTeamString.toString(), true);
-    message.addField(soloqRankTitleTranslated, blueTeamRankString.toString(), true);
-    message.addField(masteriesWRThisMonthTranslated, blueTeamWinRateLastMonth.toString(), true);
-
-    StringBuilder redTeamString = new StringBuilder();
-    StringBuilder redTeamRankString = new StringBuilder();
-    StringBuilder redTeamWinrateString = new StringBuilder();
-
-    MessageBuilderRequestUtil.createTeamData1Summoner(summoner, redTeam, redTeamString,
-        redTeamRankString, redTeamWinrateString, region, language);
-
-    message.addField(redTeamTranslated, redTeamString.toString(), true);
-    message.addField(soloqRankTitleTranslated, redTeamRankString.toString(), true);
-    message.addField(masteriesWRThisMonthTranslated, redTeamWinrateString.toString(), true);
-
-    double minutesOfGames = 0.0;
-
-    if(match.getGameLength() != 0l) {
-      minutesOfGames = match.getGameLength() + 180.0;
-    }
-
-    minutesOfGames = minutesOfGames / 60.0;
-    String[] stringMinutesSecondes = Double.toString(minutesOfGames).split("\\.");
-    int minutesGameLength = Integer.parseInt(stringMinutesSecondes[0]);
-    int secondesGameLength = (int) (Double.parseDouble("0." + stringMinutesSecondes[1]) * 60.0);
-
-    String gameLenght = String.format("%02d", minutesGameLength) + ":" + String.format("%02d", secondesGameLength);
-
-    message.setFooter(LanguageManager.getText(language, "infoCardsGameFooter") + " : " + gameLenght, null);
-
-    message.setColor(Color.GREEN);
-
-    return message.build();
-  }
-
-  public static MessageEmbed createInfoCardsMultipleSummoner(List<DTO.Player> players, CurrentGameInfo currentGameInfo,
+  public static MessageEmbed createInfoCard(List<DTO.Player> players, CurrentGameInfo currentGameInfo,
       Platform region, DTO.Server server) throws SQLException {
 
     String blueTeamTranslated = LanguageManager.getText(server.serv_language, BLUE_TEAM_STRING);
@@ -154,28 +88,44 @@ public class MessageBuilderRequest {
       listIdPlayers.add(leagueAccount.leagueAccount_summonerId);
     }
 
+    List<InfocardPlayerData> playersData = new ArrayList<>();
+    
+    MessageBuilderRequestUtil.createTeamDataMultipleSummoner(blueTeam, listIdPlayers, region, server.serv_language, playersData, true);
+    MessageBuilderRequestUtil.createTeamDataMultipleSummoner(redTeam, listIdPlayers, region, server.serv_language, playersData, false);
+
+    SummonerDataWorker.awaitAll(playersData);
+    
     StringBuilder blueTeamString = new StringBuilder();
     StringBuilder blueTeamRankString = new StringBuilder();
     StringBuilder blueTeamWinrateString = new StringBuilder();
-
-    MessageBuilderRequestUtil.createTeamDataMultipleSummoner(blueTeam, listIdPlayers, blueTeamString, blueTeamRankString,
-        blueTeamWinrateString, region, server.serv_language);
-
-    message.addField(blueTeamTranslated, blueTeamString.toString(), true);
-    message.addField(soloqRankTitleTranslated, blueTeamRankString.toString(), true);
-    message.addField(masteriesWRThisMonthTranslated, blueTeamWinrateString.toString(), true);
 
     StringBuilder redTeamString = new StringBuilder();
     StringBuilder redTeamRankString = new StringBuilder();
     StringBuilder redTeamWinrateString = new StringBuilder();
 
-    MessageBuilderRequestUtil.createTeamDataMultipleSummoner(redTeam, listIdPlayers, redTeamString, redTeamRankString, redTeamWinrateString,
-        region, server.serv_language);
-
+    
+    for(InfocardPlayerData playerData : playersData) {
+      if(playerData.isBlueTeam()) {
+        blueTeamString.append(playerData.getSummonerNameData() + "\n");
+        blueTeamRankString.append(playerData.getRankData() + "\n");
+        blueTeamWinrateString.append(playerData.getWinRateData() + "\n");
+      }else {
+        redTeamString.append(playerData.getSummonerNameData() + "\n");
+        redTeamRankString.append(playerData.getRankData() + "\n");
+        redTeamWinrateString.append(playerData.getWinRateData() + "\n");
+      }
+    }
+    
+    message.addField(blueTeamTranslated, blueTeamString.toString(), true);
+    message.addField(soloqRankTitleTranslated, blueTeamRankString.toString(), true);
+    message.addField(masteriesWRThisMonthTranslated, blueTeamWinrateString.toString(), true);
+    
     message.addField(redTeamTranslated, redTeamString.toString(), true);
     message.addField(soloqRankTitleTranslated, redTeamRankString.toString(), true);
     message.addField(masteriesWRThisMonthTranslated, redTeamWinrateString.toString(), true);
-
+    
+    
+    
     double minutesOfGames = 0.0;
 
     if(currentGameInfo.getGameLength() != 0l) {

@@ -1,6 +1,5 @@
 package ch.kalunight.zoe.util.request;
 
-import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -48,7 +47,7 @@ public class RiotRequest {
 
     Set<LeagueEntry> listLeague;
     try {
-      listLeague = Zoe.getRiotApi().getLeagueEntriesBySummonerId(region, summonerId);
+      listLeague = Zoe.getRiotApi().getLeagueEntriesBySummonerIdWithRateLimit(region, summonerId);
     } catch(RiotApiException e) {
       logger.info("Error with riot api : {}", e.getMessage());
       return new FullTier(Tier.UNKNOWN, Rank.UNKNOWN, 0);
@@ -70,7 +69,7 @@ public class RiotRequest {
   }
 
   public static String getWinrateLastMonthWithGivenChampion(String summonerId, Platform region,
-      int championKey, String language) throws SQLException {
+      int championKey, String language) {
 
     Summoner summoner;
     try {
@@ -97,7 +96,7 @@ public class RiotRequest {
     
     for(MatchReference matchReference : referencesMatchList) {
       MatchReceiverWorker matchWorker = new MatchReceiverWorker(winRateReceiver, gameLoadingConflict, matchReference, region, summoner);
-      ServerData.getMatchWorker().execute(matchWorker);
+      ServerData.getMatchsWorker().execute(matchWorker);
     }
 
     MatchReceiverWorker.awaitAll(referencesMatchList);

@@ -5,6 +5,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -191,6 +192,36 @@ public class CachedRiotApi {
 
     return leagueEntries;
   }
+  
+  public Set<LeagueEntry> getLeagueEntriesBySummonerIdWithRateLimit(Platform platform, String summonerId) throws RiotApiException {
+    Set<LeagueEntry> leagueEntries = null;
+    boolean needToRetry;
+    
+    do {
+      leagueEntryRequestCount.incrementAndGet();
+      increaseCallCountForGivenRegion(platform);
+      
+      needToRetry = true;
+      try {
+        leagueEntries = riotApi.getLeagueEntriesBySummonerId(platform, summonerId);
+        needToRetry = false;
+      }catch(RateLimitException e) {
+        try {
+          logger.info("Waiting rate limit ({} sec) to retry when getting the rank", e.getRetryAfter());
+          TimeUnit.SECONDS.sleep(e.getRetryAfter());
+        } catch (InterruptedException e1) {
+          logger.error("Thread Interupted when waiting the rate limit !", e1);
+          Thread.currentThread().interrupt();
+        }
+      } catch (RiotApiException e) {
+        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+          return new HashSet<>();
+        }
+      }
+    }while(needToRetry);
+    
+    return leagueEntries;
+  }
 
   public CurrentGameInfo getActiveGameBySummoner(Platform platform, String summonerId) throws RiotApiException {
     CurrentGameInfo gameInfo = riotApi.getActiveGameBySummoner(platform, summonerId);
@@ -223,7 +254,7 @@ public class CachedRiotApi {
         needToRetry = false;
       }catch(RateLimitException e) {
         try {
-          logger.info("Waiting rate limit ({} sec) to retry", e.getRetryAfter());
+          logger.info("Waiting rate limit ({} sec) to retry when getting mastery", e.getRetryAfter());
           TimeUnit.SECONDS.sleep(e.getRetryAfter());
         } catch (InterruptedException e1) {
           logger.error("Thread Interupted when waiting the rate limit !", e1);
@@ -235,7 +266,6 @@ public class CachedRiotApi {
         }
       }
     }while(needToRetry);
-
     
     return mastery;
   }

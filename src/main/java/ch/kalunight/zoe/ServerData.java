@@ -36,7 +36,10 @@ public class ServerData {
   private static final ThreadPoolExecutor INFOCARDS_GENERATOR =
       new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
   
-  private static final ThreadPoolExecutor MATCH_WORKER = 
+  private static final ThreadPoolExecutor PLAYERS_DATA_WORKER =
+      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+  
+  private static final ThreadPoolExecutor MATCHS_WORKER = 
       new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
 
   /**
@@ -52,7 +55,8 @@ public class ServerData {
     logger.info("ThreadPools has been lauched with {} threads", NBR_PROC);
     SERVER_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Server-Executor-Thread %d").build());
     INFOCARDS_GENERATOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe InfoCards-Generator-Thread %d").build());
-    MATCH_WORKER.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Match-Worker-Thread %d").build());
+    PLAYERS_DATA_WORKER.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Players-Data-Worker %d").build());
+    MATCHS_WORKER.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Match-Worker-Thread %d").build());
     RESPONSE_WAITER.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Response-Waiter-Thread %d").build());
   }
 
@@ -111,12 +115,23 @@ public class ServerData {
     logger.info("Shutdown of InfoCards Generator has been completed !");
     channel.sendMessage("Shutdown of InfoCards Generator has been completed !").complete();
     
-    channel.sendMessage("Start to shutdown Match Worker, this can take 5 minutes max...").complete();
-    MATCH_WORKER.shutdown();
+    logger.info("Start to shutdown Players Data Worker, this can take 5 minutes max...");
+    channel.sendMessage("Start to shutdown Players Data Worker, this can take 5 minutes max...").complete();
+    PLAYERS_DATA_WORKER.shutdown();
 
-    MATCH_WORKER.awaitTermination(5, TimeUnit.MINUTES);
-    if(!MATCH_WORKER.isShutdown()) {
-      MATCH_WORKER.shutdownNow();
+    PLAYERS_DATA_WORKER.awaitTermination(5, TimeUnit.MINUTES);
+    if(!PLAYERS_DATA_WORKER.isShutdown()) {
+      PLAYERS_DATA_WORKER.shutdownNow();
+    }
+    logger.info("Shutdown of Players Data Worker has been completed !");
+    channel.sendMessage("Shutdown of Players Data Worker has been completed !").complete();
+    
+    channel.sendMessage("Start to shutdown Match Worker, this can take 5 minutes max...").complete();
+    MATCHS_WORKER.shutdown();
+
+    MATCHS_WORKER.awaitTermination(5, TimeUnit.MINUTES);
+    if(!MATCHS_WORKER.isShutdown()) {
+      MATCHS_WORKER.shutdownNow();
     }
     logger.info("Shutdown of Match Worker has been completed !");
     
@@ -139,12 +154,16 @@ public class ServerData {
     return INFOCARDS_GENERATOR;
   }
 
+  public static ThreadPoolExecutor getPlayersDataWorker() {
+    return PLAYERS_DATA_WORKER;
+  }
+  
   public static ScheduledThreadPoolExecutor getResponseWaiter() {
     return RESPONSE_WAITER;
   }
   
-  public static ThreadPoolExecutor getMatchWorker() {
-    return MATCH_WORKER;
+  public static ThreadPoolExecutor getMatchsWorker() {
+    return MATCHS_WORKER;
   }
 
   public static Timer getServerCheckerThreadTimer() {

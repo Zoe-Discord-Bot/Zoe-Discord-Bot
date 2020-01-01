@@ -66,6 +66,10 @@ public class MatchReceiverWorker implements Runnable {
       }else {
           Match match = riotApi.getMatchWithRateLimit(server, matchReference.getGameId());
 
+          if(match == null) {
+            return;
+          }
+          
           Participant participant = match.getParticipantByAccountId(summoner.getAccountId());
 
           if(participant != null && participant.getTimeline().getCreepsPerMinDeltas() != null) { // Check if the game has been canceled

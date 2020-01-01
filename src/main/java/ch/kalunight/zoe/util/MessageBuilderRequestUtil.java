@@ -5,15 +5,15 @@ import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.model.InfocardPlayerData;
 import ch.kalunight.zoe.model.dto.DTO;
-import ch.kalunight.zoe.model.player_data.FullTier;
-import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
+import ch.kalunight.zoe.service.SummonerDataWorker;
 import ch.kalunight.zoe.translation.LanguageManager;
-import ch.kalunight.zoe.util.request.RiotRequest;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
-import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.constant.Platform;
 
 public class MessageBuilderRequestUtil {
@@ -41,40 +41,6 @@ public class MessageBuilderRequestUtil {
     }
     return lolAccountsInGame;
   }
-  
-  public static void createTeamData1Summoner(Summoner summoner, List<CurrentGameParticipant> teamParticipant, StringBuilder teamString,
-      StringBuilder teamRankString, StringBuilder teamWinRateLastMonth, Platform platform, String language) throws SQLException {
-
-    for(int i = 0; i < teamParticipant.size(); i++) {
-      CurrentGameParticipant participant = teamParticipant.get(i);
-      Champion champion = null;
-      champion = Ressources.getChampionDataById(participant.getChampionId());
-      if(champion == null) {
-        champion = new Champion(-1, "-1", LanguageManager.getText(language, "unknown"), null);
-      }
-
-      FullTier fullTier = RiotRequest.getSoloqRank(participant.getSummonerId(), platform);
-      String rank;
-      try {
-        rank = Ressources.getTierEmote().get(fullTier.getTier()).getEmote().getAsMention() + " " + fullTier.toString();
-      } catch(NullPointerException e) {
-        rank = fullTier.toString();
-      }
-
-      if(summoner.getName().equals(participant.getSummonerName())) {
-        teamString.append(champion.getDisplayName() + " | __**" + NameConversion.convertStringToTinyString(participant.getSummonerName())
-        + "**__" + "\n");
-      } else {
-        teamString
-        .append(champion.getDisplayName() + " | " + NameConversion.convertStringToTinyString(participant.getSummonerName()) + "\n");
-      }
-
-      teamRankString.append(rank + "\n");
-
-      teamWinRateLastMonth.append(RiotRequest.getMasterysScore(participant.getSummonerId(), participant.getChampionId(), platform) + " | "
-          + RiotRequest.getWinrateLastMonthWithGivenChampion(participant.getSummonerId(), platform, participant.getChampionId(), language) + "\n");
-    }
-  }
 
   public static void getTeamPlayer(CurrentGameInfo match, int teamID, List<CurrentGameParticipant> teamParticipant,
       List<CurrentGameParticipant> redTeam) {
@@ -87,42 +53,14 @@ public class MessageBuilderRequestUtil {
     }
   }
 
-
   public static void createTeamDataMultipleSummoner(List<CurrentGameParticipant> teamParticipant, List<String> listIdPlayers,
-      StringBuilder teamString, StringBuilder teamRankString, StringBuilder teamWinrateString, Platform platform,
-      String language) throws SQLException {
+      Platform platform, String language, List<InfocardPlayerData> playersDataToWait, boolean isBlueTeam) {
 
-    String unknownChampion = LanguageManager.getText(language, "unknown");
-
-    for(int i = 0; i < teamParticipant.size(); i++) {
-      CurrentGameParticipant participant = teamParticipant.get(i);
-
-      Champion champion = null;
-      champion = Ressources.getChampionDataById(participant.getChampionId());
-      if(champion == null) {
-        champion = new Champion(-1, unknownChampion, unknownChampion, null);
-      }
-
-      FullTier fullTier = RiotRequest.getSoloqRank(participant.getSummonerId(), platform);
-      String rank;
-      try {
-        rank = Ressources.getTierEmote().get(fullTier.getTier()).getEmote().getAsMention() + " " + fullTier.toString();
-      } catch(NullPointerException e) {
-        rank = fullTier.toString();
-      }
-
-      if(listIdPlayers.contains(participant.getSummonerId())) {
-        teamString.append(champion.getDisplayName() + " | __**" + NameConversion.convertStringToTinyString(participant.getSummonerName())
-        + "**__" + "\n");
-      } else {
-        teamString
-        .append(champion.getDisplayName() + " | " + NameConversion.convertStringToTinyString(participant.getSummonerName()) + "\n");
-      }
-
-      teamRankString.append(rank + "\n");
-
-      teamWinrateString.append(RiotRequest.getMasterysScore(participant.getSummonerId(), participant.getChampionId(), platform) + " | "
-          + RiotRequest.getWinrateLastMonthWithGivenChampion(participant.getSummonerId(), platform, participant.getChampionId(), language) + "\n");
+    for(CurrentGameParticipant participant : teamParticipant) {
+      InfocardPlayerData playerData = new InfocardPlayerData(isBlueTeam);
+      SummonerDataWorker playerWorker = new SummonerDataWorker(participant, listIdPlayers, platform, language, playerData);
+      ServerData.getPlayersDataWorker().execute(playerWorker);
+      playersDataToWait.add(playerData);
     }
   }
 

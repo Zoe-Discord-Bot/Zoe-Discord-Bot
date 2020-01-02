@@ -96,7 +96,7 @@ public class RiotRequest {
     
     for(MatchReference matchReference : referencesMatchList) {
       MatchReceiverWorker matchWorker = new MatchReceiverWorker(winRateReceiver, gameLoadingConflict, matchReference, region, summoner);
-      ServerData.getMatchsWorker().execute(matchWorker);
+      ServerData.getMatchsWorker(region).execute(matchWorker);
     }
 
     MatchReceiverWorker.awaitAll(referencesMatchList);

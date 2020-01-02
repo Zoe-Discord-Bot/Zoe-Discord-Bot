@@ -3,7 +3,9 @@ package ch.kalunight.zoe;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -17,6 +19,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.repositories.ServerStatusRepository;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.rithms.riot.constant.Platform;
 
 public class ServerData {
 
@@ -35,12 +38,12 @@ public class ServerData {
 
   private static final ThreadPoolExecutor INFOCARDS_GENERATOR =
       new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
-  
+
   private static final ThreadPoolExecutor PLAYERS_DATA_WORKER =
       new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
-  
-  private static final ThreadPoolExecutor MATCHS_WORKER = 
-      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+
+  private static final Map<Platform, ThreadPoolExecutor> MATCH_THREAD_EXECUTORS =
+      Collections.synchronizedMap(new EnumMap<Platform, ThreadPoolExecutor>(Platform.class));
 
   /**
    * Used by event waiter, define in {@link Zoe#main(String[])}
@@ -56,8 +59,14 @@ public class ServerData {
     SERVER_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Server-Executor-Thread %d").build());
     INFOCARDS_GENERATOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe InfoCards-Generator-Thread %d").build());
     PLAYERS_DATA_WORKER.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Players-Data-Worker %d").build());
-    MATCHS_WORKER.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Match-Worker-Thread %d").build());
     RESPONSE_WAITER.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Response-Waiter-Thread %d").build());
+
+    for(Platform platform : Platform.values()) {
+      ThreadPoolExecutor executor = new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+      String nameOfThread = String.format("Zoe Match-%s-Worker", platform.getName().toUpperCase());
+      executor.setThreadFactory(new ThreadFactoryBuilder().setNameFormat(nameOfThread + " %d").build());
+      MATCH_THREAD_EXECUTORS.put(platform, executor);
+    }
   }
 
   /**
@@ -74,9 +83,9 @@ public class ServerData {
         serverAskedTreatment = true;
       }
     }
-    
+
     DTO.ServerStatus serverStatus = ServerStatusRepository.getServerStatus(server.serv_guildId);
-    
+
     return serverAskedTreatment || serverStatus.servstatus_inTreatment;
   }
 
@@ -114,7 +123,7 @@ public class ServerData {
     }
     logger.info("Shutdown of InfoCards Generator has been completed !");
     channel.sendMessage("Shutdown of InfoCards Generator has been completed !").complete();
-    
+
     logger.info("Start to shutdown Players Data Worker, this can take 5 minutes max...");
     channel.sendMessage("Start to shutdown Players Data Worker, this can take 5 minutes max...").complete();
     PLAYERS_DATA_WORKER.shutdown();
@@ -125,19 +134,23 @@ public class ServerData {
     }
     logger.info("Shutdown of Players Data Worker has been completed !");
     channel.sendMessage("Shutdown of Players Data Worker has been completed !").complete();
-    
-    channel.sendMessage("Start to shutdown Match Worker, this can take 5 minutes max...").complete();
-    MATCHS_WORKER.shutdown();
 
-    MATCHS_WORKER.awaitTermination(5, TimeUnit.MINUTES);
-    if(!MATCHS_WORKER.isShutdown()) {
-      MATCHS_WORKER.shutdownNow();
+    channel.sendMessage("Start to shutdown Matchs Worker...").complete();
+    for(Platform platform : Platform.values()) {
+      ThreadPoolExecutor matchWorker = MATCH_THREAD_EXECUTORS.get(platform);
+      matchWorker.shutdown();
+      logger.info("Start to shutdown Match Worker {}, this can take 5 minutes max...", platform.getName());
+
+      matchWorker.awaitTermination(5, TimeUnit.MINUTES);
+      if(!matchWorker.isShutdown()) {
+        matchWorker.shutdownNow();
+      }
+      logger.info("Shutdown of Match Worker {} has been completed !", platform.getName());
     }
-    logger.info("Shutdown of Match Worker has been completed !");
-    
-    channel.sendMessage("Shutdown of Match Worker has been completed !").complete();
+
+    channel.sendMessage("Shutdown of Matchs Worker has been completed !").complete();
   }
-  
+
   public static ConcurrentMap<String, Boolean> getServersIsInTreatment() {
     return serversIsInTreatment;
   }
@@ -157,13 +170,13 @@ public class ServerData {
   public static ThreadPoolExecutor getPlayersDataWorker() {
     return PLAYERS_DATA_WORKER;
   }
-  
+
   public static ScheduledThreadPoolExecutor getResponseWaiter() {
     return RESPONSE_WAITER;
   }
-  
-  public static ThreadPoolExecutor getMatchsWorker() {
-    return MATCHS_WORKER;
+
+  public static ThreadPoolExecutor getMatchsWorker(Platform platform) {
+    return MATCH_THREAD_EXECUTORS.get(platform);
   }
 
   public static Timer getServerCheckerThreadTimer() {

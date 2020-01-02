@@ -53,6 +53,7 @@ public class MatchReceiverWorker implements Runnable {
   @Override
   public void run() {
     try {
+      logger.debug("Start to load game {} server {}", matchReference.getGameId(), server.getName());
       DTO.MatchCache matchCache = Zoe.getRiotApi().getCachedMatch(server, matchReference.getGameId());
 
       if(matchCache != null) {

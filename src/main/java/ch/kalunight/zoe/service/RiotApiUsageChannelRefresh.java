@@ -49,7 +49,7 @@ public class RiotApiUsageChannelRefresh implements Runnable {
           + "\nTotal number of Servers : " + Zoe.getJda().getGuilds().size()
           + "\nTask in Server Executor Queue : " + ServerData.getServerExecutor().getQueue().size()
           + "\nTask in InfoCards Generator Queue : " + ServerData.getInfocardsGenerator().getQueue().size()
-          + "\nTask in Players Data Worker Queue : " + ServerData.getPlayersDataWorker().getQueue().size()
+          + "\nTask in Players Data Worker Queue : " + ServerData.getPlayersDataQueue()
           + "\nInfocards Generated last 2 minutes : " + getInfocardCreatedCount()).queue();
 
       rapiInfoChannel.sendMessage("**Riot Request Stats**"

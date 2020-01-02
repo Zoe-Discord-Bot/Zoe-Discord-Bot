@@ -39,9 +39,9 @@ public class ServerData {
   private static final ThreadPoolExecutor INFOCARDS_GENERATOR =
       new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
 
-  private static final ThreadPoolExecutor PLAYERS_DATA_WORKER =
-      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
-
+  private static final Map<Platform, ThreadPoolExecutor> PLAYERS_DATA_EXECUTORS =
+      Collections.synchronizedMap(new EnumMap<Platform, ThreadPoolExecutor>(Platform.class));
+  
   private static final Map<Platform, ThreadPoolExecutor> MATCH_THREAD_EXECUTORS =
       Collections.synchronizedMap(new EnumMap<Platform, ThreadPoolExecutor>(Platform.class));
 
@@ -58,7 +58,6 @@ public class ServerData {
     logger.info("ThreadPools has been lauched with {} threads", NBR_PROC);
     SERVER_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Server-Executor-Thread %d").build());
     INFOCARDS_GENERATOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe InfoCards-Generator-Thread %d").build());
-    PLAYERS_DATA_WORKER.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Players-Data-Worker %d").build());
     RESPONSE_WAITER.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Response-Waiter-Thread %d").build());
 
     for(Platform platform : Platform.values()) {
@@ -66,6 +65,11 @@ public class ServerData {
       String nameOfThread = String.format("Zoe Match-%s-Worker", platform.getName().toUpperCase());
       executor.setThreadFactory(new ThreadFactoryBuilder().setNameFormat(nameOfThread + " %d").build());
       MATCH_THREAD_EXECUTORS.put(platform, executor);
+      
+      executor = new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+      nameOfThread = String.format("Zoe Player-Data-%s-Worker", platform.getName().toUpperCase());
+      executor.setThreadFactory(new ThreadFactoryBuilder().setNameFormat(nameOfThread + " %d").build());
+      PLAYERS_DATA_EXECUTORS.put(platform, executor);
     }
   }
 
@@ -124,14 +128,20 @@ public class ServerData {
     logger.info("Shutdown of InfoCards Generator has been completed !");
     channel.sendMessage("Shutdown of InfoCards Generator has been completed !").complete();
 
-    logger.info("Start to shutdown Players Data Worker, this can take 5 minutes max...");
-    channel.sendMessage("Start to shutdown Players Data Worker, this can take 5 minutes max...").complete();
-    PLAYERS_DATA_WORKER.shutdown();
-
-    PLAYERS_DATA_WORKER.awaitTermination(5, TimeUnit.MINUTES);
-    if(!PLAYERS_DATA_WORKER.isShutdown()) {
-      PLAYERS_DATA_WORKER.shutdownNow();
+    logger.info("Start to shutdown Players Data Worker...");
+    channel.sendMessage("Start to shutdown Players Data Worker ...").complete();
+    for(Platform platform : Platform.values()) {
+      ThreadPoolExecutor playerWorker = MATCH_THREAD_EXECUTORS.get(platform);
+      playerWorker.shutdown();
+      logger.info("Start to shutdown Players Worker {}, this can take 5 minutes max...", platform.getName());
+      
+      playerWorker.awaitTermination(5, TimeUnit.MINUTES);
+      if(!playerWorker.isShutdown()) {
+        playerWorker.shutdownNow();
+      }
+      logger.info("Shutdown of Player Workers {} has been completed !", platform.getName());
     }
+
     logger.info("Shutdown of Players Data Worker has been completed !");
     channel.sendMessage("Shutdown of Players Data Worker has been completed !").complete();
 
@@ -150,6 +160,15 @@ public class ServerData {
 
     channel.sendMessage("Shutdown of Matchs Worker has been completed !").complete();
   }
+  
+  public static int getPlayersDataQueue() {
+    int queueTotal = 0;
+    for(Platform platform : Platform.values()) {
+      queueTotal += MATCH_THREAD_EXECUTORS.get(platform).getQueue().size();
+    }
+    
+    return queueTotal;
+  }
 
   public static ConcurrentMap<String, Boolean> getServersIsInTreatment() {
     return serversIsInTreatment;
@@ -167,8 +186,8 @@ public class ServerData {
     return INFOCARDS_GENERATOR;
   }
 
-  public static ThreadPoolExecutor getPlayersDataWorker() {
-    return PLAYERS_DATA_WORKER;
+  public static ThreadPoolExecutor getPlayersDataWorker(Platform platform) {
+    return PLAYERS_DATA_EXECUTORS.get(platform);
   }
 
   public static ScheduledThreadPoolExecutor getResponseWaiter() {

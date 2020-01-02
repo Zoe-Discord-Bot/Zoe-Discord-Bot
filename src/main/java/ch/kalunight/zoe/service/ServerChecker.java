@@ -85,6 +85,8 @@ public class ServerChecker extends TimerTask {
       }
     }catch(SQLException e) {
       logger.error("Critical DB Issue in the server checker thread !", e);
+    }catch(Exception e){
+      logger.error("Unexpected error in ServerChecker", e);
     }finally {
       logger.debug("ServerChecker thread ended !");
       logger.debug("Zoe Server-Executor Queue : {}", ServerData.getServerExecutor().getQueue().size());

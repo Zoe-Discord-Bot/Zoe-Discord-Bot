@@ -91,6 +91,8 @@ public class MatchReceiverWorker implements Runnable {
     }catch(SQLException e) {
       logger.info("SQL error (unique constraint error, normaly nothing severe) Error : {}", e.getMessage());
       gameLoadingConflict.set(true);
+    }catch(Exception e){
+      logger.error("Unexpected error in match receiver worker", e);
     }finally {
       matchsInWork.remove(matchReference);
     }

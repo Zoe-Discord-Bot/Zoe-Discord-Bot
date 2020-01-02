@@ -149,7 +149,7 @@ public class ServerRepository {
         Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
       
       String finalQuery = String.format(SELECT_SERVER_WITH_TIMESTAMP_AFTER,
-          DTO.DB_TIME_PATTERN.format(LocalDateTime.now().minusMinutes(3)),
+          DTO.DB_TIME_PATTERN.format(LocalDateTime.now().minusMinutes(5)),
           false);
       result = query.executeQuery(finalQuery);
       

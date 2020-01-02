@@ -120,7 +120,7 @@ public class InfoPanelRefresher implements Runnable {
       if(infochannel != null && guild != null) {
 
         if(needToWait) {
-          TimeUnit.SECONDS.sleep(3);
+          TimeUnit.SECONDS.sleep(5);
         }
 
         List<DTO.Player> playersDTO = PlayerRepository.getPlayers(server.serv_guildId);

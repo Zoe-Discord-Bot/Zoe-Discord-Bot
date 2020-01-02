@@ -119,7 +119,7 @@ public class ServerRepository {
       for(DTO.Team team : teams) {
         TeamRepository.deleteTeam(team.team_id, new ArrayList<>());
       }
-      
+
       String finalQuery = String.format(DELETE_SERVER_WITH_SERV_GUILDID, guildId);
       query.execute(finalQuery);
     }

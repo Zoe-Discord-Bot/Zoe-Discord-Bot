@@ -174,31 +174,38 @@ ALTER TABLE team
   
 ALTER TABLE server_status
   ADD CONSTRAINT servStatus_fk_server_const 
-  FOREIGN KEY (servStatus_fk_server) REFERENCES server (serv_id);
+  FOREIGN KEY (servStatus_fk_server) REFERENCES server (serv_id)
+  ON DELETE CASCADE;
   
 ALTER TABLE server_configuration
   ADD CONSTRAINT servConfig_fk_server_const 
-  FOREIGN KEY (servConfig_fk_server) REFERENCES server (serv_id);
+  FOREIGN KEY (servConfig_fk_server) REFERENCES server (serv_id)
+  ON DELETE CASCADE;
   
 ALTER TABLE self_adding_option
   ADD CONSTRAINT self_adding_option_fk_serverConfig_const 
-  FOREIGN KEY (selfOption_fk_serverConfig) REFERENCES server_configuration (servConfig_id);
+  FOREIGN KEY (selfOption_fk_serverConfig) REFERENCES server_configuration (servConfig_id)
+  ON DELETE CASCADE;
   
 ALTER TABLE region_option
   ADD CONSTRAINT region_option_fk_serverConfig_const 
-  FOREIGN KEY (regionOption_fk_serverConfig) REFERENCES server_configuration (servConfig_id);
+  FOREIGN KEY (regionOption_fk_serverConfig) REFERENCES server_configuration (servConfig_id)
+  ON DELETE CASCADE;
   
 ALTER TABLE clean_channel_option
   ADD CONSTRAINT clean_channel_option_fk_serverConfig_const 
-  FOREIGN KEY (cleanOption_fk_serverConfig) REFERENCES server_configuration (servConfig_id);
+  FOREIGN KEY (cleanOption_fk_serverConfig) REFERENCES server_configuration (servConfig_id)
+  ON DELETE CASCADE;
   
 ALTER TABLE game_info_card_option
   ADD CONSTRAINT game_info_card_option_fk_serverConfig_const 
-  FOREIGN KEY (gameCardOption_fk_serverConfig) REFERENCES server_configuration (servConfig_id);
+  FOREIGN KEY (gameCardOption_fk_serverConfig) REFERENCES server_configuration (servConfig_id)
+  ON DELETE CASCADE;
   
 ALTER TABLE role_option
   ADD CONSTRAINT role_option_fk_serverConfig_const 
-  FOREIGN KEY (roleOption_fk_serverConfig) REFERENCES server_configuration (servConfig_id);
+  FOREIGN KEY (roleOption_fk_serverConfig) REFERENCES server_configuration (servConfig_id)
+  ON DELETE CASCADE;
   
 ALTER TABLE info_channel
   ADD CONSTRAINT info_channel_fk_server_const 

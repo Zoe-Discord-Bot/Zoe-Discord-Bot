@@ -3,7 +3,7 @@
     "command": "Commande",
     "commandPlural": "Commandes",
     "endHelpMessage": "Pour avoir une aide supplémentaire, vous pouvez aussi rejoindre notre serveur officiel :",
-    "helpMessageSendConfirmation": "Je vous ai envoyées toutes les commandes en message privé.",
+    "helpMessageSendConfirmation": "Je vous ai envoyé toutes les commandes en message privé.",
     "missingPermissionOwnerMessage": "Hello ! Je suis un bot dans votre serveur %s\nJ'ai besoin d'avoir la permission \"%s\" dans le salon d'information que vous avez définit pour fonctionner correctement. Si vous avez besoin d'aide vous pouvez rejoindre le serveur de support ici : %s\nCe message sera renvoyé à chaque fois que je redémarre. Merci d'avance !",
     "aboutCommandHelp": "Donne des informations relatives à Zoe.",
     "aboutMessage": "Hello, je suis un bot League of Legends écrit en Java par KaluNight#0001. J'offre la possibilité de créer un panneau d'information qui vous permet de savoir si vos amis sont en partie directement depuis Discord. Je fournis également et automatiquement des statistiques sur les parties en cours. Vous pouvez contribuer à mon développement sur Github [ici](%s).\nServeur Discord officiel : %s\nPour m'ajouter dans votre serveur cliquer [ici](%s).\n\n*J'aime les papillons, les licornes et regarder mourir d'autres réalités !*\n\nZoe n'est pas approuvé par Riot Games et ne reflètent en aucun cas les opinions de Riot Games ou de quiconque officiellement impliqué dans le développement ou la gestion de League of Legends.",

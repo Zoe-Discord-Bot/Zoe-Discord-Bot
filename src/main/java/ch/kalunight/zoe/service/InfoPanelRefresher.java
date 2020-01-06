@@ -113,14 +113,14 @@ public class InfoPanelRefresher implements Runnable {
     try {
 
       DTO.InfoChannel infoChannelDTO = InfoChannelRepository.getInfoChannel(server.serv_guildId);
-      if(infoChannelDTO != null) {
+      if(infoChannelDTO != null && guild != null) {
         infochannel = guild.getTextChannelById(infoChannelDTO.infochannel_channelid);
       }
 
-      if(infochannel != null) {
+      if(infochannel != null && guild != null) {
 
         if(needToWait) {
-          TimeUnit.SECONDS.sleep(3);
+          TimeUnit.SECONDS.sleep(5);
         }
 
         List<DTO.Player> playersDTO = PlayerRepository.getPlayers(server.serv_guildId);
@@ -252,7 +252,7 @@ public class InfoPanelRefresher implements Runnable {
 
     for(int i = 0; i < infoPanels.size(); i++) {
       DTO.InfoPanelMessage infoPanel = infoPanelMessages.get(i);
-        infochannel.retrieveMessageById(infoPanel.infopanel_messageId).complete().editMessage(infoPanels.get(i)).queue();
+      infochannel.retrieveMessageById(infoPanel.infopanel_messageId).complete().editMessage(infoPanels.get(i)).queue();
     }
   }
 
@@ -307,7 +307,9 @@ public class InfoPanelRefresher implements Runnable {
         LeagueAccountRepository.getLeaguesAccountsWithCurrentGameId(currentGame.currentgame_id);
 
     for(DTO.LeagueAccount leagueAccount : leaguesAccountInTheGame) {
-      LeagueAccountRepository.updateAccountGameCardWithAccountId(leagueAccount.leagueAccount_id, gameCard.gamecard_id);
+      if(leagueAccount != null) {
+        LeagueAccountRepository.updateAccountGameCardWithAccountId(leagueAccount.leagueAccount_id, gameCard.gamecard_id);
+      }
     }
   }
 

@@ -13,7 +13,6 @@ import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.GameInfoCardStatus;
 import ch.kalunight.zoe.repositories.GameInfoCardRepository;
 import ch.kalunight.zoe.repositories.InfoChannelRepository;
-import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.util.InfoPanelRefresherUtil;
 import ch.kalunight.zoe.util.MessageBuilderRequestUtil;
@@ -52,14 +51,14 @@ public class InfoCardsWorker implements Runnable {
       if(controlPanel.canTalk()) {
         if(account.summoner == null) {
           account.summoner = Zoe.getRiotApi()
-              .getSummoner(account.leagueAccount_server, account.leagueAccount_summonerId);
+              .getSummonerWithRateLimit(account.leagueAccount_server, account.leagueAccount_summonerId);
         }
         
         logger.info("Start generate infocards for the account " + account.summoner.getName() 
         + " (" + account.leagueAccount_server.getName() + ")");
 
         Stopwatch stopWatch = Stopwatch.createStarted();
-        generateInfoCard(controlPanel, account, currentGameInfo);
+        generateInfoCard(account, currentGameInfo);
         stopWatch.stop();
         logger.info("Infocards generation done in {} secs.", stopWatch.elapsed(TimeUnit.SECONDS));
 
@@ -84,24 +83,16 @@ public class InfoCardsWorker implements Runnable {
     }
   }
 
-  private void generateInfoCard(TextChannel controlPanel, DTO.LeagueAccount account, DTO.CurrentGameInfo currentGameInfo)
+  private void generateInfoCard(DTO.LeagueAccount account, DTO.CurrentGameInfo currentGameInfo)
       throws SQLException {
 
     List<DTO.Player> listOfPlayerInTheGame = InfoPanelRefresherUtil.checkIfOthersPlayersIsKnowInTheMatch(currentGameInfo, server);
-    DTO.Player player = PlayerRepository.getPlayerByLeagueAccountAndGuild(
-        server.serv_guildId, account.leagueAccount_summonerId, account.leagueAccount_server.getName());
 
     InfoCard card = null;
 
-    if(listOfPlayerInTheGame.size() == 1) {
-      MessageEmbed messageCard = MessageBuilderRequest.createInfoCard1summoner(player.user, account.summoner,
-          currentGameInfo.currentgame_currentgame, account.leagueAccount_server, server.serv_language);
-      if(messageCard != null) {
-        card = new InfoCard(listOfPlayerInTheGame, messageCard, currentGameInfo.currentgame_currentgame);
-      }
-    } else if(listOfPlayerInTheGame.size() > 1) {
+    if(!listOfPlayerInTheGame.isEmpty()) {
       MessageEmbed messageCard =
-          MessageBuilderRequest.createInfoCardsMultipleSummoner(listOfPlayerInTheGame, currentGameInfo.currentgame_currentgame,
+          MessageBuilderRequest.createInfoCard(listOfPlayerInTheGame, currentGameInfo.currentgame_currentgame,
               account.leagueAccount_server, server);
 
       if(messageCard != null) {

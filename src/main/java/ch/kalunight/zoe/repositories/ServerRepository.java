@@ -62,7 +62,10 @@ public class ServerRepository {
       
       stmt.setLong(1, guildId);
       result = stmt.executeQuery();
-      result.next();
+      int rowCount = result.last() ? result.getRow() : 0;
+      if(rowCount == 0) {
+        return null;
+      }
       return new DTO.Server(result);
     }finally {
       RepoRessources.closeResultSet(result);
@@ -102,6 +105,21 @@ public class ServerRepository {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
       
+      DTO.Server server = ServerRepository.getServer(guildId);
+      
+      List<DTO.Player> players = PlayerRepository.getPlayers(guildId);
+      
+      for(DTO.Player player : players) {
+        PlayerRepository.deletePlayer(player.player_id, guildId);
+      }
+      
+      InfoChannelRepository.deleteInfoChannel(server);
+      
+      List<DTO.Team> teams = TeamRepository.getTeamsByGuild(guildId);
+      for(DTO.Team team : teams) {
+        TeamRepository.deleteTeam(team.team_id, new ArrayList<>());
+      }
+
       String finalQuery = String.format(DELETE_SERVER_WITH_SERV_GUILDID, guildId);
       query.execute(finalQuery);
     }
@@ -131,7 +149,7 @@ public class ServerRepository {
         Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
       
       String finalQuery = String.format(SELECT_SERVER_WITH_TIMESTAMP_AFTER,
-          DTO.DB_TIME_PATTERN.format(LocalDateTime.now().minusMinutes(3)),
+          DTO.DB_TIME_PATTERN.format(LocalDateTime.now().minusMinutes(5)),
           false);
       result = query.executeQuery(finalQuery);
       

@@ -58,8 +58,6 @@ public class CurrentGameInfoRepository {
   private CurrentGameInfoRepository() {
     //hide default public constructor
   }
-
-  
   
   public static List<DTO.CurrentGameInfo> getCurrentGameWithoutLinkWithGameCardAndWithGuildId(long guildId) throws SQLException {
     ResultSet result = null;

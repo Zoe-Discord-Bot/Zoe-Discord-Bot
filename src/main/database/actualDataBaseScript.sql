@@ -106,6 +106,14 @@ CREATE TABLE current_game_info (
   currentGame_currentGame						JSON
 );
 
+CREATE TABLE match_cache (
+  mCatch_id										SERIAL,
+  mCatch_gameId									BIGINT				NOT NULL,
+  mCatch_platform								VARCHAR				NOT NULL,
+  mCatch_savedMatch								json				NOT NULL,
+  mCatch_creationTime							timestamp			NOT NULL
+);
+
 -- Constraints
 ALTER TABLE ONLY server
   ADD CONSTRAINT server_pkey PRIMARY KEY (serv_id);
@@ -166,31 +174,38 @@ ALTER TABLE team
   
 ALTER TABLE server_status
   ADD CONSTRAINT servStatus_fk_server_const 
-  FOREIGN KEY (servStatus_fk_server) REFERENCES server (serv_id);
+  FOREIGN KEY (servStatus_fk_server) REFERENCES server (serv_id)
+  ON DELETE CASCADE;
   
 ALTER TABLE server_configuration
   ADD CONSTRAINT servConfig_fk_server_const 
-  FOREIGN KEY (servConfig_fk_server) REFERENCES server (serv_id);
+  FOREIGN KEY (servConfig_fk_server) REFERENCES server (serv_id)
+  ON DELETE CASCADE;
   
 ALTER TABLE self_adding_option
   ADD CONSTRAINT self_adding_option_fk_serverConfig_const 
-  FOREIGN KEY (selfOption_fk_serverConfig) REFERENCES server_configuration (servConfig_id);
+  FOREIGN KEY (selfOption_fk_serverConfig) REFERENCES server_configuration (servConfig_id)
+  ON DELETE CASCADE;
   
 ALTER TABLE region_option
   ADD CONSTRAINT region_option_fk_serverConfig_const 
-  FOREIGN KEY (regionOption_fk_serverConfig) REFERENCES server_configuration (servConfig_id);
+  FOREIGN KEY (regionOption_fk_serverConfig) REFERENCES server_configuration (servConfig_id)
+  ON DELETE CASCADE;
   
 ALTER TABLE clean_channel_option
   ADD CONSTRAINT clean_channel_option_fk_serverConfig_const 
-  FOREIGN KEY (cleanOption_fk_serverConfig) REFERENCES server_configuration (servConfig_id);
+  FOREIGN KEY (cleanOption_fk_serverConfig) REFERENCES server_configuration (servConfig_id)
+  ON DELETE CASCADE;
   
 ALTER TABLE game_info_card_option
   ADD CONSTRAINT game_info_card_option_fk_serverConfig_const 
-  FOREIGN KEY (gameCardOption_fk_serverConfig) REFERENCES server_configuration (servConfig_id);
+  FOREIGN KEY (gameCardOption_fk_serverConfig) REFERENCES server_configuration (servConfig_id)
+  ON DELETE CASCADE;
   
 ALTER TABLE role_option
   ADD CONSTRAINT role_option_fk_serverConfig_const 
-  FOREIGN KEY (roleOption_fk_serverConfig) REFERENCES server_configuration (servConfig_id);
+  FOREIGN KEY (roleOption_fk_serverConfig) REFERENCES server_configuration (servConfig_id)
+  ON DELETE CASCADE;
   
 ALTER TABLE info_channel
   ADD CONSTRAINT info_channel_fk_server_const 
@@ -223,3 +238,14 @@ ALTER TABLE game_info_card
 CREATE INDEX idx_server_guildid 
   ON server(serv_guildId);
   
+ALTER TABLE ONLY match_cache
+  ADD CONSTRAINT match_cache_pkey PRIMARY KEY (mCatch_id);
+
+ALTER TABLE match_cache
+  ADD UNIQUE (mCatch_gameId, mCatch_platform);
+
+CREATE INDEX idx_match_cache_gameId 
+  ON match_cache(mCatch_gameId);
+
+CREATE INDEX idx_match_cache_platform 
+  ON match_cache(mCatch_platform);

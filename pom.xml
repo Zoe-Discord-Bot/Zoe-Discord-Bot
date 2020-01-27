@@ -39,7 +39,7 @@
 		<dependency>
 			<groupId>net.dv8tion</groupId>
 			<artifactId>JDA</artifactId>
-			<version>4.1.0_90</version>
+			<version>4.1.0_96</version>
 		</dependency>
 
 		<dependency>
@@ -71,13 +71,13 @@
 		<dependency>
 			<groupId>org.knowm.xchart</groupId>
 			<artifactId>xchart</artifactId>
-			<version>3.6.0</version>
+			<version>3.6.1</version>
 		</dependency>
 
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>28.1-jre</version>
+			<version>28.2-jre</version>
 		</dependency>
 
 		<dependency>
@@ -89,14 +89,14 @@
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
-			<version>42.2.8</version>
+			<version>42.2.9</version>
 		</dependency>
 
 		<!-- Test libs -->
 		<dependency>
 			<groupId>org.testng</groupId>
 			<artifactId>testng</artifactId>
-			<version>7.0.0</version>
+			<version>7.1.1</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
@@ -105,7 +105,7 @@
 		<repository>
 			<id>jcenter</id>
 			<name>jcenter-bintray</name>
-			<url>http://jcenter.bintray.com</url>
+			<url>https://jcenter.bintray.com</url>
 		</repository>
 		<repository>
 			<id>jitpack.io</id>

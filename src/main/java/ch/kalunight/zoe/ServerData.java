@@ -95,33 +95,33 @@ public class ServerData {
 
   public static void shutDownTaskExecutor(TextChannel channel) throws InterruptedException {
 
-    logger.info("Start to shutdown Response Waiter, this can take 5 minutes max...");
-    channel.sendMessage("Start to shutdown Response Waiter, this can take 5 minutes max...").complete();
+    logger.info("Start to shutdown Response Waiter, this can take 1 minutes max...");
+    channel.sendMessage("Start to shutdown Response Waiter, this can take 1 minutes max...").complete();
     RESPONSE_WAITER.shutdown();
 
-    RESPONSE_WAITER.awaitTermination(5, TimeUnit.MINUTES);
+    RESPONSE_WAITER.awaitTermination(1, TimeUnit.MINUTES);
     if(!RESPONSE_WAITER.isShutdown()) {
       RESPONSE_WAITER.shutdownNow();
     }
     logger.info("Shutdown of Response Waiter has been completed !");
     channel.sendMessage("Shutdown of Response Waiter has been completed !").complete();
 
-    logger.info("Start to shutdown Servers Executor, this can take 5 minutes max...");
-    channel.sendMessage("Start to shutdown Servers Executor, this can take 5 minutes max...").complete();
+    logger.info("Start to shutdown Servers Executor, this can take 1 minutes max...");
+    channel.sendMessage("Start to shutdown Servers Executor, this can take 1 minutes max...").complete();
     SERVER_EXECUTOR.shutdown();
 
-    SERVER_EXECUTOR.awaitTermination(5, TimeUnit.MINUTES);
+    SERVER_EXECUTOR.awaitTermination(1, TimeUnit.MINUTES);
     if(!SERVER_EXECUTOR.isShutdown()) {
       SERVER_EXECUTOR.shutdownNow();
     }
     logger.info("Shutdown of Servers Executor has been completed !");
     channel.sendMessage("Shutdown of Servers Executor has been completed !").complete();
 
-    logger.info("Start to shutdown InfoCards Generator, this can take 5 minutes max...");
-    channel.sendMessage("Start to shutdown InfoCards Generator, this can take 5 minutes max...").complete();
+    logger.info("Start to shutdown InfoCards Generator, this can take 1 minutes max...");
+    channel.sendMessage("Start to shutdown InfoCards Generator, this can take 1 minutes max...").complete();
     INFOCARDS_GENERATOR.shutdown();
 
-    INFOCARDS_GENERATOR.awaitTermination(5, TimeUnit.MINUTES);
+    INFOCARDS_GENERATOR.awaitTermination(1, TimeUnit.MINUTES);
     if(!INFOCARDS_GENERATOR.isShutdown()) {
       INFOCARDS_GENERATOR.shutdownNow();
     }
@@ -133,9 +133,9 @@ public class ServerData {
     for(Platform platform : Platform.values()) {
       ThreadPoolExecutor playerWorker = MATCH_THREAD_EXECUTORS.get(platform);
       playerWorker.shutdown();
-      logger.info("Start to shutdown Players Worker {}, this can take 5 minutes max...", platform.getName());
+      logger.info("Start to shutdown Players Worker {}, this can take 1 minutes max...", platform.getName());
       
-      playerWorker.awaitTermination(5, TimeUnit.MINUTES);
+      playerWorker.awaitTermination(1, TimeUnit.MINUTES);
       if(!playerWorker.isShutdown()) {
         playerWorker.shutdownNow();
       }
@@ -149,7 +149,7 @@ public class ServerData {
     for(Platform platform : Platform.values()) {
       ThreadPoolExecutor matchWorker = MATCH_THREAD_EXECUTORS.get(platform);
       matchWorker.shutdown();
-      logger.info("Start to shutdown Match Worker {}, this can take 5 minutes max...", platform.getName());
+      logger.info("Start to shutdown Match Worker {}, this can take 1 minutes max...", platform.getName());
 
       matchWorker.awaitTermination(5, TimeUnit.MINUTES);
       if(!matchWorker.isShutdown()) {

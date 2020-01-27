@@ -14,6 +14,7 @@ import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.repositories.ServerStatusRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
+import net.dv8tion.jda.api.entities.ChannelType;
 
 public abstract class ZoeCommand extends Command {
 
@@ -22,48 +23,48 @@ public abstract class ZoeCommand extends Command {
   private static final AtomicInteger commandFinishedWithError = new AtomicInteger(0);
 
   private static final Logger logger = LoggerFactory.getLogger(ZoeCommand.class);
-  
+
   private static final ConcurrentHashMap<Long, DTO.Server> servers = new ConcurrentHashMap<>();
-  
+
   @Override
   protected void execute(CommandEvent event) {
     CommandUtil.sendTypingInFonctionOfChannelType(event);
     logger.info("Command \"{}\" executed", this.getClass().getName());
     commandExecuted.incrementAndGet();
 
-    try {
-      DTO.Server server = ServerRepository.getServer(event.getGuild().getIdLong());
-      servers.put(event.getGuild().getIdLong(), server);
-      if(server == null) {
-        ServerRepository.createNewServer(event.getGuild().getIdLong(), LanguageManager.DEFAULT_LANGUAGE);
-        server = ServerRepository.getServer(event.getGuild().getIdLong());
+    if(event.getChannelType().equals(ChannelType.TEXT)) {
+      try {
+        DTO.Server server = ServerRepository.getServer(event.getGuild().getIdLong());
         servers.put(event.getGuild().getIdLong(), server);
+        if(server == null) {
+          ServerRepository.createNewServer(event.getGuild().getIdLong(), LanguageManager.DEFAULT_LANGUAGE);
+          server = ServerRepository.getServer(event.getGuild().getIdLong());
+          servers.put(event.getGuild().getIdLong(), server);
+        }
+      } catch(SQLException e) {
+        event.reply("Issue with the db ! Please retry later. Sorry about that :/");
+        logger.error("Issue with the db when check if server missing !", e);
+        commandFinishedWithError.incrementAndGet();
+        return;
       }
-    } catch(SQLException e) {
-      event.reply("Issue with the db ! Please retry later. Sorry about that :/");
-      logger.error("Issue with the db when check if server missing !", e);
-      commandFinishedWithError.incrementAndGet();
-      return;
-    }
-    
-    try {
-      DTO.ServerStatus status = ServerStatusRepository.getServerStatus(event.getGuild().getIdLong());
-      
-      while(status.servstatus_inTreatment) {
+
+      try {
+        DTO.ServerStatus status = ServerStatusRepository.getServerStatus(event.getGuild().getIdLong());
+
+        while(status.servstatus_inTreatment) {
           TimeUnit.SECONDS.sleep(1);
           status = ServerStatusRepository.getServerStatus(event.getGuild().getIdLong());
+        }
+
+      } catch (SQLException e) {
+        event.reply("Issue with the db ! Please retry later. Sorry about that :/");
+        logger.error("Issue with the db when check if the server is in treatment !", e);
+      } catch (InterruptedException e) {
+        logger.error("Thread got interupted !", e);
+        Thread.currentThread().interrupt();
       }
-      
-    } catch (SQLException e) {
-      event.reply("Issue with the db ! Please retry later. Sorry about that :/");
-      logger.error("Issue with the db when check if the server is in treatment !", e);
-    } catch (InterruptedException e) {
-      logger.error("Thread got interupted !", e);
-      Thread.currentThread().interrupt();
     }
-    
-    
-    
+
     try {
       executeCommand(event);
     } catch (Exception e) {
@@ -75,9 +76,9 @@ public abstract class ZoeCommand extends Command {
     logger.info("Command \"{}\" finished correctly", this.getClass().getName());
     commandFinishedCorrectly.incrementAndGet();
   }
-  
+
   protected abstract void executeCommand(CommandEvent event) throws SQLException;
-  
+
   public abstract BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event);
 
   public static void clearStats() {
@@ -85,15 +86,15 @@ public abstract class ZoeCommand extends Command {
     commandFinishedCorrectly.set(0);
     commandFinishedWithError.set(0);
   }
-  
+
   protected static DTO.Server getServer(long guildId){
     return servers.get(guildId);
   }
-  
+
   public static void clearServerCache() {
     servers.clear();
   }
-  
+
   public static AtomicInteger getCommandExecuted() {
     return commandExecuted;
   }

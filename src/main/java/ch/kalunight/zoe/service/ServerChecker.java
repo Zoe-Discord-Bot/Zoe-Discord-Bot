@@ -27,7 +27,7 @@ public class ServerChecker extends TimerTask {
   private static DateTime nextStatusRefresh = DateTime.now();
 
   private static DateTime nextRAPIChannelRefresh = DateTime.now().plusMinutes(TIME_BETWEEN_EACH_RAPI_CHANNEL_REFRESH_IN_MINUTES);
-
+  
   private static final Logger logger = LoggerFactory.getLogger(ServerChecker.class);
 
   @Override

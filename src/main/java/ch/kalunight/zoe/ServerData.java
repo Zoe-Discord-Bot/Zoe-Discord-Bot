@@ -30,7 +30,7 @@ public class ServerData {
   private static final ConcurrentHashMap<String, Boolean> serversIsInTreatment = new ConcurrentHashMap<>();
 
   private static final Timer serverCheckerThreadTimer = new Timer("ServerChecker-Timer-Executor");
-
+  
   public static final int NBR_PROC = Runtime.getRuntime().availableProcessors();
 
   private static final ThreadPoolExecutor SERVER_EXECUTOR =

@@ -89,9 +89,9 @@ public class ServerChecker extends TimerTask {
       logger.error("Unexpected error in ServerChecker", e);
     }finally {
       logger.debug("ServerChecker thread ended !");
+      ServerData.getServerCheckerThreadTimer().schedule(new DataSaver(), 0);
       logger.debug("Zoe Server-Executor Queue : {}", ServerData.getServerExecutor().getQueue().size());
       logger.debug("Zoe InfoCards-Generator Queue : {}", ServerData.getInfocardsGenerator().getQueue().size());
-      ServerData.getServerCheckerThreadTimer().schedule(new DataSaver(), 0);
     }
   }
 

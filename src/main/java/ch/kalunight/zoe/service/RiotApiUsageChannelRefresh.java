@@ -1,7 +1,6 @@
 package ch.kalunight.zoe.service;
 
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -14,9 +13,6 @@ import org.knowm.xchart.PieChartBuilder;
 import org.knowm.xchart.style.PieStyler;
 import org.knowm.xchart.style.PieStyler.AnnotationType;
 import org.knowm.xchart.style.Styler.ChartTheme;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
@@ -36,8 +32,6 @@ public class RiotApiUsageChannelRefresh implements Runnable {
   private static Integer infocardCreatedCount = 0;
 
   private static TextChannel rapiInfoChannel;
-
-  private static final Logger logger = LoggerFactory.getLogger(RiotApiUsageChannelRefresh.class);
   
   @Override
   public void run() {
@@ -67,11 +61,6 @@ public class RiotApiUsageChannelRefresh implements Runnable {
 
       if(DateTime.now().minusDays(TIME_BETWEEN_EACH_RESET_CATCHED_RIOT_API_IN_DAY).isAfter(lastRapiCountReset)) {
         lastRapiCountReset = DateTime.now();
-        try {
-          Zoe.getRiotApi().cleanCache();
-        } catch (SQLException e) {
-          logger.error("SQL error when cleaning cache !", e);
-        }
         ZoeCommand.clearStats();
       }
 

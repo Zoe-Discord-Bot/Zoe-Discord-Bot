@@ -13,6 +13,8 @@ import org.knowm.xchart.PieChartBuilder;
 import org.knowm.xchart.style.PieStyler;
 import org.knowm.xchart.style.PieStyler.AnnotationType;
 import org.knowm.xchart.style.Styler.ChartTheme;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
@@ -28,92 +30,104 @@ public class RiotApiUsageChannelRefresh implements Runnable {
 
   private static final int TIME_BETWEEN_EACH_RESET_CATCHED_RIOT_API_IN_DAY = 3;
 
+  private static final Logger logger = LoggerFactory.getLogger(RiotApiUsageChannelRefresh.class);
+
   private static DateTime lastRapiCountReset = DateTime.now();
 
   private static Integer infocardCreatedCount = 0;
 
   private static long guildId;
-  
+
   private static long textChannelId;
-  
+
   @Override
   public void run() {
-    Guild guild = Zoe.getJda().getGuildById(guildId);
-    TextChannel rapiInfoChannel = guild.getJDA().getTextChannelById(textChannelId);
-    
-    if(rapiInfoChannel != null) {
 
-      cleanChannel(rapiInfoChannel);
+    try {
 
-      rapiInfoChannel.sendMessage("**Generic Stats**"
-          + "\nTotal number of Servers : " + Zoe.getJda().getGuilds().size()
-          + "\nTask in Server Executor Queue : " + ServerData.getServerExecutor().getQueue().size()
-          + "\nInfoPannel refresh done last two minutes : " + InfoPanelRefresher.getNbrServerSefreshedLast2Minutes()
-          + "\nTask in InfoCards Generator Queue : " + ServerData.getInfocardsGenerator().getQueue().size()
-          + "\nTask in Players Data Worker Queue : " + ServerData.getPlayersDataQueue()
-          + "\nInfocards Generated last 2 minutes : " + getInfocardCreatedCount()).queue();
-
-      InfoPanelRefresher.getNbrServerSefreshedLast2Minutes().set(0);
-      
-      rapiInfoChannel.sendMessage("**Riot Request Stats**"
-          + "\nTotal of requests with Riot api : " + Zoe.getRiotApi().getTotalRequestCount()
-          + "\nNumber of request for match with RiotAPI : " + Zoe.getRiotApi().getApiMatchRequestCount()
-          + "\nTotal number of request for match : " + Zoe.getRiotApi().getAllMatchRequestCount()).queue();
-      
-      rapiInfoChannel.sendMessage("**Discord Command Stats**"
-          + "\nTotal discord command executed : " + ZoeCommand.getCommandExecuted().get() 
-          + "\nTotal discord command done correctly : " + ZoeCommand.getCommandFinishedCorrectly().get()
-          + "\nTotal discord command done with error : " + ZoeCommand.getCommandFinishedWithError().get()).queue();
-
-      if(DateTime.now().minusDays(TIME_BETWEEN_EACH_RESET_CATCHED_RIOT_API_IN_DAY).isAfter(lastRapiCountReset)) {
-        lastRapiCountReset = DateTime.now();
-        ZoeCommand.clearStats();
+      if(guildId == 0) {
+        return;
       }
+      
+      Guild guild = Zoe.getJda().getGuildById(guildId);
+      TextChannel rapiInfoChannel = guild.getJDA().getTextChannelById(textChannelId);
 
-      setInfocardCreatedCount(0);
+      if(rapiInfoChannel != null) {
 
-      ArrayList<byte[]> graphs = new ArrayList<>();
-      List<Platform> platformOrder = new ArrayList<>();
-      List<Message> descriptions = new ArrayList<>();
-      for(Platform platform : Platform.values()) {
-        long numberOfRequestRemaining = Zoe.getRiotApi().getApiCallRemainingPerRegion(platform);
+        cleanChannel(rapiInfoChannel);
 
-        PieChart pieChart = new PieChartBuilder()
-            .title("Request data for " + platform.getName())
-            .theme(ChartTheme.GGPlot2)
-            .build();
+        rapiInfoChannel.sendMessage("**Generic Stats**"
+            + "\nTotal number of Servers : " + Zoe.getJda().getGuilds().size()
+            + "\nTask in Server Executor Queue : " + ServerData.getServerExecutor().getQueue().size()
+            + "\nInfoPannel refresh done last two minutes : " + InfoPanelRefresher.getNbrServerSefreshedLast2Minutes()
+            + "\nTask in InfoCards Generator Queue : " + ServerData.getInfocardsGenerator().getQueue().size()
+            + "\nTask in Players Data Worker Queue : " + ServerData.getPlayersDataQueue()
+            + "\nInfocards Generated last 2 minutes : " + getInfocardCreatedCount()).queue();
 
-        PieStyler styler = pieChart.getStyler();
-        styler.setAntiAlias(true);
-        styler.setAnnotationType(AnnotationType.LabelAndValue);
-        styler.setAnnotationDistance(1.1);
-        styler.setHasAnnotations(true);
+        InfoPanelRefresher.getNbrServerSefreshedLast2Minutes().set(0);
 
-        pieChart.addSeries("Calls Used", CachedRiotApi.RIOT_API_HUGE_LIMIT - numberOfRequestRemaining);
-        pieChart.addSeries("Calls avaible", numberOfRequestRemaining);
+        rapiInfoChannel.sendMessage("**Riot Request Stats**"
+            + "\nTotal of requests with Riot api : " + Zoe.getRiotApi().getTotalRequestCount()
+            + "\nNumber of request for match with RiotAPI : " + Zoe.getRiotApi().getApiMatchRequestCount()
+            + "\nTotal number of request for match : " + Zoe.getRiotApi().getAllMatchRequestCount()).queue();
 
-        try {
-          graphs.add(BitmapEncoder.getBitmapBytes(pieChart, BitmapFormat.PNG));
-          platformOrder.add(platform);
+        rapiInfoChannel.sendMessage("**Discord Command Stats**"
+            + "\nTotal discord command executed : " + ZoeCommand.getCommandExecuted().get() 
+            + "\nTotal discord command done correctly : " + ZoeCommand.getCommandFinishedCorrectly().get()
+            + "\nTotal discord command done with error : " + ZoeCommand.getCommandFinishedWithError().get()).queue();
 
-          MessageBuilder description = new MessageBuilder();
-          description.append("Status of Api for " + platform.getName() + ". Max Calls : " 
-              + CachedRiotApi.RIOT_API_HUGE_LIMIT + " Calls Used : " 
-              + (CachedRiotApi.RIOT_API_HUGE_LIMIT - numberOfRequestRemaining));
+        if(DateTime.now().minusDays(TIME_BETWEEN_EACH_RESET_CATCHED_RIOT_API_IN_DAY).isAfter(lastRapiCountReset)) {
+          lastRapiCountReset = DateTime.now();
+          ZoeCommand.clearStats();
+        }
 
-          descriptions.add(description.build());
-        } catch(IOException e) {
-          rapiInfoChannel.sendMessage("Got an error when generating graph for " + platform.getName()).queue();
+        setInfocardCreatedCount(0);
+
+        ArrayList<byte[]> graphs = new ArrayList<>();
+        List<Platform> platformOrder = new ArrayList<>();
+        List<Message> descriptions = new ArrayList<>();
+        for(Platform platform : Platform.values()) {
+          long numberOfRequestRemaining = Zoe.getRiotApi().getApiCallRemainingPerRegion(platform);
+
+          PieChart pieChart = new PieChartBuilder()
+              .title("Request data for " + platform.getName())
+              .theme(ChartTheme.GGPlot2)
+              .build();
+
+          PieStyler styler = pieChart.getStyler();
+          styler.setAntiAlias(true);
+          styler.setAnnotationType(AnnotationType.LabelAndValue);
+          styler.setAnnotationDistance(1.1);
+          styler.setHasAnnotations(true);
+
+          pieChart.addSeries("Calls Used", CachedRiotApi.RIOT_API_HUGE_LIMIT - numberOfRequestRemaining);
+          pieChart.addSeries("Calls avaible", numberOfRequestRemaining);
+
+          try {
+            graphs.add(BitmapEncoder.getBitmapBytes(pieChart, BitmapFormat.PNG));
+            platformOrder.add(platform);
+
+            MessageBuilder description = new MessageBuilder();
+            description.append("Status of Api for " + platform.getName() + ". Max Calls : " 
+                + CachedRiotApi.RIOT_API_HUGE_LIMIT + " Calls Used : " 
+                + (CachedRiotApi.RIOT_API_HUGE_LIMIT - numberOfRequestRemaining));
+
+            descriptions.add(description.build());
+          } catch(IOException e) {
+            rapiInfoChannel.sendMessage("Got an error when generating graph for " + platform.getName()).queue();
+          }
+        }
+
+        for(int i = 0; i < graphs.size(); i++) {
+          rapiInfoChannel.sendMessage(descriptions.get(i)).addFile(graphs.get(i), "graphFor" + platformOrder.get(i).getName() + ".png").queue();
+        }
+
+        if(Zoe.getRiotApi().isApiCallPerPlatformNeedToBeReset()) {
+          Zoe.getRiotApi().resetApiCallPerPlatform();
         }
       }
-
-      for(int i = 0; i < graphs.size(); i++) {
-        rapiInfoChannel.sendMessage(descriptions.get(i)).addFile(graphs.get(i), "graphFor" + platformOrder.get(i).getName() + ".png").queue();
-      }
-      
-      if(Zoe.getRiotApi().isApiCallPerPlatformNeedToBeReset()) {
-        Zoe.getRiotApi().resetApiCallPerPlatform();
-      }
+    }catch(Exception e) {
+      logger.warn("Error when refreshing riot api usage channel !", e);
     }
   }
 

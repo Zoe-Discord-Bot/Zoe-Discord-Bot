@@ -260,4 +260,8 @@ public class Zoe {
   public static void setEventWaiter(EventWaiter eventWaiter) {
     Zoe.eventWaiter = eventWaiter;
   }
+
+  public static void setMainCommands(List<Command> mainCommands) {
+    Zoe.mainCommands = mainCommands;
+  }
 }

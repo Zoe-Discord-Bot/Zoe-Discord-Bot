@@ -132,7 +132,7 @@ public class ServerChecker extends TimerTask {
 
       Zoe.setEventWaiter(new EventWaiter(ServerData.getResponseWaiter(), false));
 
-      Zoe.getMainCommands(null).clear();
+      Zoe.setMainCommands(null);
 
       for(Command command : Zoe.getMainCommands(Zoe.getEventWaiter())) {
         client.addCommand(command);

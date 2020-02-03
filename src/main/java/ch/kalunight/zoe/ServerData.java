@@ -92,6 +92,23 @@ public class ServerData {
 
     return serverAskedTreatment || serverStatus.servstatus_inTreatment;
   }
+  
+  public static void clearAllTask() {
+    RESPONSE_WAITER.getQueue().clear();
+    SERVER_EXECUTOR.getQueue().clear();
+    INFOCARDS_GENERATOR.getQueue().clear();
+    
+    for(Platform platform : Platform.values()) {
+      ThreadPoolExecutor playerWorker = MATCH_THREAD_EXECUTORS.get(platform);
+      playerWorker.getQueue().clear();
+    }
+    
+    for(Platform platform : Platform.values()) {
+      ThreadPoolExecutor matchWorker = MATCH_THREAD_EXECUTORS.get(platform);
+      matchWorker.getQueue().clear();
+    }
+    logger.info("All queue cleared !");
+  }
 
   public static void shutDownTaskExecutor(TextChannel channel) throws InterruptedException {
 

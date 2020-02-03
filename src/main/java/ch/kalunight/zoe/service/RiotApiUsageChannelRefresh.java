@@ -18,6 +18,7 @@ import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.riotapi.CachedRiotApi;
 import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
@@ -31,13 +32,18 @@ public class RiotApiUsageChannelRefresh implements Runnable {
 
   private static Integer infocardCreatedCount = 0;
 
-  private static TextChannel rapiInfoChannel;
+  private static long guildId;
+  
+  private static long textChannelId;
   
   @Override
   public void run() {
+    Guild guild = Zoe.getJda().getGuildById(guildId);
+    TextChannel rapiInfoChannel = guild.getJDA().getTextChannelById(textChannelId);
+    
     if(rapiInfoChannel != null) {
 
-      cleanChannel();
+      cleanChannel(rapiInfoChannel);
 
       rapiInfoChannel.sendMessage("**Generic Stats**"
           + "\nTotal number of Servers : " + Zoe.getJda().getGuilds().size()
@@ -111,7 +117,7 @@ public class RiotApiUsageChannelRefresh implements Runnable {
     }
   }
 
-  private void cleanChannel() {
+  private void cleanChannel(TextChannel rapiInfoChannel) {
     List<Message> messagesToDelete = rapiInfoChannel.getIterableHistory().stream()
         .collect(Collectors.toList());
 
@@ -127,11 +133,7 @@ public class RiotApiUsageChannelRefresh implements Runnable {
   }
 
   public static TextChannel getRapiInfoChannel() {
-    return rapiInfoChannel;
-  }
-
-  public static void setRapiInfoChannel(TextChannel rapiInfoChannel) {
-    RiotApiUsageChannelRefresh.rapiInfoChannel = rapiInfoChannel;
+    return Zoe.getJda().getGuildById(guildId).getTextChannelById(textChannelId);
   }
 
   public static synchronized Integer getInfocardCreatedCount() {
@@ -144,6 +146,22 @@ public class RiotApiUsageChannelRefresh implements Runnable {
 
   public static synchronized void incrementInfocardCount() {
     infocardCreatedCount++;
+  }
+
+  public static long getTextChannelId() {
+    return textChannelId;
+  }
+
+  public static void setTextChannelId(long textChannelId) {
+    RiotApiUsageChannelRefresh.textChannelId = textChannelId;
+  }
+
+  public static long getGuildId() {
+    return guildId;
+  }
+
+  public static void setGuildId(long guildId) {
+    RiotApiUsageChannelRefresh.guildId = guildId;
   }
 
 }

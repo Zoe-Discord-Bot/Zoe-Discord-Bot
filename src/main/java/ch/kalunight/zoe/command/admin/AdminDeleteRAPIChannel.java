@@ -41,13 +41,15 @@ public class AdminDeleteRAPIChannel extends ZoeCommand {
 
     try {
       RiotApiUsageChannelRefresh.getRapiInfoChannel().delete().complete();
-      RiotApiUsageChannelRefresh.setRapiInfoChannel(null);
+      RiotApiUsageChannelRefresh.setTextChannelId(0);
+      RiotApiUsageChannelRefresh.setGuildId(0);
     }catch(InsufficientPermissionException e) {
       event.reply("I don't have the right to delete the channel");
       return;
     }catch(ErrorResponseException e) {
       if(e.getErrorCode() == ErrorResponse.UNKNOWN_CHANNEL.getCode()) {
-        RiotApiUsageChannelRefresh.setRapiInfoChannel(null);
+        RiotApiUsageChannelRefresh.setTextChannelId(0);
+        RiotApiUsageChannelRefresh.setGuildId(0);
         event.reply("The channel was already deleted. Internal Status updated.");
         return;
       }

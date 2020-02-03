@@ -53,6 +53,10 @@ public class EventListenerUtil {
 
 
   public static void loadCustomEmotes() throws IOException {
+    Ressources.getCustomEmotes().clear();
+    Ressources.getChampions().clear();
+    Ressources.getMasteryEmote().clear();
+    Ressources.getTierEmote().clear();
     List<Emote> uploadedEmotes = getAllGuildCustomEmotes();
     List<CustomEmote> picturesInFile = CustomEmoteUtil.loadPicturesInFile();
 

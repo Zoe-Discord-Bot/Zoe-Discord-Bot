@@ -1,7 +1,11 @@
 package ch.kalunight.zoe.model.dto;
 
-public class SavedMatchPlayer {
+import java.io.Serializable;
 
+public class SavedMatchPlayer implements Serializable {
+
+  private static final long serialVersionUID = 5432783425736075514L;
+  
   private String accountId;
   private int championId;
   

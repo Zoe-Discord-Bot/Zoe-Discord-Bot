@@ -13,6 +13,7 @@ import com.google.gson.GsonBuilder;
 
 import ch.kalunight.zoe.Zoe;
 import net.dv8tion.jda.api.entities.User;
+import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.constant.Platform;
 
@@ -183,6 +184,45 @@ public class DTO {
       team_id = baseData.getLong("team_id");
       team_fk_server = baseData.getLong("team_fk_server");
       team_name = baseData.getString("team_name");
+    }
+  }
+  
+  public static class RankHistoryChannel {
+    public long rhChannel_id;
+    public long rhChannel_fk_server;
+    public long rhChannel_channelId;
+    
+    public RankHistoryChannel(ResultSet baseData) throws SQLException {
+      rhChannel_id = baseData.getLong("rhChannel_id");
+      rhChannel_fk_server = baseData.getLong("rhChannel_fk_server");
+      rhChannel_channelId = baseData.getLong("rhChannel_channelId");
+    }
+  }
+  
+  public static class LastRank {
+    public long lastRank_id;
+    public long lastRank_fk_leagueAccount;
+    public LeagueEntry lastRank_soloq;
+    public LeagueEntry lastRank_flex;
+    public LeagueEntry lastRank_tft;
+    
+    public LastRank(ResultSet baseData) throws SQLException {
+      lastRank_id = baseData.getLong("lastRank_id");
+      lastRank_fk_leagueAccount = baseData.getLong("lastRank_fk_leagueAccount");
+      String lastRank = baseData.getString("lastRank_soloq");
+      if(lastRank != null) {
+        lastRank_soloq = gson.fromJson(lastRank, LeagueEntry.class);
+      }
+      
+      lastRank = baseData.getString("lastRank_flex");
+      if(lastRank != null) {
+        lastRank_flex = gson.fromJson(lastRank, LeagueEntry.class);
+      }
+      
+      lastRank = baseData.getString("lastRank_tft");
+      if(lastRank != null) {
+        lastRank_tft = gson.fromJson(lastRank, LeagueEntry.class);
+      }
     }
   }
 }

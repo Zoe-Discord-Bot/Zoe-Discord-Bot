@@ -104,11 +104,7 @@ public class EventListener extends ListenerAdapter {
     }
 
     logger.info("Setup cache ...");
-    try {
-      CacheManager.setupCache();
-    } catch (SQLException e) {
-      logger.error("SQL error when setup cache !", e);
-    }
+    CacheManager.setupCache();
     logger.info("Setup cache finished !");
 
     logger.info("Loading of RAPI Status Channel ...");
@@ -151,7 +147,7 @@ public class EventListener extends ListenerAdapter {
 
   private void setupContinousRefreshThread() {
     TimerTask mainThread = new ServerChecker();
-    ServerData.getServerCheckerThreadTimer().schedule(mainThread, 0);
+    ServerData.getServerCheckerThreadTimer().schedule(mainThread, 5000);
   }
 
   private void initRAPIStatusChannel() {
@@ -169,7 +165,8 @@ public class EventListener extends ListenerAdapter {
         if(guild != null) {
           TextChannel rapiStatusChannel = guild.getTextChannelById(args.get(1));
           if(rapiStatusChannel != null) {
-            RiotApiUsageChannelRefresh.setRapiInfoChannel(rapiStatusChannel);
+            RiotApiUsageChannelRefresh.setTextChannelId(rapiStatusChannel.getIdLong());
+            RiotApiUsageChannelRefresh.setGuildId(guild.getIdLong());
             logger.info("RAPI Status channel correctly loaded.");
           }
         }

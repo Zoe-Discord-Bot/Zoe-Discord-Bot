@@ -30,7 +30,7 @@ public class ServerData {
   private static final ConcurrentHashMap<String, Boolean> serversIsInTreatment = new ConcurrentHashMap<>();
 
   private static final Timer serverCheckerThreadTimer = new Timer("ServerChecker-Timer-Executor");
-
+  
   public static final int NBR_PROC = Runtime.getRuntime().availableProcessors();
 
   private static final ThreadPoolExecutor SERVER_EXECUTOR =
@@ -91,6 +91,23 @@ public class ServerData {
     DTO.ServerStatus serverStatus = ServerStatusRepository.getServerStatus(server.serv_guildId);
 
     return serverAskedTreatment || serverStatus.servstatus_inTreatment;
+  }
+  
+  public static void clearAllTask() {
+    RESPONSE_WAITER.getQueue().clear();
+    SERVER_EXECUTOR.getQueue().clear();
+    INFOCARDS_GENERATOR.getQueue().clear();
+    
+    for(Platform platform : Platform.values()) {
+      ThreadPoolExecutor playerWorker = MATCH_THREAD_EXECUTORS.get(platform);
+      playerWorker.getQueue().clear();
+    }
+    
+    for(Platform platform : Platform.values()) {
+      ThreadPoolExecutor matchWorker = MATCH_THREAD_EXECUTORS.get(platform);
+      matchWorker.getQueue().clear();
+    }
+    logger.info("All queue cleared !");
   }
 
   public static void shutDownTaskExecutor(TextChannel channel) throws InterruptedException {

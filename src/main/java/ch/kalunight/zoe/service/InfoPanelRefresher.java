@@ -7,10 +7,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
@@ -43,6 +43,8 @@ import net.rithms.riot.constant.Platform;
 public class InfoPanelRefresher implements Runnable {
 
   private static final Logger logger = LoggerFactory.getLogger(InfoPanelRefresher.class);
+  
+  private static final AtomicLong nbrServerRefreshedLast2Minutes = new AtomicLong(0);
 
   private DTO.Server server;
 
@@ -112,6 +114,8 @@ public class InfoPanelRefresher implements Runnable {
   public void run() {
     try {
 
+      nbrServerRefreshedLast2Minutes.incrementAndGet();
+      
       DTO.InfoChannel infoChannelDTO = InfoChannelRepository.getInfoChannel(server.serv_guildId);
       if(infoChannelDTO != null && guild != null) {
         infochannel = guild.getTextChannelById(infoChannelDTO.infochannel_channelid);
@@ -553,6 +557,10 @@ public class InfoPanelRefresher implements Runnable {
     stringMessage.append(LanguageManager.getText(server.serv_language, "informationPanelRefreshedTime"));
 
     return stringMessage.toString();
+  }
+
+  public static AtomicLong getNbrServerSefreshedLast2Minutes() {
+    return nbrServerRefreshedLast2Minutes;
   }
 
 

@@ -115,6 +115,12 @@ public class ServerRepository {
       
       InfoChannelRepository.deleteInfoChannel(server);
       
+      DTO.RankHistoryChannel rankHistoryChannel = RankHistoryChannelRepository.getRankHistoryChannel(guildId);
+      
+      if(rankHistoryChannel != null) {
+        RankHistoryChannelRepository.deleteRankHistoryChannel(rankHistoryChannel.rhChannel_id);
+      }
+      
       List<DTO.Team> teams = TeamRepository.getTeamsByGuild(guildId);
       for(DTO.Team team : teams) {
         TeamRepository.deleteTeam(team.team_id, new ArrayList<>());

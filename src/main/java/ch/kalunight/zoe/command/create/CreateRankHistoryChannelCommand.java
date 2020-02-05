@@ -9,25 +9,24 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.repositories.InfoChannelRepository;
+import ch.kalunight.zoe.repositories.RankHistoryChannelRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 
-public class CreateInfoChannelCommand extends ZoeCommand {
+public class CreateRankHistoryChannelCommand extends ZoeCommand {
 
-  public CreateInfoChannelCommand() {
-    this.name = "infoChannel";
+  public CreateRankHistoryChannelCommand() {
+    this.name = "rankChannel";
     this.arguments = "nameOfTheNewChannel";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
     this.guildOnly = true;
-    this.help = "createInfoChannelHelpMessage";
+    this.help = "createRankChannelHelpMessage";
     this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(CreateCommand.USAGE_NAME, name, arguments, help);
   }
-
+  
   @Override
   protected void executeCommand(CommandEvent event) throws SQLException {
     event.getTextChannel().sendTyping().complete();
@@ -45,32 +44,17 @@ public class CreateInfoChannelCommand extends ZoeCommand {
       event.reply(LanguageManager.getText(server.serv_language, "nameOfTheInfoChannelNeedToBeLess100Characters"));
       return;
     }
-
-    DTO.InfoChannel dbInfochannel = InfoChannelRepository.getInfoChannel(server.serv_guildId);
-
-    if(dbInfochannel != null && dbInfochannel.infochannel_channelid != 0) {
-
-      TextChannel infoChannel = event.getGuild().getTextChannelById(dbInfochannel.infochannel_channelid);
-      if(infoChannel == null) {
+    
+    DTO.RankHistoryChannel rankChannelDb = RankHistoryChannelRepository.getRankHistoryChannel(event.getGuild().getIdLong());
+    
+    if(rankChannelDb != null && rankChannelDb.rhChannel_channelId != 0) {
+      TextChannel rankChannel = event.getGuild().getTextChannelById(rankChannelDb.rhChannel_channelId);
+      if(rankChannel == null) {
         InfoChannelRepository.deleteInfoChannel(server);
       }else {
-        event.reply(String.format(LanguageManager.getText(server.serv_language, "infochannelAlreadyExist"), infoChannel.getAsMention()));
+        event.reply(String.format(LanguageManager.getText(server.serv_language, "rankChannelAlreadyExist"), rankChannel.getAsMention()));
         return;
       }
-    }
-
-    try {
-      TextChannel infoChannel = event.getGuild().createTextChannel(nameChannel).complete();
-      InfoChannelRepository.createInfoChannel(server.serv_id, infoChannel.getIdLong());
-      Message message = infoChannel.sendMessage(LanguageManager.getText(server.serv_language, "infoChannelTitle")
-            + "\n \n" + LanguageManager.getText(server.serv_language, "loading")).complete();
-
-      dbInfochannel = InfoChannelRepository.getInfoChannel(server.serv_guildId);
-      InfoChannelRepository.createInfoPanelMessage(dbInfochannel.infoChannel_id, message.getIdLong());
-
-      event.reply(LanguageManager.getText(server.serv_language, "channelCreatedMessage"));
-    } catch(InsufficientPermissionException e) {
-      event.reply(LanguageManager.getText(server.serv_language, "impossibleToCreateInfoChannelMissingPerms"));
     }
   }
 
@@ -78,4 +62,5 @@ public class CreateInfoChannelCommand extends ZoeCommand {
   public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
     return helpBiConsumer;
   }
+
 }

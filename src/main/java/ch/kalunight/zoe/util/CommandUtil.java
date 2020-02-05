@@ -156,7 +156,7 @@ public class CommandUtil {
         }
         
         stringBuilder.append(mainCommandName + " " + commandName + " " + LanguageManager.getText(language, "command").toLowerCase() + " :\n");
-        if(arguments == null || arguments == "") {
+        if(arguments == null || arguments.equals("")) {
           stringBuilder.append("--> `>" + mainCommandName + " " + commandName + "` : " + helpId);
         }else {
           stringBuilder.append("--> `>" + mainCommandName + " " + commandName + " " + arguments + "` : " + helpId);

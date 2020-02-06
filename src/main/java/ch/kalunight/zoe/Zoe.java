@@ -85,6 +85,11 @@ public class Zoe {
   private static DiscordBotListAPI botListApi;
 
   public static void main(String[] args) {
+    
+    if(discordBotListTocken != null) { //Avoid strange reboot
+      logger.warn("Main method hitted in a strangely Zoe stats ! Avoid execution ...");
+      return;
+    }
 
     System.setProperty("logback.configurationFile", "logback.xml");
 

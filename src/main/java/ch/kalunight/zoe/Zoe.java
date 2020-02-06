@@ -86,7 +86,7 @@ public class Zoe {
 
   public static void main(String[] args) {
     
-    if(discordBotListTocken != null) { //Avoid strange reboot
+    if(discordTocken != null) { //Avoid strange reboot
       logger.warn("Main method hitted in a strangely Zoe stats ! Avoid execution ...");
       return;
     }

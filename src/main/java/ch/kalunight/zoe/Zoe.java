@@ -85,6 +85,11 @@ public class Zoe {
   private static DiscordBotListAPI botListApi;
 
   public static void main(String[] args) {
+    
+    if(discordTocken != null) { //Avoid strange reboot
+      logger.warn("Main method hitted in a strangely Zoe stats ! Avoid execution ...");
+      return;
+    }
 
     System.setProperty("logback.configurationFile", "logback.xml");
 
@@ -101,7 +106,7 @@ public class Zoe {
       RepoRessources.setDB_URL(args[3]);
       RepoRessources.setDB_PASSWORD(args[4]);
     }catch(Exception e) {
-      logger.error("Error with parameters : 1. Discord Tocken 2. Riot tocken 3. Owner Id 4. DB url 5. DB password");
+      logger.error("Error with parameters : 1. Discord Tocken 2. Riot tocken 3. Owner Id 4. DB url 5. DB password", e);
       throw e;
     }
 

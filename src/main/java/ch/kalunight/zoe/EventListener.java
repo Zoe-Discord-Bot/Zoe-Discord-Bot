@@ -147,7 +147,7 @@ public class EventListener extends ListenerAdapter {
 
   private void setupContinousRefreshThread() {
     TimerTask mainThread = new ServerChecker();
-    ServerData.getServerCheckerThreadTimer().schedule(mainThread, 5000);
+    ServerData.getServerCheckerThreadTimer().schedule(mainThread, 10000);
   }
 
   private void initRAPIStatusChannel() {

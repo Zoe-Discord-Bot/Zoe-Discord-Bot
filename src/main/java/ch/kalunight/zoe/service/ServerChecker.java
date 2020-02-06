@@ -3,25 +3,15 @@ package ch.kalunight.zoe.service;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.TimerTask;
-import java.util.function.Consumer;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.jagrosh.jdautilities.command.Command;
-import com.jagrosh.jdautilities.command.CommandClient;
-import com.jagrosh.jdautilities.command.CommandClientBuilder;
-import com.jagrosh.jdautilities.command.CommandEvent;
-import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
-import ch.kalunight.zoe.EventListener;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.repositories.ServerStatusRepository;
-import ch.kalunight.zoe.util.CommandUtil;
-import net.dv8tion.jda.api.AccountType;
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.JDA.Status;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
@@ -120,51 +110,12 @@ public class ServerChecker extends TimerTask {
   private boolean checkIfJdaAlive() {
     JDA jda = Zoe.getJda();
     if(!jda.getStatus().equals(Status.CONNECTED)) {
-      logger.info("Zoe is deconnected from Discord server ! Reboot start ...");
+      logger.info("Zoe is deconnected from Discord server ! Reboot thread start ...");
       jda.shutdownNow();
-      ServerData.clearAllTask();
-
-      CommandClientBuilder client = new CommandClientBuilder();
-
-      client.setOwnerId(Zoe.getClientOwnerID());
-
-      client.setPrefix(Zoe.BOT_PREFIX);
-
-      Zoe.setEventWaiter(new EventWaiter(ServerData.getResponseWaiter(), false));
-
-      Zoe.setMainCommands(null);
-
-      for(Command command : Zoe.getMainCommands(Zoe.getEventWaiter())) {
-        client.addCommand(command);
-      }
-
-      Consumer<CommandEvent> helpCommand = CommandUtil.getHelpCommand();
-
-      client.setHelpConsumer(helpCommand);
-
-      CommandClient commandClient = client.build();
-
-      EventListener eventListener = new EventListener();
-
-      Zoe.getEventlistenerlist().clear();
-
-      Zoe.getEventlistenerlist().add(commandClient);
-      Zoe.getEventlistenerlist().add(Zoe.getEventWaiter());
-      Zoe.getEventlistenerlist().add(eventListener);
-
-      try {
-        jda = new JDABuilder(AccountType.BOT)//
-            .setToken(Zoe.getDiscordTocken())//
-            .setStatus(OnlineStatus.ONLINE)//
-            .addEventListeners(commandClient)//
-            .addEventListeners(Zoe.getEventWaiter())//
-            .addEventListeners(eventListener).build();//
-        jda.setAutoReconnect(false);
-        jda.awaitReady();
-      }catch(Exception e) {
-        logger.error("ERROR WHEN REBOOTING ZOE ! ", e);
-      }
-      Zoe.setJda(jda);
+      
+      TimerTask rebootTask = new ZoeRebootThread();
+      ServerData.getServerCheckerThreadTimer().schedule(rebootTask, 100);
+      
       return true;
     }
     return false;

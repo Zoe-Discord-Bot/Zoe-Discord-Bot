@@ -122,7 +122,6 @@ public class ServerChecker extends TimerTask {
     if(!jda.getStatus().equals(Status.CONNECTED)) {
       logger.info("Zoe is deconnected from Discord server ! Reboot thread start ...");
       jda.shutdownNow();
-      ServerData.clearAllTask();
       
       TimerTask rebootTask = new ZoeRebootThread();
       ServerData.getServerCheckerThreadTimer().schedule(rebootTask, 100);

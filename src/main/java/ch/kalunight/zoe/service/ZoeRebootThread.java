@@ -30,6 +30,8 @@ public class ZoeRebootThread extends TimerTask {
   public void run() {
     JDA jda = null;
     try {
+      ServerData.clearAllTask();
+      
       CommandClientBuilder client = new CommandClientBuilder();
 
       client.setOwnerId(Zoe.getClientOwnerID());
@@ -87,6 +89,4 @@ public class ZoeRebootThread extends TimerTask {
       }
     }
   }
-
-
 }

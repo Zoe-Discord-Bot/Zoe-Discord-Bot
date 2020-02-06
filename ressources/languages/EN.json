@@ -265,5 +265,6 @@
     "guildJoinHiAgain": "Hello again ! All your setup as been saved since the last time i was there. If you need to remind how i work, try the commands `>setup` and `>help`. If you want to reset the server, do the command `>reset`.",
     "nameUseIllegalCharacter": "You can't use this name ! You can't use formating characters.",
 	"createRankChannelHelpMessage": "Create a Rank Channel where i will send update about rank of registed players.",
-	"rankChannelAlreadyExist": "The rank channel already exist !"
+	"rankChannelAlreadyExist": "The rank channel already exist !",
+	"rankChannelCorrectlyCreated": "The rank channel has been correctly created !"
 }

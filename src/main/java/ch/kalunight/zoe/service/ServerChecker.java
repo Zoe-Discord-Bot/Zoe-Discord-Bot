@@ -158,9 +158,8 @@ public class ServerChecker extends TimerTask {
             .setStatus(OnlineStatus.ONLINE)//
             .addEventListeners(commandClient)//
             .addEventListeners(Zoe.getEventWaiter())//
-            .addEventListeners(eventListener).build();//
-        jda.setAutoReconnect(false);
-        jda.awaitReady();
+            .addEventListeners(eventListener)
+            .setAutoReconnect(false).build();//
       }catch(Exception e) {
         logger.error("ERROR WHEN REBOOTING ZOE ! ", e);
       }

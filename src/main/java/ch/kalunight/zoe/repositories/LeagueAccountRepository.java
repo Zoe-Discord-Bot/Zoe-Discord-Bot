@@ -108,7 +108,7 @@ public class LeagueAccountRepository {
       "UPDATE league_account SET leagueaccount_fk_gamecard = %s WHERE leagueaccount_id = %d";
 
   private static final String UPDATE_LEAGUE_ACCOUNT_NAME_WITH_ID =
-      "UPDATE league_account SET leagueaccount_name = %s WHERE leagueaccount_id = %d";
+      "UPDATE league_account SET leagueaccount_name = '%s' WHERE leagueaccount_id = %d";
 
   private LeagueAccountRepository() {
     //hide default public constructor

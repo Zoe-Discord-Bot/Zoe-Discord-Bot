@@ -100,7 +100,7 @@ public class StatsProfileCommand extends ZoeCommand {
     CommandUtil.sendTypingInFonctionOfChannelType(event);
 
     DTO.Server server = getServer(event.getGuild().getIdLong());
-    
+
     SelectionDialog.Builder selectAccountBuilder = new SelectionDialog.Builder()
         .setEventWaiter(waiter)
         .useLooping(true)
@@ -184,7 +184,7 @@ public class StatsProfileCommand extends ZoeCommand {
           RiotApiUtil.handleRiotApi(event, e, server.serv_language);
           return;
         }
-        
+
         selectionMessage.getTextChannel().sendMessage(String.format(
             LanguageManager.getText(server.serv_language, "statsProfileSelectionDoneMessage"),
             summoner.getName(), Zoe.getJda().retrieveUserById(player.player_discordId).complete()
@@ -302,7 +302,9 @@ public class StatsProfileCommand extends ZoeCommand {
   private long getMoyenneMasteries(List<ChampionMastery> championsMasteries) {
     long allMasteries = 0;
     for(ChampionMastery championMastery : championsMasteries) {
-      allMasteries += championMastery.getChampionPoints();
+      if(championMastery != null) {
+        allMasteries += championMastery.getChampionPoints();
+      }
     }
     return allMasteries / championsMasteries.size();
   }

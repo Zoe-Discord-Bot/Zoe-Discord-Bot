@@ -264,7 +264,11 @@
     "errorSQLPleaseReport": "I got a issue with the DataBase. Please report this issue here : https://discord.gg/YZwBvAx",
     "guildJoinHiAgain": "Hello again ! All your setup as been saved since the last time i was there. If you need to remind how i work, try the commands `>setup` and `>help`. If you want to reset the server, do the command `>reset`.",
     "nameUseIllegalCharacter": "You can't use this name ! You can't use formating characters.",
-	"createRankChannelHelpMessage": "Create a Rank Channel where i will send update about rank of registed players.",
+	"createRankChannelHelpMessage": "Create a Rank Channel where i will send update about rank of registed players. Manage Channel permission needed.",
 	"rankChannelAlreadyExist": "The rank channel already exist !",
-	"rankChannelCorrectlyCreated": "The rank channel has been correctly created !"
+	"rankChannelCorrectlyCreated": "The rank channel has been correctly created !",
+	"deleteRankChannelHelpMessage": "Delete the rank channel. Manage Channel permission needed.",
+	"deleteRankChannelNotSetted": "The rank channel is not defined!",
+	"deleteRankChannelDeletedMissingPermission": "The rank channel has been deleted only **inside the system**! I don't have the right to delete the text channel!",
+	"deleteRankChannelDoneMessage": "The rank channel has been correctly deleted."
 }

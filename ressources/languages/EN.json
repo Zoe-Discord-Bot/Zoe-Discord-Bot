@@ -271,5 +271,8 @@
 	"deleteRankChannelNotSetted": "The rank channel is not defined!",
 	"deleteRankChannelDeletedMissingPermission": "The rank channel has been deleted only **inside the system**! I don't have the right to delete the text channel!",
 	"deleteRankChannelDoneMessage": "The rank channel has been correctly deleted.",
-	"defineRankChannelHelpMessage": "Define the rank channel. Manage Channel permission needed."
+	"defineRankChannelHelpMessage": "Define the rank channel. Manage Channel permission needed.",
+	"defineRankChannelMentionOfAChannelNeeded": "You need to mention a channel like this : `>define rankChannel #the-best-text-channel`",
+	"defineRankChannelImpossibleToDefineCleanChannel": "I can't define the rankChannel inside the clean channel (-> see config option \"Clean Channel\").",
+	"defineRankChannelDoneMessage": "The rank channel has been correctly defined !"
 }

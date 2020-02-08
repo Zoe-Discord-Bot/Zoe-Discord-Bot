@@ -19,6 +19,7 @@ import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 
 public class CreateRankHistoryChannelCommand extends ZoeCommand {
 
@@ -73,8 +74,8 @@ public class CreateRankHistoryChannelCommand extends ZoeCommand {
       try {
         rankChannel.putPermissionOverride(role).deny(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).queue();
         rankChannel.putPermissionOverride(serverConfiguration.getZoeRoleOption().getRole()).grant(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).queue();
-      }catch(Exception e) {
-        logger.info("Missing permission to apply rank channel rule, nothing bad", e);
+      }catch(InsufficientPermissionException e) {
+        logger.info("Missing permission to apply Zoe role option rule, nothing bad");
       }
     }
     

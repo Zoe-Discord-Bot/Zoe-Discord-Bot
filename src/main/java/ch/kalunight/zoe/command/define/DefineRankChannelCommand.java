@@ -65,8 +65,7 @@ public class DefineRankChannelCommand extends ZoeCommand {
 
   @Override
   public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
-    // TODO Auto-generated method stub
-    return null;
+    return helpBiConsumer;
   }
 
 }

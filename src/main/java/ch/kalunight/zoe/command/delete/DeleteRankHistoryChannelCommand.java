@@ -8,7 +8,6 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.model.dto.DTO;
-import ch.kalunight.zoe.repositories.InfoChannelRepository;
 import ch.kalunight.zoe.repositories.RankHistoryChannelRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
@@ -44,12 +43,12 @@ public class DeleteRankHistoryChannelCommand extends ZoeCommand {
           textChannel.delete().queue();
         }
       } catch(InsufficientPermissionException e) {
-        InfoChannelRepository.deleteInfoChannel(server);
+        RankHistoryChannelRepository.deleteRankHistoryChannel(rankChannel.rhChannel_id);
         event.reply(LanguageManager.getText(server.serv_language, "deleteRankChannelDeletedMissingPermission"));
         return;
       }
 
-      InfoChannelRepository.deleteInfoChannel(server);
+      RankHistoryChannelRepository.deleteRankHistoryChannel(rankChannel.rhChannel_id);
       event.reply(LanguageManager.getText(server.serv_language, "deleteRankChannelDoneMessage"));
     }
   }

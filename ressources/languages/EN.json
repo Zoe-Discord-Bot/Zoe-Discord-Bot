@@ -270,5 +270,6 @@
 	"deleteRankChannelHelpMessage": "Delete the rank channel. Manage Channel permission needed.",
 	"deleteRankChannelNotSetted": "The rank channel is not defined!",
 	"deleteRankChannelDeletedMissingPermission": "The rank channel has been deleted only **inside the system**! I don't have the right to delete the text channel!",
-	"deleteRankChannelDoneMessage": "The rank channel has been correctly deleted."
+	"deleteRankChannelDoneMessage": "The rank channel has been correctly deleted.",
+	"defineRankChannelHelpMessage": "Define the rank channel. Manage Channel permission needed."
 }

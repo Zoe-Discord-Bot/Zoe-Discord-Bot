@@ -274,5 +274,8 @@
 	"defineRankChannelHelpMessage": "Define the rank channel. Manage Channel permission needed.",
 	"defineRankChannelMentionOfAChannelNeeded": "You need to mention a channel like this : `>define rankChannel #the-best-text-channel`",
 	"defineRankChannelImpossibleToDefineCleanChannel": "I can't define the rankChannel inside the clean channel (-> see config option \"Clean Channel\").",
-	"defineRankChannelDoneMessage": "The rank channel has been correctly defined !"
+	"defineRankChannelDoneMessage": "The rank channel has been correctly defined!",
+	"undefineRankChannelHelpMessage": "Undefine the rank channel without delete it.",
+	"undefineRankChannelMissingChannel": "I have no registered rank channel ! I can't undefine something who don't exist :p",
+	"undefineRankChannelDoneMessage": "I have undefine the rank channel!"
 }

@@ -79,7 +79,7 @@ public class CreateRankHistoryChannelCommand extends ZoeCommand {
       }
     }
     
-    RankHistoryChannelRepository.createRankHistoryChannel(event.getGuild().getIdLong(), rankChannel.getIdLong());
+    RankHistoryChannelRepository.createRankHistoryChannel(server.serv_id, rankChannel.getIdLong());
     
     event.reply(LanguageManager.getText(server.serv_language, "rankChannelCorrectlyCreated"));
   }

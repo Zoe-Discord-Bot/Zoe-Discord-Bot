@@ -19,7 +19,7 @@ public class DefineCommand extends ZoeCommand {
     this.aliases = new String[] {"def"};
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
-    Command[] commandsChildren = {new DefineInfoChannelCommand()};
+    Command[] commandsChildren = {new DefineInfoChannelCommand(), new DefineRankChannelCommand()};
     this.children = commandsChildren;
     this.helpBiConsumer = CommandUtil.getHelpMethodHasChildren(USAGE_NAME, commandsChildren);
   }

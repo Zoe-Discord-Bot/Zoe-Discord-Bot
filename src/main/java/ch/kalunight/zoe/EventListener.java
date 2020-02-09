@@ -25,6 +25,7 @@ import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.InfoChannelRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
+import ch.kalunight.zoe.repositories.RankHistoryChannelRepository;
 import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.repositories.ServerStatusRepository;
 import ch.kalunight.zoe.riotapi.CacheManager;
@@ -243,6 +244,11 @@ public class EventListener extends ListenerAdapter {
       DTO.InfoChannel infochannel = InfoChannelRepository.getInfoChannel(event.getGuild().getIdLong());
       if(infochannel != null && infochannel.infochannel_channelid == event.getChannel().getIdLong()) {
         InfoChannelRepository.deleteInfoChannel(ServerRepository.getServer(event.getGuild().getIdLong()));
+      }
+      
+      DTO.RankHistoryChannel rankChannel = RankHistoryChannelRepository.getRankHistoryChannel(event.getGuild().getIdLong());
+      if(rankChannel != null && rankChannel.rhChannel_channelId == event.getChannel().getIdLong()) {
+        RankHistoryChannelRepository.deleteRankHistoryChannel(rankChannel.rhChannel_id);
       }
     }catch(SQLException e) {
       logger.error("Issue with db when reacting to the textChannelDelete Event.", e);

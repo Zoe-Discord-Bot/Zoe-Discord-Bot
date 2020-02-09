@@ -3,9 +3,6 @@ package ch.kalunight.zoe.command.create;
 import java.sql.SQLException;
 import java.util.function.BiConsumer;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 
@@ -17,13 +14,9 @@ import ch.kalunight.zoe.repositories.RankHistoryChannelRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 
 public class CreateRankHistoryChannelCommand extends ZoeCommand {
-
-  private static final Logger logger = LoggerFactory.getLogger(CreateRankHistoryChannelCommand.class);
 
   public CreateRankHistoryChannelCommand() {
     this.name = "rankChannel";
@@ -70,17 +63,10 @@ public class CreateRankHistoryChannelCommand extends ZoeCommand {
     ServerConfiguration serverConfiguration = ConfigRepository.getServerConfiguration(event.getGuild().getIdLong());
 
     if(serverConfiguration.getZoeRoleOption().getRole() != null) {
-      Role role = event.getGuild().getPublicRole();
-      try {
-        rankChannel.putPermissionOverride(role).deny(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).queue();
-        rankChannel.putPermissionOverride(serverConfiguration.getZoeRoleOption().getRole()).grant(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).queue();
-      }catch(InsufficientPermissionException e) {
-        logger.info("Missing permission to apply Zoe role option rule, nothing bad");
-      }
+      CommandUtil.giveRolePermission(event.getGuild(), rankChannel, serverConfiguration);
     }
-    
     RankHistoryChannelRepository.createRankHistoryChannel(server.serv_id, rankChannel.getIdLong());
-    
+
     event.reply(LanguageManager.getText(server.serv_language, "rankChannelCorrectlyCreated"));
   }
 

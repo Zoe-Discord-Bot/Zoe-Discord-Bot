@@ -7,7 +7,9 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 
 import ch.kalunight.zoe.command.ZoeCommand;
+import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.InfoChannelRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
@@ -68,6 +70,12 @@ public class CreateInfoChannelCommand extends ZoeCommand {
       dbInfochannel = InfoChannelRepository.getInfoChannel(server.serv_guildId);
       InfoChannelRepository.createInfoPanelMessage(dbInfochannel.infoChannel_id, message.getIdLong());
 
+      ServerConfiguration config = ConfigRepository.getServerConfiguration(event.getGuild().getIdLong());
+      
+      if(config.getZoeRoleOption().getRole() != null) {
+        CommandUtil.giveRolePermission(event.getGuild(), infoChannel, config);
+      }
+      
       event.reply(LanguageManager.getText(server.serv_language, "channelCreatedMessage"));
     } catch(InsufficientPermissionException e) {
       event.reply(LanguageManager.getText(server.serv_language, "impossibleToCreateInfoChannelMissingPerms"));

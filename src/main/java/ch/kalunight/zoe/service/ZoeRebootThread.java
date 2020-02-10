@@ -78,12 +78,12 @@ public class ZoeRebootThread extends TimerTask {
       logger.error("Catch unexpected exception when rebooting !", e);
     } finally {
       if (jda == null || !jda.getStatus().equals(Status.CONNECTED)){
-        logger.info("Reboot has failed ! Try again ...");
+        logger.info("Reboot has failed ! Try again in 10 secs ...");
         if(jda != null) {
           jda.shutdownNow();
         }
         TimerTask rebootTask = new ZoeRebootThread();
-        ServerData.getServerCheckerThreadTimer().schedule(rebootTask, 100);
+        ServerData.getServerCheckerThreadTimer().schedule(rebootTask, 10000);
       }else {
         logger.info("Zoe has rebooted correctly !");
       }

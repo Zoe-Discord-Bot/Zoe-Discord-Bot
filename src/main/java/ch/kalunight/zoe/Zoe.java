@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -64,7 +65,7 @@ public class Zoe {
 
   private static final ConcurrentLinkedQueue<List<CustomEmote>> emotesNeedToBeUploaded = new ConcurrentLinkedQueue<>();
 
-  private static final List<Object> eventListenerList = new ArrayList<>();  
+  private static final List<Object> eventListenerList = Collections.synchronizedList(new ArrayList<>());  
 
   public static final Logger logger = LoggerFactory.getLogger(Zoe.class);
 

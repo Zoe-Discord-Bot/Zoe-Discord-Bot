@@ -40,7 +40,7 @@ public class ServerChecker extends TimerTask {
 
     try {
 
-      hasReboot = checkIfJdaAlive();
+      hasReboot = checkIfRebootOfJDANeeded();
 
       if(hasReboot) {
         logger.info("Zoe is rebooting ...");
@@ -107,9 +107,10 @@ public class ServerChecker extends TimerTask {
     }
   }
 
-  private boolean checkIfJdaAlive() {
+  private boolean checkIfRebootOfJDANeeded() {
     JDA jda = Zoe.getJda();
-    if(!jda.getStatus().equals(Status.CONNECTED)) {
+    
+    if(checkIfZoeNeedReboot(jda)) {
       logger.info("Zoe is deconnected from Discord server ! Reboot thread start ...");
       jda.shutdownNow();
       
@@ -119,6 +120,13 @@ public class ServerChecker extends TimerTask {
       return true;
     }
     return false;
+  }
+
+  private boolean checkIfZoeNeedReboot(JDA jda) {
+    return !jda.getStatus().equals(Status.CONNECTED) || 
+        (!jda.getPresence().getStatus().equals(OnlineStatus.ONLINE) 
+            && !jda.getPresence().getStatus().equals(OnlineStatus.DO_NOT_DISTURB))
+        || jda.getEventManager().getRegisteredListeners().size() != Zoe.getEventlistenerlist().size();
   }
 
   public static void setNextStatusRefresh(DateTime nextStatusRefresh) {

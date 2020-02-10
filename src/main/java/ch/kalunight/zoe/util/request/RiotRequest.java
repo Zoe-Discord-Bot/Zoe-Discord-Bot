@@ -67,6 +67,40 @@ public class RiotRequest {
 
     return new FullTier(rank, tier, leaguePoints);
   }
+  
+  public static LeagueEntry getLeagueEntrySoloq(String summonerId, Platform region) {
+    Set<LeagueEntry> listLeague;
+    try {
+      listLeague = Zoe.getRiotApi().getLeagueEntriesBySummonerIdWithRateLimit(region, summonerId);
+    } catch(RiotApiException e) {
+      logger.info("Error with riot api : {}", e.getMessage());
+      return null;
+    }
+
+    for(LeagueEntry leaguePosition : listLeague) {
+      if(leaguePosition.getQueueType().equals("RANKED_SOLO_5x5")) {
+        return leaguePosition;
+      }
+    }
+    return null;
+  }
+  
+  public static LeagueEntry getLeagueEntryFlex(String summonerId, Platform region) {
+    Set<LeagueEntry> listLeague;
+    try {
+      listLeague = Zoe.getRiotApi().getLeagueEntriesBySummonerIdWithRateLimit(region, summonerId);
+    } catch(RiotApiException e) {
+      logger.info("Error with riot api : {}", e.getMessage());
+      return null;
+    }
+
+    for(LeagueEntry leaguePosition : listLeague) {
+      if(leaguePosition.getQueueType().equals("RANKED_TEAM_5x5")) {
+        return leaguePosition;
+      }
+    }
+    return null;
+  }
 
   public static String getWinrateLastMonthWithGivenChampion(String summonerId, Platform region,
       int championKey, String language) {

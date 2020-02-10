@@ -16,18 +16,23 @@ import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.GameInfoCardStatus;
+import ch.kalunight.zoe.model.dto.DTO.LastRank;
+import ch.kalunight.zoe.model.dto.DTO.RankHistoryChannel;
 import ch.kalunight.zoe.model.player_data.Team;
 import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.CurrentGameInfoRepository;
 import ch.kalunight.zoe.repositories.GameInfoCardRepository;
 import ch.kalunight.zoe.repositories.InfoChannelRepository;
+import ch.kalunight.zoe.repositories.LastRankRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
+import ch.kalunight.zoe.repositories.RankHistoryChannelRepository;
 import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.repositories.ServerStatusRepository;
 import ch.kalunight.zoe.repositories.TeamRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.InfoPanelRefresherUtil;
+import ch.kalunight.zoe.util.request.RiotRequest;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageReaction;
@@ -37,13 +42,14 @@ import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.rithms.riot.api.RiotApiException;
+import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.constant.Platform;
 
 public class InfoPanelRefresher implements Runnable {
 
   private static final Logger logger = LoggerFactory.getLogger(InfoPanelRefresher.class);
-  
+
   private static final AtomicLong nbrServerRefreshedLast2Minutes = new AtomicLong(0);
 
   private DTO.Server server;
@@ -115,24 +121,32 @@ public class InfoPanelRefresher implements Runnable {
     try {
 
       nbrServerRefreshedLast2Minutes.incrementAndGet();
-      
+
       DTO.InfoChannel infoChannelDTO = InfoChannelRepository.getInfoChannel(server.serv_guildId);
       if(infoChannelDTO != null && guild != null) {
         infochannel = guild.getTextChannelById(infoChannelDTO.infochannel_channelid);
       }
 
+      List<DTO.Player> playersDTO = PlayerRepository.getPlayers(server.serv_guildId);
+      
+      if(needToWait) {
+        TimeUnit.SECONDS.sleep(5);
+      }
+      
+      if(infochannel != null) {
+        cleanOldInfoChannelMessage();
+      }
+      
+      RankHistoryChannel rankChannel = RankHistoryChannelRepository.getRankHistoryChannel(server.serv_guildId);
+      
+      if(rankChannel != null) {
+        refreshAllLeagueAccountCurrentGamesAndDeleteOlderInfoCard(playersDTO);
+      }
+
       if(infochannel != null && guild != null) {
 
-        if(needToWait) {
-          TimeUnit.SECONDS.sleep(5);
-        }
-
-        List<DTO.Player> playersDTO = PlayerRepository.getPlayers(server.serv_guildId);
-
-        cleanOldInfoChannelMessage();
         cleanUnlinkInfoCardAndCurrentGame();
         cleanRegisteredPlayerNoLongerInGuild(playersDTO);
-        refreshAllLeagueAccountCurrentGamesAndDeleteOlderInfoCard(playersDTO);
         refreshGameCardStatus();
 
         refreshInfoPanel(infoChannelDTO);
@@ -206,25 +220,25 @@ public class InfoPanelRefresher implements Runnable {
 
     for(DTO.GameInfoCard gameInfoCard : gameInfoCards) {
       switch(gameInfoCard.gamecard_status) {
-      case IN_CREATION:
-        GameInfoCardRepository.updateGameInfoCardStatusWithId(gameInfoCard.gamecard_id, GameInfoCardStatus.IN_TREATMENT);
+        case IN_CREATION:
+          GameInfoCardRepository.updateGameInfoCardStatusWithId(gameInfoCard.gamecard_id, GameInfoCardStatus.IN_TREATMENT);
 
-        List<DTO.LeagueAccount> accountsLinked = LeagueAccountRepository
-            .getLeaguesAccountsWithGameCardsId(gameInfoCard.gamecard_id);
+          List<DTO.LeagueAccount> accountsLinked = LeagueAccountRepository
+              .getLeaguesAccountsWithGameCardsId(gameInfoCard.gamecard_id);
 
-        DTO.LeagueAccount account = accountsLinked.get(0);
+          DTO.LeagueAccount account = accountsLinked.get(0);
 
-        DTO.CurrentGameInfo currentGame = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(account.leagueAccount_id);
+          DTO.CurrentGameInfo currentGame = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(account.leagueAccount_id);
 
-        ServerData.getInfocardsGenerator().execute(
-            new InfoCardsWorker(server, infochannel, accountsLinked.get(0), currentGame, gameInfoCard));
-        break;
-      case IN_WAIT_OF_DELETING:
-        GameInfoCardRepository.deleteGameInfoCardsWithId(gameInfoCard.gamecard_id);
-        deleteDiscordInfoCard(server.serv_guildId, gameInfoCard);
-        break;
-      default:
-        break;
+          ServerData.getInfocardsGenerator().execute(
+              new InfoCardsWorker(server, infochannel, accountsLinked.get(0), currentGame, gameInfoCard));
+          break;
+        case IN_WAIT_OF_DELETING:
+          GameInfoCardRepository.deleteGameInfoCardsWithId(gameInfoCard.gamecard_id);
+          deleteDiscordInfoCard(server.serv_guildId, gameInfoCard);
+          break;
+        default:
+          break;
       }
     }
   }
@@ -369,10 +383,19 @@ public class InfoPanelRefresher implements Runnable {
               CurrentGameInfoRepository.updateCurrentGame(currentGame, leagueAccount);
             }else {
               CurrentGameInfoRepository.deleteCurrentGame(currentGameDb, server);
+
+              if(RankHistoryChannelRepository.getRankHistoryChannel(guild.getIdLong()) != null) {
+                updateRankChannelMessage(player, leagueAccount, currentGameDb);
+              }
+
               CurrentGameInfoRepository.createCurrentGame(currentGame, leagueAccount);
             }
           }else if(currentGameDb != null && currentGame == null) {
             CurrentGameInfoRepository.deleteCurrentGame(currentGameDb, server);
+
+            if(RankHistoryChannelRepository.getRankHistoryChannel(guild.getIdLong()) != null) {
+              updateRankChannelMessage(player, leagueAccount, currentGameDb);
+            }
           }
           if(currentGame != null) {
             DTO.CurrentGameInfo currentGameInfo = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(leagueAccount.leagueAccount_id);
@@ -380,6 +403,25 @@ public class InfoPanelRefresher implements Runnable {
           }
         }
       }
+    }
+  }
+
+  private void updateRankChannelMessage(DTO.Player player, DTO.LeagueAccount leagueAccount, DTO.CurrentGameInfo currentGameDb)
+      throws SQLException {
+    CurrentGameInfo gameOfTheChange = currentGameDb.currentgame_currentgame;
+
+    if(gameOfTheChange.getGameQueueConfigId() == 420) {
+      LastRank rankBeforeThisGame = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
+      LeagueEntry entry = RiotRequest.getLeagueEntrySoloq(leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server);
+      RankedChannelRefresher rankedRefresher = 
+          new RankedChannelRefresher(rankBeforeThisGame.lastRank_soloq, entry, gameOfTheChange, player, leagueAccount);
+      ServerData.getRankedMessageGenerator().execute(rankedRefresher);
+    }else if(gameOfTheChange.getGameQueueConfigId() == 440) {
+      LastRank rankBeforeThisGame = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
+      LeagueEntry entry = RiotRequest.getLeagueEntryFlex(leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server);
+      RankedChannelRefresher rankedRefresher = 
+          new RankedChannelRefresher(rankBeforeThisGame.lastRank_flex, entry, gameOfTheChange, player, leagueAccount);
+      ServerData.getRankedMessageGenerator().execute(rankedRefresher);
     }
   }
 

@@ -38,6 +38,9 @@ public class ServerData {
 
   private static final ThreadPoolExecutor INFOCARDS_GENERATOR =
       new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+  
+  private static final ThreadPoolExecutor RANKED_MESSAGE_GENERATOR =
+      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
 
   private static final Map<Platform, ThreadPoolExecutor> PLAYERS_DATA_EXECUTORS =
       Collections.synchronizedMap(new EnumMap<Platform, ThreadPoolExecutor>(Platform.class));
@@ -58,6 +61,7 @@ public class ServerData {
     logger.info("ThreadPools has been lauched with {} threads", NBR_PROC);
     SERVER_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Server-Executor-Thread %d").build());
     INFOCARDS_GENERATOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe InfoCards-Generator-Thread %d").build());
+    RANKED_MESSAGE_GENERATOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Ranked-Message-Generator-Thread %d").build());
     RESPONSE_WAITER.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Response-Waiter-Thread %d").build());
 
     for(Platform platform : Platform.values()) {
@@ -97,6 +101,7 @@ public class ServerData {
     RESPONSE_WAITER.getQueue().clear();
     SERVER_EXECUTOR.getQueue().clear();
     INFOCARDS_GENERATOR.getQueue().clear();
+    RANKED_MESSAGE_GENERATOR.getQueue().clear();
     
     for(Platform platform : Platform.values()) {
       ThreadPoolExecutor playerWorker = MATCH_THREAD_EXECUTORS.get(platform);
@@ -144,6 +149,17 @@ public class ServerData {
     }
     logger.info("Shutdown of InfoCards Generator has been completed !");
     channel.sendMessage("Shutdown of InfoCards Generator has been completed !").complete();
+    
+    logger.info("Start to shutdown Ranked Message Generator, this can take 1 minutes max...");
+    channel.sendMessage("Start to shutdown Ranked Message Generator, this can take 1 minutes max...").complete();
+    RANKED_MESSAGE_GENERATOR.shutdown();
+
+    RANKED_MESSAGE_GENERATOR.awaitTermination(1, TimeUnit.MINUTES);
+    if(!RANKED_MESSAGE_GENERATOR.isShutdown()) {
+      RANKED_MESSAGE_GENERATOR.shutdownNow();
+    }
+    logger.info("Shutdown of Ranked Message Generator has been completed !");
+    channel.sendMessage("Shutdown of Ranked Message Generator has been completed !").complete();
 
     logger.info("Start to shutdown Players Data Worker...");
     channel.sendMessage("Start to shutdown Players Data Worker ...").complete();
@@ -219,4 +235,7 @@ public class ServerData {
     return serverCheckerThreadTimer;
   }
 
+  public static ThreadPoolExecutor getRankedMessageGenerator() {
+    return RANKED_MESSAGE_GENERATOR;
+  }
 }

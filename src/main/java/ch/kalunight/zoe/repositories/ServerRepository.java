@@ -28,11 +28,11 @@ public class ServerRepository {
   private static final String UPDATE_TIMESTAMP_WITH_GUILD_ID = "UPDATE server SET serv_lastrefresh = '%s' WHERE serv_guildId = %d";
   
   private static final String SELECT_SERVER_WITH_TIMESTAMP_AFTER = "SELECT " + 
-      "server.serv_id,server.serv_guildid,server.serv_language,server.serv_lastrefresh " + 
-      "FROM info_channel " + 
-      "INNER JOIN server ON info_channel.infochannel_fk_server = server.serv_id " + 
+      "serv_id,serv_guildid,serv_language,serv_lastrefresh " +  
+      "LEFT JOIN server ON info_channel.infochannel_fk_server = server.serv_id " + 
+      "LEFT JOIN server ON rank_history_channel.rhChannel_fk_server = server.serv_id " +
       "INNER JOIN server_status ON server.serv_id = server_status.servstatus_fk_server " + 
-      "WHERE info_channel.infochannel_id IS NOT NULL " + 
+      "WHERE (info_channel.infochannel_id IS NOT NULL || rank_history_channel.rhChannel_id IS NOT NULL) " + 
       "AND server.serv_lastrefresh < '%s' " + 
       "AND server_status.servstatus_intreatment = %s";
   

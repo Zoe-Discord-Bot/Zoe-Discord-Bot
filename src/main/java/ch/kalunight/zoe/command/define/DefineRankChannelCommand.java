@@ -55,6 +55,11 @@ public class DefineRankChannelCommand extends ZoeCommand {
               event.reply(LanguageManager.getText(server.serv_language, "defineRankChannelImpossibleToDefineCleanChannel"));
             }else {
               RankHistoryChannelRepository.createRankHistoryChannel(server.serv_id, textChannel.getIdLong());
+              
+              if(config.getZoeRoleOption().getRole() != null) {
+                CommandUtil.giveRolePermission(event.getGuild(), textChannel, config);
+              }
+              
               event.reply(LanguageManager.getText(server.serv_language, "defineRankChannelDoneMessage"));
             }
           }

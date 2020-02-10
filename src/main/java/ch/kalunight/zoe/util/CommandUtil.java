@@ -93,7 +93,12 @@ public class CommandUtil {
     Role role = guild.getPublicRole();
     try {
       channel.putPermissionOverride(role).deny(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).queue();
-      channel.putPermissionOverride(serverConfiguration.getZoeRoleOption().getRole()).grant(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).queue();
+      
+      channel.putPermissionOverride(guild.getMember(Zoe.getJda().getSelfUser()))
+      .grant(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).queue();
+      
+      channel.putPermissionOverride(serverConfiguration.getZoeRoleOption().getRole())
+      .grant(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).queue();
     }catch(InsufficientPermissionException e) {
       logger.info("Missing permission to apply Zoe role option rule, nothing bad");
     }

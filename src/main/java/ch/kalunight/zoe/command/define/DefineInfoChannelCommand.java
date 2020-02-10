@@ -56,8 +56,13 @@ public class DefineInfoChannelCommand extends ZoeCommand {
               event.reply(LanguageManager.getText(server.serv_language, "defineInfoChannelImpossibleToDefineCleanChannel"));
             }else {
               InfoChannelRepository.createInfoChannel(server.serv_id, textChannel.getIdLong());
+              
+              if(config.getZoeRoleOption().getRole() != null) {
+                CommandUtil.giveRolePermission(event.getGuild(), textChannel, config);
+              }
+              
               event.reply(LanguageManager.getText(server.serv_language, "defineInfoChannelDoneMessage"));
-
+              
               Message message = textChannel.sendMessage(LanguageManager.getText(server.serv_language, "defineInfoChannelLoadingMessage"))
                   .complete();
 

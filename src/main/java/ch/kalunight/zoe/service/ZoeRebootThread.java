@@ -31,7 +31,7 @@ public class ZoeRebootThread extends TimerTask {
     JDA jda = null;
     try {
       ServerData.clearAllTask();
-      
+
       CommandClientBuilder client = new CommandClientBuilder();
 
       client.setOwnerId(Zoe.getClientOwnerID());
@@ -60,19 +60,15 @@ public class ZoeRebootThread extends TimerTask {
       Zoe.getEventlistenerlist().add(Zoe.getEventWaiter());
       Zoe.getEventlistenerlist().add(eventListener);
 
-      try {
-        jda = new JDABuilder(AccountType.BOT)//
-            .setToken(Zoe.getDiscordTocken())//
-            .setStatus(OnlineStatus.ONLINE)//
-            .addEventListeners(commandClient)//
-            .addEventListeners(Zoe.getEventWaiter())//
-            .addEventListeners(eventListener)
-            .setAutoReconnect(false).build();//
-        Zoe.setJda(jda);
-        jda.awaitReady();
-      }catch(Exception e) {
-        logger.error("ERROR WHEN REBOOTING ZOE ! ", e);
-      }
+      jda = new JDABuilder(AccountType.BOT)//
+          .setToken(Zoe.getDiscordTocken())//
+          .setStatus(OnlineStatus.ONLINE)//
+          .addEventListeners(commandClient)//
+          .addEventListeners(Zoe.getEventWaiter())//
+          .addEventListeners(eventListener)
+          .setAutoReconnect(false).build();//
+      Zoe.setJda(jda);
+      jda.awaitReady();
 
     } catch (Exception e) {
       logger.error("Catch unexpected exception when rebooting !", e);

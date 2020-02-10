@@ -1,16 +1,20 @@
 package ch.kalunight.zoe.command.create;
 
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.function.BiConsumer;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 
+import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.InfoChannelRepository;
+import ch.kalunight.zoe.repositories.ServerRepository;
+import ch.kalunight.zoe.service.InfoPanelRefresher;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
@@ -77,6 +81,12 @@ public class CreateInfoChannelCommand extends ZoeCommand {
       }
       
       event.reply(LanguageManager.getText(server.serv_language, "channelCreatedMessage"));
+      
+      if(!ServerData.isServerWillBeTreated(server)) {
+        ServerData.getServersIsInTreatment().put(event.getGuild().getId(), true);
+        ServerRepository.updateTimeStamp(server.serv_guildId, LocalDateTime.now());
+        ServerData.getServerExecutor().execute(new InfoPanelRefresher(server, false));
+      }
     } catch(InsufficientPermissionException e) {
       event.reply(LanguageManager.getText(server.serv_language, "impossibleToCreateInfoChannelMissingPerms"));
     }

@@ -126,6 +126,7 @@ public class InfoPanelRefresher implements Runnable {
       if(infoChannelDTO != null && guild != null) {
         infochannel = guild.getTextChannelById(infoChannelDTO.infochannel_channelid);
       }
+      
 
       List<DTO.Player> playersDTO = PlayerRepository.getPlayers(server.serv_guildId);
       

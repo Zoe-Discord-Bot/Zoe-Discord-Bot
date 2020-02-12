@@ -51,7 +51,14 @@ public abstract class ZoeCommand extends Command {
       try {
         DTO.ServerStatus status = ServerStatusRepository.getServerStatus(event.getGuild().getIdLong());
 
+        int nbrOfTry = 0;
+        
         while(status.servstatus_inTreatment) {
+          nbrOfTry++;
+          if(nbrOfTry > 10) {
+            logger.warn("The server is in treatment for too long ! Execute the command even though the server is in treatment...");
+            break;
+          }
           TimeUnit.SECONDS.sleep(1);
           status = ServerStatusRepository.getServerStatus(event.getGuild().getIdLong());
         }

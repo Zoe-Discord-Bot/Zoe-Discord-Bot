@@ -20,6 +20,9 @@ import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.stats.StatsProfileCommand;
 import ch.kalunight.zoe.model.InfocardPlayerData;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
+import ch.kalunight.zoe.model.dto.DTO.Player;
+import ch.kalunight.zoe.model.dto.DTO.RankHistoryChannel;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.model.player_data.Rank;
 import ch.kalunight.zoe.model.player_data.Tier;
@@ -33,6 +36,7 @@ import ch.kalunight.zoe.util.Ressources;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.MessageEmbed.Field;
+import net.dv8tion.jda.api.entities.User;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.champion_mastery.dto.ChampionMastery;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
@@ -52,8 +56,32 @@ public class MessageBuilderRequest {
   private static final String RED_TEAM_STRING = "redTeam";
   private static final String MASTERIES_WR_THIS_MONTH_STRING = "masteriesWrTitleRespectSize";
   private static final String SOLO_Q_RANK_STRING = "soloqTitleRespectSize";
+  
   private MessageBuilderRequest() {}
 
+  public static MessageEmbed createRankChannelCardLeaguePointChangeOnly(LeagueEntry oldEntry, LeagueEntry newEntry, FullTier oldFullTier, FullTier newFullTier, 
+      RankHistoryChannel gameOfTheChange, Player player, LeagueAccount leagueAccount) {
+    
+    EmbedBuilder message = new EmbedBuilder();
+    
+    boolean gameWin = (newEntry.getLeaguePoints() - oldEntry.getLeaguePoints()) > 0;
+    
+    User user = player.user;
+    if(user != null) {
+      message.setAuthor(user.getName(), null, user.getAvatarUrl());
+    }
+    
+    if(gameWin) {
+      message.setColor(Color.GREEN);
+    }else {
+      message.setColor(Color.RED);
+    }
+    
+    
+    
+    return message.build();
+  }
+  
   public static MessageEmbed createInfoCard(List<DTO.Player> players, CurrentGameInfo currentGameInfo,
       Platform region, DTO.Server server) throws SQLException {
 

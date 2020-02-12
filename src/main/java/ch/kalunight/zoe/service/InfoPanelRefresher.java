@@ -55,6 +55,8 @@ public class InfoPanelRefresher implements Runnable {
   private DTO.Server server;
 
   private TextChannel infochannel;
+  
+  private RankHistoryChannel rankChannel;
 
   private Guild guild;
 
@@ -138,9 +140,9 @@ public class InfoPanelRefresher implements Runnable {
         cleanOldInfoChannelMessage();
       }
       
-      RankHistoryChannel rankChannel = RankHistoryChannelRepository.getRankHistoryChannel(server.serv_guildId);
+      rankChannel = RankHistoryChannelRepository.getRankHistoryChannel(server.serv_guildId);
       
-      if(rankChannel != null) {
+      if(rankChannel != null || infochannel != null) {
         refreshAllLeagueAccountCurrentGamesAndDeleteOlderInfoCard(playersDTO);
       }
 
@@ -385,7 +387,7 @@ public class InfoPanelRefresher implements Runnable {
             }else {
               CurrentGameInfoRepository.deleteCurrentGame(currentGameDb, server);
 
-              if(RankHistoryChannelRepository.getRankHistoryChannel(guild.getIdLong()) != null) {
+              if(rankChannel != null) {
                 updateRankChannelMessage(player, leagueAccount, currentGameDb);
               }
 
@@ -394,7 +396,7 @@ public class InfoPanelRefresher implements Runnable {
           }else if(currentGameDb != null && currentGame == null) {
             CurrentGameInfoRepository.deleteCurrentGame(currentGameDb, server);
 
-            if(RankHistoryChannelRepository.getRankHistoryChannel(guild.getIdLong()) != null) {
+            if(rankChannel != null) {
               updateRankChannelMessage(player, leagueAccount, currentGameDb);
             }
           }
@@ -415,13 +417,13 @@ public class InfoPanelRefresher implements Runnable {
       LastRank rankBeforeThisGame = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
       LeagueEntry entry = RiotRequest.getLeagueEntrySoloq(leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server);
       RankedChannelRefresher rankedRefresher = 
-          new RankedChannelRefresher(rankBeforeThisGame.lastRank_soloq, entry, gameOfTheChange, player, leagueAccount);
+          new RankedChannelRefresher(rankChannel, rankBeforeThisGame.lastRank_soloq, entry, gameOfTheChange, player, leagueAccount);
       ServerData.getRankedMessageGenerator().execute(rankedRefresher);
     }else if(gameOfTheChange.getGameQueueConfigId() == 440) {
       LastRank rankBeforeThisGame = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
       LeagueEntry entry = RiotRequest.getLeagueEntryFlex(leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server);
       RankedChannelRefresher rankedRefresher = 
-          new RankedChannelRefresher(rankBeforeThisGame.lastRank_flex, entry, gameOfTheChange, player, leagueAccount);
+          new RankedChannelRefresher(rankChannel, rankBeforeThisGame.lastRank_flex, entry, gameOfTheChange, player, leagueAccount);
       ServerData.getRankedMessageGenerator().execute(rankedRefresher);
     }
   }

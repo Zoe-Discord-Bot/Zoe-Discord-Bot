@@ -16,11 +16,15 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.util.concurrent.AtomicDouble;
+
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.stats.StatsProfileCommand;
+import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.InfocardPlayerData;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
+import ch.kalunight.zoe.model.dto.DTO.MatchCache;
 import ch.kalunight.zoe.model.dto.DTO.Player;
 import ch.kalunight.zoe.model.dto.DTO.RankHistoryChannel;
 import ch.kalunight.zoe.model.player_data.FullTier;
@@ -43,6 +47,8 @@ import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 import net.rithms.riot.api.endpoints.match.dto.Match;
 import net.rithms.riot.api.endpoints.match.dto.MatchList;
 import net.rithms.riot.api.endpoints.match.dto.MatchReference;
+import net.rithms.riot.api.endpoints.match.dto.Participant;
+import net.rithms.riot.api.endpoints.match.dto.ParticipantStats;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
@@ -60,27 +66,81 @@ public class MessageBuilderRequest {
   private MessageBuilderRequest() {}
 
   public static MessageEmbed createRankChannelCardLeaguePointChangeOnly(LeagueEntry oldEntry, LeagueEntry newEntry, FullTier oldFullTier, FullTier newFullTier, 
-      RankHistoryChannel gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang) {
+      CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang) {
+    
+    Match match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
     
     EmbedBuilder message = new EmbedBuilder();
     
+    String gameType = "Unknown rank mode";
+    
+    if(gameOfTheChange.getGameQueueConfigId() == GameQueueConfigId.SOLOQ.getId()) {
+      gameType = LanguageManager.getText(lang, "soloq");
+    }else if(gameOfTheChange.getGameQueueConfigId() == GameQueueConfigId.FLEX.getId()){
+      gameType = LanguageManager.getText(lang, "flex");
+    }
+    
+    int lpReceived = newEntry.getLeaguePoints() - oldEntry.getLeaguePoints();
     boolean gameWin = (newEntry.getLeaguePoints() - oldEntry.getLeaguePoints()) > 0;
     
     User user = player.user;
-    if(user != null) {
-      message.setAuthor(user.getName(), null, user.getAvatarUrl());
-    }
+    message.setAuthor(user.getName(), null, user.getAvatarUrl());
     
     if(gameWin) {
       message.setColor(Color.GREEN);
       message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangePointOnlyWinTitle"),
-          leagueAccount.leagueAccount_name, user.getName(), newEntry.getLeaguePoints() - oldEntry.getLeaguePoints()));
+          leagueAccount.leagueAccount_name, lpReceived, gameType));
+      
     }else {
       message.setColor(Color.RED);
+      message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangePointOnlyLooseTitle"),
+          leagueAccount.leagueAccount_name, lpReceived, gameType));
     }
     
+    StringBuilder statsGame = new StringBuilder();
+    
+    Participant participant = match.getParticipantBySummonerId(leagueAccount.leagueAccount_summonerId);
+    
+    Champion champion = Ressources.getChampionDataById(participant.getChampionId());
+    
+    statsGame.append(champion.getEmoteUsable());
+    
+    ParticipantStats stats = participant.getStats();
+   
+    AtomicDouble totalCS = new AtomicDouble();
+    
+    participant.getTimeline().getCreepsPerMinDeltas().forEach((time, nbCs) -> totalCS.addAndGet(lpReceived));
+    
+    String gameDuration = getMatchTimeFromDuration(match.getGameDuration());
+    
+    statsGame.append(" " + stats.getKills() + "/" + stats.getDeaths() + "/" + stats.getAssists() 
+    + " | " + totalCS.get() + " " + LanguageManager.getText(lang, "creepScoreAbreviation"
+    + " | " + LanguageManager.getText(lang, "level") + " " + stats.getChampLevel())
+    + " | " + gameDuration);
+    
+    Field field = new Field(LanguageManager.getText(lang, "resumeOfTheGame"), statsGame.toString(), true);
+    
+    message.addField(field);
+    
+    message.setFooter(LanguageManager.getText(lang, "generatedAt"));
+    message.setTimestamp(Instant.now());
     
     return message.build();
+  }
+
+  private static String getMatchTimeFromDuration(long duration) {
+    double minutesOfGames = 0.0;
+
+    if(duration != 0l) {
+      minutesOfGames = duration + 180.0;
+    }
+
+    minutesOfGames = minutesOfGames / 60.0;
+    String[] stringMinutesSecondes = Double.toString(minutesOfGames).split("\\.");
+    int minutesGameLength = Integer.parseInt(stringMinutesSecondes[0]);
+    int secondesGameLength = (int) (Double.parseDouble("0." + stringMinutesSecondes[1]) * 60.0);
+
+    return String.format("%02d", minutesGameLength) + ":" + String.format("%02d", secondesGameLength);
   }
   
   public static MessageEmbed createInfoCard(List<DTO.Player> players, CurrentGameInfo currentGameInfo,
@@ -152,23 +212,9 @@ public class MessageBuilderRequest {
     message.addField(redTeamTranslated, redTeamString.toString(), true);
     message.addField(soloqRankTitleTranslated, redTeamRankString.toString(), true);
     message.addField(masteriesWRThisMonthTranslated, redTeamWinrateString.toString(), true);
-    
-    
-    
-    double minutesOfGames = 0.0;
 
-    if(currentGameInfo.getGameLength() != 0l) {
-      minutesOfGames = currentGameInfo.getGameLength() + 180.0;
-    }
-
-    minutesOfGames = minutesOfGames / 60.0;
-    String[] stringMinutesSecondes = Double.toString(minutesOfGames).split("\\.");
-    int minutesGameLength = Integer.parseInt(stringMinutesSecondes[0]);
-    int secondesGameLength = (int) (Double.parseDouble("0." + stringMinutesSecondes[1]) * 60.0);
-
-    String gameLenght = String.format("%02d", minutesGameLength) + ":" + String.format("%02d", secondesGameLength);
-
-    message.setFooter(LanguageManager.getText(server.serv_language, "infoCardsGameFooter") + " : " + gameLenght, null);
+    message.setFooter(LanguageManager.getText(server.serv_language, "infoCardsGameFooter") 
+        + " : " + getMatchTimeFromDuration(currentGameInfo.getGameLength()), null);
 
     message.setColor(Color.GREEN);
 

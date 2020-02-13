@@ -41,11 +41,11 @@ public class LastRankRepository {
     // hide default public constructor
   }
   
-  public static void createLastRank(long lastRank) throws SQLException {
+  public static void createLastRank(long leagueAccountId) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
 
-      String finalQuery = String.format(INSERT_LAST_RANK, lastRank);
+      String finalQuery = String.format(INSERT_LAST_RANK, leagueAccountId);
       query.execute(finalQuery);
     }
   }
@@ -83,7 +83,7 @@ public class LastRankRepository {
       DTO.LastRank lastRank = getLastRankWithLeagueAccountId(leagueAccountId);
 
       if(lastRank != null) {
-        String finalQuery = String.format(UPDATE_LAST_RANK_SOLOQ_WITH_ID, lastRankSoloqJson, lastRank);
+        String finalQuery = String.format(UPDATE_LAST_RANK_SOLOQ_WITH_ID, lastRankSoloqJson, lastRank.lastRank_id);
         query.execute(finalQuery);
       }
     }
@@ -105,7 +105,7 @@ public class LastRankRepository {
       DTO.LastRank lastRank = getLastRankWithLeagueAccountId(leagueAccountId);
 
       if(lastRank != null) {
-        String finalQuery = String.format(UPDATE_LAST_RANK_FLEX_WITH_ID, lastRankFlexJson, lastRank);
+        String finalQuery = String.format(UPDATE_LAST_RANK_FLEX_WITH_ID, lastRankFlexJson, lastRank.lastRank_id);
         query.execute(finalQuery);
       }
     }
@@ -127,7 +127,7 @@ public class LastRankRepository {
       DTO.LastRank lastRank = getLastRankWithLeagueAccountId(leagueAccountId);
 
       if(lastRank != null) {
-        String finalQuery = String.format(UPDATE_LAST_RANK_TFT_WITH_ID, lastRankTftJson, lastRank);
+        String finalQuery = String.format(UPDATE_LAST_RANK_TFT_WITH_ID, lastRankTftJson, lastRank.lastRank_id);
         query.execute(finalQuery);
       }
     }

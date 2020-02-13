@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
+import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.GameInfoCardStatus;
 import ch.kalunight.zoe.model.dto.DTO.LastRank;
@@ -413,17 +414,21 @@ public class InfoPanelRefresher implements Runnable {
       throws SQLException {
     CurrentGameInfo gameOfTheChange = currentGameDb.currentgame_currentgame;
 
-    if(gameOfTheChange.getGameQueueConfigId() == 420) {
-      LastRank rankBeforeThisGame = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
+    LastRank rankBeforeThisGame = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
+    if(rankBeforeThisGame == null) {
+      LastRankRepository.createLastRank(leagueAccount.leagueAccount_id);
+      rankBeforeThisGame = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
+    }
+    
+    if(gameOfTheChange.getGameQueueConfigId() == GameQueueConfigId.SOLOQ.getId()) {
       LeagueEntry entry = RiotRequest.getLeagueEntrySoloq(leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server);
       RankedChannelRefresher rankedRefresher = 
-          new RankedChannelRefresher(rankChannel, rankBeforeThisGame.lastRank_soloq, entry, gameOfTheChange, player, leagueAccount);
+          new RankedChannelRefresher(rankChannel, rankBeforeThisGame.lastRank_soloq, entry, gameOfTheChange, player, leagueAccount, server);
       ServerData.getRankedMessageGenerator().execute(rankedRefresher);
-    }else if(gameOfTheChange.getGameQueueConfigId() == 440) {
-      LastRank rankBeforeThisGame = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
+    }else if(gameOfTheChange.getGameQueueConfigId() == GameQueueConfigId.FLEX.getId()) {
       LeagueEntry entry = RiotRequest.getLeagueEntryFlex(leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server);
       RankedChannelRefresher rankedRefresher = 
-          new RankedChannelRefresher(rankChannel, rankBeforeThisGame.lastRank_flex, entry, gameOfTheChange, player, leagueAccount);
+          new RankedChannelRefresher(rankChannel, rankBeforeThisGame.lastRank_flex, entry, gameOfTheChange, player, leagueAccount, server);
       ServerData.getRankedMessageGenerator().execute(rankedRefresher);
     }
   }

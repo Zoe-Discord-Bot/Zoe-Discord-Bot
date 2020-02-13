@@ -60,7 +60,7 @@ public class MessageBuilderRequest {
   private MessageBuilderRequest() {}
 
   public static MessageEmbed createRankChannelCardLeaguePointChangeOnly(LeagueEntry oldEntry, LeagueEntry newEntry, FullTier oldFullTier, FullTier newFullTier, 
-      RankHistoryChannel gameOfTheChange, Player player, LeagueAccount leagueAccount) {
+      RankHistoryChannel gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang) {
     
     EmbedBuilder message = new EmbedBuilder();
     
@@ -73,10 +73,11 @@ public class MessageBuilderRequest {
     
     if(gameWin) {
       message.setColor(Color.GREEN);
+      message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangePointOnlyWinTitle"),
+          leagueAccount.leagueAccount_name, user.getName(), newEntry.getLeaguePoints() - oldEntry.getLeaguePoints()));
     }else {
       message.setColor(Color.RED);
     }
-    
     
     
     return message.build();

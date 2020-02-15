@@ -1,6 +1,7 @@
 package ch.kalunight.zoe.model.player_data;
 
 import ch.kalunight.zoe.exception.NoValueRankException;
+import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 
 public class FullTier {
 
@@ -8,6 +9,10 @@ public class FullTier {
   private Rank rank;
   private int leaguePoints;
 
+  public FullTier(LeagueEntry leagueEntry) {
+    new FullTier(Tier.valueOf(leagueEntry.getTier()), Rank.valueOf(leagueEntry.getRank()), leagueEntry.getLeaguePoints());
+  }
+  
   public FullTier(Tier tier, Rank rank, int leaguePoints) {
     this.tier = tier;
     this.rank = rank;
@@ -32,10 +37,10 @@ public class FullTier {
     }
 
     if(tier == Tier.MASTER || tier == Tier.GRANDMASTER || tier == Tier.CHALLENGER) {
-      return tier.toString() + " (" + leaguePoints + " LP)";
+      return tier.toString() + " " + leaguePoints + " LP";
     }
 
-    return tier.toString() + " " + rank.toString() + " (" + leaguePoints + " LP)";
+    return tier.toString() + " " + rank.toString() + " " + leaguePoints + " LP";
   }
 
   public Tier getTier() {

@@ -60,9 +60,8 @@ public class RankedChannelRefresher implements Runnable {
 
     if(oldEntry != null) {
 
-      oldFullTier = new FullTier(Tier.valueOf(oldEntry.getTier()), Rank.valueOf(oldEntry.getRank()), oldEntry.getLeaguePoints());
-      newFullTier = new FullTier(Tier.valueOf(newEntry.getTier()), Rank.valueOf(newEntry.getRank()), newEntry.getLeaguePoints());
-
+      oldFullTier = new FullTier(oldEntry);
+      newFullTier = new FullTier(newEntry);
 
       if(oldFullTier.getLeaguePoints() == newFullTier.getLeaguePoints()) { //BO detected OR remake
 
@@ -80,9 +79,10 @@ public class RankedChannelRefresher implements Runnable {
         }
 
       }else { //No BO
-        if(oldFullTier.getRank().equals(newFullTier.getRank())) { //Only LP change
+        if(oldFullTier.getRank().equals(newFullTier.getRank()) 
+            || oldFullTier.getTier().equals(newFullTier.getTier())) { //Only LP change
           sendLeaguePointChangeOnly();
-        }else { //Decay
+        }else { //Decay OR division skip
           sendRankChangedWithoutBO();
         }
       }
@@ -128,7 +128,7 @@ public class RankedChannelRefresher implements Runnable {
   private void sendLeaguePointChangeOnly() {
     MessageEmbed message = 
         MessageBuilderRequest.createRankChannelCardLeaguePointChangeOnly
-        (oldEntry, newEntry, oldFullTier, newFullTier, gameOfTheChange, player, leagueAccount, server.serv_language);
+        (oldEntry, newEntry, gameOfTheChange, player, leagueAccount, server.serv_language);
 
     TextChannel textChannelWhereSend = Zoe.getJda().getTextChannelById(rankChannel.rhChannel_channelId);
     if(textChannelWhereSend != null) {

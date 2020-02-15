@@ -283,7 +283,13 @@
 	"resumeOfTheGame": "Resume of the game",
 	"creepScoreAbreviation": "cs",
 	"level": "Level",
+	"win": "Win",
+	"loose": "Loose",
+	"canceled": "Canceled",
 	"rankChannelChangePointOnlyWinTitle": "%s has win %s LP (%s)",
 	"rankChannelChangePointOnlyLooseTitle": "%s has loose %s LP (%s)",
-	"generatedAt": "Generated at"
+	"generatedAt": "Generated at",
+	"rankChannelChangeRankChangeWinDivisionSkippedTitle": "%s has skip a division (%s)",
+	"rankChannelChangeLooseDivisionDecayTitle": "%s has decay (%s)",
+	"rankChannelChangeLooseDivisionTitle": "%s has lost a division (%s)"
 }

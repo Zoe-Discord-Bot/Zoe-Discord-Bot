@@ -6,12 +6,21 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.checkerframework.checker.units.qual.m;
+
+import com.google.common.util.concurrent.AtomicDouble;
+
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.model.InfocardPlayerData;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
+import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.service.SummonerDataWorker;
 import ch.kalunight.zoe.translation.LanguageManager;
+import net.rithms.riot.api.endpoints.match.dto.Match;
+import net.rithms.riot.api.endpoints.match.dto.Participant;
+import net.rithms.riot.api.endpoints.match.dto.ParticipantStats;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
 import net.rithms.riot.constant.Platform;
@@ -140,5 +149,61 @@ public class MessageBuilderRequestUtil {
     }else {
       return LanguageManager.getText(language, "unknown");
     }
+  }
+
+  public static String getResumeGameStats(LeagueAccount leagueAccount, String lang, Match match) {
+    StringBuilder statsGame = new StringBuilder();
+    
+    Participant participant = match.getParticipantBySummonerId(leagueAccount.leagueAccount_summonerId);
+    
+    Champion champion = Ressources.getChampionDataById(participant.getChampionId());
+    
+    statsGame.append(champion.getEmoteUsable());
+    
+    ParticipantStats stats = participant.getStats();
+  
+    AtomicDouble totalCS = new AtomicDouble();
+    
+    participant.getTimeline().getCreepsPerMinDeltas().forEach((time, nbCs) -> totalCS.addAndGet(nbCs));
+    
+    String gameDuration = MessageBuilderRequestUtil.getMatchTimeFromDuration(match.getGameDuration());
+    
+    String showableResult = getParticipantMatchResult(lang, match, participant);
+    
+    statsGame.append(" " + stats.getKills() + "/" + stats.getDeaths() + "/" + stats.getAssists() 
+    + " | " + totalCS.get() + " " + LanguageManager.getText(lang, "creepScoreAbreviation"
+    + " | " + LanguageManager.getText(lang, "level") + " " + stats.getChampLevel())
+    + " | " + gameDuration
+    + " | " + showableResult);
+    return statsGame.toString();
+  }
+
+  private static String getParticipantMatchResult(String lang, Match match, Participant participant) {
+    String result = match.getTeamByTeamId(participant.getTeamId()).getWin();
+    String showableResult;
+    
+    if(result.equalsIgnoreCase("Win")) {
+      showableResult = LanguageManager.getText(lang, "win");
+    }else if(result.equalsIgnoreCase("Fail")) {
+      showableResult = LanguageManager.getText(lang, "loose");
+    }else {
+      showableResult = LanguageManager.getText(lang, "canceled");
+    }
+    return showableResult;
+  }
+
+  public static String getMatchTimeFromDuration(long duration) {
+    double minutesOfGames = 0.0;
+  
+    if(duration != 0l) {
+      minutesOfGames = duration + 180.0;
+    }
+  
+    minutesOfGames = minutesOfGames / 60.0;
+    String[] stringMinutesSecondes = Double.toString(minutesOfGames).split("\\.");
+    int minutesGameLength = Integer.parseInt(stringMinutesSecondes[0]);
+    int secondesGameLength = (int) (Double.parseDouble("0." + stringMinutesSecondes[1]) * 60.0);
+  
+    return String.format("%02d", minutesGameLength) + ":" + String.format("%02d", secondesGameLength);
   }
 }

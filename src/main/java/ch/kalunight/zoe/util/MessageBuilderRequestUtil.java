@@ -158,7 +158,11 @@ public class MessageBuilderRequestUtil {
     
     Champion champion = Ressources.getChampionDataById(participant.getChampionId());
     
-    statsGame.append(champion.getEmoteUsable());
+    if(champion != null) {
+      statsGame.append(champion.getDisplayName());
+    }else {
+      statsGame.append("Unknown");
+    }
     
     ParticipantStats stats = participant.getStats();
   
@@ -170,7 +174,7 @@ public class MessageBuilderRequestUtil {
     
     String showableResult = getParticipantMatchResult(lang, match, participant);
     
-    statsGame.append(" " + stats.getKills() + "/" + stats.getDeaths() + "/" + stats.getAssists() 
+    statsGame.append(" | " + stats.getKills() + "/" + stats.getDeaths() + "/" + stats.getAssists() 
     + " | " + totalCS.get() + " " + LanguageManager.getText(lang, "creepScoreAbreviation"
     + " | " + LanguageManager.getText(lang, "level") + " " + stats.getChampLevel())
     + " | " + gameDuration

@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.kalunight.zoe.Zoe;
+import ch.kalunight.zoe.exception.NoValueRankException;
 import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.dto.DTO.LastRank;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
@@ -25,7 +26,7 @@ import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 public class RankedChannelRefresher implements Runnable {
 
   private static final Logger logger = LoggerFactory.getLogger(RankedChannelRefresher.class);
-  
+
   private Server server;
 
   private RankHistoryChannel rankChannel;
@@ -58,43 +59,47 @@ public class RankedChannelRefresher implements Runnable {
   @Override
   public void run() {
 
-    if(oldEntry != null) {
+    try {
+      if(oldEntry != null) {
 
-      oldFullTier = new FullTier(oldEntry);
-      newFullTier = new FullTier(newEntry);
+        oldFullTier = new FullTier(oldEntry);
+        newFullTier = new FullTier(newEntry);
 
-      if(oldFullTier.getLeaguePoints() == newFullTier.getLeaguePoints()) { //BO detected OR remake
+        if(oldFullTier.getLeaguePoints() == newFullTier.getLeaguePoints()) { //BO detected OR remake
 
-        if(oldEntry.getMiniSeries() != null && newEntry.getMiniSeries() == null) { //BO ended
-          sendBOEnded();
-        }else if(oldEntry.getMiniSeries() == null && newEntry.getMiniSeries() != null) { //BO started
-          sendBOStarted();
-        }else if(oldEntry.getMiniSeries() != null && newEntry.getMiniSeries() != null) { //BO in progress OR remake
-          int nbrMatchOldEntry = oldEntry.getMiniSeries().getLosses() + oldEntry.getMiniSeries().getWins();
-          int nbrMatchNewEntry = newEntry.getMiniSeries().getLosses() + newEntry.getMiniSeries().getWins();
+          if(oldEntry.getMiniSeries() != null && newEntry.getMiniSeries() == null) { //BO ended
+            sendBOEnded();
+          }else if(oldEntry.getMiniSeries() == null && newEntry.getMiniSeries() != null) { //BO started
+            sendBOStarted();
+          }else if(oldEntry.getMiniSeries() != null && newEntry.getMiniSeries() != null) { //BO in progress OR remake
+            int nbrMatchOldEntry = oldEntry.getMiniSeries().getLosses() + oldEntry.getMiniSeries().getWins();
+            int nbrMatchNewEntry = newEntry.getMiniSeries().getLosses() + newEntry.getMiniSeries().getWins();
 
-          if(nbrMatchNewEntry != nbrMatchOldEntry) { //BO in progress
-            sendBOInProgess();
+            if(nbrMatchNewEntry != nbrMatchOldEntry) { //BO in progress
+              sendBOInProgess();
+            }
+          }
+
+        }else { //No BO
+          if(oldFullTier.getRank().equals(newFullTier.getRank()) 
+              || oldFullTier.getTier().equals(newFullTier.getTier())) { //Only LP change
+            sendLeaguePointChangeOnly();
+          }else { //Decay OR division skip
+            sendRankChangedWithoutBO();
           }
         }
-
-      }else { //No BO
-        if(oldFullTier.getRank().equals(newFullTier.getRank()) 
-            || oldFullTier.getTier().equals(newFullTier.getTier())) { //Only LP change
-          sendLeaguePointChangeOnly();
-        }else { //Decay OR division skip
-          sendRankChangedWithoutBO();
-        }
       }
+    } catch (Exception e) {
+      logger.error("Unexpected exception in RankedChannelRefresher !", e);
     }
-    
+
     try {
       LastRank lastRank = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
       if(lastRank == null) {
         LastRankRepository.createLastRank(leagueAccount.leagueAccount_id);
         LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
       }
-      
+
       if(GameQueueConfigId.SOLOQ.getId() == gameOfTheChange.getGameQueueConfigId()) {
         LastRankRepository.updateLastRankSoloqWithLeagueAccountId(newEntry, leagueAccount.leagueAccount_id);
       }else if(GameQueueConfigId.FLEX.getId() == gameOfTheChange.getGameQueueConfigId()) {
@@ -102,13 +107,21 @@ public class RankedChannelRefresher implements Runnable {
       }
     } catch (SQLException e) {
       logger.error("SQL error when refreshing last rank of a player", e);
+    } catch (Exception e) {
+      logger.error("Unexpected exception in RankedChannelRefresher !", e);
     }
 
   }
 
   private void sendRankChangedWithoutBO() {
-    // TODO Auto-generated method stub
+    MessageEmbed message = 
+        MessageBuilderRequest.createRankChannelCardLeagueChange
+        (oldEntry, newEntry, gameOfTheChange, player, leagueAccount, server.serv_language);
 
+    TextChannel textChannelWhereSend = Zoe.getJda().getTextChannelById(rankChannel.rhChannel_channelId);
+    if(textChannelWhereSend != null) {
+      textChannelWhereSend.sendMessage(message).queue();
+    }
   }
 
   private void sendBOEnded() {

@@ -63,7 +63,7 @@ public class MessageBuilderRequest {
   private MessageBuilderRequest() {}
 
   public static MessageEmbed createRankChannelCardLeagueChange(LeagueEntry oldEntry, LeagueEntry newEntry, 
-      CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang) throws NoValueRankException {
+      CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang) {
 
     Match match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
     
@@ -86,7 +86,12 @@ public class MessageBuilderRequest {
     FullTier oldFullTier = new FullTier(oldEntry);
     FullTier newFullTier = new FullTier(newEntry);
     
-    int valueOfTheDivisionJump = newFullTier.value() - oldFullTier.value();
+    int valueOfTheDivisionJump;
+    try {
+      valueOfTheDivisionJump = newFullTier.value() - oldFullTier.value();
+    } catch (NoValueRankException e) {
+      valueOfTheDivisionJump = 0;
+    }
     
     if(valueOfTheDivisionJump < 0) {
       valueOfTheDivisionJump *= -1;

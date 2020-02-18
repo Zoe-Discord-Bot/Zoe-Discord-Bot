@@ -43,6 +43,7 @@ import net.dv8tion.jda.api.entities.User;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.champion_mastery.dto.ChampionMastery;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
+import net.rithms.riot.api.endpoints.league.dto.MiniSeries;
 import net.rithms.riot.api.endpoints.match.dto.Match;
 import net.rithms.riot.api.endpoints.match.dto.MatchList;
 import net.rithms.riot.api.endpoints.match.dto.MatchReference;
@@ -62,6 +63,62 @@ public class MessageBuilderRequest {
   
   private MessageBuilderRequest() {}
 
+  public static MessageEmbed createRankChannelCardBoStarted(LeagueEntry oldEntry, LeagueEntry newEntry, 
+      CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang) {
+    
+    Match match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
+    
+    EmbedBuilder message = new EmbedBuilder();
+    
+    String gameType = getGameType(gameOfTheChange, lang);
+    
+    User user = player.user;
+    message.setAuthor(user.getName(), null, user.getAvatarUrl());
+    
+    MiniSeries bo = newEntry.getMiniSeries();
+    FullTier newFullTier = new FullTier(newEntry);
+    
+    message.setColor(Color.GREEN);
+    message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelBoStartedTitle"), 
+        leagueAccount.leagueAccount_name, bo.getProgress().length(), newFullTier.getHeigerDivision().toStringWithoutLp()));
+    
+    String boStatus = getBoStatus(bo);
+    
+    
+    return message.build();
+  }
+  
+  private static String getBoStatus(MiniSeries bo) {
+    
+    StringBuilder boStatus = new StringBuilder();
+    
+    for(int i = 0; i < bo.getProgress().length(); i++) {
+      char progressPart = bo.getProgress().charAt(i);
+      
+      if(progressPart == 'W') {
+        boStatus.append("✅");
+      } else if(progressPart == 'L') {
+        boStatus.append("❌");
+      } else if(progressPart == 'N') {
+        boStatus.append("❓");
+      }
+      
+      if((i + 1) != bo.getProgress().length()) {
+        boStatus.append("->");
+      }
+    }
+    
+    return boStatus.toString();
+  }
+
+  public static MessageEmbed createRankChannelCardBoEnded(LeagueEntry oldEntry, LeagueEntry newEntry, 
+      CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang) {
+    
+    EmbedBuilder message = new EmbedBuilder();
+    
+    return message.build();
+  }
+  
   public static MessageEmbed createRankChannelCardLeagueChange(LeagueEntry oldEntry, LeagueEntry newEntry, 
       CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang) {
 
@@ -69,13 +126,7 @@ public class MessageBuilderRequest {
     
     EmbedBuilder message = new EmbedBuilder();
     
-    String gameType = "Unknown rank mode";
-    
-    if(gameOfTheChange.getGameQueueConfigId() == GameQueueConfigId.SOLOQ.getId()) {
-      gameType = LanguageManager.getText(lang, "soloq");
-    }else if(gameOfTheChange.getGameQueueConfigId() == GameQueueConfigId.FLEX.getId()){
-      gameType = LanguageManager.getText(lang, "flex");
-    }
+    String gameType = getGameType(gameOfTheChange, lang);
     
     User user = player.user;
     message.setAuthor(user.getName(), null, user.getAvatarUrl());
@@ -141,13 +192,7 @@ public class MessageBuilderRequest {
     
     EmbedBuilder message = new EmbedBuilder();
     
-    String gameType = "Unknown rank mode";
-    
-    if(gameOfTheChange.getGameQueueConfigId() == GameQueueConfigId.SOLOQ.getId()) {
-      gameType = LanguageManager.getText(lang, "soloq");
-    }else if(gameOfTheChange.getGameQueueConfigId() == GameQueueConfigId.FLEX.getId()){
-      gameType = LanguageManager.getText(lang, "flex");
-    }
+    String gameType = getGameType(gameOfTheChange, lang);
     
     int lpReceived = newEntry.getLeaguePoints() - oldEntry.getLeaguePoints();
     boolean gameWin = (newEntry.getLeaguePoints() - oldEntry.getLeaguePoints()) > 0;
@@ -177,6 +222,17 @@ public class MessageBuilderRequest {
     message.setTimestamp(Instant.now());
     
     return message.build();
+  }
+
+  private static String getGameType(CurrentGameInfo gameOfTheChange, String lang) {
+    String gameType = "Unknown rank mode";
+    
+    if(gameOfTheChange.getGameQueueConfigId() == GameQueueConfigId.SOLOQ.getId()) {
+      gameType = LanguageManager.getText(lang, "soloq");
+    }else if(gameOfTheChange.getGameQueueConfigId() == GameQueueConfigId.FLEX.getId()){
+      gameType = LanguageManager.getText(lang, "flex");
+    }
+    return gameType;
   }
 
   public static MessageEmbed createInfoCard(List<DTO.Player> players, CurrentGameInfo currentGameInfo,

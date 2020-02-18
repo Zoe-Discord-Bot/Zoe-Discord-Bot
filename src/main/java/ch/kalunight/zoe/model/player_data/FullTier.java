@@ -42,6 +42,34 @@ public class FullTier {
 
     return tier.toString() + " " + rank.toString() + " " + leaguePoints + " LP";
   }
+  
+  public String toStringWithoutLp() {
+    if(tier == Tier.UNRANKED || tier == Tier.UNKNOWN) {
+      return tier.toString();
+    }
+
+    if(tier == Tier.MASTER || tier == Tier.GRANDMASTER || tier == Tier.CHALLENGER) {
+      return tier.toString();
+    }
+
+    return tier.toString() + " " + rank.toString();
+  }
+  
+  public FullTier getHeigerDivision() {
+    if(tier.equals(Tier.MASTER)) {
+      return new FullTier(Tier.GRANDMASTER, Rank.IV, 0);
+    }else if(tier.equals(Tier.GRANDMASTER)) {
+      return new FullTier(Tier.CHALLENGER, Rank.IV, 0);
+    }else if(tier.equals(Tier.CHALLENGER)) {
+      return new FullTier(Tier.CHALLENGER, Rank.IV, 0);
+    }
+    
+    if(rank.equals(Rank.I)) {
+      return new FullTier(Tier.getTierWithValue(tier.getValue() + 100), Rank.IV, 0);
+    }else {
+      return new FullTier(tier, Rank.getRankWithValue(rank.getValue() + 100), 0);
+    }
+  }
 
   public Tier getTier() {
     return tier;

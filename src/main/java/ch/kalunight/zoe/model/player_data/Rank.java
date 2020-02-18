@@ -10,6 +10,15 @@ public enum Rank {
     this.name = name;
     this.value = value;
   }
+  
+  public static Rank getRankWithValue(int value) {
+    for(Rank rank : Rank.values()) {
+      if(rank.getValue() == value) {
+        return rank;
+      }
+    }
+    return null;
+  }
 
   public int getValue() {
     return value;

@@ -269,7 +269,7 @@ public class MessageBuilderRequest {
 
     int lpReceived = newEntry.getLeaguePoints() - oldEntry.getLeaguePoints();
     boolean gameWin = (newEntry.getLeaguePoints() - oldEntry.getLeaguePoints()) > 0;
-
+    
     if(gameWin) {
       message.setColor(Color.GREEN);
       message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangePointOnlyWinTitle"),
@@ -277,7 +277,7 @@ public class MessageBuilderRequest {
     }else {
       message.setColor(Color.RED);
       message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangePointOnlyLooseTitle"),
-          leagueAccount.leagueAccount_name, lpReceived, gameType));
+          leagueAccount.leagueAccount_name, lpReceived * -1, gameType));
     }
 
     FullTier oldFullTier = new FullTier(oldEntry);

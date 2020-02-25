@@ -10,7 +10,7 @@ public class FullTier {
   private int leaguePoints;
 
   public FullTier(LeagueEntry leagueEntry) {
-    new FullTier(Tier.valueOf(leagueEntry.getTier()), Rank.valueOf(leagueEntry.getRank()), leagueEntry.getLeaguePoints());
+    this(Tier.valueOf(leagueEntry.getTier()), Rank.valueOf(leagueEntry.getRank()), leagueEntry.getLeaguePoints());
   }
   
   public FullTier(Tier tier, Rank rank, int leaguePoints) {

@@ -263,5 +263,7 @@
     "addingSystemLanguageSelected": "Très bien, je parle maintenant en %s. (Vous pouvez toujours changer mon langage avec la commande `>l`). Maintenant sélectionnez un serveur LoL pour ce serveur Discord :",
     "nameUseIllegalCharacter": "Vous ne pouvez pas utiliser ce nom ! Merci de ne pas utilisé des caractères de formatage.",
     "guildJoinHiAgain": "Rebonjour ! Tout votre configuration a été sauvegardé depuis la dernière fois que j'étais dans ce serveur. Si vous avez besoin d'aide concernant mon fonctionnement, utilisez les commandes `>setup` et `>help`. Si vous souhaitez réinitialiser le serveur, faites la commande `>reset`.",
-    "errorSQLPleaseReport": "J'ai eu un problème avec la base de donné. Merci de reporter le problème ici : https://discord.gg/YZwBvAx"
+    "errorSQLPleaseReport": "J'ai eu un problème avec la base de donné. Merci de reporter le problème ici : https://discord.gg/YZwBvAx",
+    "rankChannelAlreadyExist": "La canal de classé existe déjà !",
+    "createRankChannelHelpMessage": "Crée un nouveau canal de classé où j'enverrai des notifications en fonctions des classés des joueurs enregistrés. La permission \"Gérer les salons\" est nécessaire."
 }

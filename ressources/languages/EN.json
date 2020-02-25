@@ -284,7 +284,7 @@
     "creepScoreAbreviation": "cs",
     "level": "Level",
     "win": "Win",
-    "loose": "Loose",
+    "loose": "Loss",
     "canceled": "Canceled",
     "rankChannelChangePointOnlyWinTitle": "%s has win %s LP (%s)",
     "rankChannelChangePointOnlyLooseTitle": "%s has loose %s LP (%s)",

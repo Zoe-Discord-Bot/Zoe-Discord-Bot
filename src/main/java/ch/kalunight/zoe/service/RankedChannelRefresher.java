@@ -77,7 +77,7 @@ public class RankedChannelRefresher implements Runnable {
 
         }else { //No BO
           if(oldFullTier.getRank().equals(newFullTier.getRank()) 
-              || oldFullTier.getTier().equals(newFullTier.getTier())) { //Only LP change
+              && oldFullTier.getTier().equals(newFullTier.getTier())) { //Only LP change
             sendLeaguePointChangeOnly();
           }else { //Decay OR division skip
             sendRankChangedWithoutBO();

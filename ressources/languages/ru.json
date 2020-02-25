@@ -263,5 +263,20 @@
     "addingSystemLanguageSelected": "Хорошо, теперь я буду говорить на %s. (Вы всегда можете изменить мой язык с помощью команды `> l`). Теперь давайте выберем регион по умолчанию для сервера:",
     "languageCommandHelp": "Команда для выбора языка  для Зои",
     "languageCommandInSelectionMenu": "Выбранный язык: **%s**",
-    "nativeActualLanguage": "Русский"
+    "nativeActualLanguage": "Русский",
+    "loose": "Поражение",
+    "rankChannelChangeRankChangeWinDivisionSkippedTitle": "%s пропустил дивизион (%s)",
+    "canceled": "Отменен",
+    "win": "Победа",
+    "level": "Уровень",
+    "flex": "Гибкая",
+    "defineRankChannelDoneMessage": "Ранговый канал был успешно назначен!",
+    "defineRankChannelMentionOfAChannelNeeded": "Вам нужно упомянуть канал вот так: `>define rankChannel #the-best-text-channel`",
+    "defineRankChannelHelpMessage": "Назначить ранговый канал. Требуется разрешение на управление каналами.",
+    "deleteRankChannelDoneMessage": "Ранговый канал был успешно удален.",
+    "deleteRankChannelNotSetted": "Ранговый Канал не назначен!",
+    "deleteRankChannelHelpMessage": "Удалить Ранговый Канал. Требуется разрешение на управление каналом.",
+    "rankChannelCorrectlyCreated": "Ранговый Канал успешно создан!",
+    "rankChannelAlreadyExist": "Ранговый Канал уже существует!",
+    "createRankChannelHelpMessage": "Создать Ранговый Канал, куда я буду присылать информацию о рангах зарегистрированных игроков. Требуется разрешение на управление каналом."
 }

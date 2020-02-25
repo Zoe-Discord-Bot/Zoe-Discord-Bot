@@ -48,7 +48,7 @@ public class RiotApiUsageChannelRefresh implements Runnable {
       if(guildId == 0) {
         return;
       }
-      
+
       Guild guild = Zoe.getJda().getGuildById(guildId);
       TextChannel rapiInfoChannel = guild.getJDA().getTextChannelById(textChannelId);
 
@@ -147,7 +147,10 @@ public class RiotApiUsageChannelRefresh implements Runnable {
   }
 
   public static TextChannel getRapiInfoChannel() {
-    return Zoe.getJda().getGuildById(guildId).getTextChannelById(textChannelId);
+    if(Zoe.getJda().getGuildById(guildId) != null) {
+      return Zoe.getJda().getGuildById(guildId).getTextChannelById(textChannelId);
+    }
+    return null;
   }
 
   public static synchronized Integer getInfocardCreatedCount() {

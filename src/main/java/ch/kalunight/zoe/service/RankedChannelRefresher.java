@@ -14,8 +14,6 @@ import ch.kalunight.zoe.model.dto.DTO.Player;
 import ch.kalunight.zoe.model.dto.DTO.RankHistoryChannel;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.player_data.FullTier;
-import ch.kalunight.zoe.model.player_data.Rank;
-import ch.kalunight.zoe.model.player_data.Tier;
 import ch.kalunight.zoe.repositories.LastRankRepository;
 import ch.kalunight.zoe.util.request.MessageBuilderRequest;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -125,17 +123,43 @@ public class RankedChannelRefresher implements Runnable {
   }
 
   private void sendBOEnded() {
-    // TODO Auto-generated method stub
+    MessageEmbed message;
+    try {
+      message =
+          MessageBuilderRequest.createRankChannelCardBoEnded(oldEntry, newEntry, gameOfTheChange, leagueAccount, server.serv_language);
+    } catch(NoValueRankException e) {
+      logger.error("Error when creating Rank Message", e);
+      return;
+    }
+
+    TextChannel textChannelWhereSend = Zoe.getJda().getTextChannelById(rankChannel.rhChannel_channelId);
+    if(textChannelWhereSend != null) {
+      textChannelWhereSend.sendMessage(message).queue();
+    }
   }
 
   private void sendBOStarted() {
-    // TODO Auto-generated method stub
+    MessageEmbed message =
+        MessageBuilderRequest.createRankChannelCardBoStarted(newEntry, gameOfTheChange, player, leagueAccount, 
+            server.serv_language);
 
+    TextChannel textChannelWhereSend = Zoe.getJda().getTextChannelById(rankChannel.rhChannel_channelId);
+    if(textChannelWhereSend != null) {
+      textChannelWhereSend.sendMessage(message).queue();
+    }
   }
 
   private void sendBOInProgess() {
-    // TODO Auto-generated method stub
-
+    MessageEmbed message =
+        MessageBuilderRequest.createRankChannelBoInProgress(oldEntry, newEntry,
+            gameOfTheChange, leagueAccount, server.serv_language);
+    
+    if(message != null) {
+      TextChannel textChannelWhereSend = Zoe.getJda().getTextChannelById(rankChannel.rhChannel_channelId);
+      if(textChannelWhereSend != null) {
+        textChannelWhereSend.sendMessage(message).queue();
+      }
+    }
   }
 
   private void sendLeaguePointChangeOnly() {

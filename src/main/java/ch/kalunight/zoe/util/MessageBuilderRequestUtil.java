@@ -6,8 +6,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.checkerframework.checker.units.qual.m;
-
 import com.google.common.util.concurrent.AtomicDouble;
 
 import ch.kalunight.zoe.ServerData;
@@ -18,6 +16,7 @@ import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.service.SummonerDataWorker;
 import ch.kalunight.zoe.translation.LanguageManager;
+import net.rithms.riot.api.endpoints.league.dto.MiniSeries;
 import net.rithms.riot.api.endpoints.match.dto.Match;
 import net.rithms.riot.api.endpoints.match.dto.Participant;
 import net.rithms.riot.api.endpoints.match.dto.ParticipantStats;
@@ -209,5 +208,28 @@ public class MessageBuilderRequestUtil {
     int secondesGameLength = (int) (Double.parseDouble("0." + stringMinutesSecondes[1]) * 60.0);
   
     return String.format("%02d", minutesGameLength) + ":" + String.format("%02d", secondesGameLength);
+  }
+
+  public static String getBoStatus(MiniSeries bo) {
+    
+    StringBuilder boStatus = new StringBuilder();
+    
+    for(int i = 0; i < bo.getProgress().length(); i++) {
+      char progressPart = bo.getProgress().charAt(i);
+      
+      if(progressPart == 'W') {
+        boStatus.append("✅");
+      } else if(progressPart == 'L') {
+        boStatus.append("❌");
+      } else if(progressPart == 'N') {
+        boStatus.append("❓");
+      }
+      
+      if((i + 1) != bo.getProgress().length()) {
+        boStatus.append("->");
+      }
+    }
+    
+    return boStatus.toString();
   }
 }

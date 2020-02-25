@@ -11,12 +11,14 @@ import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.config.option.CleanChannelOption;
 import ch.kalunight.zoe.model.config.option.CleanChannelOption.CleanChannelOptionInfo;
 import ch.kalunight.zoe.model.config.option.GameInfoCardOption;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.rithms.riot.constant.Platform;
 import ch.kalunight.zoe.model.config.option.RegionOption;
 import ch.kalunight.zoe.model.config.option.RoleOption;
 import ch.kalunight.zoe.model.config.option.SelfAddingOption;
+import ch.kalunight.zoe.model.dto.DTO;
 
 public class ConfigRepository {
 
@@ -198,6 +200,22 @@ public class ConfigRepository {
       if(role == null) {
         logger.info("Zoe role has been deleted. We update the db.");
         updateRoleOption(guildId, 0);
+        
+        DTO.InfoChannel infoChannelDb = InfoChannelRepository.getInfoChannel(guildId);
+        TextChannel infoChannel = Zoe.getJda().getTextChannelById(infoChannelDb.infochannel_channelid);
+        
+        if(infoChannel != null) {
+          Role everyone = infoChannel.getGuild().getPublicRole();
+          infoChannel.putPermissionOverride(everyone).clear(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).queue();
+        }
+        
+        DTO.RankHistoryChannel rankChannelDb = RankHistoryChannelRepository.getRankHistoryChannel(guildId);
+        TextChannel rankChannel = Zoe.getJda().getTextChannelById(rankChannelDb.rhChannel_channelId);
+        
+        if(rankChannel != null) {
+          Role everyone = rankChannel.getGuild().getPublicRole();
+          rankChannel.putPermissionOverride(everyone).clear(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).queue();
+        }
       }
     }catch(NullPointerException e) {
       logger.warn("A guild has been detected like non existant. Will be deleted from DB now.");

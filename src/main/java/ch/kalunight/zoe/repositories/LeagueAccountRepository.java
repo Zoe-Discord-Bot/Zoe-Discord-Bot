@@ -309,6 +309,12 @@ public class LeagueAccountRepository {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
 
+      DTO.LastRank lastRank = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccountId);
+      
+      if(lastRank != null) {
+        LastRankRepository.deleteLastRank(lastRank.lastRank_id);
+      }
+      
       String finalQuery = String.format(DELETE_LEAGUE_ACCOUNT_WITH_ID, leagueAccountId);
       query.executeUpdate(finalQuery);
     }

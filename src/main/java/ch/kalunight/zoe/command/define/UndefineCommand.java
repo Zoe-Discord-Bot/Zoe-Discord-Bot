@@ -19,7 +19,7 @@ public class UndefineCommand extends ZoeCommand {
     this.aliases = new String[] {"undef"};
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
-    Command[] commandsChildren = {new UndefineInfoChannelCommand()};
+    Command[] commandsChildren = {new UndefineInfoChannelCommand(), new UndefineRankChannelCommand()};
     this.children = commandsChildren;
     this.helpBiConsumer = CommandUtil.getHelpMethodHasChildren(USAGE_NAME, commandsChildren);
   }

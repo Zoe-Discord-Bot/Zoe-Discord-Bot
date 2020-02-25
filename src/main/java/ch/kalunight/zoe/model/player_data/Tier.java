@@ -13,6 +13,15 @@ public enum Tier {
     this.value = value;
   }
 
+  public static Tier getTierWithValue(int value) {
+    for(Tier tier : Tier.values()) {
+      if(tier.getValue() == value) {
+        return tier;
+      }
+    }
+    return null;
+  }
+  
   public int getValue() {
     return value;
   }

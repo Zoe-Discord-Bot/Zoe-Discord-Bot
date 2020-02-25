@@ -15,6 +15,7 @@ import ch.kalunight.zoe.model.dto.DTO.Player;
 import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.InfoChannelRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
+import ch.kalunight.zoe.repositories.RankHistoryChannelRepository;
 import ch.kalunight.zoe.repositories.RepoRessources;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.Permission;
@@ -124,6 +125,21 @@ public class RoleOption extends ConfigurationOption {
               PermissionOverride everyone = infochannel.putPermissionOverride(guild.getPublicRole()).complete();
               everyone.getManager().deny(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).complete();
             }
+            
+            DTO.RankHistoryChannel rankChannelDb = RankHistoryChannelRepository.getRankHistoryChannel(guildId);
+            if(rankChannelDb != null) {
+              TextChannel rankChannel = guild.getTextChannelById(rankChannelDb.rhChannel_channelId);
+              PermissionOverride permissionZoePlayer = rankChannel.putPermissionOverride(role).complete();
+              permissionZoePlayer.getManager().grant(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).complete();
+
+              PermissionOverride permissionZoe = rankChannel
+                  .putPermissionOverride(guild.getMember(Zoe.getJda().getSelfUser())).complete();
+              permissionZoe.getManager().grant(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).complete();
+
+              PermissionOverride everyone = rankChannel.putPermissionOverride(guild.getPublicRole()).complete();
+              everyone.getManager().deny(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).complete();
+            }
+            
             channel.sendMessage(LanguageManager.getText(server.serv_language, "roleOptionDoneMessage")).complete();
           }else {
             channel.sendMessage(LanguageManager.getText(server.serv_language, "roleOptionCancelMessage")).queue();

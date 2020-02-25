@@ -292,9 +292,9 @@
     "rankChannelChangeRankChangeWinDivisionSkippedTitle": "%s has skip a division (%s)",
     "rankChannelChangeLooseDivisionDecayTitle": "%s has decay (%s)",
     "rankChannelChangeLooseDivisionTitle": "%s has lost a division (%s)",
-    "rankChannelBoStartedTitle": "%s has started a BO%d for %s (%s)",
-    "rankChannelChangeBOEndedLooseTitle": "%s has loose his BO%d for %s (%s)",
-    "rankChannelChangeBOEndedWinTitle": "%s has win his BO%d for %s (%s)",
-    "rankChannelChangeBOProgressLooseTitle": "%s has lost a game in his BO%d for %s (%s)",
-    "rankChannelChangeBOProgressWinTitle": "%s has win a game in his BO%d for %s (%s)"
+    "rankChannelBoStartedTitle": "%s has started a BO%d for the %s (%s)",
+    "rankChannelChangeBOEndedLooseTitle": "%s has loose his BO%d for the %s (%s)",
+    "rankChannelChangeBOEndedWinTitle": "%s has win his BO%d for the %s (%s)",
+    "rankChannelChangeBOProgressLooseTitle": "%s has lost a game in his BO%d for the %s (%s)",
+    "rankChannelChangeBOProgressWinTitle": "%s has win a game in his BO%d for the %s (%s)"
 }

@@ -201,12 +201,19 @@ public class MessageBuilderRequestUtil {
     return String.format("%02d", minutesGameLength) + ":" + String.format("%02d", secondesGameLength);
   }
 
-  public static String getBoStatus(MiniSeries bo) {
+  public static String getBoStatus(MiniSeries bo, String lang, boolean lastWin) {
     
     StringBuilder boStatus = new StringBuilder();
     
+    boStatus.append(LanguageManager.getText(lang, "rankChannelChangeBOProgressDesc") + " ");
+    
     for(int i = 0; i < bo.getProgress().length(); i++) {
       char progressPart = bo.getProgress().charAt(i);
+      
+      if(lastWin && i + 1 == bo.getProgress().length()) {
+        boStatus.append("✅");
+        break;
+      }
       
       if(progressPart == 'W') {
         boStatus.append("✅");

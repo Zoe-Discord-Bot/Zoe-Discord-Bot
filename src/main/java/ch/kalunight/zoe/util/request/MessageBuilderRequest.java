@@ -83,7 +83,7 @@ public class MessageBuilderRequest {
     message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelBoStartedTitle"), 
         leagueAccount.leagueAccount_name, bo.getProgress().length(), newFullTier.getHeigerDivision().toStringWithoutLp(), gameType));
 
-    String boStatus = MessageBuilderRequestUtil.getBoStatus(bo);
+    String boStatus = MessageBuilderRequestUtil.getBoStatus(bo, lang, false);
 
     message.setDescription(boStatus);
 
@@ -131,7 +131,7 @@ public class MessageBuilderRequest {
       return null;
     }
 
-    String boStatus = MessageBuilderRequestUtil.getBoStatus(newBo);
+    String boStatus = MessageBuilderRequestUtil.getBoStatus(newBo, lang, false);
 
     message.setDescription(boStatus);
 
@@ -159,7 +159,7 @@ public class MessageBuilderRequest {
 
     boolean boWin;
 
-    if(oldFullTier.value() < newFullTier.value()) {
+    if(oldFullTier.value() > newFullTier.value()) {
       boWin = true;
     }else {
       boWin = false;
@@ -178,7 +178,8 @@ public class MessageBuilderRequest {
           leagueAccount.leagueAccount_name, bo.getProgress().length(), oldFullTier.getHeigerDivision().toStringWithoutLp(), gameType));
     }
 
-    message.setDescription(oldFullTier.toStringWithoutLp() + " -> " + newFullTier.toStringWithoutLp());
+    message.setDescription(oldFullTier.toString() + " -> " + newFullTier.toString() + "\n"
+        + MessageBuilderRequestUtil.getBoStatus(bo, lang, true));
 
     String statsGame = MessageBuilderRequestUtil.getResumeGameStats(leagueAccount, lang, match);
 

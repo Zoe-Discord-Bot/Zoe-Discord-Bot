@@ -116,7 +116,9 @@ public class MessageBuilderRequest {
 
     FullTier oldFullTier = new FullTier(oldEntry);
 
-    if(winAgain.equalsIgnoreCase("Win")) {
+    boolean win = winAgain.equalsIgnoreCase("Win");
+    
+    if(win) {
       message.setColor(Color.GREEN);
       message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeBOProgressWinTitle"),
           leagueAccount.leagueAccount_name, oldBo.getProgress().length(),
@@ -131,7 +133,7 @@ public class MessageBuilderRequest {
       return null;
     }
 
-    String boStatus = MessageBuilderRequestUtil.getBoStatus(newBo, lang, false);
+    String boStatus = MessageBuilderRequestUtil.getBoStatus(newBo, lang, win);
 
     message.setDescription(boStatus);
 
@@ -179,7 +181,7 @@ public class MessageBuilderRequest {
     }
 
     message.setDescription(oldFullTier.toString() + " -> " + newFullTier.toString() + "\n"
-        + MessageBuilderRequestUtil.getBoStatus(bo, lang, true));
+        + MessageBuilderRequestUtil.getBoStatus(bo, lang, boWin));
 
     String statsGame = MessageBuilderRequestUtil.getResumeGameStats(leagueAccount, lang, match);
 

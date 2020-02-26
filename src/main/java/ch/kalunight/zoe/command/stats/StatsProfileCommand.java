@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -25,8 +26,14 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.SelectionDialog;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
+import ch.kalunight.zoe.command.create.CreatePlayerCommand;
+import ch.kalunight.zoe.model.config.ServerConfiguration;
+import ch.kalunight.zoe.model.config.option.RegionOption;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
+import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.static_data.Champion;
+import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
@@ -43,6 +50,7 @@ import net.dv8tion.jda.api.entities.User;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.champion_mastery.dto.ChampionMastery;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
+import net.rithms.riot.constant.Platform;
 
 public class StatsProfileCommand extends ZoeCommand {
 
@@ -52,6 +60,8 @@ public class StatsProfileCommand extends ZoeCommand {
   private static final Map<Double, Object> MASTERIES_TABLE_OF_LOW_VALUE_Y_AXIS = new HashMap<>();
 
   private static final Logger logger = LoggerFactory.getLogger(StatsProfileCommand.class);
+
+  private static final Random random = new Random();
 
   private final EventWaiter waiter;
 
@@ -97,17 +107,15 @@ public class StatsProfileCommand extends ZoeCommand {
 
   @Override
   protected void executeCommand(CommandEvent event) throws SQLException {
-    CommandUtil.sendTypingInFonctionOfChannelType(event);
 
     DTO.Server server = getServer(event.getGuild().getIdLong());
 
-    SelectionDialog.Builder selectAccountBuilder = new SelectionDialog.Builder()
-        .setEventWaiter(waiter)
-        .useLooping(true)
-        .setColor(Color.GREEN)
-        .setSelectedEnds("**", "**")
-        .setCanceled(getSelectionCancelAction(server))
-        .setTimeout(1, TimeUnit.MINUTES);
+    DTO.LeagueAccount leagueAccount = getLeagueAccountWithParam(event, server);
+
+    if(leagueAccount != null) {
+      generateStatsMessage(event, null, leagueAccount, server);
+      return;
+    }
 
     List<User> userList = event.getMessage().getMentionedUsers();
     if(userList.size() != 1) {
@@ -128,6 +136,16 @@ public class StatsProfileCommand extends ZoeCommand {
     if(accounts.size() == 1) {
       generateStatsMessage(event, player, accounts.get(0), server);
     }else {
+      Summoner summoner;
+
+      SelectionDialog.Builder selectAccountBuilder = new SelectionDialog.Builder()
+          .setEventWaiter(waiter)
+          .useLooping(true)
+          .setColor(Color.GREEN)
+          .setSelectedEnds("**", "**")
+          .setCanceled(getSelectionCancelAction(server))
+          .setTimeout(1, TimeUnit.MINUTES);
+
       selectAccountBuilder
       .addUsers(event.getAuthor())
       .setSelectionConsumer(getSelectionDoneAction(event, player, server, accounts));
@@ -135,7 +153,6 @@ public class StatsProfileCommand extends ZoeCommand {
       List<String> accountsName = new ArrayList<>();
 
       for(DTO.LeagueAccount choiceAccount : accounts) {
-        Summoner summoner;
         try {
           summoner = Zoe.getRiotApi().getSummoner(choiceAccount.leagueAccount_server,
               choiceAccount.leagueAccount_summonerId);
@@ -156,6 +173,45 @@ public class StatsProfileCommand extends ZoeCommand {
       SelectionDialog selectAccount = selectAccountBuilder.build();
       selectAccount.display(event.getChannel());
     }
+  }
+
+  private LeagueAccount getLeagueAccountWithParam(CommandEvent event, Server server) {
+
+    List<String> listArgs = CreatePlayerCommand.getParameterInParenteses(event.getArgs());
+    String regionName = "";
+    String summonerName;
+    if(listArgs.size() == 2) {
+      regionName = listArgs.get(0);
+      summonerName = listArgs.get(1);
+    }else if(listArgs.size() == 1) {
+      ServerConfiguration config;
+      try {
+        config = ConfigRepository.getServerConfiguration(server.serv_guildId);
+      } catch(SQLException e1) {
+        return null;
+      }
+      RegionOption regionOption = config.getDefaultRegion();
+
+      if(regionOption.getRegion() != null) {
+        regionName = regionOption.getRegion().getName();
+      }
+      summonerName = listArgs.get(0);
+    }else {
+      return null;
+    }
+
+    Platform region = CreatePlayerCommand.getPlatform(regionName);
+    if(region == null) {
+      return null;
+    }
+
+    Summoner summoner;
+    try {
+      summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);
+    }catch(RiotApiException e) {
+      return null;
+    }
+    return new LeagueAccount(summoner, region);
   }
 
   private Function<Integer, String> getUpdateMessageAfterChangeSelectAction(List<String> choices, DTO.Server server) {
@@ -209,6 +265,8 @@ public class StatsProfileCommand extends ZoeCommand {
   private void generateStatsMessage(CommandEvent event, DTO.Player player, DTO.LeagueAccount lolAccount, DTO.Server server) {
     event.getTextChannel().sendTyping().queue();
 
+    String url = Integer.toString(random.nextInt(100000));
+
     List<ChampionMastery> championsMasteries;
     try {
       championsMasteries = Zoe.getRiotApi().getChampionMasteriesBySummoner(lolAccount.leagueAccount_server,
@@ -225,7 +283,7 @@ public class StatsProfileCommand extends ZoeCommand {
 
     byte[] imageBytes;
     try {
-      imageBytes = generateMasteriesChart(player, championsMasteries, server);
+      imageBytes = generateMasteriesChart(player, championsMasteries, server, lolAccount);
     } catch(IOException e) {
       logger.info("Got a error in encoding bytesMap image : {}", e);
       event.reply(LanguageManager.getText(server.serv_language, "statsProfileUnexpectedErrorGraph"));
@@ -234,7 +292,7 @@ public class StatsProfileCommand extends ZoeCommand {
 
     MessageEmbed embed;
     try {
-      embed = MessageBuilderRequest.createProfileMessage(player, lolAccount, championsMasteries, server.serv_language);
+      embed = MessageBuilderRequest.createProfileMessage(player, lolAccount, championsMasteries, server.serv_language, url);
     } catch(RiotApiException e) {
       if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
         logger.debug("Get rate limited : {}", e);
@@ -250,17 +308,27 @@ public class StatsProfileCommand extends ZoeCommand {
 
     messageBuilder.setEmbed(embed);
 
-    event.getTextChannel().sendMessage(messageBuilder.build()).addFile(imageBytes, player.user.getId() + ".png").queue();
+    if(player != null) {
+      event.getTextChannel().sendMessage(messageBuilder.build()).addFile(imageBytes, player.user.getId() + ".png").queue();
+    }else {
+      event.getTextChannel().sendMessage(messageBuilder.build()).addFile(imageBytes, url + ".png").queue();
+    }
   }
 
-  private byte[] generateMasteriesChart(DTO.Player player, List<ChampionMastery> championsMasteries, DTO.Server server) throws IOException {
+  private byte[] generateMasteriesChart(DTO.Player player, List<ChampionMastery> championsMasteries,
+      DTO.Server server, LeagueAccount leagueAccount) throws IOException {
     List<ChampionMastery> listHeigherChampion = getBestMasteries(championsMasteries, NUMBER_OF_CHAMPIONS_IN_GRAPH);
     CategoryChartBuilder masteriesGraphBuilder = new CategoryChartBuilder();
 
     masteriesGraphBuilder.chartTheme = ChartTheme.GGPlot2;
 
-    masteriesGraphBuilder.title(String.format(LanguageManager.getText(server.serv_language, "statsProfileGraphTitle"),
-        player.user.getName()));
+    if(player != null) {
+      masteriesGraphBuilder.title(String.format(LanguageManager.getText(server.serv_language, "statsProfileGraphTitle"),
+          player.user.getName()));
+    }else {
+      masteriesGraphBuilder.title(String.format(LanguageManager.getText(server.serv_language, "statsProfileGraphTitle"),
+          leagueAccount.leagueAccount_name));
+    }
 
     CategoryChart masteriesGraph = masteriesGraphBuilder.build();
     masteriesGraph.getStyler().setAntiAlias(true);

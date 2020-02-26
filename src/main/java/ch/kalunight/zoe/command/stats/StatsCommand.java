@@ -26,7 +26,14 @@ public class StatsCommand extends ZoeCommand {
   
   @Override
   protected void executeCommand(CommandEvent event) throws SQLException {
-    if(!event.getMessage().getMentionedMembers().isEmpty()) {
+    
+    boolean playerGiven = false;
+    if(!event.getMessage().getMentionedMembers().isEmpty() ||
+        event.getArgs().split(" ").length >= 2) {
+      playerGiven = true;
+    }
+    
+    if(playerGiven) {
       for(Command command : Zoe.getMainCommands(null)) {
         for(Command commandChild : command.getChildren()) {
           if(commandChild instanceof StatsProfileCommand) {

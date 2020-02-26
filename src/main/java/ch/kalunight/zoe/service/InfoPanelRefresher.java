@@ -347,7 +347,8 @@ public class InfoPanelRefresher implements Runnable {
         boolean alreadyLoaded = false;
         for(CurrentGameWithRegion currentGameWithRegion : gameAlreadyAskedToRiot) {
           if(leagueAccount.leagueAccount_server.equals(currentGameWithRegion.platform)
-              && currentGameWithRegion.currentGameInfo.currentgame_currentgame.getParticipantByParticipantId(leagueAccount.leagueAccount_summonerId) != null) {
+              && currentGameWithRegion.currentGameInfo.currentgame_currentgame.
+              getParticipantByParticipantId(leagueAccount.leagueAccount_summonerId) != null) {
             LeagueAccountRepository.updateAccountCurrentGameWithAccountId(leagueAccount.leagueAccount_id, 
                 currentGameWithRegion.currentGameInfo.currentgame_id);
             alreadyLoaded = true;
@@ -421,16 +422,22 @@ public class InfoPanelRefresher implements Runnable {
     }
     
     if(gameOfTheChange.getGameQueueConfigId() == GameQueueConfigId.SOLOQ.getId()) {
+      
       LeagueEntry entry = RiotRequest.getLeagueEntrySoloq(leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server);
       RankedChannelRefresher rankedRefresher = 
-          new RankedChannelRefresher(rankChannel, rankBeforeThisGame.lastRank_soloq, entry, gameOfTheChange, player, leagueAccount, server);
+          new RankedChannelRefresher(rankChannel, rankBeforeThisGame.lastRank_soloq, entry,
+              gameOfTheChange, player, leagueAccount, server);
       ServerData.getRankedMessageGenerator().execute(rankedRefresher);
+      
     }else if(gameOfTheChange.getGameQueueConfigId() == GameQueueConfigId.FLEX.getId()) {
+      
       LeagueEntry entry = RiotRequest.getLeagueEntryFlex(leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server);
       RankedChannelRefresher rankedRefresher = 
-          new RankedChannelRefresher(rankChannel, rankBeforeThisGame.lastRank_flex, entry, gameOfTheChange, player, leagueAccount, server);
+          new RankedChannelRefresher(rankChannel, rankBeforeThisGame.lastRank_flex, entry,
+              gameOfTheChange, player, leagueAccount, server);
       ServerData.getRankedMessageGenerator().execute(rankedRefresher);
     }
+    
   }
 
   private void deleteDiscordInfoCard(long guildId, DTO.GameInfoCard gameCard) throws SQLException {

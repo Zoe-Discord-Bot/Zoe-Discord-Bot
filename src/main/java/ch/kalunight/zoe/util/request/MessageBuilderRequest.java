@@ -98,24 +98,24 @@ public class MessageBuilderRequest {
 
     return message.build();
   }
-  
+
   public static MessageEmbed createRankChannelBoInProgress(LeagueEntry oldEntry, LeagueEntry newEntry, 
       CurrentGameInfo gameOfTheChange, LeagueAccount leagueAccount, String lang) {
-    
+
     Match match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
-    
+
     EmbedBuilder message = new EmbedBuilder();
-    
+
     MiniSeries oldBo = oldEntry.getMiniSeries();
     MiniSeries newBo = newEntry.getMiniSeries();
-    
+
     String gameType = getGameType(gameOfTheChange, lang);
-    
+
     Participant participant = match.getParticipantBySummonerId(leagueAccount.leagueAccount_summonerId);
     String winAgain = match.getTeamByTeamId(participant.getTeamId()).getWin();
-    
+
     FullTier oldFullTier = new FullTier(oldEntry);
-    
+
     if(winAgain.equalsIgnoreCase("Win")) {
       message.setColor(Color.GREEN);
       message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeBOProgressWinTitle"),
@@ -130,11 +130,11 @@ public class MessageBuilderRequest {
       logger.info("A game in rank channel generation message has been canceled");
       return null;
     }
-    
+
     String boStatus = MessageBuilderRequestUtil.getBoStatus(newBo);
 
     message.setDescription(boStatus);
-    
+
     String statsGame = MessageBuilderRequestUtil.getResumeGameStats(leagueAccount, lang, match);
 
     Field field = new Field(LanguageManager.getText(lang, RESUME_OF_THE_GAME_STRING), statsGame, true);
@@ -143,7 +143,7 @@ public class MessageBuilderRequest {
 
     message.setFooter(LanguageManager.getText(lang, GENERATED_AT_STRING));
     message.setTimestamp(Instant.now());
-    
+
     return message.build();
   }
 
@@ -164,10 +164,10 @@ public class MessageBuilderRequest {
     }else {
       boWin = false;
     }
-    
+
     MiniSeries bo = oldEntry.getMiniSeries();
     String gameType = getGameType(gameOfTheChange, lang);
-    
+
     if(boWin) {
       message.setColor(Color.RED);
       message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeBOEndedLooseTitle"),
@@ -179,7 +179,7 @@ public class MessageBuilderRequest {
     }
 
     message.setDescription(oldFullTier.toStringWithoutLp() + " -> " + newFullTier.toStringWithoutLp());
-    
+
     String statsGame = MessageBuilderRequestUtil.getResumeGameStats(leagueAccount, lang, match);
 
     Field field = new Field(LanguageManager.getText(lang, RESUME_OF_THE_GAME_STRING), statsGame, true);
@@ -188,7 +188,7 @@ public class MessageBuilderRequest {
 
     message.setFooter(LanguageManager.getText(lang, GENERATED_AT_STRING));
     message.setTimestamp(Instant.now());
-    
+
     return message.build();
   }
 
@@ -269,7 +269,7 @@ public class MessageBuilderRequest {
 
     int lpReceived = newEntry.getLeaguePoints() - oldEntry.getLeaguePoints();
     boolean gameWin = (newEntry.getLeaguePoints() - oldEntry.getLeaguePoints()) > 0;
-    
+
     if(gameWin) {
       message.setColor(Color.GREEN);
       message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangePointOnlyWinTitle"),
@@ -387,7 +387,7 @@ public class MessageBuilderRequest {
   }
 
   public static MessageEmbed createProfileMessage(DTO.Player player, DTO.LeagueAccount leagueAccount,
-      List<ChampionMastery> masteries, String language) throws RiotApiException {
+      List<ChampionMastery> masteries, String language, String url) throws RiotApiException {
 
     String latestGameTranslated = LanguageManager.getText(language, "statsProfileLatestGames");
 
@@ -396,8 +396,13 @@ public class MessageBuilderRequest {
     Summoner summoner = Zoe.getRiotApi().getSummoner(leagueAccount.leagueAccount_server,
         leagueAccount.leagueAccount_summonerId);
 
-    message.setTitle(String.format(LanguageManager.getText(language, "statsProfileTitle"),
-        player.user.getName(), summoner.getName(), summoner.getSummonerLevel()));
+    if(player != null) {
+      message.setTitle(String.format(LanguageManager.getText(language, "statsProfileTitle"),
+          player.user.getName(), summoner.getName(), summoner.getSummonerLevel()));
+    }else {
+      message.setTitle(String.format(LanguageManager.getText(language, "statsProfileTitle"),
+          leagueAccount.leagueAccount_name, summoner.getName(), summoner.getSummonerLevel()));
+    }
 
     List<ChampionMastery> threeBestchampionMasteries = StatsProfileCommand.getBestMasteries(masteries, 3);
 
@@ -568,13 +573,22 @@ public class MessageBuilderRequest {
     message.addField(field);
     message.addBlankField(true);
 
-    message.setImage("attachment://" + player.player_discordId + ".png");
+    if(player != null) {
+      message.setImage("attachment://" + player.player_discordId + ".png");
+    }else {
+      message.setImage("attachment://" + url + ".png");
+    }
 
     message.setColor(new Color(206, 20, 221));
 
-    message.setFooter(String.format(LanguageManager.getText(language, "statsProfileFooterProfileOfPlayer"),
-        player.user.getName()), 
-        player.user.getAvatarUrl());
+    if(player != null) {
+      message.setFooter(String.format(LanguageManager.getText(language, "statsProfileFooterProfileOfPlayer"),
+          player.user.getName()), 
+          player.user.getAvatarUrl());
+    }else {
+      message.setFooter(String.format(LanguageManager.getText(language, "statsProfileFooterProfileOfPlayer"),
+          leagueAccount.leagueAccount_name, leagueAccount.leagueAccount_name));
+    }
     message.setTimestamp(Instant.now());
 
     return message.build();

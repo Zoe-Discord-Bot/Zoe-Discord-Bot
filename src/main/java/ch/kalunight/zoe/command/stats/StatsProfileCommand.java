@@ -96,7 +96,7 @@ public class StatsProfileCommand extends ZoeCommand {
     this.name = "profile";
     String[] aliases = {"player", "players", "p"};
     this.aliases = aliases;
-    this.arguments = "@playerMention";
+    this.arguments = "@playerMention OR (Region) (summonerName)";
     this.help = "statsProfileHelpMessage";
     this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(StatsCommand.USAGE_NAME, name, arguments, help);
     this.waiter = eventWaiter;

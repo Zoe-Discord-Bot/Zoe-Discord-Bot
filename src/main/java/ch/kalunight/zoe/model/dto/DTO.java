@@ -143,6 +143,14 @@ public class DTO {
       leagueAccount_puuid = baseData.getString("leagueAccount_puuid");
       leagueAccount_server = Platform.getPlatformByName(baseData.getString("leagueAccount_server"));
     }
+    
+    public LeagueAccount(Summoner summoner, Platform platform) {
+      leagueAccount_name = summoner.getName();
+      leagueAccount_summonerId = summoner.getId();
+      leagueAccount_accoundId = summoner.getAccountId();
+      leagueAccount_puuid = summoner.getPuuid();
+      leagueAccount_server = platform;
+    }
   }
 
   public static class CurrentGameInfo {

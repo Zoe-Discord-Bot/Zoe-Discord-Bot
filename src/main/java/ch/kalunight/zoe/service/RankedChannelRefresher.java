@@ -39,10 +39,6 @@ public class RankedChannelRefresher implements Runnable {
 
   private LeagueAccount leagueAccount;
 
-  private FullTier oldFullTier;
-
-  private FullTier newFullTier;
-
   public RankedChannelRefresher(RankHistoryChannel rankChannel, LeagueEntry oldEntry, LeagueEntry newEntry, CurrentGameInfo gameOfTheChange,
       Player player, LeagueAccount leagueAccount, Server server) {
     this.rankChannel = rankChannel;
@@ -59,11 +55,12 @@ public class RankedChannelRefresher implements Runnable {
 
     try {
       if(oldEntry != null) {
+        
+        FullTier oldFullTier = new FullTier(oldEntry);
+        FullTier newFullTier = new FullTier(newEntry);
 
-        oldFullTier = new FullTier(oldEntry);
-        newFullTier = new FullTier(newEntry);
-
-        if(oldFullTier.getLeaguePoints() == newFullTier.getLeaguePoints()) { //BO detected OR remake
+        if(oldFullTier.getLeaguePoints() == newFullTier.getLeaguePoints() || newFullTier.getLeaguePoints() == 100 
+            || oldFullTier.getLeaguePoints() == 100) { //BO detected OR remake
 
           if(oldEntry.getMiniSeries() != null && newEntry.getMiniSeries() == null) { //BO ended
             sendBOEnded();
@@ -80,7 +77,7 @@ public class RankedChannelRefresher implements Runnable {
 
         }else { //No BO
           if(oldFullTier.getRank().equals(newFullTier.getRank()) 
-              || oldFullTier.getTier().equals(newFullTier.getTier())) { //Only LP change
+              && oldFullTier.getTier().equals(newFullTier.getTier())) { //Only LP change
             sendLeaguePointChangeOnly();
           }else { //Decay OR division skip
             sendRankChangedWithoutBO();

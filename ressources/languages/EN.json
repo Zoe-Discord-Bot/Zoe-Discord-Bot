@@ -296,5 +296,6 @@
     "rankChannelChangeBOEndedLooseTitle": "%s has loose his BO%d for %s (%s)",
     "rankChannelChangeBOEndedWinTitle": "%s has win his BO%d for %s (%s)",
     "rankChannelChangeBOProgressLooseTitle": "%s has lost a game in his BO%d for %s (%s)",
-    "rankChannelChangeBOProgressWinTitle": "%s has win a game in his BO%d for %s (%s)"
+    "rankChannelChangeBOProgressWinTitle": "%s has win a game in his BO%d for %s (%s)",
+	"rankChannelChangeBOProgressDesc": "Resume of the BO :"
 }

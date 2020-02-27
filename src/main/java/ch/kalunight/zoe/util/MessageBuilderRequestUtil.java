@@ -5,9 +5,6 @@ import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.google.common.util.concurrent.AtomicDouble;
-
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.model.InfocardPlayerData;
 import ch.kalunight.zoe.model.dto.DTO;
@@ -27,7 +24,7 @@ import net.rithms.riot.constant.Platform;
 public class MessageBuilderRequestUtil {
 
   private static final DecimalFormat df = new DecimalFormat("#.##");
-
+  
   private MessageBuilderRequestUtil() {
     // Hide default public constructor
   }
@@ -164,18 +161,16 @@ public class MessageBuilderRequestUtil {
     }
     
     ParticipantStats stats = participant.getStats();
-  
-    AtomicDouble totalCS = new AtomicDouble();
-    
-    participant.getTimeline().getCreepsPerMinDeltas().forEach((time, nbCs) -> totalCS.addAndGet(nbCs));
     
     String gameDuration = MessageBuilderRequestUtil.getMatchTimeFromDuration(match.getGameDuration());
     
     String showableResult = getParticipantMatchResult(lang, match, participant);
     
+    int totalcs = stats.getTotalMinionsKilled() + stats.getNeutralMinionsKilled();
+    
     statsGame.append(" | " + stats.getKills() + "/" + stats.getDeaths() + "/" + stats.getAssists() 
-    + " | " + totalCS.get() + " " + LanguageManager.getText(lang, "creepScoreAbreviation"
-    + " | " + LanguageManager.getText(lang, "level") + " " + stats.getChampLevel())
+    + " | " + totalcs + " " + LanguageManager.getText(lang, "creepScoreAbreviation")
+    + " | " + LanguageManager.getText(lang, "level") + " " + stats.getChampLevel()
     + " | " + gameDuration
     + " | " + showableResult);
     return statsGame.toString();
@@ -196,26 +191,29 @@ public class MessageBuilderRequestUtil {
   }
 
   public static String getMatchTimeFromDuration(long duration) {
-    double minutesOfGames = 0.0;
-  
-    if(duration != 0l) {
-      minutesOfGames = duration + 180.0;
-    }
+    double minutesOfGames = duration;
   
     minutesOfGames = minutesOfGames / 60.0;
     String[] stringMinutesSecondes = Double.toString(minutesOfGames).split("\\.");
     int minutesGameLength = Integer.parseInt(stringMinutesSecondes[0]);
     int secondesGameLength = (int) (Double.parseDouble("0." + stringMinutesSecondes[1]) * 60.0);
-  
+    
     return String.format("%02d", minutesGameLength) + ":" + String.format("%02d", secondesGameLength);
   }
 
-  public static String getBoStatus(MiniSeries bo) {
+  public static String getBoStatus(MiniSeries bo, String lang, boolean lastWin) {
     
     StringBuilder boStatus = new StringBuilder();
     
+    boStatus.append(LanguageManager.getText(lang, "rankChannelChangeBOProgressDesc") + " ");
+    
     for(int i = 0; i < bo.getProgress().length(); i++) {
       char progressPart = bo.getProgress().charAt(i);
+      
+      if(lastWin && i + 1 == bo.getProgress().length()) {
+        boStatus.append("✅");
+        break;
+      }
       
       if(progressPart == 'W') {
         boStatus.append("✅");

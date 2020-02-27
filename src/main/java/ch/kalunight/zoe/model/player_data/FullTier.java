@@ -10,7 +10,7 @@ public class FullTier {
   private int leaguePoints;
 
   public FullTier(LeagueEntry leagueEntry) {
-    new FullTier(Tier.valueOf(leagueEntry.getTier()), Rank.valueOf(leagueEntry.getRank()), leagueEntry.getLeaguePoints());
+    this(Tier.valueOf(leagueEntry.getTier()), Rank.valueOf(leagueEntry.getRank()), leagueEntry.getLeaguePoints());
   }
   
   public FullTier(Tier tier, Rank rank, int leaguePoints) {
@@ -57,15 +57,15 @@ public class FullTier {
   
   public FullTier getHeigerDivision() {
     if(tier.equals(Tier.MASTER)) {
-      return new FullTier(Tier.GRANDMASTER, Rank.IV, 0);
+      return new FullTier(Tier.GRANDMASTER, Rank.I, 0);
     }else if(tier.equals(Tier.GRANDMASTER)) {
-      return new FullTier(Tier.CHALLENGER, Rank.IV, 0);
+      return new FullTier(Tier.CHALLENGER, Rank.I, 0);
     }else if(tier.equals(Tier.CHALLENGER)) {
-      return new FullTier(Tier.CHALLENGER, Rank.IV, 0);
+      return new FullTier(Tier.CHALLENGER, Rank.I, 0);
     }
     
     if(rank.equals(Rank.I)) {
-      return new FullTier(Tier.getTierWithValue(tier.getValue() + 100), Rank.IV, 0);
+      return new FullTier(Tier.getTierWithValue(tier.getValue() + 400), Rank.IV, 0);
     }else {
       return new FullTier(tier, Rank.getRankWithValue(rank.getValue() + 100), 0);
     }

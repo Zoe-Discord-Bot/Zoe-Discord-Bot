@@ -297,5 +297,14 @@
     "rankChannelChangeBOEndedWinTitle": "%s has win his BO%d for the %s (%s)",
     "rankChannelChangeBOProgressLooseTitle": "%s has lost a game in his BO%d for the %s (%s)",
     "rankChannelChangeBOProgressWinTitle": "%s has win a game in his BO%d for the %s (%s)",
-	"rankChannelChangeBOProgressDesc": "Resume of the BO :"
+	"rankChannelChangeBOProgressDesc": "Resume of the BO :",
+	"iron": "Iron",
+	"bronze": "Bronze",
+	"silver": "Silver",
+	"gold": "Gold",
+	"platinum": "Platinum",
+	"diamond": "Diamond",
+	"master": "Master",
+	"grandmaster": "Grand Master",
+	"challenger": "Challenger"
 }

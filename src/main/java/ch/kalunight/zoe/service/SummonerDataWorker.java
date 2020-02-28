@@ -57,9 +57,10 @@ public class SummonerDataWorker implements Runnable {
       FullTier fullTier = RiotRequest.getSoloqRank(participant.getSummonerId(), platform);
       String rank;
       try {
-        rank = Ressources.getTierEmote().get(fullTier.getTier()).getEmote().getAsMention() + " " + fullTier.toString();
+        rank = Ressources.getTierEmote().get(fullTier.getTier()).getEmote().getAsMention() + " " 
+            + fullTier.toString(language);
       } catch(NullPointerException e) {
-        rank = fullTier.toString();
+        rank = fullTier.toString(language);
       }
 
       if(listIdPlayers.contains(participant.getSummonerId())) {

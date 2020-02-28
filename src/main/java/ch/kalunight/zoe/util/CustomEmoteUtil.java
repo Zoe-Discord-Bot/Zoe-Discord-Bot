@@ -129,7 +129,7 @@ public class CustomEmoteUtil {
 
   public static void addToTierIfisSame(CustomEmote emote) {
     for(Tier tier : Tier.values()) {
-      if(tier.toString().replace(" ", "").equalsIgnoreCase(emote.getName())) {
+      if(tier.getTranslationTag().equalsIgnoreCase(emote.getName())) {
         Ressources.getTierEmote().put(tier, emote);
       }
     }

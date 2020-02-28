@@ -81,7 +81,8 @@ public class MessageBuilderRequest {
 
     message.setColor(Color.GREEN);
     message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelBoStartedTitle"), 
-        leagueAccount.leagueAccount_name, bo.getProgress().length(), newFullTier.getHeigerDivision().toStringWithoutLp(), gameType));
+        leagueAccount.leagueAccount_name, bo.getProgress().length(),
+        newFullTier.getHeigerDivision().toStringWithoutLp(lang), gameType));
 
     String boStatus = MessageBuilderRequestUtil.getBoStatus(bo, lang, false);
 
@@ -122,12 +123,12 @@ public class MessageBuilderRequest {
       message.setColor(Color.GREEN);
       message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeBOProgressWinTitle"),
           leagueAccount.leagueAccount_name, oldBo.getProgress().length(),
-          oldFullTier.getHeigerDivision().toStringWithoutLp(), gameType));
+          oldFullTier.getHeigerDivision().toStringWithoutLp(lang), gameType));
     }else if(winAgain.equalsIgnoreCase("Fail")) {
       message.setColor(Color.RED);
       message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeBOProgressLooseTitle"),
           leagueAccount.leagueAccount_name, oldBo.getProgress().length(),
-          oldFullTier.getHeigerDivision().toStringWithoutLp(), gameType));
+          oldFullTier.getHeigerDivision().toStringWithoutLp(lang), gameType));
     }else {
       logger.info("A game in rank channel generation message has been canceled");
       return null;
@@ -173,14 +174,14 @@ public class MessageBuilderRequest {
     if(boWin) {
       message.setColor(Color.RED);
       message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeBOEndedLooseTitle"),
-          leagueAccount.leagueAccount_name, bo.getProgress().length(), oldFullTier.getHeigerDivision().toStringWithoutLp(), gameType));
+          leagueAccount.leagueAccount_name, bo.getProgress().length(), oldFullTier.getHeigerDivision().toStringWithoutLp(lang), gameType));
     }else {
       message.setColor(Color.YELLOW);
       message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeBOEndedWinTitle"),
-          leagueAccount.leagueAccount_name, bo.getProgress().length(), oldFullTier.getHeigerDivision().toStringWithoutLp(), gameType));
+          leagueAccount.leagueAccount_name, bo.getProgress().length(), oldFullTier.getHeigerDivision().toStringWithoutLp(lang), gameType));
     }
 
-    message.setDescription(oldFullTier.toString() + " -> " + newFullTier.toString() + "\n"
+    message.setDescription(oldFullTier.toString(lang) + " -> " + newFullTier.toString(lang) + "\n"
         + MessageBuilderRequestUtil.getBoStatus(bo, lang, boWin));
 
     String statsGame = MessageBuilderRequestUtil.getResumeGameStats(leagueAccount, lang, match);
@@ -247,7 +248,7 @@ public class MessageBuilderRequest {
       }
     }
 
-    message.setDescription(oldFullTier.toString() + " -> " + newFullTier.toString());
+    message.setDescription(oldFullTier.toString(lang) + " -> " + newFullTier.toString(lang));
 
     String statsGame = MessageBuilderRequestUtil.getResumeGameStats(leagueAccount, lang, match);
 
@@ -286,7 +287,7 @@ public class MessageBuilderRequest {
     FullTier oldFullTier = new FullTier(oldEntry);
     FullTier newFullTier = new FullTier(newEntry);
 
-    message.setDescription(oldFullTier.toString() + " -> " + newFullTier.toString());
+    message.setDescription(oldFullTier.toString(lang) + " -> " + newFullTier.toString(lang));
 
     String statsGame = MessageBuilderRequestUtil.getResumeGameStats(leagueAccount, lang, match);
 
@@ -556,10 +557,10 @@ public class MessageBuilderRequest {
 
         if(leaguePosition.getQueueType().equals("RANKED_SOLO_5x5")) {
           soloqRank = String.format(LanguageManager.getText(language, "statsProfileQueueSoloq"), 
-              Ressources.getTierEmote().get(tier).getUsableEmote() + " " + fullTier.toString());
+              Ressources.getTierEmote().get(tier).getUsableEmote() + " " + fullTier.toString(language));
         } else if(leaguePosition.getQueueType().equals("RANKED_FLEX_SR")) {
           flexRank = String.format(LanguageManager.getText(language, "statsProfileQueueFlex"),
-              Ressources.getTierEmote().get(tier).getUsableEmote() + " " + fullTier.toString());
+              Ressources.getTierEmote().get(tier).getUsableEmote() + " " + fullTier.toString(language));
         }
       }
 

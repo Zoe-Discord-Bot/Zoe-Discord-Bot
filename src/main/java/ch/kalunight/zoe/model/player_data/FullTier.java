@@ -1,6 +1,7 @@
 package ch.kalunight.zoe.model.player_data;
 
 import ch.kalunight.zoe.exception.NoValueRankException;
+import ch.kalunight.zoe.translation.LanguageManager;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 
 public class FullTier {
@@ -30,29 +31,28 @@ public class FullTier {
     return tier.getValue() + rank.getValue() + leaguePoints;
   }
 
-  @Override
-  public String toString() {
+  public String toString(String lang) {
     if(tier == Tier.UNRANKED || tier == Tier.UNKNOWN) {
-      return tier.toString();
+      return LanguageManager.getText(lang, tier.getTranslationTag());
     }
 
     if(tier == Tier.MASTER || tier == Tier.GRANDMASTER || tier == Tier.CHALLENGER) {
-      return tier.toString() + " " + leaguePoints + " LP";
+      return LanguageManager.getText(lang, tier.getTranslationTag()) + " " + leaguePoints + " LP";
     }
 
-    return tier.toString() + " " + rank.toString() + " " + leaguePoints + " LP";
+    return LanguageManager.getText(lang, tier.getTranslationTag()) + " " + rank.toString() + " " + leaguePoints + " LP";
   }
   
-  public String toStringWithoutLp() {
+  public String toStringWithoutLp(String lang) {
     if(tier == Tier.UNRANKED || tier == Tier.UNKNOWN) {
-      return tier.toString();
+      return LanguageManager.getText(lang, tier.getTranslationTag());
     }
 
     if(tier == Tier.MASTER || tier == Tier.GRANDMASTER || tier == Tier.CHALLENGER) {
-      return tier.toString();
+      return LanguageManager.getText(lang, tier.getTranslationTag());
     }
 
-    return tier.toString() + " " + rank.toString();
+    return LanguageManager.getText(lang, tier.getTranslationTag()) + " " + rank.toString();
   }
   
   public FullTier getHeigerDivision() {

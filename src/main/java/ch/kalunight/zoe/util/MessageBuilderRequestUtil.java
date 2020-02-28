@@ -24,22 +24,22 @@ import net.rithms.riot.constant.Platform;
 public class MessageBuilderRequestUtil {
 
   private static final DecimalFormat df = new DecimalFormat("#.##");
-  
+
   private MessageBuilderRequestUtil() {
     // Hide default public constructor
   }
 
   public static List<DTO.LeagueAccount> getLeagueAccountsInTheGivenGame(CurrentGameInfo currentGameInfo, Platform server,
       DTO.Player player, long guildId) throws SQLException{
-    
+
     List<DTO.LeagueAccount> lolAccountsInGame = new ArrayList<>();
     List<DTO.LeagueAccount> leaguesAccounts = LeagueAccountRepository.getLeaguesAccounts(guildId, player.player_discordId);
-    
+
     for(DTO.LeagueAccount leagueAccount : leaguesAccounts) {
       for(CurrentGameParticipant participant : currentGameInfo.getParticipants()) {
         if(participant.getSummonerId().equals(leagueAccount.leagueAccount_summonerId) 
             && server.equals(leagueAccount.leagueAccount_server)) {
-          
+
           lolAccountsInGame.add(leagueAccount);
         }
       }
@@ -149,25 +149,25 @@ public class MessageBuilderRequestUtil {
 
   public static String getResumeGameStats(LeagueAccount leagueAccount, String lang, Match match) {
     StringBuilder statsGame = new StringBuilder();
-    
+
     Participant participant = match.getParticipantBySummonerId(leagueAccount.leagueAccount_summonerId);
-    
+
     Champion champion = Ressources.getChampionDataById(participant.getChampionId());
-    
+
     if(champion != null) {
       statsGame.append(champion.getDisplayName());
     }else {
       statsGame.append("Unknown");
     }
-    
+
     ParticipantStats stats = participant.getStats();
-    
+
     String gameDuration = MessageBuilderRequestUtil.getMatchTimeFromDuration(match.getGameDuration());
-    
+
     String showableResult = getParticipantMatchResult(lang, match, participant);
-    
+
     int totalcs = stats.getTotalMinionsKilled() + stats.getNeutralMinionsKilled();
-    
+
     statsGame.append(" | " + stats.getKills() + "/" + stats.getDeaths() + "/" + stats.getAssists() 
     + " | " + totalcs + " " + LanguageManager.getText(lang, "creepScoreAbreviation")
     + " | " + LanguageManager.getText(lang, "level") + " " + stats.getChampLevel()
@@ -179,7 +179,7 @@ public class MessageBuilderRequestUtil {
   private static String getParticipantMatchResult(String lang, Match match, Participant participant) {
     String result = match.getTeamByTeamId(participant.getTeamId()).getWin();
     String showableResult;
-    
+
     if(result.equalsIgnoreCase("Win")) {
       showableResult = LanguageManager.getText(lang, "win");
     }else if(result.equalsIgnoreCase("Fail")) {
@@ -192,29 +192,59 @@ public class MessageBuilderRequestUtil {
 
   public static String getMatchTimeFromDuration(long duration) {
     double minutesOfGames = duration;
-  
+
     minutesOfGames = minutesOfGames / 60.0;
     String[] stringMinutesSecondes = Double.toString(minutesOfGames).split("\\.");
     int minutesGameLength = Integer.parseInt(stringMinutesSecondes[0]);
     int secondesGameLength = (int) (Double.parseDouble("0." + stringMinutesSecondes[1]) * 60.0);
-    
+
     return String.format("%02d", minutesGameLength) + ":" + String.format("%02d", secondesGameLength);
   }
 
   public static String getBoStatus(MiniSeries bo, String lang, boolean lastWin) {
-    
+
     StringBuilder boStatus = new StringBuilder();
-    
+
     boStatus.append(LanguageManager.getText(lang, "rankChannelChangeBOProgressDesc") + " ");
-    
+
+    boolean lastWinChanged = false;
+
     for(int i = 0; i < bo.getProgress().length(); i++) {
       char progressPart = bo.getProgress().charAt(i);
-      
-      if(lastWin && i + 1 == bo.getProgress().length()) {
+
+      if(progressPart == 'W') {
         boStatus.append("✅");
-        break;
+      } else if(progressPart == 'L') {
+        boStatus.append("❌");
+      } else if(progressPart == 'N') {
+        if(!lastWinChanged && lastWin) {
+          boStatus.append("W");
+          lastWinChanged = true;
+        }else if(!lastWinChanged && !lastWin){
+          boStatus.append("L");
+          lastWinChanged = true;
+        }else {
+          boStatus.append("❓");
+        }
       }
-      
+
+      if((i + 1) != bo.getProgress().length()) {
+        boStatus.append("->");
+      }
+    }
+
+    return boStatus.toString();
+  }
+
+  public static String getBoStatus(MiniSeries bo, String lang) {
+
+    StringBuilder boStatus = new StringBuilder();
+
+    boStatus.append(LanguageManager.getText(lang, "rankChannelChangeBOProgressDesc") + " ");
+
+    for(int i = 0; i < bo.getProgress().length(); i++) {
+      char progressPart = bo.getProgress().charAt(i);
+
       if(progressPart == 'W') {
         boStatus.append("✅");
       } else if(progressPart == 'L') {
@@ -222,12 +252,12 @@ public class MessageBuilderRequestUtil {
       } else if(progressPart == 'N') {
         boStatus.append("❓");
       }
-      
+
       if((i + 1) != bo.getProgress().length()) {
         boStatus.append("->");
       }
     }
-    
+
     return boStatus.toString();
   }
 }

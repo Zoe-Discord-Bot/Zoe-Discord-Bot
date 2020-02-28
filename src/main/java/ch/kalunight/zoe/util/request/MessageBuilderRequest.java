@@ -84,7 +84,7 @@ public class MessageBuilderRequest {
         leagueAccount.leagueAccount_name, bo.getProgress().length(),
         newFullTier.getHeigerDivision().toStringWithoutLp(lang), gameType));
 
-    String boStatus = MessageBuilderRequestUtil.getBoStatus(bo, lang, false);
+    String boStatus = MessageBuilderRequestUtil.getBoStatus(bo, lang);
 
     message.setDescription(boStatus);
 
@@ -137,7 +137,7 @@ public class MessageBuilderRequest {
       return null;
     }
 
-    String boStatus = MessageBuilderRequestUtil.getBoStatus(newBo, lang, win);
+    String boStatus = MessageBuilderRequestUtil.getBoStatus(newBo, lang);
 
     message.setDescription(boStatus);
 

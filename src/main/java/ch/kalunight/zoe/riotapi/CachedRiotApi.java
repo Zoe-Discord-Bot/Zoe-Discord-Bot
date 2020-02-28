@@ -269,6 +269,37 @@ public class CachedRiotApi {
 
     return gameInfo;
   }
+  
+  public CurrentGameInfo getActiveGameBySummonerWithRateLimit(Platform platform, 
+      String summonerId) throws RiotApiException {
+    CurrentGameInfo gameInfo = riotApi.getActiveGameBySummoner(platform, summonerId);
+
+    boolean needToRetry;
+    do {
+      currentGameInfoRequestCount.incrementAndGet();
+      increaseCallCountForGivenRegion(platform);
+      
+      needToRetry = true;
+      try {
+        gameInfo = riotApi.getActiveGameBySummoner(platform, summonerId);
+        needToRetry = false;
+      }catch(RateLimitException e) {
+        try {
+          logger.info("Waiting rate limit ({} sec) to retry when getting current match", e.getRetryAfter());
+          TimeUnit.SECONDS.sleep(e.getRetryAfter());
+        } catch (InterruptedException e1) {
+          logger.error("Thread Interupted when waiting the rate limit !", e1);
+          Thread.currentThread().interrupt();
+        }
+      } catch (RiotApiException e) {
+        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+          return null;
+        }
+      }
+    }while(needToRetry);
+    
+    return gameInfo;
+  }
 
   public ChampionMastery getChampionMasteriesBySummonerByChampion(Platform platform, String summonerId, int championId) throws RiotApiException {
     ChampionMastery mastery = riotApi.getChampionMasteriesBySummonerByChampion(platform, summonerId, championId);

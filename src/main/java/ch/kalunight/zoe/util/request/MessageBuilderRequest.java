@@ -101,7 +101,7 @@ public class MessageBuilderRequest {
   }
 
   public static MessageEmbed createRankChannelBoInProgress(LeagueEntry oldEntry, LeagueEntry newEntry, 
-      CurrentGameInfo gameOfTheChange, LeagueAccount leagueAccount, String lang) {
+      CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang) {
 
     Match match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
 
@@ -112,6 +112,9 @@ public class MessageBuilderRequest {
 
     String gameType = getGameType(gameOfTheChange, lang);
 
+    User user = player.user;
+    message.setAuthor(user.getName(), null, user.getAvatarUrl());
+    
     Participant participant = match.getParticipantBySummonerId(leagueAccount.leagueAccount_summonerId);
     String winAgain = match.getTeamByTeamId(participant.getTeamId()).getWin();
 
@@ -151,7 +154,7 @@ public class MessageBuilderRequest {
   }
 
   public static MessageEmbed createRankChannelCardBoEnded(LeagueEntry oldEntry, LeagueEntry newEntry, 
-      CurrentGameInfo gameOfTheChange, LeagueAccount leagueAccount, String lang) throws NoValueRankException {
+      CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang) throws NoValueRankException {
 
     Match match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
 
@@ -171,6 +174,9 @@ public class MessageBuilderRequest {
     MiniSeries bo = oldEntry.getMiniSeries();
     String gameType = getGameType(gameOfTheChange, lang);
 
+    User user = player.user;
+    message.setAuthor(user.getName(), null, user.getAvatarUrl());
+    
     if(boWin) {
       message.setColor(Color.RED);
       message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeBOEndedLooseTitle"),
@@ -271,6 +277,9 @@ public class MessageBuilderRequest {
 
     String gameType = getGameType(gameOfTheChange, lang);
 
+    User user = player.user;
+    message.setAuthor(user.getName(), null, user.getAvatarUrl());
+    
     int lpReceived = newEntry.getLeaguePoints() - oldEntry.getLeaguePoints();
     boolean gameWin = (newEntry.getLeaguePoints() - oldEntry.getLeaguePoints()) > 0;
 

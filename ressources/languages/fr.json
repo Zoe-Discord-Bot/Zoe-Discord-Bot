@@ -106,8 +106,8 @@
     "showPlayerNoAccount": "*Aucun compte lié*",
     "showPlayerAccount": "- %s (%s) Rank File Solo : %s",
     "showPlayerEmbedTitle": "Liste des joueurs enregistré avec leurs comptes (Joueurs : %d | Comptes : %s) :",
-    "statsProfileHelpMessage": "Donne des informations sur le joueur mentionné.",
-    "statsProfileMentionOnePlayer": "Merci de mentionner 1 joueur.",
+    "statsProfileHelpMessage": "Donne des informations sur le joueur mentionné ou par rapport au compte donné.",
+    "statsProfileMentionOnePlayer": "Merci de mentionner 1 joueur ou 1 compte (pour plus d'info : `>stats p help`).",
     "statsProfileNeedARegisteredPlayer": "La personne mentionné n'est pas un joueur enregistré !",
     "statsProfileSelectText": "Compte sélectionné : \"**%s**\"",
     "statsProfileSelectionDoneMessage": "Vous avez sélectionné le compte \"%s\" du joueur %s.",
@@ -296,5 +296,15 @@
     "deleteRankChannelDeletedMissingPermission": "Le canal de classé a été supprimé **DANS LE SYSTÈME** ! Je n'ai pas la permissions de supprimer le canal textuel !",
     "deleteRankChannelNotSetted": "Le canal de classé n'est pas défini !",
     "deleteRankChannelHelpMessage": "Supprime le canal de classé. La permission de gérer les salons est nécessaire.",
-    "rankChannelCorrectlyCreated": "La canal de classé a bien été créé !"
+    "rankChannelCorrectlyCreated": "La canal de classé a bien été créé !",
+    "challenger": "Challenger",
+    "grandmaster": "Grand Maître",
+    "master": "Maître",
+    "diamond": "Diamant",
+    "platinum": "Platine",
+    "bronze": "Bronze",
+    "gold": "Or",
+    "silver": "Argent",
+    "iron": "Fer",
+    "rankChannelChangeBOProgressDesc": "Résumé du BO :"
 }

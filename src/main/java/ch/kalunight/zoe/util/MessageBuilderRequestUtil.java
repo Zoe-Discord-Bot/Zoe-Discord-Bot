@@ -218,10 +218,10 @@ public class MessageBuilderRequestUtil {
         boStatus.append("❌");
       } else if(progressPart == 'N') {
         if(!lastWinChanged && lastWin) {
-          boStatus.append("W");
+          boStatus.append("✅");
           lastWinChanged = true;
         }else if(!lastWinChanged && !lastWin){
-          boStatus.append("L");
+          boStatus.append("❌");
           lastWinChanged = true;
         }else {
           boStatus.append("❓");

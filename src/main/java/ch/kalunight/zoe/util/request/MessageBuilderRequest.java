@@ -165,7 +165,7 @@ public class MessageBuilderRequest {
 
     boolean boWin;
 
-    if(oldFullTier.value() > newFullTier.value()) {
+    if(oldFullTier.getTier() != newFullTier.getTier() || oldFullTier.getRank() != newFullTier.getRank()) {
       boWin = true;
     }else {
       boWin = false;
@@ -177,7 +177,7 @@ public class MessageBuilderRequest {
     User user = player.user;
     message.setAuthor(user.getName(), null, user.getAvatarUrl());
     
-    if(boWin) {
+    if(!boWin) {
       message.setColor(Color.RED);
       message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeBOEndedLooseTitle"),
           leagueAccount.leagueAccount_name, bo.getProgress().length(), oldFullTier.getHeigerDivision().toStringWithoutLp(lang), gameType));

@@ -107,7 +107,7 @@ public class CreatePlayerCommand extends ZoeCommand {
     }
     
     DTO.Player playerAlreadyWithTheAccount = PlayerRepository
-        .getPlayerByLeagueAccountAndGuild(server.serv_guildId, summoner.getId(), region.getName());
+        .getPlayerByLeagueAccountAndGuild(server.serv_guildId, summoner.getId(), region);
     
     if(playerAlreadyWithTheAccount != null) {
       event.reply(String.format(LanguageManager.getText(server.serv_language, "accountAlreadyLinkedToAnotherPlayer"),

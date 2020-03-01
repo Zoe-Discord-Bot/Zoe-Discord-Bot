@@ -419,7 +419,7 @@ public class InfoPanelRefresher implements Runnable {
     for(DTO.LeagueAccount leagueAccountToCheck : allLeaguesAccounts) {
       if(currentGameDb.currentgame_currentgame.getParticipantByParticipantId(leagueAccountToCheck.leagueAccount_summonerId) != null) {
         Player playerToUpdate = PlayerRepository.getPlayerByLeagueAccountAndGuild(guild.getIdLong(),
-            leagueAccountToCheck.leagueAccount_summonerId, guild.getId());
+            leagueAccountToCheck.leagueAccount_summonerId, leagueAccountToCheck.leagueAccount_server);
         updateRankChannelMessage(playerToUpdate, leagueAccountToCheck, currentGameDb);
       }
     }

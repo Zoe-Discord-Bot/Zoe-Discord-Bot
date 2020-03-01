@@ -99,7 +99,7 @@ public class InfoPanelRefresherUtil {
     
     for(DTO.LeagueAccount leagueAccount : leagueAccounts) {
       DTO.Player player = PlayerRepository.getPlayerByLeagueAccountAndGuild(
-          server.serv_guildId, leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server.getName());
+          server.serv_guildId, leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server);
       if(!listOfPlayers.contains(player)) {
         listOfPlayers.add(player);
       }

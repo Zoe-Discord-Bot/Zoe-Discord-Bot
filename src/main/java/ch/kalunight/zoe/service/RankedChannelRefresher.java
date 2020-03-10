@@ -123,7 +123,8 @@ public class RankedChannelRefresher implements Runnable {
     MessageEmbed message;
     try {
       message =
-          MessageBuilderRequest.createRankChannelCardBoEnded(oldEntry, newEntry, gameOfTheChange, leagueAccount, server.serv_language);
+          MessageBuilderRequest.createRankChannelCardBoEnded(oldEntry, newEntry, gameOfTheChange,
+              player, leagueAccount, server.serv_language);
     } catch(NoValueRankException e) {
       logger.error("Error when creating Rank Message", e);
       return;
@@ -149,7 +150,7 @@ public class RankedChannelRefresher implements Runnable {
   private void sendBOInProgess() {
     MessageEmbed message =
         MessageBuilderRequest.createRankChannelBoInProgress(oldEntry, newEntry,
-            gameOfTheChange, leagueAccount, server.serv_language);
+            gameOfTheChange, player,leagueAccount, server.serv_language);
     
     if(message != null) {
       TextChannel textChannelWhereSend = Zoe.getJda().getTextChannelById(rankChannel.rhChannel_channelId);

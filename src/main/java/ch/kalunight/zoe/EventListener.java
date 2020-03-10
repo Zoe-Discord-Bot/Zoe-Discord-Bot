@@ -299,8 +299,9 @@ public class EventListener extends ListenerAdapter {
 
           DTO.Player registedPlayer = PlayerRepository.getPlayer(event.getGuild().getIdLong(), event.getUser().getIdLong());
           DTO.InfoChannel infochannel = InfoChannelRepository.getInfoChannel(event.getGuild().getIdLong());
-
-          if(infochannel != null && registedPlayer != null && !ServerData.isServerWillBeTreated(server)
+          DTO.RankHistoryChannel rankchannel = RankHistoryChannelRepository.getRankHistoryChannel(event.getGuild().getIdLong());
+          
+          if((infochannel != null || rankchannel != null) && registedPlayer != null && !ServerData.isServerWillBeTreated(server)
               && server.serv_lastRefresh.isBefore(LocalDateTime.now().minusSeconds(5))) {
 
             ServerData.getServersIsInTreatment().put(event.getGuild().getId(), true);

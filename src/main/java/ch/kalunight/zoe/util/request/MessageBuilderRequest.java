@@ -84,7 +84,7 @@ public class MessageBuilderRequest {
         leagueAccount.leagueAccount_name, bo.getProgress().length(),
         newFullTier.getHeigerDivision().toStringWithoutLp(lang), gameType));
 
-    String boStatus = MessageBuilderRequestUtil.getBoStatus(bo, lang, false);
+    String boStatus = MessageBuilderRequestUtil.getBoStatus(bo, lang);
 
     message.setDescription(boStatus);
 
@@ -101,7 +101,7 @@ public class MessageBuilderRequest {
   }
 
   public static MessageEmbed createRankChannelBoInProgress(LeagueEntry oldEntry, LeagueEntry newEntry, 
-      CurrentGameInfo gameOfTheChange, LeagueAccount leagueAccount, String lang) {
+      CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang) {
 
     Match match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
 
@@ -112,6 +112,9 @@ public class MessageBuilderRequest {
 
     String gameType = getGameType(gameOfTheChange, lang);
 
+    User user = player.user;
+    message.setAuthor(user.getName(), null, user.getAvatarUrl());
+    
     Participant participant = match.getParticipantBySummonerId(leagueAccount.leagueAccount_summonerId);
     String winAgain = match.getTeamByTeamId(participant.getTeamId()).getWin();
 
@@ -134,7 +137,7 @@ public class MessageBuilderRequest {
       return null;
     }
 
-    String boStatus = MessageBuilderRequestUtil.getBoStatus(newBo, lang, win);
+    String boStatus = MessageBuilderRequestUtil.getBoStatus(newBo, lang);
 
     message.setDescription(boStatus);
 
@@ -151,7 +154,7 @@ public class MessageBuilderRequest {
   }
 
   public static MessageEmbed createRankChannelCardBoEnded(LeagueEntry oldEntry, LeagueEntry newEntry, 
-      CurrentGameInfo gameOfTheChange, LeagueAccount leagueAccount, String lang) throws NoValueRankException {
+      CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang) throws NoValueRankException {
 
     Match match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
 
@@ -162,7 +165,7 @@ public class MessageBuilderRequest {
 
     boolean boWin;
 
-    if(oldFullTier.value() > newFullTier.value()) {
+    if(oldFullTier.getTier() != newFullTier.getTier() || oldFullTier.getRank() != newFullTier.getRank()) {
       boWin = true;
     }else {
       boWin = false;
@@ -171,7 +174,10 @@ public class MessageBuilderRequest {
     MiniSeries bo = oldEntry.getMiniSeries();
     String gameType = getGameType(gameOfTheChange, lang);
 
-    if(boWin) {
+    User user = player.user;
+    message.setAuthor(user.getName(), null, user.getAvatarUrl());
+    
+    if(!boWin) {
       message.setColor(Color.RED);
       message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeBOEndedLooseTitle"),
           leagueAccount.leagueAccount_name, bo.getProgress().length(), oldFullTier.getHeigerDivision().toStringWithoutLp(lang), gameType));
@@ -271,6 +277,9 @@ public class MessageBuilderRequest {
 
     String gameType = getGameType(gameOfTheChange, lang);
 
+    User user = player.user;
+    message.setAuthor(user.getName(), null, user.getAvatarUrl());
+    
     int lpReceived = newEntry.getLeaguePoints() - oldEntry.getLeaguePoints();
     boolean gameWin = (newEntry.getLeaguePoints() - oldEntry.getLeaguePoints()) > 0;
 

@@ -6,7 +6,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 
@@ -134,13 +133,6 @@ public class InfoChannelRepository {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
 
-      DTO.ServerStatus status = ServerStatusRepository.getServerStatus(server.serv_guildId);
-
-      while(status.servstatus_inTreatment) {
-        TimeUnit.SECONDS.sleep(1);
-        status = ServerStatusRepository.getServerStatus(server.serv_guildId);
-      }
-
       List<DTO.LeagueAccount> leaguesAccounts = LeagueAccountRepository.getAllLeaguesAccounts(server.serv_guildId);
       List<DTO.CurrentGameInfo> currentGamesLinked = new ArrayList<>();
 
@@ -176,9 +168,6 @@ public class InfoChannelRepository {
 
       String finalQuery = String.format(DELETE_INFOCHANNEL_WITH_GUILD_ID, server.serv_guildId);
       query.execute(finalQuery);
-    } catch (InterruptedException e) {
-      logger.error("A thread got interrupted in deletion of infochannel !", e);
-      Thread.currentThread().interrupt();
     }
   }
 

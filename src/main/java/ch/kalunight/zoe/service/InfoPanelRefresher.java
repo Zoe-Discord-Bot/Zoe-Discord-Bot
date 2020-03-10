@@ -18,6 +18,7 @@ import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.GameInfoCardStatus;
 import ch.kalunight.zoe.model.dto.DTO.LastRank;
+import ch.kalunight.zoe.model.dto.DTO.Player;
 import ch.kalunight.zoe.model.dto.DTO.RankHistoryChannel;
 import ch.kalunight.zoe.model.player_data.Team;
 import ch.kalunight.zoe.repositories.ConfigRepository;
@@ -337,6 +338,8 @@ public class InfoPanelRefresher implements Runnable {
 
   private void refreshAllLeagueAccountCurrentGamesAndDeleteOlderInfoCard(List<DTO.Player> playersDTO) throws SQLException {
     List<CurrentGameWithRegion> gameAlreadyAskedToRiot = new ArrayList<>();
+    
+    List<DTO.LeagueAccount> allLeaguesAccounts = LeagueAccountRepository.getAllLeaguesAccounts(guild.getIdLong());
 
     for(DTO.Player player : playersDTO) {
       player.leagueAccounts =
@@ -390,7 +393,7 @@ public class InfoPanelRefresher implements Runnable {
               CurrentGameInfoRepository.deleteCurrentGame(currentGameDb, server);
 
               if(rankChannel != null) {
-                updateRankChannelMessage(player, leagueAccount, currentGameDb);
+                searchForRefreshRankChannel(allLeaguesAccounts, currentGameDb);
               }
 
               CurrentGameInfoRepository.createCurrentGame(currentGame, leagueAccount);
@@ -399,7 +402,7 @@ public class InfoPanelRefresher implements Runnable {
             CurrentGameInfoRepository.deleteCurrentGame(currentGameDb, server);
 
             if(rankChannel != null) {
-              updateRankChannelMessage(player, leagueAccount, currentGameDb);
+              searchForRefreshRankChannel(allLeaguesAccounts, currentGameDb);
             }
           }
           if(currentGame != null) {
@@ -407,6 +410,17 @@ public class InfoPanelRefresher implements Runnable {
             gameAlreadyAskedToRiot.add(new CurrentGameWithRegion(currentGameInfo, leagueAccount.leagueAccount_server));
           }
         }
+      }
+    }
+  }
+
+  private void searchForRefreshRankChannel(List<DTO.LeagueAccount> allLeaguesAccounts,
+      DTO.CurrentGameInfo currentGameDb) throws SQLException {
+    for(DTO.LeagueAccount leagueAccountToCheck : allLeaguesAccounts) {
+      if(currentGameDb.currentgame_currentgame.getParticipantByParticipantId(leagueAccountToCheck.leagueAccount_summonerId) != null) {
+        Player playerToUpdate = PlayerRepository.getPlayerByLeagueAccountAndGuild(guild.getIdLong(),
+            leagueAccountToCheck.leagueAccount_summonerId, leagueAccountToCheck.leagueAccount_server);
+        updateRankChannelMessage(playerToUpdate, leagueAccountToCheck, currentGameDb);
       }
     }
   }

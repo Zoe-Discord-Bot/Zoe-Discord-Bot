@@ -175,6 +175,12 @@ ALTER TABLE ONLY league_account
 ALTER TABLE ONLY current_game_info
   ADD CONSTRAINT current_game_info_pkey PRIMARY KEY (currentGame_id);
   
+ALTER TABLE ONLY last_rank
+  ADD CONSTRAINT last_rank_pkey PRIMARY KEY (lastrank_id);
+  
+ALTER TABLE ONLY rank_history_channel
+  ADD CONSTRAINT rank_history_channel_pkey PRIMARY KEY (rhchannel_id);
+  
 ALTER TABLE player 
   ADD CONSTRAINT player_fk_server_const 
   FOREIGN KEY (player_fk_server) REFERENCES server (serv_id);
@@ -249,7 +255,6 @@ ALTER TABLE league_account
 ALTER TABLE game_info_card
   ADD CONSTRAINT game_info_card_fk_currentGame_const 
   FOREIGN KEY (gameCard_fk_currentGame) REFERENCES current_game_info (currentGame_id);
-  
   
 ALTER TABLE rank_history_channel
   ADD CONSTRAINT rank_history_channel_fk_server_const 

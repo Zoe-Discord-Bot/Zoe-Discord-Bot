@@ -114,6 +114,21 @@ CREATE TABLE match_cache (
   mCatch_creationTime							timestamp			NOT NULL
 );
 
+CREATE TABLE rank_history_channel(
+  rhChannel_id										SERIAL,
+  rhChannel_fk_server								BIGINT				NOT NULL,
+  rhChannel_channelId								BIGINT	
+);
+
+CREATE TABLE last_rank(
+  lastRank_id										SERIAL,
+  lastRank_fk_leagueAccount							BIGINT				NOT NULL,
+  lastRank_soloq									json,
+  lastRank_flex										json,
+  lastRank_tft										json
+);
+
+
 -- Constraints
 ALTER TABLE ONLY server
   ADD CONSTRAINT server_pkey PRIMARY KEY (serv_id);
@@ -234,6 +249,15 @@ ALTER TABLE league_account
 ALTER TABLE game_info_card
   ADD CONSTRAINT game_info_card_fk_currentGame_const 
   FOREIGN KEY (gameCard_fk_currentGame) REFERENCES current_game_info (currentGame_id);
+  
+  
+ALTER TABLE rank_history_channel
+  ADD CONSTRAINT rank_history_channel_fk_server_const 
+  FOREIGN KEY (rhChannel_fk_server) REFERENCES server (serv_id);
+  
+ALTER TABLE last_rank
+  ADD CONSTRAINT last_rank_fk_leagueAccount_const 
+  FOREIGN KEY (lastRank_fk_leagueAccount) REFERENCES league_account (leagueAccount_id);
 	
 CREATE INDEX idx_server_guildid 
   ON server(serv_guildId);

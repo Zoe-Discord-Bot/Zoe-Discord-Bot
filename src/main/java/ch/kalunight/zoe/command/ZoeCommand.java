@@ -15,6 +15,7 @@ import ch.kalunight.zoe.repositories.ServerStatusRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 
 public abstract class ZoeCommand extends Command {
 
@@ -51,7 +52,14 @@ public abstract class ZoeCommand extends Command {
       try {
         DTO.ServerStatus status = ServerStatusRepository.getServerStatus(event.getGuild().getIdLong());
 
+        int nbrOfTry = 0;
+        
         while(status.servstatus_inTreatment) {
+          nbrOfTry++;
+          if(nbrOfTry > 10) {
+            logger.warn("The server is in treatment for too long ! Execute the command even though the server is in treatment...");
+            break;
+          }
           TimeUnit.SECONDS.sleep(1);
           status = ServerStatusRepository.getServerStatus(event.getGuild().getIdLong());
         }
@@ -67,6 +75,12 @@ public abstract class ZoeCommand extends Command {
 
     try {
       executeCommand(event);
+    } catch (InsufficientPermissionException e) {
+      logger.info("Unexpected exception in {} commands. Error : {}", this.getClass().getName(), e.getMessage(), e);
+      event.reply(String.format(LanguageManager.getText(getServer(event.getGuild().getIdLong()).serv_language, "deletePlayerMissingPermission"), 
+          e.getPermission().getName()));
+      commandFinishedCorrectly.incrementAndGet();
+      return;
     } catch (Exception e) {
       logger.error("Unexpected exception in {} commands. Error : {}", this.getClass().getName(), e.getMessage(), e);
       event.reply("An error as occured ! It has been saved and sended to the dev. Sorry About that :/");

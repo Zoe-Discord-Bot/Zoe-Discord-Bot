@@ -23,6 +23,7 @@ import net.rithms.riot.api.endpoints.champion_mastery.dto.ChampionMastery;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 import net.rithms.riot.api.endpoints.match.dto.Match;
 import net.rithms.riot.api.endpoints.match.dto.MatchList;
+import net.rithms.riot.api.endpoints.match.dto.MatchTimeline;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.api.request.ratelimit.RateLimitException;
@@ -71,6 +72,43 @@ public class CachedRiotApi {
     CacheManager.cleanMatchCache();
   }
 
+  public MatchTimeline getMatchTimeLine(Platform platform, long matchId) throws RiotApiException {
+
+    MatchTimeline match = riotApi.getTimelineByMatchId(platform, matchId);
+
+    increaseCallCountForGivenRegion(platform);
+
+    return match;
+  }
+  
+  public MatchTimeline getMatchTimelineWithRateLimit(Platform server, long gameId) {
+    MatchTimeline match = null;
+    boolean needToRetry;
+    do {
+      
+      needToRetry = true;
+      try {
+        increaseCallCountForGivenRegion(server);
+        match = riotApi.getTimelineByMatchId(server, gameId);
+        needToRetry = false;
+      }catch(RateLimitException e) {
+        try {
+          logger.info("Waiting rate limit ({} sec) to retry", e.getRetryAfter());
+          TimeUnit.SECONDS.sleep(e.getRetryAfter());
+        } catch (InterruptedException e1) {
+          logger.error("Thread Interupted when waiting the rate limit !", e1);
+          Thread.currentThread().interrupt();
+        }
+      } catch (RiotApiException e) {
+        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+          return null;
+        }
+      }
+    }while(needToRetry);
+    
+    return match;
+  }
+  
   public Match getMatch(Platform platform, long matchId) throws RiotApiException {
 
     Match match = riotApi.getMatch(platform, matchId);
@@ -229,6 +267,37 @@ public class CachedRiotApi {
     currentGameInfoRequestCount.incrementAndGet();
     increaseCallCountForGivenRegion(platform);
 
+    return gameInfo;
+  }
+  
+  public CurrentGameInfo getActiveGameBySummonerWithRateLimit(Platform platform, 
+      String summonerId) throws RiotApiException {
+    CurrentGameInfo gameInfo = riotApi.getActiveGameBySummoner(platform, summonerId);
+
+    boolean needToRetry;
+    do {
+      currentGameInfoRequestCount.incrementAndGet();
+      increaseCallCountForGivenRegion(platform);
+      
+      needToRetry = true;
+      try {
+        gameInfo = riotApi.getActiveGameBySummoner(platform, summonerId);
+        needToRetry = false;
+      }catch(RateLimitException e) {
+        try {
+          logger.info("Waiting rate limit ({} sec) to retry when getting current match", e.getRetryAfter());
+          TimeUnit.SECONDS.sleep(e.getRetryAfter());
+        } catch (InterruptedException e1) {
+          logger.error("Thread Interupted when waiting the rate limit !", e1);
+          Thread.currentThread().interrupt();
+        }
+      } catch (RiotApiException e) {
+        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+          return null;
+        }
+      }
+    }while(needToRetry);
+    
     return gameInfo;
   }
 

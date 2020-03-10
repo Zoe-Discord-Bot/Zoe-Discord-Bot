@@ -1,6 +1,8 @@
 package ch.kalunight.zoe.model.player_data;
 
 import ch.kalunight.zoe.exception.NoValueRankException;
+import ch.kalunight.zoe.translation.LanguageManager;
+import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 
 public class FullTier {
 
@@ -8,6 +10,10 @@ public class FullTier {
   private Rank rank;
   private int leaguePoints;
 
+  public FullTier(LeagueEntry leagueEntry) {
+    this(Tier.valueOf(leagueEntry.getTier()), Rank.valueOf(leagueEntry.getRank()), leagueEntry.getLeaguePoints());
+  }
+  
   public FullTier(Tier tier, Rank rank, int leaguePoints) {
     this.tier = tier;
     this.rank = rank;
@@ -25,17 +31,44 @@ public class FullTier {
     return tier.getValue() + rank.getValue() + leaguePoints;
   }
 
-  @Override
-  public String toString() {
+  public String toString(String lang) {
     if(tier == Tier.UNRANKED || tier == Tier.UNKNOWN) {
-      return tier.toString();
+      return LanguageManager.getText(lang, tier.getTranslationTag());
     }
 
     if(tier == Tier.MASTER || tier == Tier.GRANDMASTER || tier == Tier.CHALLENGER) {
-      return tier.toString() + " (" + leaguePoints + " LP)";
+      return LanguageManager.getText(lang, tier.getTranslationTag()) + " " + leaguePoints + " LP";
     }
 
-    return tier.toString() + " " + rank.toString() + " (" + leaguePoints + " LP)";
+    return LanguageManager.getText(lang, tier.getTranslationTag()) + " " + rank.toString() + " " + leaguePoints + " LP";
+  }
+  
+  public String toStringWithoutLp(String lang) {
+    if(tier == Tier.UNRANKED || tier == Tier.UNKNOWN) {
+      return LanguageManager.getText(lang, tier.getTranslationTag());
+    }
+
+    if(tier == Tier.MASTER || tier == Tier.GRANDMASTER || tier == Tier.CHALLENGER) {
+      return LanguageManager.getText(lang, tier.getTranslationTag());
+    }
+
+    return LanguageManager.getText(lang, tier.getTranslationTag()) + " " + rank.toString();
+  }
+  
+  public FullTier getHeigerDivision() {
+    if(tier.equals(Tier.MASTER)) {
+      return new FullTier(Tier.GRANDMASTER, Rank.I, 0);
+    }else if(tier.equals(Tier.GRANDMASTER)) {
+      return new FullTier(Tier.CHALLENGER, Rank.I, 0);
+    }else if(tier.equals(Tier.CHALLENGER)) {
+      return new FullTier(Tier.CHALLENGER, Rank.I, 0);
+    }
+    
+    if(rank.equals(Rank.I)) {
+      return new FullTier(Tier.getTierWithValue(tier.getValue() + 400), Rank.IV, 0);
+    }else {
+      return new FullTier(tier, Rank.getRankWithValue(rank.getValue() + 100), 0);
+    }
   }
 
   public Tier getTier() {

@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.Zoe;
+import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.Permission;
@@ -20,8 +21,10 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.PrivateChannel;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
+import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 
 public class CommandUtil {
 
@@ -82,6 +85,22 @@ public class CommandUtil {
       }
     } catch(ErrorResponseException e) {
       logger.info("Impossible to send the message to the a owner.");
+    }
+  }
+  
+  public static void giveRolePermission(Guild guild, TextChannel channel,
+      ServerConfiguration serverConfiguration) {
+    Role role = guild.getPublicRole();
+    try {
+      channel.putPermissionOverride(role).deny(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).queue();
+      
+      channel.putPermissionOverride(guild.getMember(Zoe.getJda().getSelfUser()))
+      .grant(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).queue();
+      
+      channel.putPermissionOverride(serverConfiguration.getZoeRoleOption().getRole())
+      .grant(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).queue();
+    }catch(InsufficientPermissionException e) {
+      logger.info("Missing permission to apply Zoe role option rule, nothing bad");
     }
   }
 
@@ -156,10 +175,11 @@ public class CommandUtil {
         }
         
         stringBuilder.append(mainCommandName + " " + commandName + " " + LanguageManager.getText(language, "command").toLowerCase() + " :\n");
-        if(arguments == null || arguments == "") {
-          stringBuilder.append("--> `>" + mainCommandName + " " + commandName + "` : " + helpId);
+        if(arguments == null || arguments.equals("")) {
+          stringBuilder.append("--> `>" + mainCommandName + " " + commandName + "` : " + LanguageManager.getText(language, helpId));
         }else {
-          stringBuilder.append("--> `>" + mainCommandName + " " + commandName + " " + arguments + "` : " + helpId);
+          stringBuilder.append("--> `>" + mainCommandName + " " + commandName + " " + arguments + "` : " 
+              + LanguageManager.getText(language, helpId));
         }
         event.reply(stringBuilder.toString());
       }
@@ -195,7 +215,6 @@ public class CommandUtil {
         event.reply(stringBuilder.toString());
       }
     };
-
   }
 
   public static Consumer<CommandEvent> getHelpCommand() {

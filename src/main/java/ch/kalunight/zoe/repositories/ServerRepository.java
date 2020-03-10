@@ -30,10 +30,11 @@ public class ServerRepository {
   private static final String SELECT_SERVER_WITH_TIMESTAMP_AFTER = "SELECT " + 
       "server.serv_id,server.serv_guildid,server.serv_language,server.serv_lastrefresh " + 
       "FROM info_channel " + 
-      "INNER JOIN server ON info_channel.infochannel_fk_server = server.serv_id " + 
+      "RIGHT JOIN server ON info_channel.infochannel_fk_server = server.serv_id " + 
+      "LEFT JOIN rank_history_channel ON server.serv_id = rank_history_channel.rhchannel_fk_server " + 
       "INNER JOIN server_status ON server.serv_id = server_status.servstatus_fk_server " + 
-      "WHERE info_channel.infochannel_id IS NOT NULL " + 
-      "AND server.serv_lastrefresh < '%s' " + 
+      "WHERE server.serv_lastrefresh < '%s' " + 
+      "AND (rank_history_channel.rhchannel_channelid IS NOT NULL OR info_channel.infochannel_channelid IS NOT NULL) " + 
       "AND server_status.servstatus_intreatment = %s";
   
   private ServerRepository() {
@@ -114,6 +115,12 @@ public class ServerRepository {
       }
       
       InfoChannelRepository.deleteInfoChannel(server);
+      
+      DTO.RankHistoryChannel rankHistoryChannel = RankHistoryChannelRepository.getRankHistoryChannel(guildId);
+      
+      if(rankHistoryChannel != null) {
+        RankHistoryChannelRepository.deleteRankHistoryChannel(rankHistoryChannel.rhChannel_id);
+      }
       
       List<DTO.Team> teams = TeamRepository.getTeamsByGuild(guildId);
       for(DTO.Team team : teams) {

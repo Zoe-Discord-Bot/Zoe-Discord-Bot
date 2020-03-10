@@ -1,5 +1,6 @@
 package ch.kalunight.zoe.model.dto;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,8 +9,10 @@ import net.rithms.riot.api.endpoints.match.dto.Participant;
 import net.rithms.riot.api.endpoints.match.dto.ParticipantIdentity;
 import net.rithms.riot.api.endpoints.match.dto.Player;
 
-public class SavedMatch {
+public class SavedMatch implements Serializable {
 
+  private static final long serialVersionUID = -3423117740284389063L;
+  
   private List<SavedMatchPlayer> accountsIdBlueSide;
   private List<SavedMatchPlayer> accountsIdRedSide;
 

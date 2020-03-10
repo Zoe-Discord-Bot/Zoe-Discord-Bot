@@ -11,6 +11,8 @@ import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.repositories.ServerStatusRepository;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.JDA.Status;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
 
@@ -34,15 +36,23 @@ public class ServerChecker extends TimerTask {
   public void run() {
 
     logger.debug("ServerChecker thread started !");
+    boolean hasReboot = false;
 
     try {
 
+      hasReboot = checkIfRebootOfJDANeeded();
+
+      if(hasReboot) {
+        logger.info("Zoe is rebooting ...");
+        return;
+      }
+      
       for(DTO.Server server : ServerRepository.getGuildWhoNeedToBeRefresh()) {
-        
+
         DTO.ServerStatus status = ServerStatusRepository.getServerStatus(server.serv_guildId);
         ServerStatusRepository.updateInTreatment(status.servstatus_id, true);
         ServerRepository.updateTimeStamp(server.serv_guildId, LocalDateTime.now());
-        
+
         Runnable task = new InfoPanelRefresher(server);
         ServerData.getServerExecutor().execute(task);
       }
@@ -52,7 +62,7 @@ public class ServerChecker extends TimerTask {
         if(!status.servstatus_inTreatment) {
           ServerStatusRepository.updateInTreatment(status.servstatus_id, true);
           ServerRepository.updateTimeStamp(serverAskedTreatment.serv_guildId, LocalDateTime.now());
-          
+
           Runnable task = new InfoPanelRefresher(serverAskedTreatment);
           ServerData.getServerExecutor().execute(task);
         }
@@ -89,10 +99,34 @@ public class ServerChecker extends TimerTask {
       logger.error("Unexpected error in ServerChecker", e);
     }finally {
       logger.debug("ServerChecker thread ended !");
-      logger.debug("Zoe Server-Executor Queue : {}", ServerData.getServerExecutor().getQueue().size());
-      logger.debug("Zoe InfoCards-Generator Queue : {}", ServerData.getInfocardsGenerator().getQueue().size());
-      ServerData.getServerCheckerThreadTimer().schedule(new DataSaver(), 0);
+      if(!hasReboot) {
+        ServerData.getServerCheckerThreadTimer().schedule(new DataSaver(), 0);
+        logger.debug("Zoe Server-Executor Queue : {}", ServerData.getServerExecutor().getQueue().size());
+        logger.debug("Zoe InfoCards-Generator Queue : {}", ServerData.getInfocardsGenerator().getQueue().size());
+      }
     }
+  }
+
+  private boolean checkIfRebootOfJDANeeded() {
+    JDA jda = Zoe.getJda();
+    
+    if(checkIfZoeNeedReboot(jda)) {
+      logger.info("Zoe is deconnected from Discord server ! Reboot thread start ...");
+      jda.shutdownNow();
+      
+      TimerTask rebootTask = new ZoeRebootThread();
+      ServerData.getServerCheckerThreadTimer().schedule(rebootTask, 100);
+      
+      return true;
+    }
+    return false;
+  }
+
+  private boolean checkIfZoeNeedReboot(JDA jda) {
+    return !jda.getStatus().equals(Status.CONNECTED) || 
+        (!jda.getPresence().getStatus().equals(OnlineStatus.ONLINE) 
+            && !jda.getPresence().getStatus().equals(OnlineStatus.DO_NOT_DISTURB))
+        || jda.getEventManager().getRegisteredListeners().size() != Zoe.getEventlistenerlist().size();
   }
 
   public static void setNextStatusRefresh(DateTime nextStatusRefresh) {

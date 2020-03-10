@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
 import ch.kalunight.zoe.model.dto.DTO;
+import net.rithms.riot.constant.Platform;
 
 public class PlayerRepository {
 
@@ -141,12 +142,12 @@ public class PlayerRepository {
   }
 
   @Nullable
-  public static DTO.Player getPlayerByLeagueAccountAndGuild(long guildId, String summonerId, String server) throws SQLException {
+  public static DTO.Player getPlayerByLeagueAccountAndGuild(long guildId, String summonerId, Platform server) throws SQLException {
     ResultSet result = null;
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
 
-      String finalQuery = String.format(SELECT_PLAYER_WITH_GUILD_ID_AND_LEAGUE_ACCOUNT, guildId, summonerId, server);
+      String finalQuery = String.format(SELECT_PLAYER_WITH_GUILD_ID_AND_LEAGUE_ACCOUNT, guildId, summonerId, server.getName());
       result = query.executeQuery(finalQuery);
       int rowCount = result.last() ? result.getRow() : 0;
       if(rowCount == 0) {

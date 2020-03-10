@@ -108,7 +108,7 @@ public class LeagueAccountRepository {
       "UPDATE league_account SET leagueaccount_fk_gamecard = %s WHERE leagueaccount_id = %d";
 
   private static final String UPDATE_LEAGUE_ACCOUNT_NAME_WITH_ID =
-      "UPDATE league_account SET leagueaccount_name = %s WHERE leagueaccount_id = %d";
+      "UPDATE league_account SET leagueaccount_name = '%s' WHERE leagueaccount_id = %d";
 
   private LeagueAccountRepository() {
     //hide default public constructor
@@ -309,6 +309,12 @@ public class LeagueAccountRepository {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
 
+      DTO.LastRank lastRank = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccountId);
+      
+      if(lastRank != null) {
+        LastRankRepository.deleteLastRank(lastRank.lastRank_id);
+      }
+      
       String finalQuery = String.format(DELETE_LEAGUE_ACCOUNT_WITH_ID, leagueAccountId);
       query.executeUpdate(finalQuery);
     }

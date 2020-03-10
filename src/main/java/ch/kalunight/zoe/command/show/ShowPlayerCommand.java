@@ -99,7 +99,7 @@ public class ShowPlayerCommand extends ZoeCommand {
         playerInfo.append(String.format(LanguageManager.getText(server.serv_language, "showPlayerAccount"),
             summoner.getName(), leagueAccount.leagueAccount_server.getName().toUpperCase(),
             RiotRequest.getSoloqRank(leagueAccount.leagueAccount_summonerId,
-                leagueAccount.leagueAccount_server)) + "\n");
+                leagueAccount.leagueAccount_server).toString(server.serv_language)) + "\n");
       }
       pbuilder.addItems(playerInfo.toString().substring(0, playerInfo.toString().length() - 1));
     }

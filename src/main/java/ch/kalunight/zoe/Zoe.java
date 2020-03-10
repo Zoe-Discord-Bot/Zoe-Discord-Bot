@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -64,7 +65,7 @@ public class Zoe {
 
   private static final ConcurrentLinkedQueue<List<CustomEmote>> emotesNeedToBeUploaded = new ConcurrentLinkedQueue<>();
 
-  private static final List<Object> eventListenerList = new ArrayList<>();  
+  private static final List<Object> eventListenerList = Collections.synchronizedList(new ArrayList<>());  
 
   public static final Logger logger = LoggerFactory.getLogger(Zoe.class);
 
@@ -76,31 +77,41 @@ public class Zoe {
 
   private static JDA jda;
 
+  private static String discordTocken;
+  
   private static String discordBotListTocken = "";
+  
+  private static String clientOwnerID;
 
   private static DiscordBotListAPI botListApi;
 
   public static void main(String[] args) {
+    
+    if(discordTocken != null) { //Avoid strange reboot
+      logger.warn("Main method hitted in a strangely Zoe stats ! Avoid execution ...");
+      return;
+    }
 
     System.setProperty("logback.configurationFile", "logback.xml");
 
     CommandClientBuilder client = new CommandClientBuilder();
 
-    String discordTocken;
     String riotTocken;
 
     try {
       discordTocken = args[0];
       riotTocken = args[1];
-      client.setOwnerId(args[2]);
+      clientOwnerID = args[2];
+      client.setOwnerId(clientOwnerID);
 
       RepoRessources.setDB_URL(args[3]);
       RepoRessources.setDB_PASSWORD(args[4]);
     }catch(Exception e) {
-      logger.error("Error with parameters : 1. Discord Tocken 2. Riot tocken 3. Owner Id 4. DB url 5. DB password");
+      logger.error("Error with parameters : 1. Discord Tocken 2. Riot tocken 3. Owner Id 4. DB url 5. DB password", e);
       throw e;
     }
 
+    initRiotApi(riotTocken);
 
     try {
       discordBotListTocken = args[5];
@@ -120,8 +131,6 @@ public class Zoe {
 
     client.setHelpConsumer(helpCommand);
 
-    initRiotApi(riotTocken);
-
     CommandClient commandClient = client.build();
 
     EventListener eventListener = new EventListener();
@@ -137,6 +146,7 @@ public class Zoe {
           .addEventListeners(commandClient)//
           .addEventListeners(eventWaiter)//
           .addEventListeners(eventListener).build();//
+      jda.setAutoReconnect(false);
     } catch(IndexOutOfBoundsException e) {
       logger.error("You must provide a token.");
       System.exit(1);
@@ -239,5 +249,25 @@ public class Zoe {
 
   public static EventWaiter getEventWaiter() {
     return eventWaiter;
+  }
+
+  public static void setJda(JDA jda) {
+    Zoe.jda = jda;
+  }
+
+  public static String getDiscordTocken() {
+    return discordTocken;
+  }
+
+  public static String getClientOwnerID() {
+    return clientOwnerID;
+  }
+
+  public static void setEventWaiter(EventWaiter eventWaiter) {
+    Zoe.eventWaiter = eventWaiter;
+  }
+
+  public static void setMainCommands(List<Command> mainCommands) {
+    Zoe.mainCommands = mainCommands;
   }
 }

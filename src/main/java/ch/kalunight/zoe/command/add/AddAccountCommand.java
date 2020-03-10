@@ -108,7 +108,7 @@ public class AddAccountCommand extends ZoeCommand {
     LeagueAccount newAccount = new LeagueAccount(summoner, region);
 
     DTO.Player playerAlreadyWithTheAccount = PlayerRepository
-        .getPlayerByLeagueAccountAndGuild(server.serv_guildId, summoner.getId(), region.getName());
+        .getPlayerByLeagueAccountAndGuild(server.serv_guildId, summoner.getId(), region);
 
     if(playerAlreadyWithTheAccount != null) {
       User userAlreadyWithTheAccount = Zoe.getJda().retrieveUserById(playerAlreadyWithTheAccount.player_discordId).complete();

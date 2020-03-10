@@ -1,14 +1,20 @@
 package ch.kalunight.zoe.command.create;
 
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.function.BiConsumer;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 
+import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.command.ZoeCommand;
+import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.InfoChannelRepository;
+import ch.kalunight.zoe.repositories.ServerRepository;
+import ch.kalunight.zoe.service.InfoPanelRefresher;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
@@ -23,6 +29,7 @@ public class CreateInfoChannelCommand extends ZoeCommand {
     this.arguments = "nameOfTheNewChannel";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
+    this.guildOnly = true;
     this.help = "createInfoChannelHelpMessage";
     this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(CreateCommand.USAGE_NAME, name, arguments, help);
   }
@@ -67,7 +74,19 @@ public class CreateInfoChannelCommand extends ZoeCommand {
       dbInfochannel = InfoChannelRepository.getInfoChannel(server.serv_guildId);
       InfoChannelRepository.createInfoPanelMessage(dbInfochannel.infoChannel_id, message.getIdLong());
 
+      ServerConfiguration config = ConfigRepository.getServerConfiguration(event.getGuild().getIdLong());
+      
+      if(config.getZoeRoleOption().getRole() != null) {
+        CommandUtil.giveRolePermission(event.getGuild(), infoChannel, config);
+      }
+      
       event.reply(LanguageManager.getText(server.serv_language, "channelCreatedMessage"));
+      
+      if(!ServerData.isServerWillBeTreated(server)) {
+        ServerData.getServersIsInTreatment().put(event.getGuild().getId(), true);
+        ServerRepository.updateTimeStamp(server.serv_guildId, LocalDateTime.now());
+        ServerData.getServerExecutor().execute(new InfoPanelRefresher(server, false));
+      }
     } catch(InsufficientPermissionException e) {
       event.reply(LanguageManager.getText(server.serv_language, "impossibleToCreateInfoChannelMissingPerms"));
     }

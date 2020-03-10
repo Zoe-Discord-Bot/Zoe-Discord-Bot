@@ -61,11 +61,12 @@ public class AdminCreateRAPIChannel extends ZoeCommand {
     } catch(FileNotFoundException | UnsupportedEncodingException e) {
       event.reply("Error when saving the channel. Please retry.");
       logger.warn("Error when saving rapi InfoChannel : ", e);
-      RiotApiUsageChannelRefresh.setRapiInfoChannel(null);
+      RiotApiUsageChannelRefresh.setTextChannelId(0);
       rapiTextChannel.delete().queue();
       return;
     }
-    RiotApiUsageChannelRefresh.setRapiInfoChannel(rapiTextChannel);
+    RiotApiUsageChannelRefresh.setTextChannelId(rapiTextChannel.getIdLong());
+    RiotApiUsageChannelRefresh.setGuildId(rapiTextChannel.getGuild().getIdLong());
 
     event.reply("Correctly created, will be refreshed in less than 2 minutes. "
         + "Please don't use this channel, all messages in it will be cleaned every 2 minutes.");

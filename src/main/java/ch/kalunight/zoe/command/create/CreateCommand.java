@@ -19,7 +19,8 @@ public class CreateCommand extends ZoeCommand {
     this.aliases = new String[] {"c"};
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
-    Command[] commandsChildren = {new CreateInfoChannelCommand(), new CreatePlayerCommand(), new CreateTeamCommand()};
+    Command[] commandsChildren = {new CreateInfoChannelCommand(), new CreatePlayerCommand(), new CreateTeamCommand(),
+        new CreateRankHistoryChannelCommand()};
     this.children = commandsChildren;
     this.helpBiConsumer = CommandUtil.getHelpMethodHasChildren(USAGE_NAME, commandsChildren);
   }

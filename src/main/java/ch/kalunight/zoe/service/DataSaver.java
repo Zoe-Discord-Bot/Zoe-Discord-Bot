@@ -2,10 +2,11 @@ package ch.kalunight.zoe.service;
 
 import java.time.LocalDateTime;
 import java.util.TimerTask;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import ch.kalunight.zoe.ServerData;
-import ch.kalunight.zoe.Zoe;
 
 public class DataSaver extends TimerTask {
 
@@ -25,10 +26,9 @@ public class DataSaver extends TimerTask {
   public void run() {
     try {
       if(nextCleanCacheTime.isBefore(LocalDateTime.now())) {
-        logger.info("Cleaning cache started !");
         setNextCleanCacheTime(LocalDateTime.now().plusHours(TIME_BETWEEN_CLEAN_CACHE_IN_HOURS));
-        Zoe.getRiotApi().cleanCache(); // Make it in another thread
-        logger.info("Cleaning cache ended !");
+        CleanCacheService cleanCacheThread = new CleanCacheService();
+        ServerData.getServerExecutor().execute(cleanCacheThread);
       }
       
       if(nextRefreshCacheDb.isBefore(LocalDateTime.now())) {

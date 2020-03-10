@@ -25,6 +25,7 @@ import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.InfoChannelRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
+import ch.kalunight.zoe.repositories.RankHistoryChannelRepository;
 import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.repositories.ServerStatusRepository;
 import ch.kalunight.zoe.riotapi.CacheManager;
@@ -104,11 +105,7 @@ public class EventListener extends ListenerAdapter {
     }
 
     logger.info("Setup cache ...");
-    try {
-      CacheManager.setupCache();
-    } catch (SQLException e) {
-      logger.error("SQL error when setup cache !", e);
-    }
+    CacheManager.setupCache();
     logger.info("Setup cache finished !");
 
     logger.info("Loading of RAPI Status Channel ...");
@@ -151,7 +148,7 @@ public class EventListener extends ListenerAdapter {
 
   private void setupContinousRefreshThread() {
     TimerTask mainThread = new ServerChecker();
-    ServerData.getServerCheckerThreadTimer().schedule(mainThread, 0);
+    ServerData.getServerCheckerThreadTimer().schedule(mainThread, 10000);
   }
 
   private void initRAPIStatusChannel() {
@@ -169,7 +166,8 @@ public class EventListener extends ListenerAdapter {
         if(guild != null) {
           TextChannel rapiStatusChannel = guild.getTextChannelById(args.get(1));
           if(rapiStatusChannel != null) {
-            RiotApiUsageChannelRefresh.setRapiInfoChannel(rapiStatusChannel);
+            RiotApiUsageChannelRefresh.setTextChannelId(rapiStatusChannel.getIdLong());
+            RiotApiUsageChannelRefresh.setGuildId(guild.getIdLong());
             logger.info("RAPI Status channel correctly loaded.");
           }
         }
@@ -247,6 +245,11 @@ public class EventListener extends ListenerAdapter {
       if(infochannel != null && infochannel.infochannel_channelid == event.getChannel().getIdLong()) {
         InfoChannelRepository.deleteInfoChannel(ServerRepository.getServer(event.getGuild().getIdLong()));
       }
+      
+      DTO.RankHistoryChannel rankChannel = RankHistoryChannelRepository.getRankHistoryChannel(event.getGuild().getIdLong());
+      if(rankChannel != null && rankChannel.rhChannel_channelId == event.getChannel().getIdLong()) {
+        RankHistoryChannelRepository.deleteRankHistoryChannel(rankChannel.rhChannel_id);
+      }
     }catch(SQLException e) {
       logger.error("Issue with db when reacting to the textChannelDelete Event.", e);
     }
@@ -296,8 +299,9 @@ public class EventListener extends ListenerAdapter {
 
           DTO.Player registedPlayer = PlayerRepository.getPlayer(event.getGuild().getIdLong(), event.getUser().getIdLong());
           DTO.InfoChannel infochannel = InfoChannelRepository.getInfoChannel(event.getGuild().getIdLong());
-
-          if(infochannel != null && registedPlayer != null && !ServerData.isServerWillBeTreated(server)
+          DTO.RankHistoryChannel rankchannel = RankHistoryChannelRepository.getRankHistoryChannel(event.getGuild().getIdLong());
+          
+          if((infochannel != null || rankchannel != null) && registedPlayer != null && !ServerData.isServerWillBeTreated(server)
               && server.serv_lastRefresh.isBefore(LocalDateTime.now().minusSeconds(5))) {
 
             ServerData.getServersIsInTreatment().put(event.getGuild().getId(), true);

@@ -181,6 +181,22 @@ public class DTO {
       mCatch_creationTime = LocalDateTime.parse(baseData.getString("mCatch_creationTime"), DB_TIME_PATTERN);
     }
   }
+  
+  public static class Leaderboard {
+    public long lead_id;
+    public long lead_fk_server;
+    public long lead_message_channelId;
+    public long lead_message_id;
+    public String lead_type;
+    
+    public Leaderboard(ResultSet baseData) throws SQLException {
+      lead_id = baseData.getLong("lead_id");
+      lead_fk_server = baseData.getLong("lead_fk_server");
+      lead_message_channelId = baseData.getLong("lead_message_channelId");
+      lead_message_id = baseData.getLong("lead_message_id");
+      lead_type = baseData.getString("lead_type");
+    }
+  }
 
   public static class Team {
     public long team_id;

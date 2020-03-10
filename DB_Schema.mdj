@@ -1,7 +1,7 @@
 {
 	"_type": "Project",
 	"_id": "AAAAAAFF+h6SjaM2Hec=",
-	"name": "Untitled",
+	"name": "Zoe",
 	"ownedElements": [
 		{
 			"_type": "ERDDataModel",
@@ -9,7 +9,7 @@
 			"_parent": {
 				"$ref": "AAAAAAFF+h6SjaM2Hec="
 			},
-			"name": "Data Model1",
+			"name": "ZoeDataBase",
 			"ownedElements": [
 				{
 					"_type": "ERDDiagram",
@@ -2656,7 +2656,7 @@
 							"left": 176,
 							"top": 696,
 							"width": 235.892578125,
-							"height": 80,
+							"height": 65,
 							"nameLabel": {
 								"$ref": "AAAAAAFvHzAlh75O8ZQ="
 							},
@@ -3421,7 +3421,7 @@
 							"left": 1176,
 							"top": 512,
 							"width": 240.99609375,
-							"height": 105,
+							"height": 91,
 							"nameLabel": {
 								"$ref": "AAAAAAFwxAUddDU+H4k="
 							},

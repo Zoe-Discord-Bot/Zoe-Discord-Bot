@@ -275,7 +275,7 @@
     "rankChannelChangeLooseDivisionTitle": "%s a perdu une division (%s)",
     "rankChannelChangeLooseDivisionDecayTitle": "%s a perdu en rang (%s)",
     "rankChannelChangeRankChangeWinDivisionSkippedTitle": "%s a sauté une division (%s)",
-    "generatedAt": "Généré à",
+    "generatedAt": "Généré",
     "rankChannelChangePointOnlyLooseTitle": "%s a perdu %s LP (%s)",
     "rankChannelChangePointOnlyWinTitle": "%s a gagné %s LP (%s)",
     "canceled": "Annulé",

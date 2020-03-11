@@ -306,5 +306,8 @@
 	"diamond": "Diamond",
 	"master": "Master",
 	"grandmaster": "Grand Master",
-	"challenger": "Challenger"
+	"challenger": "Challenger",
+	"createLeaderboardHelpMessage": "Create a Leaderboard.",
+	"createLeaderboardExplainMessage": "Okay, let's create a leaderboard. What is the objective you want to target ?",
+	"createLeaderboardCancelMessage": "Creation of leaderboard cancel."
 }

@@ -178,7 +178,7 @@ public class Zoe {
     commands.add(new SetupCommand());
     commands.add(new LanguageCommand(eventWaiter));
     commands.add(new ConfigCommand(eventWaiter));
-    commands.add(new CreateCommand());
+    commands.add(new CreateCommand(eventWaiter));
     commands.add(new DeleteCommand());
     commands.add(new AddCommand());
     commands.add(new RemoveCommand());

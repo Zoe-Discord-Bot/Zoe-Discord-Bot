@@ -2,5 +2,7 @@ package ch.kalunight.zoe.model;
 
 public enum Objective {
   MASTERY_POINT,
-  RANK
+  MASTERY_FROM_0,
+  RANK,
+  AVERAGE_KDA
 }

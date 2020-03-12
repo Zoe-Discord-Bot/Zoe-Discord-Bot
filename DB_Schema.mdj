@@ -2975,7 +2975,7 @@
 									"font": "Arial;13;1",
 									"left": 552,
 									"top": 869,
-									"width": 169,
+									"width": 212.03173828125,
 									"height": 13,
 									"text": "LastRank"
 								},
@@ -3001,7 +3001,7 @@
 											"font": "Arial;13;0",
 											"left": 557,
 											"top": 892,
-											"width": 159,
+											"width": 202.03173828125,
 											"height": 13
 										},
 										{
@@ -3016,7 +3016,22 @@
 											"font": "Arial;13;0",
 											"left": 557,
 											"top": 907,
-											"width": 159,
+											"width": 202.03173828125,
+											"height": 13
+										},
+										{
+											"_type": "ERDColumnView",
+											"_id": "AAAAAAFwzzXyO68qbmE=",
+											"_parent": {
+												"$ref": "AAAAAAFwAcuI/FY0xdA="
+											},
+											"model": {
+												"$ref": "AAAAAAFwzzXxc68npt4="
+											},
+											"font": "Arial;13;0",
+											"left": 557,
+											"top": 922,
+											"width": 202.03173828125,
 											"height": 13
 										},
 										{
@@ -3030,8 +3045,23 @@
 											},
 											"font": "Arial;13;0",
 											"left": 557,
-											"top": 922,
-											"width": 159,
+											"top": 937,
+											"width": 202.03173828125,
+											"height": 13
+										},
+										{
+											"_type": "ERDColumnView",
+											"_id": "AAAAAAFwzzZrx68znQU=",
+											"_parent": {
+												"$ref": "AAAAAAFwAcuI/FY0xdA="
+											},
+											"model": {
+												"$ref": "AAAAAAFwzzZrN68wKSw="
+											},
+											"font": "Arial;13;0",
+											"left": 557,
+											"top": 952,
+											"width": 202.03173828125,
 											"height": 13
 										},
 										{
@@ -3045,23 +3075,38 @@
 											},
 											"font": "Arial;13;0",
 											"left": 557,
-											"top": 937,
-											"width": 159,
+											"top": 967,
+											"width": 202.03173828125,
+											"height": 13
+										},
+										{
+											"_type": "ERDColumnView",
+											"_id": "AAAAAAFwzzazLa87fAY=",
+											"_parent": {
+												"$ref": "AAAAAAFwAcuI/FY0xdA="
+											},
+											"model": {
+												"$ref": "AAAAAAFwzzayZa84f5I="
+											},
+											"font": "Arial;13;0",
+											"left": 557,
+											"top": 982,
+											"width": 202.03173828125,
 											"height": 13
 										}
 									],
 									"font": "Arial;13;0",
 									"left": 552,
 									"top": 887,
-									"width": 169,
-									"height": 68
+									"width": 212.03173828125,
+									"height": 113
 								}
 							],
 							"font": "Arial;13;0",
 							"left": 552,
 							"top": 864,
-							"width": 169,
-							"height": 97,
+							"width": 212.03173828125,
+							"height": 136,
 							"nameLabel": {
 								"$ref": "AAAAAAFwAcuI/FYzJ1M="
 							},
@@ -3251,9 +3296,9 @@
 										"$ref": "AAAAAAFwD6i6iPUQ0t0="
 									},
 									"font": "Arial;13;0",
-									"left": 752,
+									"left": 750,
 									"top": 255,
-									"width": 19.50634765625,
+									"width": 22,
 									"height": 13,
 									"alpha": 0.08564855070349364,
 									"distance": 198.72845795205075,
@@ -4692,6 +4737,16 @@
 						},
 						{
 							"_type": "ERDColumn",
+							"_id": "AAAAAAFwzzXxc68npt4=",
+							"_parent": {
+								"$ref": "AAAAAAFwAcuI+lYwviA="
+							},
+							"name": "lastRank_soloqSecond",
+							"type": "json",
+							"length": 0
+						},
+						{
+							"_type": "ERDColumn",
 							"_id": "AAAAAAFwAeai4VZNagI=",
 							"_parent": {
 								"$ref": "AAAAAAFwAcuI+lYwviA="
@@ -4702,11 +4757,31 @@
 						},
 						{
 							"_type": "ERDColumn",
+							"_id": "AAAAAAFwzzZrN68wKSw=",
+							"_parent": {
+								"$ref": "AAAAAAFwAcuI+lYwviA="
+							},
+							"name": "lastRank_flexSecond",
+							"type": "json",
+							"length": 0
+						},
+						{
+							"_type": "ERDColumn",
 							"_id": "AAAAAAFwAebRHlZUep4=",
 							"_parent": {
 								"$ref": "AAAAAAFwAcuI+lYwviA="
 							},
 							"name": "lastRank_tft",
+							"type": "json",
+							"length": 0
+						},
+						{
+							"_type": "ERDColumn",
+							"_id": "AAAAAAFwzzayZa84f5I=",
+							"_parent": {
+								"$ref": "AAAAAAFwAcuI+lYwviA="
+							},
+							"name": "lastRank_tftSecond",
 							"type": "json",
 							"length": 0
 						}

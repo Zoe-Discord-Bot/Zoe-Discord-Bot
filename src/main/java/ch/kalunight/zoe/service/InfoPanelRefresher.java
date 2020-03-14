@@ -144,7 +144,7 @@ public class InfoPanelRefresher implements Runnable {
       
       rankChannel = RankHistoryChannelRepository.getRankHistoryChannel(server.serv_guildId);
       
-      if(rankChannel != null || infochannel != null) {
+      if(infochannel != null) {
         refreshAllLeagueAccountCurrentGamesAndDeleteOlderInfoCard(playersDTO);
       }
 
@@ -391,19 +391,15 @@ public class InfoPanelRefresher implements Runnable {
               CurrentGameInfoRepository.updateCurrentGame(currentGame, leagueAccount);
             }else {
               CurrentGameInfoRepository.deleteCurrentGame(currentGameDb, server);
-
-              if(rankChannel != null) {
-                searchForRefreshRankChannel(allLeaguesAccounts, currentGameDb);
-              }
+              
+              searchForRefreshRankChannel(allLeaguesAccounts, currentGameDb);
 
               CurrentGameInfoRepository.createCurrentGame(currentGame, leagueAccount);
             }
           }else if(currentGameDb != null && currentGame == null) {
             CurrentGameInfoRepository.deleteCurrentGame(currentGameDb, server);
 
-            if(rankChannel != null) {
-              searchForRefreshRankChannel(allLeaguesAccounts, currentGameDb);
-            }
+            searchForRefreshRankChannel(allLeaguesAccounts, currentGameDb);
           }
           if(currentGame != null) {
             DTO.CurrentGameInfo currentGameInfo = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(leagueAccount.leagueAccount_id);

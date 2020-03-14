@@ -17,9 +17,12 @@ public class LastRankRepository {
   private static final String SELECT_LAST_RANK_WITH_LEAGUE_ACCOUNT_ID = "SELECT " + 
       "last_rank.lastrank_id, " + 
       "last_rank.lastrank_fk_leagueaccount, " + 
-      "last_rank.lastrank_soloq, " + 
+      "last_rank.lastrank_soloq, " +
+      "last_rank.lastrank_soloqSecond, " + 
       "last_rank.lastrank_flex, " + 
-      "last_rank.lastrank_tft " + 
+      "last_rank.lastrank_flexSecond, " + 
+      "last_rank.lastrank_tft, " + 
+      "last_rank.lastrank_tftSecond, " + 
       "FROM league_account " + 
       "INNER JOIN last_rank ON league_account.leagueaccount_id = last_rank.lastrank_fk_leagueaccount " + 
       "WHERE league_account.leagueaccount_id = %d";
@@ -27,11 +30,20 @@ public class LastRankRepository {
   private static final String UPDATE_LAST_RANK_SOLOQ_WITH_ID = 
       "UPDATE last_rank SET lastRank_soloq = %s WHERE lastRank_id = %d";
   
+  private static final String UPDATE_LAST_RANK_SOLOQ_SECOND_WITH_ID = 
+      "UPDATE last_rank SET lastRank_soloqSecond = %s WHERE lastRank_id = %d";
+  
   private static final String UPDATE_LAST_RANK_FLEX_WITH_ID = 
       "UPDATE last_rank SET lastRank_flex = %s WHERE lastRank_id = %d";
-  
+
+  private static final String UPDATE_LAST_RANK_FLEX_SECOND_WITH_ID = 
+      "UPDATE last_rank SET lastRank_flexSecond = %s WHERE lastRank_id = %d";
+
   private static final String UPDATE_LAST_RANK_TFT_WITH_ID = 
       "UPDATE last_rank SET lastRank_tft = %s WHERE lastRank_id = %d";
+  
+  private static final String UPDATE_LAST_RANK_TFT_SECOND_WITH_ID = 
+      "UPDATE last_rank SET lastRank_tftSecond = %s WHERE lastRank_id = %d";
   
   private static final String DELETE_LAST_RANK_WITH_ID = "DELETE FROM last_rank WHERE lastRank_id = %d";
   
@@ -89,6 +101,28 @@ public class LastRankRepository {
     }
   }
   
+  public static void updateLastRankSoloqSecondWithLeagueAccountId(LeagueEntry soloqRank, long leagueAccountId) throws SQLException{
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement();) {
+
+      String lastRankSoloqJson;
+
+      if(soloqRank == null) {
+        lastRankSoloqJson = "NULL";
+      }else {
+        lastRankSoloqJson = gson.toJson(soloqRank);
+        lastRankSoloqJson = "'" + lastRankSoloqJson + "'";
+      }
+      
+      DTO.LastRank lastRank = getLastRankWithLeagueAccountId(leagueAccountId);
+
+      if(lastRank != null) {
+        String finalQuery = String.format(UPDATE_LAST_RANK_SOLOQ_SECOND_WITH_ID, lastRankSoloqJson, lastRank.lastRank_id);
+        query.execute(finalQuery);
+      }
+    }
+  }
+  
   public static void updateLastRankFlexWithLeagueAccountId(LeagueEntry flexRank, long leagueAccountId) throws SQLException{
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
@@ -111,6 +145,28 @@ public class LastRankRepository {
     }
   }
   
+  public static void updateLastRankFlexSecondWithLeagueAccountId(LeagueEntry flexRank, long leagueAccountId) throws SQLException{
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement();) {
+
+      String lastRankFlexJson;
+
+      if(flexRank == null) {
+        lastRankFlexJson = "NULL";
+      }else {
+        lastRankFlexJson = gson.toJson(flexRank);
+        lastRankFlexJson = "'" + lastRankFlexJson + "'";
+      }
+      
+      DTO.LastRank lastRank = getLastRankWithLeagueAccountId(leagueAccountId);
+
+      if(lastRank != null) {
+        String finalQuery = String.format(UPDATE_LAST_RANK_FLEX_SECOND_WITH_ID, lastRankFlexJson, lastRank.lastRank_id);
+        query.execute(finalQuery);
+      }
+    }
+  }
+  
   public static void updateLastRankTftWithLeagueAccountId(LeagueEntry tftRank, long leagueAccountId) throws SQLException{
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
@@ -128,6 +184,28 @@ public class LastRankRepository {
 
       if(lastRank != null) {
         String finalQuery = String.format(UPDATE_LAST_RANK_TFT_WITH_ID, lastRankTftJson, lastRank.lastRank_id);
+        query.execute(finalQuery);
+      }
+    }
+  }
+  
+  public static void updateLastRankTftSecondWithLeagueAccountId(LeagueEntry tftRank, long leagueAccountId) throws SQLException{
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement();) {
+
+      String lastRankTftJson;
+
+      if(tftRank == null) {
+        lastRankTftJson = "NULL";
+      }else {
+        lastRankTftJson = gson.toJson(tftRank);
+        lastRankTftJson = "'" + lastRankTftJson + "'";
+      }
+      
+      DTO.LastRank lastRank = getLastRankWithLeagueAccountId(leagueAccountId);
+
+      if(lastRank != null) {
+        String finalQuery = String.format(UPDATE_LAST_RANK_TFT_SECOND_WITH_ID, lastRankTftJson, lastRank.lastRank_id);
         query.execute(finalQuery);
       }
     }

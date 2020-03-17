@@ -1,7 +1,7 @@
 package ch.kalunight.zoe.model.player_data;
 
 public enum Rank {
-  UNKNOWN("", -1), UNRANKED("", -1), I("1", 300), II("2", 200), III("3", 100), IV("4", 0);
+  UNKNOWN("", -1), UNRANKED("", -1), IV("4", 0), III("3", 100), II("2", 200), I("1", 300);
 
   private String name;
   private int value;
@@ -15,6 +15,28 @@ public enum Rank {
     for(Rank rank : Rank.values()) {
       if(rank.getValue() == value) {
         return rank;
+      }
+    }
+    return null;
+  }
+  
+  public static Rank getRankWithValueApproximate(int value) {
+    for(Rank rank : Rank.values()) {
+      if(value >= rank.getValue()) {
+        
+        if(rank.equals(UNKNOWN) || rank.equals(UNRANKED)) {
+          continue;
+        }
+        
+        Rank oldValue = null;
+        for(Rank potentialHeigher : Rank.values()) {
+          if(value <= potentialHeigher.getValue() && !potentialHeigher.equals(rank)) {
+            return oldValue;
+          }
+          oldValue = potentialHeigher;
+        }
+        
+        continue;
       }
     }
     return null;

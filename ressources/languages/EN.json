@@ -306,5 +306,6 @@
 	"diamond": "Diamond",
 	"master": "Master",
 	"grandmaster": "Grand Master",
-	"challenger": "Challenger"
+	"challenger": "Challenger",
+	"rankedAvg": "Ranked avg"
 }

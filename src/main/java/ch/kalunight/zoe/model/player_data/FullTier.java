@@ -19,7 +19,15 @@ public class FullTier {
     this.rank = rank;
     this.leaguePoints = leaguePoints;
   }
-
+  
+  public FullTier(int value) {
+    this.tier = Tier.getTierWithValueApproximate(value);
+    value -= tier.getValue();
+    this.rank = Rank.getRankWithValueApproximate(value);
+    value -= rank.getValue();
+    this.leaguePoints = value;
+  }
+  
   public int value() throws NoValueRankException {
     if(tier == Tier.UNRANKED || tier == Tier.UNKNOWN) {
       throw new NoValueRankException("Impossible to get Value of FullRank with Unranked or Unknown rank or tier");

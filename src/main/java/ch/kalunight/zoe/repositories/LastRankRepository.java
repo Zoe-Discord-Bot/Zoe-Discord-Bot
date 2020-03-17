@@ -22,7 +22,7 @@ public class LastRankRepository {
       "last_rank.lastrank_flex, " + 
       "last_rank.lastrank_flexSecond, " + 
       "last_rank.lastrank_tft, " + 
-      "last_rank.lastrank_tftSecond, " + 
+      "last_rank.lastrank_tftSecond " + 
       "FROM league_account " + 
       "INNER JOIN last_rank ON league_account.leagueaccount_id = last_rank.lastrank_fk_leagueaccount " + 
       "WHERE league_account.leagueaccount_id = %d";

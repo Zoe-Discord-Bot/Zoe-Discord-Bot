@@ -19,31 +19,34 @@ public class LastRankRepository {
       "last_rank.lastrank_fk_leagueaccount, " + 
       "last_rank.lastrank_soloq, " +
       "last_rank.lastrank_soloqSecond, " + 
+      "last_rank.lastrank_soloqLastRefresh, " + 
       "last_rank.lastrank_flex, " + 
       "last_rank.lastrank_flexSecond, " + 
+      "last_rank.lastrank_flexLastRefresh, " + 
       "last_rank.lastrank_tft, " + 
-      "last_rank.lastrank_tftSecond " + 
+      "last_rank.lastrank_tftSecond, " + 
+      "last_rank.lastrank_tftLastRefresh " + 
       "FROM league_account " + 
       "INNER JOIN last_rank ON league_account.leagueaccount_id = last_rank.lastrank_fk_leagueaccount " + 
       "WHERE league_account.leagueaccount_id = %d";
   
   private static final String UPDATE_LAST_RANK_SOLOQ_WITH_ID = 
-      "UPDATE last_rank SET lastRank_soloq = %s WHERE lastRank_id = %d";
+      "UPDATE last_rank SET lastRank_soloq = %s, lastrank_soloqLastRefresh = NOW() WHERE lastRank_id = %d";
   
   private static final String UPDATE_LAST_RANK_SOLOQ_SECOND_WITH_ID = 
-      "UPDATE last_rank SET lastRank_soloqSecond = %s WHERE lastRank_id = %d";
+      "UPDATE last_rank SET lastRank_soloqSecond = %s, lastrank_soloqLastRefresh = NOW() WHERE lastRank_id = %d";
   
   private static final String UPDATE_LAST_RANK_FLEX_WITH_ID = 
-      "UPDATE last_rank SET lastRank_flex = %s WHERE lastRank_id = %d";
+      "UPDATE last_rank SET lastRank_flex = %s, lastrank_flexLastRefresh = NOW() WHERE lastRank_id = %d";
 
   private static final String UPDATE_LAST_RANK_FLEX_SECOND_WITH_ID = 
-      "UPDATE last_rank SET lastRank_flexSecond = %s WHERE lastRank_id = %d";
+      "UPDATE last_rank SET lastRank_flexSecond = %s, lastrank_flexLastRefresh = NOW() WHERE lastRank_id = %d";
 
   private static final String UPDATE_LAST_RANK_TFT_WITH_ID = 
-      "UPDATE last_rank SET lastRank_tft = %s WHERE lastRank_id = %d";
+      "UPDATE last_rank SET lastRank_tft = %s, lastrank_tftLastRefresh = NOW() WHERE lastRank_id = %d";
   
   private static final String UPDATE_LAST_RANK_TFT_SECOND_WITH_ID = 
-      "UPDATE last_rank SET lastRank_tftSecond = %s WHERE lastRank_id = %d";
+      "UPDATE last_rank SET lastRank_tftSecond = %s, lastrank_tftLastRefresh = NOW() WHERE lastRank_id = %d";
   
   private static final String DELETE_LAST_RANK_WITH_ID = "DELETE FROM last_rank WHERE lastRank_id = %d";
   

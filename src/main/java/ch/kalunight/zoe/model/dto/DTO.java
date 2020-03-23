@@ -20,6 +20,7 @@ import net.rithms.riot.constant.Platform;
 public class DTO {
 
   public static final DateTimeFormatter DB_TIME_PATTERN = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+  public static final DateTimeFormatter DB_TIME_PATTERN_BULT_IN_PATTERN = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSS");
 
   private static final Gson gson = new GsonBuilder().create();
 
@@ -212,10 +213,13 @@ public class DTO {
     public long lastRank_fk_leagueAccount;
     public LeagueEntry lastRank_soloq;
     public LeagueEntry lastRank_soloqSecond;
+    public LocalDateTime lastRank_soloqLastRefresh;
     public LeagueEntry lastRank_flex;
     public LeagueEntry lastRank_flexSecond;
+    public LocalDateTime lastRank_flexLastRefresh;
     public LeagueEntry lastRank_tft;
     public LeagueEntry lastRank_tftSecond;
+    public LocalDateTime lastRank_tftLastRefresh;
     
     public LastRank(ResultSet baseData) throws SQLException {
       lastRank_id = baseData.getLong("lastRank_id");
@@ -230,6 +234,11 @@ public class DTO {
         lastRank_soloqSecond = gson.fromJson(lastRank, LeagueEntry.class);
       }
       
+      lastRank = baseData.getString("lastRank_soloqLastRefresh");
+      if(lastRank != null) {
+        lastRank_soloqLastRefresh = LocalDateTime.parse(lastRank, DB_TIME_PATTERN_BULT_IN_PATTERN);
+      }
+      
       lastRank = baseData.getString("lastRank_flex");
       if(lastRank != null) {
         lastRank_flex = gson.fromJson(lastRank, LeagueEntry.class);
@@ -240,6 +249,11 @@ public class DTO {
         lastRank_flexSecond = gson.fromJson(lastRank, LeagueEntry.class);
       }
       
+      lastRank = baseData.getString("lastRank_flexLastRefresh");
+      if(lastRank != null) {
+        lastRank_flexLastRefresh = LocalDateTime.parse(lastRank, DB_TIME_PATTERN_BULT_IN_PATTERN);
+      }
+      
       lastRank = baseData.getString("lastRank_tft");
       if(lastRank != null) {
         lastRank_tft = gson.fromJson(lastRank, LeagueEntry.class);
@@ -248,6 +262,11 @@ public class DTO {
       lastRank = baseData.getString("lastRank_tftSecond");
       if(lastRank != null) {
         lastRank_tftSecond = gson.fromJson(lastRank, LeagueEntry.class);
+      }
+      
+      lastRank = baseData.getString("lastRank_tftLastRefresh");
+      if(lastRank != null) {
+        lastRank_tftLastRefresh = LocalDateTime.parse(lastRank, DB_TIME_PATTERN_BULT_IN_PATTERN);
       }
     }
   }

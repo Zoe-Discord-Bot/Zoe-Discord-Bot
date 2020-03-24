@@ -14,7 +14,7 @@ public class FullTierUtil {
   public static String getTierRankTextDifference(LeagueEntry oldEntry, LeagueEntry newEntry, String lang) {
     
     if(oldEntry == null || newEntry == null) {
-      return "?";
+      return "*?*";
     }
     
     FullTier oldFullTier = new FullTier(oldEntry);
@@ -74,7 +74,7 @@ public class FullTierUtil {
     }
     
     
-    return "";
+    return "*?*";
   }
   
 }

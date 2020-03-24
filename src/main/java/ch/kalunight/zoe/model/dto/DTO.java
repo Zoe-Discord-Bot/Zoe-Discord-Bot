@@ -20,7 +20,6 @@ import net.rithms.riot.constant.Platform;
 public class DTO {
 
   public static final DateTimeFormatter DB_TIME_PATTERN = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-  public static final DateTimeFormatter DB_TIME_PATTERN_BULT_IN_PATTERN = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSS");
 
   private static final Gson gson = new GsonBuilder().create();
 
@@ -236,7 +235,7 @@ public class DTO {
       
       lastRank = baseData.getString("lastRank_soloqLastRefresh");
       if(lastRank != null) {
-        lastRank_soloqLastRefresh = LocalDateTime.parse(lastRank, DB_TIME_PATTERN_BULT_IN_PATTERN);
+        lastRank_soloqLastRefresh = LocalDateTime.parse(lastRank.split("\\.")[0], DB_TIME_PATTERN);
       }
       
       lastRank = baseData.getString("lastRank_flex");
@@ -251,7 +250,7 @@ public class DTO {
       
       lastRank = baseData.getString("lastRank_flexLastRefresh");
       if(lastRank != null) {
-        lastRank_flexLastRefresh = LocalDateTime.parse(lastRank, DB_TIME_PATTERN_BULT_IN_PATTERN);
+        lastRank_flexLastRefresh = LocalDateTime.parse(lastRank.split("\\.")[0], DB_TIME_PATTERN);
       }
       
       lastRank = baseData.getString("lastRank_tft");
@@ -266,7 +265,7 @@ public class DTO {
       
       lastRank = baseData.getString("lastRank_tftLastRefresh");
       if(lastRank != null) {
-        lastRank_tftLastRefresh = LocalDateTime.parse(lastRank, DB_TIME_PATTERN_BULT_IN_PATTERN);
+        lastRank_tftLastRefresh = LocalDateTime.parse(lastRank.split("\\.")[0], DB_TIME_PATTERN);
       }
     }
   }

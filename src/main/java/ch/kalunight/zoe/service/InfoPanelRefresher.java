@@ -659,14 +659,14 @@ public class InfoPanelRefresher implements Runnable {
 
             LeagueAccount leagueAccount = accountNotInGame.get(0);
 
-            getTextInformationPanelRankOption(stringMessage, player, leagueAccount);
+            getTextInformationPanelRankOption(stringMessage, player, leagueAccount, false);
           }else {
             
             stringMessage.append(String.format(LanguageManager.getText(server.serv_language, "infoPanelRankedTitleMultipleAccount"), player.user.getAsMention()) + "\n");
             
             for(DTO.LeagueAccount leagueAccount : accountNotInGame) {
               
-              getTextInformationPanelRankOption(stringMessage, player, leagueAccount);
+              getTextInformationPanelRankOption(stringMessage, player, leagueAccount, true);
             }
           }
 
@@ -685,7 +685,7 @@ public class InfoPanelRefresher implements Runnable {
   }
 
   private void getTextInformationPanelRankOption(final StringBuilder stringMessage, DTO.Player player,
-      DTO.LeagueAccount leagueAccount) throws SQLException {
+      DTO.LeagueAccount leagueAccount, boolean mutlipleAccount) throws SQLException {
     LastRank lastRank = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
 
     if(lastRank == null) {
@@ -732,24 +732,47 @@ public class InfoPanelRefresher implements Runnable {
       return;
     }
     
+    FullTier soloqFullTier;
+    FullTier flexFullTier;
+    
+    String accountString;
+    String baseText;
+    if(mutlipleAccount) {
+      baseText = "infoPanelRankedTextMultipleAccount";
+      accountString = leagueAccount.leagueAccount_name;
+    }else {
+      baseText = "infoPanelRankedTextOneAccount";
+      accountString = player.user.getAsMention();
+    }
+    
     if(lastRank.lastRank_soloqLastRefresh != null && lastRank.lastRank_flexLastRefresh == null) {
-      stringMessage.append(String.format(LanguageManager.getText(server.serv_language, "infoPanelRankedTextOneAccount"), player.user.getAsMention(), 
-          lastRank.lastRank_soloq + " " + FullTierUtil.getTierRankTextDifference(lastRank.lastRank_soloqSecond, lastRank.lastRank_soloq, server.serv_language),
-          LanguageManager.getText("soloq", server.serv_language)) + "\n");
+      
+      soloqFullTier = new FullTier(lastRank.lastRank_soloq);
+      
+      stringMessage.append(String.format(LanguageManager.getText(server.serv_language, baseText), accountString, 
+          soloqFullTier.toString(server.serv_language), FullTierUtil.getTierRankTextDifference(lastRank.lastRank_soloqSecond, lastRank.lastRank_soloq, server.serv_language)
+          + " / " + LanguageManager.getText(server.serv_language, "soloq")) + "\n");
     }else if(lastRank.lastRank_soloqLastRefresh == null && lastRank.lastRank_flexLastRefresh != null) {
-      stringMessage.append(String.format(LanguageManager.getText(server.serv_language, "infoPanelRankedTextOneAccount"), player.user.getAsMention(), 
-          lastRank.lastRank_soloq + " " + FullTierUtil.getTierRankTextDifference(lastRank.lastRank_soloqSecond, lastRank.lastRank_soloq, server.serv_language),
-          LanguageManager.getText("flex", server.serv_language)) + "\n");
+      
+      flexFullTier = new FullTier(lastRank.lastRank_flex);
+      
+      stringMessage.append(String.format(LanguageManager.getText(server.serv_language, baseText), accountString, 
+          flexFullTier.toString(server.serv_language), FullTierUtil.getTierRankTextDifference(lastRank.lastRank_soloqSecond, lastRank.lastRank_soloq, server.serv_language)
+          + " / " + LanguageManager.getText(server.serv_language, "flex")) + "\n");
     }else if(lastRank.lastRank_soloqLastRefresh != null && lastRank.lastRank_flexLastRefresh != null) {
 
       if(lastRank.lastRank_flexLastRefresh.isBefore(lastRank.lastRank_soloqLastRefresh)) {
-        stringMessage.append(String.format(LanguageManager.getText(server.serv_language, "infoPanelRankedTextOneAccount"), player.user.getAsMention(), 
-            lastRank.lastRank_soloq + " " + FullTierUtil.getTierRankTextDifference(lastRank.lastRank_soloqSecond, lastRank.lastRank_soloq, server.serv_language),
-            LanguageManager.getText("flex", server.serv_language)) + "\n");
+        flexFullTier = new FullTier(lastRank.lastRank_flex);
+        
+        stringMessage.append(String.format(LanguageManager.getText(server.serv_language, baseText), accountString, 
+            flexFullTier.toString(server.serv_language), FullTierUtil.getTierRankTextDifference(lastRank.lastRank_soloqSecond, lastRank.lastRank_soloq, server.serv_language)
+            + " / " + LanguageManager.getText(server.serv_language, "flex")) + "\n");
       }else {
-        stringMessage.append(String.format(LanguageManager.getText(server.serv_language, "infoPanelRankedTextOneAccount"), player.user.getAsMention(), 
-            lastRank.lastRank_soloq + " " + FullTierUtil.getTierRankTextDifference(lastRank.lastRank_soloqSecond, lastRank.lastRank_soloq, server.serv_language),
-            LanguageManager.getText("soloq", server.serv_language)) + "\n");
+        soloqFullTier = new FullTier(lastRank.lastRank_soloq);
+        
+        stringMessage.append(String.format(LanguageManager.getText(server.serv_language, baseText), accountString, 
+            soloqFullTier.toString(server.serv_language), FullTierUtil.getTierRankTextDifference(lastRank.lastRank_soloqSecond, lastRank.lastRank_soloq, server.serv_language)
+            + " / " + LanguageManager.getText(server.serv_language, "soloq")) + "\n");
       }
     }
   }

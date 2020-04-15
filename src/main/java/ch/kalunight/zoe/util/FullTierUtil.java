@@ -13,6 +13,9 @@ public class FullTierUtil {
   
   public static String getTierRankTextDifference(LeagueEntry oldEntry, LeagueEntry newEntry, String lang) {
     
+    final String usableGreenEmote = Ressources.getGreenTriangleEmote().getUsableEmote();
+    final String usableRedEmote = Ressources.getRedTriangleEmote();
+    
     if(oldEntry == null || newEntry == null) {
       return "*?*";
     }
@@ -26,21 +29,21 @@ public class FullTierUtil {
       if(oldEntry.getMiniSeries() != null && newEntry.getMiniSeries() == null) { //BO ended
         
         if(oldFullTier.getTier().getValue() > newFullTier.getTier().getValue()) { //BO win
-          return "*" + LanguageManager.getText(lang, "infoPanelRankedUpdateBoWin" + "*");
+          return usableGreenEmote + " " + LanguageManager.getText(lang, "infoPanelRankedUpdateBoWin");
         } else { //BO lose
-          return "*" + LanguageManager.getText(lang, "infoPanelRankedUpdateBoLose" + "*");
+          return usableRedEmote + " " + LanguageManager.getText(lang, "infoPanelRankedUpdateBoLose");
         }
         
       }else if(oldEntry.getMiniSeries() == null && newEntry.getMiniSeries() != null) { //BO started
         
-        return "*" + LanguageManager.getText(lang, "infoPanelRankedUpdateBoStarted" + "*");
+        return ":star: " + LanguageManager.getText(lang, "infoPanelRankedUpdateBoStarted");
         
       }else if(oldEntry.getMiniSeries() != null && newEntry.getMiniSeries() != null) { //BO in progress OR remake
         int nbrMatchOldEntry = oldEntry.getMiniSeries().getLosses() + oldEntry.getMiniSeries().getWins();
         int nbrMatchNewEntry = newEntry.getMiniSeries().getLosses() + newEntry.getMiniSeries().getWins();
 
         if(nbrMatchNewEntry != nbrMatchOldEntry) { //BO in progress
-          return "*" + LanguageManager.getText(lang, "infoPanelRankedUpdateBoInProgres" + "*");
+          return "" + LanguageManager.getText(lang, "infoPanelRankedUpdateBoInProgres");
         }
       }
 
@@ -50,11 +53,11 @@ public class FullTierUtil {
         
         if(newFullTier.getLeaguePoints() < oldFullTier.getLeaguePoints()) {
           
-          return "*" + Integer.toString(newFullTier.getLeaguePoints() - oldFullTier.getLeaguePoints()) + "*";
+          return usableRedEmote + " " + Integer.toString(newFullTier.getLeaguePoints() - oldFullTier.getLeaguePoints());
           
         }else if(newFullTier.getLeaguePoints() > oldFullTier.getLeaguePoints()) {
           
-          return  "*+" + (newFullTier.getLeaguePoints() - oldFullTier.getLeaguePoints() + "*");
+          return usableGreenEmote + " " + (newFullTier.getLeaguePoints() - oldFullTier.getLeaguePoints());
           
         } else {
           return "*~0*";
@@ -63,9 +66,9 @@ public class FullTierUtil {
       }else { //Decay OR division skip
         try {
           if(oldFullTier.value() < newFullTier.value()) {
-            return "*" + LanguageManager.getText(lang, "infoPanelRankedUpdateDivisionSkip" + "*");
+            return usableGreenEmote + " " + LanguageManager.getText(lang, "infoPanelRankedUpdateDivisionSkip");
           }else {
-            return "*" + LanguageManager.getText(lang, "infoPanelRankedUpdateDecay" + "*");
+            return usableRedEmote + " " + LanguageManager.getText(lang, "infoPanelRankedUpdateDecay");
           }
         } catch (NoValueRankException e) {
           return "";

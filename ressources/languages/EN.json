@@ -313,7 +313,7 @@
 	"infoPanelRankedOptionLongDescDisable": "Option you want to disable : **%s**\n\nDisabling this option will stop the display of stats on account rankeds in the infopanel.\n\n**Are you sure to disable this option ?**\n\n:white_check_mark: : **Disable** the option\n:x: : Cancel the disable procedure",
 	"infoPanelRankedTextOneAccount": "%s : Not in game | Rank : %s (%s)",
 	"infoPanelRankedTitleMultipleAccount": "%s : Not in game | Accounts list :",
-	"infoPanelRankedTextMultipleAccount": "- %s : Rank | %s (Rank change : %s)",
+	"infoPanelRankedTextMultipleAccount": "- %s : Rank | %s (%s)",
 	"infoPanelRankedUpdateBoWin": "BO Win",
 	"infoPanelRankedUpdateBoLose": "BO Lose",
 	"infoPanelRankedUpdateBoStarted": "BO Started",

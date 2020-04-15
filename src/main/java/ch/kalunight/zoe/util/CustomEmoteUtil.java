@@ -142,4 +142,10 @@ public class CustomEmoteUtil {
       }
     }
   }
+
+  public static void addSmallGreenTriangleIfSame(CustomEmote emote) {
+    if(emote.getEmote() != null && emote.getEmote().getName().equalsIgnoreCase("smallGreenTriangle")) {
+      Ressources.setGreenTriangleEmote(emote);
+    }
+  }
 }

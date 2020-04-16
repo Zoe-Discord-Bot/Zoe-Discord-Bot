@@ -97,7 +97,7 @@ public class EventListenerUtil {
       CustomEmoteUtil.addToChampionIfIsSame(emote);
       CustomEmoteUtil.addToTierIfisSame(emote);
       CustomEmoteUtil.addToMasteryIfIsSame(emote);
-      CustomEmoteUtil.addSmallGreenTriangleIfSame(emote);
+      CustomEmoteUtil.addInfoIconIfSame(emote);
     }
   }
 

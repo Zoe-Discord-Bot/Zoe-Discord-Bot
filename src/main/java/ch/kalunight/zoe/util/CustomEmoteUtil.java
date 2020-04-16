@@ -143,9 +143,23 @@ public class CustomEmoteUtil {
     }
   }
 
-  public static void addSmallGreenTriangleIfSame(CustomEmote emote) {
-    if(emote.getEmote() != null && emote.getEmote().getName().equalsIgnoreCase("smallGreenTriangle")) {
+  public static void addInfoIconIfSame(CustomEmote emote) {
+    if(emote.getEmote() == null) {
+      return;
+    }
+    
+    if(emote.getEmote().getName().equalsIgnoreCase("smallGreenTriangle")) {
       Ressources.setGreenTriangleEmote(emote);
+      return;
+    }
+    
+    if(emote.getEmote().getName().equalsIgnoreCase("ZoeMatchInWait")) {
+      Ressources.setGameToDo(emote);
+      return;
+    }
+    
+    if(emote.getEmote().getName().equalsIgnoreCase("ZoeMatchLose")) {
+      Ressources.setGameLost(emote);
     }
   }
 }

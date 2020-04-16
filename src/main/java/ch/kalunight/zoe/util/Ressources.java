@@ -35,6 +35,10 @@ public class Ressources {
   
   private static CustomEmote greenTriangleEmote;
 
+  private static CustomEmote gameToDo;
+  
+  private static CustomEmote gameLost;
+
   public static Champion getChampionDataById(int id) {
     for(Champion champion : champions) {
       if(champion.getKey() == id) {
@@ -88,5 +92,20 @@ public class Ressources {
     return RED_TRIANGLE_EMOTE;
   }
 
+  public static CustomEmote getGameToDo() {
+    return gameToDo;
+  }
+
+  public static void setGameToDo(CustomEmote gameToDo) {
+    Ressources.gameToDo = gameToDo;
+  }
+
+  public static CustomEmote getGameLost() {
+    return gameLost;
+  }
+
+  public static void setGameLost(CustomEmote gameLost) {
+    Ressources.gameLost = gameLost;
+  }
 
 }

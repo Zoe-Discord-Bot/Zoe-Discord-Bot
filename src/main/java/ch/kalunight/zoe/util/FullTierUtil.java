@@ -57,7 +57,7 @@ public class FullTierUtil {
           
         }else if(newFullTier.getLeaguePoints() > oldFullTier.getLeaguePoints()) {
           
-          return usableGreenEmote + " " + (newFullTier.getLeaguePoints() - oldFullTier.getLeaguePoints());
+          return usableGreenEmote + " +" + (newFullTier.getLeaguePoints() - oldFullTier.getLeaguePoints());
           
         } else {
           return "*~0*";

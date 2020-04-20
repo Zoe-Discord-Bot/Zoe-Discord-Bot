@@ -46,10 +46,10 @@ import ch.kalunight.zoe.repositories.RepoRessources;
 import ch.kalunight.zoe.riotapi.CachedRiotApi;
 import ch.kalunight.zoe.util.CommandUtil;
 import ch.kalunight.zoe.util.Ressources;
-import net.dv8tion.jda.api.AccountType;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
+import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.RiotApi;
 
@@ -68,6 +68,8 @@ public class Zoe {
   private static final List<Object> eventListenerList = Collections.synchronizedList(new ArrayList<>());  
 
   public static final Logger logger = LoggerFactory.getLogger(Zoe.class);
+  
+  private static final List<GatewayIntent> listOfGatway = Collections.synchronizedList(new ArrayList<>());
 
   private static EventWaiter eventWaiter;
 
@@ -85,6 +87,12 @@ public class Zoe {
 
   private static DiscordBotListAPI botListApi;
 
+  static {
+    for(GatewayIntent gateway : GatewayIntent.values()) {
+      listOfGatway.add(gateway);
+    }
+  }
+  
   public static void main(String[] args) {
     
     if(discordTocken != null) { //Avoid strange reboot
@@ -140,13 +148,12 @@ public class Zoe {
     eventListenerList.add(eventListener);
 
     try {
-      jda = new JDABuilder(AccountType.BOT)//
-          .setToken(discordTocken)//
+      jda = JDABuilder.createLight(discordTocken, listOfGatway)//
           .setStatus(OnlineStatus.DO_NOT_DISTURB)//
           .addEventListeners(commandClient)//
           .addEventListeners(eventWaiter)//
-          .addEventListeners(eventListener).build();//
-      jda.setAutoReconnect(false);
+          .addEventListeners(eventListener)//
+          .setAutoReconnect(false).build();//
     } catch(IndexOutOfBoundsException e) {
       logger.error("You must provide a token.");
       System.exit(1);
@@ -269,5 +276,9 @@ public class Zoe {
 
   public static void setMainCommands(List<Command> mainCommands) {
     Zoe.mainCommands = mainCommands;
+  }
+  
+  public static List<GatewayIntent> getListOfGatway() {
+    return listOfGatway;
   }
 }

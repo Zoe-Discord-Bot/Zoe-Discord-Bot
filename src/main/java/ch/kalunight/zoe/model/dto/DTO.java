@@ -40,6 +40,16 @@ public class DTO {
       serv_lastRefresh = LocalDateTime.parse(baseData.getString("serv_lastRefresh"), DB_TIME_PATTERN);
     }
   }
+  
+  public static class ServerConfig {
+    public long servconfig_id;
+    public long servconfig_fk_server;
+
+    public ServerConfig(ResultSet baseData) throws SQLException {
+      servconfig_id = baseData.getLong("servconfig_id");
+      servconfig_fk_server = baseData.getLong("servconfig_fk_server");
+    }
+  }
 
   public static class ServerStatus {
     public long servstatus_id;

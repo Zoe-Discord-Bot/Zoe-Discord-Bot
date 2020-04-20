@@ -47,7 +47,7 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.channel.text.TextChannelDeleteEvent;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
-import net.dv8tion.jda.api.events.guild.member.GuildMemberLeaveEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.role.RoleDeleteEvent;
 import net.dv8tion.jda.api.events.user.UserActivityStartEvent;
@@ -265,7 +265,7 @@ public class EventListener extends ListenerAdapter {
   }
 
   @Override
-  public void onGuildMemberLeave(GuildMemberLeaveEvent event) {
+  public void onGuildMemberRemove(GuildMemberRemoveEvent event) {
     if(event == null) {
       return;
     }

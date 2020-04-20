@@ -13,8 +13,16 @@ public class FullTierUtil {
   
   public static String getTierRankTextDifference(LeagueEntry oldEntry, LeagueEntry newEntry, String lang) {
     
-    final String usableGreenEmote = Ressources.getGreenTriangleEmote().getUsableEmote();
-    final String usableRedEmote = Ressources.getRedTriangleEmote();
+    String usableGreenEmote = "";
+    if(Ressources.getGreenTriangleEmote() != null) {
+      usableGreenEmote = Ressources.getGreenTriangleEmote().getUsableEmote();
+    }
+    
+    String usableRedEmote = "";
+    if(Ressources.getRedTriangleEmote() != null) {
+      usableRedEmote = Ressources.getRedTriangleEmote();
+    }
+    
     
     if(oldEntry == null || newEntry == null) {
       return "*?*";

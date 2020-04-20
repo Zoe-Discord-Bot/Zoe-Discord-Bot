@@ -65,6 +65,12 @@ public class ConfigRepository {
       "INNER JOIN clean_channel_option ON server_configuration.servconfig_id = clean_channel_option.cleanoption_fk_serverconfig " + 
       "WHERE server.serv_guildid = %d";
   
+  private static final String SELECT_SERVCONFIG_WITH_GUILDID = "SELECT " + 
+      "server_configuration.servconfig_id " + 
+      "FROM server " + 
+      "INNER JOIN server_configuration ON server.serv_id = server_configuration.servconfig_fk_server " + 
+      "WHERE server_configuration.servconfig_fk_server = %d";
+  
   private static final String SELECT_INFOPANEL_RANKED_WITH_GUILDID = "SELECT " + 
       "info_panel_ranked_option.infopanelranked_activate " + 
       "FROM server " + 
@@ -167,6 +173,32 @@ public class ConfigRepository {
     //Create InfoPanelRankedOption
     finalQuery = String.format(INSERT_INTO_INFOPANEL_RANKED_OPTION, servConfigId);
     statement.execute(finalQuery);
+  }
+  
+  public static DTO.ServerConfig getServerConfigDTO(long guildId) throws SQLException{
+    ResultSet result = null;
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement();) {
+      
+      String finalQuery = String.format(SELECT_SERVCONFIG_WITH_GUILDID, guildId);
+      result = query.executeQuery(finalQuery);
+      int rowCount = result.last() ? result.getRow() : 0;
+      if(rowCount == 0) {
+        return null;
+      }
+      return new DTO.ServerConfig(result);
+    } finally {
+      RepoRessources.closeResultSet(result);
+    }
+  }
+  
+  public static void createInfoPanelRankedOption(long servConfigId) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement();) {
+      
+      String finalQuery = String.format(INSERT_INTO_INFOPANEL_RANKED_OPTION, servConfigId);
+      query.execute(finalQuery);
+    }
   }
 
   public static ServerConfiguration getServerConfiguration(long guildId) throws SQLException {

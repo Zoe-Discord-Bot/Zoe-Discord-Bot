@@ -703,7 +703,7 @@ public class InfoPanelRefresher implements Runnable {
       for(LeagueEntry leaguePosition : leaguesEntry) {
         if(leaguePosition.getQueueType().equals("RANKED_SOLO_5x5")) {
           soloq = leaguePosition;
-        }else if(leaguePosition.getQueueType().equals("RANKED_TEAM_5x5")) {
+        }else if(leaguePosition.getQueueType().equals("RANKED_FLEX_SR")) {
           flex = leaguePosition;
         }
       }
@@ -728,7 +728,11 @@ public class InfoPanelRefresher implements Runnable {
     }
     
     if(lastRank == null) {
-      notInGameWithoutRankInfo(stringMessage, player);
+      if(mutlipleAccount) {
+        notInGameUnranked(stringMessage, leagueAccount);
+      }else {
+        notInGameWithoutRankInfo(stringMessage, player);
+      }
       return;
     }
     
@@ -780,6 +784,11 @@ public class InfoPanelRefresher implements Runnable {
   private void notInGameWithoutRankInfo(final StringBuilder stringMessage, DTO.Player player) {
     stringMessage.append(player.user.getAsMention() + " : " 
         + LanguageManager.getText(server.serv_language, "informationPanelNotInGame") + " \n");
+  }
+  
+  private void notInGameUnranked(final StringBuilder stringMessage, DTO.LeagueAccount leagueAccount) {
+    stringMessage.append("- " + leagueAccount.leagueAccount_name + " : " 
+        + LanguageManager.getText(server.serv_language, "unranked") + " \n");
   }
 
   public static AtomicLong getNbrServerSefreshedLast2Minutes() {

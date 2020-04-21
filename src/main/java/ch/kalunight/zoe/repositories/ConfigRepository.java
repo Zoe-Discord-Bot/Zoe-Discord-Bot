@@ -66,7 +66,8 @@ public class ConfigRepository {
       "WHERE server.serv_guildid = %d";
   
   private static final String SELECT_SERVCONFIG_WITH_GUILDID = "SELECT " + 
-      "server_configuration.servconfig_id " + 
+      "server_configuration.servconfig_id, " +
+      "server_configuration.servconfig_fk_server " + 
       "FROM server " + 
       "INNER JOIN server_configuration ON server.serv_id = server_configuration.servconfig_fk_server " + 
       "WHERE server_configuration.servconfig_fk_server = %d";
@@ -175,12 +176,12 @@ public class ConfigRepository {
     statement.execute(finalQuery);
   }
   
-  public static DTO.ServerConfig getServerConfigDTO(long guildId) throws SQLException{
+  public static DTO.ServerConfig getServerConfigDTO(long serverId) throws SQLException{
     ResultSet result = null;
     try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement();) {
+        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
       
-      String finalQuery = String.format(SELECT_SERVCONFIG_WITH_GUILDID, guildId);
+      String finalQuery = String.format(SELECT_SERVCONFIG_WITH_GUILDID, serverId);
       result = query.executeQuery(finalQuery);
       int rowCount = result.last() ? result.getRow() : 0;
       if(rowCount == 0) {

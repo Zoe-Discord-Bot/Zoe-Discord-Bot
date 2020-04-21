@@ -87,7 +87,7 @@ public class EventListenerUtil {
     }
 
     for(Guild guild : listGuild) {
-      uploadedEmotes.addAll(guild.getEmotes());
+      uploadedEmotes.addAll(guild.retrieveEmotes().complete());
     }
     return uploadedEmotes;
   }

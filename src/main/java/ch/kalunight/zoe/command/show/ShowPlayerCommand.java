@@ -77,7 +77,7 @@ public class ShowPlayerCommand extends ZoeCommand {
     int accountsNmb = 0;
     for(DTO.Player player : players) {
       StringBuilder playerInfo = new StringBuilder();
-      User user = event.getGuild().getMemberById(player.player_discordId).getUser();
+      User user = event.getGuild().retrieveMemberById(player.player_discordId).complete().getUser();
       playerInfo.append(String.format(LanguageManager.getText(server.serv_language, "showPlayerName"),
           user.getName()) + "\n");
 

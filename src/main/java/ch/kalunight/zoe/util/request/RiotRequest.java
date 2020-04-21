@@ -95,7 +95,7 @@ public class RiotRequest {
     }
 
     for(LeagueEntry leaguePosition : listLeague) {
-      if(leaguePosition.getQueueType().equals("RANKED_TEAM_5x5")) {
+      if(leaguePosition.getQueueType().equals("RANKED_FLEX_SR")) {
         return leaguePosition;
       }
     }

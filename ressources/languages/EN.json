@@ -319,5 +319,6 @@
 	"infoPanelRankedUpdateBoStarted": "BO Started",
 	"infoPanelRankedUpdateBoInProgres": "BO in Progress",
 	"infoPanelRankedUpdateDivisionSkip": "Rank Up",
-	"infoPanelRankedUpdateDecay": "Division Lost"
+	"infoPanelRankedUpdateDecay": "Division Lost",
+	"flexTitleRespectSize" : "Flex Rank"
 }

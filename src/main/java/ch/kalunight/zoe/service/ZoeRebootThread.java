@@ -18,6 +18,7 @@ import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDA.Status;
+import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
 
@@ -61,6 +62,7 @@ public class ZoeRebootThread extends TimerTask {
 
       jda = JDABuilder.createLight(Zoe.getDiscordTocken(), Zoe.getListOfGatway())//
           .setStatus(OnlineStatus.ONLINE)//
+          .enableCache(CacheFlag.EMOTE)
           .addEventListeners(commandClient)//
           .addEventListeners(Zoe.getEventWaiter())//
           .addEventListeners(eventListener)

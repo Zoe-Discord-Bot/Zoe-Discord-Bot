@@ -50,6 +50,7 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.RiotApi;
 
@@ -149,6 +150,7 @@ public class Zoe {
 
     try {
       jda = JDABuilder.createLight(discordTocken, listOfGatway)//
+          .enableCache(CacheFlag.EMOTE)
           .setStatus(OnlineStatus.DO_NOT_DISTURB)//
           .addEventListeners(commandClient)//
           .addEventListeners(eventWaiter)//

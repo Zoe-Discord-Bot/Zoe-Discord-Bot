@@ -164,7 +164,7 @@ public class ServerData {
     logger.info("Start to shutdown Players Data Worker...");
     channel.sendMessage("Start to shutdown Players Data Worker ...").complete();
     for(Platform platform : Platform.values()) {
-      ThreadPoolExecutor playerWorker = MATCH_THREAD_EXECUTORS.get(platform);
+      ThreadPoolExecutor playerWorker = PLAYERS_DATA_EXECUTORS.get(platform);
       playerWorker.shutdown();
       logger.info("Start to shutdown Players Worker {}, this can take 1 minutes max...", platform.getName());
       

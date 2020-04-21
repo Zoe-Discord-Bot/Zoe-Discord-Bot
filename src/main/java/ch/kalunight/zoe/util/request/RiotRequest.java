@@ -68,6 +68,31 @@ public class RiotRequest {
     return new FullTier(rank, tier, leaguePoints);
   }
   
+  public static FullTier getFlexRank(String summonerId, Platform region) {
+
+    Set<LeagueEntry> listLeague;
+    try {
+      listLeague = Zoe.getRiotApi().getLeagueEntriesBySummonerIdWithRateLimit(region, summonerId);
+    } catch(RiotApiException e) {
+      logger.info("Error with riot api : {}", e.getMessage());
+      return new FullTier(Tier.UNKNOWN, Rank.UNKNOWN, 0);
+    }
+
+    Tier rank = Tier.UNRANKED;
+    Rank tier = Rank.UNRANKED;
+    int leaguePoints = 0;
+
+    for(LeagueEntry leaguePosition : listLeague) {
+      if(leaguePosition.getQueueType().equals("RANKED_FLEX_SR")) {
+        rank = Tier.valueOf(leaguePosition.getTier());
+        tier = Rank.valueOf(leaguePosition.getRank());
+        leaguePoints = leaguePosition.getLeaguePoints();
+      }
+    }
+
+    return new FullTier(rank, tier, leaguePoints);
+  }
+  
   public static LeagueEntry getLeagueEntrySoloq(String summonerId, Platform region) {
     Set<LeagueEntry> listLeague;
     try {

@@ -59,11 +59,11 @@ public class MessageBuilderRequestUtil {
   }
 
   public static void createTeamDataMultipleSummoner(List<CurrentGameParticipant> teamParticipant, List<String> listIdPlayers,
-      Platform platform, String language, List<InfocardPlayerData> playersDataToWait, boolean isBlueTeam) {
+      Platform platform, String language, List<InfocardPlayerData> playersDataToWait, boolean isBlueTeam, int gameQueueConfigId) {
 
     for(CurrentGameParticipant participant : teamParticipant) {
       InfocardPlayerData playerData = new InfocardPlayerData(isBlueTeam);
-      SummonerDataWorker playerWorker = new SummonerDataWorker(participant, listIdPlayers, platform, language, playerData);
+      SummonerDataWorker playerWorker = new SummonerDataWorker(participant, listIdPlayers, platform, language, playerData, gameQueueConfigId);
       ServerData.getPlayersDataWorker(platform).execute(playerWorker);
       playersDataToWait.add(playerData);
     }

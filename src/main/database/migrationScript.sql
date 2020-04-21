@@ -19,4 +19,3 @@ ALTER TABLE info_panel_ranked_option
   ADD CONSTRAINT info_panel_ranked_option_fk_serverConfig_const
   FOREIGN KEY (infoPanelRanked_fk_serverConfig) REFERENCES server_configuration (servConfig_id)
   ON DELETE CASCADE;
-  

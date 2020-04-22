@@ -22,21 +22,9 @@ public enum Rank {
   
   public static Rank getRankWithValueApproximate(int value) {
     for(Rank rank : Rank.values()) {
-      if(value >= rank.getValue()) {
-        
-        if(rank.equals(UNKNOWN) || rank.equals(UNRANKED)) {
-          continue;
-        }
-        
-        Rank oldValue = null;
-        for(Rank potentialHeigher : Rank.values()) {
-          if(value <= potentialHeigher.getValue() && !potentialHeigher.equals(rank)) {
-            return oldValue;
-          }
-          oldValue = potentialHeigher;
-        }
-        
-        continue;
+      
+      if((value - rank.getValue()) <= 100) {
+        return rank;
       }
     }
     return null;

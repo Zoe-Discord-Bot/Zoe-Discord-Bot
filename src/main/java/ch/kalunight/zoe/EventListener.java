@@ -338,7 +338,7 @@ public class EventListener extends ListenerAdapter {
       return;
     }
 
-    Member member = event.getGuild().getMember(event.getAuthor());
+    Member member = event.getGuild().retrieveMember(event.getAuthor()).complete();
 
     if(member.getUser() != Zoe.getJda().getSelfUser() && member.getPermissions().contains(Permission.MANAGE_CHANNEL)) {
       return;

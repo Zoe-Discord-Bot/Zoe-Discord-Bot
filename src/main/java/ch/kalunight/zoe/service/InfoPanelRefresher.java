@@ -527,7 +527,7 @@ public class InfoPanelRefresher implements Runnable {
 
     while (iter.hasNext()) {
       DTO.Player player = iter.next();
-      if(guild.getMemberById(player.user.getId()) == null) {
+      if(guild.retrieveMemberById(player.user.getId()).complete() == null) {
         iter.remove();
         PlayerRepository.updateTeamOfPlayerDefineNull(player.player_id);
       }
@@ -614,7 +614,7 @@ public class InfoPanelRefresher implements Runnable {
           }
         }
 
-        if(totRankValue <= 0) {
+        if(totRankValue <= 0 || !ConfigRepository.getServerConfiguration(guild.getIdLong()).getInfopanelRankedOption().isOptionActivated()) {
           stringMessage.append("**" + team.getName() + "**\n \n");
         }else {
           FullTier fulltier = new FullTier(totRankValue / numberOfAccountRanked);

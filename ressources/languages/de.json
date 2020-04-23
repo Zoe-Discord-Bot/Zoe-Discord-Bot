@@ -306,5 +306,19 @@
     "undefineRankChannelDoneMessage": "Ich habe den Rangkanal korrekt undefiniert!",
     "rankChannelChangeRankChangeWinDivisionSkippedTitle": "%s hat eine Division übersprungen (%s)",
     "rankChannelChangeLooseDivisionTitle": "%s ist eine Division abgestiegen (%s)",
-    "rankChannelChangeBOEndedLooseTitle": "%s hat seine BO%d für %s verloren (%s)"
+    "rankChannelChangeBOEndedLooseTitle": "%s hat seine BO%d für %s verloren (%s)",
+    "flexTitleRespectSize": "Flex Rang",
+    "infoPanelRankedUpdateDecay": "Division abgestiegen",
+    "infoPanelRankedUpdateDivisionSkip": "Aufgestiegen",
+    "infoPanelRankedUpdateBoInProgres": "BO in Bearbeitung",
+    "infoPanelRankedUpdateBoStarted": "BO gestartet",
+    "infoPanelRankedUpdateBoLose": "BO verloren",
+    "infoPanelRankedUpdateBoWin": "BO gewonnen",
+    "infoPanelRankedTextMultipleAccount": "- %s : Rang | %s (%s)",
+    "infoPanelRankedTitleMultipleAccount": "%s : Nicht im Spiel | Account Liste :",
+    "infoPanelRankedTextOneAccount": "%s : Nicht im Spiel | Rang : %s (%s)",
+    "infoPanelRankedOptionLongDescDisable": "Option, die Sie deaktivieren möchten: **% s **\n\nDurch Deaktivieren dieser Option wird die Anzeige der Statistiken in der InfoTafel gestoppt.\n\n** Sind Sie sicher, diese Option zu deaktivieren? **\n\n:white_check_mark: : ** Deaktiviere ** diese Option\n:x: : Abbrechen des Deaktivierungsvorgangs",
+    "infoPanelRankedOptionLongDescEnable": "Option bei Aktivierung: **% s **\n\nDurch Aktivieren dieser Option erhalten Sie zusätzliche Informationen zum letzten Rang von jedem Account in der InfoTafel.\n\n:white_check_mark: : Diese Option aktivieren.\n:x: : Abbrechen.",
+    "infopanelRankedOptionDesc": "Zeige den letzten Spielerwechsel im InfoPanel an",
+    "rankedAvg": "Rang Durchschnitt"
 }

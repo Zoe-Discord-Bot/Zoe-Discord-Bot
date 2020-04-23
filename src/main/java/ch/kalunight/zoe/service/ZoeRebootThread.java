@@ -60,9 +60,8 @@ public class ZoeRebootThread extends TimerTask {
       Zoe.getEventlistenerlist().add(Zoe.getEventWaiter());
       Zoe.getEventlistenerlist().add(eventListener);
 
-      jda = JDABuilder.createLight(Zoe.getDiscordTocken(), Zoe.getListOfGatway())//
+      jda = new JDABuilder(Zoe.getDiscordTocken())
           .setStatus(OnlineStatus.ONLINE)//
-          .enableCache(CacheFlag.EMOTE)
           .addEventListeners(commandClient)//
           .addEventListeners(Zoe.getEventWaiter())//
           .addEventListeners(eventListener)

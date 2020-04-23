@@ -149,8 +149,7 @@ public class Zoe {
     eventListenerList.add(eventListener);
 
     try {
-      jda = JDABuilder.createLight(discordTocken, listOfGatway)//
-          .enableCache(CacheFlag.EMOTE)
+      jda = new JDABuilder(discordTocken)//
           .setStatus(OnlineStatus.DO_NOT_DISTURB)//
           .addEventListeners(commandClient)//
           .addEventListeners(eventWaiter)//

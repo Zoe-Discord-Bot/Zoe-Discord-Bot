@@ -661,11 +661,11 @@ public class InfoPanelRefresher implements Runnable {
 
             getTextInformationPanelRankOption(stringMessage, player, leagueAccount, false);
           }else {
-            
+
             stringMessage.append(String.format(LanguageManager.getText(server.serv_language, "infoPanelRankedTitleMultipleAccount"), player.user.getAsMention()) + "\n");
-            
+
             for(DTO.LeagueAccount leagueAccount : accountNotInGame) {
-              
+
               getTextInformationPanelRankOption(stringMessage, player, leagueAccount, true);
             }
           }
@@ -696,10 +696,10 @@ public class InfoPanelRefresher implements Runnable {
         notInGameWithoutRankInfo(stringMessage, player);
         return;
       }
-      
+
       LeagueEntry soloq = null;
       LeagueEntry flex = null;
-      
+
       for(LeagueEntry leaguePosition : leaguesEntry) {
         if(leaguePosition.getQueueType().equals("RANKED_SOLO_5x5")) {
           soloq = leaguePosition;
@@ -707,26 +707,26 @@ public class InfoPanelRefresher implements Runnable {
           flex = leaguePosition;
         }
       }
-      
-      
+
+
       if((soloq != null || flex != null) && LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id) == null) {
         LastRankRepository.createLastRank(leagueAccount.leagueAccount_id);
-        
-        
+
+
         if(soloq != null) {
           LastRankRepository.updateLastRankSoloqWithLeagueAccountId(soloq, leagueAccount.leagueAccount_id);
-          
+
         }
-        
+
         if(flex != null) {
           LastRankRepository.updateLastRankFlexWithLeagueAccountId(flex, leagueAccount.leagueAccount_id);
         }
         lastRank = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
       }
-      
-      
+
+
     }
-    
+
     if(lastRank == null) {
       if(mutlipleAccount) {
         notInGameUnranked(stringMessage, leagueAccount);
@@ -735,10 +735,10 @@ public class InfoPanelRefresher implements Runnable {
       }
       return;
     }
-    
+
     FullTier soloqFullTier;
     FullTier flexFullTier;
-    
+
     String accountString;
     String baseText;
     if(mutlipleAccount) {
@@ -748,18 +748,18 @@ public class InfoPanelRefresher implements Runnable {
       baseText = "infoPanelRankedTextOneAccount";
       accountString = player.user.getAsMention();
     }
-    
+
     if(lastRank.lastRank_soloqLastRefresh != null && lastRank.lastRank_flexLastRefresh == null) {
-      
+
       soloqFullTier = new FullTier(lastRank.lastRank_soloq);
-      
+
       stringMessage.append(String.format(LanguageManager.getText(server.serv_language, baseText), accountString, 
           soloqFullTier.toString(server.serv_language), FullTierUtil.getTierRankTextDifference(lastRank.lastRank_soloqSecond, lastRank.lastRank_soloq, server.serv_language)
           + " / " + LanguageManager.getText(server.serv_language, "soloq")) + "\n");
     }else if(lastRank.lastRank_soloqLastRefresh == null && lastRank.lastRank_flexLastRefresh != null) {
-      
+
       flexFullTier = new FullTier(lastRank.lastRank_flex);
-      
+
       stringMessage.append(String.format(LanguageManager.getText(server.serv_language, baseText), accountString, 
           flexFullTier.toString(server.serv_language), FullTierUtil.getTierRankTextDifference(lastRank.lastRank_soloqSecond, lastRank.lastRank_soloq, server.serv_language)
           + " / " + LanguageManager.getText(server.serv_language, "flex")) + "\n");
@@ -767,16 +767,33 @@ public class InfoPanelRefresher implements Runnable {
 
       if(lastRank.lastRank_flexLastRefresh.isBefore(lastRank.lastRank_soloqLastRefresh)) {
         flexFullTier = new FullTier(lastRank.lastRank_flex);
-        
+
         stringMessage.append(String.format(LanguageManager.getText(server.serv_language, baseText), accountString, 
             flexFullTier.toString(server.serv_language), FullTierUtil.getTierRankTextDifference(lastRank.lastRank_soloqSecond, lastRank.lastRank_soloq, server.serv_language)
             + " / " + LanguageManager.getText(server.serv_language, "flex")) + "\n");
       }else {
         soloqFullTier = new FullTier(lastRank.lastRank_soloq);
-        
+
         stringMessage.append(String.format(LanguageManager.getText(server.serv_language, baseText), accountString, 
             soloqFullTier.toString(server.serv_language), FullTierUtil.getTierRankTextDifference(lastRank.lastRank_soloqSecond, lastRank.lastRank_soloq, server.serv_language)
             + " / " + LanguageManager.getText(server.serv_language, "soloq")) + "\n");
+      }
+    }else {
+      LeagueEntry entrySoloQ = RiotRequest.getLeagueEntrySoloq(leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server);
+
+      if(entrySoloQ != null) {
+        FullTier soloQTier = new FullTier(entrySoloQ);
+
+        stringMessage.append(String.format(LanguageManager.getText(server.serv_language, baseText), accountString, 
+            soloQTier.toString(server.serv_language), FullTierUtil.getTierRankTextDifference(lastRank.lastRank_soloqSecond, lastRank.lastRank_soloq, server.serv_language)
+            + " / " + LanguageManager.getText(server.serv_language, "soloq")) + "\n");
+        LastRankRepository.updateLastRankSoloqWithLeagueAccountId(entrySoloQ, leagueAccount.leagueAccount_id);
+      }else {
+        if(mutlipleAccount) {
+          notInGameUnranked(stringMessage, leagueAccount);
+        }else {
+          notInGameWithoutRankInfo(stringMessage, player);
+        }
       }
     }
   }
@@ -785,7 +802,7 @@ public class InfoPanelRefresher implements Runnable {
     stringMessage.append(player.user.getAsMention() + " : " 
         + LanguageManager.getText(server.serv_language, "informationPanelNotInGame") + " \n");
   }
-  
+
   private void notInGameUnranked(final StringBuilder stringMessage, DTO.LeagueAccount leagueAccount) {
     stringMessage.append("- " + leagueAccount.leagueAccount_name + " : " 
         + LanguageManager.getText(server.serv_language, "unranked") + " \n");

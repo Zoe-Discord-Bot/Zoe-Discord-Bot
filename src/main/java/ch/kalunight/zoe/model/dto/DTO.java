@@ -40,6 +40,16 @@ public class DTO {
       serv_lastRefresh = LocalDateTime.parse(baseData.getString("serv_lastRefresh"), DB_TIME_PATTERN);
     }
   }
+  
+  public static class ServerConfig {
+    public long servconfig_id;
+    public long servconfig_fk_server;
+
+    public ServerConfig(ResultSet baseData) throws SQLException {
+      servconfig_id = baseData.getLong("servconfig_id");
+      servconfig_fk_server = baseData.getLong("servconfig_fk_server");
+    }
+  }
 
   public static class ServerStatus {
     public long servstatus_id;
@@ -211,8 +221,14 @@ public class DTO {
     public long lastRank_id;
     public long lastRank_fk_leagueAccount;
     public LeagueEntry lastRank_soloq;
+    public LeagueEntry lastRank_soloqSecond;
+    public LocalDateTime lastRank_soloqLastRefresh;
     public LeagueEntry lastRank_flex;
+    public LeagueEntry lastRank_flexSecond;
+    public LocalDateTime lastRank_flexLastRefresh;
     public LeagueEntry lastRank_tft;
+    public LeagueEntry lastRank_tftSecond;
+    public LocalDateTime lastRank_tftLastRefresh;
     
     public LastRank(ResultSet baseData) throws SQLException {
       lastRank_id = baseData.getLong("lastRank_id");
@@ -222,14 +238,44 @@ public class DTO {
         lastRank_soloq = gson.fromJson(lastRank, LeagueEntry.class);
       }
       
+      lastRank = baseData.getString("lastRank_soloqSecond");
+      if(lastRank != null) {
+        lastRank_soloqSecond = gson.fromJson(lastRank, LeagueEntry.class);
+      }
+      
+      lastRank = baseData.getString("lastRank_soloqLastRefresh");
+      if(lastRank != null) {
+        lastRank_soloqLastRefresh = LocalDateTime.parse(lastRank.split("\\.")[0], DB_TIME_PATTERN);
+      }
+      
       lastRank = baseData.getString("lastRank_flex");
       if(lastRank != null) {
         lastRank_flex = gson.fromJson(lastRank, LeagueEntry.class);
       }
       
+      lastRank = baseData.getString("lastRank_flexSecond");
+      if(lastRank != null) {
+        lastRank_flexSecond = gson.fromJson(lastRank, LeagueEntry.class);
+      }
+      
+      lastRank = baseData.getString("lastRank_flexLastRefresh");
+      if(lastRank != null) {
+        lastRank_flexLastRefresh = LocalDateTime.parse(lastRank.split("\\.")[0], DB_TIME_PATTERN);
+      }
+      
       lastRank = baseData.getString("lastRank_tft");
       if(lastRank != null) {
         lastRank_tft = gson.fromJson(lastRank, LeagueEntry.class);
+      }
+      
+      lastRank = baseData.getString("lastRank_tftSecond");
+      if(lastRank != null) {
+        lastRank_tftSecond = gson.fromJson(lastRank, LeagueEntry.class);
+      }
+      
+      lastRank = baseData.getString("lastRank_tftLastRefresh");
+      if(lastRank != null) {
+        lastRank_tftLastRefresh = LocalDateTime.parse(lastRank.split("\\.")[0], DB_TIME_PATTERN);
       }
     }
   }

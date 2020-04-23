@@ -30,6 +30,14 @@ public class Ressources {
   private static Map<Tier, CustomEmote> tierEmote = Collections.synchronizedMap(new EnumMap<Tier, CustomEmote>(Tier.class));
 
   private static Map<Mastery, CustomEmote> masteryEmote = Collections.synchronizedMap(new EnumMap<Mastery, CustomEmote>(Mastery.class));
+  
+  private static final String RED_TRIANGLE_EMOTE = ":small_red_triangle_down:";
+  
+  private static CustomEmote greenTriangleEmote;
+
+  private static CustomEmote gameToDo;
+  
+  private static CustomEmote gameLost;
 
   public static Champion getChampionDataById(int id) {
     for(Champion champion : champions) {
@@ -72,5 +80,32 @@ public class Ressources {
     Ressources.masteryEmote = masteryEmote;
   }
 
+  public static CustomEmote getGreenTriangleEmote() {
+    return greenTriangleEmote;
+  }
+
+  public static void setGreenTriangleEmote(CustomEmote greenTriangleEmote) {
+    Ressources.greenTriangleEmote = greenTriangleEmote;
+  }
+
+  public static String getRedTriangleEmote() {
+    return RED_TRIANGLE_EMOTE;
+  }
+
+  public static CustomEmote getGameToDo() {
+    return gameToDo;
+  }
+
+  public static void setGameToDo(CustomEmote gameToDo) {
+    Ressources.gameToDo = gameToDo;
+  }
+
+  public static CustomEmote getGameLost() {
+    return gameLost;
+  }
+
+  public static void setGameLost(CustomEmote gameLost) {
+    Ressources.gameLost = gameLost;
+  }
 
 }

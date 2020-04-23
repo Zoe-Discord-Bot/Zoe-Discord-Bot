@@ -13,11 +13,25 @@ public class FullTier {
   public FullTier(LeagueEntry leagueEntry) {
     this(Tier.valueOf(leagueEntry.getTier()), Rank.valueOf(leagueEntry.getRank()), leagueEntry.getLeaguePoints());
   }
-  
+
   public FullTier(Tier tier, Rank rank, int leaguePoints) {
     this.tier = tier;
     this.rank = rank;
     this.leaguePoints = leaguePoints;
+  }
+
+  public FullTier(int value) {
+    this.tier = Tier.getTierWithValueApproximate(value);
+    value -= tier.getValue();
+    if(!tier.equals(Tier.MASTER) && !tier.equals(Tier.GRANDMASTER) && !tier.equals(Tier.CHALLENGER)) {
+      this.rank = Rank.getRankWithValueApproximate(value);
+      value -= rank.getValue();
+      this.leaguePoints = value;
+    }else {
+      this.rank = Rank.IV;
+      this.leaguePoints = value;
+    }
+
   }
 
   public int value() throws NoValueRankException {
@@ -42,7 +56,7 @@ public class FullTier {
 
     return LanguageManager.getText(lang, tier.getTranslationTag()) + " " + rank.toString() + " " + leaguePoints + " LP";
   }
-  
+
   public String toStringWithoutLp(String lang) {
     if(tier == Tier.UNRANKED || tier == Tier.UNKNOWN) {
       return LanguageManager.getText(lang, tier.getTranslationTag());
@@ -54,7 +68,7 @@ public class FullTier {
 
     return LanguageManager.getText(lang, tier.getTranslationTag()) + " " + rank.toString();
   }
-  
+
   public FullTier getHeigerDivision() {
     if(tier.equals(Tier.MASTER)) {
       return new FullTier(Tier.GRANDMASTER, Rank.I, 0);
@@ -63,7 +77,7 @@ public class FullTier {
     }else if(tier.equals(Tier.CHALLENGER)) {
       return new FullTier(Tier.CHALLENGER, Rank.I, 0);
     }
-    
+
     if(rank.equals(Rank.I)) {
       return new FullTier(Tier.getTierWithValue(tier.getValue() + 400), Rank.IV, 0);
     }else {

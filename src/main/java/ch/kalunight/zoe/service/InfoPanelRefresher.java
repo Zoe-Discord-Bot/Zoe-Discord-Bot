@@ -6,6 +6,7 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -14,12 +15,15 @@ import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
+import ch.kalunight.zoe.exception.NoValueRankException;
 import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.GameInfoCardStatus;
 import ch.kalunight.zoe.model.dto.DTO.LastRank;
+import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Player;
 import ch.kalunight.zoe.model.dto.DTO.RankHistoryChannel;
+import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.model.player_data.Team;
 import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.CurrentGameInfoRepository;
@@ -33,6 +37,7 @@ import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.repositories.ServerStatusRepository;
 import ch.kalunight.zoe.repositories.TeamRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
+import ch.kalunight.zoe.util.FullTierUtil;
 import ch.kalunight.zoe.util.InfoPanelRefresherUtil;
 import ch.kalunight.zoe.util.request.RiotRequest;
 import net.dv8tion.jda.api.entities.Guild;
@@ -57,7 +62,7 @@ public class InfoPanelRefresher implements Runnable {
   private DTO.Server server;
 
   private TextChannel infochannel;
-  
+
   private RankHistoryChannel rankChannel;
 
   private Guild guild;
@@ -130,21 +135,21 @@ public class InfoPanelRefresher implements Runnable {
       if(infoChannelDTO != null && guild != null) {
         infochannel = guild.getTextChannelById(infoChannelDTO.infochannel_channelid);
       }
-      
+
 
       List<DTO.Player> playersDTO = PlayerRepository.getPlayers(server.serv_guildId);
-      
+
       if(needToWait) {
         TimeUnit.SECONDS.sleep(5);
       }
-      
+
       if(infochannel != null) {
         cleanOldInfoChannelMessage();
       }
-      
+
       rankChannel = RankHistoryChannelRepository.getRankHistoryChannel(server.serv_guildId);
-      
-      if(rankChannel != null || infochannel != null) {
+
+      if(infochannel != null) {
         refreshAllLeagueAccountCurrentGamesAndDeleteOlderInfoCard(playersDTO);
       }
 
@@ -225,25 +230,25 @@ public class InfoPanelRefresher implements Runnable {
 
     for(DTO.GameInfoCard gameInfoCard : gameInfoCards) {
       switch(gameInfoCard.gamecard_status) {
-        case IN_CREATION:
-          GameInfoCardRepository.updateGameInfoCardStatusWithId(gameInfoCard.gamecard_id, GameInfoCardStatus.IN_TREATMENT);
+      case IN_CREATION:
+        GameInfoCardRepository.updateGameInfoCardStatusWithId(gameInfoCard.gamecard_id, GameInfoCardStatus.IN_TREATMENT);
 
-          List<DTO.LeagueAccount> accountsLinked = LeagueAccountRepository
-              .getLeaguesAccountsWithGameCardsId(gameInfoCard.gamecard_id);
+        List<DTO.LeagueAccount> accountsLinked = LeagueAccountRepository
+            .getLeaguesAccountsWithGameCardsId(gameInfoCard.gamecard_id);
 
-          DTO.LeagueAccount account = accountsLinked.get(0);
+        DTO.LeagueAccount account = accountsLinked.get(0);
 
-          DTO.CurrentGameInfo currentGame = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(account.leagueAccount_id);
+        DTO.CurrentGameInfo currentGame = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(account.leagueAccount_id);
 
-          ServerData.getInfocardsGenerator().execute(
-              new InfoCardsWorker(server, infochannel, accountsLinked.get(0), currentGame, gameInfoCard));
-          break;
-        case IN_WAIT_OF_DELETING:
-          GameInfoCardRepository.deleteGameInfoCardsWithId(gameInfoCard.gamecard_id);
-          deleteDiscordInfoCard(server.serv_guildId, gameInfoCard);
-          break;
-        default:
-          break;
+        ServerData.getInfocardsGenerator().execute(
+            new InfoCardsWorker(server, infochannel, accountsLinked.get(0), currentGame, gameInfoCard));
+        break;
+      case IN_WAIT_OF_DELETING:
+        GameInfoCardRepository.deleteGameInfoCardsWithId(gameInfoCard.gamecard_id);
+        deleteDiscordInfoCard(server.serv_guildId, gameInfoCard);
+        break;
+      default:
+        break;
       }
     }
   }
@@ -338,7 +343,7 @@ public class InfoPanelRefresher implements Runnable {
 
   private void refreshAllLeagueAccountCurrentGamesAndDeleteOlderInfoCard(List<DTO.Player> playersDTO) throws SQLException {
     List<CurrentGameWithRegion> gameAlreadyAskedToRiot = new ArrayList<>();
-    
+
     List<DTO.LeagueAccount> allLeaguesAccounts = LeagueAccountRepository.getAllLeaguesAccounts(guild.getIdLong());
 
     for(DTO.Player player : playersDTO) {
@@ -392,18 +397,14 @@ public class InfoPanelRefresher implements Runnable {
             }else {
               CurrentGameInfoRepository.deleteCurrentGame(currentGameDb, server);
 
-              if(rankChannel != null) {
-                searchForRefreshRankChannel(allLeaguesAccounts, currentGameDb);
-              }
+              searchForRefreshRankChannel(allLeaguesAccounts, currentGameDb);
 
               CurrentGameInfoRepository.createCurrentGame(currentGame, leagueAccount);
             }
           }else if(currentGameDb != null && currentGame == null) {
             CurrentGameInfoRepository.deleteCurrentGame(currentGameDb, server);
 
-            if(rankChannel != null) {
-              searchForRefreshRankChannel(allLeaguesAccounts, currentGameDb);
-            }
+            searchForRefreshRankChannel(allLeaguesAccounts, currentGameDb);
           }
           if(currentGame != null) {
             DTO.CurrentGameInfo currentGameInfo = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(leagueAccount.leagueAccount_id);
@@ -434,24 +435,24 @@ public class InfoPanelRefresher implements Runnable {
       LastRankRepository.createLastRank(leagueAccount.leagueAccount_id);
       rankBeforeThisGame = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
     }
-    
+
     if(gameOfTheChange.getGameQueueConfigId() == GameQueueConfigId.SOLOQ.getId()) {
-      
+
       LeagueEntry entry = RiotRequest.getLeagueEntrySoloq(leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server);
       RankedChannelRefresher rankedRefresher = 
           new RankedChannelRefresher(rankChannel, rankBeforeThisGame.lastRank_soloq, entry,
               gameOfTheChange, player, leagueAccount, server);
       ServerData.getRankedMessageGenerator().execute(rankedRefresher);
-      
+
     }else if(gameOfTheChange.getGameQueueConfigId() == GameQueueConfigId.FLEX.getId()) {
-      
+
       LeagueEntry entry = RiotRequest.getLeagueEntryFlex(leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server);
       RankedChannelRefresher rankedRefresher = 
           new RankedChannelRefresher(rankChannel, rankBeforeThisGame.lastRank_flex, entry,
               gameOfTheChange, player, leagueAccount, server);
       ServerData.getRankedMessageGenerator().execute(rankedRefresher);
     }
-    
+
   }
 
   private void deleteDiscordInfoCard(long guildId, DTO.GameInfoCard gameCard) throws SQLException {
@@ -526,7 +527,7 @@ public class InfoPanelRefresher implements Runnable {
 
     while (iter.hasNext()) {
       DTO.Player player = iter.next();
-      if(guild.getMemberById(player.user.getId()) == null) {
+      if(guild.retrieveMemberById(player.user.getId()).complete() == null) {
         iter.remove();
         PlayerRepository.updateTeamOfPlayerDefineNull(player.player_id);
       }
@@ -592,42 +593,202 @@ public class InfoPanelRefresher implements Runnable {
 
     for(Team team : teamList) {
 
-      if(teamList.size() != 1) {
-        stringMessage.append("**" + team.getName() + "**\n \n");
-      }
-
       List<DTO.Player> playersList = team.getPlayers();
 
-      for(DTO.Player player : playersList) {
+      if(teamList.size() != 1) {
 
-        List<DTO.LeagueAccount> leagueAccounts = player.leagueAccounts;
+        int numberOfAccountRanked = 0;
+        int totRankValue = 0;
 
-        List<DTO.LeagueAccount> accountsInGame = new ArrayList<>();
-        for(DTO.LeagueAccount leagueAccount : leagueAccounts) {
-          DTO.CurrentGameInfo currentGameInfo = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(leagueAccount.leagueAccount_id);
-          if(currentGameInfo != null) {
-            accountsInGame.add(leagueAccount);
+        for(DTO.Player player : playersList) {
+          for(DTO.LeagueAccount leagueAccount : player.leagueAccounts) {
+            LastRank lastRank = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
+            if(lastRank != null && lastRank.lastRank_soloq != null) {
+              try {
+                totRankValue += new FullTier(lastRank.lastRank_soloq).value();
+                numberOfAccountRanked++;
+              } catch (NoValueRankException e) {
+                //Nothing to do
+              }
+            }
           }
         }
 
-        if(accountsInGame.isEmpty()) {
-          stringMessage.append(player.user.getAsMention() + " : " 
-              + LanguageManager.getText(server.serv_language, "informationPanelNotInGame") + " \n");
-        }else if (accountsInGame.size() == 1) {
-          stringMessage.append(player.user.getAsMention() + " : " 
-              + InfoPanelRefresherUtil.getCurrentGameInfoStringForOneAccount(accountsInGame.get(0), server.serv_language) + "\n");
+        if(totRankValue <= 0 || !ConfigRepository.getServerConfiguration(guild.getIdLong()).getInfopanelRankedOption().isOptionActivated()) {
+          stringMessage.append("**" + team.getName() + "**\n \n");
         }else {
-          stringMessage.append(player.user.getAsMention() + " : " 
-              + LanguageManager.getText(server.serv_language, "informationPanelMultipleAccountInGame") + "\n"
-              + InfoPanelRefresherUtil.getCurrentGameInfoStringForMultipleAccounts(accountsInGame, server.serv_language));
+          FullTier fulltier = new FullTier(totRankValue / numberOfAccountRanked);
+          stringMessage.append("**" + team.getName() + "** (" + LanguageManager.getText(server.serv_language, "rankedAvg") + " : " 
+              + fulltier.toStringWithoutLp(server.serv_language) + ")\n \n");
         }
       }
+
+      pseudoList(stringMessage, playersList);
+
+
       stringMessage.append(" \n");
     }
 
     stringMessage.append(LanguageManager.getText(server.serv_language, "informationPanelRefreshedTime"));
 
     return stringMessage.toString();
+  }
+
+  private void pseudoList(final StringBuilder stringMessage, List<DTO.Player> playersList) throws SQLException {
+    for(DTO.Player player : playersList) {
+
+      List<DTO.LeagueAccount> leagueAccounts = player.leagueAccounts;
+
+      List<DTO.LeagueAccount> accountsInGame = new ArrayList<>();
+      List<DTO.LeagueAccount> accountNotInGame = new ArrayList<>();
+
+      for(DTO.LeagueAccount leagueAccount : leagueAccounts) {
+        DTO.CurrentGameInfo currentGameInfo = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(leagueAccount.leagueAccount_id);
+        if(currentGameInfo != null) {
+          accountsInGame.add(leagueAccount);
+        }else {
+          accountNotInGame.add(leagueAccount);
+        }
+      }
+
+      if(accountsInGame.isEmpty()) {
+
+        if(ConfigRepository.getServerConfiguration(guild.getIdLong()).getInfopanelRankedOption().isOptionActivated()) {
+
+          if(accountNotInGame.size() == 1) {
+
+            LeagueAccount leagueAccount = accountNotInGame.get(0);
+
+            getTextInformationPanelRankOption(stringMessage, player, leagueAccount, false);
+          }else {
+            
+            stringMessage.append(String.format(LanguageManager.getText(server.serv_language, "infoPanelRankedTitleMultipleAccount"), player.user.getAsMention()) + "\n");
+            
+            for(DTO.LeagueAccount leagueAccount : accountNotInGame) {
+              
+              getTextInformationPanelRankOption(stringMessage, player, leagueAccount, true);
+            }
+          }
+
+        } else {
+          notInGameWithoutRankInfo(stringMessage, player);
+        }
+      }else if (accountsInGame.size() == 1) {
+        stringMessage.append(player.user.getAsMention() + " : " 
+            + InfoPanelRefresherUtil.getCurrentGameInfoStringForOneAccount(accountsInGame.get(0), server.serv_language) + "\n");
+      }else {
+        stringMessage.append(player.user.getAsMention() + " : " 
+            + LanguageManager.getText(server.serv_language, "informationPanelMultipleAccountInGame") + "\n"
+            + InfoPanelRefresherUtil.getCurrentGameInfoStringForMultipleAccounts(accountsInGame, server.serv_language));
+      }
+    }
+  }
+
+  private void getTextInformationPanelRankOption(final StringBuilder stringMessage, DTO.Player player,
+      DTO.LeagueAccount leagueAccount, boolean mutlipleAccount) throws SQLException {
+    LastRank lastRank = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
+
+    if(lastRank == null) {
+      Set<LeagueEntry> leaguesEntry;
+      try {
+        leaguesEntry = Zoe.getRiotApi().getLeagueEntriesBySummonerIdWithRateLimit(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
+      } catch (RiotApiException e) {
+        notInGameWithoutRankInfo(stringMessage, player);
+        return;
+      }
+      
+      LeagueEntry soloq = null;
+      LeagueEntry flex = null;
+      
+      for(LeagueEntry leaguePosition : leaguesEntry) {
+        if(leaguePosition.getQueueType().equals("RANKED_SOLO_5x5")) {
+          soloq = leaguePosition;
+        }else if(leaguePosition.getQueueType().equals("RANKED_FLEX_SR")) {
+          flex = leaguePosition;
+        }
+      }
+      
+      
+      if((soloq != null || flex != null) && LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id) == null) {
+        LastRankRepository.createLastRank(leagueAccount.leagueAccount_id);
+        
+        
+        if(soloq != null) {
+          LastRankRepository.updateLastRankSoloqWithLeagueAccountId(soloq, leagueAccount.leagueAccount_id);
+          
+        }
+        
+        if(flex != null) {
+          LastRankRepository.updateLastRankFlexWithLeagueAccountId(flex, leagueAccount.leagueAccount_id);
+        }
+        lastRank = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
+      }
+      
+      
+    }
+    
+    if(lastRank == null) {
+      if(mutlipleAccount) {
+        notInGameUnranked(stringMessage, leagueAccount);
+      }else {
+        notInGameWithoutRankInfo(stringMessage, player);
+      }
+      return;
+    }
+    
+    FullTier soloqFullTier;
+    FullTier flexFullTier;
+    
+    String accountString;
+    String baseText;
+    if(mutlipleAccount) {
+      baseText = "infoPanelRankedTextMultipleAccount";
+      accountString = leagueAccount.leagueAccount_name;
+    }else {
+      baseText = "infoPanelRankedTextOneAccount";
+      accountString = player.user.getAsMention();
+    }
+    
+    if(lastRank.lastRank_soloqLastRefresh != null && lastRank.lastRank_flexLastRefresh == null) {
+      
+      soloqFullTier = new FullTier(lastRank.lastRank_soloq);
+      
+      stringMessage.append(String.format(LanguageManager.getText(server.serv_language, baseText), accountString, 
+          soloqFullTier.toString(server.serv_language), FullTierUtil.getTierRankTextDifference(lastRank.lastRank_soloqSecond, lastRank.lastRank_soloq, server.serv_language)
+          + " / " + LanguageManager.getText(server.serv_language, "soloq")) + "\n");
+    }else if(lastRank.lastRank_soloqLastRefresh == null && lastRank.lastRank_flexLastRefresh != null) {
+      
+      flexFullTier = new FullTier(lastRank.lastRank_flex);
+      
+      stringMessage.append(String.format(LanguageManager.getText(server.serv_language, baseText), accountString, 
+          flexFullTier.toString(server.serv_language), FullTierUtil.getTierRankTextDifference(lastRank.lastRank_soloqSecond, lastRank.lastRank_soloq, server.serv_language)
+          + " / " + LanguageManager.getText(server.serv_language, "flex")) + "\n");
+    }else if(lastRank.lastRank_soloqLastRefresh != null && lastRank.lastRank_flexLastRefresh != null) {
+
+      if(lastRank.lastRank_flexLastRefresh.isBefore(lastRank.lastRank_soloqLastRefresh)) {
+        flexFullTier = new FullTier(lastRank.lastRank_flex);
+        
+        stringMessage.append(String.format(LanguageManager.getText(server.serv_language, baseText), accountString, 
+            flexFullTier.toString(server.serv_language), FullTierUtil.getTierRankTextDifference(lastRank.lastRank_soloqSecond, lastRank.lastRank_soloq, server.serv_language)
+            + " / " + LanguageManager.getText(server.serv_language, "flex")) + "\n");
+      }else {
+        soloqFullTier = new FullTier(lastRank.lastRank_soloq);
+        
+        stringMessage.append(String.format(LanguageManager.getText(server.serv_language, baseText), accountString, 
+            soloqFullTier.toString(server.serv_language), FullTierUtil.getTierRankTextDifference(lastRank.lastRank_soloqSecond, lastRank.lastRank_soloq, server.serv_language)
+            + " / " + LanguageManager.getText(server.serv_language, "soloq")) + "\n");
+      }
+    }
+  }
+
+  private void notInGameWithoutRankInfo(final StringBuilder stringMessage, DTO.Player player) {
+    stringMessage.append(player.user.getAsMention() + " : " 
+        + LanguageManager.getText(server.serv_language, "informationPanelNotInGame") + " \n");
+  }
+  
+  private void notInGameUnranked(final StringBuilder stringMessage, DTO.LeagueAccount leagueAccount) {
+    stringMessage.append("- " + leagueAccount.leagueAccount_name + " : " 
+        + LanguageManager.getText(server.serv_language, "unranked") + " \n");
   }
 
   public static AtomicLong getNbrServerSefreshedLast2Minutes() {

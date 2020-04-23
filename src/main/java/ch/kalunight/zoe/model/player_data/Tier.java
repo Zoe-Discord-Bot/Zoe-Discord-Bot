@@ -30,6 +30,32 @@ public enum Tier {
     return null;
   }
   
+  public static Tier getTierWithValueApproximate(int value) {
+    if(MASTER.getValue() < value) {
+      return MASTER;
+    }
+    
+    for(Tier tier : Tier.values()) {
+      if(value >= tier.getValue()) {
+        
+        if(tier.equals(UNKNOWN) || tier.equals(UNRANKED)) {
+          continue;
+        }
+        
+        Tier oldValue = null;
+        for(Tier potentialHeigher : Tier.values()) {
+          if(value <= potentialHeigher.getValue() && !potentialHeigher.equals(tier)) {
+            return oldValue;
+          }
+          oldValue = potentialHeigher;
+        }
+        
+        continue;
+      }
+    }
+    return null;
+  }
+  
   public int getValue() {
     return value;
   }

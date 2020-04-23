@@ -327,8 +327,13 @@ public class MessageBuilderRequest {
     String blueTeamTranslated = LanguageManager.getText(server.serv_language, BLUE_TEAM_STRING);
     String redTeamTranslated = LanguageManager.getText(server.serv_language, RED_TEAM_STRING);
     String masteriesWRThisMonthTranslated = LanguageManager.getText(server.serv_language, MASTERIES_WR_THIS_MONTH_STRING);
-    String soloqRankTitleTranslated = LanguageManager.getText(server.serv_language, SOLO_Q_RANK_STRING);
-
+    String rankTitleTranslated;
+    if(currentGameInfo.getGameQueueConfigId() == GameQueueConfigId.FLEX.getId()) {
+      rankTitleTranslated = LanguageManager.getText(server.serv_language, "flexTitleRespectSize");
+    } else {
+      rankTitleTranslated = LanguageManager.getText(server.serv_language, SOLO_Q_RANK_STRING);
+    }
+    
     Set<DTO.LeagueAccount> playersAccountsOfTheGame = new HashSet<>();
     for(DTO.Player player : players) {
       playersAccountsOfTheGame.addAll(
@@ -357,8 +362,8 @@ public class MessageBuilderRequest {
 
     List<InfocardPlayerData> playersData = new ArrayList<>();
 
-    MessageBuilderRequestUtil.createTeamDataMultipleSummoner(blueTeam, listIdPlayers, region, server.serv_language, playersData, true);
-    MessageBuilderRequestUtil.createTeamDataMultipleSummoner(redTeam, listIdPlayers, region, server.serv_language, playersData, false);
+    MessageBuilderRequestUtil.createTeamDataMultipleSummoner(blueTeam, listIdPlayers, region, server.serv_language, playersData, true, currentGameInfo.getGameQueueConfigId());
+    MessageBuilderRequestUtil.createTeamDataMultipleSummoner(redTeam, listIdPlayers, region, server.serv_language, playersData, false, currentGameInfo.getGameQueueConfigId());
 
     SummonerDataWorker.awaitAll(playersData);
 
@@ -384,11 +389,11 @@ public class MessageBuilderRequest {
     }
 
     message.addField(blueTeamTranslated, blueTeamString.toString(), true);
-    message.addField(soloqRankTitleTranslated, blueTeamRankString.toString(), true);
+    message.addField(rankTitleTranslated, blueTeamRankString.toString(), true);
     message.addField(masteriesWRThisMonthTranslated, blueTeamWinrateString.toString(), true);
 
     message.addField(redTeamTranslated, redTeamString.toString(), true);
-    message.addField(soloqRankTitleTranslated, redTeamRankString.toString(), true);
+    message.addField(rankTitleTranslated, redTeamRankString.toString(), true);
     message.addField(masteriesWRThisMonthTranslated, redTeamWinrateString.toString(), true);
 
     message.setFooter(LanguageManager.getText(server.serv_language, "infoCardsGameFooter") 

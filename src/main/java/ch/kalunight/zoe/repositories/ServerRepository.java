@@ -15,6 +15,8 @@ public class ServerRepository {
   private static final String SELECT_SERVER_WITH_GUILDID = "SELECT serv_id, serv_guildId, serv_language, serv_lastRefresh FROM server "
       + "WHERE serv_guildId = ?";
   
+  private static final String SELECT_ALL_SERVERS = "SELECT serv_id, serv_guildId, serv_language, serv_lastRefresh FROM server";
+  
   private static final String INSERT_INTO_SERVER = "INSERT INTO server (serv_guildId, serv_language, serv_lastRefresh) "
       + "VALUES (%d, '%s', '%s')";
   
@@ -56,7 +58,7 @@ public class ServerRepository {
     }
   }
   
-  public static DTO.Server getServer(long guildId) throws SQLException{
+  public static DTO.Server getServer(long guildId) throws SQLException {
     ResultSet result = null;
     try (Connection conn = RepoRessources.getConnection();
         PreparedStatement stmt = conn.prepareStatement(SELECT_SERVER_WITH_GUILDID, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
@@ -68,6 +70,24 @@ public class ServerRepository {
         return null;
       }
       return new DTO.Server(result);
+    }finally {
+      RepoRessources.closeResultSet(result);
+    }
+  }
+  
+  public static List<DTO.Server> getAllServers() throws SQLException {
+    List<DTO.Server> servers = new ArrayList<>();
+    ResultSet result = null;
+    try (Connection conn = RepoRessources.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(SELECT_ALL_SERVERS, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);){
+      
+      result = stmt.executeQuery();
+      result.first();
+      while(!result.isAfterLast()) {
+        servers.add(new DTO.Server(result));
+        result.next();
+      }
+      return servers;
     }finally {
       RepoRessources.closeResultSet(result);
     }

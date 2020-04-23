@@ -103,6 +103,7 @@ public class StatsProfileCommand extends ZoeCommand {
     Permission[] botPermissionNeeded = {Permission.MANAGE_EMOTES, Permission.MESSAGE_EMBED_LINKS,
         Permission.MESSAGE_ADD_REACTION, Permission.MESSAGE_MANAGE};
     this.botPermissions = botPermissionNeeded;
+    this.guildOnly = true;
   }
 
   @Override

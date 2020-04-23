@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import ch.kalunight.zoe.model.config.option.ConfigurationOption;
 import ch.kalunight.zoe.model.config.option.GameInfoCardOption;
+import ch.kalunight.zoe.model.config.option.InfoPanelRankedOption;
 import ch.kalunight.zoe.model.config.option.RegionOption;
 import ch.kalunight.zoe.model.config.option.CleanChannelOption;
 import ch.kalunight.zoe.model.config.option.RoleOption;
@@ -37,9 +38,24 @@ public class ServerConfiguration {
   private CleanChannelOption cleanChannelOption;
   
   /**
+   * This option let config the data of infopanel
+   */
+  private InfoPanelRankedOption infopanelRankedOption;
+  
+  /**
    * This option activate the command join/leave for everyone. They can join team joinable by everyone. NOT IMPLEMENTED
    */
   private boolean everyoneCanMoveOfTeam = false;
+  
+  public ServerConfiguration(long guildId) {
+    this.defaultRegion = new RegionOption(guildId);
+    this.zoeRoleOption = new RoleOption(guildId);
+    this.userSelfAdding = new SelfAddingOption(guildId);
+    this.infoCardsOption = new GameInfoCardOption(guildId);
+    this.cleanChannelOption = new CleanChannelOption(guildId);
+    this.infopanelRankedOption = new InfoPanelRankedOption(guildId);
+    this.everyoneCanMoveOfTeam = false;
+  }
 
   public List<ConfigurationOption> getAllConfigurationOption() {
     List<ConfigurationOption> options = new ArrayList<>();
@@ -48,18 +64,10 @@ public class ServerConfiguration {
     options.add(cleanChannelOption);
     options.add(userSelfAdding);
     options.add(infoCardsOption);
+    options.add(infopanelRankedOption);
     return options;
   }
   
-  public ServerConfiguration(long guildId) {
-    this.defaultRegion = new RegionOption(guildId);
-    this.zoeRoleOption = new RoleOption(guildId);
-    this.userSelfAdding = new SelfAddingOption(guildId);
-    this.infoCardsOption = new GameInfoCardOption(guildId);
-    this.cleanChannelOption = new CleanChannelOption(guildId);
-    this.everyoneCanMoveOfTeam = false;
-  }
-
   public RegionOption getDefaultRegion() {
     return defaultRegion;
   }
@@ -102,5 +110,13 @@ public class ServerConfiguration {
 
   public void setCleanChannelOption(CleanChannelOption cleanChannelOption) {
     this.cleanChannelOption = cleanChannelOption;
+  }
+
+  public InfoPanelRankedOption getInfopanelRankedOption() {
+    return infopanelRankedOption;
+  }
+
+  public void setInfopanelRankedOption(InfoPanelRankedOption infopanelRankedOption) {
+    this.infopanelRankedOption = infopanelRankedOption;
   }
 }

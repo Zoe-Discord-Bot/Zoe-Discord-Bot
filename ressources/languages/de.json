@@ -317,8 +317,8 @@
     "infoPanelRankedTextMultipleAccount": "- %s : Rang | %s (%s)",
     "infoPanelRankedTitleMultipleAccount": "%s : Nicht im Spiel | Account Liste :",
     "infoPanelRankedTextOneAccount": "%s : Nicht im Spiel | Rang : %s (%s)",
-    "infoPanelRankedOptionLongDescDisable": "Option, die Sie deaktivieren möchten: **% s **\n\nDurch Deaktivieren dieser Option wird die Anzeige der Statistiken in der InfoTafel gestoppt.\n\n** Sind Sie sicher, diese Option zu deaktivieren? **\n\n:white_check_mark: : ** Deaktiviere ** diese Option\n:x: : Abbrechen des Deaktivierungsvorgangs",
-    "infoPanelRankedOptionLongDescEnable": "Option bei Aktivierung: **% s **\n\nDurch Aktivieren dieser Option erhalten Sie zusätzliche Informationen zum letzten Rang von jedem Account in der InfoTafel.\n\n:white_check_mark: : Diese Option aktivieren.\n:x: : Abbrechen.",
+    "infoPanelRankedOptionLongDescDisable": "Option, die Sie deaktivieren möchten: **%s**\n\nDurch Deaktivieren dieser Option wird die Anzeige der Statistiken in der InfoTafel gestoppt.\n\n**Sind Sie sicher, diese Option zu deaktivieren?**\n\n:white_check_mark: : **Deaktiviere** diese Option\n:x: : Abbrechen des Deaktivierungsvorgangs",
+    "infoPanelRankedOptionLongDescEnable": "Option bei Aktivierung: **%s**\n\nDurch Aktivieren dieser Option erhalten Sie zusätzliche Informationen zum letzten Rang von jedem Account in der InfoTafel.\n\n:white_check_mark: : Diese Option aktivieren.\n:x: : Abbrechen.",
     "infopanelRankedOptionDesc": "Zeige den letzten Spielerwechsel im InfoPanel an",
     "rankedAvg": "Rang Durchschnitt"
 }

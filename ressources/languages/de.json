@@ -299,7 +299,7 @@
     "defineRankChannelImpossibleToDefineCleanChannel": "Ich kann den RangKanal im sauberen Kanal nicht definieren (-> siehe Konfigurationsoption \"Clean Channel\").",
     "languageCommandInSelectionMenu": "Ausgewählte Sprache: **%s**",
     "rankChannelBoStartedTitle": "%s startet seine BO%d für %s (%s)",
-    "rankChannelChangeBOProgressWinTitle": "%s hat ein Spiel in seinen BO%d für %s gewinnen (%s)",
+    "rankChannelChangeBOProgressWinTitle": "%s hat ein Spiel in seinen BO%d für %s gewonnen (%s)",
     "flex": "Flexi",
     "rankChannelChangeBOProgressDesc": "Ergebnis der BO :",
     "undefineRankChannelHelpMessage": "Heben Sie die Definition des Rangkanals auf, ohne ihn zu löschen.",

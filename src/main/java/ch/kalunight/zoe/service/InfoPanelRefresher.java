@@ -527,9 +527,16 @@ public class InfoPanelRefresher implements Runnable {
 
     while (iter.hasNext()) {
       DTO.Player player = iter.next();
-      if(guild.retrieveMemberById(player.user.getId()).complete() == null) {
-        iter.remove();
-        PlayerRepository.updateTeamOfPlayerDefineNull(player.player_id);
+      try {
+        if(guild.retrieveMemberById(player.user.getId()).complete() == null) {
+          iter.remove();
+          PlayerRepository.updateTeamOfPlayerDefineNull(player.player_id);
+        }
+      }catch (ErrorResponseException e) {
+        if(e.getErrorResponse().equals(ErrorResponse.UNKNOWN_MEMBER)) {
+          iter.remove();
+          PlayerRepository.updateTeamOfPlayerDefineNull(player.player_id);
+        }
       }
     }
   }

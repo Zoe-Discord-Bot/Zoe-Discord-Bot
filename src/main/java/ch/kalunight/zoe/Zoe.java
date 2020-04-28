@@ -11,6 +11,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
+
+import javax.security.auth.login.LoginException;
+
 import org.discordbots.api.client.DiscordBotListAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,6 +53,7 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import net.rithms.riot.api.ApiConfig;
 import net.rithms.riot.api.RiotApi;
@@ -69,7 +73,7 @@ public class Zoe {
   private static final List<Object> eventListenerList = Collections.synchronizedList(new ArrayList<>());  
 
   public static final Logger logger = LoggerFactory.getLogger(Zoe.class);
-  
+
   private static final List<GatewayIntent> listOfGatway = Collections.synchronizedList(new ArrayList<>());
 
   private static EventWaiter eventWaiter;
@@ -81,21 +85,25 @@ public class Zoe {
   private static JDA jda;
 
   private static String discordTocken;
-  
+
   private static String discordBotListTocken = "";
-  
+
   private static String clientOwnerID;
 
   private static DiscordBotListAPI botListApi;
 
   static {
-    for(GatewayIntent gateway : GatewayIntent.values()) {
-      listOfGatway.add(gateway);
-    }
+    listOfGatway.add(GatewayIntent.DIRECT_MESSAGES);
+    listOfGatway.add(GatewayIntent.GUILD_BANS);
+    listOfGatway.add(GatewayIntent.GUILD_MEMBERS);
+    listOfGatway.add(GatewayIntent.GUILD_MESSAGE_REACTIONS);
+    listOfGatway.add(GatewayIntent.GUILD_MESSAGES);
+    listOfGatway.add(GatewayIntent.GUILD_PRESENCES);
+    listOfGatway.add(GatewayIntent.GUILD_EMOJIS);
   }
-  
+
   public static void main(String[] args) {
-    
+
     if(discordTocken != null) { //Avoid strange reboot
       logger.warn("Main method hitted in a strangely Zoe stats ! Avoid execution ...");
       return;
@@ -149,12 +157,7 @@ public class Zoe {
     eventListenerList.add(eventListener);
 
     try {
-      jda = new JDABuilder(discordTocken)//
-          .setStatus(OnlineStatus.DO_NOT_DISTURB)//
-          .addEventListeners(commandClient)//
-          .addEventListeners(eventWaiter)//
-          .addEventListeners(eventListener)//
-          .setAutoReconnect(false).build();//
+      jda = getNewJDAInstance(discordTocken, commandClient, eventListener);//
     } catch(IndexOutOfBoundsException e) {
       logger.error("You must provide a token.");
       System.exit(1);
@@ -162,6 +165,24 @@ public class Zoe {
       logger.error(e.getMessage());
       System.exit(1);
     }
+  }
+
+  public static JDA getNewJDAInstance(String riotTocken, CommandClient commandClient, EventListener eventListener) throws LoginException {
+
+    JDABuilder builder = JDABuilder.create(getListOfGatway())//
+          .setToken(discordTocken)
+          .setStatus(OnlineStatus.DO_NOT_DISTURB)//
+          .disableCache(CacheFlag.CLIENT_STATUS, CacheFlag.VOICE_STATE)
+          .addEventListeners(commandClient)//
+          .addEventListeners(eventWaiter)//
+          .addEventListeners(eventListener)//
+          .setAutoReconnect(false);
+
+      for(Long idBlackList : Ressources.getBlackListedServer()) {
+        builder.setChunkingFilter(ChunkingFilter.exclude(idBlackList));
+      }
+
+    return builder.build();
   }
 
   private static void initRiotApi(String riotTocken) {
@@ -278,7 +299,7 @@ public class Zoe {
   public static void setMainCommands(List<Command> mainCommands) {
     Zoe.mainCommands = mainCommands;
   }
-  
+
   public static List<GatewayIntent> getListOfGatway() {
     return listOfGatway;
   }

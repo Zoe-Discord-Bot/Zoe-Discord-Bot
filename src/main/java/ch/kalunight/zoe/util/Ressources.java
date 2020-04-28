@@ -16,7 +16,7 @@ public class Ressources {
   private Ressources() {
     // Hide default public constructor
   }
-
+  
   public static final String FOLDER_TO_TIER_SAVE = "ressources/tierData/";
 
   public static final String FOLDER_TO_EMOTES = "ressources/images";
@@ -33,11 +33,18 @@ public class Ressources {
   
   private static final String RED_TRIANGLE_EMOTE = ":small_red_triangle_down:";
   
+  private static final List<String> blackListedSever = new ArrayList<>();
+  
   private static CustomEmote greenTriangleEmote;
 
   private static CustomEmote gameToDo;
   
   private static CustomEmote gameLost;
+  
+  static {
+    blackListedSever.add("264445053596991498"); //Discord Bot List Server
+    blackListedSever.add("446425626988249089"); //Bot on Discord
+  }
 
   public static Champion getChampionDataById(int id) {
     for(Champion champion : champions) {
@@ -48,6 +55,23 @@ public class Ressources {
     return new Champion(-1, "unknown", "unknown", null);
   }
 
+  /**
+   * Server we know they are busy and not interested by Zoe info Messages (Like discordbot.org server, ect)
+   */
+  public static boolean isBlackListed(String serverId) {
+    return blackListedSever.contains(serverId);
+  }
+  
+  public static List<Long> getBlackListedServer() {
+    List<Long> blackListedServerLong = new ArrayList<>();
+    
+    for(String server : blackListedSever) {
+      blackListedServerLong.add(Long.parseLong(server));
+    }
+    
+    return blackListedServerLong;
+  }
+  
   public static List<CustomEmote> getCustomEmotes() {
     return customEmotes;
   }

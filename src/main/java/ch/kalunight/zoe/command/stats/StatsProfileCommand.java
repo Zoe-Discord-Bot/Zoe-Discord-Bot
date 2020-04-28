@@ -103,6 +103,7 @@ public class StatsProfileCommand extends ZoeCommand {
     Permission[] botPermissionNeeded = {Permission.MANAGE_EMOTES, Permission.MESSAGE_EMBED_LINKS,
         Permission.MESSAGE_ADD_REACTION, Permission.MESSAGE_MANAGE};
     this.botPermissions = botPermissionNeeded;
+    this.guildOnly = true;
   }
 
   @Override
@@ -164,7 +165,7 @@ public class StatsProfileCommand extends ZoeCommand {
         selectAccountBuilder.addChoices(String.format(LanguageManager.getText(server.serv_language, "showPlayerAccount"),
             summoner.getName(),
             choiceAccount.leagueAccount_server.getName().toUpperCase(),
-            RiotRequest.getSoloqRank(summoner.getId(), choiceAccount.leagueAccount_server)));
+            RiotRequest.getSoloqRank(summoner.getId(), choiceAccount.leagueAccount_server).toString(server.serv_language)));
         accountsName.add(summoner.getName());
       }
 

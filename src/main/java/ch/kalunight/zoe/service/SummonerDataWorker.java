@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.InfocardPlayerData;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.model.static_data.Champion;
@@ -33,13 +34,17 @@ public class SummonerDataWorker implements Runnable {
   private CurrentGameParticipant participant;
 
   private InfocardPlayerData playerData;
+  
+  private int gameQueueConfigId;
 
-  public SummonerDataWorker(CurrentGameParticipant participant, List<String> listIdPlayers, Platform platform, String language, InfocardPlayerData playerData) {
+  public SummonerDataWorker(CurrentGameParticipant participant, List<String> listIdPlayers, Platform platform, String language,
+      InfocardPlayerData playerData, int gameQueueConfigId) {
     this.listIdPlayers = listIdPlayers;
     this.platform = platform;
     this.language = language;
     this.participant = participant;
     this.playerData = playerData;
+    this.gameQueueConfigId = gameQueueConfigId;
     playersDataInWork.add(playerData);
   }
 
@@ -54,7 +59,13 @@ public class SummonerDataWorker implements Runnable {
         champion = new Champion(-1, unknownChampion, unknownChampion, null);
       }
 
-      FullTier fullTier = RiotRequest.getSoloqRank(participant.getSummonerId(), platform);
+      FullTier fullTier;
+      if(gameQueueConfigId == GameQueueConfigId.FLEX.getId()) {
+        fullTier = RiotRequest.getFlexRank(participant.getSummonerId(), platform);
+      }else {
+        fullTier = RiotRequest.getSoloqRank(participant.getSummonerId(), platform);
+      }
+      
       String rank;
       try {
         rank = Ressources.getTierEmote().get(fullTier.getTier()).getEmote().getAsMention() + " " 

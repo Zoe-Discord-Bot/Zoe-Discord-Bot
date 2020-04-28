@@ -15,7 +15,7 @@ Your help is always welcome! You can find [here](https://github.com/KaluNight/Zo
 
 ## License 
 
-This project is licensed under the GPL-3.0 - see the [LICENSE.md](https://github.com/KaluNight/Zoe-Discord-Bot/blob/master/LICENSE) file for details
+This project is licensed under the GPL-3.0 - see the [LICENSE.md](https://github.com/KaluNight/Zoe-Discord-Bot/blob/master/LICENSE) file for details - and this sentence. This line override the GPL-3.0 : I do not authorize the deployment of a version of this software that is intended to reach an audience. Please use the official version instead. The use of the source code must be done only in a local context (accessible only by dev) with the aim of improving the software.
 
 ## Legal Info
 

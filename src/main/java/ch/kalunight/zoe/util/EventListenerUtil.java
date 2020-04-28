@@ -87,7 +87,7 @@ public class EventListenerUtil {
     }
 
     for(Guild guild : listGuild) {
-      uploadedEmotes.addAll(guild.getEmotes());
+      uploadedEmotes.addAll(guild.retrieveEmotes().complete());
     }
     return uploadedEmotes;
   }
@@ -97,6 +97,7 @@ public class EventListenerUtil {
       CustomEmoteUtil.addToChampionIfIsSame(emote);
       CustomEmoteUtil.addToTierIfisSame(emote);
       CustomEmoteUtil.addToMasteryIfIsSame(emote);
+      CustomEmoteUtil.addInfoIconIfSame(emote);
     }
   }
 

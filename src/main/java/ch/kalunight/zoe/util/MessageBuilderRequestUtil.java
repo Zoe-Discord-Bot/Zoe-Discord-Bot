@@ -59,11 +59,11 @@ public class MessageBuilderRequestUtil {
   }
 
   public static void createTeamDataMultipleSummoner(List<CurrentGameParticipant> teamParticipant, List<String> listIdPlayers,
-      Platform platform, String language, List<InfocardPlayerData> playersDataToWait, boolean isBlueTeam) {
+      Platform platform, String language, List<InfocardPlayerData> playersDataToWait, boolean isBlueTeam, int gameQueueConfigId) {
 
     for(CurrentGameParticipant participant : teamParticipant) {
       InfocardPlayerData playerData = new InfocardPlayerData(isBlueTeam);
-      SummonerDataWorker playerWorker = new SummonerDataWorker(participant, listIdPlayers, platform, language, playerData);
+      SummonerDataWorker playerWorker = new SummonerDataWorker(participant, listIdPlayers, platform, language, playerData, gameQueueConfigId);
       ServerData.getPlayersDataWorker(platform).execute(playerWorker);
       playersDataToWait.add(playerData);
     }
@@ -215,16 +215,16 @@ public class MessageBuilderRequestUtil {
       if(progressPart == 'W') {
         boStatus.append("✅");
       } else if(progressPart == 'L') {
-        boStatus.append("❌");
+        boStatus.append(Ressources.getGameLost().getUsableEmote());
       } else if(progressPart == 'N') {
         if(!lastWinChanged && lastWin) {
           boStatus.append("✅");
           lastWinChanged = true;
         }else if(!lastWinChanged && !lastWin){
-          boStatus.append("❌");
+          boStatus.append(Ressources.getGameLost().getUsableEmote());
           lastWinChanged = true;
         }else {
-          boStatus.append("❓");
+          boStatus.append(Ressources.getGameToDo().getUsableEmote());
         }
       }
 
@@ -248,9 +248,9 @@ public class MessageBuilderRequestUtil {
       if(progressPart == 'W') {
         boStatus.append("✅");
       } else if(progressPart == 'L') {
-        boStatus.append("❌");
+        boStatus.append(Ressources.getGameLost().getUsableEmote());
       } else if(progressPart == 'N') {
-        boStatus.append("❓");
+        boStatus.append(Ressources.getGameToDo().getUsableEmote());
       }
 
       if((i + 1) != bo.getProgress().length()) {

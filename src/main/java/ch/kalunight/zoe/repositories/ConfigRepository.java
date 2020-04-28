@@ -11,6 +11,7 @@ import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.config.option.CleanChannelOption;
 import ch.kalunight.zoe.model.config.option.CleanChannelOption.CleanChannelOptionInfo;
 import ch.kalunight.zoe.model.config.option.GameInfoCardOption;
+import ch.kalunight.zoe.model.config.option.InfoPanelRankedOption;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -19,6 +20,7 @@ import ch.kalunight.zoe.model.config.option.RegionOption;
 import ch.kalunight.zoe.model.config.option.RoleOption;
 import ch.kalunight.zoe.model.config.option.SelfAddingOption;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.DTO.Server;
 
 public class ConfigRepository {
 
@@ -42,25 +44,40 @@ public class ConfigRepository {
 
   private static final String INSERT_INTO_ROLE_OPTION = "INSERT INTO role_option "
       + "(roleOption_fk_serverConfig) VALUES (%d)";
+  
+  private static final String INSERT_INTO_INFOPANEL_RANKED_OPTION = "INSERT INTO info_panel_ranked_option "
+      + "(infopanelranked_fk_serverconfig) VALUES (%d)";
 
   private static final String SELECT_ALL_OPTIONS_SETTINGS = 
       "SELECT " + 
-          "clean_channel_option.cleanoption_channelid, " + 
-          "clean_channel_option.cleanoption_option, " + 
-          "self_adding_option.selfoption_activate, " + 
-          "role_option.roleoption_roleid, " + 
-          "region_option.regionoption_region, " + 
-          "game_info_card_option.gamecardoption_activate, " + 
-          "clean_channel_option.cleanoption_id, " +
-          "role_option.roleOption_id " +
-          "FROM server " + 
-          "INNER JOIN server_configuration ON server.serv_id = server_configuration.servconfig_fk_server " + 
-          "INNER JOIN role_option ON server_configuration.servconfig_id = role_option.roleoption_fk_serverconfig " + 
-          "INNER JOIN game_info_card_option ON server_configuration.servconfig_id = game_info_card_option.gamecardoption_fk_serverconfig " + 
-          "INNER JOIN region_option ON server_configuration.servconfig_id = region_option.regionoption_fk_serverconfig " + 
-          "INNER JOIN self_adding_option ON server_configuration.servconfig_id = self_adding_option.selfoption_fk_serverconfig " + 
-          "INNER JOIN clean_channel_option ON server_configuration.servconfig_id = clean_channel_option.cleanoption_fk_serverconfig " + 
-          "WHERE serv_guildId = %d";
+      "self_adding_option.selfoption_activate, " + 
+      "role_option.roleoption_roleid, " + 
+      "region_option.regionoption_region, " +
+      "game_info_card_option.gamecardoption_activate, " + 
+      "clean_channel_option.cleanoption_channelid, " + 
+      "clean_channel_option.cleanoption_option " + 
+      "FROM server " + 
+      "INNER JOIN server_configuration ON server.serv_id = server_configuration.servconfig_fk_server " + 
+      "INNER JOIN role_option ON server_configuration.servconfig_id = role_option.roleoption_fk_serverconfig " + 
+      "INNER JOIN game_info_card_option ON server_configuration.servconfig_id = game_info_card_option.gamecardoption_fk_serverconfig " + 
+      "INNER JOIN region_option ON server_configuration.servconfig_id = region_option.regionoption_fk_serverconfig " + 
+      "INNER JOIN self_adding_option ON server_configuration.servconfig_id = self_adding_option.selfoption_fk_serverconfig " + 
+      "INNER JOIN clean_channel_option ON server_configuration.servconfig_id = clean_channel_option.cleanoption_fk_serverconfig " + 
+      "WHERE server.serv_guildid = %d";
+  
+  private static final String SELECT_SERVCONFIG_WITH_GUILDID = "SELECT " + 
+      "server_configuration.servconfig_id, " +
+      "server_configuration.servconfig_fk_server " + 
+      "FROM server " + 
+      "INNER JOIN server_configuration ON server.serv_id = server_configuration.servconfig_fk_server " + 
+      "WHERE server_configuration.servconfig_fk_server = %d";
+  
+  private static final String SELECT_INFOPANEL_RANKED_WITH_GUILDID = "SELECT " + 
+      "info_panel_ranked_option.infopanelranked_activate " + 
+      "FROM server " + 
+      "INNER JOIN server_configuration ON server.serv_id = server_configuration.servconfig_fk_server " + 
+      "INNER JOIN info_panel_ranked_option ON server_configuration.servconfig_id = info_panel_ranked_option.infopanelranked_fk_serverconfig " + 
+      "WHERE server.serv_guildid = %d";
 
   private static final String UPDATE_CLEAN_CHANNEL_OPTION_WITH_GUILD_ID =
       "UPDATE clean_channel_option " +
@@ -69,6 +86,14 @@ public class ConfigRepository {
       "WHERE server.serv_guildId = %d AND " +
       "server.serv_id = server_configuration.servConfig_fk_server AND " +
       "server_configuration.servConfig_id = clean_channel_option.cleanOption_fk_serverConfig";
+  
+  private static final String UPDATE_INFOPANEL_RANKED_OPTION_WITH_GUILD_ID =
+      "UPDATE info_panel_ranked_option " +
+      "SET infoPanelRanked_activate = %s " +
+      "FROM server, server_configuration " +
+      "WHERE server.serv_guildId = %d AND " +
+      "server.serv_id = server_configuration.servConfig_fk_server AND " +
+      "server_configuration.servConfig_id = info_panel_ranked_option.infoPanelRanked_fk_serverConfig";
   
   private static final String UPDATE_GAME_INFO_CARD_OPTION_WITH_GUILD_ID =
       "UPDATE game_info_card_option " +
@@ -145,6 +170,36 @@ public class ConfigRepository {
     //Create RoleOption
     finalQuery = String.format(INSERT_INTO_ROLE_OPTION, servConfigId);
     statement.execute(finalQuery);
+    
+    //Create InfoPanelRankedOption
+    finalQuery = String.format(INSERT_INTO_INFOPANEL_RANKED_OPTION, servConfigId);
+    statement.execute(finalQuery);
+  }
+  
+  public static DTO.ServerConfig getServerConfigDTO(long serverId) throws SQLException{
+    ResultSet result = null;
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+      
+      String finalQuery = String.format(SELECT_SERVCONFIG_WITH_GUILDID, serverId);
+      result = query.executeQuery(finalQuery);
+      int rowCount = result.last() ? result.getRow() : 0;
+      if(rowCount == 0) {
+        return null;
+      }
+      return new DTO.ServerConfig(result);
+    } finally {
+      RepoRessources.closeResultSet(result);
+    }
+  }
+  
+  public static void createInfoPanelRankedOption(long servConfigId) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement();) {
+      
+      String finalQuery = String.format(INSERT_INTO_INFOPANEL_RANKED_OPTION, servConfigId);
+      query.execute(finalQuery);
+    }
   }
 
   public static ServerConfiguration getServerConfiguration(long guildId) throws SQLException {
@@ -173,17 +228,48 @@ public class ConfigRepository {
 
       RoleOption roleOption = getRoleOption(result, guildId);
 
+      Boolean infopanelRankedOptionActivate = getInfoPanelRankedState(guildId);
+      InfoPanelRankedOption infopanelRankedOption = new InfoPanelRankedOption(guildId);
+      if(infopanelRankedOptionActivate == null) {
+        infopanelRankedOption.setOptionActivated(true);
+        //Create InfoPanelRankedOption
+        createInfoPanelRankedOptionTable(conn.createStatement(), guildId);
+      }else {
+        infopanelRankedOption.setOptionActivated(infopanelRankedOptionActivate);
+      }
+      
       ServerConfiguration serverConfig = new ServerConfiguration(guildId);
       serverConfig.setUserSelfAdding(selfAddingOption);
       serverConfig.setDefaultRegion(regionOption);
       serverConfig.setCleanChannelOption(cleanChannelOption);
       serverConfig.setInfoCardsOption(infoCardOption);
       serverConfig.setZoeRoleOption(roleOption);
+      serverConfig.setInfopanelRankedOption(infopanelRankedOption);
       
       return serverConfig;
     }finally {
       RepoRessources.closeResultSet(result);
     }
+  }
+
+  private static void createInfoPanelRankedOptionTable(Statement statement, long guildId) throws SQLException {
+    
+    Server server = ServerRepository.getServer(guildId);
+
+    //Get servConfig_id from ServerConfiguration
+    String finalQuery = String.format(SELECT_SERVER_CONFIG_WITH_SERV_ID, server.serv_id);
+    ResultSet result = null;
+    long servConfigId;
+    try {
+      result = statement.executeQuery(finalQuery);
+      result.next();
+      servConfigId = result.getLong("servConfig_id");
+    }finally {
+      RepoRessources.closeResultSet(result);
+    }
+    
+    finalQuery = String.format(INSERT_INTO_INFOPANEL_RANKED_OPTION, servConfigId);
+    statement.execute(finalQuery);
   }
 
   private static RoleOption getRoleOption(ResultSet result, long guildId) throws SQLException {
@@ -246,6 +332,33 @@ public class ConfigRepository {
       }
     }
     return cleanChannelOption;
+  }
+  
+  public static Boolean getInfoPanelRankedState(long guildId) throws SQLException {
+      ResultSet result = null;
+      try (Connection conn = RepoRessources.getConnection();
+          Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+
+        String finalQuery = String.format(SELECT_INFOPANEL_RANKED_WITH_GUILDID, guildId);
+        result = query.executeQuery(finalQuery);
+        int rowCount = result.last() ? result.getRow() : 0;
+        if(rowCount == 0) {
+          return null;
+        }
+        
+        return result.getBoolean("infopanelranked_activate");
+      }finally {
+        RepoRessources.closeResultSet(result);
+      }
+  }
+  
+  public static void updateInfoPanelRanked(long guildID, boolean activate) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement();) {
+
+      String finalQuery = String.format(UPDATE_INFOPANEL_RANKED_OPTION_WITH_GUILD_ID, activate, guildID);
+      query.executeUpdate(finalQuery);
+    }
   }
 
   public static void updateCleanChannelOption(long guildId, long cleanOptionChannelId, String cleanChannelOptionMode)

@@ -54,8 +54,13 @@ public class RankedChannelRefresher implements Runnable {
   public void run() {
 
     try {
+      if(rankChannel == null) {
+        updateDB();
+        return;
+      }
+
       if(oldEntry != null) {
-        
+
         FullTier oldFullTier = new FullTier(oldEntry);
         FullTier newFullTier = new FullTier(newEntry);
 
@@ -89,27 +94,34 @@ public class RankedChannelRefresher implements Runnable {
     }
 
     try {
-      LastRank lastRank = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
-      if(lastRank == null) {
-        LastRankRepository.createLastRank(leagueAccount.leagueAccount_id);
-        LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
-      }
-
-      if(GameQueueConfigId.SOLOQ.getId() == gameOfTheChange.getGameQueueConfigId()) {
-        LastRankRepository.updateLastRankSoloqWithLeagueAccountId(newEntry, leagueAccount.leagueAccount_id);
-      }else if(GameQueueConfigId.FLEX.getId() == gameOfTheChange.getGameQueueConfigId()) {
-        LastRankRepository.updateLastRankFlexWithLeagueAccountId(newEntry, leagueAccount.leagueAccount_id);
-      }
+      updateDB();
     } catch (SQLException e) {
       logger.error("SQL error when refreshing last rank of a player", e);
     } catch (Exception e) {
       logger.error("Unexpected exception in RankedChannelRefresher !", e);
     }
+  }
 
+  private void updateDB() throws SQLException {
+    
+    LastRank lastRank = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
+    if(lastRank == null) {
+      LastRankRepository.createLastRank(leagueAccount.leagueAccount_id);
+    }
+    
+    if(newEntry != null) {
+      if(GameQueueConfigId.SOLOQ.getId() == gameOfTheChange.getGameQueueConfigId()) {
+        LastRankRepository.updateLastRankSoloqWithLeagueAccountId(newEntry, leagueAccount.leagueAccount_id);
+        LastRankRepository.updateLastRankSoloqSecondWithLeagueAccountId(oldEntry, leagueAccount.leagueAccount_id);
+      }else if(GameQueueConfigId.FLEX.getId() == gameOfTheChange.getGameQueueConfigId()) {
+        LastRankRepository.updateLastRankFlexWithLeagueAccountId(newEntry, leagueAccount.leagueAccount_id);
+        LastRankRepository.updateLastRankFlexSecondWithLeagueAccountId(oldEntry, leagueAccount.leagueAccount_id);
+      }
+    }
   }
 
   private void sendRankChangedWithoutBO() {
-    MessageEmbed message = 
+    MessageEmbed message =
         MessageBuilderRequest.createRankChannelCardLeagueChange
         (oldEntry, newEntry, gameOfTheChange, player, leagueAccount, server.serv_language);
 
@@ -151,7 +163,7 @@ public class RankedChannelRefresher implements Runnable {
     MessageEmbed message =
         MessageBuilderRequest.createRankChannelBoInProgress(oldEntry, newEntry,
             gameOfTheChange, player,leagueAccount, server.serv_language);
-    
+
     if(message != null) {
       TextChannel textChannelWhereSend = Zoe.getJda().getTextChannelById(rankChannel.rhChannel_channelId);
       if(textChannelWhereSend != null) {

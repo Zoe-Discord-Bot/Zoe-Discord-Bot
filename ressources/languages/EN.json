@@ -321,9 +321,6 @@
 	"infoPanelRankedUpdateDivisionSkip": "Rank Up",
 	"infoPanelRankedUpdateDecay": "Division Lost",
 	"flexTitleRespectSize" : "Flex Rank",
-	"createLeaderboardHelpMessage": "Create a Leaderboard.",
-	"createLeaderboardExplainMessage": "Okay, let's create a leaderboard. What is the objective you want to target ?",
-	"createLeaderboardCancelMessage": "Creation of leaderboard cancel.",
 	"rankedAvg": "Ranked avg",
 	"infopanelRankedOptionDesc": "Show ranked last change of player in InfoPanel",
 	"infoPanelRankedOptionLongDescEnable": "Option in activation : **%s**\n\nEnabling this option will provide additional information about the last ranked of each league account in the infopanel.\n\n:white_check_mark: : Activate this option.\n:x: : Cancel the activation.",
@@ -337,5 +334,8 @@
 	"infoPanelRankedUpdateBoInProgres": "BO in Progress",
 	"infoPanelRankedUpdateDivisionSkip": "Rank Up",
 	"infoPanelRankedUpdateDecay": "Division Lost",
-	"flexTitleRespectSize" : "Flex Rank"
+	"flexTitleRespectSize" : "Flex Rank",
+	"createLeaderboardHelpMessage": "Create a Leaderboard.",
+	"createLeaderboardExplainMessage": "Okay, let's create a leaderboard. What is the objective you want to target ?",
+	"createLeaderboardCancelMessage": "Creation of leaderboard cancel."
 }

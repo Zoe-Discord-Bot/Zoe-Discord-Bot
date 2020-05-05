@@ -772,7 +772,7 @@ public class InfoPanelRefresher implements Runnable {
           + " / " + LanguageManager.getText(server.serv_language, "flex")) + "\n");
     }else if(lastRank.lastRank_soloqLastRefresh != null && lastRank.lastRank_flexLastRefresh != null) {
 
-      if(lastRank.lastRank_flexLastRefresh.isBefore(lastRank.lastRank_soloqLastRefresh)) {
+      if(lastRank.lastRank_flexLastRefresh.isAfter(lastRank.lastRank_soloqLastRefresh)) {
         flexFullTier = new FullTier(lastRank.lastRank_flex);
 
         stringMessage.append(String.format(LanguageManager.getText(server.serv_language, baseText), accountString, 

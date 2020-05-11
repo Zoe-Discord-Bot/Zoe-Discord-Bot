@@ -335,7 +335,15 @@
 	"infoPanelRankedUpdateDivisionSkip": "Rank Up",
 	"infoPanelRankedUpdateDecay": "Division Lost",
 	"flexTitleRespectSize" : "Flex Rank",
-	"createLeaderboardHelpMessage": "Create a Leaderboard.",
-	"createLeaderboardExplainMessage": "Okay, let's create a leaderboard. What is the objective you want to target ?",
-	"createLeaderboardCancelMessage": "Creation of leaderboard cancel."
+	"createLeaderboardHelpMessage": "Start the leaderboard creation wizard.",
+	"createLeaderboardExplainMessage": "Okay, let's create a leaderboard. Wich objective you want to target ?",
+	"createLeaderboardCancelMessage": "Creation of leaderboard canceled.",
+	"createLeaderboardTitleListeObjective" : "List of objective :",
+	"leaderboardObjectiveMasterPoint": "Total Mastery Points",
+	"leaderboardObjectiveMasterPointStartFrom0": "Total Mastery Point starting from now",
+	"leaderboardObjectiveMasterPointSpecificChamp": "Mastery Point for a specific champ",
+	"leaderboardObjectiveMasterPointSpecificChampStartFrom0": "Mastery Point for a specific champ starting from now",
+	"leaderboardObjectiveRank" : "SoloQ Rank",
+	"leaderboardObjectiveRankProgress" : "SoloQ Rank Progress",
+	"leaderboardObjectiveAverageKDA" : "SoloQ Average KDA"
 }

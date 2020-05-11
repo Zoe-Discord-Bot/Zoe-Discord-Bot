@@ -29,6 +29,7 @@ import ch.kalunight.zoe.command.AboutCommand;
 import ch.kalunight.zoe.command.ConfigCommand;
 import ch.kalunight.zoe.command.LanguageCommand;
 import ch.kalunight.zoe.command.PatchNotesCommand;
+import ch.kalunight.zoe.command.RebootCommand;
 import ch.kalunight.zoe.command.RefreshCommand;
 import ch.kalunight.zoe.command.ResetCommand;
 import ch.kalunight.zoe.command.SetupCommand;
@@ -201,6 +202,7 @@ public class Zoe {
     // Admin commands
     commands.add(new ShutDownCommand());
     commands.add(new AdminCommand());
+    commands.add(new RebootCommand());
 
     // Basic commands
     commands.add(new AboutCommand());

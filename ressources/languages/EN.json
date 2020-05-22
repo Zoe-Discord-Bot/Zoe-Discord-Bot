@@ -345,5 +345,6 @@
 	"leaderboardObjectiveMasterPointSpecificChampStartFrom0": "Mastery Point for a specific champ starting from now",
 	"leaderboardObjectiveRank" : "SoloQ Rank",
 	"leaderboardObjectiveRankProgress" : "SoloQ Rank Progress",
-	"leaderboardObjectiveAverageKDA" : "SoloQ Average KDA"
+	"leaderboardObjectiveAverageKDA" : "SoloQ Average KDA",
+	"leaderboardObjectiveSelected" : "You have selected the objective \"%s\". Now please send me the mention of the channel where you want the leaderboard (i.e. #your-channel)."
 }

@@ -18,12 +18,15 @@ public class LeaderboardRepository {
   
   private static final String DELETE_LEADERBOARD_WITH_ID = "DELETE FROM leaderboard WHERE lead_id = %d";
   
+  private static final String UPDATE_LEADERBOARD_DATA_WITH_ID = "UPDATE leaderboard SET lead_data = %s WHERE lead_id = %d";
+  
   private static final String SELECT_LEADERBOARD_WITH_GUILD_ID = "SELECT " + 
       "leaderboard.lead_id, " + 
       "leaderboard.lead_fk_server, " + 
       "leaderboard.lead_message_channelid, " + 
       "leaderboard.lead_message_id, " + 
-      "leaderboard.lead_type " + 
+      "leaderboard.lead_type," +
+      "leaderboard.lead_data " + 
       "FROM server " + 
       "INNER JOIN leaderboard ON server.serv_id = leaderboard.lead_fk_server " + 
       "WHERE server.serv_guildid = %d";
@@ -46,6 +49,20 @@ public class LeaderboardRepository {
         Statement query = conn.createStatement();) {
       
       String finalQuery = String.format(DELETE_LEADERBOARD_WITH_ID, leadId);
+      query.executeUpdate(finalQuery);
+    }
+  }
+  
+  public static void updateLeaderboardDataWithLeadId(long leaderboardId, String data) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement();) {
+
+      String finalQuery;
+      if(data == null) {
+        finalQuery = String.format(UPDATE_LEADERBOARD_DATA_WITH_ID, "NULL", leaderboardId);
+      }else {
+        finalQuery = String.format(UPDATE_LEADERBOARD_DATA_WITH_ID, "'" + data + "'", leaderboardId);
+      }
       query.executeUpdate(finalQuery);
     }
   }

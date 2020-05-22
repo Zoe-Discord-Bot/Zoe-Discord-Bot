@@ -198,6 +198,7 @@ public class DTO {
     public long lead_message_channelId;
     public long lead_message_id;
     public String lead_type;
+    public String lead_data;
     
     public Leaderboard(ResultSet baseData) throws SQLException {
       lead_id = baseData.getLong("lead_id");
@@ -205,6 +206,7 @@ public class DTO {
       lead_message_channelId = baseData.getLong("lead_message_channelId");
       lead_message_id = baseData.getLong("lead_message_id");
       lead_type = baseData.getString("lead_type");
+      lead_data = baseData.getString("lead_data");
     }
   }
 

@@ -7,10 +7,12 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.SelectionDialog;
+
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.model.Objective;
 import ch.kalunight.zoe.model.dto.DTO;
@@ -18,7 +20,6 @@ import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Message;
-import net.rithms.riot.constant.Platform;
 
 public class CreateLeaderboardCommand extends ZoeCommand {
 
@@ -44,6 +45,9 @@ public class CreateLeaderboardCommand extends ZoeCommand {
     
     event.reply(LanguageManager.getText(server.serv_language, "createLeaderboardExplainMessage"));
     
+    List<Objective> objectiveList = new ArrayList<>();
+    List<String> objectiveChoices = new ArrayList<>();
+    
     SelectionDialog.Builder selectAccountBuilder = new SelectionDialog.Builder()
         .addUsers(event.getAuthor())
         .setEventWaiter(waiter)
@@ -51,13 +55,12 @@ public class CreateLeaderboardCommand extends ZoeCommand {
         .setColor(Color.BLUE)
         .setSelectedEnds("**", "**")
         .setCanceled(getSelectionCancelAction(server.serv_language))
-        .setSelectionConsumer(getSelectionConsumer(server.serv_language))
+        .setSelectionConsumer(getSelectionConsumer(server.serv_language, event, objectiveList))
         .setTimeout(2, TimeUnit.MINUTES);
     
-    List<Objective> objectiveList = new ArrayList<>();
-    List<String> objectiveChoices = new ArrayList<>();
+
     for(Objective objective : Objective.values()) {
-      String actualChoice = String.format(LanguageManager.getText(server.serv_language, objective.toString()));
+      String actualChoice = String.format(LanguageManager.getText(server.serv_language, objective.getTranslationId()));
       
       objectiveChoices.add(actualChoice);
       selectAccountBuilder.addChoices(actualChoice);
@@ -66,6 +69,8 @@ public class CreateLeaderboardCommand extends ZoeCommand {
     
     selectAccountBuilder.setText(LanguageManager.getText(server.serv_language, "createLeaderboardTitleListeObjective"));
     
+    SelectionDialog choiceLeaderBoard = selectAccountBuilder.build();
+    choiceLeaderBoard.display(event.getChannel());
   }
 
   private Consumer<Message> getSelectionCancelAction(String language){
@@ -78,11 +83,13 @@ public class CreateLeaderboardCommand extends ZoeCommand {
     };
   }
   
-  private BiConsumer<Message, Integer> getSelectionConsumer(String language) {
+  private BiConsumer<Message, Integer> getSelectionConsumer(String language, CommandEvent event, List<Objective> objectiveList) {
     return new BiConsumer<Message, Integer>() {
       @Override
-      public void accept(Message selectionMessage, Integer ObjectiveSelection) {
+      public void accept(Message selectionMessage, Integer objectiveSelection) {
+        Objective objective = objectiveList.get(objectiveSelection);
         
+        event.reply(String.format(LanguageManager.getText(language, "leaderboardObjectiveSelected"), LanguageManager.getText(language, objective.getTranslationId())));
       }
     };
   }

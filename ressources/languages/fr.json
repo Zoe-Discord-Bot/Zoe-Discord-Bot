@@ -306,5 +306,19 @@
     "gold": "Or",
     "silver": "Argent",
     "iron": "Fer",
-    "rankChannelChangeBOProgressDesc": "Résumé du BO :"
+    "rankChannelChangeBOProgressDesc": "Résumé du BO :",
+    "flexTitleRespectSize": "Rank Flex",
+    "infoPanelRankedUpdateDecay": "Rank perdu",
+    "infoPanelRankedUpdateDivisionSkip": "Rang gagné",
+    "infoPanelRankedUpdateBoInProgres": "BO en cours",
+    "infoPanelRankedUpdateBoStarted": "BO Commencé",
+    "infoPanelRankedUpdateBoLose": "BO Perdu",
+    "infoPanelRankedUpdateBoWin": "BO Gagné",
+    "infoPanelRankedTextMultipleAccount": "- %s : Rank | %s (%s)",
+    "infoPanelRankedTitleMultipleAccount": "%s : Pas en partie | Liste de comptes :",
+    "infoPanelRankedTextOneAccount": "%s : Pas en partie | Rank : %s (%s)",
+    "infoPanelRankedOptionLongDescDisable": "Option que vous souhaitez désactiver : **%s**\n\nDésactiver cette option simplifiera l'affichage du panneau d'information en supprimant les données relatives aux files classés.\n\n**Êtes-vous certain de vouloir désactiver cette option ?**\n\n:white_check_mark: : **Désactive** l'option\n:x: : Annule la procédure de désactivation",
+    "infoPanelRankedOptionLongDescEnable": "Option en activation : **%s**\n\nActiver cette option ajoutera au panneau d'information des stats par rapport aux matchs classés des joueurs.\n\n:white_check_mark: : Activer cette option.\n:x: : Annulez l'activation.",
+    "infopanelRankedOptionDesc": "Montre les derniers changements de rank dans le panneau d'information",
+    "rankedAvg": "Rank moyen"
 }

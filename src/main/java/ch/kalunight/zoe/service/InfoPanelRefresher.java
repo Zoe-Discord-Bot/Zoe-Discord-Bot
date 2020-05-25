@@ -3,7 +3,9 @@ package ch.kalunight.zoe.service;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -16,9 +18,12 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.exception.NoValueRankException;
+import ch.kalunight.zoe.model.ComparableMessage;
 import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.GameInfoCardStatus;
+import ch.kalunight.zoe.model.dto.DTO.InfoChannel;
+import ch.kalunight.zoe.model.dto.DTO.InfoPanelMessage;
 import ch.kalunight.zoe.model.dto.DTO.LastRank;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Player;
@@ -258,6 +263,10 @@ public class InfoPanelRefresher implements Runnable {
 
     List<DTO.InfoPanelMessage> infoPanelMessages = InfoChannelRepository.getInfoPanelMessages(server.serv_guildId);
 
+    checkMessageDisplaySync(infoPanelMessages, infoChannelDTO); 
+    
+    infoPanelMessages = InfoChannelRepository.getInfoPanelMessages(server.serv_guildId);
+
     if(infoPanels.size() < infoPanelMessages.size()) {
       int nbrMessageToDelete = infoPanelMessages.size() - infoPanels.size();
       for(int i = 0; i < nbrMessageToDelete; i++) {
@@ -278,10 +287,103 @@ public class InfoPanelRefresher implements Runnable {
     infoPanelMessages.clear();
     infoPanelMessages.addAll(InfoChannelRepository.getInfoPanelMessages(server.serv_guildId));
 
+    infoPanelMessages = orderInfoPanelMessagesByTime(infoPanelMessages);
+    
     for(int i = 0; i < infoPanels.size(); i++) {
       DTO.InfoPanelMessage infoPanel = infoPanelMessages.get(i);
       infochannel.retrieveMessageById(infoPanel.infopanel_messageId).complete().editMessage(infoPanels.get(i)).queue();
     }
+  }
+
+  private void checkMessageDisplaySync(List<InfoPanelMessage> infoPanelMessages, InfoChannel infochannelDTO) {
+
+    List<Message> messagesToCheck = new ArrayList<>();
+    for(InfoPanelMessage messageToLoad : infoPanelMessages) {
+      Message message = infochannel.retrieveMessageById(messageToLoad.infopanel_messageId).complete();
+      messagesToCheck.add(message);
+    }
+
+    boolean needToResend = false;
+
+    List<Message> orderedMessage = orderMessagesByTime(messagesToCheck);
+
+    for(Message messageToCompare : orderedMessage) {
+      for(Message secondMessageToCompare : orderedMessage) {
+        if(messageToCompare.getIdLong() != secondMessageToCompare.getIdLong()) {
+          if(messageToCompare.getTimeCreated().until(secondMessageToCompare.getTimeCreated(), ChronoUnit.MINUTES) > 5) {
+            needToResend = true;
+          }
+        }
+      }
+    }
+
+    if(needToResend) {
+      int messageNeeded = infoPanelMessages.size();
+      
+      for(InfoPanelMessage infoPanelMessageToDelete : infoPanelMessages) {
+        Message messageToDelete = infochannel.retrieveMessageById(infoPanelMessageToDelete.infopanel_messageId).complete();
+
+        try {
+          InfoChannelRepository.deleteInfoPanelMessage(infoPanelMessageToDelete.infopanel_id);
+          messageToDelete.delete().queue();
+        } catch (SQLException e) {
+          logger.warn("Error when deleting infoPanel message in db. Try again next refresh");
+        }
+      }
+
+      for(int i = 0; i < messageNeeded; i++) {
+        Message message = infochannel.sendMessage("**" + LanguageManager.getText(server.serv_language, "infopanelMessageReSendMessage") + "**").complete();
+        try {
+          InfoChannelRepository.createInfoPanelMessage(infochannelDTO.infoChannel_id, message.getIdLong());
+        } catch (SQLException e) {
+          logger.warn("Error while creating new info Panel Message. Try again in the process.");
+        }
+      }
+    }
+  }
+
+  private List<Message> orderMessagesByTime(List<Message> messagesToCheck) {
+
+    List<ComparableMessage> messagesToOrder = new ArrayList<>();
+
+    for(Message message : messagesToCheck) {
+      messagesToOrder.add(new ComparableMessage(message));
+    }
+    
+    Collections.sort(messagesToOrder); 
+    
+    List<Message> messagesOrdered = new ArrayList<>();
+    for(ComparableMessage messageOrdered : messagesToOrder) {
+      messagesOrdered.add(messageOrdered.getMessage());
+    }
+    return messagesOrdered;
+  }
+  
+  private List<InfoPanelMessage> orderInfoPanelMessagesByTime(List<InfoPanelMessage> infoPanelMessages) {
+    
+    List<Message> baseMessageToOrder = new ArrayList<>();
+    for(InfoPanelMessage infoPanelMessage : infoPanelMessages) {
+      baseMessageToOrder.add(infochannel.retrieveMessageById(infoPanelMessage.infopanel_messageId).complete());
+    }
+    
+    List<ComparableMessage> messagesToOrder = new ArrayList<>();
+
+    for(Message message : baseMessageToOrder) {
+      messagesToOrder.add(new ComparableMessage(message));
+    }
+    
+    Collections.sort(messagesToOrder);
+    
+    List<InfoPanelMessage> messagesOrdered = new ArrayList<>();
+    for(ComparableMessage messageOrdered : messagesToOrder) {
+      for(InfoPanelMessage infoPanelMessage : infoPanelMessages) {
+        if(messageOrdered.getMessage().getIdLong() == infoPanelMessage.infopanel_messageId) {
+          messagesOrdered.add(infoPanelMessage);
+        }
+      }
+    }
+
+    return messagesOrdered;
   }
 
   private List<DTO.GameInfoCard> refreshGameCardStatus() throws SQLException {

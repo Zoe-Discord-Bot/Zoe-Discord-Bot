@@ -320,5 +320,6 @@
     "infoPanelRankedUpdateBoInProgres": "BO in Progress",
     "infoPanelRankedUpdateDivisionSkip": "Rank Up",
     "infoPanelRankedUpdateDecay": "Division Lost",
-    "flexTitleRespectSize": "Flex Rank"
+    "flexTitleRespectSize": "Flex Rank",
+	"infopanelMessageReSendMessage": "I'm recreating the information panel, please wait..."
 }

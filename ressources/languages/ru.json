@@ -320,5 +320,6 @@
     "generatedAt": "Создано в",
     "rankChannelChangePointOnlyLooseTitle": "%s проиграл %s очков (%s)",
     "rankChannelChangePointOnlyWinTitle": "%s выиграл %s очков (%s)",
-    "resumeOfTheGame": "Резюме игры"
+    "resumeOfTheGame": "Резюме игры",
+    "infopanelMessageReSendMessage": "Я воссоздаю информационную панель, пожалуйста, подождите..."
 }

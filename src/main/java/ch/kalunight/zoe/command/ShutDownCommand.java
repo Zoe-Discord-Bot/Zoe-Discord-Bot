@@ -71,6 +71,7 @@ public class ShutDownCommand extends ZoeCommand {
       try {
         Thread.sleep(100);
       } catch(InterruptedException e) {
+        logger.error("Thread got interuped !");
         Thread.currentThread().interrupt();
       }
     }

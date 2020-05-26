@@ -113,7 +113,19 @@ public class ServerChecker extends TimerTask {
     if(checkIfZoeNeedReboot(jda) || ServerData.isRebootAsked()) {
       logger.info("Zoe is deconnected from Discord server ! Reboot thread start ...");
       ServerData.setRebootAsked(false);
-      jda.shutdownNow();
+      Zoe.getJda().shutdown();
+
+      while(!Zoe.getJda().getStatus().equals(Status.SHUTDOWN)) {
+        try {
+          Thread.sleep(100);
+        } catch(InterruptedException e) {
+          logger.error("Thread got interuped ! Reboot started anyway ...");
+          jda.shutdownNow();
+          TimerTask rebootTask = new ZoeRebootThread();
+          ServerData.getServerCheckerThreadTimer().schedule(rebootTask, 100);
+          Thread.currentThread().interrupt();
+        }
+      }
       
       TimerTask rebootTask = new ZoeRebootThread();
       ServerData.getServerCheckerThreadTimer().schedule(rebootTask, 100);

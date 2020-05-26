@@ -19,7 +19,7 @@ public class LeagueAccountRepository {
       "(leagueaccount_fk_player, leagueaccount_name, " +
       "leagueaccount_summonerid, leagueaccount_accountid, leagueaccount_puuid, leagueaccount_server) " +
       "VALUES (%d, '%s', '%s', '%s', '%s', '%s')";
-
+  
   private static final String SELECT_LEAGUES_ACCOUNTS_WITH_GUILDID_AND_PLAYER_DISCORD_ID =
       "SELECT " + 
           "league_account.leagueaccount_id, " + 
@@ -109,11 +109,28 @@ public class LeagueAccountRepository {
 
   private static final String UPDATE_LEAGUE_ACCOUNT_NAME_WITH_ID =
       "UPDATE league_account SET leagueaccount_name = '%s' WHERE leagueaccount_id = %d";
+  
+  private static final String COUNT_LEAGUE_ACCOUNTS = "SELECT COUNT(*) FROM league_account;";
 
   private LeagueAccountRepository() {
     //hide default public constructor
   }
 
+  public static long countLeagueAccounts() throws SQLException {
+    ResultSet result = null;
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+
+      result = query.executeQuery(COUNT_LEAGUE_ACCOUNTS);
+      
+      result.first();
+      
+      return result.getLong("count");
+    }finally {
+      RepoRessources.closeResultSet(result);
+    }
+  }
+  
   public static List<DTO.LeagueAccount> getLeaguesAccountsWithPlayerID(long guildId, long playerId) throws SQLException {
     ResultSet result = null;
     try (Connection conn = RepoRessources.getConnection();

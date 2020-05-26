@@ -12,18 +12,13 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.util.CommandUtil;
+import ch.kalunight.zoe.util.Ressources;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.PrivateChannel;
 
 public class AdminSendAnnonceMessageCommand extends ZoeCommand {
 
   private static final Logger logger = LoggerFactory.getLogger(AdminSendAnnonceMessageCommand.class);
-  private static final List<String> blackListedSever = new ArrayList<>();
-
-  static {
-    blackListedSever.add("264445053596991498"); //Discord Bot List Server
-    blackListedSever.add("446425626988249089"); //Bot on Discord
-  }
   
   public AdminSendAnnonceMessageCommand() {
     this.name = "sendAnnonce";
@@ -47,7 +42,7 @@ public class AdminSendAnnonceMessageCommand extends ZoeCommand {
     for(Guild guild : Zoe.getJda().getGuilds()) {
 
       try {
-        if(!isBlackListed(guild.getId()) && !userAlreadySendedId.contains(guild.getOwnerId())) {
+        if(!Ressources.isBlackListed(guild.getId()) && !userAlreadySendedId.contains(guild.getOwnerId())) {
           PrivateChannel privateChannel = guild.getOwner().getUser().openPrivateChannel().complete();
           List<String> messagesToSend = CommandEvent.splitMessage(event.getArgs());
           for(String message : messagesToSend) {
@@ -61,13 +56,6 @@ public class AdminSendAnnonceMessageCommand extends ZoeCommand {
     }
 
     event.reply("The messsage has been sended !");
-  }
-  
-  /**
-   * Server we know they are busy and not interested by Zoe info Messages (Like discordbot.org server, ect)
-   */
-  private boolean isBlackListed(String serverId) {
-    return blackListedSever.contains(serverId);
   }
 
   @Override

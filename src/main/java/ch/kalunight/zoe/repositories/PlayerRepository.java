@@ -55,8 +55,25 @@ public class PlayerRepository {
 
   private static final String UPDATE_TEAM_OF_PLAYER_DEFINE_NULL = "UPDATE player SET player_fk_team = %s WHERE player_id = %d";
 
+  private static final String COUNT_PLAYERS = "SELECT COUNT(*) FROM player";
+  
   private PlayerRepository() {
     //hide default public constructor
+  }
+  
+  public static long countPlayers() throws SQLException {
+    ResultSet result = null;
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+
+      result = query.executeQuery(COUNT_PLAYERS);
+      
+      result.first();
+      
+      return result.getLong("count");
+    }finally {
+      RepoRessources.closeResultSet(result);
+    }
   }
 
   public static void createPlayer(long servId, long discordId, boolean mentionnable) throws SQLException {

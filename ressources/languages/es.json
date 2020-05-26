@@ -306,5 +306,19 @@
     "rankChannelChangeBOProgressDesc": "Resumen del BO:",
     "iron": "Hierro",
     "createRankChannelHelpMessage": "Crea un \"canal clasificatorio\" donde enviaré actualizaciones sobre el rango de jugadores registrados. El permiso Gestionar Canales es necesario.",
-    "deleteRankChannelDeletedMissingPermission": "¡El canal clasificatorio ha sido eliminado solo **dentro del sistema**! ¡No tengo los permisos para eliminar el canal de texto!"
+    "deleteRankChannelDeletedMissingPermission": "¡El canal clasificatorio ha sido eliminado solo **dentro del sistema**! ¡No tengo los permisos para eliminar el canal de texto!",
+    "flexTitleRespectSize": "Clasificatoria Flexible",
+    "infoPanelRankedUpdateDecay": "División Perdida",
+    "infoPanelRankedUpdateDivisionSkip": "Subida de Rango",
+    "infoPanelRankedUpdateBoInProgres": "Partida de 'promoción' en progreso",
+    "infoPanelRankedUpdateBoStarted": "Partida de 'promoción' empezada",
+    "infoPanelRankedUpdateBoLose": "Partida de 'promoción' perdida",
+    "infoPanelRankedUpdateBoWin": "Partida de 'promoción' ganada",
+    "infoPanelRankedTextMultipleAccount": "- %s : Rango | %s (%s)",
+    "infoPanelRankedTitleMultipleAccount": "%s : No está en partida | Lista de cuentas :",
+    "infoPanelRankedTextOneAccount": "%s : No está en partida | Rango : %s (%s)",
+    "infoPanelRankedOptionLongDescDisable": "Opción que te gustaría desactivar: **%s**\n\nSi desactivas esta opción ya no se mostrarán estadísticas de las cuentas en el InfoPanel\n\n**Estás seguro que quieres desactivar esta opción?**\n\n:white_check_mark: : **Desactivar** la opción\n:x: : No hacer cambios",
+    "infoPanelRankedOptionLongDescEnable": "Opción en estado de activación: **%s**\n\nActivando esta opción otorgará información adicional sobre cada última cuenta clasificatoria del InfoPanel.\n\n:white_check_mark: : Activar la opción.\n:x: : Cancelar la activación.",
+    "infopanelRankedOptionDesc": "Mostrar últimos cambios de jugador en InfoPanel",
+    "rankedAvg": "Ranked (media)"
 }

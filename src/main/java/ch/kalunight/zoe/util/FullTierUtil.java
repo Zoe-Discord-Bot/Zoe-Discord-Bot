@@ -36,8 +36,9 @@ public class FullTierUtil {
 
       if(oldEntry.getMiniSeries() != null && newEntry.getMiniSeries() == null) { //BO ended
         
-        if(oldFullTier.getTier().getValue() > newFullTier.getTier().getValue()) { //BO win
-          return usableGreenEmote + " " + LanguageManager.getText(lang, "infoPanelRankedUpdateBoWin");
+        if((oldFullTier.getTier().getValue() < newFullTier.getTier().getValue() && oldFullTier.getRank().getValue() > newFullTier.getRank().getValue()) || 
+            (oldFullTier.getTier().getValue() == newFullTier.getTier().getValue() && oldFullTier.getRank().getValue() < newFullTier.getRank().getValue())) { //BO win
+          return ":star: " + LanguageManager.getText(lang, "infoPanelRankedUpdateBoWin");
         } else { //BO lose
           return usableRedEmote + " " + LanguageManager.getText(lang, "infoPanelRankedUpdateBoLose");
         }
@@ -51,7 +52,7 @@ public class FullTierUtil {
         int nbrMatchNewEntry = newEntry.getMiniSeries().getLosses() + newEntry.getMiniSeries().getWins();
 
         if(nbrMatchNewEntry != nbrMatchOldEntry) { //BO in progress
-          return "" + LanguageManager.getText(lang, "infoPanelRankedUpdateBoInProgres");
+          return ":star: " + LanguageManager.getText(lang, "infoPanelRankedUpdateBoInProgres");
         }
       }
 

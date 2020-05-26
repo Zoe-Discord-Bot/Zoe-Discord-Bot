@@ -52,6 +52,8 @@ public class ServerData {
    * Used by event waiter, define in {@link Zoe#main(String[])}
    */
   private static final ScheduledThreadPoolExecutor RESPONSE_WAITER = new ScheduledThreadPoolExecutor(NBR_PROC);
+  
+  private static boolean rebootAsked = false;
 
   private ServerData() {
     // Hide public default constructor
@@ -184,7 +186,7 @@ public class ServerData {
       matchWorker.shutdown();
       logger.info("Start to shutdown Match Worker {}, this can take 1 minutes max...", platform.getName());
 
-      matchWorker.awaitTermination(5, TimeUnit.MINUTES);
+      matchWorker.awaitTermination(1, TimeUnit.MINUTES);
       if(!matchWorker.isShutdown()) {
         matchWorker.shutdownNow();
       }
@@ -237,5 +239,13 @@ public class ServerData {
 
   public static ThreadPoolExecutor getRankedMessageGenerator() {
     return RANKED_MESSAGE_GENERATOR;
+  }
+
+  public static boolean isRebootAsked() {
+    return rebootAsked;
+  }
+
+  public static void setRebootAsked(boolean rebootAsked) {
+    ServerData.rebootAsked = rebootAsked;
   }
 }

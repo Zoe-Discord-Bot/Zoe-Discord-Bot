@@ -299,7 +299,7 @@
     "infoPanelRankedUpdateBoStarted": "Игры на повышение Начались",
     "infoPanelRankedUpdateBoLose": "Игры на повышение Проиграны",
     "infoPanelRankedUpdateBoWin": "Игры на повышение Выиграны",
-    "infoPanelRankedTitleMultipleAccount": "% s : не в игре | Список аккаунтов :",
+    "infoPanelRankedTitleMultipleAccount": "%s : не в игре | Список аккаунтов :",
     "infoPanelRankedOptionLongDescDisable": "Опция, которую вы хотите отключить: **% s **\n\nОтключение этой опции остановит отображение статистики по учетной записи в InfoPanel.\n\n** Вы уверены, что хотите отключить эту опцию? **\n\n:white_check_mark: : ** отключить ** параметр\n:x: : отменить процедуру отключения",
     "rankedAvg": "Средний рейтинг",
     "undefineRankChannelDoneMessage": "Я не определила ранговый канал!",

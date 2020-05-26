@@ -320,5 +320,6 @@
     "infoPanelRankedOptionLongDescDisable": "Opción que te gustaría desactivar: **%s**\n\nSi desactivas esta opción ya no se mostrarán estadísticas de las cuentas en el InfoPanel\n\n**Estás seguro que quieres desactivar esta opción?**\n\n:white_check_mark: : **Desactivar** la opción\n:x: : No hacer cambios",
     "infoPanelRankedOptionLongDescEnable": "Opción en estado de activación: **%s**\n\nActivando esta opción otorgará información adicional sobre cada última cuenta clasificatoria del InfoPanel.\n\n:white_check_mark: : Activar la opción.\n:x: : Cancelar la activación.",
     "infopanelRankedOptionDesc": "Mostrar últimos cambios de jugador en InfoPanel",
-    "rankedAvg": "Ranked (media)"
+    "rankedAvg": "Ranked (media)",
+    "infopanelMessageReSendMessage": "Estoy recreando el panel de información, por favor espera..."
 }

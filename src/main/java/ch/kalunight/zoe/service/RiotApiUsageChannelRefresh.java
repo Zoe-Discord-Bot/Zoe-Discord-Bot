@@ -18,6 +18,8 @@ import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
+import ch.kalunight.zoe.repositories.LeagueAccountRepository;
+import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.riotapi.CachedRiotApi;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Guild;
@@ -64,6 +66,10 @@ public class RiotApiUsageChannelRefresh implements Runnable {
             + "\nTask in Players Data Worker Queue : " + ServerData.getPlayersDataQueue()
             + "\nInfocards Generated last 2 minutes : " + getInfocardCreatedCount()).queue();
 
+        rapiInfoChannel.sendMessage("**Usage Stats**"
+            + "\nTotal number of Players : " + PlayerRepository.countPlayers()
+            + "\nTotal number of League Accounts : " + LeagueAccountRepository.countLeagueAccounts()).queue();
+        
         InfoPanelRefresher.getNbrServerSefreshedLast2Minutes().set(0);
 
         rapiInfoChannel.sendMessage("**Riot Request Stats**"

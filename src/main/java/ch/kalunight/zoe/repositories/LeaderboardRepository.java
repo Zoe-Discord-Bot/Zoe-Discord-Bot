@@ -31,6 +31,16 @@ public class LeaderboardRepository {
       "INNER JOIN leaderboard ON server.serv_id = leaderboard.lead_fk_server " + 
       "WHERE server.serv_guildid = %d";
   
+  private static final String SELECT_LEADERBOARD_WITH_ID = "SELECT " + 
+      "leaderboard.lead_id, " + 
+      "leaderboard.lead_fk_server, " + 
+      "leaderboard.lead_message_channelid, " + 
+      "leaderboard.lead_message_id, " + 
+      "leaderboard.lead_type, " + 
+      "leaderboard.lead_data " + 
+      "FROM leaderboard " + 
+      "WHERE leaderboard.lead_id = %d";
+  
   private LeaderboardRepository() {
     //hide default public constructor
   }
@@ -67,7 +77,24 @@ public class LeaderboardRepository {
     }
   }
   
-  public static List<DTO.Leaderboard> getLeaderboardWithId(long guildId) throws SQLException {
+  public static DTO.Leaderboard getLeaderboardWithId(long leaderboardId) throws SQLException{
+    ResultSet result = null;
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+
+      String finalQuery = String.format(SELECT_LEADERBOARD_WITH_ID, leaderboardId);
+      result = query.executeQuery(finalQuery);
+      int rowCount = result.last() ? result.getRow() : 0;
+      if(rowCount == 0) {
+        return null;
+      }
+      return new DTO.Leaderboard(result);
+    }finally {
+      RepoRessources.closeResultSet(result);
+    }
+  }
+  
+  public static List<DTO.Leaderboard> getLeaderboardsWithGuildId(long guildId) throws SQLException {
     ResultSet result = null;
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {

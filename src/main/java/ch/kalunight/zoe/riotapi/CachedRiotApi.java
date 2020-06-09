@@ -3,6 +3,7 @@ package ch.kalunight.zoe.riotapi;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashSet;
@@ -346,6 +347,35 @@ public class CachedRiotApi {
     increaseCallCountForGivenRegion(platform);
 
     return masteries;
+  }
+  
+  public List<ChampionMastery> getChampionMasteriesBySummonerWithRateLimit(Platform platform, String summonerId) throws RiotApiException {
+    List<ChampionMastery> masterys = null;
+    boolean needToRetry;
+    do {
+      championMasteryRequestCount.incrementAndGet();
+      increaseCallCountForGivenRegion(platform);
+      
+      needToRetry = true;
+      try {
+        masterys = riotApi.getChampionMasteriesBySummoner(platform, summonerId);
+        needToRetry = false;
+      }catch(RateLimitException e) {
+        try {
+          logger.info("Waiting rate limit ({} sec) to retry when getting mastery", e.getRetryAfter());
+          TimeUnit.SECONDS.sleep(e.getRetryAfter());
+        } catch (InterruptedException e1) {
+          logger.error("Thread Interupted when waiting the rate limit !", e1);
+          Thread.currentThread().interrupt();
+        }
+      } catch (RiotApiException e) {
+        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+          return new ArrayList<>();
+        }
+      }
+    }while(needToRetry);
+    
+    return masterys;
   }
 
   public Match getMatchWithRateLimit(Platform server, long gameId) {

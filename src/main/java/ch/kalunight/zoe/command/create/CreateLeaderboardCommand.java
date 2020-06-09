@@ -14,12 +14,15 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.SelectionDialog;
 
 import ch.kalunight.zoe.command.ZoeCommand;
-import ch.kalunight.zoe.model.Objective;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.DTO.Server;
+import ch.kalunight.zoe.model.leaderboard.Objective;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
 public class CreateLeaderboardCommand extends ZoeCommand {
 
@@ -55,7 +58,7 @@ public class CreateLeaderboardCommand extends ZoeCommand {
         .setColor(Color.BLUE)
         .setSelectedEnds("**", "**")
         .setCanceled(getSelectionCancelAction(server.serv_language))
-        .setSelectionConsumer(getSelectionConsumer(server.serv_language, event, objectiveList))
+        .setSelectionConsumer(getSelectionConsumer(server, event, objectiveList))
         .setTimeout(2, TimeUnit.MINUTES);
     
 
@@ -83,21 +86,35 @@ public class CreateLeaderboardCommand extends ZoeCommand {
     };
   }
   
-  private BiConsumer<Message, Integer> getSelectionConsumer(String language, CommandEvent event, List<Objective> objectiveList) {
+  private BiConsumer<Message, Integer> getSelectionConsumer(Server server, CommandEvent event, List<Objective> objectiveList) {
     return new BiConsumer<Message, Integer>() {
       @Override
       public void accept(Message selectionMessage, Integer objectiveSelection) {
         Objective objective = objectiveList.get(objectiveSelection);
         
-        event.reply(String.format(LanguageManager.getText(language, "leaderboardObjectiveSelected"), LanguageManager.getText(language, objective.getTranslationId())));
+        event.reply(String.format(LanguageManager.getText(server.serv_language, "leaderboardObjectiveSelected"),
+            LanguageManager.getText(server.serv_language, objective.getTranslationId())));
+        
+        waiter.waitForEvent(MessageReceivedEvent.class,
+            e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel())
+              && !e.getMessage().getId().equals(event.getMessage().getId()),
+            e -> threatChannelSelection(e, server, objective), 2, TimeUnit.MINUTES,
+            () -> cancelProcedure(event, server));
       }
     };
+  }
+  
+  private void cancelProcedure(CommandEvent event, Server server) {
+    event.getTextChannel().sendMessage(LanguageManager.getText(server.serv_language, "leaderboardObjectiveChannelSelectionTimeOut")).queue();
+  }
+  
+  private void threatChannelSelection(MessageReceivedEvent event, Server server, Objective objectiveSelected) {
+    //TODO
   }
 
   @Override
   public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
-    // TODO Auto-generated method stub
-    return null;
+    return helpBiConsumer;
   }
 
 }

@@ -1,4 +1,4 @@
-package ch.kalunight.zoe.model;
+package ch.kalunight.zoe.model.leaderboard;
 
 public enum Objective {
   MASTERY_POINT("leaderboardObjectiveMasterPoint"),

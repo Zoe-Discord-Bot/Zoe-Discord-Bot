@@ -21,14 +21,14 @@ import net.dv8tion.jda.api.entities.TextChannel;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.champion_mastery.dto.ChampionMastery;
 
-public class MasteryPointLeaderBoardService extends LeaderboardBaseService {
+public class MasteryPointLeaderboardService extends LeaderboardBaseService {
   
-  private static final DecimalFormat masteryPointsFormat = new DecimalFormat("#'###'###'###");
+  private static final DecimalFormat masteryPointsFormat = new DecimalFormat("###,###,###");
   
   private class PlayerPoints implements Comparable<PlayerPoints> {
     
-    public DTO.Player player;
-    public long masteryPoint;
+    private DTO.Player player;
+    private long masteryPoint;
     
     public PlayerPoints(DTO.Player player, long maxMasteryPoints) {
       this.player = player;
@@ -38,16 +38,16 @@ public class MasteryPointLeaderBoardService extends LeaderboardBaseService {
     @Override
     public int compareTo(PlayerPoints otherPlayer) {
       if(masteryPoint < otherPlayer.masteryPoint) {
-        return -1;
-      }else if(masteryPoint > otherPlayer.masteryPoint) {
         return 1;
+      }else if(masteryPoint > otherPlayer.masteryPoint) {
+        return -1;
       }
       
       return 0;
     }
   }
   
-  public MasteryPointLeaderBoardService(long guildId, long channelId, long leaderboardId) {
+  public MasteryPointLeaderboardService(long guildId, long channelId, long leaderboardId) {
     super(guildId, channelId, leaderboardId);
   }
 
@@ -71,7 +71,8 @@ public class MasteryPointLeaderBoardService extends LeaderboardBaseService {
     builder.setColor(Color.BLUE);
     builder.setTitle(LanguageManager.getText(server.serv_language, "leaderboardObjectiveMasterPointTitle"));
     builder.setFooter(LanguageManager.getText(server.serv_language, "leaderboardRefreshMessage"));
-    message.editMessage(builder.build());
+    message.editMessage(LanguageManager.getText(server.serv_language, "leaderboardObjectiveMasterPointTitle")).queue();
+    message.editMessage(builder.build()).queue();
   }
 
   private List<PlayerPoints> orderAndGetPlayers(Guild guild) throws SQLException, RiotApiException {

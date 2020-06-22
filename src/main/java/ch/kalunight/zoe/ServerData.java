@@ -47,6 +47,9 @@ public class ServerData {
   
   private static final Map<Platform, ThreadPoolExecutor> MATCH_THREAD_EXECUTORS =
       Collections.synchronizedMap(new EnumMap<Platform, ThreadPoolExecutor>(Platform.class));
+  
+  private static final ThreadPoolExecutor LEADERBOARD_EXECUTOR =
+      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
 
   /**
    * Used by event waiter, define in {@link Zoe#main(String[])}
@@ -65,6 +68,7 @@ public class ServerData {
     INFOCARDS_GENERATOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe InfoCards-Generator-Thread %d").build());
     RANKED_MESSAGE_GENERATOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Ranked-Message-Generator-Thread %d").build());
     RESPONSE_WAITER.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Response-Waiter-Thread %d").build());
+    LEADERBOARD_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Leaderboard-Refresher-Thread %d").build());
 
     for(Platform platform : Platform.values()) {
       ThreadPoolExecutor executor = new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
@@ -104,6 +108,7 @@ public class ServerData {
     SERVER_EXECUTOR.getQueue().clear();
     INFOCARDS_GENERATOR.getQueue().clear();
     RANKED_MESSAGE_GENERATOR.getQueue().clear();
+    LEADERBOARD_EXECUTOR.getQueue().clear();
     
     for(Platform platform : Platform.values()) {
       ThreadPoolExecutor playerWorker = MATCH_THREAD_EXECUTORS.get(platform);
@@ -194,6 +199,17 @@ public class ServerData {
     }
 
     channel.sendMessage("Shutdown of Matchs Worker has been completed !").complete();
+    
+    logger.info("Start to shutdown Leaderboard Executor, this can take 1 minutes max...");
+    channel.sendMessage("Start to shutdown Leaderboard Executor, this can take 1 minutes max...").complete();
+    LEADERBOARD_EXECUTOR.shutdown();
+
+    LEADERBOARD_EXECUTOR.awaitTermination(1, TimeUnit.MINUTES);
+    if(!LEADERBOARD_EXECUTOR.isShutdown()) {
+      LEADERBOARD_EXECUTOR.shutdownNow();
+    }
+    logger.info("Shutdown of Leaderboard Executor has been completed !");
+    channel.sendMessage("Shutdown of Leaderboard Executor has been completed !").complete();
   }
   
   public static int getPlayersDataQueue() {
@@ -239,6 +255,10 @@ public class ServerData {
 
   public static ThreadPoolExecutor getRankedMessageGenerator() {
     return RANKED_MESSAGE_GENERATOR;
+  }
+  
+  public static ThreadPoolExecutor getLeaderboardExecutor() {
+    return LEADERBOARD_EXECUTOR;
   }
 
   public static boolean isRebootAsked() {

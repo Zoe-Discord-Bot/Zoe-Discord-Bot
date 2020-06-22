@@ -14,7 +14,8 @@ public class LeaderboardRepository {
   private static final String INSERT_LEADERBOARD = "INSERT INTO leaderboard " +
       "(lead_fk_server, lead_message_channelId, " +
       "lead_message_id, lead_type) " +
-      "VALUES (%d, %d, %d, '%s')";
+      "VALUES (%d, %d, %d, '%s') " +
+      "RETURNING lead_id";
   
   private static final String DELETE_LEADERBOARD_WITH_ID = "DELETE FROM leaderboard WHERE lead_id = %d";
   
@@ -45,12 +46,18 @@ public class LeaderboardRepository {
     //hide default public constructor
   }
   
-  public static void createLeaderboard(long guildId, long channelId, long messageId, String type) throws SQLException {
+  public static DTO.Leaderboard createLeaderboard(long serverId, long channelId, long messageId, String type) throws SQLException {
+    ResultSet result = null;
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
 
-      String finalQuery = String.format(INSERT_LEADERBOARD, guildId, channelId, messageId, type);
-      query.execute(finalQuery);
+      String finalQuery = String.format(INSERT_LEADERBOARD, serverId, channelId, messageId, type);
+      result = query.executeQuery(finalQuery);
+      result.next();
+      
+      return getLeaderboardWithId(result.getLong("lead_id"));
+    }finally {
+      RepoRessources.closeResultSet(result);
     }
   }
 

@@ -8,24 +8,34 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.SelectionDialog;
 
+import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.leaderboard.Objective;
+import ch.kalunight.zoe.repositories.LeaderboardRepository;
+import ch.kalunight.zoe.service.leaderboard.LeaderboardBaseService;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 
 public class CreateLeaderboardCommand extends ZoeCommand {
 
+  private static Logger logger = LoggerFactory.getLogger(CreateLeaderboardCommand.class);
+  
   private EventWaiter waiter;
   
   public CreateLeaderboardCommand(EventWaiter waiter) {
@@ -90,7 +100,7 @@ public class CreateLeaderboardCommand extends ZoeCommand {
     return new BiConsumer<Message, Integer>() {
       @Override
       public void accept(Message selectionMessage, Integer objectiveSelection) {
-        Objective objective = objectiveList.get(objectiveSelection);
+        Objective objective = objectiveList.get(objectiveSelection - 1);
         
         event.reply(String.format(LanguageManager.getText(server.serv_language, "leaderboardObjectiveSelected"),
             LanguageManager.getText(server.serv_language, objective.getTranslationId())));
@@ -99,17 +109,53 @@ public class CreateLeaderboardCommand extends ZoeCommand {
             e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel())
               && !e.getMessage().getId().equals(event.getMessage().getId()),
             e -> threatChannelSelection(e, server, objective), 2, TimeUnit.MINUTES,
-            () -> cancelProcedure(event, server));
+            () -> cancelProcedure(event.getTextChannel(), server));
       }
     };
   }
   
-  private void cancelProcedure(CommandEvent event, Server server) {
-    event.getTextChannel().sendMessage(LanguageManager.getText(server.serv_language, "leaderboardObjectiveChannelSelectionTimeOut")).queue();
+  private void cancelProcedure(TextChannel channel, Server server) {
+    channel.sendMessage(LanguageManager.getText(server.serv_language, "leaderboardObjectiveChannelSelectionTimeOut")).queue();
   }
   
   private void threatChannelSelection(MessageReceivedEvent event, Server server, Objective objectiveSelected) {
-    //TODO
+    Message message = event.getMessage();
+    
+    TextChannel leaderboardChannel;
+    
+    if(event.getMessage().getMentionedChannels().size() != 1) {
+      message.getChannel().sendMessage(LanguageManager.getText(server.serv_language, "createLeaderboardNeedOneMentionnedChannel")).queue();
+      waiter.waitForEvent(MessageReceivedEvent.class,
+          e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel())
+            && !e.getMessage().getId().equals(event.getMessage().getId()),
+          e -> threatChannelSelection(e, server, objectiveSelected), 2, TimeUnit.MINUTES,
+          () -> cancelProcedure(event.getTextChannel(), server));
+      return;
+    }
+    
+    leaderboardChannel = message.getMentionedChannels().get(0);
+    
+    try {
+      Message leaderboardMessage = leaderboardChannel.sendMessage(LanguageManager.getText(server.serv_language, "leaderboardObjectiveBaseMessage")).complete();
+      
+      Leaderboard leaderboard = LeaderboardRepository.createLeaderboard(server.serv_id, leaderboardChannel.getIdLong(), leaderboardMessage.getIdLong(), objectiveSelected.toString());
+      
+      LeaderboardBaseService baseLeaderboardService = LeaderboardBaseService.getServiceWithId(objectiveSelected, server.serv_guildId, leaderboardChannel.getIdLong(), leaderboard.lead_id);
+      
+      ServerData.getLeaderboardExecutor().execute(baseLeaderboardService);
+      
+      event.getTextChannel().sendMessage(LanguageManager.getText(server.serv_language, "leaderboardSuccessfullyCreated")).queue();
+    }catch(ErrorResponseException error) {
+      message.getChannel().sendMessage(LanguageManager.getText(server.serv_language, "leaderboardMissingPermission")).queue();
+      waiter.waitForEvent(MessageReceivedEvent.class,
+          e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel())
+            && !e.getMessage().getId().equals(event.getMessage().getId()),
+          e -> threatChannelSelection(e, server, objectiveSelected), 2, TimeUnit.MINUTES,
+          () -> cancelProcedure(event.getTextChannel(), server));
+    } catch (SQLException e) {
+      event.getTextChannel().sendMessage(LanguageManager.getText(server.serv_language, "errorSQLPleaseReport")).queue();
+      logger.warn("SQL Error when creating leaderboard", e);
+    }
   }
 
   @Override

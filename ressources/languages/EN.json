@@ -333,10 +333,14 @@
 	"leaderboardObjectiveRank" : "SoloQ Rank",
 	"leaderboardObjectiveRankProgress" : "SoloQ Rank Progress",
 	"leaderboardObjectiveAverageKDA" : "SoloQ Average KDA",
-	"leaderboardObjectiveSelected" : "You have selected the objective \"%s\". Now please send me the mention of the channel where you want the leaderboard (i.e. #your-channel).",
+	"leaderboardObjectiveSelected" : "You have selected the objective \"%s\". Now please send me the mention of the channel where you want the leaderboard (i.e. ``#your-channel``).",
 	"leaderboardObjectiveChannelSelectionTimeOut" : "You took too long to choose a channel. Please try again.",
 	"leaderboardPlayersTitle" : "Players",
 	"leaderboardObjectiveMasterPointTitle" : "Leaderboard Total Mastery Points",
 	"pointsShort" : "pts",
-	"leaderboardRefreshMessage" : "Refreshed every hour"
+	"leaderboardRefreshMessage" : "Refreshed every hour",
+	"createLeaderboardNeedOneMentionnedChannel": "Please send me the mention of the channel where you want the leaderboard (i.e. ``#leaderboard-channel``).",
+	"leaderboardObjectiveBaseMessage": "**Leaderboard loading ...**",
+	"leaderboardMissingPermission": "I don't have all needed permissions! Please give me the right to manage channels, manage emotes and external link usage.",
+	"leaderboardSuccessfullyCreated": "The leaderboard has been successfully created! I will refresh it every hour."
 }

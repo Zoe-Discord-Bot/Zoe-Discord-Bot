@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
 import ch.kalunight.zoe.model.dto.DTO.Server;
+import ch.kalunight.zoe.model.leaderboard.Objective;
 import ch.kalunight.zoe.repositories.LeaderboardRepository;
 import ch.kalunight.zoe.repositories.ServerRepository;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -19,9 +20,9 @@ import net.rithms.riot.api.RiotApiException;
 
 public abstract class LeaderboardBaseService implements Runnable {
 
-  private static Logger logger = LoggerFactory.getLogger(LeaderboardBaseService.class);
+  private static final int MAX_PLAYERS_IN_LEADERBOARD = 10;
 
-  private static int MAX_PLAYERS_IN_LEADERBOARD = 10;
+  private static final Logger logger = LoggerFactory.getLogger(LeaderboardBaseService.class);
   
   private long guildId;
 
@@ -52,8 +53,8 @@ public abstract class LeaderboardBaseService implements Runnable {
       message.addReaction("U+23F3").complete();
 
       runLeaderboardRefresh(server, guild, channel, leaderboard, message);
-
-      message.clearReactions("U+23F3").queue();
+      
+      message.removeReaction("U+23F3", Zoe.getJda().getSelfUser()).queue();
 
     }catch(ErrorResponseException e) {      
       logger.error("Error while getting discord data", e);
@@ -86,7 +87,7 @@ public abstract class LeaderboardBaseService implements Runnable {
         break;
       }
 
-      if((i + 1) > playersName.size()) {
+      if((i + 1) < playersName.size()) {
         stringListPlayer.append("\n");
       }
     }
@@ -102,8 +103,8 @@ public abstract class LeaderboardBaseService implements Runnable {
       }else {
         break;
       }
-      
-      if((i + 1) > playersName.size()) {
+
+      if((i + 1) < playersName.size()) {
         stringData.append("\n");
       }
     }
@@ -112,5 +113,29 @@ public abstract class LeaderboardBaseService implements Runnable {
     builder.addField(field);
 
     return builder;
+  }
+
+  public static LeaderboardBaseService getServiceWithId(Objective objective, long guildId, long channelId, long leaderboardId) {
+
+    switch(objective) {
+    case AVERAGE_KDA:
+      break;
+    case MASTERY_EVERYONE_START_FROM_0:
+      break;
+    case MASTERY_POINT:
+      return new MasteryPointLeaderboardService(guildId, channelId, leaderboardId);
+    case MASTERY_POINT_SPECIFIC_CHAMP:
+      break;
+    case MASTERY_POINT_START_FROM_0_SPECIFIC_CHAMP:
+      break;
+    case RANK:
+      break;
+    case RANK_PROGRESSION:
+      break;
+    default:
+      break;
+    }
+
+    return null;
   }
 }

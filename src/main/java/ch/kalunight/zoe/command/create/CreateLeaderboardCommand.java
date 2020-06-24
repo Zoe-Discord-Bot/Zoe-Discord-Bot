@@ -35,9 +35,9 @@ import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 public class CreateLeaderboardCommand extends ZoeCommand {
 
   private static Logger logger = LoggerFactory.getLogger(CreateLeaderboardCommand.class);
-  
+
   private EventWaiter waiter;
-  
+
   public CreateLeaderboardCommand(EventWaiter waiter) {
     this.name = "leaderboard";
     String[] aliases = {"leader", "lb", "lead"};
@@ -50,17 +50,17 @@ public class CreateLeaderboardCommand extends ZoeCommand {
     this.waiter = waiter;
     this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(CreateCommand.USAGE_NAME, name, arguments, help);
   }
-  
+
   @Override
   protected void executeCommand(CommandEvent event) throws SQLException {
-    
+
     DTO.Server server = getServer(event.getGuild().getIdLong());
-    
+
     event.reply(LanguageManager.getText(server.serv_language, "createLeaderboardExplainMessage"));
-    
+
     List<Objective> objectiveList = new ArrayList<>();
     List<String> objectiveChoices = new ArrayList<>();
-    
+
     SelectionDialog.Builder selectAccountBuilder = new SelectionDialog.Builder()
         .addUsers(event.getAuthor())
         .setEventWaiter(waiter)
@@ -70,18 +70,18 @@ public class CreateLeaderboardCommand extends ZoeCommand {
         .setCanceled(getSelectionCancelAction(server.serv_language))
         .setSelectionConsumer(getSelectionConsumer(server, event, objectiveList))
         .setTimeout(2, TimeUnit.MINUTES);
-    
+
 
     for(Objective objective : Objective.values()) {
       String actualChoice = String.format(LanguageManager.getText(server.serv_language, objective.getTranslationId()));
-      
+
       objectiveChoices.add(actualChoice);
       selectAccountBuilder.addChoices(actualChoice);
       objectiveList.add(objective);
     }
-    
+
     selectAccountBuilder.setText(LanguageManager.getText(server.serv_language, "createLeaderboardTitleListeObjective"));
-    
+
     SelectionDialog choiceLeaderBoard = selectAccountBuilder.build();
     choiceLeaderBoard.display(event.getChannel());
   }
@@ -95,65 +95,72 @@ public class CreateLeaderboardCommand extends ZoeCommand {
       }
     };
   }
-  
+
   private BiConsumer<Message, Integer> getSelectionConsumer(Server server, CommandEvent event, List<Objective> objectiveList) {
     return new BiConsumer<Message, Integer>() {
       @Override
       public void accept(Message selectionMessage, Integer objectiveSelection) {
         Objective objective = objectiveList.get(objectiveSelection - 1);
-        
+
         event.reply(String.format(LanguageManager.getText(server.serv_language, "leaderboardObjectiveSelected"),
             LanguageManager.getText(server.serv_language, objective.getTranslationId())));
-        
-        Objective.getDataNeeded(objective);
-        
-        waiter.waitForEvent(MessageReceivedEvent.class,
-            e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel())
+
+        List<String> dataNeeded = Objective.getDataNeeded(objective);
+
+        if(dataNeeded.isEmpty()) {
+
+          waiter.waitForEvent(MessageReceivedEvent.class,
+              e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel())
               && !e.getMessage().getId().equals(event.getMessage().getId()),
-            e -> threatChannelSelection(e, server, objective), 2, TimeUnit.MINUTES,
-            () -> cancelProcedure(event.getTextChannel(), server));
+              e -> threatChannelSelection(e, server, objective), 2, TimeUnit.MINUTES,
+              () -> cancelProcedure(event.getTextChannel(), server));
+        }else {
+          
+          
+          
+        }
       }
     };
   }
-  
+
   private void cancelProcedure(TextChannel channel, Server server) {
     channel.sendMessage(LanguageManager.getText(server.serv_language, "leaderboardObjectiveChannelSelectionTimeOut")).queue();
   }
-  
+
   private void threatChannelSelection(MessageReceivedEvent event, Server server, Objective objectiveSelected) {
     Message message = event.getMessage();
-    
+
     TextChannel leaderboardChannel;
-    
+
     if(event.getMessage().getMentionedChannels().size() != 1) {
       message.getChannel().sendMessage(LanguageManager.getText(server.serv_language, "createLeaderboardNeedOneMentionnedChannel")).queue();
       waiter.waitForEvent(MessageReceivedEvent.class,
           e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel())
-            && !e.getMessage().getId().equals(event.getMessage().getId()),
+          && !e.getMessage().getId().equals(event.getMessage().getId()),
           e -> threatChannelSelection(e, server, objectiveSelected), 2, TimeUnit.MINUTES,
           () -> cancelProcedure(event.getTextChannel(), server));
       return;
     }
-    
+
     leaderboardChannel = message.getMentionedChannels().get(0);
-    
-    
-    
+
+
+
     try {
       Message leaderboardMessage = leaderboardChannel.sendMessage(LanguageManager.getText(server.serv_language, "leaderboardObjectiveBaseMessage")).complete();
-      
+
       Leaderboard leaderboard = LeaderboardRepository.createLeaderboard(server.serv_id, leaderboardChannel.getIdLong(), leaderboardMessage.getIdLong(), objectiveSelected.getId());
-      
+
       LeaderboardBaseService baseLeaderboardService = LeaderboardBaseService.getServiceWithId(objectiveSelected, server.serv_guildId, leaderboardChannel.getIdLong(), leaderboard.lead_id);
-      
+
       ServerData.getLeaderboardExecutor().execute(baseLeaderboardService);
-      
+
       event.getTextChannel().sendMessage(LanguageManager.getText(server.serv_language, "leaderboardSuccessfullyCreated")).queue();
     }catch(ErrorResponseException error) {
       message.getChannel().sendMessage(LanguageManager.getText(server.serv_language, "leaderboardMissingPermission")).queue();
       waiter.waitForEvent(MessageReceivedEvent.class,
           e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel())
-            && !e.getMessage().getId().equals(event.getMessage().getId()),
+          && !e.getMessage().getId().equals(event.getMessage().getId()),
           e -> threatChannelSelection(e, server, objectiveSelected), 2, TimeUnit.MINUTES,
           () -> cancelProcedure(event.getTextChannel(), server));
     } catch (SQLException e) {

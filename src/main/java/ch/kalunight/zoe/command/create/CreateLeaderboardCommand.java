@@ -105,6 +105,8 @@ public class CreateLeaderboardCommand extends ZoeCommand {
         event.reply(String.format(LanguageManager.getText(server.serv_language, "leaderboardObjectiveSelected"),
             LanguageManager.getText(server.serv_language, objective.getTranslationId())));
         
+        Objective.getDataNeeded(objective);
+        
         waiter.waitForEvent(MessageReceivedEvent.class,
             e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel())
               && !e.getMessage().getId().equals(event.getMessage().getId()),
@@ -135,10 +137,12 @@ public class CreateLeaderboardCommand extends ZoeCommand {
     
     leaderboardChannel = message.getMentionedChannels().get(0);
     
+    
+    
     try {
       Message leaderboardMessage = leaderboardChannel.sendMessage(LanguageManager.getText(server.serv_language, "leaderboardObjectiveBaseMessage")).complete();
       
-      Leaderboard leaderboard = LeaderboardRepository.createLeaderboard(server.serv_id, leaderboardChannel.getIdLong(), leaderboardMessage.getIdLong(), objectiveSelected.toString());
+      Leaderboard leaderboard = LeaderboardRepository.createLeaderboard(server.serv_id, leaderboardChannel.getIdLong(), leaderboardMessage.getIdLong(), objectiveSelected.getId());
       
       LeaderboardBaseService baseLeaderboardService = LeaderboardBaseService.getServiceWithId(objectiveSelected, server.serv_guildId, leaderboardChannel.getIdLong(), leaderboard.lead_id);
       

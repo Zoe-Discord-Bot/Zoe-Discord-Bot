@@ -2,6 +2,7 @@ package ch.kalunight.zoe.service;
 
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.TimerTask;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -9,8 +10,13 @@ import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
+import ch.kalunight.zoe.model.dto.DTO.Server;
+import ch.kalunight.zoe.model.leaderboard.Objective;
+import ch.kalunight.zoe.repositories.LeaderboardRepository;
 import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.repositories.ServerStatusRepository;
+import ch.kalunight.zoe.service.leaderboard.LeaderboardBaseService;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDA.Status;
 import net.dv8tion.jda.api.OnlineStatus;
@@ -46,7 +52,7 @@ public class ServerChecker extends TimerTask {
         logger.info("Zoe is rebooting ...");
         return;
       }
-      
+
       for(DTO.Server server : ServerRepository.getGuildWhoNeedToBeRefresh()) {
 
         DTO.ServerStatus status = ServerStatusRepository.getServerStatus(server.serv_guildId);
@@ -65,10 +71,23 @@ public class ServerChecker extends TimerTask {
 
           Runnable task = new InfoPanelRefresher(serverAskedTreatment);
           ServerData.getServerExecutor().execute(task);
+
+          List<Leaderboard> leaderboards = LeaderboardRepository.getLeaderboardsWithGuildId(serverAskedTreatment.serv_guildId);
+          for(Leaderboard leaderboard : leaderboards) {
+            LeaderboardRepository.updateLeaderboardLastRefreshWithLeadId(leaderboard.lead_id, LocalDateTime.now());
+
+            LeaderboardBaseService leaderboardRefreshService = 
+                LeaderboardBaseService.getServiceWithId(Objective.getObjectiveWithId(leaderboard.lead_type),
+                    serverAskedTreatment.serv_guildId, leaderboard.lead_message_channelId, leaderboard.lead_id);
+
+            ServerData.getLeaderboardExecutor().execute(leaderboardRefreshService);
+          }
         }
       }
 
       ServerData.getServersAskedTreatment().clear();
+
+      refreshLeaderboard();
 
       if(nextRAPIChannelRefresh.isBeforeNow() && RiotApiUsageChannelRefresh.getRapiInfoChannel() != null) {
         ServerData.getServerExecutor().execute(new RiotApiUsageChannelRefresh());
@@ -107,9 +126,25 @@ public class ServerChecker extends TimerTask {
     }
   }
 
+  private void refreshLeaderboard() throws SQLException {
+    List<Leaderboard> leaderboardsToRefresh = LeaderboardRepository.getLeaderboardWhoNeedToBeRefreshed();
+
+    for(Leaderboard leaderboardToRefresh : leaderboardsToRefresh) {
+      Server server = ServerRepository.getServerWithServId(leaderboardToRefresh.lead_fk_server);
+
+      LeaderboardRepository.updateLeaderboardLastRefreshWithLeadId(leaderboardToRefresh.lead_id, LocalDateTime.now());
+
+      LeaderboardBaseService leaderboardRefreshService = 
+          LeaderboardBaseService.getServiceWithId(Objective.getObjectiveWithId(leaderboardToRefresh.lead_type),
+              server.serv_guildId, leaderboardToRefresh.lead_message_channelId, leaderboardToRefresh.lead_id);
+
+      ServerData.getLeaderboardExecutor().execute(leaderboardRefreshService);
+    }
+  }
+
   private boolean checkIfRebootOfJDANeeded() {
     JDA jda = Zoe.getJda();
-    
+
     if(checkIfZoeNeedReboot(jda) || ServerData.isRebootAsked()) {
       logger.info("Zoe is deconnected from Discord server ! Reboot thread start ...");
       ServerData.setRebootAsked(false);
@@ -126,10 +161,10 @@ public class ServerChecker extends TimerTask {
           Thread.currentThread().interrupt();
         }
       }
-      
+
       TimerTask rebootTask = new ZoeRebootThread();
       ServerData.getServerCheckerThreadTimer().schedule(rebootTask, 100);
-      
+
       return true;
     }
     return false;

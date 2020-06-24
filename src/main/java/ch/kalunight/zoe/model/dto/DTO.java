@@ -79,7 +79,12 @@ public class DTO {
     public long gamecard_id;
     public long gamecard_fk_infochannel;
     public long gamecard_fk_currentgame;
-    public long gamecard_titlemessageid;
+    /**
+     * @deprecated
+     * Deprecated, we now send all in one message using {@link #gamecard_infocardmessageid}. 
+     * We save this line in the case we need to rollback to the old system.
+     */
+    @Deprecated public long gamecard_titlemessageid;
     public long gamecard_infocardmessageid;
     public GameInfoCardStatus gamecard_status;
     public LocalDateTime gamecard_creationtime;
@@ -197,16 +202,18 @@ public class DTO {
     public long lead_fk_server;
     public long lead_message_channelId;
     public long lead_message_id;
-    public String lead_type;
+    public int lead_type;
     public String lead_data;
+    public LocalDateTime lead_lastrefresh;
     
     public Leaderboard(ResultSet baseData) throws SQLException {
       lead_id = baseData.getLong("lead_id");
       lead_fk_server = baseData.getLong("lead_fk_server");
       lead_message_channelId = baseData.getLong("lead_message_channelId");
       lead_message_id = baseData.getLong("lead_message_id");
-      lead_type = baseData.getString("lead_type");
+      lead_type = baseData.getInt("lead_type");
       lead_data = baseData.getString("lead_data");
+      lead_lastrefresh = LocalDateTime.parse(baseData.getString("lead_lastrefresh"), DB_TIME_PATTERN);
     }
   }
 

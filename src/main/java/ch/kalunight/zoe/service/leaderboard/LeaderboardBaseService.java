@@ -40,7 +40,7 @@ public abstract class LeaderboardBaseService implements Runnable {
   public void run() {
     try {
 
-      Server server = ServerRepository.getServer(guildId);
+      Server server = ServerRepository.getServerWithGuildId(guildId);
 
       Guild guild = Zoe.getJda().getGuildById(guildId);
 

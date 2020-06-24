@@ -25,6 +25,7 @@ import ch.kalunight.zoe.model.dto.GameInfoCardStatus;
 import ch.kalunight.zoe.model.dto.DTO.InfoChannel;
 import ch.kalunight.zoe.model.dto.DTO.InfoPanelMessage;
 import ch.kalunight.zoe.model.dto.DTO.LastRank;
+import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Player;
 import ch.kalunight.zoe.model.dto.DTO.RankHistoryChannel;
@@ -35,6 +36,7 @@ import ch.kalunight.zoe.repositories.CurrentGameInfoRepository;
 import ch.kalunight.zoe.repositories.GameInfoCardRepository;
 import ch.kalunight.zoe.repositories.InfoChannelRepository;
 import ch.kalunight.zoe.repositories.LastRankRepository;
+import ch.kalunight.zoe.repositories.LeaderboardRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.repositories.RankHistoryChannelRepository;
@@ -222,7 +224,6 @@ public class InfoPanelRefresher implements Runnable {
 
       if(gameCard.gamecard_infocardmessageid != 0) {
         retrieveAndRemoveMessage(gameCard.gamecard_infocardmessageid);
-        retrieveAndRemoveMessage(gameCard.gamecard_titlemessageid);
       }
       GameInfoCardRepository.deleteGameInfoCardsWithId(gameCard.gamecard_id);
       CurrentGameInfoRepository.deleteCurrentGame(currentGame, server);
@@ -235,25 +236,25 @@ public class InfoPanelRefresher implements Runnable {
 
     for(DTO.GameInfoCard gameInfoCard : gameInfoCards) {
       switch(gameInfoCard.gamecard_status) {
-      case IN_CREATION:
-        GameInfoCardRepository.updateGameInfoCardStatusWithId(gameInfoCard.gamecard_id, GameInfoCardStatus.IN_TREATMENT);
+        case IN_CREATION:
+          GameInfoCardRepository.updateGameInfoCardStatusWithId(gameInfoCard.gamecard_id, GameInfoCardStatus.IN_TREATMENT);
 
-        List<DTO.LeagueAccount> accountsLinked = LeagueAccountRepository
-            .getLeaguesAccountsWithGameCardsId(gameInfoCard.gamecard_id);
+          List<DTO.LeagueAccount> accountsLinked = LeagueAccountRepository
+              .getLeaguesAccountsWithGameCardsId(gameInfoCard.gamecard_id);
 
-        DTO.LeagueAccount account = accountsLinked.get(0);
+          DTO.LeagueAccount account = accountsLinked.get(0);
 
-        DTO.CurrentGameInfo currentGame = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(account.leagueAccount_id);
+          DTO.CurrentGameInfo currentGame = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(account.leagueAccount_id);
 
-        ServerData.getInfocardsGenerator().execute(
-            new InfoCardsWorker(server, infochannel, accountsLinked.get(0), currentGame, gameInfoCard));
-        break;
-      case IN_WAIT_OF_DELETING:
-        GameInfoCardRepository.deleteGameInfoCardsWithId(gameInfoCard.gamecard_id);
-        deleteDiscordInfoCard(server.serv_guildId, gameInfoCard);
-        break;
-      default:
-        break;
+          ServerData.getInfocardsGenerator().execute(
+              new InfoCardsWorker(server, infochannel, accountsLinked.get(0), currentGame, gameInfoCard));
+          break;
+        case IN_WAIT_OF_DELETING:
+          GameInfoCardRepository.deleteGameInfoCardsWithId(gameInfoCard.gamecard_id);
+          deleteDiscordInfoCard(server.serv_guildId, gameInfoCard);
+          break;
+        default:
+          break;
       }
     }
   }
@@ -264,7 +265,7 @@ public class InfoPanelRefresher implements Runnable {
     List<DTO.InfoPanelMessage> infoPanelMessages = InfoChannelRepository.getInfoPanelMessages(server.serv_guildId);
 
     checkMessageDisplaySync(infoPanelMessages, infoChannelDTO); 
-    
+
     infoPanelMessages = InfoChannelRepository.getInfoPanelMessages(server.serv_guildId);
 
     if(infoPanels.size() < infoPanelMessages.size()) {
@@ -288,7 +289,7 @@ public class InfoPanelRefresher implements Runnable {
     infoPanelMessages.addAll(InfoChannelRepository.getInfoPanelMessages(server.serv_guildId));
 
     infoPanelMessages = orderInfoPanelMessagesByTime(infoPanelMessages);
-    
+
     for(int i = 0; i < infoPanels.size(); i++) {
       DTO.InfoPanelMessage infoPanel = infoPanelMessages.get(i);
       infochannel.retrieveMessageById(infoPanel.infopanel_messageId).complete().editMessage(infoPanels.get(i)).queue();
@@ -319,7 +320,7 @@ public class InfoPanelRefresher implements Runnable {
 
     if(needToResend) {
       int messageNeeded = infoPanelMessages.size();
-      
+
       for(InfoPanelMessage infoPanelMessageToDelete : infoPanelMessages) {
         Message messageToDelete = infochannel.retrieveMessageById(infoPanelMessageToDelete.infopanel_messageId).complete();
 
@@ -349,31 +350,31 @@ public class InfoPanelRefresher implements Runnable {
     for(Message message : messagesToCheck) {
       messagesToOrder.add(new ComparableMessage(message));
     }
-    
+
     Collections.sort(messagesToOrder); 
-    
+
     List<Message> messagesOrdered = new ArrayList<>();
     for(ComparableMessage messageOrdered : messagesToOrder) {
       messagesOrdered.add(messageOrdered.getMessage());
     }
     return messagesOrdered;
   }
-  
+
   private List<InfoPanelMessage> orderInfoPanelMessagesByTime(List<InfoPanelMessage> infoPanelMessages) {
-    
+
     List<Message> baseMessageToOrder = new ArrayList<>();
     for(InfoPanelMessage infoPanelMessage : infoPanelMessages) {
       baseMessageToOrder.add(infochannel.retrieveMessageById(infoPanelMessage.infopanel_messageId).complete());
     }
-    
+
     List<ComparableMessage> messagesToOrder = new ArrayList<>();
 
     for(Message message : baseMessageToOrder) {
       messagesToOrder.add(new ComparableMessage(message));
     }
-    
+
     Collections.sort(messagesToOrder);
-    
+
     List<InfoPanelMessage> messagesOrdered = new ArrayList<>();
     for(ComparableMessage messageOrdered : messagesToOrder) {
       for(InfoPanelMessage infoPanelMessage : infoPanelMessages) {
@@ -567,7 +568,6 @@ public class InfoPanelRefresher implements Runnable {
     GameInfoCardRepository.deleteGameInfoCardsWithId(gameCard.gamecard_id);
 
     retrieveAndRemoveMessage(gameCard.gamecard_infocardmessageid);
-    retrieveAndRemoveMessage(gameCard.gamecard_titlemessageid);
   }
 
   private void retrieveAndRemoveMessage(long messageId) {
@@ -652,13 +652,20 @@ public class InfoPanelRefresher implements Runnable {
 
     List<Message> messagesToDelete = new ArrayList<>();
     List<DTO.InfoPanelMessage> infoPanels = InfoChannelRepository.getInfoPanelMessages(server.serv_guildId);
-    List<Long> infoPanelsId = new ArrayList<>();
+    List<Long> messagesToNotDelete = new ArrayList<>();
     for(DTO.InfoPanelMessage infoPanel : infoPanels) {
-      infoPanelsId.add(infoPanel.infopanel_messageId);
+      messagesToNotDelete.add(infoPanel.infopanel_messageId);
+    }
+
+    List<Leaderboard> leaderboards = LeaderboardRepository.getLeaderboardsWithGuildId(server.serv_guildId);
+    for(Leaderboard leaderboard : leaderboards) {
+      if(infochannel.getIdLong() == leaderboard.lead_message_channelId) {
+        messagesToNotDelete.add(leaderboard.lead_message_id);
+      }
     }
 
     for(Message messageToCheck : messagesToCheck) {
-      if(!messageToCheck.getTimeCreated().isBefore(OffsetDateTime.now().minusHours(1)) || infoPanelsId.contains(messageToCheck.getIdLong())) {
+      if(!messageToCheck.getTimeCreated().isBefore(OffsetDateTime.now().minusHours(1)) || messagesToNotDelete.contains(messageToCheck.getIdLong())) {
         continue;
       }
 

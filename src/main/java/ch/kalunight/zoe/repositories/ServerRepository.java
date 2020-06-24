@@ -9,11 +9,15 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
 
 public class ServerRepository {
 
   private static final String SELECT_SERVER_WITH_GUILDID = "SELECT serv_id, serv_guildId, serv_language, serv_lastRefresh FROM server "
       + "WHERE serv_guildId = ?";
+  
+  private static final String SELECT_SERVER_WITH_SERV_ID = "SELECT serv_id, serv_guildId, serv_language, serv_lastRefresh FROM server "
+      + "WHERE serv_id = ?";
   
   private static final String SELECT_ALL_SERVERS = "SELECT serv_id, serv_guildId, serv_language, serv_lastRefresh FROM server";
   
@@ -58,12 +62,29 @@ public class ServerRepository {
     }
   }
   
-  public static DTO.Server getServer(long guildId) throws SQLException {
+  public static DTO.Server getServerWithGuildId(long guildId) throws SQLException {
     ResultSet result = null;
     try (Connection conn = RepoRessources.getConnection();
         PreparedStatement stmt = conn.prepareStatement(SELECT_SERVER_WITH_GUILDID, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
       
       stmt.setLong(1, guildId);
+      result = stmt.executeQuery();
+      int rowCount = result.last() ? result.getRow() : 0;
+      if(rowCount == 0) {
+        return null;
+      }
+      return new DTO.Server(result);
+    }finally {
+      RepoRessources.closeResultSet(result);
+    }
+  }
+  
+  public static DTO.Server getServerWithServId(long servId) throws SQLException {
+    ResultSet result = null;
+    try (Connection conn = RepoRessources.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(SELECT_SERVER_WITH_SERV_ID, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+      
+      stmt.setLong(1, servId);
       result = stmt.executeQuery();
       int rowCount = result.last() ? result.getRow() : 0;
       if(rowCount == 0) {
@@ -126,7 +147,7 @@ public class ServerRepository {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
       
-      DTO.Server server = ServerRepository.getServer(guildId);
+      DTO.Server server = ServerRepository.getServerWithGuildId(guildId);
       
       List<DTO.Player> players = PlayerRepository.getPlayers(guildId);
       
@@ -145,6 +166,11 @@ public class ServerRepository {
       List<DTO.Team> teams = TeamRepository.getTeamsByGuild(guildId);
       for(DTO.Team team : teams) {
         TeamRepository.deleteTeam(team.team_id, new ArrayList<>());
+      }
+      
+      List<DTO.Leaderboard> leaderboards = LeaderboardRepository.getLeaderboardsWithGuildId(guildId);
+      for(Leaderboard leaderboard : leaderboards) {
+        LeaderboardRepository.deleteLeaderboardWithId(leaderboard.lead_id);
       }
 
       String finalQuery = String.format(DELETE_SERVER_WITH_SERV_GUILDID, guildId);
@@ -180,19 +206,19 @@ public class ServerRepository {
           false);
       result = query.executeQuery(finalQuery);
       
-      List<DTO.Server> accounts = new ArrayList<>();
+      List<DTO.Server> servers = new ArrayList<>();
       int rowCount = result.last() ? result.getRow() : 0;
       if(rowCount == 0) {
-        return accounts;
+        return servers;
       }
       
       result.first();
       while(!result.isAfterLast()) {
-        accounts.add(new DTO.Server(result));
+        servers.add(new DTO.Server(result));
         result.next();
       }
       
-      return accounts;
+      return servers;
     }finally {
       RepoRessources.closeResultSet(result);
     }

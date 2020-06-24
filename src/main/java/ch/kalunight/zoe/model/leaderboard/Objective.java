@@ -1,5 +1,8 @@
 package ch.kalunight.zoe.model.leaderboard;
 
+import java.util.List;
+import java.util.ArrayList;
+
 public enum Objective {
   MASTERY_POINT("leaderboardObjectiveMasterPoint", 100),
   MASTERY_EVERYONE_START_FROM_0("leaderboardObjectiveMasterPointStartFrom0", 110),
@@ -23,5 +26,27 @@ public enum Objective {
   
   public int getId() {
     return id;
+  }
+  
+  public static Objective getObjectiveWithId(int id) {
+    for(Objective objective : Objective.values()) {
+      if(objective.getId() == id) {
+        return objective;
+      }
+    }
+    
+    return null;
+  }
+  
+  public static List<String> getDataNeeded(Objective objective){
+    List<String> dataNeeded = new ArrayList<>();
+    switch(objective) {
+      case MASTERY_POINT_SPECIFIC_CHAMP:
+      case MASTERY_POINT_START_FROM_0_SPECIFIC_CHAMP:
+        dataNeeded.add("leaderboardDataNeededSpecificChamp");
+        return dataNeeded;
+      default:
+        return dataNeeded;
+    }
   }
 }

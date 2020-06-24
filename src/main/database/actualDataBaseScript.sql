@@ -67,6 +67,12 @@ CREATE TABLE role_option (
   roleOption_roleId								BIGINT
 );
 
+CREATE TABLE info_panel_ranked_option (
+  infoPanelRanked_id 								SERIAL,
+  infoPanelRanked_fk_serverConfig 					BIGINT 				NOT NULL,
+  infoPanelRanked_activate 							boolean 			DEFAULT TRUE
+);
+
 CREATE TABLE info_channel (
   infoChannel_id								SERIAL,
   infoChannel_fk_server							BIGINT				NOT NULL,
@@ -125,7 +131,13 @@ CREATE TABLE last_rank(
   lastRank_fk_leagueAccount							BIGINT				NOT NULL,
   lastRank_soloq									json,
   lastRank_flex										json,
-  lastRank_tft										json
+  lastRank_tft										json,
+  lastRank_soloqSecond 								json,
+  lastRank_soloqLastRefresh							TIMESTAMP			WITHOUT TIME ZONE,
+  lastRank_flexSecond 								json,
+  lastRank_flexLastRefresh							TIMESTAMP			WITHOUT TIME ZONE,
+  lastRank_tftSecond 								json,
+  lastRank_tftLastRefresh							TIMESTAMP			WITHOUT TIME ZONE;
 );
 
 
@@ -159,6 +171,9 @@ ALTER TABLE ONLY game_info_card_option
   
 ALTER TABLE ONLY role_option
   ADD CONSTRAINT role_option_pkey PRIMARY KEY (roleOption_id);
+  
+ALTER TABLE ONLY info_panel_ranked_option
+  ADD CONSTRAINT info_panel_ranked_option_pkey PRIMARY KEY (infoPanelRanked_id);
 
 ALTER TABLE ONLY info_channel
   ADD CONSTRAINT info_channel_pkey PRIMARY KEY (infoChannel_id);
@@ -226,6 +241,11 @@ ALTER TABLE game_info_card_option
 ALTER TABLE role_option
   ADD CONSTRAINT role_option_fk_serverConfig_const 
   FOREIGN KEY (roleOption_fk_serverConfig) REFERENCES server_configuration (servConfig_id)
+  ON DELETE CASCADE;
+  
+ALTER TABLE info_panel_ranked_option
+  ADD CONSTRAINT info_panel_ranked_option_fk_serverConfig_const
+  FOREIGN KEY (infoPanelRanked_fk_serverConfig) REFERENCES server_configuration (servConfig_id)
   ON DELETE CASCADE;
   
 ALTER TABLE info_channel

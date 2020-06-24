@@ -3,8 +3,9 @@ CREATE TABLE leaderboard (
   lead_fk_server								BIGINT				NOT NULL,
   lead_message_channelId						BIGINT 				NOT NULL,
   lead_message_id								BIGINT 				NOT NULL,
-  lead_type		 								VARCHAR				NOT NULL,
-  lead_data										json
+  lead_type		 								BIGINT				NOT NULL,
+  lead_data										json,
+  lead_lastRefresh 								TIMESTAMP			WITHOUT TIME ZONE
 );
 
 ALTER TABLE ONLY leaderboard

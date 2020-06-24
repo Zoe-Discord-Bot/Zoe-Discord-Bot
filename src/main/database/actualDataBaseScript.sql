@@ -137,7 +137,7 @@ CREATE TABLE last_rank(
   lastRank_flexSecond 								json,
   lastRank_flexLastRefresh							TIMESTAMP			WITHOUT TIME ZONE,
   lastRank_tftSecond 								json,
-  lastRank_tftLastRefresh							TIMESTAMP			WITHOUT TIME ZONE;
+  lastRank_tftLastRefresh							TIMESTAMP			WITHOUT TIME ZONE
 );
 
 

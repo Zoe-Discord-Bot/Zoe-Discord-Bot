@@ -11,13 +11,19 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 public class LanguageManager {
-
+  
   public static final String DEFAULT_LANGUAGE = "EN.json";
+  
+  private static final Logger logger = LoggerFactory.getLogger(LanguageManager.class);
   
   private static final File LANGUAGE_FOLDER = new File("ressources/languages");
 
@@ -38,17 +44,28 @@ public class LanguageManager {
       translations.clear();
       listLanguages.clear();
 
-      for(File file : LANGUAGE_FOLDER.listFiles()) {
+      File englishFile = new File(LANGUAGE_FOLDER.getAbsolutePath() + "/" + DEFAULT_LANGUAGE);
+      
+      try(final BufferedReader reader = new BufferedReader(new FileReader(englishFile));) {
+        JsonObject jsonObject = gson.fromJson(reader, JsonObject.class);
         
+        for(Entry<String, JsonElement> entryJson : jsonObject.entrySet()) {
+          if(!entryJson.getValue().getAsString().equals("")) {
+            translations.put(new TranslationKey(englishFile.getName(), entryJson.getKey()), entryJson.getValue().getAsString().replaceAll("#.*?#", ""));
+          }
+        }
+      }
+      
+      for(File file : LANGUAGE_FOLDER.listFiles()) {     
         try(final BufferedReader reader = new BufferedReader(new FileReader(file));) {
           JsonObject jsonObject = gson.fromJson(reader, JsonObject.class);
 
-          if(jsonObject.get("nativeActualLanguage") == null || jsonObject.get("nativeActualLanguage").getAsString().equals("")) {
+          if(jsonObject.get("nativeActualLanguage") == null || jsonObject.get("nativeActualLanguage").getAsString().equals("") || file.getName().equals(DEFAULT_LANGUAGE)) {
             continue;
           }
           
           for(Entry<String, JsonElement> entryJson : jsonObject.entrySet()) {
-            if(!entryJson.getValue().getAsString().equals("")) {
+            if(!entryJson.getValue().getAsString().equals("") && isTranslationValid(entryJson.getKey(), entryJson.getValue().getAsString(), file.getName())) {
               translations.put(new TranslationKey(file.getName(), entryJson.getKey()), entryJson.getValue().getAsString().replaceAll("#.*?#", ""));
             }
           }
@@ -56,6 +73,17 @@ public class LanguageManager {
         listLanguages.add(file.getName());
       }
     }
+  }
+  
+  private static boolean isTranslationValid(String key, String translation, String translatedLanguage) {
+    String englishBase = getText(DEFAULT_LANGUAGE, key);
+    
+    if((StringUtils.countMatches(englishBase, "%s") == StringUtils.countMatches(translation, "%s")) && (StringUtils.countMatches(englishBase, "%d") == StringUtils.countMatches(translation, "%d"))) {
+      return true;
+    }
+    
+    logger.warn("Error when inserting param with the translation {} from the language {} ! This translation will not be used.", key, translatedLanguage);
+    return false;
   }
   
   public static String getPourcentageTranslated(String language) {

@@ -5,7 +5,7 @@
 
 	<groupId>ch.kalunight</groupId>
 	<artifactId>zoe</artifactId>
-	<version>1.7.0</version>
+	<version>1.7.1</version>
 	<packaging>jar</packaging>
 
 	<name>zoe</name>
@@ -78,6 +78,12 @@
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
 			<version>28.2-jre</version>
+		</dependency>
+		
+		<dependency>
+    		<groupId>org.apache.commons</groupId>
+    		<artifactId>commons-lang3</artifactId>
+    		<version>3.10</version>
 		</dependency>
 
 		<dependency>

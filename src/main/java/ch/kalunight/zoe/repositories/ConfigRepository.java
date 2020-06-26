@@ -304,8 +304,7 @@ public class ConfigRepository {
         }
       }
     }catch(NullPointerException e) {
-      logger.warn("A guild has been detected like non existant. Will be deleted from DB now.");
-      ServerRepository.deleteServer(guildId);
+      logger.warn("A guild has been detected like non existant. ID of the guild : {}", guildId);
       throw e;
     }
     return roleOption;
@@ -326,8 +325,7 @@ public class ConfigRepository {
         }
         cleanChannelOption.setCleanChannel(cleanChannel);
       }catch(NullPointerException e) {
-        logger.warn("A guild has been detected like non existant. Will be deleted from DB now.");
-        ServerRepository.deleteServer(guildId);
+        logger.warn("A guild has been detected like non existant. Id of the guild : {}", guildId);
         throw e;
       }
     }

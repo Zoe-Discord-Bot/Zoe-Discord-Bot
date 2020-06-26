@@ -128,7 +128,7 @@
     "cleanChannelOptionLongDesc": "Opção: **%s**\n\nEsta opção criará um \"clean channel\" onde as mensagens serão excluídas após o envio (com um atraso de 3 segundos). Esta opção pode ser usada em combinação com a opção \"Ocultar canal de texto\" para criar um **sistema de registro** para o seu servidor (você precisa se registrar no bot para acessar o servidor). Se um usuário com a permissão Gerenciar canal enviar uma mensagem, sua mensagem não será excluída.\n**O canal de texto será selecionado após a seleção da opção**.\n\nAqui estão as minhas opções: ",
     "cleanChannelOptionPermissionNeeded": "Eu preciso da permissão \"gerenciar mensagem\" para ativar esta opção. Tente novamente depois de me dar essa permissão.",
     "cleanChannelOptionCanceled": "Pronto, a configuração foi cancelada.",
-    "cleanChannelOptionChoiceChannel": "Certo ! Deseja defini-lo em um canal existente ou deseja criar um novo canal de texto?\nOpções:\n\n%s : define um canal existente\n%s : crie um novo canal",
+    "cleanChannelOptionChoiceChannel": "Certo ! Deseja defini-lo em um canal existente ou deseja criar um novo canal de texto?\n\nOpções:\n%s : define um canal existente\n%s : crie um novo canal",
     "cleanChannelOptionAlreadyDisable": "A opção já está desativada!",
     "cleanChannelOptionNowDisable": "OK ! A opção agora está desativada. Não vou mais excluir mensagens no canal limpo.",
     "cleanChannelOptionSendTextChannel": "Mais um passo e estamos bem! Agora, por favor **Envie uma mensagem com a menção do canal de texto que você deseja definir**",

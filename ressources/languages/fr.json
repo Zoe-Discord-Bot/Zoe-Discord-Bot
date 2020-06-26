@@ -105,7 +105,7 @@
     "showPlayerName": "**%s Comptes** :",
     "showPlayerNoAccount": "*Aucun compte lié*",
     "showPlayerAccount": "- %s (%s) Rank File Solo : %s",
-    "showPlayerEmbedTitle": "Liste des joueurs enregistré avec leurs comptes (Joueurs : %d | Comptes : %s) :",
+    "showPlayerEmbedTitle": "Liste des joueurs enregistré avec leurs comptes (Joueurs : %d | Comptes : %d) :",
     "statsProfileHelpMessage": "Donne des informations sur le joueur mentionné ou par rapport au compte donné.",
     "statsProfileMentionOnePlayer": "Merci de mentionner 1 joueur ou 1 compte (pour plus d'info : `>stats p help`).",
     "statsProfileNeedARegisteredPlayer": "La personne mentionné n'est pas un joueur enregistré !",

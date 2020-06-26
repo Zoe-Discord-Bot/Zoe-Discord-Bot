@@ -45,14 +45,14 @@ public class FullTierUtil {
         
       }else if(oldEntry.getMiniSeries() == null && newEntry.getMiniSeries() != null) { //BO started
         
-        return ":star: " + LanguageManager.getText(lang, "infoPanelRankedUpdateBoStarted");
+        return ":large_orange_diamond: " + LanguageManager.getText(lang, "infoPanelRankedUpdateBoStarted");
         
       }else if(oldEntry.getMiniSeries() != null && newEntry.getMiniSeries() != null) { //BO in progress OR remake
         int nbrMatchOldEntry = oldEntry.getMiniSeries().getLosses() + oldEntry.getMiniSeries().getWins();
         int nbrMatchNewEntry = newEntry.getMiniSeries().getLosses() + newEntry.getMiniSeries().getWins();
 
         if(nbrMatchNewEntry != nbrMatchOldEntry) { //BO in progress
-          return ":star: " + LanguageManager.getText(lang, "infoPanelRankedUpdateBoInProgres");
+          return ":large_orange_diamond: " + LanguageManager.getText(lang, "infoPanelRankedUpdateBoInProgres");
         }
       }
 

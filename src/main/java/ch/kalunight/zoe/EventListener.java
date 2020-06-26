@@ -275,6 +275,7 @@ public class EventListener extends ListenerAdapter {
 
       if(player != null) {
         PlayerRepository.deletePlayer(player.player_id, event.getGuild().getIdLong());
+        logger.info("Player (Discord Id {}) deleted from the guild {}", player.player_discordId, event.getGuild().getIdLong());
       }
     }catch(SQLException e) {
       logger.error("Issue with db when reacting to the GuildMemberLeaveEvent event.", e);
@@ -338,7 +339,7 @@ public class EventListener extends ListenerAdapter {
       return;
     }
 
-    Member member = event.getGuild().retrieveMember(event.getAuthor()).complete();
+    Member member = event.getGuild().retrieveMemberById(event.getAuthor().getIdLong()).complete();
 
     if(member.getUser() != Zoe.getJda().getSelfUser() && member.getPermissions().contains(Permission.MANAGE_CHANNEL)) {
       return;

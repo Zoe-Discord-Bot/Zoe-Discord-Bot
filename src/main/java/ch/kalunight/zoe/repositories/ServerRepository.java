@@ -8,6 +8,10 @@ import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
 
@@ -42,6 +46,8 @@ public class ServerRepository {
       "WHERE server.serv_lastrefresh < '%s' " + 
       "AND (rank_history_channel.rhchannel_channelid IS NOT NULL OR info_channel.infochannel_channelid IS NOT NULL) " + 
       "AND server_status.servstatus_intreatment = %s";
+  
+  private static final Logger logger = LoggerFactory.getLogger(ServerRepository.class);
   
   private ServerRepository() {
     //Hide default public constructor
@@ -148,6 +154,7 @@ public class ServerRepository {
         Statement query = conn.createStatement();) {
       
       DTO.Server server = ServerRepository.getServerWithGuildId(guildId);
+      logger.warn("Deleting server id {}", guildId);
       
       List<DTO.Player> players = PlayerRepository.getPlayers(guildId);
       

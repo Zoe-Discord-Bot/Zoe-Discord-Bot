@@ -1,9 +1,12 @@
 package ch.kalunight.zoe.service.leaderboard;
 
 import java.sql.SQLException;
+import java.text.DecimalFormat;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
 import ch.kalunight.zoe.model.dto.DTO.Server;
@@ -20,9 +23,13 @@ import net.rithms.riot.api.RiotApiException;
 
 public abstract class LeaderboardBaseService implements Runnable {
 
-  private static final int MAX_PLAYERS_IN_LEADERBOARD = 10;
+  protected static final DecimalFormat masteryPointsFormat = new DecimalFormat("###,###,###");
 
-  private static final Logger logger = LoggerFactory.getLogger(LeaderboardBaseService.class);
+  protected static final Logger logger = LoggerFactory.getLogger(LeaderboardBaseService.class);
+  
+  protected static final Gson gson = new GsonBuilder().create();
+  
+  private static final int MAX_PLAYERS_IN_LEADERBOARD = 10;
   
   private long guildId;
 
@@ -125,7 +132,7 @@ public abstract class LeaderboardBaseService implements Runnable {
     case MASTERY_POINT:
       return new MasteryPointLeaderboardService(guildId, channelId, leaderboardId);
     case MASTERY_POINT_SPECIFIC_CHAMP:
-      break;
+      return new MasteryPointSpecificChampLeaderboard(guildId, channelId, leaderboardId);
     case MASTERY_POINT_START_FROM_0_SPECIFIC_CHAMP:
       break;
     case RANK:

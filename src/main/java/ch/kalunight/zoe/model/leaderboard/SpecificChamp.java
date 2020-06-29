@@ -1,19 +1,20 @@
 package ch.kalunight.zoe.model.leaderboard;
 
 import ch.kalunight.zoe.model.static_data.Champion;
+import ch.kalunight.zoe.util.Ressources;
 
 public class SpecificChamp {
-  private Champion champion;
+  private int championKey;
 
   public SpecificChamp(Champion champion) {
-    this.champion = champion;
+    this.championKey = champion.getKey();
   }
   
   public Champion getChampion() {
-    return champion;
+    return Ressources.getChampionDataById(championKey);
   }
 
   public void setChampion(Champion champion) {
-    this.champion = champion;
+    this.championKey = champion.getKey();
   }
 }

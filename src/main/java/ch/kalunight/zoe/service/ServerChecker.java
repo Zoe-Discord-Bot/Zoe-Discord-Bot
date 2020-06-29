@@ -80,7 +80,11 @@ public class ServerChecker extends TimerTask {
                 LeaderboardBaseService.getServiceWithId(Objective.getObjectiveWithId(leaderboard.lead_type),
                     serverAskedTreatment.serv_guildId, leaderboard.lead_message_channelId, leaderboard.lead_id);
 
-            ServerData.getLeaderboardExecutor().execute(leaderboardRefreshService);
+            if(leaderboardRefreshService != null) {
+              ServerData.getLeaderboardExecutor().execute(leaderboardRefreshService);
+            }else {
+              logger.error("Impossible to get the service correspondig to the objective id {} !", leaderboard.lead_type);
+            }
           }
         }
       }
@@ -138,7 +142,11 @@ public class ServerChecker extends TimerTask {
           LeaderboardBaseService.getServiceWithId(Objective.getObjectiveWithId(leaderboardToRefresh.lead_type),
               server.serv_guildId, leaderboardToRefresh.lead_message_channelId, leaderboardToRefresh.lead_id);
 
-      ServerData.getLeaderboardExecutor().execute(leaderboardRefreshService);
+      if(leaderboardRefreshService != null) {
+        ServerData.getLeaderboardExecutor().execute(leaderboardRefreshService);
+      }else {
+        logger.error("Impossible to get the service correspondig to the objective id {} !", leaderboardToRefresh.lead_type);
+      }
     }
   }
 

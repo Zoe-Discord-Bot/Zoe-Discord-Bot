@@ -2,7 +2,6 @@ package ch.kalunight.zoe.service.leaderboard;
 
 import java.awt.Color;
 import java.sql.SQLException;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -24,8 +23,6 @@ import net.rithms.riot.api.endpoints.champion_mastery.dto.ChampionMastery;
 
 public class MasteryPointLeaderboardService extends LeaderboardBaseService {
   
-  private static final DecimalFormat masteryPointsFormat = new DecimalFormat("###,###,###");
-  
   public MasteryPointLeaderboardService(long guildId, long channelId, long leaderboardId) {
     super(guildId, channelId, leaderboardId);
   }
@@ -39,15 +36,15 @@ public class MasteryPointLeaderboardService extends LeaderboardBaseService {
     List<String> dataList = new ArrayList<>();
     
     for(PlayerPoints playerPoints : playersPoints) {
-      playersName.add(playerPoints.getPlayer().user.getName());
+      playersName.add(playerPoints.getPlayer().user.getAsMention());
       dataList.add(masteryPointsFormat.format(playerPoints.getMasteryPoint()) + " " 
       + LanguageManager.getText(server.serv_language, "pointsShort"));
     }
     
     String playerTitle = LanguageManager.getText(server.serv_language, "leaderboardPlayersTitle");
-    String dataName = LanguageManager.getText(server.serv_language, "leaderboardObjectiveMasterPoint");
+    String dataName = LanguageManager.getText(server.serv_language, "leaderboardObjectiveTotalMasterPoint");
     EmbedBuilder builder = buildBaseLeaderboardList(playerTitle, playersName, dataName, dataList);
-    builder.setColor(Color.BLUE);
+    builder.setColor(Color.ORANGE);
     builder.setTitle(LanguageManager.getText(server.serv_language, "leaderboardObjectiveMasterPointTitle"));
     builder.setFooter(LanguageManager.getText(server.serv_language, "leaderboardRefreshMessage"));
     message.editMessage(LanguageManager.getText(server.serv_language, "leaderboardObjectiveMasterPointTitle")).queue();
@@ -68,7 +65,7 @@ public class MasteryPointLeaderboardService extends LeaderboardBaseService {
         
         long totalAccountPoints = 0;
         for(ChampionMastery mastery : masteries) {
-          bestAccountPoints += mastery.getChampionPoints();
+          totalAccountPoints += mastery.getChampionPoints();
         }
         
         if(bestAccountPoints < totalAccountPoints) {

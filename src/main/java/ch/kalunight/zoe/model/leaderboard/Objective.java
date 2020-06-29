@@ -1,10 +1,11 @@
 package ch.kalunight.zoe.model.leaderboard;
 
-import java.util.List;
-import java.util.ArrayList;
+import com.jagrosh.jdautilities.command.CommandEvent;
+import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
+import ch.kalunight.zoe.model.dto.DTO.Server;
 
 public enum Objective {
-  MASTERY_POINT("leaderboardObjectiveMasterPoint", 100),
+  MASTERY_POINT("leaderboardObjectiveTotalMasterPoint", 100),
   MASTERY_EVERYONE_START_FROM_0("leaderboardObjectiveMasterPointStartFrom0", 110),
   MASTERY_POINT_SPECIFIC_CHAMP("leaderboardObjectiveMasterPointSpecificChamp", 101),
   MASTERY_POINT_START_FROM_0_SPECIFIC_CHAMP("leaderboardObjectiveMasterPointSpecificChampStartFrom0", 111),
@@ -38,15 +39,14 @@ public enum Objective {
     return null;
   }
   
-  public static List<String> getDataNeeded(Objective objective){
-    List<String> dataNeeded = new ArrayList<>();
+  public static LeaderboardExtraDataHandler getDataNeeded(Objective objective, EventWaiter waiter,
+      Server server, CommandEvent event) {
     switch(objective) {
       case MASTERY_POINT_SPECIFIC_CHAMP:
       case MASTERY_POINT_START_FROM_0_SPECIFIC_CHAMP:
-        dataNeeded.add("leaderboardDataNeededSpecificChamp");
-        return dataNeeded;
+        return new SpecificChampionObjectiveDataHandler(objective, waiter, event, server);
       default:
-        return dataNeeded;
+        return new NoSpecificDataNeededHandler(objective, waiter, event, server);
     }
   }
 }

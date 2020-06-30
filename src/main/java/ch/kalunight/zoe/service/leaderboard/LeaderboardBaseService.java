@@ -10,7 +10,7 @@ import com.google.gson.GsonBuilder;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
 import ch.kalunight.zoe.model.dto.DTO.Server;
-import ch.kalunight.zoe.model.leaderboard.Objective;
+import ch.kalunight.zoe.model.leaderboard.dataholder.Objective;
 import ch.kalunight.zoe.repositories.LeaderboardRepository;
 import ch.kalunight.zoe.repositories.ServerRepository;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -132,12 +132,12 @@ public abstract class LeaderboardBaseService implements Runnable {
     case MASTERY_POINT:
       return new MasteryPointLeaderboardService(guildId, channelId, leaderboardId);
     case MASTERY_POINT_SPECIFIC_CHAMP:
-      return new MasteryPointSpecificChampLeaderboard(guildId, channelId, leaderboardId);
+      return new MasteryPointSpecificChampLeaderboardService(guildId, channelId, leaderboardId);
     case MASTERY_POINT_START_FROM_0_SPECIFIC_CHAMP:
       break;
-    case RANK:
-      break;
-    case RANK_PROGRESSION:
+    case SPECIFIC_QUEUE_RANK:
+      return new RankLeaderboardService(guildId, channelId, leaderboardId);
+    case SPECIFIC_QUEUE_RANK_PROGRESSION:
       break;
     default:
       break;

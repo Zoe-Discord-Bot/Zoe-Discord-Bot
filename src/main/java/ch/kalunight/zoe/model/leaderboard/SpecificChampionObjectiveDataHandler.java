@@ -9,6 +9,8 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.Paginator;
 import ch.kalunight.zoe.model.dto.DTO.Server;
+import ch.kalunight.zoe.model.leaderboard.dataholder.Objective;
+import ch.kalunight.zoe.model.leaderboard.dataholder.SpecificChamp;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.PaginatorUtil;

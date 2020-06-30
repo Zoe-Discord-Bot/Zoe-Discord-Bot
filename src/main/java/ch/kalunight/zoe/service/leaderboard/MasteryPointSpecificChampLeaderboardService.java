@@ -10,8 +10,8 @@ import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Server;
-import ch.kalunight.zoe.model.leaderboard.PlayerPoints;
-import ch.kalunight.zoe.model.leaderboard.SpecificChamp;
+import ch.kalunight.zoe.model.leaderboard.dataholder.PlayerPoints;
+import ch.kalunight.zoe.model.leaderboard.dataholder.SpecificChamp;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
@@ -22,9 +22,9 @@ import net.dv8tion.jda.api.entities.TextChannel;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.champion_mastery.dto.ChampionMastery;
 
-public class MasteryPointSpecificChampLeaderboard extends LeaderboardBaseService {
+public class MasteryPointSpecificChampLeaderboardService extends LeaderboardBaseService {
   
-  public MasteryPointSpecificChampLeaderboard(long guildId, long channelId, long leaderboardId) {
+  public MasteryPointSpecificChampLeaderboardService(long guildId, long channelId, long leaderboardId) {
     super(guildId, channelId, leaderboardId);
   }
 

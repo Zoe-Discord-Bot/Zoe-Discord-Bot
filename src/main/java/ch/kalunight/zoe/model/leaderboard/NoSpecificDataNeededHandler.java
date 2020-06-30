@@ -3,6 +3,7 @@ package ch.kalunight.zoe.model.leaderboard;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import ch.kalunight.zoe.model.dto.DTO.Server;
+import ch.kalunight.zoe.model.leaderboard.dataholder.Objective;
 import ch.kalunight.zoe.translation.LanguageManager;
 
 public class NoSpecificDataNeededHandler extends LeaderboardExtraDataHandler {

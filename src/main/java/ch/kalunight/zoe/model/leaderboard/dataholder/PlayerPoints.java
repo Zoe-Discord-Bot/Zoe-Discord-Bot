@@ -1,4 +1,4 @@
-package ch.kalunight.zoe.model.leaderboard;
+package ch.kalunight.zoe.model.leaderboard.dataholder;
 
 import ch.kalunight.zoe.model.dto.DTO;
 

@@ -330,8 +330,9 @@
     "leaderboardObjectiveMasterPointStartFrom0": "Total Mastery Point starting from now",
     "leaderboardObjectiveMasterPointSpecificChamp": "Mastery Point for a specific champ",
     "leaderboardObjectiveMasterPointSpecificChampStartFrom0": "Mastery Point for a specific champ starting from now",
-    "leaderboardObjectiveRank" : "SoloQ Rank",
-    "leaderboardObjectiveRankProgress" : "SoloQ Rank Progress",
+    "leaderboardSpecificQueueRank" : "Specific Queue Rank",
+	"leaderboardBestOfAllRank": "All Queue Rank",
+    "leaderboardObjectiveSpecificQueueRankProgress" : "Specific Queue Rank Progress",
     "leaderboardObjectiveAverageKDA" : "SoloQ Average KDA",
     "leaderboardObjectiveSelected" : "You have selected the objective \"%s\".",
     "leaderboardObjectiveChannelSelectionTimeOut" : "You took too long to choose a channel. Please try again.",
@@ -345,10 +346,12 @@
     "leaderboardSuccessfullyCreated": "The leaderboard has been successfully created! I will refresh it every hour.",
     "leaderboardDataNeededSpecificChamp": "You need to give me a champion for this type of leaderboard. Please select the champion by sending **his name** or **his number** :",
     "leaderboardBadChampionNumberSelection" : "Please select the champion with a valid number or the name :",
-    "leaderboardChampionSelectedThenSendChannel" : "Okay, you have selected %s ! Now please the mention of the channel where you want the leaderboard (i.e. ``#leaderboard-channel``).",
+    "leaderboardChampionSelectedThenSendChannel" : "Okay, you have selected %s ! Now please semd the mention of the channel where you want the leaderboard (i.e. ``#leaderboard-channel``).",
     "leaderboardSelectChannelLeaderboard" : "Okay, now please send me the mention of the channel where you want the leaderboard (i.e. ``#your-channel``).",
     "leaderboardObjectiveMasterPointGivenSpecifiedChamp": "Total Mastery Points for the champion %s",
     "leaderboardObjectiveTotalMasterPoint" : "Total Master Points",
     "paginationTranslatedPage" : "Page %d/%d",
-    "paginationChampionSelection" : "List of available champions :"
+    "paginationChampionSelection" : "List of available champions :",
+	"leaderboardSelectQueue" : "For this type of leaderboard i need a specific ranked queue. Please select one queue in this list :",
+	"leaderboardQueueSelectendThenSendChannel" : "Okay, you have selected the %s queue ! Now please send the mention of the channel where you want the leaderboard (i.e. ``#leaderboard-channel``)."
 }

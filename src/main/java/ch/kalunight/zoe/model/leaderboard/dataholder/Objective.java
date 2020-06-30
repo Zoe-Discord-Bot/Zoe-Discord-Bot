@@ -1,16 +1,20 @@
-package ch.kalunight.zoe.model.leaderboard;
+package ch.kalunight.zoe.model.leaderboard.dataholder;
 
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import ch.kalunight.zoe.model.dto.DTO.Server;
+import ch.kalunight.zoe.model.leaderboard.LeaderboardExtraDataHandler;
+import ch.kalunight.zoe.model.leaderboard.NoSpecificDataNeededHandler;
+import ch.kalunight.zoe.model.leaderboard.SpecificChampionObjectiveDataHandler;
 
 public enum Objective {
   MASTERY_POINT("leaderboardObjectiveTotalMasterPoint", 100),
   MASTERY_EVERYONE_START_FROM_0("leaderboardObjectiveMasterPointStartFrom0", 110),
   MASTERY_POINT_SPECIFIC_CHAMP("leaderboardObjectiveMasterPointSpecificChamp", 101),
   MASTERY_POINT_START_FROM_0_SPECIFIC_CHAMP("leaderboardObjectiveMasterPointSpecificChampStartFrom0", 111),
-  RANK("leaderboardObjectiveRank", 200),
-  RANK_PROGRESSION("leaderboardObjectiveRankProgress", 210),
+  SPECIFIC_QUEUE_RANK("leaderboardSpecificQueueRank", 200),
+  BEST_OF_ALL_RANK("leaderboardBestOfAllRank", 201),
+  SPECIFIC_QUEUE_RANK_PROGRESSION("leaderboardObjectiveSpecificQueueRankProgress", 210),
   AVERAGE_KDA("leaderboardObjectiveAverageKDA", 300);
   
   private String translationId;

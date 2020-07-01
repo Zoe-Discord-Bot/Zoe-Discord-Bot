@@ -54,6 +54,7 @@ public class LanguageManager {
             translations.put(new TranslationKey(englishFile.getName(), entryJson.getKey()), entryJson.getValue().getAsString().replaceAll("#.*?#", ""));
           }
         }
+        listLanguages.add(englishFile.getName());
       }
       
       for(File file : LANGUAGE_FOLDER.listFiles()) {     

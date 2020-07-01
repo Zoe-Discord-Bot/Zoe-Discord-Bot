@@ -27,7 +27,7 @@ public class SpecificQueueDataHandler extends LeaderboardExtraDataHandler {
   @Override
   public void handleSecondCreationPart() {
     
-    event.reply(LanguageManager.getText(server.serv_language, "leaderboardSelectQueues"));
+    event.reply(LanguageManager.getText(server.serv_language, "leaderboardSelectQueue"));
     
     SelectionDialog.Builder selectQueueBuilder = new SelectionDialog.Builder()
         .addUsers(event.getAuthor())
@@ -62,8 +62,8 @@ public class SpecificQueueDataHandler extends LeaderboardExtraDataHandler {
         
         String extraDataNeeded = gson.toJson(new QueueSelected(selectedQueue));
 
-        selectionMessage.getTextChannel().sendMessage(String.format(LanguageManager.getText(language, "leaderboardQueueSelectendThenSendChannel"),
-            LanguageManager.getText(server.serv_language, "selectedQueue"))).queue();
+        selectionMessage.getTextChannel().sendMessage(String.format(LanguageManager.getText(language, "leaderboardQueueSelectedThenSendChannel"),
+            LanguageManager.getText(server.serv_language, selectedQueue.getNameId()))).queue();
         
         handleEndOfCreation(extraDataNeeded);
       }
@@ -75,7 +75,7 @@ public class SpecificQueueDataHandler extends LeaderboardExtraDataHandler {
       @Override
       public void accept(Message message) {
         message.clearReactions().queue();
-        message.editMessage(LanguageManager.getText(language, "createLeaderboardCancelMessage")).queue();
+        message.editMessage(LanguageManager.getText(language, "leaderboardCancelSelectionOfChannel")).queue();
       }
     };
   }

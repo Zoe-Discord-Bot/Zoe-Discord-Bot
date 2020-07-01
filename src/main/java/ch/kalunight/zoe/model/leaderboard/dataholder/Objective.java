@@ -6,6 +6,7 @@ import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.leaderboard.LeaderboardExtraDataHandler;
 import ch.kalunight.zoe.model.leaderboard.NoSpecificDataNeededHandler;
 import ch.kalunight.zoe.model.leaderboard.SpecificChampionObjectiveDataHandler;
+import ch.kalunight.zoe.model.leaderboard.SpecificQueueDataHandler;
 
 public enum Objective {
   MASTERY_POINT("leaderboardObjectiveTotalMasterPoint", 100),
@@ -49,6 +50,8 @@ public enum Objective {
       case MASTERY_POINT_SPECIFIC_CHAMP:
       case MASTERY_POINT_START_FROM_0_SPECIFIC_CHAMP:
         return new SpecificChampionObjectiveDataHandler(objective, waiter, event, server);
+      case SPECIFIC_QUEUE_RANK:
+        return new SpecificQueueDataHandler(objective, waiter, event, server);
       default:
         return new NoSpecificDataNeededHandler(objective, waiter, event, server);
     }

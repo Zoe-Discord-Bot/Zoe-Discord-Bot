@@ -135,6 +135,7 @@ public abstract class LeaderboardBaseService implements Runnable {
       return new MasteryPointSpecificChampLeaderboardService(guildId, channelId, leaderboardId);
     case MASTERY_POINT_START_FROM_0_SPECIFIC_CHAMP:
       break;
+    case BEST_OF_ALL_RANK:
     case SPECIFIC_QUEUE_RANK:
       return new RankLeaderboardService(guildId, channelId, leaderboardId);
     case SPECIFIC_QUEUE_RANK_PROGRESSION:

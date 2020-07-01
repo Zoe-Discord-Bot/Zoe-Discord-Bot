@@ -54,6 +54,11 @@ public abstract class LeaderboardExtraDataHandler {
 
     TextChannel leaderboardChannel;
 
+    if(event.getMessage().getContentRaw().equalsIgnoreCase("Stop")) {
+      event.getTextChannel().sendMessage(LanguageManager.getText(server.serv_language, "leaderboardCancelSelectionOfChannel")).queue();
+      return;
+    }
+    
     if(event.getMessage().getMentionedChannels().size() != 1) {
       message.getChannel().sendMessage(LanguageManager.getText(server.serv_language, "createLeaderboardNeedOneMentionnedChannel")).queue();
       waiter.waitForEvent(MessageReceivedEvent.class,

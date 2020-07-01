@@ -88,6 +88,8 @@ public class CreateLeaderboardCommand extends ZoeCommand {
     return new BiConsumer<Message, Integer>() {
       @Override
       public void accept(Message selectionMessage, Integer objectiveSelection) {
+        selectionMessage.clearReactions().queue();
+        
         Objective objective = objectiveList.get(objectiveSelection - 1);
 
         event.reply(String.format(LanguageManager.getText(server.serv_language, "leaderboardObjectiveSelected"),

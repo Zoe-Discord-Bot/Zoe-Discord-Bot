@@ -5,18 +5,18 @@ import ch.kalunight.zoe.model.dto.DTO;
 public class PlayerPoints implements Comparable<PlayerPoints> {
   
   private DTO.Player player;
-  private long masteryPoint;
+  private long points;
   
-  public PlayerPoints(DTO.Player player, long maxMasteryPoints) {
+  public PlayerPoints(DTO.Player player, long points) {
     this.player = player;
-    this.masteryPoint = maxMasteryPoints;
+    this.points = points;
   }
 
   @Override
   public int compareTo(PlayerPoints otherPlayer) {
-    if(masteryPoint < otherPlayer.masteryPoint) {
+    if(points < otherPlayer.points) {
       return 1;
-    }else if(masteryPoint > otherPlayer.masteryPoint) {
+    }else if(points > otherPlayer.points) {
       return -1;
     }
     
@@ -27,8 +27,8 @@ public class PlayerPoints implements Comparable<PlayerPoints> {
     return player;
   }
   
-  public long getMasteryPoint() {
-    return masteryPoint;
+  public long getPoints() {
+    return points;
   }
 
 }

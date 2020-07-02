@@ -10,13 +10,11 @@ import ch.kalunight.zoe.model.leaderboard.SpecificQueueDataHandler;
 
 public enum Objective {
   MASTERY_POINT("leaderboardObjectiveTotalMasterPoint", 100),
-  MASTERY_EVERYONE_START_FROM_0("leaderboardObjectiveMasterPointStartFrom0", 110),
   MASTERY_POINT_SPECIFIC_CHAMP("leaderboardObjectiveMasterPointSpecificChamp", 101),
-  MASTERY_POINT_START_FROM_0_SPECIFIC_CHAMP("leaderboardObjectiveMasterPointSpecificChampStartFrom0", 111),
   SPECIFIC_QUEUE_RANK("leaderboardSpecificQueueRank", 200),
   BEST_OF_ALL_RANK("leaderboardBestOfAllRank", 201),
-  SPECIFIC_QUEUE_RANK_PROGRESSION("leaderboardObjectiveSpecificQueueRankProgress", 210),
-  AVERAGE_KDA("leaderboardObjectiveAverageKDA", 300);
+  AVERAGE_KDA("leaderboardObjectiveAverageKDA", 300),
+  AVERAGE_KDA_SPECIFIC_CHAMP("leaderboardObjectiveAverageKDASpecificChamp", 301);
   
   private String translationId;
   private int id;
@@ -48,7 +46,7 @@ public enum Objective {
       Server server, CommandEvent event) {
     switch(objective) {
       case MASTERY_POINT_SPECIFIC_CHAMP:
-      case MASTERY_POINT_START_FROM_0_SPECIFIC_CHAMP:
+      case AVERAGE_KDA_SPECIFIC_CHAMP:
         return new SpecificChampionObjectiveDataHandler(objective, waiter, event, server);
       case SPECIFIC_QUEUE_RANK:
         return new SpecificQueueDataHandler(objective, waiter, event, server);

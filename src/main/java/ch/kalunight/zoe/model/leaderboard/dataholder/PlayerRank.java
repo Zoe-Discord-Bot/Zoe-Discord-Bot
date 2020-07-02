@@ -2,36 +2,31 @@ package ch.kalunight.zoe.model.leaderboard.dataholder;
 
 import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.player_data.FullTier;
 
 public class PlayerRank implements Comparable<PlayerRank>{
 
     private DTO.Player player;
-    private long points;
+    private FullTier fullTier;
     private GameQueueConfigId queue;
     
-    public PlayerRank(DTO.Player player, long points, GameQueueConfigId queue) {
+    public PlayerRank(DTO.Player player, FullTier fullTier, GameQueueConfigId queue) {
       this.player = player;
-      this.points = points;
+      this.fullTier = fullTier;
       this.queue = queue;
     }
 
     @Override
     public int compareTo(PlayerRank otherPlayer) {
-      if(points < otherPlayer.points) {
-        return 1;
-      }else if(points > otherPlayer.points) {
-        return -1;
-      }
-      
-      return 0;
+      return fullTier.compareTo(otherPlayer.fullTier);
     }
 
     public DTO.Player getPlayer() {
       return player;
     }
     
-    public long getPoints() {
-      return points;
+    public FullTier getFullTier() {
+      return fullTier;
     }
 
     public GameQueueConfigId getQueue() {

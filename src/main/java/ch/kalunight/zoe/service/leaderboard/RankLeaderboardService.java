@@ -52,7 +52,7 @@ public class RankLeaderboardService extends LeaderboardBaseService {
     
     for(PlayerRank playerRank : playersRank) {
       playersName.add(playerRank.getPlayer().user.getAsMention());
-      FullTier fullTier = new FullTier((int) playerRank.getPoints());
+      FullTier fullTier = playerRank.getFullTier();
       if(queueSelected == null) {
         dataList.add(Ressources.getTierEmote().get(fullTier.getTier()).getUsableEmote() + " " + fullTier.toString(server.serv_language) 
         + " (" + LanguageManager.getText(server.serv_language, playerRank.getQueue().getNameId()) + ")");
@@ -94,18 +94,21 @@ public class RankLeaderboardService extends LeaderboardBaseService {
       List<LeagueAccount> leaguesAccounts = LeagueAccountRepository.getLeaguesAccountsWithPlayerID(guild.getIdLong(), player.player_id);
 
       long bestAccountRank = 0;
+      FullTier fullTierBestAccountRank = null;
       GameQueueConfigId queue = null;
       for(DTO.LeagueAccount leagueAccount : leaguesAccounts) {
         Set<LeagueEntry> leaguesEntry = Zoe.getRiotApi().getLeagueEntriesBySummonerIdWithRateLimit(leagueAccount.leagueAccount_server,
             leagueAccount.leagueAccount_summonerId);
 
         long rankValue = 0;
+        FullTier fullTierRankValue = null;
         GameQueueConfigId queueOfRankValue = null;
         if(queueSelected != null) {
           for(LeagueEntry leagueEntry : leaguesEntry) {
             if(leagueEntry.getQueueType().equals(queueSelected.getGameQueue().getQueueType())) {
               try {
-                rankValue = new FullTier(leagueEntry).value();
+                fullTierRankValue = new FullTier(leagueEntry);
+                rankValue = fullTierRankValue.value();
                 queueOfRankValue = GameQueueConfigId.getGameQueueWithQueueType(leagueEntry.getQueueType());
               } catch (NoValueRankException e) {
                 logger.debug("FullTier impossible to create", e);
@@ -113,26 +116,40 @@ public class RankLeaderboardService extends LeaderboardBaseService {
             }
           }
         }else {
-          long bestRankAccount = 0;
+          long bestRankQueueAccountValue = 0;
+          FullTier bestRankQueueAccountFullTier = null;
+          GameQueueConfigId queueSelectedByQueue = null;
           for(LeagueEntry leagueEntry : leaguesEntry) {
             try {
-              rankValue = new FullTier(leagueEntry).value();
-              if(bestRankAccount < rankValue) {
-                bestRankAccount = rankValue;
-                queueOfRankValue = GameQueueConfigId.getGameQueueWithQueueType(leagueEntry.getQueueType());
+              FullTier queueToEvaluate = new FullTier(leagueEntry);
+              if(bestRankQueueAccountValue < queueToEvaluate.value() || bestRankQueueAccountFullTier == null 
+                  || (bestRankQueueAccountFullTier.compareTo(queueToEvaluate) > 0)) {
+                bestRankQueueAccountFullTier = queueToEvaluate;
+                bestRankQueueAccountValue = bestRankQueueAccountFullTier.value();
+                queueSelectedByQueue = GameQueueConfigId.getGameQueueWithQueueType(leagueEntry.getQueueType());
               }
             } catch (NoValueRankException e) {
               logger.debug("FullTier impossible to create", e);
             }
           }
+          
+          rankValue = bestRankQueueAccountValue;
+          fullTierRankValue = bestRankQueueAccountFullTier;
+          queueOfRankValue = queueSelectedByQueue;
         }
 
-        if(bestAccountRank < rankValue) {
+        if(bestAccountRank < rankValue || (bestAccountRank == rankValue 
+            && fullTierBestAccountRank != null && fullTierRankValue != null 
+            && (fullTierBestAccountRank.compareTo(fullTierRankValue) < 0))) {
           bestAccountRank = rankValue;
+          fullTierBestAccountRank = fullTierRankValue;
+          
           queue = queueOfRankValue;
         }
       }
-      playersPoints.add(new PlayerRank(player, bestAccountRank, queue));
+      if(fullTierBestAccountRank != null) {
+        playersPoints.add(new PlayerRank(player, fullTierBestAccountRank, queue));
+      }
     }
 
     Collections.sort(playersPoints);

@@ -77,7 +77,7 @@ public class ServerChecker extends TimerTask {
             LeaderboardRepository.updateLeaderboardLastRefreshWithLeadId(leaderboard.lead_id, LocalDateTime.now());
 
             LeaderboardBaseService leaderboardRefreshService = 
-                LeaderboardBaseService.getServiceWithId(Objective.getObjectiveWithId(leaderboard.lead_type),
+                LeaderboardBaseService.getServiceWithObjective(Objective.getObjectiveWithId(leaderboard.lead_type),
                     serverAskedTreatment.serv_guildId, leaderboard.lead_message_channelId, leaderboard.lead_id);
 
             if(leaderboardRefreshService != null) {
@@ -139,7 +139,7 @@ public class ServerChecker extends TimerTask {
       LeaderboardRepository.updateLeaderboardLastRefreshWithLeadId(leaderboardToRefresh.lead_id, LocalDateTime.now());
 
       LeaderboardBaseService leaderboardRefreshService = 
-          LeaderboardBaseService.getServiceWithId(Objective.getObjectiveWithId(leaderboardToRefresh.lead_type),
+          LeaderboardBaseService.getServiceWithObjective(Objective.getObjectiveWithId(leaderboardToRefresh.lead_type),
               server.serv_guildId, leaderboardToRefresh.lead_message_channelId, leaderboardToRefresh.lead_id);
 
       if(leaderboardRefreshService != null) {

@@ -63,7 +63,7 @@ public abstract class LeaderboardBaseService implements Runnable {
       
       message.removeReaction("U+23F3", Zoe.getJda().getSelfUser()).queue();
 
-    }catch(ErrorResponseException e) {      
+    }catch(ErrorResponseException e) {
       logger.error("Error while getting discord data", e);
     }catch(SQLException e) {
       logger.error("Error while accessing to the DB", e);
@@ -122,24 +122,18 @@ public abstract class LeaderboardBaseService implements Runnable {
     return builder;
   }
 
-  public static LeaderboardBaseService getServiceWithId(Objective objective, long guildId, long channelId, long leaderboardId) {
+  public static LeaderboardBaseService getServiceWithObjective(Objective objective, long guildId, long channelId, long leaderboardId) {
 
     switch(objective) {
     case AVERAGE_KDA:
-      break;
-    case MASTERY_EVERYONE_START_FROM_0:
       break;
     case MASTERY_POINT:
       return new MasteryPointLeaderboardService(guildId, channelId, leaderboardId);
     case MASTERY_POINT_SPECIFIC_CHAMP:
       return new MasteryPointSpecificChampLeaderboardService(guildId, channelId, leaderboardId);
-    case MASTERY_POINT_START_FROM_0_SPECIFIC_CHAMP:
-      break;
     case BEST_OF_ALL_RANK:
     case SPECIFIC_QUEUE_RANK:
       return new RankLeaderboardService(guildId, channelId, leaderboardId);
-    case SPECIFIC_QUEUE_RANK_PROGRESSION:
-      break;
     default:
       break;
     }

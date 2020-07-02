@@ -33,7 +33,7 @@ public class SavedMatch implements Serializable {
       }
 
       if(player != null) {
-        SavedMatchPlayer savedPlayer = new SavedMatchPlayer(player.getAccountId(), participant.getChampionId());
+        SavedMatchPlayer savedPlayer = new SavedMatchPlayer(player.getAccountId(), participant.getChampionId(), participant.getStats());
 
         if(participant.getTeamId() == 100) {
           accountsIdBlueSide.add(savedPlayer);

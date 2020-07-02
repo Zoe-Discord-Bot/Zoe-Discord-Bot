@@ -82,7 +82,7 @@ public abstract class LeaderboardExtraDataHandler {
         LeaderboardRepository.updateLeaderboardDataWithLeadId(leaderboard.lead_id, dataOfLeaderboard);
       }
 
-      LeaderboardBaseService baseLeaderboardService = LeaderboardBaseService.getServiceWithId(objective,
+      LeaderboardBaseService baseLeaderboardService = LeaderboardBaseService.getServiceWithObjective(objective,
           server.serv_guildId, leaderboardChannel.getIdLong(), leaderboard.lead_id);
 
       ServerData.getLeaderboardExecutor().execute(baseLeaderboardService);

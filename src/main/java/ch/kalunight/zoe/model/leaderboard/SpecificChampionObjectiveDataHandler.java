@@ -57,7 +57,7 @@ public class SpecificChampionObjectiveDataHandler extends LeaderboardExtraDataHa
         .setColor(Color.GREEN)
         .setText(PaginatorUtil.getPaginationTranslatedPage(server.serv_language))
         .setText(LanguageManager.getText(server.serv_language, "paginationChampionSelection"))
-        .setTimeout(3, TimeUnit.MINUTES);
+        .setTimeout(1, TimeUnit.MINUTES);
     
     for(String championName : championsName) {
       String championEmote = "";
@@ -82,8 +82,13 @@ public class SpecificChampionObjectiveDataHandler extends LeaderboardExtraDataHa
     textChannel.sendMessage(LanguageManager.getText(server.serv_language, "createLeaderboardCancelMessage")).queue();
   }
 
-  private void threatChannelSelection(MessageReceivedEvent message, Server server, Objective objective,
+  private void threatChampionSelection(MessageReceivedEvent message, Server server, Objective objective,
       List<String> championsNameOrdered) {
+    
+    if(message.getMessage().getContentRaw().equalsIgnoreCase("Stop")) {
+      cancelSelectionOfAChampion(message.getTextChannel(), server);
+      return;
+    }
     
     try {
       int championNumber = Integer.parseInt(message.getMessage().getContentRaw());
@@ -127,7 +132,7 @@ public class SpecificChampionObjectiveDataHandler extends LeaderboardExtraDataHa
     waiter.waitForEvent(MessageReceivedEvent.class,
         e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel())
         && !e.getMessage().getId().equals(event.getMessage().getId()),
-        e -> threatChannelSelection(e, server, objective, championsNameOrdered), 3, TimeUnit.MINUTES,
+        e -> threatChampionSelection(e, server, objective, championsNameOrdered), 3, TimeUnit.MINUTES,
         () -> cancelSelectionOfAChampion(event.getTextChannel(), server));
   }
 

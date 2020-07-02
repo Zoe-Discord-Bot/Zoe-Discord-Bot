@@ -213,6 +213,38 @@ public class RiotRequest {
     }
     return referencesMatchList;
   }
+  
+  private static List<MatchReference> getMatchHistoryOfLastMonth(Platform region, Summoner summoner)
+      throws RiotApiException {
+    final List<MatchReference> referencesMatchList = new ArrayList<>();
+
+    DateTime actualTime = DateTime.now();
+    DateTime beginTime = actualTime.minusWeeks(1);
+
+    Set<Integer> championToFilter = new HashSet<>();
+
+    for(int i = 0; i < 4; i++) {
+
+      MatchList matchList = null;
+
+      try {
+        matchList = Zoe.getRiotApi().getMatchListByAccountIdWithRateLimit(region, summoner.getAccountId(), championToFilter, null, null,
+            beginTime.getMillis(), actualTime.getMillis(), -1, -1);
+        if(matchList != null && matchList.getMatches() != null) {
+          referencesMatchList.addAll(matchList.getMatches());
+        }
+      } catch(RiotApiException e) {
+        logger.debug("Impossible to get matchs history : {}", e.getMessage());
+        if(e.getErrorCode() != RiotApiException.DATA_NOT_FOUND) {
+          throw e;
+        }
+      }
+
+      actualTime = actualTime.minusWeeks(1);
+      beginTime = actualTime.minusWeeks(1);
+    }
+    return referencesMatchList;
+  }
 
   public static String getMasterysScore(String summonerId, int championId, Platform platform) {
     ChampionMastery mastery = null;

@@ -11,14 +11,14 @@ public class SavedMatchPlayer implements Serializable {
   private int championId;
   private int kills;
   private int deaths;
-  private int assits;
+  private int assists;
   
   public SavedMatchPlayer(String accountId, int championId, ParticipantStats participantStats) {
     this.accountId = accountId;
     this.championId = championId;
     this.kills = participantStats.getKills();
     this.deaths = participantStats.getDeaths();
-    this.assits = participantStats.getAssists();
+    this.assists = participantStats.getAssists();
   }
 
   public String getAccountId() {
@@ -45,7 +45,7 @@ public class SavedMatchPlayer implements Serializable {
     return deaths;
   }
 
-  public int getAssits() {
-    return assits;
+  public int getAssists() {
+    return assists;
   }
 }

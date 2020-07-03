@@ -15,12 +15,15 @@ import org.slf4j.LoggerFactory;
 
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
+import ch.kalunight.zoe.model.KDAReceiver;
 import ch.kalunight.zoe.model.WinRateReceiver;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.model.player_data.Rank;
 import ch.kalunight.zoe.model.player_data.Tier;
 import ch.kalunight.zoe.model.static_data.Mastery;
-import ch.kalunight.zoe.service.MatchReceiverWorker;
+import ch.kalunight.zoe.service.match.MatchKDAReceiverWorker;
+import ch.kalunight.zoe.service.match.MatchReceiverWorker;
+import ch.kalunight.zoe.service.match.MatchWinrateReceiverWorker;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.NameConversion;
 import ch.kalunight.zoe.util.Ressources;
@@ -154,11 +157,11 @@ public class RiotRequest {
     WinRateReceiver winRateReceiver = new WinRateReceiver();
     
     for(MatchReference matchReference : referencesMatchList) {
-      MatchReceiverWorker matchWorker = new MatchReceiverWorker(winRateReceiver, gameLoadingConflict, matchReference, region, summoner);
+      MatchWinrateReceiverWorker matchWorker = new MatchWinrateReceiverWorker(winRateReceiver, gameLoadingConflict, matchReference, region, summoner);
       ServerData.getMatchsWorker(region).execute(matchWorker);
     }
 
-    MatchReceiverWorker.awaitAll(referencesMatchList);
+    MatchWinrateReceiverWorker.awaitAll(referencesMatchList);
 
     if(gameLoadingConflict.get()) {
       try {
@@ -212,6 +215,41 @@ public class RiotRequest {
       beginTime = actualTime.minusWeeks(1);
     }
     return referencesMatchList;
+  }
+  
+  public static KDAReceiver getKDALastMonth(String summonerId, Platform region, String language) {
+
+    Summoner summoner;
+    try {
+      summoner = Zoe.getRiotApi().getSummonerWithRateLimit(region, summonerId);
+    } catch(RiotApiException e) {
+      logger.warn("Impossible to get the summoner : {}", e.getMessage());
+      return null;
+    }
+
+    List<MatchReference> referencesMatchList;
+    try {
+      referencesMatchList = getMatchHistoryOfLastMonth(region, summoner);
+    } catch(RiotApiException e) {
+      logger.info("Can't acces to history : {}", e.getMessage());
+      return null;
+    }
+
+    if(referencesMatchList.isEmpty()) {
+      return null;
+    }
+
+    AtomicBoolean gameLoadingConflict = new AtomicBoolean(false);
+    KDAReceiver kdaReceiver = new KDAReceiver();
+    
+    for(MatchReference matchReference : referencesMatchList) {
+      MatchKDAReceiverWorker matchWorker = new MatchKDAReceiverWorker(kdaReceiver, gameLoadingConflict, matchReference, region, summoner);
+      ServerData.getMatchsWorker(region).execute(matchWorker);
+    }
+
+    MatchReceiverWorker.awaitAll(referencesMatchList);
+
+    return kdaReceiver;
   }
   
   private static List<MatchReference> getMatchHistoryOfLastMonth(Platform region, Summoner summoner)

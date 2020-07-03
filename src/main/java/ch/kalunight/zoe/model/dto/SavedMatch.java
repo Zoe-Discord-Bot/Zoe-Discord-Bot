@@ -50,6 +50,20 @@ public class SavedMatch implements Serializable {
     }
   }
   
+  public SavedMatchPlayer getSavedMatchPlayerByAccountId(String accountId) {
+    List<SavedMatchPlayer> savedMatchPlayers = new ArrayList<>();
+    
+    savedMatchPlayers.addAll(accountsIdBlueSide);
+    savedMatchPlayers.addAll(accountsIdRedSide);
+    
+    for(SavedMatchPlayer savedMatchPlayer : savedMatchPlayers) {
+      if(savedMatchPlayer.getAccountId().equals(accountId)) {
+        return savedMatchPlayer;
+      }
+    }
+    return null;
+  }
+  
   public boolean isGivenAccountWinner(String accountId) {
     boolean playerBlueSide = false;
     

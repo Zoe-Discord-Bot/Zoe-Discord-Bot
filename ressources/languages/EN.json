@@ -356,5 +356,10 @@
 	"leaderboardRankSpecificQueueTitle" : "Rank (%s only)",
 	"leaderboardObjectiveRankSpecificTitle" : "%s Rank Leaderboard",
 	"leaderboardObjectiveRankAllTitle" : "All Rank Leaderboard",
-	"leaderboardCancelSelectionOfChannel" : "Okay, i cancel the creation of leaderboard."
+	"leaderboardCancelSelectionOfChannel" : "Okay, i cancel the creation of leaderboard.",
+	"leaderboardObjectiveDataNameKDA" : "Average KDA",
+	"leaderboardObjectiveDataNameKDAWithSpecificChampion" : "Average KDA with %s",
+	"leaderboardObjectiveKDATitle" : "Average KDA Leaderboard",
+	"leaderboardObjectiveKDAWithSpecificChampionTitle" : "Average KDA with %s Leaderboard",
+	"deleteLeaderboardCommandHelpMessage" : "Command to delete a existant leaderboard."
 }

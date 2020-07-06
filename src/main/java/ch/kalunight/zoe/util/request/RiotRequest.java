@@ -217,7 +217,42 @@ public class RiotRequest {
     return referencesMatchList;
   }
   
-  public static KDAReceiver getKDALastMonth(String summonerId, Platform region, String language) {
+  public static KDAReceiver getKDALastMonthOneChampionOnly(String summonerId, Platform region, int championId) {
+
+    Summoner summoner;
+    try {
+      summoner = Zoe.getRiotApi().getSummonerWithRateLimit(region, summonerId);
+    } catch(RiotApiException e) {
+      logger.warn("Impossible to get the summoner : {}", e.getMessage());
+      return null;
+    }
+
+    List<MatchReference> referencesMatchList;
+    try {
+      referencesMatchList = getMatchHistoryOfLastMonthWithTheGivenChampion(region, championId, summoner);
+    } catch(RiotApiException e) {
+      logger.info("Can't acces to history : {}", e.getMessage());
+      return null;
+    }
+
+    if(referencesMatchList.isEmpty()) {
+      return null;
+    }
+
+    AtomicBoolean gameLoadingConflict = new AtomicBoolean(false);
+    KDAReceiver kdaReceiver = new KDAReceiver();
+    
+    for(MatchReference matchReference : referencesMatchList) {
+      MatchKDAReceiverWorker matchWorker = new MatchKDAReceiverWorker(kdaReceiver, gameLoadingConflict, matchReference, region, summoner);
+      ServerData.getMatchsWorker(region).execute(matchWorker);
+    }
+
+    MatchReceiverWorker.awaitAll(referencesMatchList);
+
+    return kdaReceiver;
+  }
+  
+  public static KDAReceiver getKDALastMonth(String summonerId, Platform region) {
 
     Summoner summoner;
     try {

@@ -29,7 +29,7 @@ public class CreateLeaderboardCommand extends ZoeCommand {
 
   public CreateLeaderboardCommand(EventWaiter waiter) {
     this.name = "leaderboard";
-    String[] aliases = {"leader", "lb", "lead"};
+    String[] aliases = {"leader", "lb", "lead", "board"};
     this.aliases = aliases;
     this.arguments = "";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
@@ -54,7 +54,7 @@ public class CreateLeaderboardCommand extends ZoeCommand {
         .addUsers(event.getAuthor())
         .setEventWaiter(waiter)
         .useLooping(true)
-        .setColor(Color.BLUE)
+        .setColor(Color.GREEN)
         .setSelectedEnds("**", "**")
         .setCanceled(getSelectionCancelAction(server.serv_language))
         .setSelectionConsumer(getSelectionConsumer(server, event, objectiveList))

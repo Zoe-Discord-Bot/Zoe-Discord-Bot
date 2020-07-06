@@ -1,35 +1,34 @@
 package ch.kalunight.zoe.model.leaderboard.dataholder;
 
+import ch.kalunight.zoe.model.KDAReceiver;
 import ch.kalunight.zoe.model.dto.DTO.Player;
 
-public class PlayerKDA {
+public class PlayerKDA implements Comparable<PlayerKDA> {
 
   private Player player;
-  private int kills;
-  private int deaths;
-  private int assists;
+  private KDAReceiver kdaReceiver;
   
-  public PlayerKDA(Player player, int kills, int deaths, int assists) {
+  public PlayerKDA(Player player, KDAReceiver kdaReceiver) {
     this.player = player;
-    this.kills = kills;
-    this.deaths = deaths;
-    this.assists = assists;
+    this.kdaReceiver = kdaReceiver;
   }
 
   public Player getPlayer() {
     return player;
   }
 
-  public int getKills() {
-    return kills;
+  public KDAReceiver getKdaReceiver() {
+    return kdaReceiver;
   }
 
-  public int getDeaths() {
-    return deaths;
+  @Override
+  public int compareTo(PlayerKDA otherPlayer) {
+    if(kdaReceiver.getAverageKDA() < otherPlayer.getKdaReceiver().getAverageKDA()) {
+      return 1;
+    }else if(kdaReceiver.getAverageKDA() > otherPlayer.getKdaReceiver().getAverageKDA()) {
+      return -1;
+    }
+    
+    return 0;
   }
-
-  public int getAssists() {
-    return assists;
-  }
-  
 }

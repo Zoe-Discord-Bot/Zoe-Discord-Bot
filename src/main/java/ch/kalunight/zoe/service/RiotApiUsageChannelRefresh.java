@@ -64,7 +64,8 @@ public class RiotApiUsageChannelRefresh implements Runnable {
             + "\nInfoPannel refresh done last two minutes : " + InfoPanelRefresher.getNbrServerSefreshedLast2Minutes()
             + "\nTask in InfoCards Generator Queue : " + ServerData.getInfocardsGenerator().getQueue().size()
             + "\nTask in Players Data Worker Queue : " + ServerData.getPlayersDataQueue()
-            + "\nInfocards Generated last 2 minutes : " + getInfocardCreatedCount()).queue();
+            + "\nInfocards Generated last 2 minutes : " + getInfocardCreatedCount()
+            + "\nTask in Leaderboard Executor : " + ServerData.getLeaderboardExecutor().getQueue().size()).queue();
 
         rapiInfoChannel.sendMessage("**Usage Stats**"
             + "\nTotal number of Players : " + PlayerRepository.countPlayers()

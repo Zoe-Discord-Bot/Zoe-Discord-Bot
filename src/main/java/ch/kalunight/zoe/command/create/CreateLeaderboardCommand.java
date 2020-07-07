@@ -78,8 +78,10 @@ public class CreateLeaderboardCommand extends ZoeCommand {
     return new Consumer<Message>() {
       @Override
       public void accept(Message message) {
-        message.clearReactions().queue();
-        message.editMessage(LanguageManager.getText(language, "createLeaderboardCancelMessage")).queue();
+        if(!message.isEdited()) {
+          message.clearReactions().queue();
+          message.editMessage(LanguageManager.getText(language, "createLeaderboardCancelMessage")).queue();
+        }
       }
     };
   }
@@ -89,14 +91,14 @@ public class CreateLeaderboardCommand extends ZoeCommand {
       @Override
       public void accept(Message selectionMessage, Integer objectiveSelection) {
         selectionMessage.clearReactions().queue();
-        
+
         Objective objective = objectiveList.get(objectiveSelection - 1);
 
         event.reply(String.format(LanguageManager.getText(server.serv_language, "leaderboardObjectiveSelected"),
             LanguageManager.getText(server.serv_language, objective.getTranslationId())));
 
         LeaderboardExtraDataHandler dataNeeded = Objective.getDataNeeded(objective, waiter, server, event);
-        
+
         dataNeeded.handleSecondCreationPart();
       }
     };

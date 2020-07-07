@@ -138,6 +138,10 @@ public class InfoPanelRefresher implements Runnable {
     try {
 
       nbrServerRefreshedLast2Minutes.incrementAndGet();
+      
+      if(guild == null) {
+        return;
+      }
 
       DTO.InfoChannel infoChannelDTO = InfoChannelRepository.getInfoChannel(server.serv_guildId);
       if(infoChannelDTO != null && guild != null) {

@@ -13,12 +13,14 @@ import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.leaderboard.dataholder.Objective;
 import ch.kalunight.zoe.repositories.LeaderboardRepository;
 import ch.kalunight.zoe.repositories.ServerRepository;
+import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed.Field;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
+import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.rithms.riot.api.RiotApiException;
 
 public abstract class LeaderboardBaseService implements Runnable {
@@ -28,6 +30,10 @@ public abstract class LeaderboardBaseService implements Runnable {
   protected static final Logger logger = LoggerFactory.getLogger(LeaderboardBaseService.class);
   
   protected static final Gson gson = new GsonBuilder().create();
+  
+  private static final int NUMBER_OF_MESSAGE_CONSIDERED_VISIBLE = 20;
+  
+  private static final int NUMBER_OF_MESSAGE_FOR_DELETION = 50;
   
   private static final int MAX_PLAYERS_IN_LEADERBOARD = 10;
   
@@ -50,12 +56,32 @@ public abstract class LeaderboardBaseService implements Runnable {
       Server server = ServerRepository.getServerWithGuildId(guildId);
 
       Guild guild = Zoe.getJda().getGuildById(guildId);
+      if(guild == null) {
+        return;
+      }
 
       TextChannel channel = guild.getTextChannelById(channelId);
+      if(channel == null) {
+        deleteLeaderboard();
+        return;
+      }
 
       Leaderboard leaderboard = LeaderboardRepository.getLeaderboardWithId(leaderboardId);
 
       Message message = channel.retrieveMessageById(leaderboard.lead_message_id).complete();
+      
+      int messageAfterTheLeaderboard = messageAfterTheLeaderboard(channel, message);
+      
+      if(messageAfterTheLeaderboard > NUMBER_OF_MESSAGE_CONSIDERED_VISIBLE
+          && messageAfterTheLeaderboard < NUMBER_OF_MESSAGE_FOR_DELETION) {
+        message.editMessage(LanguageManager.getText(server.serv_language, "leaderboardNotRefreshedMessage")).queue();
+        return;
+        
+      }else if (messageAfterTheLeaderboard > NUMBER_OF_MESSAGE_FOR_DELETION) {
+        message.editMessage(LanguageManager.getText(server.serv_language, "leaderboardDeletedMessage")).queue();
+        LeaderboardRepository.deleteLeaderboardWithId(leaderboardId);
+        return;
+      }
 
       message.addReaction("U+23F3").complete();
 
@@ -64,11 +90,28 @@ public abstract class LeaderboardBaseService implements Runnable {
       message.removeReaction("U+23F3", Zoe.getJda().getSelfUser()).queue();
 
     }catch(ErrorResponseException e) {
-      logger.error("Error while getting discord data", e);
+      if(e.getErrorResponse().equals(ErrorResponse.UNKNOWN_MESSAGE)) {
+        logger.warn("leaderboard message has been deleted, delete db stats");
+        deleteLeaderboard();
+      }else {
+        logger.error("Error while getting discord data", e);
+      }
     }catch(SQLException e) {
       logger.error("Error while accessing to the DB", e);
     }catch(Exception e) {
       logger.error("Unexpected error when refreshing leaderboard", e);
+    }
+  }
+
+  private int messageAfterTheLeaderboard(TextChannel channel, Message message) {
+    return channel.getHistoryAfter(message, NUMBER_OF_MESSAGE_FOR_DELETION + 1).complete().size();
+  }
+
+  private void deleteLeaderboard() {
+    try {
+      LeaderboardRepository.deleteLeaderboardWithId(leaderboardId);
+    } catch(SQLException e) {
+      logger.error("Error while deleting leaderboard !", e);
     }
   }
 

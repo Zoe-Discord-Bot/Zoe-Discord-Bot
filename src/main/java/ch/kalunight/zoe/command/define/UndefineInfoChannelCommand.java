@@ -44,7 +44,6 @@ public class UndefineInfoChannelCommand extends ZoeCommand {
         GameInfoCardRepository.deleteGameInfoCardsWithId(infoCard.gamecard_id);
         if(infoCard.gamecard_infocardmessageid != 0) {
           channel.retrieveMessageById(infoCard.gamecard_infocardmessageid).queue(sucess -> sucess.delete().queue());
-          channel.retrieveMessageById(infoCard.gamecard_titlemessageid).queue(sucess -> sucess.delete().queue());
         }
       }
       

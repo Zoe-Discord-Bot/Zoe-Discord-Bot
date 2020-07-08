@@ -1,6 +1,7 @@
 package ch.kalunight.zoe.model.dto;
 
 import java.io.Serializable;
+import net.rithms.riot.api.endpoints.match.dto.ParticipantStats;
 
 public class SavedMatchPlayer implements Serializable {
 
@@ -8,10 +9,16 @@ public class SavedMatchPlayer implements Serializable {
   
   private String accountId;
   private int championId;
+  private int kills;
+  private int deaths;
+  private int assists;
   
-  public SavedMatchPlayer(String accountId, int championId) {
+  public SavedMatchPlayer(String accountId, int championId, ParticipantStats participantStats) {
     this.accountId = accountId;
     this.championId = championId;
+    this.kills = participantStats.getKills();
+    this.deaths = participantStats.getDeaths();
+    this.assists = participantStats.getAssists();
   }
 
   public String getAccountId() {
@@ -28,5 +35,17 @@ public class SavedMatchPlayer implements Serializable {
 
   public void setChampionId(int championId) {
     this.championId = championId;
+  }
+
+  public int getKills() {
+    return kills;
+  }
+
+  public int getDeaths() {
+    return deaths;
+  }
+
+  public int getAssists() {
+    return assists;
   }
 }

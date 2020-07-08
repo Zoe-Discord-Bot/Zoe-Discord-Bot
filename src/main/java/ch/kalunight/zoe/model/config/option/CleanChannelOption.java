@@ -271,7 +271,7 @@ public class CleanChannelOption extends ConfigurationOption {
     if(textChannel != null) {
       DTO.Server server = null;
       try {
-        server = ServerRepository.getServer(textChannel.getGuild().getIdLong());
+        server = ServerRepository.getServerWithGuildId(textChannel.getGuild().getIdLong());
       } catch(SQLException e) {
         logger.error("SQL Error when getting the server in CleanChannelOption setup !", e);
       }

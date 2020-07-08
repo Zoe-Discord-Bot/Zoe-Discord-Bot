@@ -4,6 +4,7 @@ import java.util.function.BiConsumer;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
+import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.translation.LanguageManager;
@@ -14,13 +15,13 @@ public class CreateCommand extends ZoeCommand {
 
   public static final String USAGE_NAME = "create";
   
-  public CreateCommand() {
+  public CreateCommand(EventWaiter waiter) {
     this.name = USAGE_NAME;
     this.aliases = new String[] {"c"};
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
     Command[] commandsChildren = {new CreateInfoChannelCommand(), new CreatePlayerCommand(), new CreateTeamCommand(),
-        new CreateRankHistoryChannelCommand()};
+        new CreateRankHistoryChannelCommand(), new CreateLeaderboardCommand(waiter)};
     this.children = commandsChildren;
     this.helpBiConsumer = CommandUtil.getHelpMethodHasChildren(USAGE_NAME, commandsChildren);
   }

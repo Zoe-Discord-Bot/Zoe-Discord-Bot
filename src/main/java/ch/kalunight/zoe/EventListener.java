@@ -183,7 +183,7 @@ public class EventListener extends ListenerAdapter {
   public void onGuildJoin(GuildJoinEvent event) {
     try {
       if(!event.getGuild().getOwner().getUser().getId().equals(Zoe.getJda().getSelfUser().getId())) {
-        DTO.Server server = ServerRepository.getServer(event.getGuild().getIdLong());
+        DTO.Server server = ServerRepository.getServerWithGuildId(event.getGuild().getIdLong());
         if(server == null) {
           ServerRepository.createNewServer(event.getGuild().getIdLong(), LanguageManager.DEFAULT_LANGUAGE);
           askingConfig(event.getGuild(), event.getGuild().getOwner().getUser());
@@ -201,7 +201,7 @@ public class EventListener extends ListenerAdapter {
 
   private void askingConfig(Guild guild, User owner) throws SQLException {
 
-    DTO.Server server = ServerRepository.getServer(guild.getIdLong());
+    DTO.Server server = ServerRepository.getServerWithGuildId(guild.getIdLong());
 
     MessageChannel channel;
 
@@ -243,7 +243,7 @@ public class EventListener extends ListenerAdapter {
     try {
       DTO.InfoChannel infochannel = InfoChannelRepository.getInfoChannel(event.getGuild().getIdLong());
       if(infochannel != null && infochannel.infochannel_channelid == event.getChannel().getIdLong()) {
-        InfoChannelRepository.deleteInfoChannel(ServerRepository.getServer(event.getGuild().getIdLong()));
+        InfoChannelRepository.deleteInfoChannel(ServerRepository.getServerWithGuildId(event.getGuild().getIdLong()));
       }
       
       DTO.RankHistoryChannel rankChannel = RankHistoryChannelRepository.getRankHistoryChannel(event.getGuild().getIdLong());
@@ -292,7 +292,7 @@ public class EventListener extends ListenerAdapter {
       Activity activity = event.getNewActivity();
       
         if(activity.isRich() && EventListenerUtil.checkIfIsGame(activity.asRichPresence()) && event.getGuild() != null) {
-          DTO.Server server = ServerRepository.getServer(event.getGuild().getIdLong());
+          DTO.Server server = ServerRepository.getServerWithGuildId(event.getGuild().getIdLong());
 
           if(server == null) {
             return;

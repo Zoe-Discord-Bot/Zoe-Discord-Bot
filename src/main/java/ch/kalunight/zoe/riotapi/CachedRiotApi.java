@@ -456,6 +456,11 @@ public class CachedRiotApi {
     }
     return remainingCall;
   }
+  
+  public AtomicInteger getAllMatchCounter() {
+    return allMatchRequestCount;
+  }
+  
 
   public int getApiMatchRequestCount() {
     return apiMatchRequestCount.intValue();

@@ -3,11 +3,10 @@ package ch.kalunight.zoe.service.match;
 import java.sql.SQLException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.KDAReceiver;
-import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.SavedMatch;
 import ch.kalunight.zoe.model.dto.SavedMatchPlayer;
+import ch.kalunight.zoe.model.dto.DTO.MatchCache;
 import ch.kalunight.zoe.riotapi.CacheManager;
 import net.rithms.riot.api.endpoints.match.dto.Match;
 import net.rithms.riot.api.endpoints.match.dto.MatchReference;
@@ -27,11 +26,8 @@ public class MatchKDAReceiverWorker extends MatchReceiverWorker {
   }
 
   @Override
-  protected void runMatchReceveirWorker() {
+  protected void runMatchReceveirWorker(MatchCache matchCache) {
     try {
-      logger.debug("Start to load game {} server {}", matchReference.getGameId(), server.getName());
-      DTO.MatchCache matchCache = Zoe.getRiotApi().getCachedMatch(server, matchReference.getGameId());
-
       if(matchCache != null) {
         SavedMatch cacheMatch = matchCache.mCatch_savedMatch;
         SavedMatchPlayer player = cacheMatch.getSavedMatchPlayerByAccountId(summoner.getAccountId());
@@ -65,10 +61,6 @@ public class MatchKDAReceiverWorker extends MatchReceiverWorker {
     }catch(SQLException e) {
       logger.info("SQL error (unique constraint error, normaly nothing severe) Error : {}", e.getMessage());
       gameLoadingConflict.set(true);
-    }catch(Exception e){
-      logger.error("Unexpected error in match receiver worker", e);
-    }finally {
-      matchsInWork.remove(matchReference);
     }
   }
 

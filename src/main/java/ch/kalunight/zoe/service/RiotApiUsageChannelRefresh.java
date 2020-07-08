@@ -76,7 +76,7 @@ public class RiotApiUsageChannelRefresh implements Runnable {
         rapiInfoChannel.sendMessage("**Riot Request Stats**"
             + "\nTotal of requests with Riot api : " + Zoe.getRiotApi().getTotalRequestCount()
             + "\nNumber of request for match with RiotAPI : " + Zoe.getRiotApi().getApiMatchRequestCount()
-            + "\nTotal number of request for match : " + Zoe.getRiotApi().getAllMatchRequestCount()).queue();
+            + "\nNumber of request for match with DB : " + (Zoe.getRiotApi().getAllMatchRequestCount() - Zoe.getRiotApi().getApiMatchRequestCount())).queue();
 
         rapiInfoChannel.sendMessage("**Discord Command Stats**"
             + "\nTotal discord command executed : " + ZoeCommand.getCommandExecuted().get() 

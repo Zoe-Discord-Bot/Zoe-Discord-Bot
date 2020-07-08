@@ -1,5 +1,6 @@
 package ch.kalunight.zoe.service.match;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -10,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.kalunight.zoe.Zoe;
+import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.DTO.MatchCache;
 import ch.kalunight.zoe.riotapi.CachedRiotApi;
 import net.rithms.riot.api.endpoints.match.dto.MatchReference;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
@@ -42,10 +45,29 @@ public abstract class MatchReceiverWorker implements Runnable {
   
   @Override
   public void run() {
-    runMatchReceveirWorker();
+    logger.debug("Start to load game {} server {}", matchReference.getGameId(), server.getName());
+    DTO.MatchCache matchCache = null;
+    try {
+      matchCache = Zoe.getRiotApi().getCachedMatch(server, matchReference.getGameId());
+    } catch (SQLException e) {
+      logger.warn("Unexpected Database error while getting match cache !", e);
+    }
+    
+    if(matchCache != null) {
+      //Add the call
+      Zoe.getRiotApi().getAllMatchCounter().incrementAndGet();
+    }
+    
+    try {
+      runMatchReceveirWorker(matchCache);
+    }catch(Exception e){
+      logger.error("Unexpected error in match receiver worker", e);
+    }finally {
+      matchsInWork.remove(matchReference);
+    }
   }
   
-  protected abstract void runMatchReceveirWorker();
+  protected abstract void runMatchReceveirWorker(MatchCache matchCache);
   
   public static void awaitAll(List<MatchReference> matchsToWait) {
     

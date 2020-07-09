@@ -58,8 +58,25 @@ public class LeaderboardRepository {
       "FROM leaderboard " + 
       "WHERE leaderboard.lead_lastrefresh < '%s'";
   
+  private static final String COUNT_LEADERBOARDS = "SELECT COUNT(*) FROM leaderboard";
+  
   private LeaderboardRepository() {
     //hide default public constructor
+  }
+  
+  public static long countLeaderboards() throws SQLException {
+    ResultSet result = null;
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+
+      result = query.executeQuery(COUNT_LEADERBOARDS);
+      
+      result.first();
+      
+      return result.getLong("count");
+    }finally {
+      RepoRessources.closeResultSet(result);
+    }
   }
   
   public static List<DTO.Leaderboard> getLeaderboardWhoNeedToBeRefreshed() throws SQLException {

@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
+import ch.kalunight.zoe.repositories.LeaderboardRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.riotapi.CachedRiotApi;
@@ -69,7 +70,8 @@ public class RiotApiUsageChannelRefresh implements Runnable {
 
         rapiInfoChannel.sendMessage("**Usage Stats**"
             + "\nTotal number of Players : " + PlayerRepository.countPlayers()
-            + "\nTotal number of League Accounts : " + LeagueAccountRepository.countLeagueAccounts()).queue();
+            + "\nTotal number of League Accounts : " + LeagueAccountRepository.countLeagueAccounts()
+            + "\nTotal number of Leaderboards : " + LeaderboardRepository.countLeaderboards()).queue();
         
         InfoPanelRefresher.getNbrServerSefreshedLast2Minutes().set(0);
 

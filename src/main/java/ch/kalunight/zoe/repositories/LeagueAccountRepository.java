@@ -110,7 +110,7 @@ public class LeagueAccountRepository {
   private static final String UPDATE_LEAGUE_ACCOUNT_NAME_WITH_ID =
       "UPDATE league_account SET leagueaccount_name = '%s' WHERE leagueaccount_id = %d";
   
-  private static final String COUNT_LEAGUE_ACCOUNTS = "SELECT COUNT(*) FROM league_account;";
+  private static final String COUNT_LEAGUE_ACCOUNTS = "SELECT COUNT(*) FROM league_account";
 
   private LeagueAccountRepository() {
     //hide default public constructor

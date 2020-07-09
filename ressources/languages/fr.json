@@ -352,7 +352,7 @@
     "leaderboardDataNeededSpecificChamp": "Vous devez me donner un champion pour ce type de classement. Merci de sélectionner un champion en envoyant soit **son nom** ou **son nombre**. Si vous souhaitez annuler la création du classement, merci d'envoyer ``Stop``.",
     "leaderboardSuccessfullyCreated": "Le classement à bien été créé ! Je le mettrai à jour chaque heure.",
     "leaderboardMissingPermission": "Je n'ai pas toutes les permissions nécessaire ! Merci de me donner le droit de gérer les salons, de géré les emotes et d'utiliser des liens externes.",
-    "leaderboardObjectiveBaseMessage": "**Chargement du classements …**",
+    "leaderboardObjectiveBaseMessage": "**Chargement du classement …**",
     "createLeaderboardNeedOneMentionnedChannel": "Merci de m'envoyer la mention du salon où vous souhaitez que le classement soit envoyé (ex.``#salon-des-classements``). Si vous souhaitez annuler la création du classement, merci d'envoyer ``Stop``.",
     "leaderboardRefreshMessage": "Mis à jour toutes les heures",
     "pointsShort": "pts",

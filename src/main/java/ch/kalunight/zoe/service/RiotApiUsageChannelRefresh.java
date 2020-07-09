@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
+import ch.kalunight.zoe.repositories.LeaderboardRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.riotapi.CachedRiotApi;
@@ -64,18 +65,20 @@ public class RiotApiUsageChannelRefresh implements Runnable {
             + "\nInfoPannel refresh done last two minutes : " + InfoPanelRefresher.getNbrServerSefreshedLast2Minutes()
             + "\nTask in InfoCards Generator Queue : " + ServerData.getInfocardsGenerator().getQueue().size()
             + "\nTask in Players Data Worker Queue : " + ServerData.getPlayersDataQueue()
-            + "\nInfocards Generated last 2 minutes : " + getInfocardCreatedCount()).queue();
+            + "\nInfocards Generated last 2 minutes : " + getInfocardCreatedCount()
+            + "\nTask in Leaderboard Executor : " + ServerData.getLeaderboardExecutor().getQueue().size()).queue();
 
         rapiInfoChannel.sendMessage("**Usage Stats**"
             + "\nTotal number of Players : " + PlayerRepository.countPlayers()
-            + "\nTotal number of League Accounts : " + LeagueAccountRepository.countLeagueAccounts()).queue();
+            + "\nTotal number of League Accounts : " + LeagueAccountRepository.countLeagueAccounts()
+            + "\nTotal number of Leaderboards : " + LeaderboardRepository.countLeaderboards()).queue();
         
         InfoPanelRefresher.getNbrServerSefreshedLast2Minutes().set(0);
 
         rapiInfoChannel.sendMessage("**Riot Request Stats**"
             + "\nTotal of requests with Riot api : " + Zoe.getRiotApi().getTotalRequestCount()
             + "\nNumber of request for match with RiotAPI : " + Zoe.getRiotApi().getApiMatchRequestCount()
-            + "\nTotal number of request for match : " + Zoe.getRiotApi().getAllMatchRequestCount()).queue();
+            + "\nNumber of request for match with DB : " + (Zoe.getRiotApi().getAllMatchRequestCount() - Zoe.getRiotApi().getApiMatchRequestCount())).queue();
 
         rapiInfoChannel.sendMessage("**Discord Command Stats**"
             + "\nTotal discord command executed : " + ZoeCommand.getCommandExecuted().get() 

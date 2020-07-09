@@ -4,7 +4,7 @@ import ch.kalunight.zoe.exception.NoValueRankException;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 
-public class FullTier {
+public class FullTier implements Comparable<FullTier> {
 
   private Tier tier;
   private Rank rank;
@@ -31,7 +31,6 @@ public class FullTier {
       this.rank = Rank.IV;
       this.leaguePoints = value;
     }
-
   }
 
   public int value() throws NoValueRankException {
@@ -83,6 +82,40 @@ public class FullTier {
     }else {
       return new FullTier(tier, Rank.getRankWithValue(rank.getValue() + 100), 0);
     }
+  }
+  
+  @Override
+  public int compareTo(FullTier otherFullTier) {
+    if(otherFullTier == null) {
+      throw new NullPointerException("OtherFullTier is null in FullTier.java");
+    }
+    
+    if((rank == Rank.UNKNOWN || rank == Rank.UNRANKED) && (otherFullTier.rank != Rank.UNRANKED && otherFullTier.rank != Rank.UNKNOWN)) {
+      return 1;
+    }else if((otherFullTier.rank == Rank.UNKNOWN || otherFullTier.rank == Rank.UNRANKED) 
+        && (rank != Rank.UNRANKED && rank != Rank.UNKNOWN)) {
+      return -1;
+    }
+    
+    if(tier.getValue() < otherFullTier.tier.getValue()) {
+      return 1;
+    }else if(otherFullTier.tier.getValue() < tier.getValue()) {
+      return -1;
+    }
+    
+    if(rank.getValue() < otherFullTier.rank.getValue()) {
+      return 1;
+    }else if(otherFullTier.rank.getValue() < rank.getValue()) {
+      return -1;
+    }
+    
+    if(leaguePoints < otherFullTier.leaguePoints) {
+      return 1;
+    }else if(otherFullTier.leaguePoints < leaguePoints) {
+      return -1;
+    }
+      
+    return 0;
   }
 
   public Tier getTier() {

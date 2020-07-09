@@ -1,10 +1,17 @@
-**V1.3.1 -> V1.3.2**
+**Leaderboard Update is here**
+Huge update today! Leaderboards are here! You can now create a leaderboard with the command `>create leaderboard`. There's currently 3 different objective with different parameters. Leaderboard work like the infopanel, the message is sended once and will be refreshed every hour. If the message is deleted Zoe won't resend the message. You can delete a leaderboard directly with the command `>delete leaderboard`.
 
-**One new option added + polish stats command**
-A user asked a new feature allowing the creation of a "clean" channel. Messages sent in this channel are deleted after three seconds. This option has been created to simplify the creation of a registration system for servers that wants all members to be registered. Option to be used with options 2 and 4 for this type of use.
-The command ">stats profile @mention" has been simplified, you can now directly use the command ">stats @mention".
+Here the patch note: 
+
+**V1.7.1-> V1.8.0**
+
+**Leaderboard Update**
 
 **Changlog :**
--**New feature** You can create a "clean channel" (with the command >config). Created to be used with the option 2 and 4 for the creation of a "registration system".
--Polish ">stats profile @mention", you can now use directly ">stats @mention" for the same result.
--Bugs fix
+-**NEW** You can now create leaderboards! Do it with the command `>create leaderboard`. He will refresh itself every hour. Lazy to wait ? The `>refresh` command work on leaderboards too! You can delete a leaderboard with the command `>delete leaderboard`. You have an idea for a new stats to track ? Suggest it in the support server! (see below)
+-Tired of the double notification when Zoe send an infomatch message ? That's now the past ! Zoe will now send infomatch message in one message now.
+-Minors bugs fix
+
+Like always, if you have some bugs, feedback or request don't hesitate to report them in the support server : https://discord.gg/Mzcg4nR
+If you want to help me to ensure Zoe's servers cost you can go there : <https://www.patreon.com/kalunight> (Ty so much !)
+Hope you will enjoy this update !

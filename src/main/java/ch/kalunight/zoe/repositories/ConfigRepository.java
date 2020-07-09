@@ -254,7 +254,7 @@ public class ConfigRepository {
 
   private static void createInfoPanelRankedOptionTable(Statement statement, long guildId) throws SQLException {
     
-    Server server = ServerRepository.getServer(guildId);
+    Server server = ServerRepository.getServerWithGuildId(guildId);
 
     //Get servConfig_id from ServerConfiguration
     String finalQuery = String.format(SELECT_SERVER_CONFIG_WITH_SERV_ID, server.serv_id);

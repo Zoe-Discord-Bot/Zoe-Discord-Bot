@@ -111,16 +111,11 @@ public class InfoCardsWorker implements Runnable {
 
       DTO.GameInfoCard gameCard = GameInfoCardRepository.getGameInfoCardsWithCurrentGameId(server.serv_guildId, currentGameInfo.currentgame_id);
       if(infoChannel != null) {
-        Message titleMessage = infoChannel.sendMessage(title.toString()).complete();
-        Message bodyMessage = infoChannel.sendMessage(card.getCard()).complete();
+        Message message = infoChannel.sendMessage(title.toString()).embed(card.getCard()).complete();
 
-        GameInfoCardRepository.updateGameInfoCardsMessagesWithId(titleMessage.getIdLong(), bodyMessage.getIdLong(),
+        GameInfoCardRepository.updateGameInfoCardsMessagesWithId(-1, message.getIdLong(),
             LocalDateTime.now(), gameCard.gamecard_id);
-      }else {
-        GameInfoCardRepository.deleteGameInfoCardsWithId(gameCard.gamecard_id);
-        InfoChannelRepository.deleteInfoChannel(server);
       }
     }
   }
-
 }

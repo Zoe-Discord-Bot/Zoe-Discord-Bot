@@ -67,6 +67,12 @@ CREATE TABLE role_option (
   roleOption_roleId								BIGINT
 );
 
+CREATE TABLE info_panel_ranked_option (
+  infoPanelRanked_id 								SERIAL,
+  infoPanelRanked_fk_serverConfig 					BIGINT 				NOT NULL,
+  infoPanelRanked_activate 							boolean 			DEFAULT TRUE
+);
+
 CREATE TABLE info_channel (
   infoChannel_id								SERIAL,
   infoChannel_fk_server							BIGINT				NOT NULL,
@@ -125,7 +131,23 @@ CREATE TABLE last_rank(
   lastRank_fk_leagueAccount							BIGINT				NOT NULL,
   lastRank_soloq									json,
   lastRank_flex										json,
-  lastRank_tft										json
+  lastRank_tft										json,
+  lastRank_soloqSecond 								json,
+  lastRank_soloqLastRefresh							TIMESTAMP			WITHOUT TIME ZONE,
+  lastRank_flexSecond 								json,
+  lastRank_flexLastRefresh							TIMESTAMP			WITHOUT TIME ZONE,
+  lastRank_tftSecond 								json,
+  lastRank_tftLastRefresh							TIMESTAMP			WITHOUT TIME ZONE
+);
+
+CREATE TABLE leaderboard (
+  lead_id 										SERIAL,
+  lead_fk_server								BIGINT				NOT NULL,
+  lead_message_channelId						BIGINT 				NOT NULL,
+  lead_message_id								BIGINT 				NOT NULL,
+  lead_type		 								BIGINT				NOT NULL,
+  lead_data										json,
+  lead_lastRefresh 								TIMESTAMP			WITHOUT TIME ZONE
 );
 
 
@@ -159,6 +181,9 @@ ALTER TABLE ONLY game_info_card_option
   
 ALTER TABLE ONLY role_option
   ADD CONSTRAINT role_option_pkey PRIMARY KEY (roleOption_id);
+  
+ALTER TABLE ONLY info_panel_ranked_option
+  ADD CONSTRAINT info_panel_ranked_option_pkey PRIMARY KEY (infoPanelRanked_id);
 
 ALTER TABLE ONLY info_channel
   ADD CONSTRAINT info_channel_pkey PRIMARY KEY (infoChannel_id);
@@ -174,6 +199,15 @@ ALTER TABLE ONLY league_account
   
 ALTER TABLE ONLY current_game_info
   ADD CONSTRAINT current_game_info_pkey PRIMARY KEY (currentGame_id);
+  
+ALTER TABLE ONLY last_rank
+  ADD CONSTRAINT last_rank_pkey PRIMARY KEY (lastrank_id);
+  
+ALTER TABLE ONLY rank_history_channel
+  ADD CONSTRAINT rank_history_channel_pkey PRIMARY KEY (rhchannel_id);
+  
+ALTER TABLE ONLY leaderboard
+  ADD CONSTRAINT leaderboard_pkey PRIMARY KEY (lead_id);
   
 ALTER TABLE player 
   ADD CONSTRAINT player_fk_server_const 
@@ -222,6 +256,11 @@ ALTER TABLE role_option
   FOREIGN KEY (roleOption_fk_serverConfig) REFERENCES server_configuration (servConfig_id)
   ON DELETE CASCADE;
   
+ALTER TABLE info_panel_ranked_option
+  ADD CONSTRAINT info_panel_ranked_option_fk_serverConfig_const
+  FOREIGN KEY (infoPanelRanked_fk_serverConfig) REFERENCES server_configuration (servConfig_id)
+  ON DELETE CASCADE;
+  
 ALTER TABLE info_channel
   ADD CONSTRAINT info_channel_fk_server_const 
   FOREIGN KEY (infoChannel_fk_server) REFERENCES server (serv_id);
@@ -250,7 +289,6 @@ ALTER TABLE game_info_card
   ADD CONSTRAINT game_info_card_fk_currentGame_const 
   FOREIGN KEY (gameCard_fk_currentGame) REFERENCES current_game_info (currentGame_id);
   
-  
 ALTER TABLE rank_history_channel
   ADD CONSTRAINT rank_history_channel_fk_server_const 
   FOREIGN KEY (rhChannel_fk_server) REFERENCES server (serv_id);
@@ -258,6 +296,10 @@ ALTER TABLE rank_history_channel
 ALTER TABLE last_rank
   ADD CONSTRAINT last_rank_fk_leagueAccount_const 
   FOREIGN KEY (lastRank_fk_leagueAccount) REFERENCES league_account (leagueAccount_id);
+
+ALTER TABLE leaderboard
+  ADD CONSTRAINT leaderboard_fk_server_const
+  FOREIGN KEY (lead_fk_server) REFERENCES server (serv_id);
 	
 CREATE INDEX idx_server_guildid 
   ON server(serv_guildId);

@@ -33,7 +33,7 @@ public class SavedMatch implements Serializable {
       }
 
       if(player != null) {
-        SavedMatchPlayer savedPlayer = new SavedMatchPlayer(player.getAccountId(), participant.getChampionId());
+        SavedMatchPlayer savedPlayer = new SavedMatchPlayer(player.getAccountId(), participant.getChampionId(), participant.getStats());
 
         if(participant.getTeamId() == 100) {
           accountsIdBlueSide.add(savedPlayer);
@@ -48,6 +48,20 @@ public class SavedMatch implements Serializable {
     }else {
       blueSideHasWin = false;
     }
+  }
+  
+  public SavedMatchPlayer getSavedMatchPlayerByAccountId(String accountId) {
+    List<SavedMatchPlayer> savedMatchPlayers = new ArrayList<>();
+    
+    savedMatchPlayers.addAll(accountsIdBlueSide);
+    savedMatchPlayers.addAll(accountsIdRedSide);
+    
+    for(SavedMatchPlayer savedMatchPlayer : savedMatchPlayers) {
+      if(savedMatchPlayer.getAccountId().equals(accountId)) {
+        return savedMatchPlayer;
+      }
+    }
+    return null;
   }
   
   public boolean isGivenAccountWinner(String accountId) {

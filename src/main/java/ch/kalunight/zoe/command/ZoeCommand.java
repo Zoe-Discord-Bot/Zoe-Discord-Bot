@@ -35,11 +35,11 @@ public abstract class ZoeCommand extends Command {
 
     if(event.getChannelType().equals(ChannelType.TEXT)) {
       try {
-        DTO.Server server = ServerRepository.getServer(event.getGuild().getIdLong());
+        DTO.Server server = ServerRepository.getServerWithGuildId(event.getGuild().getIdLong());
         servers.put(event.getGuild().getIdLong(), server);
         if(server == null) {
           ServerRepository.createNewServer(event.getGuild().getIdLong(), LanguageManager.DEFAULT_LANGUAGE);
-          server = ServerRepository.getServer(event.getGuild().getIdLong());
+          server = ServerRepository.getServerWithGuildId(event.getGuild().getIdLong());
           servers.put(event.getGuild().getIdLong(), server);
         }
       } catch(SQLException e) {

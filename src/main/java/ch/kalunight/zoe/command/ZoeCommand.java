@@ -9,6 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
+
+import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.repositories.ServerStatusRepository;
@@ -29,66 +31,77 @@ public abstract class ZoeCommand extends Command {
 
   @Override
   protected void execute(CommandEvent event) {
-    CommandUtil.sendTypingInFonctionOfChannelType(event);
-    logger.info("Command \"{}\" executed", this.getClass().getName());
-    commandExecuted.incrementAndGet();
+    Runnable commandRunnable = getCommandRunnable(event);
+    ServerData.getCommandsExecutor().execute(commandRunnable);
+  }
 
-    if(event.getChannelType().equals(ChannelType.TEXT)) {
-      try {
-        DTO.Server server = ServerRepository.getServerWithGuildId(event.getGuild().getIdLong());
-        servers.put(event.getGuild().getIdLong(), server);
-        if(server == null) {
-          ServerRepository.createNewServer(event.getGuild().getIdLong(), LanguageManager.DEFAULT_LANGUAGE);
-          server = ServerRepository.getServerWithGuildId(event.getGuild().getIdLong());
-          servers.put(event.getGuild().getIdLong(), server);
-        }
-      } catch(SQLException e) {
-        event.reply("Issue with the db ! Please retry later. Sorry about that :/");
-        logger.error("Issue with the db when check if server missing !", e);
-        commandFinishedWithError.incrementAndGet();
-        return;
-      }
+  private Runnable getCommandRunnable(CommandEvent event) {
+    return new Runnable() {
+      
+      @Override
+      public void run() {
+        CommandUtil.sendTypingInFonctionOfChannelType(event);
+        logger.info("Command \"{}\" executed", this.getClass().getName());
+        commandExecuted.incrementAndGet();
 
-      try {
-        DTO.ServerStatus status = ServerStatusRepository.getServerStatus(event.getGuild().getIdLong());
-
-        int nbrOfTry = 0;
-        
-        while(status.servstatus_inTreatment) {
-          nbrOfTry++;
-          if(nbrOfTry > 10) {
-            logger.warn("The server is in treatment for too long ! Execute the command even though the server is in treatment...");
-            break;
+        if(event.getChannelType().equals(ChannelType.TEXT)) {
+          try {
+            DTO.Server server = ServerRepository.getServerWithGuildId(event.getGuild().getIdLong());
+            servers.put(event.getGuild().getIdLong(), server);
+            if(server == null) {
+              ServerRepository.createNewServer(event.getGuild().getIdLong(), LanguageManager.DEFAULT_LANGUAGE);
+              server = ServerRepository.getServerWithGuildId(event.getGuild().getIdLong());
+              servers.put(event.getGuild().getIdLong(), server);
+            }
+          } catch(SQLException e) {
+            event.reply("Issue with the db ! Please retry later. Sorry about that :/");
+            logger.error("Issue with the db when check if server missing !", e);
+            commandFinishedWithError.incrementAndGet();
+            return;
           }
-          TimeUnit.SECONDS.sleep(1);
-          status = ServerStatusRepository.getServerStatus(event.getGuild().getIdLong());
+
+          try {
+            DTO.ServerStatus status = ServerStatusRepository.getServerStatus(event.getGuild().getIdLong());
+
+            int nbrOfTry = 0;
+            
+            while(status.servstatus_inTreatment) {
+              nbrOfTry++;
+              if(nbrOfTry > 10) {
+                logger.warn("The server is in treatment for too long ! Execute the command even though the server is in treatment...");
+                break;
+              }
+              TimeUnit.SECONDS.sleep(1);
+              status = ServerStatusRepository.getServerStatus(event.getGuild().getIdLong());
+            }
+
+          } catch (SQLException e) {
+            event.reply("Issue with the db ! Please retry later. Sorry about that :/");
+            logger.error("Issue with the db when check if the server is in treatment !", e);
+          } catch (InterruptedException e) {
+            logger.error("Thread got interupted !", e);
+            Thread.currentThread().interrupt();
+          }
         }
 
-      } catch (SQLException e) {
-        event.reply("Issue with the db ! Please retry later. Sorry about that :/");
-        logger.error("Issue with the db when check if the server is in treatment !", e);
-      } catch (InterruptedException e) {
-        logger.error("Thread got interupted !", e);
-        Thread.currentThread().interrupt();
+        try {
+          executeCommand(event);
+        } catch (InsufficientPermissionException e) {
+          logger.info("Unexpected exception in {} commands. Error : {}", this.getClass().getName(), e.getMessage(), e);
+          event.reply(String.format(LanguageManager.getText(getServer(event.getGuild().getIdLong()).serv_language, "deletePlayerMissingPermission"), 
+              e.getPermission().getName()));
+          commandFinishedCorrectly.incrementAndGet();
+          return;
+        } catch (Exception e) {
+          logger.error("Unexpected exception in {} commands. Error : {}", this.getClass().getName(), e.getMessage(), e);
+          event.reply("An error as occured ! It has been saved and sended to the dev. Sorry About that :/");
+          commandFinishedWithError.incrementAndGet();
+          return;
+        }
+        logger.info("Command \"{}\" finished correctly", this.getClass().getName());
+        commandFinishedCorrectly.incrementAndGet();
       }
-    }
-
-    try {
-      executeCommand(event);
-    } catch (InsufficientPermissionException e) {
-      logger.info("Unexpected exception in {} commands. Error : {}", this.getClass().getName(), e.getMessage(), e);
-      event.reply(String.format(LanguageManager.getText(getServer(event.getGuild().getIdLong()).serv_language, "deletePlayerMissingPermission"), 
-          e.getPermission().getName()));
-      commandFinishedCorrectly.incrementAndGet();
-      return;
-    } catch (Exception e) {
-      logger.error("Unexpected exception in {} commands. Error : {}", this.getClass().getName(), e.getMessage(), e);
-      event.reply("An error as occured ! It has been saved and sended to the dev. Sorry About that :/");
-      commandFinishedWithError.incrementAndGet();
-      return;
-    }
-    logger.info("Command \"{}\" finished correctly", this.getClass().getName());
-    commandFinishedCorrectly.incrementAndGet();
+    };
   }
 
   protected abstract void executeCommand(CommandEvent event) throws SQLException;

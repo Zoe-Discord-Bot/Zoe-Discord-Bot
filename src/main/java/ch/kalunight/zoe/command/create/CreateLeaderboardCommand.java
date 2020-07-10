@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -49,6 +50,7 @@ public class CreateLeaderboardCommand extends ZoeCommand {
 
     List<Objective> objectiveList = new ArrayList<>();
     List<String> objectiveChoices = new ArrayList<>();
+    AtomicBoolean actionDone = new AtomicBoolean(false);
 
     SelectionDialog.Builder selectAccountBuilder = new SelectionDialog.Builder()
         .addUsers(event.getAuthor())
@@ -56,8 +58,8 @@ public class CreateLeaderboardCommand extends ZoeCommand {
         .useLooping(true)
         .setColor(Color.GREEN)
         .setSelectedEnds("**", "**")
-        .setCanceled(getSelectionCancelAction(server.serv_language))
-        .setSelectionConsumer(getSelectionConsumer(server, event, objectiveList))
+        .setCanceled(getSelectionCancelAction(server.serv_language, actionDone))
+        .setSelectionConsumer(getSelectionConsumer(server, event, objectiveList, actionDone))
         .setTimeout(2, TimeUnit.MINUTES);
 
     for(Objective objective : Objective.values()) {
@@ -74,11 +76,11 @@ public class CreateLeaderboardCommand extends ZoeCommand {
     choiceLeaderBoard.display(event.getChannel());
   }
 
-  private Consumer<Message> getSelectionCancelAction(String language){
+  private Consumer<Message> getSelectionCancelAction(String language, AtomicBoolean selectionDone){
     return new Consumer<Message>() {
       @Override
       public void accept(Message message) {
-        if(!message.isEdited()) {
+        if(!selectionDone.get()) {
           message.clearReactions().queue();
           message.editMessage(LanguageManager.getText(language, "createLeaderboardCancelMessage")).queue();
         }
@@ -86,11 +88,12 @@ public class CreateLeaderboardCommand extends ZoeCommand {
     };
   }
 
-  private BiConsumer<Message, Integer> getSelectionConsumer(Server server, CommandEvent event, List<Objective> objectiveList) {
+  private BiConsumer<Message, Integer> getSelectionConsumer(Server server, CommandEvent event, List<Objective> objectiveList, AtomicBoolean selectionDone) {
     return new BiConsumer<Message, Integer>() {
       @Override
       public void accept(Message selectionMessage, Integer objectiveSelection) {
         selectionMessage.clearReactions().queue();
+        selectionDone.set(true);
 
         Objective objective = objectiveList.get(objectiveSelection - 1);
 

@@ -50,6 +50,9 @@ public class ServerData {
   
   private static final ThreadPoolExecutor LEADERBOARD_EXECUTOR =
       new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+  
+  private static final ThreadPoolExecutor COMMANDS_EXECUTOR =
+      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
 
   /**
    * Used by event waiter, define in {@link Zoe#main(String[])}
@@ -69,6 +72,7 @@ public class ServerData {
     RANKED_MESSAGE_GENERATOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Ranked-Message-Generator-Thread %d").build());
     RESPONSE_WAITER.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Response-Waiter-Thread %d").build());
     LEADERBOARD_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Leaderboard-Refresher-Thread %d").build());
+    COMMANDS_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Command-Executor-Thread %d").build());
 
     for(Platform platform : Platform.values()) {
       ThreadPoolExecutor executor = new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
@@ -210,6 +214,33 @@ public class ServerData {
     }
     logger.info("Shutdown of Leaderboard Executor has been completed !");
     channel.sendMessage("Shutdown of Leaderboard Executor has been completed !").complete();
+    
+    Runnable commandsShutDownRunnable = new Runnable() {
+      
+      @Override
+      public void run() {
+        logger.info("Start to shutdown Commands Executor, this can take 1 minutes max...");
+        COMMANDS_EXECUTOR.shutdown();
+        
+        try {
+          COMMANDS_EXECUTOR.awaitTermination(1, TimeUnit.MINUTES);
+        } catch (InterruptedException e) {
+          logger.error("error while shutdowning commands Executor", e);
+          Thread.currentThread().interrupt();
+        }
+        if(!COMMANDS_EXECUTOR.isShutdown()) {
+          COMMANDS_EXECUTOR.shutdownNow();
+        }
+
+        logger.info("Shutdown of Commands Executor has been completed ! (shutdown will end at the end of this command)");
+        Thread.currentThread().interrupt();
+      }
+    };
+    
+    Thread commandsShutDownThread = new Thread(commandsShutDownRunnable);
+    commandsShutDownThread.start();
+    
+
   }
   
   public static int getPlayersDataQueue() {
@@ -259,6 +290,10 @@ public class ServerData {
   
   public static ThreadPoolExecutor getLeaderboardExecutor() {
     return LEADERBOARD_EXECUTOR;
+  }
+  
+  public static ThreadPoolExecutor getCommandsExecutor() {
+    return COMMANDS_EXECUTOR;
   }
 
   public static boolean isRebootAsked() {

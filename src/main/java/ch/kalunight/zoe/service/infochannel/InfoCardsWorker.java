@@ -1,4 +1,4 @@
-package ch.kalunight.zoe.service;
+package ch.kalunight.zoe.service.infochannel;
 
 import java.sql.SQLException;
 import java.time.LocalDateTime;
@@ -14,6 +14,7 @@ import ch.kalunight.zoe.model.dto.GameInfoCardStatus;
 import ch.kalunight.zoe.repositories.GameInfoCardRepository;
 import ch.kalunight.zoe.repositories.InfoChannelRepository;
 import ch.kalunight.zoe.repositories.ServerRepository;
+import ch.kalunight.zoe.service.RiotApiUsageChannelRefresh;
 import ch.kalunight.zoe.util.InfoPanelRefresherUtil;
 import ch.kalunight.zoe.util.MessageBuilderRequestUtil;
 import ch.kalunight.zoe.util.request.MessageBuilderRequest;

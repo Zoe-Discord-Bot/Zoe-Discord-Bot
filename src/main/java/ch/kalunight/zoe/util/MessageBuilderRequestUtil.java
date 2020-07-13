@@ -11,7 +11,7 @@ import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
-import ch.kalunight.zoe.service.SummonerDataWorker;
+import ch.kalunight.zoe.service.infochannel.SummonerDataWorker;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.rithms.riot.api.endpoints.league.dto.MiniSeries;
 import net.rithms.riot.api.endpoints.match.dto.Match;

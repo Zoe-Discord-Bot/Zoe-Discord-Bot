@@ -14,7 +14,7 @@ import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.InfoChannelRepository;
 import ch.kalunight.zoe.repositories.ServerRepository;
-import ch.kalunight.zoe.service.InfoPanelRefresher;
+import ch.kalunight.zoe.service.infochannel.InfoPanelRefresher;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;

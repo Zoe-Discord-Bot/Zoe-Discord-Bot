@@ -22,6 +22,7 @@ import ch.kalunight.zoe.repositories.LeaderboardRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.riotapi.CachedRiotApi;
+import ch.kalunight.zoe.service.infochannel.InfoPanelRefresher;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
@@ -62,6 +63,7 @@ public class RiotApiUsageChannelRefresh implements Runnable {
         rapiInfoChannel.sendMessage("**Generic Stats**"
             + "\nTotal number of Servers : " + Zoe.getJda().getGuilds().size()
             + "\nTask in Server Executor Queue : " + ServerData.getServerExecutor().getQueue().size()
+            + "\nTask in Infochannel Helper Queue : " + ServerData.getInfochannelHelperThread().getQueue().size()
             + "\nInfoPannel refresh done last two minutes : " + InfoPanelRefresher.getNbrServerSefreshedLast2Minutes()
             + "\nTask in InfoCards Generator Queue : " + ServerData.getInfocardsGenerator().getQueue().size()
             + "\nTask in Players Data Worker Queue : " + ServerData.getPlayersDataQueue()

@@ -16,6 +16,7 @@ import ch.kalunight.zoe.model.leaderboard.dataholder.Objective;
 import ch.kalunight.zoe.repositories.LeaderboardRepository;
 import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.repositories.ServerStatusRepository;
+import ch.kalunight.zoe.service.infochannel.InfoPanelRefresher;
 import ch.kalunight.zoe.service.leaderboard.LeaderboardBaseService;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDA.Status;

@@ -5,7 +5,7 @@
 
 	<groupId>ch.kalunight</groupId>
 	<artifactId>zoe</artifactId>
-	<version>1.8.0</version>
+	<version>1.8.1</version>
 	<packaging>jar</packaging>
 
 	<name>zoe</name>

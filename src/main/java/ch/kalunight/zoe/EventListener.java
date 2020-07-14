@@ -181,11 +181,13 @@ public class EventListener extends ListenerAdapter {
   @Override
   public void onGuildJoin(GuildJoinEvent event) {
     try {
-      if(!event.getGuild().getOwner().getUser().getId().equals(Zoe.getJda().getSelfUser().getId())) {
+      Member owner = event.getGuild().retrieveOwner().complete();
+      
+      if(!owner.getUser().getId().equals(Zoe.getJda().getSelfUser().getId())) {
         DTO.Server server = ServerRepository.getServerWithGuildId(event.getGuild().getIdLong());
         if(server == null) {
           ServerRepository.createNewServer(event.getGuild().getIdLong(), LanguageManager.DEFAULT_LANGUAGE);
-          askingConfig(event.getGuild(), event.getGuild().getOwner().getUser());
+          askingConfig(event.getGuild(), owner.getUser());
         }else {
           CommandUtil.getFullSpeakableChannel(
               event.getGuild()).sendMessage(LanguageManager.getText(server.serv_language, "guildJoinHiAgain")).queue();

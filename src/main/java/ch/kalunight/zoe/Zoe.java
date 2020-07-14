@@ -3,6 +3,7 @@ package ch.kalunight.zoe;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -13,7 +14,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
 
 import javax.security.auth.login.LoginException;
-
 import org.discordbots.api.client.DiscordBotListAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,10 +46,12 @@ import ch.kalunight.zoe.command.show.ShowCommand;
 import ch.kalunight.zoe.command.stats.StatsCommand;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.model.static_data.CustomEmote;
+import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.repositories.RepoRessources;
 import ch.kalunight.zoe.riotapi.CachedRiotApi;
 import ch.kalunight.zoe.util.CommandUtil;
 import ch.kalunight.zoe.util.Ressources;
+import ch.kalunight.zoe.util.ZoeMemberCachePolicy;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
@@ -128,6 +130,13 @@ public class Zoe {
       logger.error("Error with parameters : 1. Discord Tocken 2. Riot tocken 3. Owner Id 4. DB url 5. DB password", e);
       throw e;
     }
+    
+    try {
+      PlayerRepository.setupListOfRegisteredPlayers();
+    }catch(SQLException e) {
+      logger.error("Error while setup list of registered players", e);
+      return;
+    }
 
     initRiotApi(riotTocken);
 
@@ -156,7 +165,7 @@ public class Zoe {
     eventListenerList.add(commandClient);
     eventListenerList.add(eventWaiter);
     eventListenerList.add(eventListener);
-
+    
     try {
       jda = getNewJDAInstance(discordTocken, commandClient, eventListener);//
     } catch(IndexOutOfBoundsException e) {
@@ -170,18 +179,15 @@ public class Zoe {
 
   public static JDA getNewJDAInstance(String riotTocken, CommandClient commandClient, EventListener eventListener) throws LoginException {
 
-    JDABuilder builder = JDABuilder.create(getListOfGatway())//
-          .setToken(discordTocken)
-          .setStatus(OnlineStatus.DO_NOT_DISTURB)//
-          .disableCache(CacheFlag.CLIENT_STATUS, CacheFlag.VOICE_STATE)
-          .addEventListeners(commandClient)//
-          .addEventListeners(eventWaiter)//
-          .addEventListeners(eventListener)//
-          .setAutoReconnect(false);
-
-      for(Long idBlackList : Ressources.getBlackListedServer()) {
-        builder.setChunkingFilter(ChunkingFilter.exclude(idBlackList));
-      }
+    JDABuilder builder = JDABuilder.create(discordTocken, getListOfGatway())//
+        .setStatus(OnlineStatus.DO_NOT_DISTURB)//
+        .disableCache(CacheFlag.CLIENT_STATUS, CacheFlag.VOICE_STATE)
+        .setMemberCachePolicy(new ZoeMemberCachePolicy())
+        .setChunkingFilter(ChunkingFilter.NONE)
+        .addEventListeners(commandClient)//
+        .addEventListeners(eventWaiter)//
+        .addEventListeners(eventListener)//
+        .setAutoReconnect(false);
 
     return builder.build();
   }

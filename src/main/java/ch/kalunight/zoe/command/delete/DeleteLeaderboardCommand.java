@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
@@ -52,7 +53,8 @@ public class DeleteLeaderboardCommand extends ZoeCommand {
 
     List<Leaderboard> leaderboardList = LeaderboardRepository.getLeaderboardsWithGuildId(server.serv_guildId);
     List<Leaderboard> leaderboardChoiceInOrder = new ArrayList<>();
-
+    AtomicBoolean actionDone = new AtomicBoolean(false);
+    
     if(leaderboardList.isEmpty()) {
       event.reply(LanguageManager.getText(server.serv_language, "deleteLeaderboardCommandNoLeaderboardToDelete"));
       return;
@@ -64,8 +66,8 @@ public class DeleteLeaderboardCommand extends ZoeCommand {
         .useLooping(true)
         .setColor(Color.GREEN)
         .setSelectedEnds("**", "**")
-        .setCanceled(getSelectionCancelAction(server.serv_language))
-        .setSelectionConsumer(getSelectionConsumer(server, event, leaderboardList))
+        .setCanceled(getSelectionCancelAction(server.serv_language, actionDone))
+        .setSelectionConsumer(getSelectionConsumer(server, event, leaderboardList, actionDone))
         .setTimeout(2, TimeUnit.MINUTES);
 
     for(Leaderboard leaderboard : leaderboardList) {
@@ -92,11 +94,11 @@ public class DeleteLeaderboardCommand extends ZoeCommand {
     choiceLeaderBoard.display(event.getChannel());
   }
 
-  private Consumer<Message> getSelectionCancelAction(String language){
+  private Consumer<Message> getSelectionCancelAction(String language, AtomicBoolean actionDone){
     return new Consumer<Message>() {
       @Override
       public void accept(Message message) {
-        if(!message.isEdited()) {
+        if(!actionDone.get()) {
           message.clearReactions().queue();
           message.editMessage(LanguageManager.getText(language, "deleteLeaderboardCancelMessage")).queue();
         }
@@ -104,12 +106,13 @@ public class DeleteLeaderboardCommand extends ZoeCommand {
     };
   }
 
-  private BiConsumer<Message, Integer> getSelectionConsumer(Server server, CommandEvent event, List<Leaderboard> leaderboardList) {
+  private BiConsumer<Message, Integer> getSelectionConsumer(Server server, CommandEvent event, List<Leaderboard> leaderboardList, AtomicBoolean actionDone) {
     return new BiConsumer<Message, Integer>() {
       @Override
       public void accept(Message selectionMessage, Integer objectiveSelection) {
         event.getChannel().sendTyping().queue();
         selectionMessage.clearReactions().queue();
+        actionDone.set(true);
 
         Leaderboard leaderboard = leaderboardList.get(objectiveSelection - 1);
 

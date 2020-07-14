@@ -120,7 +120,6 @@ public class DTO {
     public long player_fk_team;
     public long player_discordId;
     public boolean player_mentionnable;
-    public User user;
     public List<DTO.LeagueAccount> leagueAccounts = Collections.synchronizedList(new ArrayList<>());
 
     public Player(ResultSet baseData) throws SQLException {
@@ -129,9 +128,13 @@ public class DTO {
       player_fk_team = baseData.getLong("player_fk_team");
       player_discordId = baseData.getLong("player_discordId");
       player_mentionnable = baseData.getBoolean("player_mentionnable");
+    }
+    
+    public User getUser() {
       if(Zoe.getJda() != null) {
-        user = Zoe.getJda().retrieveUserById(player_discordId).complete();
+        return Zoe.getJda().retrieveUserById(player_discordId).complete();
       }
+      return null;
     }
   }
 

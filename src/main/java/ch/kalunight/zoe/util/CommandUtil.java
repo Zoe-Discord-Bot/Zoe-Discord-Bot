@@ -52,7 +52,7 @@ public class CommandUtil {
     Set<Permission> permissionsNeeded = Collections.synchronizedSet(EnumSet.noneOf(Permission.class));
     permissionsNeeded.add(Permission.MESSAGE_ADD_REACTION);
 
-    Member zoeMember = guild.getMember(Zoe.getJda().getSelfUser());
+    Member zoeMember = guild.retrieveMember((Zoe.getJda().getSelfUser())).complete();
 
     for(TextChannel textChannel : guild.getTextChannels()) {
       if(textChannel.canTalk()) {
@@ -80,7 +80,7 @@ public class CommandUtil {
 
     try {
       if(!messageSended) {
-        PrivateChannel privateChannel = guild.getOwner().getUser().openPrivateChannel().complete();
+        PrivateChannel privateChannel = Zoe.getJda().retrieveUserById(guild.getOwnerIdLong()).complete().openPrivateChannel().complete();
         privateChannel.sendMessage(messageToSend).queue();
       }
     } catch(ErrorResponseException e) {
@@ -94,7 +94,7 @@ public class CommandUtil {
     try {
       channel.putPermissionOverride(role).deny(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).queue();
       
-      channel.putPermissionOverride(guild.getMember(Zoe.getJda().getSelfUser()))
+      channel.putPermissionOverride(guild.retrieveMember(Zoe.getJda().getSelfUser()).complete())
       .grant(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).queue();
       
       channel.putPermissionOverride(serverConfiguration.getZoeRoleOption().getRole())

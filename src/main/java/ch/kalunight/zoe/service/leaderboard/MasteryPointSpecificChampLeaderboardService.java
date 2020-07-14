@@ -39,7 +39,7 @@ public class MasteryPointSpecificChampLeaderboardService extends LeaderboardBase
     List<String> dataList = new ArrayList<>();
     
     for(PlayerPoints playerPoints : playersPoints) {
-      playersName.add(playerPoints.getPlayer().user.getAsMention());
+      playersName.add(playerPoints.getPlayer().getUser().getAsMention());
       dataList.add(masteryPointsFormat.format(playerPoints.getPoints()) + " " 
       + LanguageManager.getText(server.serv_language, "pointsShort"));
     }

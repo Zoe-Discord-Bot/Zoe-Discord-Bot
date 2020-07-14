@@ -1,4 +1,4 @@
-package ch.kalunight.zoe.service;
+package ch.kalunight.zoe.service.infochannel;
 
 import java.util.ArrayList;
 import java.util.Collections;

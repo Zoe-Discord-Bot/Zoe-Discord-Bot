@@ -11,7 +11,7 @@ import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
-import ch.kalunight.zoe.service.SummonerDataWorker;
+import ch.kalunight.zoe.service.infochannel.SummonerDataWorker;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.rithms.riot.api.endpoints.league.dto.MiniSeries;
 import net.rithms.riot.api.endpoints.match.dto.Match;
@@ -85,13 +85,13 @@ public class MessageBuilderRequestUtil {
 
     for(int i = 0; i < playersNotTwice.size(); i++) {
       if(i == 0) {
-        title.append(" " + playersNotTwice.get(i).user.getName());
+        title.append(" " + playersNotTwice.get(i).getUser().getName());
       } else if(i + 1 == playersNotTwice.size()) {
-        title.append(" " + andOfTranslated + " " + playersNotTwice.get(i).user.getName());
+        title.append(" " + andOfTranslated + " " + playersNotTwice.get(i).getUser().getName());
       } else if(i + 2 == playersNotTwice.size()) {
-        title.append(" " + playersNotTwice.get(i).user.getName());
+        title.append(" " + playersNotTwice.get(i).getUser().getName());
       } else {
-        title.append(" " + playersNotTwice.get(i).user.getName() + ",");
+        title.append(" " + playersNotTwice.get(i).getUser().getName() + ",");
       }
     }
 

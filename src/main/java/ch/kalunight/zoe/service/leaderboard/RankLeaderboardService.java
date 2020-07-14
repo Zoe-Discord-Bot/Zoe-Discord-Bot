@@ -51,7 +51,7 @@ public class RankLeaderboardService extends LeaderboardBaseService {
     List<String> dataList = new ArrayList<>();
     
     for(PlayerRank playerRank : playersRank) {
-      playersName.add(playerRank.getPlayer().user.getAsMention());
+      playersName.add(playerRank.getPlayer().getUser().getAsMention());
       FullTier fullTier = playerRank.getFullTier();
       if(queueSelected == null) {
         dataList.add(Ressources.getTierEmote().get(fullTier.getTier()).getUsableEmote() + " " + fullTier.toString(server.serv_language) 

@@ -29,9 +29,9 @@ import ch.kalunight.zoe.repositories.RankHistoryChannelRepository;
 import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.repositories.ServerStatusRepository;
 import ch.kalunight.zoe.riotapi.CacheManager;
-import ch.kalunight.zoe.service.InfoPanelRefresher;
 import ch.kalunight.zoe.service.RiotApiUsageChannelRefresh;
 import ch.kalunight.zoe.service.ServerChecker;
+import ch.kalunight.zoe.service.infochannel.InfoPanelRefresher;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import ch.kalunight.zoe.util.EventListenerUtil;
@@ -127,13 +127,12 @@ public class EventListener extends ListenerAdapter {
     }
 
     logger.info("Setup of main thread  ...");
-
     setupContinousRefreshThread();
-
     logger.info("Setup of main thread finished !");
-
+    
     Zoe.getJda().getPresence().setStatus(OnlineStatus.ONLINE);
     Zoe.getJda().getPresence().setActivity(Activity.playing("type \">help\""));
+    
     logger.info("Booting finished !");
   }
 
@@ -182,11 +181,13 @@ public class EventListener extends ListenerAdapter {
   @Override
   public void onGuildJoin(GuildJoinEvent event) {
     try {
-      if(!event.getGuild().getOwner().getUser().getId().equals(Zoe.getJda().getSelfUser().getId())) {
+      Member owner = event.getGuild().retrieveOwner().complete();
+      
+      if(!owner.getUser().getId().equals(Zoe.getJda().getSelfUser().getId())) {
         DTO.Server server = ServerRepository.getServerWithGuildId(event.getGuild().getIdLong());
         if(server == null) {
           ServerRepository.createNewServer(event.getGuild().getIdLong(), LanguageManager.DEFAULT_LANGUAGE);
-          askingConfig(event.getGuild(), event.getGuild().getOwner().getUser());
+          askingConfig(event.getGuild(), owner.getUser());
         }else {
           CommandUtil.getFullSpeakableChannel(
               event.getGuild()).sendMessage(LanguageManager.getText(server.serv_language, "guildJoinHiAgain")).queue();
@@ -274,7 +275,7 @@ public class EventListener extends ListenerAdapter {
       DTO.Player player = PlayerRepository.getPlayer(event.getGuild().getIdLong(), event.getUser().getIdLong());
 
       if(player != null) {
-        PlayerRepository.deletePlayer(player.player_id, event.getGuild().getIdLong());
+        PlayerRepository.deletePlayer(player, event.getGuild().getIdLong());
         logger.info("Player (Discord Id {}) deleted from the guild {}", player.player_discordId, event.getGuild().getIdLong());
       }
     }catch(SQLException e) {

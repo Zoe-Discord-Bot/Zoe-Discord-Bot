@@ -5,9 +5,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.Nullable;
+import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.DTO.Player;
 import net.rithms.riot.constant.Platform;
 
 public class PlayerRepository {
@@ -32,6 +37,10 @@ public class PlayerRepository {
       "FROM server " + 
       "INNER JOIN player ON server.serv_id = player.player_fk_server " + 
       "WHERE server.serv_guildid = %d";
+  
+  private static final String SELECT_ALL_PLAYERS_DISCORD_ID = "SELECT server.serv_guildid, player.player_discordid "
+      + "FROM server "
+      + "INNER JOIN player ON server.serv_id = player.player_fk_server";
 
   private static final String SELECT_PLAYER_WITH_GUILD_ID_AND_LEAGUE_ACCOUNT = "SELECT " + 
       "player.player_id, " + 
@@ -57,8 +66,54 @@ public class PlayerRepository {
 
   private static final String COUNT_PLAYERS = "SELECT COUNT(*) FROM player";
   
+  /**
+   * This list contain discordId of player registered by guildid. Sync with the DB
+   * First long : Guild id
+   * List of long : Discord Id
+   */
+  private static final Map<Long, List<Long>> LIST_DISCORD_ID_OF_REGISTERED_PLAYERS = Collections.synchronizedMap(new HashMap<>());
+  
   private PlayerRepository() {
     //hide default public constructor
+  }
+  
+  public static void setupListOfRegisteredPlayers() throws SQLException {
+    ResultSet result = null;
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+
+      String finalQuery = SELECT_ALL_PLAYERS_DISCORD_ID;
+      result = query.executeQuery(finalQuery);
+
+      LIST_DISCORD_ID_OF_REGISTERED_PLAYERS.clear();
+      if(0 != (result.last() ? result.getRow() : 0)) {
+        result.first();
+        while(!result.isAfterLast()) {
+          long serverGuildId = result.getLong("serv_guildid");
+          long playerDiscordId = result.getLong("player_discordid");
+          
+          addADiscordIdToTrack(serverGuildId, playerDiscordId);
+          result.next();
+        }
+      }
+    }finally {
+      RepoRessources.closeResultSet(result);
+    }
+  }
+
+  private static void addADiscordIdToTrack(long serverGuildId, long playerDiscordId) {
+    List<Long> listOfRegisterdPlayersForThisGuild = LIST_DISCORD_ID_OF_REGISTERED_PLAYERS.get(serverGuildId);
+    if(listOfRegisterdPlayersForThisGuild == null) {
+      List<Long> newList = Collections.synchronizedList(new ArrayList<>());
+      newList.add(playerDiscordId);
+      LIST_DISCORD_ID_OF_REGISTERED_PLAYERS.put(serverGuildId, newList);
+    }else {
+      listOfRegisterdPlayersForThisGuild.add(playerDiscordId);
+    }
+    
+    if(Zoe.getJda() != null) {
+      Zoe.getJda().getGuildById(serverGuildId).retrieveMemberById(playerDiscordId).queue();
+    }
   }
   
   public static long countPlayers() throws SQLException {
@@ -76,12 +131,13 @@ public class PlayerRepository {
     }
   }
 
-  public static void createPlayer(long servId, long discordId, boolean mentionnable) throws SQLException {
+  public static void createPlayer(long servId, long serverGuildId, long discordId, boolean mentionnable) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
 
       String finalQuery = String.format(INSERT_INTO_PLAYER, servId, discordId, mentionnable);
       query.execute(finalQuery);
+      addADiscordIdToTrack(serverGuildId, discordId);
     }
   }
 
@@ -103,18 +159,23 @@ public class PlayerRepository {
     }
   }
 
-  public static void deletePlayer(long playerId, long guildId) throws SQLException {
+  public static void deletePlayer(Player player, long guildId) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
 
-      List<DTO.LeagueAccount> leaguesAccounts = LeagueAccountRepository.getLeaguesAccountsWithPlayerID(guildId, playerId);
+      List<DTO.LeagueAccount> leaguesAccounts = LeagueAccountRepository.getLeaguesAccountsWithPlayerID(guildId, player.player_id);
       
       for(DTO.LeagueAccount leagueAccount : leaguesAccounts) {
         LeagueAccountRepository.deleteAccountWithId(leagueAccount.leagueAccount_id);
       }
       
-      String finalQuery = String.format(DELETE_PLAYER_WITH_PLAYER_ID, playerId);
+      String finalQuery = String.format(DELETE_PLAYER_WITH_PLAYER_ID, player.player_id);
       query.executeUpdate(finalQuery);
+      List<Long> playersOfTheDiscord = LIST_DISCORD_ID_OF_REGISTERED_PLAYERS.get(guildId);
+      if(playersOfTheDiscord != null) {
+        playersOfTheDiscord.remove(player.player_discordId);
+      }
+      Zoe.getJda().getGuildById(guildId).unloadMember(player.player_discordId);
     }
   }
 
@@ -176,5 +237,8 @@ public class PlayerRepository {
     }
   }
 
+  public static Map<Long, List<Long>> getListDiscordIdOfRegisteredPlayers() {
+    return LIST_DISCORD_ID_OF_REGISTERED_PLAYERS;
+  }
 
 }

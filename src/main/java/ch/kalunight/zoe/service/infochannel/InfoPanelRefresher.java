@@ -186,7 +186,7 @@ public class InfoPanelRefresher implements Runnable {
           e.getPermission().getName(), guild.getName());
       try {
         PermissionOverride permissionOverride = infochannel
-            .putPermissionOverride(guild.getMember(Zoe.getJda().getSelfUser())).complete();
+            .putPermissionOverride(guild.retrieveMember(Zoe.getJda().getSelfUser()).complete()).complete();
 
         permissionOverride.getManager().grant(e.getPermission()).complete();
         logger.debug("Autofix complete !");
@@ -633,14 +633,16 @@ public class InfoPanelRefresher implements Runnable {
     while (iter.hasNext()) {
       DTO.Player player = iter.next();
       try {
-        if(guild.retrieveMemberById(player.user.getId()).complete() == null) {
+        if(guild.retrieveMemberById(player.getUser().getId()).complete() == null) {
           iter.remove();
           PlayerRepository.updateTeamOfPlayerDefineNull(player.player_id);
+          PlayerRepository.deletePlayer(player, guild.getIdLong());
         }
       }catch (ErrorResponseException e) {
         if(e.getErrorResponse().equals(ErrorResponse.UNKNOWN_MEMBER)) {
           iter.remove();
           PlayerRepository.updateTeamOfPlayerDefineNull(player.player_id);
+          PlayerRepository.deletePlayer(player, guild.getIdLong());
         }
       }
     }

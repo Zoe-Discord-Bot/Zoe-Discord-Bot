@@ -108,7 +108,7 @@ public class RoleOption extends ConfigurationOption {
 
 
             for(Player player : PlayerRepository.getPlayers(guildId)) {
-              Member member = guild.getMember(player.user);
+              Member member = guild.retrieveMember(player.getUser()).complete();
               guild.addRoleToMember(member, role).queue();
             }
 
@@ -119,7 +119,7 @@ public class RoleOption extends ConfigurationOption {
               permissionZoePlayer.getManager().grant(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).complete();
 
               PermissionOverride permissionZoe = infochannel
-                  .putPermissionOverride(guild.getMember(Zoe.getJda().getSelfUser())).complete();
+                  .putPermissionOverride(guild.retrieveMember(Zoe.getJda().getSelfUser()).complete()).complete();
               permissionZoe.getManager().grant(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).complete();
 
               PermissionOverride everyone = infochannel.putPermissionOverride(guild.getPublicRole()).complete();

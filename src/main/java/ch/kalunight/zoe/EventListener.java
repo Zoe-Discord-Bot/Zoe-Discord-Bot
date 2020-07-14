@@ -127,13 +127,12 @@ public class EventListener extends ListenerAdapter {
     }
 
     logger.info("Setup of main thread  ...");
-
     setupContinousRefreshThread();
-
     logger.info("Setup of main thread finished !");
-
+    
     Zoe.getJda().getPresence().setStatus(OnlineStatus.ONLINE);
     Zoe.getJda().getPresence().setActivity(Activity.playing("type \">help\""));
+    
     logger.info("Booting finished !");
   }
 
@@ -274,7 +273,7 @@ public class EventListener extends ListenerAdapter {
       DTO.Player player = PlayerRepository.getPlayer(event.getGuild().getIdLong(), event.getUser().getIdLong());
 
       if(player != null) {
-        PlayerRepository.deletePlayer(player.player_id, event.getGuild().getIdLong());
+        PlayerRepository.deletePlayer(player, event.getGuild().getIdLong());
         logger.info("Player (Discord Id {}) deleted from the guild {}", player.player_discordId, event.getGuild().getIdLong());
       }
     }catch(SQLException e) {

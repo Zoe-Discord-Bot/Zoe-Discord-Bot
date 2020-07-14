@@ -113,11 +113,11 @@ public class RegisterCommand extends ZoeCommand {
     
     if(playerAlreadyWithTheAccount != null) {
       event.reply(String.format(LanguageManager.getText(server.serv_language, "accountAlreadyLinkedToAnotherPlayer"),
-          playerAlreadyWithTheAccount.user.getName()));
+          playerAlreadyWithTheAccount.getUser().getName()));
       return;
     }
     
-    PlayerRepository.createPlayer(server.serv_id, user.getIdLong(), false);
+    PlayerRepository.createPlayer(server.serv_id, event.getGuild().getIdLong(), user.getIdLong(), false);
     DTO.Player player = PlayerRepository.getPlayer(server.serv_guildId, user.getIdLong());
     LeagueAccountRepository.createLeagueAccount(player.player_id, summoner, region.getName());
     

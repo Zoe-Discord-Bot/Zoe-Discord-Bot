@@ -82,7 +82,7 @@ public class ThreathTextOfPlayer implements Runnable {
             getTextInformationPanelRankOption(stringMessage, player, leagueAccount, false);
           }else {
 
-            stringMessage.append(String.format(LanguageManager.getText(server.serv_language, "infoPanelRankedTitleMultipleAccount"), player.user.getAsMention()) + "\n");
+            stringMessage.append(String.format(LanguageManager.getText(server.serv_language, "infoPanelRankedTitleMultipleAccount"), player.getUser().getAsMention()) + "\n");
 
             for(DTO.LeagueAccount leagueAccount : accountNotInGame) {
 
@@ -94,10 +94,10 @@ public class ThreathTextOfPlayer implements Runnable {
           notInGameWithoutRankInfo(stringMessage, player);
         }
       }else if (accountsInGame.size() == 1) {
-        stringMessage.append(player.user.getAsMention() + " : " 
+        stringMessage.append(player.getUser().getAsMention() + " : " 
             + InfoPanelRefresherUtil.getCurrentGameInfoStringForOneAccount(accountsInGame.get(0), server.serv_language) + "\n");
       }else {
-        stringMessage.append(player.user.getAsMention() + " : " 
+        stringMessage.append(player.getUser().getAsMention() + " : " 
             + LanguageManager.getText(server.serv_language, "informationPanelMultipleAccountInGame") + "\n"
             + InfoPanelRefresherUtil.getCurrentGameInfoStringForMultipleAccounts(accountsInGame, server.serv_language));
       }
@@ -171,7 +171,7 @@ public class ThreathTextOfPlayer implements Runnable {
       accountString = leagueAccount.leagueAccount_name;
     }else {
       baseText = "infoPanelRankedTextOneAccount";
-      accountString = player.user.getAsMention();
+      accountString = player.getUser().getAsMention();
     }
 
     if(lastRank.lastRank_soloqLastRefresh != null && lastRank.lastRank_flexLastRefresh == null) {
@@ -229,7 +229,7 @@ public class ThreathTextOfPlayer implements Runnable {
   }
 
   private void notInGameWithoutRankInfo(final StringBuilder stringMessage, DTO.Player player) {
-    stringMessage.append(player.user.getAsMention() + " : " 
+    stringMessage.append(player.getUser().getAsMention() + " : " 
         + LanguageManager.getText(server.serv_language, "informationPanelNotInGame") + " \n");
   }
 

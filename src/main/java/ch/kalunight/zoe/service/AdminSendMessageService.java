@@ -27,7 +27,7 @@ public class AdminSendMessageService implements Runnable {
 
       try {
         if(!Ressources.isBlackListed(guild.getId()) && !userAlreadySendedId.contains(guild.getOwnerId())) {
-          PrivateChannel privateChannel = guild.getOwner().getUser().openPrivateChannel().complete();
+          PrivateChannel privateChannel = Zoe.getJda().retrieveUserById(guild.getOwnerIdLong()).complete().openPrivateChannel().complete();
           List<String> messagesToSend = CommandEvent.splitMessage(event.getArgs());
           for(String message : messagesToSend) {
             privateChannel.sendMessage(message).queue();

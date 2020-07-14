@@ -127,6 +127,7 @@ public class ServerChecker extends TimerTask {
         ServerData.getServerCheckerThreadTimer().schedule(new DataSaver(), 0);
         logger.debug("Zoe Server-Executor Queue : {}", ServerData.getServerExecutor().getQueue().size());
         logger.debug("Zoe InfoCards-Generator Queue : {}", ServerData.getInfocardsGenerator().getQueue().size());
+        logger.debug("Zoe number of User cached : {}", Zoe.getJda().getUserCache().size());
       }
     }
   }

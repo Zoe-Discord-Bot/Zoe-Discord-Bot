@@ -73,7 +73,7 @@ public class MessageBuilderRequest {
 
     String gameType = getGameType(gameOfTheChange, lang);
 
-    User user = player.user;
+    User user = player.getUser();
     message.setAuthor(user.getName(), null, user.getAvatarUrl());
 
     MiniSeries bo = newEntry.getMiniSeries();
@@ -112,7 +112,7 @@ public class MessageBuilderRequest {
 
     String gameType = getGameType(gameOfTheChange, lang);
 
-    User user = player.user;
+    User user = player.getUser();
     message.setAuthor(user.getName(), null, user.getAvatarUrl());
     
     Participant participant = match.getParticipantBySummonerId(leagueAccount.leagueAccount_summonerId);
@@ -174,7 +174,7 @@ public class MessageBuilderRequest {
     MiniSeries bo = oldEntry.getMiniSeries();
     String gameType = getGameType(gameOfTheChange, lang);
 
-    User user = player.user;
+    User user = player.getUser();
     message.setAuthor(user.getName(), null, user.getAvatarUrl());
     
     if(!boWin) {
@@ -211,7 +211,7 @@ public class MessageBuilderRequest {
 
     String gameType = getGameType(gameOfTheChange, lang);
 
-    User user = player.user;
+    User user = player.getUser();
     message.setAuthor(user.getName(), null, user.getAvatarUrl());
 
     boolean divisionJump = false;
@@ -277,7 +277,7 @@ public class MessageBuilderRequest {
 
     String gameType = getGameType(gameOfTheChange, lang);
 
-    User user = player.user;
+    User user = player.getUser();
     message.setAuthor(user.getName(), null, user.getAvatarUrl());
     
     int lpReceived = newEntry.getLeaguePoints() - oldEntry.getLeaguePoints();
@@ -416,7 +416,7 @@ public class MessageBuilderRequest {
 
     if(player != null) {
       message.setTitle(String.format(LanguageManager.getText(language, "statsProfileTitle"),
-          player.user.getName(), summoner.getName(), summoner.getSummonerLevel()));
+          player.getUser().getName(), summoner.getName(), summoner.getSummonerLevel()));
     }else {
       message.setTitle(String.format(LanguageManager.getText(language, "statsProfileTitle"),
           leagueAccount.leagueAccount_name, summoner.getName(), summoner.getSummonerLevel()));
@@ -601,8 +601,8 @@ public class MessageBuilderRequest {
 
     if(player != null) {
       message.setFooter(String.format(LanguageManager.getText(language, "statsProfileFooterProfileOfPlayer"),
-          player.user.getName()), 
-          player.user.getAvatarUrl());
+          player.getUser().getName()), 
+          player.getUser().getAvatarUrl());
     }else {
       message.setFooter(String.format(LanguageManager.getText(language, "statsProfileFooterProfileOfPlayer"),
           leagueAccount.leagueAccount_name, leagueAccount.leagueAccount_name));

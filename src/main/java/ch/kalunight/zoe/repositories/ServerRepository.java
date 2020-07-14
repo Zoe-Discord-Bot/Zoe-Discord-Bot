@@ -159,7 +159,7 @@ public class ServerRepository {
       List<DTO.Player> players = PlayerRepository.getPlayers(guildId);
       
       for(DTO.Player player : players) {
-        PlayerRepository.deletePlayer(player.player_id, guildId);
+        PlayerRepository.deletePlayer(player, guildId);
       }
       
       InfoChannelRepository.deleteInfoChannel(server);

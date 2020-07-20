@@ -91,7 +91,7 @@ public class ShowPlayerCommand extends ZoeCommand {
           summoner = Zoe.getRiotApi().getSummoner(leagueAccount.leagueAccount_server,
               leagueAccount.leagueAccount_summonerId);
         } catch(RiotApiException e) {
-          RiotApiUtil.handleRiotApi(event, e, server.serv_language);
+          RiotApiUtil.handleRiotApi(event.getEvent(), e, server.serv_language);
           return;
         }
         playerInfo.append(String.format(LanguageManager.getText(server.serv_language, "showPlayerAccount"),

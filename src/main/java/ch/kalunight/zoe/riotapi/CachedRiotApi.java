@@ -301,6 +301,10 @@ public class CachedRiotApi {
     
     return gameInfo;
   }
+  
+  public String getValidationCode(Platform platform, String summonerId) throws RiotApiException {
+    return riotApi.getThirdPartyCodeBySummoner(platform, summonerId);
+  }
 
   public ChampionMastery getChampionMasteriesBySummonerByChampion(Platform platform, String summonerId, int championId) throws RiotApiException {
     ChampionMastery mastery = riotApi.getChampionMasteriesBySummonerByChampion(platform, summonerId, championId);

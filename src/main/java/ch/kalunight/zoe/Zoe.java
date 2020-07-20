@@ -26,6 +26,7 @@ import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import ch.kalunight.zoe.command.AboutCommand;
+import ch.kalunight.zoe.command.BanAccountCommand;
 import ch.kalunight.zoe.command.ConfigCommand;
 import ch.kalunight.zoe.command.LanguageCommand;
 import ch.kalunight.zoe.command.PatchNotesCommand;
@@ -226,6 +227,7 @@ public class Zoe {
     commands.add(new DefineCommand());
     commands.add(new UndefineCommand());
     commands.add(new ResetCommand(eventWaiter));
+    commands.add(new BanAccountCommand(eventWaiter));
     commands.add(new PatchNotesCommand());
 
     mainCommands = commands;

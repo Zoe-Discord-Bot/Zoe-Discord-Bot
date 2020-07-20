@@ -372,5 +372,12 @@
     "deleteLeaderboardErrorDatabase": "A database error occured ! Please report this issue here : https://discord.gg/AyAYWGM",
     "deleteLeaderboardCommandNoLeaderboardToDelete": "There's no leaderboard to delete.",
     "leaderboardNotRefreshedMessage": "This leaderboard is to far in the channel to be refreshed. He need to be in the last 20 messages.",
-    "leaderboardDeletedMessage": "This leaderboard has been deleted because he was too far in the channel."
+    "leaderboardDeletedMessage": "This leaderboard has been deleted because he was too far in the channel.",
+	"banAccountCommandHelp" : "Start the ban list wizard. Allow an account owner to delete his account from others servers and to add it in the ban list to make it impossible to add.",
+	"banAccountCommandProveAccountOwner" : "Hello ! To start, login in the League client with the account that you want to use. Here a code use in the next step : **%s**. With this code, go in *Settings -> Verification* and insert the code inside the field and click on save. Once it's done, respond me your account data like this ``(RegionTag) (SummonerName)``. I will show you after that in wich server your account has been added and what you can do about it. If you want to stop the process, send ``STOP``.",
+	"banAccountCommandCancelVerification" : "Well, i stop to wait for a response now. You can resend the base command if you want to continue.",
+	"banAccountCommandMalformedAccount" : "The response you have sended is malformed. Please send me your account with the following format ``(RegionTag) (SummonerName)``. List of valid region tag : EUW, EUNE, NA, BR, JP, KR, LAN, LAS, OCE, RU, TR. If you want to stop the process, you can send ``STOP``.",
+	"banAccountCommandInvalidRegionTag" : "The region tag is invalid. Please retry with a valid tag. (Valid tag : EUW, EUNE, NA, BR, JP, KR, LAN, LAS, OCE, RU, TR)",
+	"banAccountCommandInvalidVerificationTag" : "I don't have received the good code, please be sure that you have insert the code **%s** in *Setting (next to the exit button) -> Verification* and that you have click on the button *Save*. After that you can retry (resend ``%s``).",
+	
 }

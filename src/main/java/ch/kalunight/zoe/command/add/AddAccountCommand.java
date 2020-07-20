@@ -101,7 +101,7 @@ public class AddAccountCommand extends ZoeCommand {
     try {
       summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);
     }catch(RiotApiException e) {
-      RiotApiUtil.handleRiotApi(event, e, server.serv_language);
+      RiotApiUtil.handleRiotApi(event.getEvent(), e, server.serv_language);
       return;
     }
 

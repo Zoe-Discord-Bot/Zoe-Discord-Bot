@@ -4,14 +4,13 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import ch.kalunight.zoe.model.dto.DTO;
 import net.rithms.riot.constant.Platform;
 
 public class BannedAccountRepository {
 
   private static final String INSERT_BANNED_ACCOUNT = "INSERT INTO banned_account " +
-      "(banAcc_summonerdId, banAcc_server) " +
+      "(banAcc_summonerId, banAcc_server) " +
       "VALUES ('%s', '%s')";
   
   private static final String SELECT_BANNED_ACCOUNT_WITH_SUMMONER_ID_AND_SERVER = "SELECT " + 
@@ -22,6 +21,8 @@ public class BannedAccountRepository {
       "WHERE banned_account.banacc_summonerid = '%s' " + 
       "AND banned_account.banacc_server = '%s'";
   
+  private static final String DELETE_BANNED_ACCOUNT_WITH_ID = "DELETE FROM banned_account WHERE banAcc_id = %d";
+  
   private BannedAccountRepository() {
     // hide default public constructor
   }
@@ -30,9 +31,8 @@ public class BannedAccountRepository {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
 
-      String finalQuery = String.format(INSERT_BANNED_ACCOUNT, summonerId, platform);
-      query.executeQuery(finalQuery);
-
+      String finalQuery = String.format(INSERT_BANNED_ACCOUNT, summonerId, platform.getName());
+      query.execute(finalQuery);
     }
   }
   
@@ -50,6 +50,15 @@ public class BannedAccountRepository {
       return new DTO.BannedAccount(result);
     }finally {
       RepoRessources.closeResultSet(result);
+    }
+  }
+  
+  public static void deleteBannedAccount(long bannedAccountId) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement();) {
+
+      String finalQuery = String.format(DELETE_BANNED_ACCOUNT_WITH_ID, bannedAccountId);
+      query.executeUpdate(finalQuery);
     }
   }
   

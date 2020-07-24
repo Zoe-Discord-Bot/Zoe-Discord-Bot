@@ -89,7 +89,7 @@ public class RemoveAccountCommand extends ZoeCommand {
       account = LeagueAccountRepository
           .getLeagueAccountByName(server.serv_guildId, player.player_discordId, summonerName, region);
     } catch(RiotApiException e) {
-      RiotApiUtil.handleRiotApi(event, e, server.serv_language);
+      RiotApiUtil.handleRiotApi(event.getEvent(), e, server.serv_language);
       return;
     }
     
@@ -104,7 +104,7 @@ public class RemoveAccountCommand extends ZoeCommand {
     summoner = Zoe.getRiotApi().getSummoner(account.leagueAccount_server, account.leagueAccount_summonerId);
     LeagueAccountRepository.deleteAccountWithId(account.leagueAccount_id);
     }catch(RiotApiException e) {
-      RiotApiUtil.handleRiotApi(event, e, server.serv_language);
+      RiotApiUtil.handleRiotApi(event.getEvent(), e, server.serv_language);
       return;
     }
     event.reply(String.format(LanguageManager.getText(server.serv_language, "removeAccountDoneMessage"),

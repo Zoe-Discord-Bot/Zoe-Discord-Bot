@@ -31,13 +31,13 @@ public abstract class ZoeCommand extends Command {
 
   @Override
   protected void execute(CommandEvent event) {
-    Runnable commandRunnable = getCommandRunnable(event);
-    ServerData.getCommandsExecutor().execute(commandRunnable);
+      Runnable commandRunnable = getCommandRunnable(event);
+      ServerData.getCommandsExecutor().execute(commandRunnable);
   }
 
   private Runnable getCommandRunnable(CommandEvent event) {
     return new Runnable() {
-      
+
       @Override
       public void run() {
         CommandUtil.sendTypingInFonctionOfChannelType(event);
@@ -64,7 +64,7 @@ public abstract class ZoeCommand extends Command {
             DTO.ServerStatus status = ServerStatusRepository.getServerStatus(event.getGuild().getIdLong());
 
             int nbrOfTry = 0;
-            
+
             while(status.servstatus_inTreatment) {
               nbrOfTry++;
               if(nbrOfTry > 10) {

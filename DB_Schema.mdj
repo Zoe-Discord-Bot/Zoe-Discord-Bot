@@ -3793,6 +3793,104 @@
 							"headNameLabel": {
 								"$ref": "AAAAAAFxwDPMquhOQNA="
 							}
+						},
+						{
+							"_type": "ERDEntityView",
+							"_id": "AAAAAAFzcUqAV3Qu4lI=",
+							"_parent": {
+								"$ref": "AAAAAAFutjqgw1hxpqc="
+							},
+							"model": {
+								"$ref": "AAAAAAFzcUqAV3QsPqs="
+							},
+							"subViews": [
+								{
+									"_type": "LabelView",
+									"_id": "AAAAAAFzcUqAWHQvo6s=",
+									"_parent": {
+										"$ref": "AAAAAAFzcUqAV3Qu4lI="
+									},
+									"font": "Arial;13;1",
+									"left": 832,
+									"top": 805,
+									"width": 225,
+									"height": 13,
+									"text": "BannedAccount"
+								},
+								{
+									"_type": "ERDColumnCompartmentView",
+									"_id": "AAAAAAFzcUqAWHQwFUQ=",
+									"_parent": {
+										"$ref": "AAAAAAFzcUqAV3Qu4lI="
+									},
+									"model": {
+										"$ref": "AAAAAAFzcUqAV3QsPqs="
+									},
+									"subViews": [
+										{
+											"_type": "ERDColumnView",
+											"_id": "AAAAAAFzcUsYpXRFDGc=",
+											"_parent": {
+												"$ref": "AAAAAAFzcUqAWHQwFUQ="
+											},
+											"model": {
+												"$ref": "AAAAAAFzcUsYbXRCyN0="
+											},
+											"font": "Arial;13;0",
+											"left": 837,
+											"top": 828,
+											"width": 215,
+											"height": 13
+										},
+										{
+											"_type": "ERDColumnView",
+											"_id": "AAAAAAFzcU13XHROKSQ=",
+											"_parent": {
+												"$ref": "AAAAAAFzcUqAWHQwFUQ="
+											},
+											"model": {
+												"$ref": "AAAAAAFzcU13J3RLfgM="
+											},
+											"font": "Arial;13;0",
+											"left": 837,
+											"top": 843,
+											"width": 215,
+											"height": 13
+										},
+										{
+											"_type": "ERDColumnView",
+											"_id": "AAAAAAFzcU3k83RamWo=",
+											"_parent": {
+												"$ref": "AAAAAAFzcUqAWHQwFUQ="
+											},
+											"model": {
+												"$ref": "AAAAAAFzcU3kx3RXE70="
+											},
+											"font": "Arial;13;0",
+											"left": 837,
+											"top": 858,
+											"width": 215,
+											"height": 13
+										}
+									],
+									"font": "Arial;13;0",
+									"left": 832,
+									"top": 823,
+									"width": 225,
+									"height": 53
+								}
+							],
+							"font": "Arial;13;0",
+							"left": 832,
+							"top": 800,
+							"width": 225,
+							"height": 76,
+							"nameLabel": {
+								"$ref": "AAAAAAFzcUqAWHQvo6s="
+							},
+							"columnCompartment": {
+								"$ref": "AAAAAAFzcUqAWHQwFUQ="
+							}
 						}
 					]
 				},
@@ -5491,6 +5589,46 @@
 							},
 							"name": "lead_lastRefresh",
 							"type": "timestamp",
+							"length": 0
+						}
+					]
+				},
+				{
+					"_type": "ERDEntity",
+					"_id": "AAAAAAFzcUqAV3QsPqs=",
+					"_parent": {
+						"$ref": "AAAAAAFutjqgw1hwVjc="
+					},
+					"name": "BannedAccount",
+					"columns": [
+						{
+							"_type": "ERDColumn",
+							"_id": "AAAAAAFzcUsYbXRCyN0=",
+							"_parent": {
+								"$ref": "AAAAAAFzcUqAV3QsPqs="
+							},
+							"name": "banAcc_id",
+							"type": "autoId",
+							"length": 0
+						},
+						{
+							"_type": "ERDColumn",
+							"_id": "AAAAAAFzcU13J3RLfgM=",
+							"_parent": {
+								"$ref": "AAAAAAFzcUqAV3QsPqs="
+							},
+							"name": "banAcc_summonerId",
+							"type": "varchar",
+							"length": 0
+						},
+						{
+							"_type": "ERDColumn",
+							"_id": "AAAAAAFzcU3kx3RXE70=",
+							"_parent": {
+								"$ref": "AAAAAAFzcUqAV3QsPqs="
+							},
+							"name": "banAcc_server",
+							"type": "varchar",
 							"length": 0
 						}
 					]

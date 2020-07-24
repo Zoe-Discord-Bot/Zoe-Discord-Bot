@@ -158,7 +158,7 @@ public class StatsProfileCommand extends ZoeCommand {
           summoner = Zoe.getRiotApi().getSummoner(choiceAccount.leagueAccount_server,
               choiceAccount.leagueAccount_summonerId);
         }catch(RiotApiException e) {
-          RiotApiUtil.handleRiotApi(event, e, server.serv_language);
+          RiotApiUtil.handleRiotApi(event.getEvent(), e, server.serv_language);
           return;
         }
 
@@ -238,7 +238,7 @@ public class StatsProfileCommand extends ZoeCommand {
           summoner = Zoe.getRiotApi().getSummoner(account.leagueAccount_server,
               account.leagueAccount_summonerId);
         } catch(RiotApiException e) {
-          RiotApiUtil.handleRiotApi(event, e, server.serv_language);
+          RiotApiUtil.handleRiotApi(event.getEvent(), e, server.serv_language);
           return;
         }
 

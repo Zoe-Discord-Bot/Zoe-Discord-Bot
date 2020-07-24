@@ -19,7 +19,7 @@ public class LeagueAccountRepository {
       "(leagueaccount_fk_player, leagueaccount_name, " +
       "leagueaccount_summonerid, leagueaccount_accountid, leagueaccount_puuid, leagueaccount_server) " +
       "VALUES (%d, '%s', '%s', '%s', '%s', '%s')";
-  
+
   private static final String SELECT_LEAGUES_ACCOUNTS_WITH_GUILDID_AND_PLAYER_DISCORD_ID =
       "SELECT " + 
           "league_account.leagueaccount_id, " + 
@@ -67,9 +67,26 @@ public class LeagueAccountRepository {
           "INNER JOIN player ON league_account.leagueaccount_fk_player = player.player_id " + 
           "INNER JOIN server ON player.player_fk_server = server.serv_id " + 
           "WHERE server.serv_guildid = %d";
+  
+  private static final String SELECT_LEAGUE_ACCOUNT_WITH_GUILD_ID_AND_SUMMONER_ID_AND_SERVER = "SELECT " + 
+      "league_account.leagueaccount_id, " + 
+      "league_account.leagueaccount_fk_player, " + 
+      "league_account.leagueaccount_fk_gamecard, " + 
+      "league_account.leagueaccount_fk_currentgame, " + 
+      "league_account.leagueaccount_name, " + 
+      "league_account.leagueaccount_summonerid, " + 
+      "league_account.leagueaccount_accountid, " + 
+      "league_account.leagueaccount_puuid, " + 
+      "league_account.leagueaccount_server " + 
+      "FROM server " + 
+      "INNER JOIN player ON server.serv_id = player.player_fk_server " + 
+      "INNER JOIN league_account ON player.player_id = league_account.leagueaccount_fk_player " + 
+      "WHERE server.serv_guildid = %d " + 
+      "AND league_account.leagueaccount_summonerid = '%s' " + 
+      "AND league_account.leagueaccount_server = '%s'";
 
   private static final String DELETE_LEAGUE_ACCOUNT_WITH_ID = "DELETE FROM league_account WHERE leagueaccount_id = %d";
-
+  
   private static final String SELECT_LEAGUES_ACCOUNTS_WITH_CURRENT_GAME_ID =
       "SELECT " + 
           "league_account.leagueaccount_id, " + 
@@ -83,6 +100,22 @@ public class LeagueAccountRepository {
           "league_account.leagueaccount_server " + 
           "FROM league_account " + 
           "WHERE league_account.leagueaccount_fk_currentgame = %d";
+  
+  private static final String SELECT_LEAGUES_ACCOUNTS_WITH_SUMMONER_ID_AND_SERVER = "SELECT " + 
+      "league_account.leagueaccount_id, " + 
+      "league_account.leagueaccount_fk_player, " + 
+      "league_account.leagueaccount_fk_gamecard, " + 
+      "league_account.leagueaccount_fk_currentgame, " + 
+      "league_account.leagueaccount_name, " + 
+      "league_account.leagueaccount_summonerid, " + 
+      "league_account.leagueaccount_accountid, " + 
+      "league_account.leagueaccount_puuid, " + 
+      "league_account.leagueaccount_server " + 
+      "FROM server " + 
+      "INNER JOIN player ON server.serv_id = player.player_fk_server " + 
+      "INNER JOIN league_account ON player.player_id = league_account.leagueaccount_fk_player " +  
+      "WHERE league_account.leagueaccount_summonerid = '%s' " + 
+      "AND league_account.leagueaccount_server = '%s'";
 
   private static final String SELECT_LEAGUES_ACCOUNTS_WITH_PLAYER_ID_AND_GUILD_ID =
       "SELECT " + 
@@ -109,7 +142,7 @@ public class LeagueAccountRepository {
 
   private static final String UPDATE_LEAGUE_ACCOUNT_NAME_WITH_ID =
       "UPDATE league_account SET leagueaccount_name = '%s' WHERE leagueaccount_id = %d";
-  
+
   private static final String COUNT_LEAGUE_ACCOUNTS = "SELECT COUNT(*) FROM league_account";
 
   private LeagueAccountRepository() {
@@ -122,15 +155,15 @@ public class LeagueAccountRepository {
         Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
 
       result = query.executeQuery(COUNT_LEAGUE_ACCOUNTS);
-      
+
       result.first();
-      
+
       return result.getLong("count");
     }finally {
       RepoRessources.closeResultSet(result);
     }
   }
-  
+
   public static List<DTO.LeagueAccount> getLeaguesAccountsWithPlayerID(long guildId, long playerId) throws SQLException {
     ResultSet result = null;
     try (Connection conn = RepoRessources.getConnection();
@@ -264,7 +297,33 @@ public class LeagueAccountRepository {
       RepoRessources.closeResultSet(result);
     }
   }
+  
+  public static List<DTO.LeagueAccount> getLeaguesAccountsWithSummonerIdAndServer(String summonerId, Platform server)
+      throws SQLException {
+    ResultSet result = null;
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
 
+      String finalQuery = String.format(SELECT_LEAGUES_ACCOUNTS_WITH_SUMMONER_ID_AND_SERVER, summonerId, server.getName());
+      result = query.executeQuery(finalQuery);
+
+      List<DTO.LeagueAccount> accounts = Collections.synchronizedList(new ArrayList<>());
+      int rowCount = result.last() ? result.getRow() : 0;
+      if(rowCount == 0) {
+        return accounts;
+      }
+      result.first();
+      while(!result.isAfterLast()) {
+        accounts.add(new DTO.LeagueAccount(result));
+        result.next();
+      }
+
+      return accounts;
+    }finally {
+      RepoRessources.closeResultSet(result);
+    }
+  }
+  
   public static DTO.LeagueAccount getLeagueAccountByName(long guildId, long discordPlayerId,
       String summonerName, Platform region) throws SQLException, RiotApiException {
     ResultSet result = null;
@@ -279,6 +338,24 @@ public class LeagueAccountRepository {
         }
       }
       return null;
+    }finally {
+      RepoRessources.closeResultSet(result);
+    }
+  }  
+
+  public static DTO.LeagueAccount getLeagueAccountWithSummonerId(long guildId, String summonerId, Platform region) throws SQLException {
+    ResultSet result = null;
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+      
+      String finalQuery = String.format(SELECT_LEAGUE_ACCOUNT_WITH_GUILD_ID_AND_SUMMONER_ID_AND_SERVER,
+          guildId, summonerId, region.getName());
+      result = query.executeQuery(finalQuery);
+      int rowCount = result.last() ? result.getRow() : 0;
+      if(rowCount == 0) {
+        return null;
+      }
+      return new DTO.LeagueAccount(result);
     }finally {
       RepoRessources.closeResultSet(result);
     }
@@ -317,7 +394,7 @@ public class LeagueAccountRepository {
       }else {
         finalQuery = String.format(UPDATE_LEAGUE_ACCOUNT_GAME_CARD_WITH_ID, Long.toString(gameCardId), leagueAccountId);
       }
-      
+
       query.executeUpdate(finalQuery);
     }
   }
@@ -327,11 +404,11 @@ public class LeagueAccountRepository {
         Statement query = conn.createStatement();) {
 
       DTO.LastRank lastRank = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccountId);
-      
+
       if(lastRank != null) {
         LastRankRepository.deleteLastRank(lastRank.lastRank_id);
       }
-      
+
       String finalQuery = String.format(DELETE_LEAGUE_ACCOUNT_WITH_ID, leagueAccountId);
       query.executeUpdate(finalQuery);
     }

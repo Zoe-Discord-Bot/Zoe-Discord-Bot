@@ -218,10 +218,10 @@ public class BanAccountCommand extends ZoeCommand {
             guild.retrieveMember(event.getAuthor()).complete();
             pbuilder.addItems(String.format(LanguageManager.getText(language, "banAccountCommandGuildItemWithName"), guild.getName(), guild.getIdLong()));
           }catch(ErrorResponseException e) {
-            pbuilder.addItems(String.format(LanguageManager.getText(language, "GuildItemOnlyId"), guild.getIdLong()));
+            pbuilder.addItems(String.format(LanguageManager.getText(language, "banAccountCommandGuildItemOnlyId"), guild.getIdLong()));
           }
         }else {
-          pbuilder.addItems(String.format(LanguageManager.getText(language, "GuildItemOnlyId"), server.serv_guildId));
+          pbuilder.addItems(String.format(LanguageManager.getText(language, "banAccountCommandGuildItemOnlyId"), server.serv_guildId));
         }
       }
 
@@ -294,21 +294,26 @@ public class BanAccountCommand extends ZoeCommand {
     }
 
     if(selectedServerInt == null && selectedServer.equalsIgnoreCase("all")) {
-      if(!serverList.isEmpty()) {
-        try {
-          List<LeagueAccount> leagueAccountOfTheSummoner = 
-              LeagueAccountRepository.getLeaguesAccountsWithSummonerIdAndServer(concernedSummoner.getId(), region);
+
+      try {
+        List<LeagueAccount> leagueAccountOfTheSummoner = 
+            LeagueAccountRepository.getLeaguesAccountsWithSummonerIdAndServer(concernedSummoner.getId(), region);
+
+        if(!leagueAccountOfTheSummoner.isEmpty()) {
+          
           for(LeagueAccount leagueAccount : leagueAccountOfTheSummoner) {
             LeagueAccountRepository.deleteAccountWithId(leagueAccount.leagueAccount_id);
           }
+
           responseChannel.sendMessage(LanguageManager.getText(language, "banAccountCommandDeleteAccountFromAllServer")).queue();
-        } catch(SQLException e) {
-          responseChannel.sendMessage(LanguageManager.getText(language, "errorSQLPleaseReport")).queue();
-          logger.error("SQL Error while deleting all occurence of the account", e);
+        }else {
+          responseChannel.sendMessage(LanguageManager.getText(language, "banAccountCommandKickAllNoServer")).queue();
         }
-      }else {
-        responseChannel.sendMessage(LanguageManager.getText(language, "banAccountCommandKickAllNoServer")).queue();
+      } catch(SQLException e) {
+        responseChannel.sendMessage(LanguageManager.getText(language, "errorSQLPleaseReport")).queue();
+        logger.error("SQL Error while deleting all occurence of the account", e);
       }
+
     }else if(selectedServerInt != null && selectedServerInt <= serverList.size() && selectedServerInt >= 1) {
       Server server = serverList.get(selectedServerInt - 1);
 

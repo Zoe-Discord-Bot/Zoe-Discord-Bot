@@ -2,7 +2,6 @@ package ch.kalunight.zoe.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.rithms.riot.api.RiotApiException;

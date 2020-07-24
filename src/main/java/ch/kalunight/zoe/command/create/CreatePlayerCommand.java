@@ -14,6 +14,8 @@ import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.config.option.RegionOption;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.DTO.BannedAccount;
+import ch.kalunight.zoe.repositories.BannedAccountRepository;
 import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
@@ -43,17 +45,17 @@ public class CreatePlayerCommand extends ZoeCommand {
   @Override
   public void executeCommand(CommandEvent event) throws SQLException {
     event.getTextChannel().sendTyping().complete();
-    
+
     DTO.Server server = getServer(event.getGuild().getIdLong());
-    
+
     ServerConfiguration config = ConfigRepository.getServerConfiguration(server.serv_guildId);
-    
+
     if(!config.getUserSelfAdding().isOptionActivated() && !event.getMember().getPermissions().contains(Permission.MANAGE_CHANNEL)) {
       event.reply(String.format(LanguageManager.getText(server.serv_language, "permissionNeededMessage"),
           Permission.MANAGE_CHANNEL.getName()));
-        return;
+      return;
     }
-    
+
     User user = getMentionedUser(event.getMessage().getMentionedMembers());
     if(user == null) {
       event.reply(String.format(LanguageManager.getText(server.serv_language, "mentionNeededMessageWithUser"), event.getAuthor().getName()));
@@ -68,7 +70,7 @@ public class CreatePlayerCommand extends ZoeCommand {
       event.reply(LanguageManager.getText(server.serv_language, "createPlayerAlreadyRegistered"));
       return;
     }
-    
+
     RegionOption regionOption = config.getDefaultRegion();
 
     List<String> listArgs = CreatePlayerCommand.getParameterInParenteses(event.getArgs());
@@ -105,29 +107,35 @@ public class CreatePlayerCommand extends ZoeCommand {
       RiotApiUtil.handleRiotApi(event.getEvent(), e, server.serv_language);
       return;
     }
-    
+
     DTO.Player playerAlreadyWithTheAccount = PlayerRepository
         .getPlayerByLeagueAccountAndGuild(server.serv_guildId, summoner.getId(), region);
-    
+
     if(playerAlreadyWithTheAccount != null) {
       event.reply(String.format(LanguageManager.getText(server.serv_language, "accountAlreadyLinkedToAnotherPlayer"),
           playerAlreadyWithTheAccount.getUser().getName()));
       return;
     }
 
-    PlayerRepository.createPlayer(server.serv_id, event.getGuild().getIdLong(), user.getIdLong(), false);
-    DTO.Player player = PlayerRepository.getPlayer(server.serv_guildId, user.getIdLong());
-    LeagueAccountRepository.createLeagueAccount(player.player_id, summoner, region.getName());
-    
-    if(config.getZoeRoleOption().getRole() != null) {
-      Member member = event.getGuild().getMember(user);
-      if(member != null) {
-        event.getGuild().addRoleToMember(member, config.getZoeRoleOption().getRole()).queue();
+    BannedAccount bannedAccount = BannedAccountRepository.getBannedAccount(summoner.getId(), region);
+    if(bannedAccount == null) {
+
+      PlayerRepository.createPlayer(server.serv_id, event.getGuild().getIdLong(), user.getIdLong(), false);
+      DTO.Player player = PlayerRepository.getPlayer(server.serv_guildId, user.getIdLong());
+      LeagueAccountRepository.createLeagueAccount(player.player_id, summoner, region.getName());
+
+      if(config.getZoeRoleOption().getRole() != null) {
+        Member member = event.getGuild().getMember(user);
+        if(member != null) {
+          event.getGuild().addRoleToMember(member, config.getZoeRoleOption().getRole()).queue();
+        }
       }
+
+      event.reply(String.format(LanguageManager.getText(server.serv_language, "createPlayerDoneMessage"),
+          user.getName(), summoner.getName()));
+    }else {
+      event.reply(LanguageManager.getText(server.serv_language, "accountCantBeAddedOwnerChoice"));
     }
-    
-    event.reply(String.format(LanguageManager.getText(server.serv_language, "createPlayerDoneMessage"),
-        user.getName(), summoner.getName()));
   }
 
   public static Platform getPlatform(String regionName) {
@@ -151,7 +159,7 @@ public class CreatePlayerCommand extends ZoeCommand {
 
   public static boolean isTheGivenUserAlreadyRegister(User user, DTO.Server server) throws SQLException {
     DTO.Player player = PlayerRepository.getPlayer(server.serv_guildId, user.getIdLong());
-    
+
     return player != null;
   }
 

@@ -372,5 +372,10 @@
     "createLeaderboardTitleListeObjective": "Liste des objectifs :",
     "createLeaderboardCancelMessage": "Création du classement annulé.",
     "createLeaderboardExplainMessage": "Ok, créons un classement ! Quel objectif souhaitez-vous cibler ?",
-    "createLeaderboardHelpMessage": "Démarre l'outil de création de classement. La permission de gérer les salons est nécessaire."
+    "createLeaderboardHelpMessage": "Démarre l'outil de création de classement. La permission de gérer les salons est nécessaire.",
+    "banAccountCommandInvalidRegionTag": "La région envoyé est invalide. Merci de réessayer avec une région valide. (Régions valide : EUW, EUNE, NA, BR, JP, KR, LAN, LAS, OCE, RU, TR)",
+    "banAccountCommandMalformedAccount": "La réponse que vous avez envoyé est mal formé. Merci d'envoyer votre compte avec ce format ``(Region) (NomInvocateur)``. Liste des régions valide : EUW, EUNE, NA, BR, JP, KR, LAN, LAS, OCE, RU, TR. Si vous voulez stopper le processus, vous pouvez envoyer le message ``STOP``.",
+    "banAccountCommandCancelVerification": "Bon, j'attends d'attendre une réponse pour le moment. Vous pouvez renvoyer la commande de base si vous souhaitez continuer.",
+    "banAccountCommandProveAccountOwner": "Salut ! Pour commencer, connecte toi dans le client League of Legends avec le compte que tu veux utiliser. Maintenant voici un code nécessaire pour la prochaine étape : **%s**. Avec ce code, allez dans *Paramètres -> Vérification*, insérez le dans le champ de texte et appuyer ensuite sur \"Sauvegarder\".\n\nUne fois que cela est fait, répondez moi avec votre compte comme cela ``(TagRegion) (NomInvocateur)``. Je vous montrerai après dans quel serveur votre compte a été ajouté et ce que vous pouvez faire par rapport à cela. Vous pouvez stopper ce processus en envoyant ``STOP``.",
+    "banAccountCommandHelp": "Démarre la système de gestion de comptes. Cela permet a une personne possédant un compte LoL de supprimer son compte des autres serveurs et de faire en sorte qu'il ne puisse plus être ajouté."
 }

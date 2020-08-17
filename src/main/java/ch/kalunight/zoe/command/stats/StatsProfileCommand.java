@@ -136,6 +136,8 @@ public class StatsProfileCommand extends ZoeCommand {
 
     if(accounts.size() == 1) {
       generateStatsMessage(event, player, accounts.get(0), server);
+    }else if(accounts.isEmpty()) {
+      event.reply(LanguageManager.getText(server.serv_language, "statsProfileNeedARegisteredAccount"));
     }else {
       Summoner summoner;
 
@@ -401,8 +403,11 @@ public class StatsProfileCommand extends ZoeCommand {
         }
       }
 
-      listHeigherChampion.add(heigherActual);
+      if(heigherActual != null) {
+        listHeigherChampion.add(heigherActual);
+      }
     }
+
     return listHeigherChampion;
   }
 

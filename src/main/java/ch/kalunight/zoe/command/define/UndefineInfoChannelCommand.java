@@ -15,6 +15,8 @@ import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
+import net.dv8tion.jda.api.requests.ErrorResponse;
 
 public class UndefineInfoChannelCommand extends ZoeCommand {
 
@@ -50,7 +52,13 @@ public class UndefineInfoChannelCommand extends ZoeCommand {
       List<DTO.InfoPanelMessage> infoPanels = InfoChannelRepository.getInfoPanelMessages(server.serv_guildId);
       for(DTO.InfoPanelMessage message : infoPanels) {
         TextChannel textChannel = event.getGuild().getTextChannelById(infochannel.infochannel_channelid);
-        textChannel.retrieveMessageById(message.infopanel_messageId).complete().delete().complete();
+        try {
+          textChannel.retrieveMessageById(message.infopanel_messageId).complete().delete().complete();
+        }catch(ErrorResponseException e) {
+          if(e.getErrorResponse() != ErrorResponse.UNKNOWN_MESSAGE) {
+            throw e;
+          }
+        }
       }
 
       InfoChannelRepository.deleteInfoChannel(server);

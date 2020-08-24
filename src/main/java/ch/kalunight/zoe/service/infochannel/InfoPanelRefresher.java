@@ -267,6 +267,8 @@ public class InfoPanelRefresher implements Runnable {
 
     List<DTO.InfoPanelMessage> infoPanelMessages = InfoChannelRepository.getInfoPanelMessages(server.serv_guildId);
 
+    removeDeletedMessageFromTheDB(infoPanelMessages);
+    
     checkMessageDisplaySync(infoPanelMessages, infoChannelDTO); 
 
     infoPanelMessages = InfoChannelRepository.getInfoPanelMessages(server.serv_guildId);
@@ -297,6 +299,24 @@ public class InfoPanelRefresher implements Runnable {
       DTO.InfoPanelMessage infoPanel = infoPanelMessages.get(i);
       infochannel.retrieveMessageById(infoPanel.infopanel_messageId).complete().editMessage(infoPanels.get(i)).queue();
     }
+  }
+
+  private void removeDeletedMessageFromTheDB(List<InfoPanelMessage> infoPanelMessages) throws SQLException {
+    
+    List<InfoPanelMessage> infopanelMessagesDeleted = new ArrayList<>();
+    
+    for(InfoPanelMessage messageToTest : infoPanelMessages) {
+      try {
+       infochannel.retrieveMessageById(messageToTest.infopanel_messageId).complete();
+      }catch(ErrorResponseException e) {
+        if(e.getErrorResponse() == ErrorResponse.UNKNOWN_MESSAGE) {
+          InfoChannelRepository.deleteInfoPanelMessage(messageToTest.infopanel_id);
+          infopanelMessagesDeleted.add(messageToTest);
+        }
+      }
+    }
+    
+    infoPanelMessages.removeAll(infopanelMessagesDeleted);
   }
 
   private void checkMessageDisplaySync(List<InfoPanelMessage> infoPanelMessages, InfoChannel infochannelDTO) {

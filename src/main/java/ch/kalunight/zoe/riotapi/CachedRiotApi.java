@@ -21,6 +21,7 @@ import net.rithms.riot.api.RiotApi;
 import net.rithms.riot.api.RiotApiAsync;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.champion_mastery.dto.ChampionMastery;
+import net.rithms.riot.api.endpoints.clash.dto.ClashTournament;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 import net.rithms.riot.api.endpoints.match.dto.Match;
 import net.rithms.riot.api.endpoints.match.dto.MatchList;
@@ -300,6 +301,10 @@ public class CachedRiotApi {
     }while(needToRetry);
     
     return gameInfo;
+  }
+  
+  public List<ClashTournament> getClashTournaments(Platform platform) throws RiotApiException {
+    return riotApi.getClashTournaments(platform);
   }
   
   public String getValidationCode(Platform platform, String summonerId) throws RiotApiException {

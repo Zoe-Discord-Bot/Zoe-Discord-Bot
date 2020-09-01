@@ -54,7 +54,7 @@ import net.dv8tion.jda.api.events.user.UserActivityStartEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 public class EventListener extends ListenerAdapter {
-  
+
   //Useless to translate
   private static final String WELCOME_MESSAGE = "Hello ! Thank you for adding me to your server ! "
       + "I'm here to help you to configurate your server with some "
@@ -129,10 +129,10 @@ public class EventListener extends ListenerAdapter {
     logger.info("Setup of main thread  ...");
     setupContinousRefreshThread();
     logger.info("Setup of main thread finished !");
-    
+
     Zoe.getJda().getPresence().setStatus(OnlineStatus.ONLINE);
     Zoe.getJda().getPresence().setActivity(Activity.playing("type \">help\""));
-    
+
     logger.info("Booting finished !");
   }
 
@@ -182,7 +182,7 @@ public class EventListener extends ListenerAdapter {
   public void onGuildJoin(GuildJoinEvent event) {
     try {
       Member owner = event.getGuild().retrieveOwner().complete();
-      
+
       if(!owner.getUser().getId().equals(Zoe.getJda().getSelfUser().getId())) {
         DTO.Server server = ServerRepository.getServerWithGuildId(event.getGuild().getIdLong());
         if(server == null) {
@@ -246,7 +246,7 @@ public class EventListener extends ListenerAdapter {
       if(infochannel != null && infochannel.infochannel_channelid == event.getChannel().getIdLong()) {
         InfoChannelRepository.deleteInfoChannel(ServerRepository.getServerWithGuildId(event.getGuild().getIdLong()));
       }
-      
+
       DTO.RankHistoryChannel rankChannel = RankHistoryChannelRepository.getRankHistoryChannel(event.getGuild().getIdLong());
       if(rankChannel != null && rankChannel.rhChannel_channelId == event.getChannel().getIdLong()) {
         RankHistoryChannelRepository.deleteRankHistoryChannel(rankChannel.rhChannel_id);
@@ -285,13 +285,14 @@ public class EventListener extends ListenerAdapter {
 
   @Override
   public void onUserActivityStart(UserActivityStartEvent event) {
-    try {
-      if(event == null || event.getNewActivity() == null) {
-        return;
-      }
+    if(Zoe.getJda().getPresence().getStatus() != OnlineStatus.DO_NOT_DISTURB) {
+      try {
+        if(event == null || event.getNewActivity() == null) {
+          return;
+        }
 
-      Activity activity = event.getNewActivity();
-      
+        Activity activity = event.getNewActivity();
+
         if(activity.isRich() && EventListenerUtil.checkIfIsGame(activity.asRichPresence()) && event.getGuild() != null) {
           DTO.Server server = ServerRepository.getServerWithGuildId(event.getGuild().getIdLong());
 
@@ -302,7 +303,7 @@ public class EventListener extends ListenerAdapter {
           DTO.Player registedPlayer = PlayerRepository.getPlayer(event.getGuild().getIdLong(), event.getUser().getIdLong());
           DTO.InfoChannel infochannel = InfoChannelRepository.getInfoChannel(event.getGuild().getIdLong());
           DTO.RankHistoryChannel rankchannel = RankHistoryChannelRepository.getRankHistoryChannel(event.getGuild().getIdLong());
-          
+
           if((infochannel != null || rankchannel != null) && registedPlayer != null && !ServerData.isServerWillBeTreated(server)
               && server.serv_lastRefresh.isBefore(LocalDateTime.now().minusSeconds(5))) {
 
@@ -311,10 +312,11 @@ public class EventListener extends ListenerAdapter {
             ServerData.getServerExecutor().execute(new InfoPanelRefresher(server, true));
           }
         }
-    }catch(SQLException e) {
-      logger.error("SQL Error when treating discord status update event !", e);
-    }catch(Exception e) {
-      logger.error("Unknown Error when treating discord status update event !", e);
+      }catch(SQLException e) {
+        logger.error("SQL Error when treating discord status update event !", e);
+      }catch(Exception e) {
+        logger.error("Unknown Error when treating discord status update event !", e);
+      }
     }
   }
 

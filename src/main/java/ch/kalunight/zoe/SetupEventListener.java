@@ -19,6 +19,7 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.repositories.ServerStatusRepository;
 import ch.kalunight.zoe.riotapi.CacheManager;
+import ch.kalunight.zoe.service.CachePlayerService;
 import ch.kalunight.zoe.service.RiotApiUsageChannelRefresh;
 import ch.kalunight.zoe.service.ServerChecker;
 import ch.kalunight.zoe.translation.LanguageManager;
@@ -33,6 +34,8 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 public class SetupEventListener extends ListenerAdapter {
 
   private static final Logger logger = LoggerFactory.getLogger(SetupEventListener.class);
+  
+  private static boolean zoeIsBooted = true;
   
   @Override
   public void onReady(ReadyEvent event) {
@@ -121,6 +124,12 @@ public class SetupEventListener extends ListenerAdapter {
     Zoe.getJda().getPresence().setStatus(OnlineStatus.ONLINE);
     Zoe.getJda().getPresence().setActivity(Activity.playing("type \">help\""));
 
+    setZoeIsBooted(true);
+    
+    logger.info("Cache all registered players ...");
+    //ServerData.getServerExecutor().execute(new CachePlayerService());
+    logger.info("Cache all registered players !");
+    
     logger.info("Booting finished !");
   }
   
@@ -164,6 +173,14 @@ public class SetupEventListener extends ListenerAdapter {
     } catch(IOException e1) {
       logger.warn("Error when loading the file of RAPI Status Channel. The older channel will be unused ! (You can re-create it)");
     }
+  }
+
+  public static boolean isZoeIsBooted() {
+    return zoeIsBooted;
+  }
+
+  public static void setZoeIsBooted(boolean zoeIsBooted) {
+    SetupEventListener.zoeIsBooted = zoeIsBooted;
   }
 
   

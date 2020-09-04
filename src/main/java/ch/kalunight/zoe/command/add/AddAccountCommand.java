@@ -12,7 +12,9 @@ import ch.kalunight.zoe.command.create.CreatePlayerCommand;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.config.option.RegionOption;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.DTO.BannedAccount;
 import ch.kalunight.zoe.model.player_data.LeagueAccount;
+import ch.kalunight.zoe.repositories.BannedAccountRepository;
 import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
@@ -42,17 +44,17 @@ public class AddAccountCommand extends ZoeCommand {
   @Override
   protected void executeCommand(CommandEvent event) throws SQLException {
     event.getTextChannel().sendTyping().complete();
-    
+
     DTO.Server server = getServer(event.getGuild().getIdLong());
-    
+
     ServerConfiguration config = ConfigRepository.getServerConfiguration(server.serv_guildId);
-    
+
     if(!config.getUserSelfAdding().isOptionActivated() && !event.getMember().getPermissions().contains(Permission.MANAGE_CHANNEL)) {
-        event.reply(String.format(LanguageManager.getText(server.serv_language, "permissionNeededMessage"),
-            Permission.MANAGE_CHANNEL.getName()));
-        return;
+      event.reply(String.format(LanguageManager.getText(server.serv_language, "permissionNeededMessage"),
+          Permission.MANAGE_CHANNEL.getName()));
+      return;
     }
-    
+
     User user = CreatePlayerCommand.getMentionedUser(event.getMessage().getMentionedMembers());
     if(user == null) {
       event.reply(String.format(LanguageManager.getText(server.serv_language, "mentionNeededMessageWithUser"),
@@ -101,7 +103,7 @@ public class AddAccountCommand extends ZoeCommand {
     try {
       summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);
     }catch(RiotApiException e) {
-      RiotApiUtil.handleRiotApi(event, e, server.serv_language);
+      RiotApiUtil.handleRiotApi(event.getEvent(), e, server.serv_language);
       return;
     }
 
@@ -117,10 +119,15 @@ public class AddAccountCommand extends ZoeCommand {
       return;
     }
 
-    
-    LeagueAccountRepository.createLeagueAccount(player.player_id, summoner, region.getName());
-    event.reply(String.format(LanguageManager.getText(server.serv_language, "accountAddedToPlayer"),
-        newAccount.getSummoner().getName(), user.getName()));
+    BannedAccount bannedAccount = BannedAccountRepository.getBannedAccount(summoner.getId(), region);
+    if(bannedAccount == null) {
+
+      LeagueAccountRepository.createLeagueAccount(player.player_id, summoner, region.getName());
+      event.reply(String.format(LanguageManager.getText(server.serv_language, "accountAddedToPlayer"),
+          newAccount.getSummoner().getName(), user.getName()));
+    }else {
+      event.reply(LanguageManager.getText(server.serv_language, "accountCantBeAddedOwnerChoice"));
+    }
   }
 
   @Override

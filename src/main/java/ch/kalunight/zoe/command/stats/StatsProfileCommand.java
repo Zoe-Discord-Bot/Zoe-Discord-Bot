@@ -136,6 +136,8 @@ public class StatsProfileCommand extends ZoeCommand {
 
     if(accounts.size() == 1) {
       generateStatsMessage(event, player, accounts.get(0), server);
+    }else if(accounts.isEmpty()) {
+      event.reply(LanguageManager.getText(server.serv_language, "statsProfileNeedARegisteredAccount"));
     }else {
       Summoner summoner;
 
@@ -158,7 +160,7 @@ public class StatsProfileCommand extends ZoeCommand {
           summoner = Zoe.getRiotApi().getSummoner(choiceAccount.leagueAccount_server,
               choiceAccount.leagueAccount_summonerId);
         }catch(RiotApiException e) {
-          RiotApiUtil.handleRiotApi(event, e, server.serv_language);
+          RiotApiUtil.handleRiotApi(event.getEvent(), e, server.serv_language);
           return;
         }
 
@@ -238,7 +240,7 @@ public class StatsProfileCommand extends ZoeCommand {
           summoner = Zoe.getRiotApi().getSummoner(account.leagueAccount_server,
               account.leagueAccount_summonerId);
         } catch(RiotApiException e) {
-          RiotApiUtil.handleRiotApi(event, e, server.serv_language);
+          RiotApiUtil.handleRiotApi(event.getEvent(), e, server.serv_language);
           return;
         }
 
@@ -401,8 +403,11 @@ public class StatsProfileCommand extends ZoeCommand {
         }
       }
 
-      listHeigherChampion.add(heigherActual);
+      if(heigherActual != null) {
+        listHeigherChampion.add(heigherActual);
+      }
     }
+
     return listHeigherChampion;
   }
 

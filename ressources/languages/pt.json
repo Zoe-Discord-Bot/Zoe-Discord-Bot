@@ -306,5 +306,7 @@
     "deleteRankChannelDoneMessage": "O canal de texto foi excluído corretamente.",
     "createRankChannelHelpMessage": "Crie um canal de Texto onde enviarei atualizações sobre a classificação dos jogadores registrados. É necessário liberar permissão ao Zoe para gerenciar canais.",
     "nativeActualLanguage": "#MESSAGE FOR TRANSLATOR: Don't tranlate that, put instead the name of your language in your language#Português/BR",
-    "guildJoinHiAgain": "Olá de novo ! Toda a sua configuração foi salva desde a última vez que estive lá. Se você precisar lembrar como eu trabalho, tente os comandos `>setup` e`>help`. Se você deseja redefinir o servidor, execute o comando `>reset`."
+    "guildJoinHiAgain": "Olá de novo ! Toda a sua configuração foi salva desde a última vez que estive lá. Se você precisar lembrar como eu trabalho, tente os comandos `>setup` e`>help`. Se você deseja redefinir o servidor, execute o comando `>reset`.",
+    "rankedAvg": "Ranked Média",
+    "infopanelRankedOptionDesc": "Mostrar a ultima mudança na ranked no InfoPanel"
 }

@@ -245,6 +245,19 @@ public class DTO {
     }
   }
   
+  public static class BannedAccount {
+    public long banAcc_id;
+    public String banAcc_summonerId;
+    public Platform banAcc_server;
+    
+    public BannedAccount(ResultSet baseData) throws SQLException {
+      banAcc_id = baseData.getLong("banAcc_id");
+      banAcc_summonerId = baseData.getString("banAcc_summonerId");
+      banAcc_server = Platform.getPlatformByName(baseData.getString("banAcc_server"));
+    }
+    
+  }
+  
   public static class LastRank {
     public long lastRank_id;
     public long lastRank_fk_leagueAccount;

@@ -26,6 +26,7 @@ import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import ch.kalunight.zoe.command.AboutCommand;
+import ch.kalunight.zoe.command.BanAccountCommand;
 import ch.kalunight.zoe.command.ConfigCommand;
 import ch.kalunight.zoe.command.LanguageCommand;
 import ch.kalunight.zoe.command.PatchNotesCommand;
@@ -73,13 +74,15 @@ public class Zoe {
 
   private static final ConcurrentLinkedQueue<List<CustomEmote>> emotesNeedToBeUploaded = new ConcurrentLinkedQueue<>();
 
-  private static final List<Object> eventListenerList = Collections.synchronizedList(new ArrayList<>());  
+  private static final List<Object> eventListenerList = Collections.synchronizedList(new ArrayList<>());
+  
+  private static CommandClient commandClient = null;
 
+  private static EventWaiter eventWaiter;
+  
   public static final Logger logger = LoggerFactory.getLogger(Zoe.class);
 
   private static final List<GatewayIntent> listOfGatway = Collections.synchronizedList(new ArrayList<>());
-
-  private static EventWaiter eventWaiter;
 
   private static List<Command> mainCommands;
 
@@ -148,26 +151,19 @@ public class Zoe {
 
     client.setPrefix(BOT_PREFIX);
 
-    eventWaiter = new EventWaiter(ServerData.getResponseWaiter(), false);
-
-    for(Command command : getMainCommands(eventWaiter)) {
-      client.addCommand(command);
-    }
-
     Consumer<CommandEvent> helpCommand = CommandUtil.getHelpCommand();
 
     client.setHelpConsumer(helpCommand);
 
     CommandClient commandClient = client.build();
 
-    EventListener eventListener = new EventListener();
+    SetupEventListener setupEventListener = new SetupEventListener();
 
     eventListenerList.add(commandClient);
-    eventListenerList.add(eventWaiter);
-    eventListenerList.add(eventListener);
+    eventListenerList.add(setupEventListener);
     
     try {
-      jda = getNewJDAInstance(discordTocken, commandClient, eventListener);//
+      jda = getNewJDAInstance(discordTocken, commandClient, setupEventListener);//
     } catch(IndexOutOfBoundsException e) {
       logger.error("You must provide a token.");
       System.exit(1);
@@ -177,18 +173,17 @@ public class Zoe {
     }
   }
 
-  public static JDA getNewJDAInstance(String riotTocken, CommandClient commandClient, EventListener eventListener) throws LoginException {
+  public static JDA getNewJDAInstance(String riotTocken, CommandClient newCommandClient, SetupEventListener setupEventListener) throws LoginException {
 
+    commandClient = newCommandClient;
+    
     JDABuilder builder = JDABuilder.create(discordTocken, getListOfGatway())//
         .setStatus(OnlineStatus.DO_NOT_DISTURB)//
         .disableCache(CacheFlag.CLIENT_STATUS, CacheFlag.VOICE_STATE)
         .setMemberCachePolicy(new ZoeMemberCachePolicy())
         .setChunkingFilter(ChunkingFilter.NONE)
-        .addEventListeners(commandClient)//
-        .addEventListeners(eventWaiter)//
-        .addEventListeners(eventListener)//
-        .setAutoReconnect(false);
-
+        .addEventListeners(commandClient, setupEventListener);
+    
     return builder.build();
   }
 
@@ -226,6 +221,7 @@ public class Zoe {
     commands.add(new DefineCommand());
     commands.add(new UndefineCommand());
     commands.add(new ResetCommand(eventWaiter));
+    commands.add(new BanAccountCommand(eventWaiter));
     commands.add(new PatchNotesCommand());
 
     mainCommands = commands;
@@ -267,6 +263,14 @@ public class Zoe {
   public static ConcurrentLinkedQueue<List<CustomEmote>> getEmotesNeedToBeUploaded() {
     return emotesNeedToBeUploaded;
   }
+  
+  public static CommandClient getCommandClient() {
+    return commandClient;
+  }
+
+  public static void setCommandClient(CommandClient commandClient) {
+    Zoe.commandClient = commandClient;
+  }
 
   public static DiscordBotListAPI getBotListApi() {
     return botListApi;
@@ -288,6 +292,10 @@ public class Zoe {
     return eventWaiter;
   }
 
+  public static void setEventWaiter(EventWaiter eventWaiter) {
+    Zoe.eventWaiter = eventWaiter;
+  }
+
   public static void setJda(JDA jda) {
     Zoe.jda = jda;
   }
@@ -298,10 +306,6 @@ public class Zoe {
 
   public static String getClientOwnerID() {
     return clientOwnerID;
-  }
-
-  public static void setEventWaiter(EventWaiter eventWaiter) {
-    Zoe.eventWaiter = eventWaiter;
   }
 
   public static void setMainCommands(List<Command> mainCommands) {

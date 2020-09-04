@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
+import net.rithms.riot.constant.Platform;
 
 public class ServerRepository {
 
@@ -46,6 +47,14 @@ public class ServerRepository {
       "WHERE server.serv_lastrefresh < '%s' " + 
       "AND (rank_history_channel.rhchannel_channelid IS NOT NULL OR info_channel.infochannel_channelid IS NOT NULL) " + 
       "AND server_status.servstatus_intreatment = %s";
+  
+  private static final String SELECT_SERVERS_WITH_LEAGUE_ACCOUNT = "SELECT " + 
+      "server.serv_id,server.serv_guildid,server.serv_language,server.serv_lastrefresh " + 
+      "FROM league_account " + 
+      "INNER JOIN player ON league_account.leagueaccount_fk_player = player.player_id " + 
+      "INNER JOIN server ON player.player_fk_server = server.serv_id " + 
+      "WHERE league_account.leagueaccount_summonerid = '%s' " + 
+      "AND league_account.leagueaccount_server = '%s'";
   
   private static final Logger logger = LoggerFactory.getLogger(ServerRepository.class);
   
@@ -80,6 +89,33 @@ public class ServerRepository {
         return null;
       }
       return new DTO.Server(result);
+    }finally {
+      RepoRessources.closeResultSet(result);
+    }
+  }
+  
+  public static List<DTO.Server> getServersWithLeagueAccountIdAndRegion(String summonerId, Platform platform) throws SQLException {
+    ResultSet result = null;
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+      
+      String finalQuery = String.format(SELECT_SERVERS_WITH_LEAGUE_ACCOUNT,
+          summonerId, platform.getName());
+      result = query.executeQuery(finalQuery);
+      
+      List<DTO.Server> servers = new ArrayList<>();
+      int rowCount = result.last() ? result.getRow() : 0;
+      if(rowCount == 0) {
+        return servers;
+      }
+      
+      result.first();
+      while(!result.isAfterLast()) {
+        servers.add(new DTO.Server(result));
+        result.next();
+      }
+      
+      return servers;
     }finally {
       RepoRessources.closeResultSet(result);
     }
@@ -203,13 +239,13 @@ public class ServerRepository {
     }
   }
   
-  public static List<DTO.Server> getGuildWhoNeedToBeRefresh() throws SQLException {
+  public static List<DTO.Server> getGuildWhoNeedToBeRefresh(int delayBetweenEachRefreshInMinutes) throws SQLException {
     ResultSet result = null;
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
       
       String finalQuery = String.format(SELECT_SERVER_WITH_TIMESTAMP_AFTER,
-          DTO.DB_TIME_PATTERN.format(LocalDateTime.now().minusMinutes(5)),
+          DTO.DB_TIME_PATTERN.format(LocalDateTime.now().minusMinutes(delayBetweenEachRefreshInMinutes)),
           false);
       result = query.executeQuery(finalQuery);
       

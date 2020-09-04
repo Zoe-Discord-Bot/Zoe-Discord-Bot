@@ -139,7 +139,7 @@ public class ServerData {
     RESPONSE_WAITER.shutdown();
 
     RESPONSE_WAITER.awaitTermination(1, TimeUnit.MINUTES);
-    if(!RESPONSE_WAITER.isShutdown()) {
+    if(!RESPONSE_WAITER.isTerminated()) {
       RESPONSE_WAITER.shutdownNow();
     }
     logger.info("Shutdown of Response Waiter has been completed !");
@@ -150,7 +150,7 @@ public class ServerData {
     SERVER_EXECUTOR.shutdown();
 
     SERVER_EXECUTOR.awaitTermination(1, TimeUnit.MINUTES);
-    if(!SERVER_EXECUTOR.isShutdown()) {
+    if(!SERVER_EXECUTOR.isTerminated()) {
       SERVER_EXECUTOR.shutdownNow();
     }
     logger.info("Shutdown of Servers Executor has been completed !");
@@ -161,7 +161,7 @@ public class ServerData {
     INFOCHANNEL_HELPER_THREAD.shutdown();
 
     INFOCHANNEL_HELPER_THREAD.awaitTermination(1, TimeUnit.MINUTES);
-    if(!INFOCHANNEL_HELPER_THREAD.isShutdown()) {
+    if(!INFOCHANNEL_HELPER_THREAD.isTerminated()) {
       INFOCHANNEL_HELPER_THREAD.shutdownNow();
     }
     logger.info("Shutdown of Infochannel Helper Threads has been completed !");
@@ -172,7 +172,7 @@ public class ServerData {
     INFOCARDS_GENERATOR.shutdown();
 
     INFOCARDS_GENERATOR.awaitTermination(1, TimeUnit.MINUTES);
-    if(!INFOCARDS_GENERATOR.isShutdown()) {
+    if(!INFOCARDS_GENERATOR.isTerminated()) {
       INFOCARDS_GENERATOR.shutdownNow();
     }
     logger.info("Shutdown of InfoCards Generator has been completed !");
@@ -183,7 +183,7 @@ public class ServerData {
     RANKED_MESSAGE_GENERATOR.shutdown();
 
     RANKED_MESSAGE_GENERATOR.awaitTermination(1, TimeUnit.MINUTES);
-    if(!RANKED_MESSAGE_GENERATOR.isShutdown()) {
+    if(!RANKED_MESSAGE_GENERATOR.isTerminated()) {
       RANKED_MESSAGE_GENERATOR.shutdownNow();
     }
     logger.info("Shutdown of Ranked Message Generator has been completed !");
@@ -197,7 +197,7 @@ public class ServerData {
       logger.info("Start to shutdown Players Worker {}, this can take 1 minutes max...", platform.getName());
       
       playerWorker.awaitTermination(1, TimeUnit.MINUTES);
-      if(!playerWorker.isShutdown()) {
+      if(!playerWorker.isTerminated()) {
         playerWorker.shutdownNow();
       }
       logger.info("Shutdown of Player Workers {} has been completed !", platform.getName());
@@ -213,7 +213,7 @@ public class ServerData {
       logger.info("Start to shutdown Match Worker {}, this can take 1 minutes max...", platform.getName());
 
       matchWorker.awaitTermination(1, TimeUnit.MINUTES);
-      if(!matchWorker.isShutdown()) {
+      if(!matchWorker.isTerminated()) {
         matchWorker.shutdownNow();
       }
       logger.info("Shutdown of Match Worker {} has been completed !", platform.getName());
@@ -226,7 +226,7 @@ public class ServerData {
     LEADERBOARD_EXECUTOR.shutdown();
 
     LEADERBOARD_EXECUTOR.awaitTermination(1, TimeUnit.MINUTES);
-    if(!LEADERBOARD_EXECUTOR.isShutdown()) {
+    if(!LEADERBOARD_EXECUTOR.isTerminated()) {
       LEADERBOARD_EXECUTOR.shutdownNow();
     }
     logger.info("Shutdown of Leaderboard Executor has been completed !");
@@ -245,7 +245,7 @@ public class ServerData {
           logger.error("error while shutdowning commands Executor", e);
           Thread.currentThread().interrupt();
         }
-        if(!COMMANDS_EXECUTOR.isShutdown()) {
+        if(!COMMANDS_EXECUTOR.isTerminated()) {
           COMMANDS_EXECUTOR.shutdownNow();
         }
 

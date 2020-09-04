@@ -197,7 +197,7 @@
     "mainShowCommandHelpMessage": "If you need help for show command, type `>show help`",
     "mainStatsCommandHelpMessage": "If you want help about stats commands, type `>stats help`",
     "teamNameOfPlayerWithoutTeam": "No Team",
-    "informationPanelRefreshedTime": "*Refreshed every 5 minutes*",
+    "informationPanelRefreshedTime": "*Refreshed every %s minutes*",
     "informationPanelNotInGame": "Not in game",
     "informationPanelMultipleAccountInGame": "Multiple accounts are in game",
     "informationPanelTitle": "Information Panel",

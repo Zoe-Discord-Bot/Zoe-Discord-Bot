@@ -4,6 +4,7 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -30,6 +31,12 @@ public class ServerChecker extends TimerTask {
   private static final int TIME_BETWEEN_EACH_STATUS_REFRESH_IN_HOURS = 1;
 
   private static final int TIME_BETWEEN_EACH_RAPI_CHANNEL_REFRESH_IN_MINUTES = 2;
+  
+  private static final int NUMBER_OF_TASKS_ALLOWED_IN_QUEUE = 10;
+  
+  private static final int MINIMAL_DELAY_BETWEEN_EACH_REFRESH = 5;
+  
+  private static AtomicInteger currentDelayBetweenRefresh = new AtomicInteger(MINIMAL_DELAY_BETWEEN_EACH_REFRESH);
 
   private static DateTime nextDiscordBotListRefresh = DateTime.now().plusSeconds(TIME_BETWEEN_EACH_DISCORD_BOT_LIST_REFRESH);
 
@@ -46,7 +53,15 @@ public class ServerChecker extends TimerTask {
 
     try {
 
-      for(DTO.Server server : ServerRepository.getGuildWhoNeedToBeRefresh()) {
+      if(ServerData.getServerExecutor().getQueue().size() > NUMBER_OF_TASKS_ALLOWED_IN_QUEUE) {
+        currentDelayBetweenRefresh.getAndIncrement();
+      }else {
+        if(currentDelayBetweenRefresh.get() > MINIMAL_DELAY_BETWEEN_EACH_REFRESH) {
+          currentDelayBetweenRefresh.getAndDecrement();
+        }
+      }
+      
+      for(DTO.Server server : ServerRepository.getGuildWhoNeedToBeRefresh(currentDelayBetweenRefresh.get())) {
 
         DTO.ServerStatus status = ServerStatusRepository.getServerStatus(server.serv_guildId);
         ServerStatusRepository.updateInTreatment(status.servstatus_id, true);
@@ -152,5 +167,9 @@ public class ServerChecker extends TimerTask {
 
   private static void setNextRAPIChannelRefresh(DateTime nextRAPIChannelRefresh) {
     ServerChecker.nextRAPIChannelRefresh = nextRAPIChannelRefresh;
+  }
+
+  public static int getCurrentDelayBetweenRefresh() {
+    return currentDelayBetweenRefresh.get();
   }
 }

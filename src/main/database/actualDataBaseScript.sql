@@ -1,7 +1,7 @@
 -- Init Zoe DB
 
 CREATE DATABASE zoe;
-create user zoeAdmin with encrypted password 'xf345sD2#a@v'; --Random test password
+create user zoeadmin with encrypted password 'xf345sD2#a@v'; --Random test password
 grant all privileges on database zoe to zoeAdmin;
 
 CREATE TABLE server (

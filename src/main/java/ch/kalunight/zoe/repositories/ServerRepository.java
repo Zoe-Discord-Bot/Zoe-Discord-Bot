@@ -239,13 +239,13 @@ public class ServerRepository {
     }
   }
   
-  public static List<DTO.Server> getGuildWhoNeedToBeRefresh() throws SQLException {
+  public static List<DTO.Server> getGuildWhoNeedToBeRefresh(int delayBetweenEachRefreshInMinutes) throws SQLException {
     ResultSet result = null;
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
       
       String finalQuery = String.format(SELECT_SERVER_WITH_TIMESTAMP_AFTER,
-          DTO.DB_TIME_PATTERN.format(LocalDateTime.now().minusMinutes(5)),
+          DTO.DB_TIME_PATTERN.format(LocalDateTime.now().minusMinutes(delayBetweenEachRefreshInMinutes)),
           false);
       result = query.executeQuery(finalQuery);
       

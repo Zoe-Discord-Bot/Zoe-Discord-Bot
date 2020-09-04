@@ -43,6 +43,7 @@ import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.repositories.ServerStatusRepository;
 import ch.kalunight.zoe.repositories.TeamRepository;
 import ch.kalunight.zoe.service.RankedChannelRefresher;
+import ch.kalunight.zoe.service.ServerChecker;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.request.RiotRequest;
 import net.dv8tion.jda.api.entities.Guild;
@@ -769,7 +770,7 @@ public class InfoPanelRefresher implements Runnable {
       stringMessage.append(" \n");
     }
 
-    stringMessage.append(LanguageManager.getText(server.serv_language, "informationPanelRefreshedTime"));
+    stringMessage.append(String.format(LanguageManager.getText(server.serv_language, "informationPanelRefreshedTime"), ServerChecker.getCurrentDelayBetweenRefresh()));
 
     return stringMessage.toString();
   }

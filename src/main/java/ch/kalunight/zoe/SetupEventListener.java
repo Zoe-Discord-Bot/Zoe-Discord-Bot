@@ -35,7 +35,7 @@ public class SetupEventListener extends ListenerAdapter {
 
   private static final Logger logger = LoggerFactory.getLogger(SetupEventListener.class);
   
-  private static boolean zoeIsBooted = true;
+  private static boolean zoeIsBooted = false;
   
   @Override
   public void onReady(ReadyEvent event) {
@@ -127,7 +127,7 @@ public class SetupEventListener extends ListenerAdapter {
     setZoeIsBooted(true);
     
     logger.info("Cache all registered players ...");
-    //ServerData.getServerExecutor().execute(new CachePlayerService());
+    ServerData.getServerExecutor().execute(new CachePlayerService());
     logger.info("Cache all registered players !");
     
     logger.info("Booting finished !");

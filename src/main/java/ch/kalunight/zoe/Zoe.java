@@ -183,7 +183,7 @@ public class Zoe {
         .setMemberCachePolicy(new ZoeMemberCachePolicy())
         .setChunkingFilter(ChunkingFilter.NONE)
         .addEventListeners(commandClient, setupEventListener);
-
+    
     return builder.build();
   }
 

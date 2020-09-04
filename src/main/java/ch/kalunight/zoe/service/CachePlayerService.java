@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.util.Ressources;
+import net.dv8tion.jda.api.entities.Guild;
 
 public class CachePlayerService implements Runnable {
 
@@ -25,10 +26,9 @@ public class CachePlayerService implements Runnable {
         count++;
         if(!Ressources.getBlackListedServer().contains(oneGuild.getKey())) {
           logger.info("Load server guild {}/{}", count, listEntry.size());
-          for(Long idPlayer : oneGuild.getValue()) {
-            if(oneGuild != null && oneGuild.getKey() != null && Zoe.getJda().getGuildById(oneGuild.getKey()) != null) {
-              Zoe.getJda().getGuildById(oneGuild.getKey()).retrieveMemberById(idPlayer).complete();
-            }
+          Guild guild = Zoe.getJda().getGuildById(oneGuild.getKey());
+          if(guild != null) {
+            guild.findMembers(e -> PlayerRepository.getListDiscordIdOfRegisteredPlayers().get(oneGuild.getKey()).contains(e.getIdLong()));
           }
         }
       }

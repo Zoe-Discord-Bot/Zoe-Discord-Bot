@@ -28,6 +28,7 @@ import net.rithms.riot.api.endpoints.match.dto.MatchList;
 import net.rithms.riot.api.endpoints.match.dto.MatchTimeline;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
+import net.rithms.riot.api.endpoints.tft_league.dto.TFTLeagueEntry;
 import net.rithms.riot.api.request.ratelimit.RateLimitException;
 import net.rithms.riot.constant.Platform;
 
@@ -318,6 +319,36 @@ public class CachedRiotApi {
     increaseCallCountForGivenRegion(platform);
 
     return mastery;
+  }
+  
+  public Set<TFTLeagueEntry> getTFTLeagueEntryWithRateLimit(Platform platform, String summonerId) {
+    Set<TFTLeagueEntry> leagueEntries = null;
+    boolean needToRetry;
+    
+    do {
+      leagueEntryRequestCount.incrementAndGet();
+      increaseCallCountForGivenRegion(platform);
+      
+      needToRetry = true;
+      try {
+        leagueEntries = riotApi.getTFTLeagueEntryBySummoner(platform, summonerId);
+        needToRetry = false;
+      }catch(RateLimitException e) {
+        try {
+          logger.info("Waiting rate limit ({} sec) to retry when getting the rank", e.getRetryAfter());
+          TimeUnit.SECONDS.sleep(e.getRetryAfter());
+        } catch (InterruptedException e1) {
+          logger.error("Thread Interupted when waiting the rate limit !", e1);
+          Thread.currentThread().interrupt();
+        }
+      } catch (RiotApiException e) {
+        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+          return new HashSet<>();
+        }
+      }
+    }while(needToRetry);
+    
+    return leagueEntries;
   }
   
   public ChampionMastery getChampionMasteriesBySummonerByChampionWithRateLimit(Platform platform, String summonerId, int championId) throws RiotApiException {

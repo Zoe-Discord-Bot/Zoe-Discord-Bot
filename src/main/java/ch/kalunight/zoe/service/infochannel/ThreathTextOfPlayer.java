@@ -28,6 +28,7 @@ import ch.kalunight.zoe.util.Ressources;
 import ch.kalunight.zoe.util.request.RiotRequest;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
+import net.rithms.riot.api.endpoints.tft_league.dto.TFTLeagueEntry;
 
 public class ThreathTextOfPlayer implements Runnable {
 
@@ -116,8 +117,10 @@ public class ThreathTextOfPlayer implements Runnable {
 
     if(lastRank == null) {
       Set<LeagueEntry> leaguesEntry;
+      Set<TFTLeagueEntry> tftLeagueEntry;
       try {
         leaguesEntry = Zoe.getRiotApi().getLeagueEntriesBySummonerIdWithRateLimit(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
+        tftLeagueEntry = Zoe.getRiotApi().getTFTLeagueEntryWithRateLimit(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
       } catch (RiotApiException e) {
         notInGameWithoutRankInfo(stringMessage, player);
         return;
@@ -125,6 +128,7 @@ public class ThreathTextOfPlayer implements Runnable {
 
       LeagueEntry soloq = null;
       LeagueEntry flex = null;
+      TFTLeagueEntry tft = null;
 
       for(LeagueEntry leaguePosition : leaguesEntry) {
         if(leaguePosition.getQueueType().equals("RANKED_SOLO_5x5")) {
@@ -133,9 +137,15 @@ public class ThreathTextOfPlayer implements Runnable {
           flex = leaguePosition;
         }
       }
+      
+      for(TFTLeagueEntry tftRank : tftLeagueEntry) {
+        if(tftRank.getQueueType().equals("TFT_RANKED")) {
+          tft = tftRank;
+        }
+      }
 
 
-      if((soloq != null || flex != null) && LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id) == null) {
+      if((soloq != null || flex != null || tft != null) && LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id) == null) {
         LastRankRepository.createLastRank(leagueAccount.leagueAccount_id);
 
 
@@ -146,6 +156,10 @@ public class ThreathTextOfPlayer implements Runnable {
 
         if(flex != null) {
           LastRankRepository.updateLastRankFlexWithLeagueAccountId(flex, leagueAccount.leagueAccount_id);
+        }
+        
+        if(tft != null) {
+          LastRankRepository.updateLastRankTftWithLeagueAccountId(tft, leagueAccount.leagueAccount_id);
         }
         lastRank = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
       }
@@ -163,6 +177,7 @@ public class ThreathTextOfPlayer implements Runnable {
 
     FullTier soloqFullTier;
     FullTier flexFullTier;
+    FullTier tftFullTier;
 
     String accountString;
     String baseText;

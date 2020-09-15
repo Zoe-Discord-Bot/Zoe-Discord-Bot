@@ -343,10 +343,14 @@ public class CachedRiotApi {
         }
       } catch (RiotApiException e) {
         if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
-          return new HashSet<>();
+          return null;
         }
       }
     }while(needToRetry);
+    
+    if(leagueEntries.isEmpty()) {
+      return null;
+    }
     
     return leagueEntries;
   }

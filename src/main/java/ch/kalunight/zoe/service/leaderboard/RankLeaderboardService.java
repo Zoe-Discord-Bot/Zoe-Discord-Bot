@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -28,6 +29,7 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
+import net.rithms.riot.api.endpoints.tft_league.dto.TFTLeagueEntry;
 
 public class RankLeaderboardService extends LeaderboardBaseService {
 
@@ -44,12 +46,12 @@ public class RankLeaderboardService extends LeaderboardBaseService {
     if(Objective.SPECIFIC_QUEUE_RANK.equals(objective)) {
       queueSelected = gson.fromJson(leaderboard.lead_data, QueueSelected.class);
     }
-    
+
     List<PlayerRank> playersRank = orderAndGetPlayers(guild, objective, queueSelected);
-    
+
     List<String> playersName = new ArrayList<>();
     List<String> dataList = new ArrayList<>();
-    
+
     for(PlayerRank playerRank : playersRank) {
       playersName.add(playerRank.getPlayer().getUser().getAsMention());
       FullTier fullTier = playerRank.getFullTier();
@@ -60,7 +62,7 @@ public class RankLeaderboardService extends LeaderboardBaseService {
         dataList.add(Ressources.getTierEmote().get(fullTier.getTier()).getUsableEmote() + " " + fullTier.toString(server.serv_language));
       }
     }
-    
+
     String playerTitle = LanguageManager.getText(server.serv_language, "leaderboardPlayersTitle");
     String dataName;
     if(queueSelected == null) {
@@ -68,7 +70,7 @@ public class RankLeaderboardService extends LeaderboardBaseService {
     }else {
       dataName = String.format(LanguageManager.getText(server.serv_language, "leaderboardRankSpecificQueueTitle"), LanguageManager.getText(server.serv_language, queueSelected.getGameQueue().getNameId()));
     }
-    
+
     EmbedBuilder builder = buildBaseLeaderboardList(playerTitle, playersName, dataName, dataList);
     builder.setColor(Color.ORANGE);
     if(queueSelected == null) {
@@ -99,6 +101,14 @@ public class RankLeaderboardService extends LeaderboardBaseService {
       for(DTO.LeagueAccount leagueAccount : leaguesAccounts) {
         Set<LeagueEntry> leaguesEntry = Zoe.getRiotApi().getLeagueEntriesBySummonerIdWithRateLimit(leagueAccount.leagueAccount_server,
             leagueAccount.leagueAccount_summonerId);
+
+        Set<TFTLeagueEntry> tftLeaguesEntry = Zoe.getRiotApi().getTFTLeagueEntryWithRateLimit(leagueAccount.leagueAccount_server,
+            leagueAccount.leagueAccount_summonerId);
+
+        if(tftLeaguesEntry != null && !tftLeaguesEntry.isEmpty()) {
+          leaguesEntry = new HashSet<>();
+          leaguesEntry.add((LeagueEntry) tftLeaguesEntry.iterator().next());
+        }
 
         long rankValue = 0;
         FullTier fullTierRankValue = null;
@@ -132,7 +142,7 @@ public class RankLeaderboardService extends LeaderboardBaseService {
               logger.debug("FullTier impossible to create", e);
             }
           }
-          
+
           rankValue = bestRankQueueAccountValue;
           fullTierRankValue = bestRankQueueAccountFullTier;
           queueOfRankValue = queueSelectedByQueue;
@@ -143,7 +153,7 @@ public class RankLeaderboardService extends LeaderboardBaseService {
             && (fullTierBestAccountRank.compareTo(fullTierRankValue) < 0))) {
           bestAccountRank = rankValue;
           fullTierBestAccountRank = fullTierRankValue;
-          
+
           queue = queueOfRankValue;
         }
       }

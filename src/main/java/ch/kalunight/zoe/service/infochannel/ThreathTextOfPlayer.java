@@ -1,6 +1,7 @@
 package ch.kalunight.zoe.service.infochannel;
 
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -11,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.kalunight.zoe.Zoe;
+import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.LastRank;
@@ -25,7 +27,6 @@ import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.FullTierUtil;
 import ch.kalunight.zoe.util.InfoPanelRefresherUtil;
 import ch.kalunight.zoe.util.Ressources;
-import ch.kalunight.zoe.util.request.RiotRequest;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 import net.rithms.riot.api.endpoints.tft_league.dto.TFTLeagueEntry;
@@ -46,6 +47,20 @@ public class ThreathTextOfPlayer implements Runnable {
 
   private StringBuilder stringMessage;
 
+  private class LastRankQueue {
+    public LeagueEntry leagueEntry;
+    public LeagueEntry leagueEntrySecond;
+    public LocalDateTime lastRefresh;
+    public GameQueueConfigId queue;
+    
+    public LastRankQueue(LeagueEntry leagueEntry, LeagueEntry leagueEntrySecond, LocalDateTime lastRefresh, GameQueueConfigId gameQueueConfigId) {
+      this.leagueEntry = leagueEntry;
+      this.leagueEntrySecond = leagueEntrySecond;
+      this.lastRefresh = lastRefresh;
+      this.queue = gameQueueConfigId;
+    }
+  }
+  
   public ThreathTextOfPlayer(Server server, Player player, ServerConfiguration configuration) {
     this.player = player;
     this.server = server;
@@ -115,6 +130,10 @@ public class ThreathTextOfPlayer implements Runnable {
       DTO.LeagueAccount leagueAccount, boolean mutlipleAccount) throws SQLException {
     LastRank lastRank = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
 
+    LeagueEntry soloq = null;
+    LeagueEntry flex = null;
+    TFTLeagueEntry tft = null;
+    
     if(lastRank == null) {
       Set<LeagueEntry> leaguesEntry;
       Set<TFTLeagueEntry> tftLeagueEntry;
@@ -126,14 +145,10 @@ public class ThreathTextOfPlayer implements Runnable {
         return;
       }
 
-      LeagueEntry soloq = null;
-      LeagueEntry flex = null;
-      TFTLeagueEntry tft = null;
-
       for(LeagueEntry leaguePosition : leaguesEntry) {
-        if(leaguePosition.getQueueType().equals("RANKED_SOLO_5x5")) {
+        if(leaguePosition.getQueueType().equals(GameQueueConfigId.SOLOQ.getNameId())) {
           soloq = leaguePosition;
-        }else if(leaguePosition.getQueueType().equals("RANKED_FLEX_SR")) {
+        }else if(leaguePosition.getQueueType().equals(GameQueueConfigId.FLEX.getNameId())) {
           flex = leaguePosition;
         }
       }
@@ -175,10 +190,6 @@ public class ThreathTextOfPlayer implements Runnable {
       return;
     }
 
-    FullTier soloqFullTier;
-    FullTier flexFullTier;
-    FullTier tftFullTier;
-
     String accountString;
     String baseText;
     if(mutlipleAccount) {
@@ -189,58 +200,68 @@ public class ThreathTextOfPlayer implements Runnable {
       accountString = player.getUser().getAsMention();
     }
 
-    if(lastRank.lastRank_soloqLastRefresh != null && lastRank.lastRank_flexLastRefresh == null) {
-
-      soloqFullTier = new FullTier(lastRank.lastRank_soloq);
-
-      stringMessage.append(getDetailledSoloQRank(lastRank, soloqFullTier, accountString, baseText));
-    }else if(lastRank.lastRank_soloqLastRefresh == null && lastRank.lastRank_flexLastRefresh != null) {
-
-      flexFullTier = new FullTier(lastRank.lastRank_flex);
-
-      stringMessage.append(getDetailledFlexRank(lastRank, flexFullTier, accountString, baseText));
-    }else if(lastRank.lastRank_soloqLastRefresh != null && lastRank.lastRank_flexLastRefresh != null) {
-
-      if(lastRank.lastRank_flexLastRefresh.isAfter(lastRank.lastRank_soloqLastRefresh)) {
-        flexFullTier = new FullTier(lastRank.lastRank_flex);
-
-        stringMessage.append(getDetailledFlexRank(lastRank, flexFullTier, accountString, baseText));
-      }else {
-        soloqFullTier = new FullTier(lastRank.lastRank_soloq);
-
-        stringMessage.append(getDetailledSoloQRank(lastRank, soloqFullTier, accountString, baseText));
+    List<LastRankQueue> lastRanksByQueue = new ArrayList<>();
+    
+    if(lastRank.lastRank_soloqLastRefresh != null) {
+      lastRanksByQueue.add(new LastRankQueue(lastRank.lastRank_soloq, lastRank.lastRank_soloqSecond, lastRank.lastRank_soloqLastRefresh, GameQueueConfigId.SOLOQ));
+    }
+    
+    if(lastRank.lastRank_flexLastRefresh != null) {
+      lastRanksByQueue.add(new LastRankQueue(lastRank.lastRank_flex, lastRank.lastRank_flexSecond, lastRank.lastRank_flexLastRefresh, GameQueueConfigId.FLEX));
+    }
+    
+    if(lastRank.lastRank_tftLastRefresh != null) {
+      lastRanksByQueue.add(new LastRankQueue(lastRank.lastRank_tft, lastRank.lastRank_tftSecond, lastRank.lastRank_tftLastRefresh, GameQueueConfigId.TFT));
+    }
+    
+    
+    LastRankQueue rankQueueToShow = null;
+    for(LastRankQueue lastRankToCheck : lastRanksByQueue) {
+      if(rankQueueToShow == null || rankQueueToShow.lastRefresh.isAfter(lastRankToCheck.lastRefresh)) {
+        rankQueueToShow = lastRankToCheck;
       }
-    }else {
-      LeagueEntry entrySoloQ = RiotRequest.getLeagueEntrySoloq(leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server);
+    }
+    
+    
+    if(rankQueueToShow != null) {
+      
+      FullTier lastRankFullTier = new FullTier(rankQueueToShow.leagueEntry);
+      
+      stringMessage.append(getDetailledRank(rankQueueToShow.leagueEntry, rankQueueToShow.leagueEntrySecond, lastRankFullTier, accountString, baseText, rankQueueToShow.queue));
+      
+    } else {
+      
+      if(soloq != null) {
+        FullTier soloQTier = new FullTier(soloq);
 
-      if(entrySoloQ != null) {
-        FullTier soloQTier = new FullTier(entrySoloQ);
-
-        stringMessage.append(getDetailledSoloQRank(lastRank, soloQTier, accountString, baseText));
-        LastRankRepository.updateLastRankSoloqWithLeagueAccountId(entrySoloQ, leagueAccount.leagueAccount_id);
+        stringMessage.append(getDetailledRank(soloq, null, soloQTier, accountString, baseText, GameQueueConfigId.SOLOQ));
+        LastRankRepository.updateLastRankSoloqWithLeagueAccountId(soloq, leagueAccount.leagueAccount_id);
+        
       }else {
-        if(mutlipleAccount) {
-          notInGameUnranked(stringMessage, leagueAccount);
+        
+        if(tft != null) {
+          
+          FullTier tftFullTier = new FullTier(tft);
+
+          stringMessage.append(getDetailledRank(tft, null, tftFullTier, accountString, baseText, GameQueueConfigId.TFT));
+          LastRankRepository.updateLastRankSoloqWithLeagueAccountId(tft, leagueAccount.leagueAccount_id);
+          
         }else {
-          notInGameWithoutRankInfo(stringMessage, player);
+          if(mutlipleAccount) {
+            notInGameUnranked(stringMessage, leagueAccount);
+          }else {
+            notInGameWithoutRankInfo(stringMessage, player);
+          }
         }
       }
     }
   }
 
-  private String getDetailledFlexRank(LastRank lastRank, FullTier flexFullTier, String accountString, String baseText) {
+  private String getDetailledRank(LeagueEntry leagueEntryFirst, LeagueEntry leagueEntrySecond, FullTier tier, String accountString, String baseText, GameQueueConfigId rankedQueue) {
     return String.format(LanguageManager.getText(server.serv_language, baseText), accountString, 
-        Ressources.getTierEmote().get(flexFullTier.getTier()).getUsableEmote() + " " + flexFullTier.toString(server.serv_language),
-        FullTierUtil.getTierRankTextDifference(lastRank.lastRank_soloqSecond, lastRank.lastRank_soloq, server.serv_language)
-        + " / " + LanguageManager.getText(server.serv_language, "flex")) + "\n";
-  }
-
-  private String getDetailledSoloQRank(LastRank lastRank, FullTier soloqFullTier, String accountString,
-      String baseText) {
-    return String.format(LanguageManager.getText(server.serv_language, baseText), accountString, 
-        Ressources.getTierEmote().get(soloqFullTier.getTier()).getUsableEmote() + " " + soloqFullTier.toString(server.serv_language),
-        FullTierUtil.getTierRankTextDifference(lastRank.lastRank_soloqSecond, lastRank.lastRank_soloq, server.serv_language)
-        + " / " + LanguageManager.getText(server.serv_language, "soloq")) + "\n";
+        Ressources.getTierEmote().get(tier.getTier()).getUsableEmote() + " " + tier.toString(server.serv_language),
+        FullTierUtil.getTierRankTextDifference(leagueEntrySecond, leagueEntryFirst, server.serv_language)
+        + " / " + LanguageManager.getText(server.serv_language, rankedQueue.getNameId())) + "\n";
   }
 
   private void notInGameWithoutRankInfo(final StringBuilder stringMessage, DTO.Player player) {

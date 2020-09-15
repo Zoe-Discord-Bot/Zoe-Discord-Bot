@@ -125,7 +125,7 @@ public class ServerChecker extends TimerTask {
         setNextStatusRefresh(nextStatusRefresh.plusHours(TIME_BETWEEN_EACH_STATUS_REFRESH_IN_HOURS));
       }
     }catch(SQLException e) {
-      logger.error("Critical DB Issue in the server checker thread !", e);
+      logger.error("Critical DB Issue in the server checker thread ! SQL State : {}", e.getSQLState(), e);
     }catch(Exception e){
       logger.error("Unexpected error in ServerChecker", e);
     }finally {

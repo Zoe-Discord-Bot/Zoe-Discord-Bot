@@ -1,6 +1,7 @@
 package ch.kalunight.zoe.util;
 
 import ch.kalunight.zoe.exception.NoValueRankException;
+import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
@@ -11,7 +12,11 @@ public class FullTierUtil {
     // hide default public constructor
   }
   
-  public static String getTierRankTextDifference(LeagueEntry oldEntry, LeagueEntry newEntry, String lang) {
+  public static String getTierRankTextDifference(LeagueEntry oldEntry, LeagueEntry newEntry, String lang, GameQueueConfigId queue) {
+    
+    if(queue == GameQueueConfigId.SOLOQ) {
+      return threathTFT(oldEntry, newEntry, lang);
+    }
     
     String usableGreenEmote = "";
     if(Ressources.getGreenTriangleEmote() != null) {
@@ -87,6 +92,38 @@ public class FullTierUtil {
     
     
     return "*?*";
+  }
+
+  private static String threathTFT(LeagueEntry oldEntry, LeagueEntry newEntry, String lang) {
+    
+    String usableGreenEmote = "";
+    if(Ressources.getGreenTriangleEmote() != null) {
+      usableGreenEmote = Ressources.getGreenTriangleEmote().getUsableEmote();
+    }
+    
+    String usableRedEmote = "";
+    if(Ressources.getRedTriangleEmote() != null) {
+      usableRedEmote = Ressources.getRedTriangleEmote();
+    }
+    
+    FullTier oldFullTier = new FullTier(oldEntry);
+    FullTier newFullTier = new FullTier(newEntry);
+    
+    if(oldEntry == null || newEntry == null) {
+      return "?";
+    }
+    
+    if(newFullTier.getLeaguePoints() < oldFullTier.getLeaguePoints()) {
+      
+      return usableRedEmote + " " + Integer.toString(newFullTier.getLeaguePoints() - oldFullTier.getLeaguePoints());
+      
+    }else if(newFullTier.getLeaguePoints() > oldFullTier.getLeaguePoints()) {
+      
+      return usableGreenEmote + " +" + (newFullTier.getLeaguePoints() - oldFullTier.getLeaguePoints());
+      
+    } else {
+      return "*~0*";
+    }
   }
   
 }

@@ -137,7 +137,7 @@ public class InfoPanelRefresher implements Runnable {
     try {
 
       nbrServerRefreshedLast2Minutes.incrementAndGet();
-      
+
       if(guild == null) {
         return;
       }
@@ -205,29 +205,29 @@ public class InfoPanelRefresher implements Runnable {
     }
   }
 
-private void updateServerStatus() {
-	ServerStatus status;
-	try {
-		status = ServerStatusRepository.getServerStatus(server.serv_guildId);
-	} catch (SQLException e) {
-        logger.error("SQL Exception when getting server status ! WARNING : The server may be not tracked anymore !", e);
-        return;
-	}
-	
-	try {
-        ServerRepository.updateTimeStamp(server.serv_guildId, LocalDateTime.now());
-        ServerStatusRepository.updateInTreatment(status.servstatus_id, false);
-      } catch(SQLException e) {
-        logger.error("SQL Exception when updating timeStamp and treatment ! Retry in 1 seconds ... | SQL State : {}", e.getSQLState(), e);
-        try {
-			TimeUnit.SECONDS.sleep(1);
-			updateServerStatus();
-		} catch (InterruptedException e1) {
-			logger.error("InterruptedException while updating timeStamp and treatment !", e);
-			Thread.currentThread().interrupt();
-		}
+  private void updateServerStatus() {
+    ServerStatus status;
+    try {
+      status = ServerStatusRepository.getServerStatus(server.serv_guildId);
+    } catch (SQLException e) {
+      logger.error("SQL Exception when getting server status ! WARNING : The server may be not tracked anymore !", e);
+      return;
+    }
+
+    try {
+      ServerRepository.updateTimeStamp(server.serv_guildId, LocalDateTime.now());
+      ServerStatusRepository.updateInTreatment(status.servstatus_id, false);
+    } catch(SQLException e) {
+      logger.error("SQL Exception when updating timeStamp and treatment ! Retry in 1 seconds ... | SQL State : {}", e.getSQLState(), e);
+      try {
+        TimeUnit.SECONDS.sleep(1);
+        updateServerStatus();
+      } catch (InterruptedException e1) {
+        logger.error("InterruptedException while updating timeStamp and treatment !", e);
+        Thread.currentThread().interrupt();
       }
-}
+    }
+  }
 
   private void cleanInfoChannel() {
     try {
@@ -260,25 +260,25 @@ private void updateServerStatus() {
 
     for(DTO.GameInfoCard gameInfoCard : gameInfoCards) {
       switch(gameInfoCard.gamecard_status) {
-        case IN_CREATION:
-          GameInfoCardRepository.updateGameInfoCardStatusWithId(gameInfoCard.gamecard_id, GameInfoCardStatus.IN_TREATMENT);
+      case IN_CREATION:
+        GameInfoCardRepository.updateGameInfoCardStatusWithId(gameInfoCard.gamecard_id, GameInfoCardStatus.IN_TREATMENT);
 
-          List<DTO.LeagueAccount> accountsLinked = LeagueAccountRepository
-              .getLeaguesAccountsWithGameCardsId(gameInfoCard.gamecard_id);
+        List<DTO.LeagueAccount> accountsLinked = LeagueAccountRepository
+            .getLeaguesAccountsWithGameCardsId(gameInfoCard.gamecard_id);
 
-          DTO.LeagueAccount account = accountsLinked.get(0);
+        DTO.LeagueAccount account = accountsLinked.get(0);
 
-          DTO.CurrentGameInfo currentGame = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(account.leagueAccount_id);
+        DTO.CurrentGameInfo currentGame = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(account.leagueAccount_id);
 
-          ServerData.getInfocardsGenerator().execute(
-              new InfoCardsWorker(server, infochannel, accountsLinked.get(0), currentGame, gameInfoCard));
-          break;
-        case IN_WAIT_OF_DELETING:
-          GameInfoCardRepository.deleteGameInfoCardsWithId(gameInfoCard.gamecard_id);
-          deleteDiscordInfoCard(server.serv_guildId, gameInfoCard);
-          break;
-        default:
-          break;
+        ServerData.getInfocardsGenerator().execute(
+            new InfoCardsWorker(server, infochannel, accountsLinked.get(0), currentGame, gameInfoCard));
+        break;
+      case IN_WAIT_OF_DELETING:
+        GameInfoCardRepository.deleteGameInfoCardsWithId(gameInfoCard.gamecard_id);
+        deleteDiscordInfoCard(server.serv_guildId, gameInfoCard);
+        break;
+      default:
+        break;
       }
     }
   }
@@ -289,7 +289,7 @@ private void updateServerStatus() {
     List<DTO.InfoPanelMessage> infoPanelMessages = InfoChannelRepository.getInfoPanelMessages(server.serv_guildId);
 
     removeDeletedMessageFromTheDB(infoPanelMessages);
-    
+
     checkMessageDisplaySync(infoPanelMessages, infoChannelDTO); 
 
     infoPanelMessages = InfoChannelRepository.getInfoPanelMessages(server.serv_guildId);
@@ -323,12 +323,12 @@ private void updateServerStatus() {
   }
 
   private void removeDeletedMessageFromTheDB(List<InfoPanelMessage> infoPanelMessages) throws SQLException {
-    
+
     List<InfoPanelMessage> infopanelMessagesDeleted = new ArrayList<>();
-    
+
     for(InfoPanelMessage messageToTest : infoPanelMessages) {
       try {
-       infochannel.retrieveMessageById(messageToTest.infopanel_messageId).complete();
+        infochannel.retrieveMessageById(messageToTest.infopanel_messageId).complete();
       }catch(ErrorResponseException e) {
         if(e.getErrorResponse() == ErrorResponse.UNKNOWN_MESSAGE) {
           InfoChannelRepository.deleteInfoPanelMessage(messageToTest.infopanel_id);
@@ -336,7 +336,7 @@ private void updateServerStatus() {
         }
       }
     }
-    
+
     infoPanelMessages.removeAll(infopanelMessagesDeleted);
   }
 
@@ -796,7 +796,7 @@ private void updateServerStatus() {
   }
 
   private void pseudoList(final StringBuilder stringMessage, List<DTO.Player> playersList, ServerConfiguration configuration) {
-    
+
     List<ThreathTextOfPlayer> threathTextWorkers = new ArrayList<>();
     for(DTO.Player player : playersList) {
 
@@ -804,14 +804,14 @@ private void updateServerStatus() {
       ServerData.getInfochannelHelperThread().execute(threathTextWorker);
       threathTextWorkers.add(threathTextWorker);
     }
-    
+
     ThreathTextOfPlayer.awaitAll(playersList);
-    
+
     for(ThreathTextOfPlayer threathTextWorker : threathTextWorkers) {
       stringMessage.append(threathTextWorker.getStringMessage());
     }
   }
-  
+
   public static AtomicLong getNbrServerSefreshedLast2Minutes() {
     return nbrServerRefreshedLast2Minutes;
   }

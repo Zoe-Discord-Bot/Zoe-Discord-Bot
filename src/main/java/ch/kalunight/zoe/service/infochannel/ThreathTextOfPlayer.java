@@ -154,7 +154,7 @@ public class ThreathTextOfPlayer implements Runnable {
       }
       
       for(TFTLeagueEntry tftRank : tftLeagueEntry) {
-        if(tftRank.getQueueType().equals("TFT_RANKED")) {
+        if(tftRank.getQueueType().equals(GameQueueConfigId.TFT.getNameId())) {
           tft = tftRank;
         }
       }
@@ -260,7 +260,7 @@ public class ThreathTextOfPlayer implements Runnable {
   private String getDetailledRank(LeagueEntry leagueEntryFirst, LeagueEntry leagueEntrySecond, FullTier tier, String accountString, String baseText, GameQueueConfigId rankedQueue) {
     return String.format(LanguageManager.getText(server.serv_language, baseText), accountString, 
         Ressources.getTierEmote().get(tier.getTier()).getUsableEmote() + " " + tier.toString(server.serv_language),
-        FullTierUtil.getTierRankTextDifference(leagueEntrySecond, leagueEntryFirst, server.serv_language)
+        FullTierUtil.getTierRankTextDifference(leagueEntrySecond, leagueEntryFirst, server.serv_language, rankedQueue)
         + " / " + LanguageManager.getText(server.serv_language, rankedQueue.getNameId())) + "\n";
   }
 

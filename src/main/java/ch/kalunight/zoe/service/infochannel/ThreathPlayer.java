@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
@@ -18,27 +18,31 @@ import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.LastRank;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Player;
+import ch.kalunight.zoe.model.dto.DTO.RankHistoryChannel;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.repositories.CurrentGameInfoRepository;
 import ch.kalunight.zoe.repositories.LastRankRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
+import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.riotapi.CachedRiotApi;
+import ch.kalunight.zoe.service.RankedChannelRefresher;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.FullTierUtil;
 import ch.kalunight.zoe.util.InfoPanelRefresherUtil;
 import ch.kalunight.zoe.util.Ressources;
+import ch.kalunight.zoe.util.request.RiotRequest;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.tft_league.dto.TFTLeagueEntry;
 import net.rithms.riot.constant.Platform;
 
-public class ThreathTextOfPlayer implements Runnable {
+public class ThreathPlayer implements Runnable {
 
   protected static final List<Player> playersInWork = Collections.synchronizedList(new ArrayList<>());
 
-  protected static final Logger logger = LoggerFactory.getLogger(ThreathTextOfPlayer.class);
+  protected static final Logger logger = LoggerFactory.getLogger(ThreathPlayer.class);
 
   protected static final CachedRiotApi riotApi = Zoe.getRiotApi();
 
@@ -48,7 +52,11 @@ public class ThreathTextOfPlayer implements Runnable {
 
   private ServerConfiguration serverConfig;
 
-  private StringBuilder stringMessage;
+  private StringBuilder infochannelMessage;
+  
+  private RankHistoryChannel rankChannel;
+
+  private FullTier rank;
 
   private class LastRankQueue {
     public LeagueEntry leagueEntry;
@@ -106,15 +114,15 @@ public class ThreathTextOfPlayer implements Runnable {
       return true;
     }
 
-    private ThreathTextOfPlayer getEnclosingInstance() {
-      return ThreathTextOfPlayer.this;
+    private ThreathPlayer getEnclosingInstance() {
+      return ThreathPlayer.this;
     }
   }
 
-  public ThreathTextOfPlayer(Server server, Player player, ServerConfiguration configuration) {
+  public ThreathPlayer(Server server, Player player, ServerConfiguration configuration) {
     this.player = player;
     this.server = server;
-    this.stringMessage = new StringBuilder();
+    this.infochannelMessage = new StringBuilder();
     this.serverConfig = configuration;
     playersInWork.add(player);
   }
@@ -135,58 +143,84 @@ public class ThreathTextOfPlayer implements Runnable {
   }
 
 
-  private void refreshPlayer() {
+  private void refreshPlayer() throws SQLException {
+    List<LeagueAccount> leaguesAccount = LeagueAccountRepository.getLeaguesAccountsWithPlayerID(server.serv_guildId, player.player_id);
 
-    player.leagueAccounts =
-        LeagueAccountRepository.getLeaguesAccounts(server.serv_guildId, player.player_discordId);
-
-    for(DTO.LeagueAccount leagueAccount : player.leagueAccounts) {
-
+    for(LeagueAccount leagueAccount : leaguesAccount) {
       DTO.CurrentGameInfo currentGameDb = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(leagueAccount.leagueAccount_id);
 
-      CurrentGameWithRegion currentGameDbRegion = null;
-      if(currentGameDb != null) {
-        currentGameDbRegion = 
-            new CurrentGameWithRegion(currentGameDb, leagueAccount.leagueAccount_server);
+      CurrentGameInfo currentGame;
+      try {
+        currentGame = Zoe.getRiotApi().getActiveGameBySummoner(
+            leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
+      } catch(RiotApiException e) {
+        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+          currentGame = null;
+        }else {
+          continue;
+        }
       }
 
-      if(currentGameDb == null || !gameAlreadyAskedToRiot.contains(currentGameDbRegion)) {
-
-        CurrentGameInfo currentGame;
-        try {
-          currentGame = Zoe.getRiotApi().getActiveGameBySummoner(
-              leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
-        } catch(RiotApiException e) {
-          if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
-            currentGame = null;
-          }else {
-            continue;
-          }
-        }
-
-        if(currentGameDb == null && currentGame != null) {
-          CurrentGameInfoRepository.createCurrentGame(currentGame, leagueAccount);
-        }else if(currentGameDb != null && currentGame != null) {
-          if(currentGame.getGameId() == currentGameDb.currentgame_currentgame.getGameId()) {
-            CurrentGameInfoRepository.updateCurrentGame(currentGame, leagueAccount);
-          }else {
-            CurrentGameInfoRepository.deleteCurrentGame(currentGameDb, server);
-
-            searchForRefreshRankChannel(allLeaguesAccounts, currentGameDb);
-
-            CurrentGameInfoRepository.createCurrentGame(currentGame, leagueAccount);
-          }
-        }else if(currentGameDb != null && currentGame == null) {
+      if(currentGameDb == null && currentGame != null) {
+        CurrentGameInfoRepository.createCurrentGame(currentGame, leagueAccount);
+      }else if(currentGameDb != null && currentGame != null) {
+        if(currentGame.getGameId() == currentGameDb.currentgame_currentgame.getGameId()) {
+          CurrentGameInfoRepository.updateCurrentGame(currentGame, leagueAccount);
+        }else {
           CurrentGameInfoRepository.deleteCurrentGame(currentGameDb, server);
 
-          searchForRefreshRankChannel(allLeaguesAccounts, currentGameDb);
+          searchForRefreshRankChannel(leagueAccount, currentGameDb);
+
+          CurrentGameInfoRepository.createCurrentGame(currentGame, leagueAccount);
         }
-        if(currentGame != null) {
-          DTO.CurrentGameInfo currentGameInfo = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(leagueAccount.leagueAccount_id);
-          gameAlreadyAskedToRiot.add(new CurrentGameWithRegion(currentGameInfo, leagueAccount.leagueAccount_server));
-        }
+      }else if(currentGameDb != null && currentGame == null) {
+        CurrentGameInfoRepository.deleteCurrentGame(currentGameDb, server);
+
+        searchForRefreshRankChannel(leagueAccount, currentGameDb);
       }
     }
+  }
+  
+  private boolean checkIfTheGameAlreadyExist(LeagueAccount leagueAccount, CurrentGameInfo currentGame) {
+    
+  }
+
+  private void searchForRefreshRankChannel(DTO.LeagueAccount leagueAccount,
+      DTO.CurrentGameInfo currentGameDb) throws SQLException {
+    if(currentGameDb.currentgame_currentgame.getParticipantByParticipantId(leagueAccount.leagueAccount_summonerId) != null) {
+      Player playerToUpdate = PlayerRepository.getPlayerByLeagueAccountAndGuild(server.serv_guildId,
+          leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server);
+      updateRankChannelMessage(playerToUpdate, leagueAccount, currentGameDb);
+    }
+  }
+
+  private void updateRankChannelMessage(DTO.Player player, DTO.LeagueAccount leagueAccount, DTO.CurrentGameInfo currentGameDb)
+      throws SQLException {
+    CurrentGameInfo gameOfTheChange = currentGameDb.currentgame_currentgame;
+
+    LastRank rankBeforeThisGame = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
+    if(rankBeforeThisGame == null) {
+      LastRankRepository.createLastRank(leagueAccount.leagueAccount_id);
+      rankBeforeThisGame = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
+    }
+
+    if(gameOfTheChange.getGameQueueConfigId() == GameQueueConfigId.SOLOQ.getId()) {
+
+      LeagueEntry entry = RiotRequest.getLeagueEntrySoloq(leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server);
+      RankedChannelRefresher rankedRefresher = 
+          new RankedChannelRefresher(rankChannel, rankBeforeThisGame.lastRank_soloq, entry,
+              gameOfTheChange, player, leagueAccount, server);
+      ServerData.getRankedMessageGenerator().execute(rankedRefresher);
+
+    }else if(gameOfTheChange.getGameQueueConfigId() == GameQueueConfigId.FLEX.getId()) {
+
+      LeagueEntry entry = RiotRequest.getLeagueEntryFlex(leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server);
+      RankedChannelRefresher rankedRefresher = 
+          new RankedChannelRefresher(rankChannel, rankBeforeThisGame.lastRank_flex, entry,
+              gameOfTheChange, player, leagueAccount, server);
+      ServerData.getRankedMessageGenerator().execute(rankedRefresher);
+    }
+
   }
 
 
@@ -213,25 +247,25 @@ public class ThreathTextOfPlayer implements Runnable {
 
           LeagueAccount leagueAccount = accountNotInGame.get(0);
 
-          getTextInformationPanelRankOption(stringMessage, player, leagueAccount, false);
+          getTextInformationPanelRankOption(infochannelMessage, player, leagueAccount, false);
         }else {
 
-          stringMessage.append(String.format(LanguageManager.getText(server.serv_language, "infoPanelRankedTitleMultipleAccount"), player.getUser().getAsMention()) + "\n");
+          infochannelMessage.append(String.format(LanguageManager.getText(server.serv_language, "infoPanelRankedTitleMultipleAccount"), player.getUser().getAsMention()) + "\n");
 
           for(DTO.LeagueAccount leagueAccount : accountNotInGame) {
 
-            getTextInformationPanelRankOption(stringMessage, player, leagueAccount, true);
+            getTextInformationPanelRankOption(infochannelMessage, player, leagueAccount, true);
           }
         }
 
       } else {
-        notInGameWithoutRankInfo(stringMessage, player);
+        notInGameWithoutRankInfo(infochannelMessage, player);
       }
     }else if (accountsInGame.size() == 1) {
-      stringMessage.append(player.getUser().getAsMention() + " : " 
+      infochannelMessage.append(player.getUser().getAsMention() + " : " 
           + InfoPanelRefresherUtil.getCurrentGameInfoStringForOneAccount(accountsInGame.get(0), server.serv_language) + "\n");
     }else {
-      stringMessage.append(player.getUser().getAsMention() + " : " 
+      infochannelMessage.append(player.getUser().getAsMention() + " : " 
           + LanguageManager.getText(server.serv_language, "informationPanelMultipleAccountInGame") + "\n"
           + InfoPanelRefresherUtil.getCurrentGameInfoStringForMultipleAccounts(accountsInGame, server.serv_language));
     }
@@ -385,8 +419,8 @@ public class ThreathTextOfPlayer implements Runnable {
         + LanguageManager.getText(server.serv_language, "unranked") + " \n");
   }
 
-  public String getStringMessage() {
-    return stringMessage.toString();
+  public String getInfochannelMessage() {
+    return infochannelMessage.toString();
   }
 
   public static void awaitAll(List<Player> playersToWait) {

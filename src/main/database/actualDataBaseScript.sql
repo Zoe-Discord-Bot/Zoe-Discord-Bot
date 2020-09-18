@@ -150,6 +150,12 @@ CREATE TABLE leaderboard (
   lead_lastRefresh 								TIMESTAMP			WITHOUT TIME ZONE
 );
 
+CREATE TABLE banned_account (
+  banAcc_id										SERIAL,
+  banAcc_summonerId								VARCHAR				NOT NULL,
+  banAcc_server									VARCHAR				NOT NULL
+);
+
 
 -- Constraints
 ALTER TABLE ONLY server
@@ -315,3 +321,6 @@ CREATE INDEX idx_match_cache_gameId
 
 CREATE INDEX idx_match_cache_platform 
   ON match_cache(mCatch_platform);
+  
+ALTER TABLE ONLY banned_account
+  ADD CONSTRAINT banned_account_pkey PRIMARY KEY (banAcc_id);

@@ -174,12 +174,22 @@ public class DTO {
   public static class CurrentGameInfo {
     public long currentgame_id;
     public net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo currentgame_currentgame;
+    public Platform currentgame_server;
+    public String currentgame_gameid;
 
     public CurrentGameInfo(ResultSet baseData) throws SQLException {
       currentgame_id = baseData.getLong("currentgame_id");
       if(baseData.getString("currentgame_currentgame") != null) {
         currentgame_currentgame = gson.fromJson(baseData.getString("currentgame_currentgame"),
             net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo.class);
+      }
+      
+      if(baseData.getString("currentgame_server") != null) {
+        currentgame_server = Platform.getPlatformByName(baseData.getString("currentgame_server"));
+      }
+      
+      if(baseData.getString("currentgame_gameid") != null) {
+        currentgame_gameid = baseData.getString("currentgame_gameid");
       }
     }
   }

@@ -797,18 +797,18 @@ public class InfoPanelRefresher implements Runnable {
 
   private void pseudoList(final StringBuilder stringMessage, List<DTO.Player> playersList, ServerConfiguration configuration) {
 
-    List<ThreathTextOfPlayer> threathTextWorkers = new ArrayList<>();
+    List<ThreathPlayer> threathTextWorkers = new ArrayList<>();
     for(DTO.Player player : playersList) {
 
-      ThreathTextOfPlayer threathTextWorker = new ThreathTextOfPlayer(server, player, configuration);
+      ThreathPlayer threathTextWorker = new ThreathPlayer(server, player, configuration);
       ServerData.getInfochannelHelperThread().execute(threathTextWorker);
       threathTextWorkers.add(threathTextWorker);
     }
 
-    ThreathTextOfPlayer.awaitAll(playersList);
+    ThreathPlayer.awaitAll(playersList);
 
-    for(ThreathTextOfPlayer threathTextWorker : threathTextWorkers) {
-      stringMessage.append(threathTextWorker.getStringMessage());
+    for(ThreathPlayer threathTextWorker : threathTextWorkers) {
+      stringMessage.append(threathTextWorker.getInfochannelMessage());
     }
   }
 

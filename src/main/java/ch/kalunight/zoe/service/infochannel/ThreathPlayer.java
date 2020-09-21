@@ -147,19 +147,39 @@ public class ThreathPlayer implements Runnable {
     List<LeagueAccount> leaguesAccount = LeagueAccountRepository.getLeaguesAccountsWithPlayerID(server.serv_guildId, player.player_id);
 
     for(LeagueAccount leagueAccount : leaguesAccount) {
-      refreshLoL(leagueAccount);
-      refreshTFT(leagueAccount);
+      LastRank lastRank = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
+      refreshLoL(leagueAccount, lastRank);
+      refreshTFT(leagueAccount, lastRank);
     }
   }
 
 
-  private void refreshTFT(LeagueAccount leagueAccount) {
-    
-    Zoe.getRiotApi();
-    
+  private void refreshTFT(LeagueAccount leagueAccount, LastRank lastRank) throws SQLException {
+    Set<TFTLeagueEntry> tftLeagueEntries = Zoe.getRiotApi().
+        getTFTLeagueEntryWithRateLimit(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
+
+    TFTLeagueEntry tftLeagueEntry = null;
+
+    for(TFTLeagueEntry checkLeagueEntry : tftLeagueEntries) {
+      if(checkLeagueEntry.getQueueType().equals(GameQueueConfigId.TFT.getNameId())) {
+        tftLeagueEntry = checkLeagueEntry;
+      }
+    }
+
+    if(tftLeagueEntry != null) {
+      FullTier fullTier = new FullTier((LeagueEntry) tftLeagueEntry);
+      
+      if(lastRank.lastRank_tft == null) {
+        
+      }
+    }
   }
 
-  private void refreshLoL(LeagueAccount leagueAccount) throws SQLException {
+  /**
+   * TODO Refresh lol last rank here
+   * @param lastRank 
+   */
+  private void refreshLoL(LeagueAccount leagueAccount, LastRank lastRank) throws SQLException {
     DTO.CurrentGameInfo currentGameDb = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(leagueAccount.leagueAccount_id);
 
     CurrentGameInfo currentGame;
@@ -188,16 +208,16 @@ public class ThreathPlayer implements Runnable {
 
   private void manageDeleteGame(LeagueAccount leagueAccount, DTO.CurrentGameInfo currentGameDb, CurrentGameInfo currentGame)
       throws SQLException {
-    
+
     boolean refreshRankChannelIsNeeded = false;
-    
+
     synchronized(server) {
       if(checkIfTheGameAlreadyExist(leagueAccount, currentGame)) {
         CurrentGameInfoRepository.deleteCurrentGame(currentGameDb, server);
         refreshRankChannelIsNeeded = true;
       }
     }
-    
+
     if(refreshRankChannelIsNeeded) {
       searchForRefreshRankChannel(currentGameDb);
     }
@@ -206,7 +226,7 @@ public class ThreathPlayer implements Runnable {
 
   private void manageChangeGame(LeagueAccount leagueAccount, DTO.CurrentGameInfo currentGameDb, CurrentGameInfo currentGame)
       throws SQLException {
-    
+
     boolean refreshRankChannelIsNeeded = false;
 
     synchronized(server) {
@@ -220,7 +240,7 @@ public class ThreathPlayer implements Runnable {
         CurrentGameInfoRepository.createCurrentGame(currentGame, leagueAccount);
       }
     }
-    
+
     if(refreshRankChannelIsNeeded) {
       searchForRefreshRankChannel(currentGameDb);
     }

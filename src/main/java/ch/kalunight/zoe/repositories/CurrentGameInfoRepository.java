@@ -65,8 +65,8 @@ public class CurrentGameInfoRepository {
           "AND league_account.leagueaccount_id IS NULL";
 
   private static final String INSERT_CURRENT_GAME = "INSERT INTO current_game_info " +
-      "(currentgame_currentgame) " +
-      "VALUES ('%s') RETURNING currentgame_id";
+      "(currentgame_currentgame, currentgame_gameid, currentgame_server) " +
+      "VALUES ('%s', '%s', '%s') RETURNING currentgame_id";
 
   private static final String UPDATE_CURRENT_GAME_WITH_ID = 
       "UPDATE current_game_info SET currentgame_currentgame = '%s', currentgame_server = '%s', "
@@ -146,7 +146,8 @@ public class CurrentGameInfoRepository {
 
       String currentGameJson = gson.toJson(currentGame);
 
-      String finalQuery = String.format(INSERT_CURRENT_GAME, currentGameJson);
+      String finalQuery = String.format(INSERT_CURRENT_GAME, currentGameJson, 
+          Long.toString(currentGame.getGameId()), leagueAccount.leagueAccount_server.getName());
       result = query.executeQuery(finalQuery);
       result.next();
 

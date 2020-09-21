@@ -53,7 +53,7 @@ public class ThreathPlayer implements Runnable {
   private ServerConfiguration serverConfig;
 
   private StringBuilder infochannelMessage;
-  
+
   private RankHistoryChannel rankChannel;
 
   private FullTier rank;
@@ -162,35 +162,82 @@ public class ThreathPlayer implements Runnable {
       }
 
       if(currentGameDb == null && currentGame != null) {
-        CurrentGameInfoRepository.createCurrentGame(currentGame, leagueAccount);
+        manageNewGame(leagueAccount, currentGame);
       }else if(currentGameDb != null && currentGame != null) {
-        if(currentGame.getGameId() == currentGameDb.currentgame_currentgame.getGameId()) {
-          CurrentGameInfoRepository.updateCurrentGame(currentGame, leagueAccount);
-        }else {
-          CurrentGameInfoRepository.deleteCurrentGame(currentGameDb, server);
-
-          searchForRefreshRankChannel(leagueAccount, currentGameDb);
-
-          CurrentGameInfoRepository.createCurrentGame(currentGame, leagueAccount);
+        if(currentGame.getGameId() != currentGameDb.currentgame_currentgame.getGameId()) {
+          manageChangeGame(leagueAccount, currentGameDb, currentGame);
         }
       }else if(currentGameDb != null && currentGame == null) {
-        CurrentGameInfoRepository.deleteCurrentGame(currentGameDb, server);
-
-        searchForRefreshRankChannel(leagueAccount, currentGameDb);
+        manageDeleteGame(leagueAccount, currentGameDb, currentGame);
       }
     }
   }
-  
-  private boolean checkIfTheGameAlreadyExist(LeagueAccount leagueAccount, CurrentGameInfo currentGame) {
+
+
+  private void manageDeleteGame(LeagueAccount leagueAccount, DTO.CurrentGameInfo currentGameDb, CurrentGameInfo currentGame)
+      throws SQLException {
     
+    boolean refreshRankChannelIsNeeded = false;
+    
+    synchronized(server) {
+      if(checkIfTheGameAlreadyExist(leagueAccount, currentGame)) {
+        CurrentGameInfoRepository.deleteCurrentGame(currentGameDb, server);
+        refreshRankChannelIsNeeded = true;
+      }
+    }
+    
+    if(refreshRankChannelIsNeeded) {
+      searchForRefreshRankChannel(currentGameDb);
+    }
   }
 
-  private void searchForRefreshRankChannel(DTO.LeagueAccount leagueAccount,
-      DTO.CurrentGameInfo currentGameDb) throws SQLException {
-    if(currentGameDb.currentgame_currentgame.getParticipantByParticipantId(leagueAccount.leagueAccount_summonerId) != null) {
-      Player playerToUpdate = PlayerRepository.getPlayerByLeagueAccountAndGuild(server.serv_guildId,
-          leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server);
-      updateRankChannelMessage(playerToUpdate, leagueAccount, currentGameDb);
+
+  private void manageChangeGame(LeagueAccount leagueAccount, DTO.CurrentGameInfo currentGameDb, CurrentGameInfo currentGame)
+      throws SQLException {
+    
+    boolean refreshRankChannelIsNeeded = false;
+
+    synchronized(server) {
+      if(checkIfTheGameAlreadyExist(leagueAccount, currentGame)) {
+        LeagueAccountRepository.updateAccountCurrentGameWithAccountId(leagueAccount.leagueAccount_id, currentGame.getGameId());
+      }else {
+        CurrentGameInfoRepository.deleteCurrentGame(currentGameDb, server);
+
+        refreshRankChannelIsNeeded = true;
+
+        CurrentGameInfoRepository.createCurrentGame(currentGame, leagueAccount);
+      }
+    }
+    
+    if(refreshRankChannelIsNeeded) {
+      searchForRefreshRankChannel(currentGameDb);
+    }
+  }
+
+  private void manageNewGame(LeagueAccount leagueAccount, CurrentGameInfo currentGame) throws SQLException {
+    synchronized(server) {
+      if(checkIfTheGameAlreadyExist(leagueAccount, currentGame)) {
+        LeagueAccountRepository.updateAccountCurrentGameWithAccountId(leagueAccount.leagueAccount_id, currentGame.getGameId());
+      }else {
+        CurrentGameInfoRepository.createCurrentGame(currentGame, leagueAccount);
+      }
+    }
+  }
+
+  private boolean checkIfTheGameAlreadyExist(LeagueAccount leagueAccount, CurrentGameInfo currentGame) throws SQLException {
+    return null != CurrentGameInfoRepository.getCurrentGameWithServerAndGameId(leagueAccount.leagueAccount_server, Long.toString(currentGame.getGameId()));
+  }
+
+  private void searchForRefreshRankChannel(DTO.CurrentGameInfo currentGameDb) throws SQLException {
+
+    List<LeagueAccount> leaguesAccounts = LeagueAccountRepository.getLeaguesAccountsWithCurrentGameId(currentGameDb.currentgame_id);
+
+    for(LeagueAccount leagueAccount : leaguesAccounts) {
+      if(currentGameDb.currentgame_currentgame.getParticipantByParticipantId(leagueAccount.leagueAccount_summonerId) != null) {
+        Player playerToUpdate = PlayerRepository.getPlayerByLeagueAccountAndGuild(server.serv_guildId,
+            leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server);
+        updateRankChannelMessage(playerToUpdate, leagueAccount, currentGameDb);
+      }
     }
   }
 

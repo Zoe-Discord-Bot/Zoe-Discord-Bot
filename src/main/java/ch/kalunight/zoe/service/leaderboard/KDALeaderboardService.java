@@ -33,23 +33,27 @@ public class KDALeaderboardService extends LeaderboardBaseService {
   @Override
   protected void runLeaderboardRefresh(Server server, Guild guild, TextChannel channel, Leaderboard leaderboard, Message message)
       throws SQLException, RiotApiException {
-    
+
     Objective objective = Objective.getObjectiveWithId(leaderboard.lead_type);
     SpecificChamp specificChamp = null;
     if(Objective.AVERAGE_KDA_SPECIFIC_CHAMP.equals(objective)) {
       specificChamp = gson.fromJson(leaderboard.lead_data, SpecificChamp.class);
     }
-    
+
     List<PlayerKDA> playersKDA = orderAndGetPlayers(guild, specificChamp);
-    
+
     List<String> playersName = new ArrayList<>();
     List<String> dataList = new ArrayList<>();
-    
+
     for(PlayerKDA playerKDA : playersKDA) {
       playersName.add(playerKDA.getPlayer().getUser().getAsMention());
-      dataList.add("**"+ KDAReceiver.DECIMAL_FORMAT_KDA.format(playerKDA.getKdaReceiver().getAverageKDA()) + "** *(" + playerKDA.getKdaReceiver().getAverageStats() + ")*");
+      if(playerKDA.getKdaReceiver().getAverageKDA() == KDAReceiver.PERFECT_KDA_VALUE) {
+        dataList.add("**"+ LanguageManager.getText(server.serv_language, "perfectKDA") + "** *(" + playerKDA.getKdaReceiver().getAverageStats() + ")*");
+      }else {
+        dataList.add("**"+ KDAReceiver.DECIMAL_FORMAT_KDA.format(playerKDA.getKdaReceiver().getAverageKDA()) + "** *(" + playerKDA.getKdaReceiver().getAverageStats() + ")*");
+      }
     }
-    
+
     String playerTitle = LanguageManager.getText(server.serv_language, "leaderboardPlayersTitle");
     String dataName;
     if(specificChamp != null) {
@@ -58,10 +62,10 @@ public class KDALeaderboardService extends LeaderboardBaseService {
     }else {
       dataName = LanguageManager.getText(server.serv_language, "leaderboardObjectiveDataNameKDA");
     }
-    
+
     EmbedBuilder builder = buildBaseLeaderboardList(playerTitle, playersName, dataName, dataList);
     builder.setColor(Color.ORANGE);
-    
+
     if(specificChamp != null) {
       String leaderboardTitle = String.format(LanguageManager.getText(server.serv_language, "leaderboardObjectiveKDAWithSpecificChampionTitle"), 
           specificChamp.getChampion().getName());
@@ -72,46 +76,46 @@ public class KDALeaderboardService extends LeaderboardBaseService {
       builder.setTitle(leaderboardTitle);
       message.editMessage(leaderboardTitle).queue();
     }
-    
+
     builder.setFooter(LanguageManager.getText(server.serv_language, "leaderboardRefreshMessage"));
     message.editMessage(builder.build()).queue();
   }
-  
+
   private List<PlayerKDA> orderAndGetPlayers(Guild guild, SpecificChamp champ) throws SQLException {
     List<DTO.Player> players = PlayerRepository.getPlayers(guild.getIdLong());
     List<PlayerKDA> playersKDA = new ArrayList<>();
-    
+
     for(DTO.Player player : players) {
       List<LeagueAccount> leaguesAccounts = LeagueAccountRepository.getLeaguesAccountsWithPlayerID(guild.getIdLong(), player.player_id);
-      
+
       KDAReceiver bestAccountKDA = null;
       for(DTO.LeagueAccount leagueAccount : leaguesAccounts) {
-        
+
         KDAReceiver kdaReceiver;
-        
+
         if(champ == null) {
           kdaReceiver = RiotRequest.getKDALastMonth(leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server);
         }else {
           kdaReceiver = RiotRequest.getKDALastMonthOneChampionOnly(leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server, champ.getChampion().getKey());
         }
-        
+
         if(kdaReceiver == null) {
           continue;
         }
-        
+
         if(bestAccountKDA == null || bestAccountKDA.getAverageKDA() < kdaReceiver.getAverageKDA()) {
           bestAccountKDA = kdaReceiver;
         }
       }
-      
+
       if(bestAccountKDA != null) {
         playersKDA.add(new PlayerKDA(player, bestAccountKDA));
       }
     }
-    
+
     Collections.sort(playersKDA);
-    
+
     return playersKDA;
   }
-  
+
 }

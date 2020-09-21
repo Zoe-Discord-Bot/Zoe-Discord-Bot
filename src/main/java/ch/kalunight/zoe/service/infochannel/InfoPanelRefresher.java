@@ -28,6 +28,7 @@ import ch.kalunight.zoe.model.dto.DTO.LastRank;
 import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
 import ch.kalunight.zoe.model.dto.DTO.Player;
 import ch.kalunight.zoe.model.dto.DTO.RankHistoryChannel;
+import ch.kalunight.zoe.model.dto.DTO.ServerStatus;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.model.player_data.Team;
 import ch.kalunight.zoe.repositories.ConfigRepository;
@@ -196,18 +197,37 @@ public class InfoPanelRefresher implements Runnable {
       }
 
     } catch (SQLException e) {
-      logger.error("SQL Exception when refresh the infopanel !", e);
+      logger.error("SQL Exception when refresh the infopanel ! SQL State : {}", e.getSQLState(), e);
     } catch(Exception e) {
       logger.error("The thread got a unexpected error (The channel got probably deleted when the refresh append)", e);
     } finally {
-      try {
-        ServerRepository.updateTimeStamp(server.serv_guildId, LocalDateTime.now());
-        ServerStatusRepository.updateInTreatment(ServerStatusRepository.getServerStatus(server.serv_guildId).servstatus_id, false);
-      } catch(SQLException e) {
-        logger.error("SQL Exception when updating timeStamp and treatment !", e);
-      }
+      updateServerStatus();
     }
   }
+
+private void updateServerStatus() {
+	ServerStatus status;
+	try {
+		status = ServerStatusRepository.getServerStatus(server.serv_guildId);
+	} catch (SQLException e) {
+        logger.error("SQL Exception when getting server status ! WARNING : The server may be not tracked anymore !", e);
+        return;
+	}
+	
+	try {
+        ServerRepository.updateTimeStamp(server.serv_guildId, LocalDateTime.now());
+        ServerStatusRepository.updateInTreatment(status.servstatus_id, false);
+      } catch(SQLException e) {
+        logger.error("SQL Exception when updating timeStamp and treatment ! Retry in 1 seconds ... | SQL State : {}", e.getSQLState(), e);
+        try {
+			TimeUnit.SECONDS.sleep(1);
+			updateServerStatus();
+		} catch (InterruptedException e1) {
+			logger.error("InterruptedException while updating timeStamp and treatment !", e);
+			Thread.currentThread().interrupt();
+		}
+      }
+}
 
   private void cleanInfoChannel() {
     try {

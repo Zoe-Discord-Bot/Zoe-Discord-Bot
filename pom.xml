@@ -53,7 +53,7 @@
 		<dependency>
 			<groupId>com.github.KaluNight</groupId>
 			<artifactId>riot-api-java</artifactId>
-			<version>4.4.0</version>
+			<version>4.5.1</version>
 		</dependency>
 
 		<dependency>
@@ -95,7 +95,7 @@
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
-			<version>42.2.9</version>
+			<version>42.2.13</version>
 		</dependency>
 
 		<!-- Test libs -->

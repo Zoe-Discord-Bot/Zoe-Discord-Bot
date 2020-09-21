@@ -1,4 +1,4 @@
-package ch.kalunight.zoe.service;
+package ch.kalunight.zoe.service.rankchannel;
 
 import java.sql.SQLException;
 
@@ -182,5 +182,4 @@ public class RankedChannelRefresher implements Runnable {
       textChannelWhereSend.sendMessage(message).queue();
     }
   }
-
 }

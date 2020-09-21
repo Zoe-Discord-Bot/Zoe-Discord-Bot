@@ -26,7 +26,7 @@ import ch.kalunight.zoe.repositories.LastRankRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.riotapi.CachedRiotApi;
-import ch.kalunight.zoe.service.RankedChannelRefresher;
+import ch.kalunight.zoe.service.rankchannel.RankedChannelRefresher;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.FullTierUtil;
 import ch.kalunight.zoe.util.InfoPanelRefresherUtil;
@@ -147,29 +147,41 @@ public class ThreathPlayer implements Runnable {
     List<LeagueAccount> leaguesAccount = LeagueAccountRepository.getLeaguesAccountsWithPlayerID(server.serv_guildId, player.player_id);
 
     for(LeagueAccount leagueAccount : leaguesAccount) {
-      DTO.CurrentGameInfo currentGameDb = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(leagueAccount.leagueAccount_id);
+      refreshLoL(leagueAccount);
+      refreshTFT(leagueAccount);
+    }
+  }
 
-      CurrentGameInfo currentGame;
-      try {
-        currentGame = Zoe.getRiotApi().getActiveGameBySummoner(
-            leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
-      } catch(RiotApiException e) {
-        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
-          currentGame = null;
-        }else {
-          continue;
-        }
-      }
 
-      if(currentGameDb == null && currentGame != null) {
-        manageNewGame(leagueAccount, currentGame);
-      }else if(currentGameDb != null && currentGame != null) {
-        if(currentGame.getGameId() != currentGameDb.currentgame_currentgame.getGameId()) {
-          manageChangeGame(leagueAccount, currentGameDb, currentGame);
-        }
-      }else if(currentGameDb != null && currentGame == null) {
-        manageDeleteGame(leagueAccount, currentGameDb, currentGame);
+  private void refreshTFT(LeagueAccount leagueAccount) {
+    
+    Zoe.getRiotApi();
+    
+  }
+
+  private void refreshLoL(LeagueAccount leagueAccount) throws SQLException {
+    DTO.CurrentGameInfo currentGameDb = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(leagueAccount.leagueAccount_id);
+
+    CurrentGameInfo currentGame;
+    try {
+      currentGame = Zoe.getRiotApi().getActiveGameBySummoner(
+          leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
+    } catch(RiotApiException e) {
+      if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+        currentGame = null;
+      }else {
+        return;
       }
+    }
+
+    if(currentGameDb == null && currentGame != null) {
+      manageNewGame(leagueAccount, currentGame);
+    }else if(currentGameDb != null && currentGame != null) {
+      if(currentGame.getGameId() != currentGameDb.currentgame_currentgame.getGameId()) {
+        manageChangeGame(leagueAccount, currentGameDb, currentGame);
+      }
+    }else if(currentGameDb != null && currentGame == null) {
+      manageDeleteGame(leagueAccount, currentGameDb, currentGame);
     }
   }
 

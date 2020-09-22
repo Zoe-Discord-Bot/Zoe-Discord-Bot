@@ -44,7 +44,7 @@ import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.repositories.ServerStatusRepository;
 import ch.kalunight.zoe.repositories.TeamRepository;
 import ch.kalunight.zoe.service.ServerChecker;
-import ch.kalunight.zoe.service.rankchannel.RankedChannelRefresher;
+import ch.kalunight.zoe.service.rankchannel.RankedChannelLoLRefresher;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.request.RiotRequest;
 import net.dv8tion.jda.api.entities.Guild;
@@ -586,16 +586,16 @@ public class InfoPanelRefresher implements Runnable {
     if(gameOfTheChange.getGameQueueConfigId() == GameQueueConfigId.SOLOQ.getId()) {
 
       LeagueEntry entry = RiotRequest.getLeagueEntrySoloq(leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server);
-      RankedChannelRefresher rankedRefresher = 
-          new RankedChannelRefresher(rankChannel, rankBeforeThisGame.lastRank_soloq, entry,
+      RankedChannelLoLRefresher rankedRefresher = 
+          new RankedChannelLoLRefresher(rankChannel, rankBeforeThisGame.lastRank_soloq, entry,
               gameOfTheChange, player, leagueAccount, server);
       ServerData.getRankedMessageGenerator().execute(rankedRefresher);
 
     }else if(gameOfTheChange.getGameQueueConfigId() == GameQueueConfigId.FLEX.getId()) {
 
       LeagueEntry entry = RiotRequest.getLeagueEntryFlex(leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server);
-      RankedChannelRefresher rankedRefresher = 
-          new RankedChannelRefresher(rankChannel, rankBeforeThisGame.lastRank_flex, entry,
+      RankedChannelLoLRefresher rankedRefresher = 
+          new RankedChannelLoLRefresher(rankChannel, rankBeforeThisGame.lastRank_flex, entry,
               gameOfTheChange, player, leagueAccount, server);
       ServerData.getRankedMessageGenerator().execute(rankedRefresher);
     }
@@ -797,17 +797,17 @@ public class InfoPanelRefresher implements Runnable {
 
   private void pseudoList(final StringBuilder stringMessage, List<DTO.Player> playersList, ServerConfiguration configuration) {
 
-    List<ThreathPlayer> threathTextWorkers = new ArrayList<>();
+    List<TreatPlayerWorker> threathTextWorkers = new ArrayList<>();
     for(DTO.Player player : playersList) {
 
-      ThreathPlayer threathTextWorker = new ThreathPlayer(server, player, configuration);
+      TreatPlayerWorker threathTextWorker = new TreatPlayerWorker(server, player, configuration);
       ServerData.getInfochannelHelperThread().execute(threathTextWorker);
       threathTextWorkers.add(threathTextWorker);
     }
 
-    ThreathPlayer.awaitAll(playersList);
+    TreatPlayerWorker.awaitAll(playersList);
 
-    for(ThreathPlayer threathTextWorker : threathTextWorkers) {
+    for(TreatPlayerWorker threathTextWorker : threathTextWorkers) {
       stringMessage.append(threathTextWorker.getInfochannelMessage());
     }
   }

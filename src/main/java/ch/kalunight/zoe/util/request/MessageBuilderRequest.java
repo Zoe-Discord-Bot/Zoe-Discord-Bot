@@ -49,6 +49,7 @@ import net.rithms.riot.api.endpoints.match.dto.Participant;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
+import net.rithms.riot.api.endpoints.tft_match.dto.TFTMatch;
 import net.rithms.riot.constant.Platform;
 
 public class MessageBuilderRequest {
@@ -58,6 +59,7 @@ public class MessageBuilderRequest {
   private static final String MASTERIES_WR_THIS_MONTH_STRING = "masteriesWrTitleRespectSize";
   private static final String SOLO_Q_RANK_STRING = "soloqTitleRespectSize";
   private static final String RESUME_OF_THE_GAME_STRING = "resumeOfTheGame";
+  private static final String RESUME_OF_LAST_GAME = "resumeOfLastGame";
   private static final String GENERATED_AT_STRING = "generatedAt";
 
   private static final Logger logger = LoggerFactory.getLogger(MessageBuilderRequest.class);
@@ -302,6 +304,52 @@ public class MessageBuilderRequest {
 
     Field field = new Field(LanguageManager.getText(lang, RESUME_OF_THE_GAME_STRING), statsGame, true);
 
+    message.addField(field);
+
+    message.setFooter(LanguageManager.getText(lang, GENERATED_AT_STRING));
+    message.setTimestamp(Instant.now());
+
+    return message.build();
+  }
+  
+  public static MessageEmbed createRankChannelCardLeaguePointChangeOnlyTFT(LeagueEntry oldEntry, LeagueEntry newEntry, 
+      List<TFTMatch> matchs, Player player, LeagueAccount leagueAccount, String lang) {
+
+    EmbedBuilder message = new EmbedBuilder();
+
+    String gameType = LanguageManager.getText(lang, GameQueueConfigId.RANKED_TFT.getNameId());
+
+    User user = player.getUser();
+    message.setAuthor(user.getName(), null, user.getAvatarUrl());
+    
+    int lpReceived = newEntry.getLeaguePoints() - oldEntry.getLeaguePoints();
+    boolean gameWin = (newEntry.getLeaguePoints() - oldEntry.getLeaguePoints()) > 0;
+
+    if(gameWin) {
+      message.setColor(Color.GREEN);
+      message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangePointOnlyWinTitle"),
+          leagueAccount.leagueAccount_name, lpReceived, gameType));
+    }else {
+      message.setColor(Color.RED);
+      message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangePointOnlyLooseTitle"),
+          leagueAccount.leagueAccount_name, lpReceived * -1, gameType));
+    }
+
+    FullTier oldFullTier = new FullTier(oldEntry);
+    FullTier newFullTier = new FullTier(newEntry);
+
+    message.setDescription(oldFullTier.toString(lang) + " -> " + newFullTier.toString(lang));
+
+    String statsGame = MessageBuilderRequestUtil.getResumeGameStatsTFT(leagueAccount, lang, matchs);
+
+    String stringResumeGame;
+    if(matchs.size() > 1) {
+      stringResumeGame = RESUME_OF_LAST_GAME;
+    }else {
+      stringResumeGame = RESUME_OF_THE_GAME_STRING;
+    }
+    
+    Field field = new Field(LanguageManager.getText(lang, stringResumeGame), statsGame, true);
     message.addField(field);
 
     message.setFooter(LanguageManager.getText(lang, GENERATED_AT_STRING));

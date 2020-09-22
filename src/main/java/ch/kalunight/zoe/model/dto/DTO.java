@@ -15,6 +15,7 @@ import ch.kalunight.zoe.Zoe;
 import net.dv8tion.jda.api.entities.User;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
+import net.rithms.riot.api.endpoints.tft_league.dto.TFTLeagueEntry;
 import net.rithms.riot.constant.Platform;
 
 public class DTO {
@@ -277,9 +278,10 @@ public class DTO {
     public LeagueEntry lastRank_flex;
     public LeagueEntry lastRank_flexSecond;
     public LocalDateTime lastRank_flexLastRefresh;
-    public LeagueEntry lastRank_tft;
-    public LeagueEntry lastRank_tftSecond;
+    public TFTLeagueEntry lastRank_tft;
+    public TFTLeagueEntry lastRank_tftSecond;
     public LocalDateTime lastRank_tftLastRefresh;
+    public String lastRank_tftLastTreatedMatchId;
     
     public LastRank(ResultSet baseData) throws SQLException {
       lastRank_id = baseData.getLong("lastRank_id");
@@ -316,17 +318,22 @@ public class DTO {
       
       lastRank = baseData.getString("lastRank_tft");
       if(lastRank != null) {
-        lastRank_tft = gson.fromJson(lastRank, LeagueEntry.class);
+        lastRank_tft = gson.fromJson(lastRank, TFTLeagueEntry.class);
       }
       
       lastRank = baseData.getString("lastRank_tftSecond");
       if(lastRank != null) {
-        lastRank_tftSecond = gson.fromJson(lastRank, LeagueEntry.class);
+        lastRank_tftSecond = gson.fromJson(lastRank, TFTLeagueEntry.class);
       }
       
       lastRank = baseData.getString("lastRank_tftLastRefresh");
       if(lastRank != null) {
         lastRank_tftLastRefresh = LocalDateTime.parse(lastRank.split("\\.")[0], DB_TIME_PATTERN);
+      }
+      
+      lastRank = baseData.getString("lastRank_tftLastTreatedMatchId");
+      if(lastRank != null) {
+        lastRank_tftLastTreatedMatchId = lastRank;
       }
     }
   }

@@ -4,7 +4,9 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -26,23 +28,22 @@ import ch.kalunight.zoe.repositories.LastRankRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.riotapi.CachedRiotApi;
-import ch.kalunight.zoe.service.rankchannel.RankedChannelRefresher;
+import ch.kalunight.zoe.service.rankchannel.RankedChannelLoLRefresher;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.FullTierUtil;
 import ch.kalunight.zoe.util.InfoPanelRefresherUtil;
 import ch.kalunight.zoe.util.Ressources;
-import ch.kalunight.zoe.util.request.RiotRequest;
+import ch.kalunight.zoe.util.TreatedPlayer;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.tft_league.dto.TFTLeagueEntry;
-import net.rithms.riot.constant.Platform;
 
-public class ThreathPlayer implements Runnable {
+public class TreatPlayerWorker implements Runnable {
 
   protected static final List<Player> playersInWork = Collections.synchronizedList(new ArrayList<>());
 
-  protected static final Logger logger = LoggerFactory.getLogger(ThreathPlayer.class);
+  protected static final Logger logger = LoggerFactory.getLogger(TreatPlayerWorker.class);
 
   protected static final CachedRiotApi riotApi = Zoe.getRiotApi();
 
@@ -56,8 +57,14 @@ public class ThreathPlayer implements Runnable {
 
   private RankHistoryChannel rankChannel;
 
-  private FullTier rank;
-
+  private List<FullTier> soloqRank;
+  
+  private Map<DTO.CurrentGameInfo, LeagueAccount> gamesToDelete = Collections.synchronizedMap(new HashMap<>());
+  
+  private Map<CurrentGameInfo, LeagueAccount> gamesToCreate = Collections.synchronizedMap(new HashMap<>());
+  
+  private TreatedPlayer treatedPlayer = null;
+  
   private class LastRankQueue {
     public LeagueEntry leagueEntry;
     public LeagueEntry leagueEntrySecond;
@@ -72,54 +79,7 @@ public class ThreathPlayer implements Runnable {
     }
   }
 
-
-  private class CurrentGameWithRegion {
-    public DTO.CurrentGameInfo currentGameInfo;
-    public Platform platform;
-
-
-    public CurrentGameWithRegion(DTO.CurrentGameInfo currentGameInfo, Platform platform) {
-      this.currentGameInfo = currentGameInfo;
-      this.platform = platform;
-    }
-
-    @Override
-    public int hashCode() {
-      final int prime = 31;
-      int result = 1;
-      result = prime * result + getEnclosingInstance().hashCode();
-      result = prime * result + ((currentGameInfo == null) ? 0 : currentGameInfo.hashCode());
-      result = prime * result + ((platform == null) ? 0 : platform.hashCode());
-      return result;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      if(this == obj)
-        return true;
-      if(obj == null)
-        return false;
-      if(getClass() != obj.getClass())
-        return false;
-      CurrentGameWithRegion other = (CurrentGameWithRegion) obj;
-      if(!getEnclosingInstance().equals(other.getEnclosingInstance()))
-        return false;
-      if(currentGameInfo == null) {
-        if(other.currentGameInfo != null)
-          return false;
-      } else if(currentGameInfo.currentgame_currentgame.getGameId() != other.currentGameInfo.currentgame_currentgame.getGameId())
-        return false;
-      if(platform != other.platform)
-        return false;
-      return true;
-    }
-
-    private ThreathPlayer getEnclosingInstance() {
-      return ThreathPlayer.this;
-    }
-  }
-
-  public ThreathPlayer(Server server, Player player, ServerConfiguration configuration) {
+  public TreatPlayerWorker(Server server, Player player, ServerConfiguration configuration) {
     this.player = player;
     this.server = server;
     this.infochannelMessage = new StringBuilder();
@@ -133,6 +93,7 @@ public class ThreathPlayer implements Runnable {
     try {
       refreshPlayer();
       generateText();
+      createOutputObject();
     }catch(SQLException e) {
       logger.error("Unexpected SQLException when threathing text", e);
     }catch(Exception e) {
@@ -143,14 +104,29 @@ public class ThreathPlayer implements Runnable {
   }
 
 
+  private void createOutputObject() {
+    treatedPlayer = new TreatedPlayer(player, infochannelMessage.toString(), soloqRank, gamesToDelete, gamesToCreate);
+  }
+
   private void refreshPlayer() throws SQLException {
     List<LeagueAccount> leaguesAccount = LeagueAccountRepository.getLeaguesAccountsWithPlayerID(server.serv_guildId, player.player_id);
 
     for(LeagueAccount leagueAccount : leaguesAccount) {
-      LastRank lastRank = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
+      LastRank lastRank = getLastRank(leagueAccount);
+
       refreshLoL(leagueAccount, lastRank);
       refreshTFT(leagueAccount, lastRank);
     }
+  }
+
+
+  private LastRank getLastRank(LeagueAccount leagueAccount) throws SQLException {
+    LastRank lastRank = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
+    if(lastRank == null) {
+      LastRankRepository.createLastRank(leagueAccount.leagueAccount_id);
+      lastRank = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
+    }
+    return lastRank;
   }
 
 
@@ -161,24 +137,26 @@ public class ThreathPlayer implements Runnable {
     TFTLeagueEntry tftLeagueEntry = null;
 
     for(TFTLeagueEntry checkLeagueEntry : tftLeagueEntries) {
-      if(checkLeagueEntry.getQueueType().equals(GameQueueConfigId.TFT.getNameId())) {
+      if(checkLeagueEntry.getQueueType().equals(GameQueueConfigId.RANKED_TFT.getQueueType())) {
         tftLeagueEntry = checkLeagueEntry;
       }
     }
 
     if(tftLeagueEntry != null) {
-      FullTier fullTier = new FullTier((LeagueEntry) tftLeagueEntry);
-      
+      FullTier fullTier = new FullTier(tftLeagueEntry);
+
       if(lastRank.lastRank_tft == null) {
-        
+        LastRankRepository.updateLastRankTftWithLeagueAccountId(tftLeagueEntry, leagueAccount.leagueAccount_id);
+        lastRank.lastRank_tft = tftLeagueEntry;
+      }else if (fullTier.equals(new FullTier(lastRank.lastRank_tft))){
+        LastRankRepository.updateLastRankTftWithLeagueAccountId(tftLeagueEntry, leagueAccount.leagueAccount_id);
+        LastRankRepository.updateLastRankTftSecondWithLeagueAccountId(lastRank.lastRank_tft, leagueAccount.leagueAccount_id);
+        lastRank.lastRank_tftSecond = lastRank.lastRank_tft;
+        lastRank.lastRank_tft = tftLeagueEntry;
       }
     }
   }
 
-  /**
-   * TODO Refresh lol last rank here
-   * @param lastRank 
-   */
   private void refreshLoL(LeagueAccount leagueAccount, LastRank lastRank) throws SQLException {
     DTO.CurrentGameInfo currentGameDb = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(leagueAccount.leagueAccount_id);
 
@@ -198,104 +176,113 @@ public class ThreathPlayer implements Runnable {
       manageNewGame(leagueAccount, currentGame);
     }else if(currentGameDb != null && currentGame != null) {
       if(currentGame.getGameId() != currentGameDb.currentgame_currentgame.getGameId()) {
-        manageChangeGame(leagueAccount, currentGameDb, currentGame);
+        manageChangeGame(leagueAccount, currentGameDb, currentGame, lastRank);
       }
-    }else if(currentGameDb != null && currentGame == null) {
-      manageDeleteGame(leagueAccount, currentGameDb, currentGame);
+    }else if(currentGameDb != null) {
+      manageDeleteGame(leagueAccount, currentGameDb, lastRank);
+    }
+    
+    if(lastRank.lastRank_soloq != null) {
+      soloqRank.add(new FullTier(lastRank.lastRank_soloq));
     }
   }
 
 
-  private void manageDeleteGame(LeagueAccount leagueAccount, DTO.CurrentGameInfo currentGameDb, CurrentGameInfo currentGame)
-      throws SQLException {
+  private void manageDeleteGame(LeagueAccount leagueAccount, DTO.CurrentGameInfo currentGameDb, LastRank lastRank) throws SQLException {
 
-    boolean refreshRankChannelIsNeeded = false;
+    gamesToDelete.put(currentGameDb, leagueAccount);
 
-    synchronized(server) {
-      if(checkIfTheGameAlreadyExist(leagueAccount, currentGame)) {
-        CurrentGameInfoRepository.deleteCurrentGame(currentGameDb, server);
-        refreshRankChannelIsNeeded = true;
+    updateLoLLastRank(leagueAccount, currentGameDb, lastRank);
+    searchForRefreshRankChannel(currentGameDb, leagueAccount, lastRank);
+  }
+
+
+  private void manageChangeGame(LeagueAccount leagueAccount, DTO.CurrentGameInfo currentGameDb, CurrentGameInfo currentGame,
+      LastRank lastRank) throws SQLException {
+
+    gamesToDelete.put(currentGameDb, leagueAccount);
+    gamesToCreate.put(currentGame, leagueAccount);
+
+    if(updateLoLLastRank(leagueAccount, currentGameDb, lastRank)) {
+      searchForRefreshRankChannel(currentGameDb, leagueAccount, lastRank);
+    }
+  }
+
+  /**
+   * @return true is the update has been done correctly, false otherwise.
+   */
+  private boolean updateLoLLastRank(LeagueAccount leagueAccount, DTO.CurrentGameInfo currentGameDone, LastRank lastRank) throws SQLException {
+
+    CurrentGameInfo currentGameData = currentGameDone.currentgame_currentgame;
+
+    if(currentGameData.getGameQueueConfigId() == GameQueueConfigId.SOLOQ.getId() 
+        || currentGameData.getGameQueueConfigId() == GameQueueConfigId.FLEX.getId()) {
+
+      Set<LeagueEntry> leagueEntries;
+      try {
+        leagueEntries = Zoe.getRiotApi().
+            getLeagueEntriesBySummonerIdWithRateLimit(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
+      } catch(RiotApiException e) {
+        logger.info("Error while getting leagueEntries in updateLoLLastRank.");
+        return false;
+      }
+
+      for(LeagueEntry checkLeagueEntry : leagueEntries) {
+        if(checkLeagueEntry.getQueueType().equals(GameQueueConfigId.SOLOQ.getQueueType())) {
+          if(lastRank.lastRank_soloq == null) {
+            LastRankRepository.updateLastRankSoloqWithLeagueAccountId(checkLeagueEntry, leagueAccount.leagueAccount_id);
+            lastRank.lastRank_soloq = checkLeagueEntry;
+          }else {
+            LastRankRepository.updateLastRankSoloqSecondWithLeagueAccountId(lastRank.lastRank_soloq, leagueAccount.leagueAccount_id);
+            lastRank.lastRank_soloqSecond = lastRank.lastRank_soloq;
+            LastRankRepository.updateLastRankSoloqWithLeagueAccountId(checkLeagueEntry, leagueAccount.leagueAccount_id);
+            lastRank.lastRank_soloq = checkLeagueEntry;
+          }
+        }else if(checkLeagueEntry.getQueueType().equals(GameQueueConfigId.FLEX.getQueueType())) {
+          if(lastRank.lastRank_soloq == null) {
+            LastRankRepository.updateLastRankFlexWithLeagueAccountId(checkLeagueEntry, leagueAccount.leagueAccount_id);
+            lastRank.lastRank_flex = checkLeagueEntry;
+          }else {
+            LastRankRepository.updateLastRankFlexSecondWithLeagueAccountId(lastRank.lastRank_soloq, leagueAccount.leagueAccount_id);
+            lastRank.lastRank_flexSecond = lastRank.lastRank_flex;
+            LastRankRepository.updateLastRankFlexWithLeagueAccountId(checkLeagueEntry, leagueAccount.leagueAccount_id);
+            lastRank.lastRank_flex = checkLeagueEntry;
+          }
+        }
       }
     }
-
-    if(refreshRankChannelIsNeeded) {
-      searchForRefreshRankChannel(currentGameDb);
-    }
+    return true;
   }
 
 
-  private void manageChangeGame(LeagueAccount leagueAccount, DTO.CurrentGameInfo currentGameDb, CurrentGameInfo currentGame)
-      throws SQLException {
+  private void manageNewGame(LeagueAccount leagueAccount, CurrentGameInfo currentGame) {
+    gamesToCreate.put(currentGame, leagueAccount);
+  }
 
-    boolean refreshRankChannelIsNeeded = false;
+  private void searchForRefreshRankChannel(DTO.CurrentGameInfo currentGameDb, LeagueAccount leagueAccount, LastRank lastRank) throws SQLException {
 
-    synchronized(server) {
-      if(checkIfTheGameAlreadyExist(leagueAccount, currentGame)) {
-        LeagueAccountRepository.updateAccountCurrentGameWithAccountId(leagueAccount.leagueAccount_id, currentGame.getGameId());
-      }else {
-        CurrentGameInfoRepository.deleteCurrentGame(currentGameDb, server);
-
-        refreshRankChannelIsNeeded = true;
-
-        CurrentGameInfoRepository.createCurrentGame(currentGame, leagueAccount);
-      }
-    }
-
-    if(refreshRankChannelIsNeeded) {
-      searchForRefreshRankChannel(currentGameDb);
+    if(currentGameDb.currentgame_currentgame.getParticipantByParticipantId(leagueAccount.leagueAccount_summonerId) != null) {
+      Player playerToUpdate = PlayerRepository.getPlayerByLeagueAccountAndGuild(server.serv_guildId,
+          leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server);
+      updateRankChannelMessage(playerToUpdate, leagueAccount, currentGameDb, lastRank);
     }
   }
 
-  private void manageNewGame(LeagueAccount leagueAccount, CurrentGameInfo currentGame) throws SQLException {
-    synchronized(server) {
-      if(checkIfTheGameAlreadyExist(leagueAccount, currentGame)) {
-        LeagueAccountRepository.updateAccountCurrentGameWithAccountId(leagueAccount.leagueAccount_id, currentGame.getGameId());
-      }else {
-        CurrentGameInfoRepository.createCurrentGame(currentGame, leagueAccount);
-      }
-    }
-  }
-
-  private boolean checkIfTheGameAlreadyExist(LeagueAccount leagueAccount, CurrentGameInfo currentGame) throws SQLException {
-    return null != CurrentGameInfoRepository.getCurrentGameWithServerAndGameId(leagueAccount.leagueAccount_server, Long.toString(currentGame.getGameId()));
-  }
-
-  private void searchForRefreshRankChannel(DTO.CurrentGameInfo currentGameDb) throws SQLException {
-
-    List<LeagueAccount> leaguesAccounts = LeagueAccountRepository.getLeaguesAccountsWithCurrentGameId(currentGameDb.currentgame_id);
-
-    for(LeagueAccount leagueAccount : leaguesAccounts) {
-      if(currentGameDb.currentgame_currentgame.getParticipantByParticipantId(leagueAccount.leagueAccount_summonerId) != null) {
-        Player playerToUpdate = PlayerRepository.getPlayerByLeagueAccountAndGuild(server.serv_guildId,
-            leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server);
-        updateRankChannelMessage(playerToUpdate, leagueAccount, currentGameDb);
-      }
-    }
-  }
-
-  private void updateRankChannelMessage(DTO.Player player, DTO.LeagueAccount leagueAccount, DTO.CurrentGameInfo currentGameDb)
-      throws SQLException {
+  private void updateRankChannelMessage(DTO.Player player, DTO.LeagueAccount leagueAccount, DTO.CurrentGameInfo currentGameDb,
+      LastRank lastRank) {
     CurrentGameInfo gameOfTheChange = currentGameDb.currentgame_currentgame;
-
-    LastRank rankBeforeThisGame = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
-    if(rankBeforeThisGame == null) {
-      LastRankRepository.createLastRank(leagueAccount.leagueAccount_id);
-      rankBeforeThisGame = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
-    }
 
     if(gameOfTheChange.getGameQueueConfigId() == GameQueueConfigId.SOLOQ.getId()) {
 
-      LeagueEntry entry = RiotRequest.getLeagueEntrySoloq(leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server);
-      RankedChannelRefresher rankedRefresher = 
-          new RankedChannelRefresher(rankChannel, rankBeforeThisGame.lastRank_soloq, entry,
+      RankedChannelLoLRefresher rankedRefresher = 
+          new RankedChannelLoLRefresher(rankChannel, lastRank.lastRank_soloqSecond, lastRank.lastRank_soloq,
               gameOfTheChange, player, leagueAccount, server);
       ServerData.getRankedMessageGenerator().execute(rankedRefresher);
 
     }else if(gameOfTheChange.getGameQueueConfigId() == GameQueueConfigId.FLEX.getId()) {
 
-      LeagueEntry entry = RiotRequest.getLeagueEntryFlex(leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server);
-      RankedChannelRefresher rankedRefresher = 
-          new RankedChannelRefresher(rankChannel, rankBeforeThisGame.lastRank_flex, entry,
+      RankedChannelLoLRefresher rankedRefresher = 
+          new RankedChannelLoLRefresher(rankChannel, lastRank.lastRank_flexSecond, lastRank.lastRank_flex,
               gameOfTheChange, player, leagueAccount, server);
       ServerData.getRankedMessageGenerator().execute(rankedRefresher);
     }
@@ -354,58 +341,11 @@ public class ThreathPlayer implements Runnable {
       DTO.LeagueAccount leagueAccount, boolean mutlipleAccount) throws SQLException {
     LastRank lastRank = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
 
-    LeagueEntry soloq = null;
-    LeagueEntry flex = null;
-    TFTLeagueEntry tft = null;
+    LeagueEntry soloq = lastRank.lastRank_soloq;
+    LeagueEntry flex = lastRank.lastRank_flex;
+    TFTLeagueEntry tft = lastRank.lastRank_tft;
 
-    if(lastRank == null) {
-      Set<LeagueEntry> leaguesEntry;
-      Set<TFTLeagueEntry> tftLeagueEntry;
-      try {
-        leaguesEntry = Zoe.getRiotApi().getLeagueEntriesBySummonerIdWithRateLimit(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
-        tftLeagueEntry = Zoe.getRiotApi().getTFTLeagueEntryWithRateLimit(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
-      } catch (RiotApiException e) {
-        notInGameWithoutRankInfo(stringMessage, player);
-        return;
-      }
-
-      for(LeagueEntry leaguePosition : leaguesEntry) {
-        if(leaguePosition.getQueueType().equals(GameQueueConfigId.SOLOQ.getNameId())) {
-          soloq = leaguePosition;
-        }else if(leaguePosition.getQueueType().equals(GameQueueConfigId.FLEX.getNameId())) {
-          flex = leaguePosition;
-        }
-      }
-
-      for(TFTLeagueEntry tftRank : tftLeagueEntry) {
-        if(tftRank.getQueueType().equals(GameQueueConfigId.TFT.getNameId())) {
-          tft = tftRank;
-        }
-      }
-
-
-      if((soloq != null || flex != null || tft != null) && LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id) == null) {
-        LastRankRepository.createLastRank(leagueAccount.leagueAccount_id);
-
-
-        if(soloq != null) {
-          LastRankRepository.updateLastRankSoloqWithLeagueAccountId(soloq, leagueAccount.leagueAccount_id);
-
-        }
-
-        if(flex != null) {
-          LastRankRepository.updateLastRankFlexWithLeagueAccountId(flex, leagueAccount.leagueAccount_id);
-        }
-
-        if(tft != null) {
-          LastRankRepository.updateLastRankTftWithLeagueAccountId(tft, leagueAccount.leagueAccount_id);
-        }
-        lastRank = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
-      }
-
-    }
-
-    if(lastRank == null) {
+    if(soloq == null && flex == null && tft == null) {
       if(mutlipleAccount) {
         notInGameUnranked(stringMessage, leagueAccount);
       }else {
@@ -427,15 +367,18 @@ public class ThreathPlayer implements Runnable {
     List<LastRankQueue> lastRanksByQueue = new ArrayList<>();
 
     if(lastRank.lastRank_soloqLastRefresh != null) {
-      lastRanksByQueue.add(new LastRankQueue(lastRank.lastRank_soloq, lastRank.lastRank_soloqSecond, lastRank.lastRank_soloqLastRefresh, GameQueueConfigId.SOLOQ));
+      lastRanksByQueue.add(new LastRankQueue(lastRank.lastRank_soloq, lastRank.lastRank_soloqSecond,
+          lastRank.lastRank_soloqLastRefresh, GameQueueConfigId.SOLOQ));
     }
 
     if(lastRank.lastRank_flexLastRefresh != null) {
-      lastRanksByQueue.add(new LastRankQueue(lastRank.lastRank_flex, lastRank.lastRank_flexSecond, lastRank.lastRank_flexLastRefresh, GameQueueConfigId.FLEX));
+      lastRanksByQueue.add(new LastRankQueue(lastRank.lastRank_flex, lastRank.lastRank_flexSecond,
+          lastRank.lastRank_flexLastRefresh, GameQueueConfigId.FLEX));
     }
 
     if(lastRank.lastRank_tftLastRefresh != null) {
-      lastRanksByQueue.add(new LastRankQueue(lastRank.lastRank_tft, lastRank.lastRank_tftSecond, lastRank.lastRank_tftLastRefresh, GameQueueConfigId.TFT));
+      lastRanksByQueue.add(new LastRankQueue(lastRank.lastRank_tft, lastRank.lastRank_tftSecond,
+          lastRank.lastRank_tftLastRefresh, GameQueueConfigId.RANKED_TFT));
     }
 
 
@@ -454,29 +397,10 @@ public class ThreathPlayer implements Runnable {
       stringMessage.append(getDetailledRank(rankQueueToShow.leagueEntry, rankQueueToShow.leagueEntrySecond, lastRankFullTier, accountString, baseText, rankQueueToShow.queue));
 
     } else {
-
-      if(soloq != null) {
-        FullTier soloQTier = new FullTier(soloq);
-
-        stringMessage.append(getDetailledRank(soloq, null, soloQTier, accountString, baseText, GameQueueConfigId.SOLOQ));
-        LastRankRepository.updateLastRankSoloqWithLeagueAccountId(soloq, leagueAccount.leagueAccount_id);
-
+      if(mutlipleAccount) {
+        notInGameUnranked(stringMessage, leagueAccount);
       }else {
-
-        if(tft != null) {
-
-          FullTier tftFullTier = new FullTier(tft);
-
-          stringMessage.append(getDetailledRank(tft, null, tftFullTier, accountString, baseText, GameQueueConfigId.TFT));
-          LastRankRepository.updateLastRankSoloqWithLeagueAccountId(tft, leagueAccount.leagueAccount_id);
-
-        }else {
-          if(mutlipleAccount) {
-            notInGameUnranked(stringMessage, leagueAccount);
-          }else {
-            notInGameWithoutRankInfo(stringMessage, player);
-          }
-        }
+        notInGameWithoutRankInfo(stringMessage, player);
       }
     }
   }
@@ -519,11 +443,16 @@ public class ThreathPlayer implements Runnable {
         try {
           TimeUnit.MILLISECONDS.sleep(100);
         } catch (InterruptedException e) {
-          logger.error("Thread as been interupt when waiting Match Worker !", e);
+          logger.error("Thread as been interupt when waiting TreatPlayer Worker !", e);
           Thread.currentThread().interrupt();
         }
       }
     }while(needToWait);
+  }
+
+
+  public TreatedPlayer getTreatedPlayer() {
+    return treatedPlayer;
   }
 
 }

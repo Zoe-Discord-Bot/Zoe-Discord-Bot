@@ -398,5 +398,11 @@
     "banAccountCommandKickAllNoServer": "Your account is currently registered in 0 server so i don't have deleted anything. If you want to stop the account management mode, send ``Stop``.",
     "accountCantBeAddedOwnerChoice": "The person who owns the account has prohibited its use. If you are the person holding the account and you want to change this, please do the command ``>banAccount``.",
     "statsProfileNeedARegisteredAccount": "The selected player exists but does not have a League of Legends account linked. Please link an account with the command ``>add account``.",
-	"tft": "TFT"
+    "tft": "TFT",
+    "numberPlace" : "%dth Place",
+    "playerKilled" : "%d kill",
+    "playersKilled" : "%d kills",
+    "playerDamageGiven" : "%d damages inflicted",
+    "resumeOfLastGame" : "Resume of last game",
+    "empty" : "empty"
 }

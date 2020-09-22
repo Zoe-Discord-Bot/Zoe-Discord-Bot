@@ -6,3 +6,6 @@ ALTER TABLE current_game_info
 
 ALTER TABLE current_game_info
 	ADD UNIQUE (currentgame_server, currentgame_gameid);
+	
+ALTER TABLE last_rank
+	ADD lastRank_tftLastTreatedMatchId VARCHAR;

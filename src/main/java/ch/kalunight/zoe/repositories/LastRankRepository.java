@@ -48,6 +48,9 @@ public class LastRankRepository {
   private static final String UPDATE_LAST_RANK_TFT_SECOND_WITH_ID = 
       "UPDATE last_rank SET lastRank_tftSecond = %s, lastrank_tftLastRefresh = NOW() WHERE lastRank_id = %d";
   
+  private static final String UPDATE_LAST_RANK_TFT_MATCH_ID =
+      "UPDATE last_rank SET lastRank_tftLastTreatedMatchId = %s, lastrank_tftLastRefresh = NOW() WHERE lastRank_id = %d";
+  
   private static final String DELETE_LAST_RANK_WITH_ID = "DELETE FROM last_rank WHERE lastRank_id = %d";
   
   private static final Gson gson = new GsonBuilder().create();
@@ -209,6 +212,19 @@ public class LastRankRepository {
 
       if(lastRank != null) {
         String finalQuery = String.format(UPDATE_LAST_RANK_TFT_SECOND_WITH_ID, lastRankTftJson, lastRank.lastRank_id);
+        query.execute(finalQuery);
+      }
+    }
+  }
+  
+  public static void updateLastRankTFTLastTreatedMatch(String matchid, long leagueAccountId) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement();) {
+      
+      DTO.LastRank lastRank = getLastRankWithLeagueAccountId(leagueAccountId);
+
+      if(lastRank != null) {
+        String finalQuery = String.format(UPDATE_LAST_RANK_TFT_MATCH_ID, matchid, lastRank.lastRank_id);
         query.execute(finalQuery);
       }
     }

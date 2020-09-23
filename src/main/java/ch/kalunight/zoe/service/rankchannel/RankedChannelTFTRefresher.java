@@ -4,6 +4,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import ch.kalunight.zoe.Zoe;
+import ch.kalunight.zoe.exception.NoValueRankException;
 import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.dto.DTO.LastRank;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
@@ -22,6 +23,40 @@ public class RankedChannelTFTRefresher extends RankedChannelBaseRefresher {
   public RankedChannelTFTRefresher(RankHistoryChannel rankChannel, LeagueEntry oldEntry, LeagueEntry newEntry, Player player,
       LeagueAccount leagueAccount, Server server) {
     super(rankChannel, oldEntry, newEntry, player, leagueAccount, server);
+  }
+
+  @Override
+  protected void sendRankChangedWithoutBO() {
+    sendTFTStandardMessage();
+  }
+
+  @Override
+  protected void sendLeaguePointChangeOnly() {
+    sendTFTStandardMessage();
+  }
+
+  private void sendTFTStandardMessage() {
+    List<TFTMatch> matchs;
+    try {
+      matchs = getTFTMatchsSinceTheLastMessage();
+    } catch(SQLException e) {
+      logger.error("SQL error in RankedChannelTFTRefresher !", e);
+      return;
+    }
+    
+    MessageEmbed message;
+    try {
+      message = MessageBuilderRequest.createRankChannelCardLeaguePointChangeOnlyTFT
+      (oldEntry, newEntry, matchs, player, leagueAccount, server.serv_language);
+    } catch (NoValueRankException e) {
+      logger.warn("Error while generating a TFT rank message!", e);
+      return;
+    }
+
+    TextChannel textChannelWhereSend = Zoe.getJda().getTextChannelById(rankChannel.rhChannel_channelId);
+    if(textChannelWhereSend != null) {
+      textChannelWhereSend.sendMessage(message).queue();
+    }
   }
 
   private List<TFTMatch> getTFTMatchsSinceTheLastMessage() throws SQLException{
@@ -50,36 +85,7 @@ public class RankedChannelTFTRefresher extends RankedChannelBaseRefresher {
     }
     return matchs;
   }
-
-  @Override
-  protected void sendRankChangedWithoutBO() {
-    sendTFTStandardMessage();
-  }
-
-  @Override
-  protected void sendLeaguePointChangeOnly() {
-    sendTFTStandardMessage();
-  }
-
-  private void sendTFTStandardMessage() {
-    List<TFTMatch> matchs;
-    try {
-      matchs = getTFTMatchsSinceTheLastMessage();
-    } catch(SQLException e) {
-      logger.error("SQL error in RankedChannelTFTRefresher !", e);
-      return;
-    }
-    
-    MessageEmbed message = 
-        MessageBuilderRequest.createRankChannelCardLeaguePointChangeOnlyTFT
-        (oldEntry, newEntry, matchs, player, leagueAccount, server.serv_language);
-
-    TextChannel textChannelWhereSend = Zoe.getJda().getTextChannelById(rankChannel.rhChannel_channelId);
-    if(textChannelWhereSend != null) {
-      textChannelWhereSend.sendMessage(message).queue();
-    }
-  }
-
+  
   @Override
   protected void sendBOEnded() {
     //TFT doesn't handle this event

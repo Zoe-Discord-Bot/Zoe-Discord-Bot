@@ -116,14 +116,14 @@ public class MessageBuilderRequest {
 
     User user = player.getUser();
     message.setAuthor(user.getName(), null, user.getAvatarUrl());
-    
+
     Participant participant = match.getParticipantBySummonerId(leagueAccount.leagueAccount_summonerId);
     String winAgain = match.getTeamByTeamId(participant.getTeamId()).getWin();
 
     FullTier oldFullTier = new FullTier(oldEntry);
 
     boolean win = winAgain.equalsIgnoreCase("Win");
-    
+
     if(win) {
       message.setColor(Color.GREEN);
       message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeBOProgressWinTitle"),
@@ -178,7 +178,7 @@ public class MessageBuilderRequest {
 
     User user = player.getUser();
     message.setAuthor(user.getName(), null, user.getAvatarUrl());
-    
+
     if(!boWin) {
       message.setColor(Color.RED);
       message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeBOEndedLooseTitle"),
@@ -281,7 +281,7 @@ public class MessageBuilderRequest {
 
     User user = player.getUser();
     message.setAuthor(user.getName(), null, user.getAvatarUrl());
-    
+
     int lpReceived = newEntry.getLeaguePoints() - oldEntry.getLeaguePoints();
     boolean gameWin = (newEntry.getLeaguePoints() - oldEntry.getLeaguePoints()) > 0;
 
@@ -311,9 +311,9 @@ public class MessageBuilderRequest {
 
     return message.build();
   }
-  
+
   public static MessageEmbed createRankChannelCardLeaguePointChangeOnlyTFT(LeagueEntry oldEntry, LeagueEntry newEntry, 
-      List<TFTMatch> matchs, Player player, LeagueAccount leagueAccount, String lang) {
+      List<TFTMatch> matchs, Player player, LeagueAccount leagueAccount, String lang) throws NoValueRankException {
 
     EmbedBuilder message = new EmbedBuilder();
 
@@ -321,22 +321,28 @@ public class MessageBuilderRequest {
 
     User user = player.getUser();
     message.setAuthor(user.getName(), null, user.getAvatarUrl());
-    
-    int lpReceived = newEntry.getLeaguePoints() - oldEntry.getLeaguePoints();
-    boolean gameWin = (newEntry.getLeaguePoints() - oldEntry.getLeaguePoints()) > 0;
+
+    FullTier oldFullTier = new FullTier(oldEntry);
+    FullTier newFullTier = new FullTier(newEntry);
+
+    int lpReceived = newFullTier.value() - oldFullTier.value();
+    boolean gameWin = lpReceived > 0;
 
     if(gameWin) {
-      message.setColor(Color.GREEN);
-      message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangePointOnlyWinTitle"),
-          leagueAccount.leagueAccount_name, lpReceived, gameType));
+      if(oldFullTier.getTier() != newFullTier.getTier()) {
+        message.setColor(Color.YELLOW);
+        message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeRankChangeWinDivisionSkippedTitle"),
+            leagueAccount.leagueAccount_name, lpReceived, LanguageManager.getText(lang, newFullTier.getTier().getTranslationTag()), gameType));
+      }else {
+        message.setColor(Color.GREEN);
+        message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangePointOnlyWinTitle"),
+            leagueAccount.leagueAccount_name, lpReceived, gameType));
+      }
     }else {
       message.setColor(Color.RED);
       message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangePointOnlyLooseTitle"),
           leagueAccount.leagueAccount_name, lpReceived * -1, gameType));
     }
-
-    FullTier oldFullTier = new FullTier(oldEntry);
-    FullTier newFullTier = new FullTier(newEntry);
 
     message.setDescription(oldFullTier.toString(lang) + " -> " + newFullTier.toString(lang));
 
@@ -348,7 +354,7 @@ public class MessageBuilderRequest {
     }else {
       stringResumeGame = RESUME_OF_THE_GAME_STRING;
     }
-    
+
     Field field = new Field(LanguageManager.getText(lang, stringResumeGame), statsGame, true);
     message.addField(field);
 
@@ -381,7 +387,7 @@ public class MessageBuilderRequest {
     } else {
       rankTitleTranslated = LanguageManager.getText(server.serv_language, SOLO_Q_RANK_STRING);
     }
-    
+
     Set<DTO.LeagueAccount> playersAccountsOfTheGame = new HashSet<>();
     for(DTO.Player player : players) {
       playersAccountsOfTheGame.addAll(
@@ -490,10 +496,10 @@ public class MessageBuilderRequest {
 
     for(ChampionMastery championMastery : masteries) {
       switch(championMastery.getChampionLevel()) {
-        case 5: nbrMastery5++; break;
-        case 6: nbrMastery6++; break;
-        case 7: nbrMastery7++; break;
-        default: break;
+      case 5: nbrMastery5++; break;
+      case 6: nbrMastery6++; break;
+      case 7: nbrMastery7++; break;
+      default: break;
       }
       totalNbrMasteries += championMastery.getChampionPoints();
     }

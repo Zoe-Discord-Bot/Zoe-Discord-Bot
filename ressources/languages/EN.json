@@ -404,5 +404,6 @@
     "playersKilled" : "%d kills",
     "playerDamageGiven" : "%d damages inflicted",
     "resumeOfLastGame" : "Resume of last game",
-    "empty" : "empty"
+    "empty" : "empty",
+	"rankChannelChangeRankChangeWinTierTFT" : "%s has win %d LP and reach %s! (%s)"
 }

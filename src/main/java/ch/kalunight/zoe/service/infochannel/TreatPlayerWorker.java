@@ -41,7 +41,7 @@ import net.rithms.riot.api.endpoints.tft_league.dto.TFTLeagueEntry;
 
 public class TreatPlayerWorker implements Runnable {
 
-  protected static final List<Player> playersInWork = Collections.synchronizedList(new ArrayList<>());
+  protected static final List<TreatPlayerWorker> playersInWork = Collections.synchronizedList(new ArrayList<>());
 
   protected static final Logger logger = LoggerFactory.getLogger(TreatPlayerWorker.class);
 
@@ -84,7 +84,7 @@ public class TreatPlayerWorker implements Runnable {
     this.server = server;
     this.infochannelMessage = new StringBuilder();
     this.serverConfig = configuration;
-    playersInWork.add(player);
+    playersInWork.add(this);
   }
 
 
@@ -99,7 +99,7 @@ public class TreatPlayerWorker implements Runnable {
     }catch(Exception e) {
       logger.error("Unexpected exception when threathing text", e);
     }finally {
-      playersInWork.remove(player);
+      playersInWork.remove(this);
     }
   }
 
@@ -426,13 +426,13 @@ public class TreatPlayerWorker implements Runnable {
     return infochannelMessage.toString();
   }
 
-  public static void awaitAll(List<Player> playersToWait) {
+  public static void awaitAll(List<TreatPlayerWorker> playersToWait) {
 
     boolean needToWait;
 
     do {
       needToWait = false;
-      for(Player playerToWait : playersToWait) {
+      for(TreatPlayerWorker playerToWait : playersToWait) {
         if(playersInWork.contains(playerToWait)) {
           needToWait = true;
           break;

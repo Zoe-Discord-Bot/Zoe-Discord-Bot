@@ -6,8 +6,12 @@ import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -26,6 +30,7 @@ import ch.kalunight.zoe.model.dto.DTO.InfoChannel;
 import ch.kalunight.zoe.model.dto.DTO.InfoPanelMessage;
 import ch.kalunight.zoe.model.dto.DTO.LastRank;
 import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
+import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Player;
 import ch.kalunight.zoe.model.dto.DTO.RankHistoryChannel;
 import ch.kalunight.zoe.model.dto.DTO.ServerStatus;
@@ -46,6 +51,7 @@ import ch.kalunight.zoe.repositories.TeamRepository;
 import ch.kalunight.zoe.service.ServerChecker;
 import ch.kalunight.zoe.service.rankchannel.RankedChannelLoLRefresher;
 import ch.kalunight.zoe.translation.LanguageManager;
+import ch.kalunight.zoe.util.TreatedPlayer;
 import ch.kalunight.zoe.util.request.RiotRequest;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
@@ -160,9 +166,88 @@ public class InfoPanelRefresher implements Runnable {
       }
 
       rankChannel = RankHistoryChannelRepository.getRankHistoryChannel(server.serv_guildId);
+      
+      List<TreatPlayerWorker> playersToTreat = new ArrayList<>();
+      
+      List<TreatedPlayer> treatedPlayers = new ArrayList<>();
+      
+      if(infochannel != null || rankChannel != null) {
+        
+        for(Player player : playersDTO) {
+          TreatPlayerWorker playerWorker = new TreatPlayerWorker(server, player, configuration);
+          
+          playersToTreat.add(playerWorker);
+          ServerData.getInfochannelHelperThread().execute(playerWorker);
+        }
+        
+        TreatPlayerWorker.awaitAll(playersToTreat);
+        
+        Map<CurrentGameInfo, List<LeagueAccount>> leaguesAccountsPerGameWaitingCreation = Collections.synchronizedMap(new HashMap<CurrentGameInfo, List<LeagueAccount>>());
+        
+        Map<DTO.CurrentGameInfo, List<LeagueAccount>> leaguesAccountsPerGameWaitingDeletion = Collections.synchronizedMap(new HashMap<DTO.CurrentGameInfo, List<LeagueAccount>>());
+        
+        for(TreatPlayerWorker treatPlayerWorker : playersToTreat) {
+          TreatedPlayer treatedPlayer = treatPlayerWorker.getTreatedPlayer();
+          treatedPlayers.add(treatedPlayer);
+          
+          Set<Entry<CurrentGameInfo, LeagueAccount>> gameToCreatePerAccount = treatedPlayer.getGamesToCreate().entrySet();
+          for(Entry<CurrentGameInfo, LeagueAccount> gamePerAccount : gameToCreatePerAccount) {
+            boolean gameAlreadyAdded = false;
+            for(Entry<CurrentGameInfo, List<LeagueAccount>> gamesAlreadyWaitingForCreation : leaguesAccountsPerGameWaitingCreation.entrySet()) {
+              if(gamePerAccount.getKey().getGameId() == gamesAlreadyWaitingForCreation.getKey().getGameId()) {
+                gameAlreadyAdded = true;
+                
+                if(!gamesAlreadyWaitingForCreation.getValue().isEmpty() 
+                    && gamesAlreadyWaitingForCreation.getValue().get(0).leagueAccount_server == gamePerAccount.getValue().leagueAccount_server) {
+                  gamesAlreadyWaitingForCreation.getValue().add(gamePerAccount.getValue());
+                }
+              }
+            }
+            
+            if(!gameAlreadyAdded) {
+              List<LeagueAccount> leagueAccountsOfTheGame = new ArrayList<>();
+              leagueAccountsOfTheGame.add(gamePerAccount.getValue());
+              leaguesAccountsPerGameWaitingCreation.put(gamePerAccount.getKey(), leagueAccountsOfTheGame);
+            }
+          }
 
-      if(infochannel != null) {
-        refreshAllLeagueAccountCurrentGamesAndDeleteOlderInfoCard(playersDTO);
+          for(Entry<DTO.CurrentGameInfo, LeagueAccount> gameToDelete : treatedPlayer.getGamesToDelete().entrySet()) {
+            boolean gameAlreadyAdded = false;
+            for(Entry<DTO.CurrentGameInfo, List<LeagueAccount>> gameAlreadyWaitingToBeDeleted : leaguesAccountsPerGameWaitingDeletion.entrySet()) {
+              
+              if(gameAlreadyWaitingToBeDeleted.getKey().currentgame_id == gameToDelete.getKey().currentgame_id) {
+                gameAlreadyAdded = true;
+                gameAlreadyWaitingToBeDeleted.getValue().add(gameToDelete.getValue());
+              }
+            }
+            
+            if(!gameAlreadyAdded) {
+              List<LeagueAccount> leagueAccountsOfTheGame = new ArrayList<>();
+              leagueAccountsOfTheGame.add(gameToDelete.getValue());
+              leaguesAccountsPerGameWaitingDeletion.put(gameToDelete.getKey(), leagueAccountsOfTheGame);
+            }
+          }
+        }
+        
+        for(Entry<DTO.CurrentGameInfo, List<LeagueAccount>> gameToDelete : leaguesAccountsPerGameWaitingDeletion.entrySet()) {
+          CurrentGameInfoRepository.deleteCurrentGame(gameToDelete.getKey(), server);
+        }
+        
+        for(Entry<CurrentGameInfo, List<LeagueAccount>> gameToCreate : leaguesAccountsPerGameWaitingCreation.entrySet()) {
+          boolean gameCreated = false;
+          for(LeagueAccount leagueAccount : gameToCreate.getValue()) {
+            if(gameCreated) {
+              gameCreated = true;
+              CurrentGameInfoRepository.createCurrentGame(gameToCreate.getKey(), leagueAccount);
+            }else {
+              DTO.CurrentGameInfo currentGame = CurrentGameInfoRepository.getCurrentGameWithServerAndGameId(leagueAccount.leagueAccount_server, Long.toString(gameToCreate.getKey().getGameId()));
+              LeagueAccountRepository.updateAccountCurrentGameWithAccountId(leagueAccount.leagueAccount_id, currentGame.currentgame_id);
+            }
+          }
+          
+        }
+        
+        
       }
 
       if(infochannel != null && guild != null) {
@@ -805,7 +890,7 @@ public class InfoPanelRefresher implements Runnable {
       threathTextWorkers.add(threathTextWorker);
     }
 
-    TreatPlayerWorker.awaitAll(playersList);
+    TreatPlayerWorker.awaitAll(threathTextWorkers);
 
     for(TreatPlayerWorker threathTextWorker : threathTextWorkers) {
       stringMessage.append(threathTextWorker.getInfochannelMessage());

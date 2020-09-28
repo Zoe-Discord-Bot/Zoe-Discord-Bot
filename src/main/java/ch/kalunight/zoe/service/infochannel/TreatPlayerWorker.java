@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -27,6 +28,7 @@ import ch.kalunight.zoe.repositories.CurrentGameInfoRepository;
 import ch.kalunight.zoe.repositories.LastRankRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
+import ch.kalunight.zoe.repositories.TeamRepository;
 import ch.kalunight.zoe.riotapi.CachedRiotApi;
 import ch.kalunight.zoe.service.rankchannel.RankedChannelLoLRefresher;
 import ch.kalunight.zoe.translation.LanguageManager;
@@ -49,6 +51,8 @@ public class TreatPlayerWorker implements Runnable {
 
   private Player player;
 
+  private DTO.Team team;
+  
   private Server server;
 
   private ServerConfiguration serverConfig;
@@ -57,7 +61,7 @@ public class TreatPlayerWorker implements Runnable {
 
   private RankHistoryChannel rankChannel;
 
-  private List<FullTier> soloqRank;
+  private List<FullTier> soloqRank = new ArrayList<>();
   
   private Map<DTO.CurrentGameInfo, LeagueAccount> gamesToDelete = Collections.synchronizedMap(new HashMap<>());
   
@@ -91,8 +95,11 @@ public class TreatPlayerWorker implements Runnable {
   @Override
   public void run() {
     try {
-      refreshPlayer();
-      generateText();
+      Map<LeagueAccount, CurrentGameInfo> accountsInGame = Collections.synchronizedMap(new HashMap<>());
+      List<LeagueAccount> accountNotInGame = new ArrayList<>();
+      
+      refreshPlayer(accountsInGame, accountNotInGame);
+      generateText(accountsInGame, accountNotInGame); 
       createOutputObject();
     }catch(SQLException e) {
       logger.error("Unexpected SQLException when threathing text", e);
@@ -105,16 +112,18 @@ public class TreatPlayerWorker implements Runnable {
 
 
   private void createOutputObject() {
-    treatedPlayer = new TreatedPlayer(player, infochannelMessage.toString(), soloqRank, gamesToDelete, gamesToCreate);
+    treatedPlayer = new TreatedPlayer(player, team, infochannelMessage.toString(), soloqRank, gamesToDelete, gamesToCreate);
   }
 
-  private void refreshPlayer() throws SQLException {
+  private void refreshPlayer(Map<LeagueAccount, CurrentGameInfo> accountsInGame, List<LeagueAccount> accountNotInGame) throws SQLException {
+    team = TeamRepository.getTeamByPlayerAndGuild(server.serv_guildId, player.player_discordId);
+    
     List<LeagueAccount> leaguesAccount = LeagueAccountRepository.getLeaguesAccountsWithPlayerID(server.serv_guildId, player.player_id);
 
     for(LeagueAccount leagueAccount : leaguesAccount) {
       LastRank lastRank = getLastRank(leagueAccount);
 
-      refreshLoL(leagueAccount, lastRank);
+      refreshLoL(leagueAccount, lastRank, accountsInGame, accountNotInGame);
       refreshTFT(leagueAccount, lastRank);
     }
   }
@@ -157,14 +166,17 @@ public class TreatPlayerWorker implements Runnable {
     }
   }
 
-  private void refreshLoL(LeagueAccount leagueAccount, LastRank lastRank) throws SQLException {
+  private void refreshLoL(LeagueAccount leagueAccount, LastRank lastRank,
+      Map<LeagueAccount, CurrentGameInfo> accountsInGame, List<LeagueAccount> accountNotInGame) throws SQLException {
     DTO.CurrentGameInfo currentGameDb = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(leagueAccount.leagueAccount_id);
 
     CurrentGameInfo currentGame;
     try {
       currentGame = Zoe.getRiotApi().getActiveGameBySummoner(
           leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
+      accountsInGame.put(leagueAccount, currentGame);
     } catch(RiotApiException e) {
+      accountNotInGame.add(leagueAccount);
       if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
         currentGame = null;
       }else {
@@ -290,22 +302,10 @@ public class TreatPlayerWorker implements Runnable {
   }
 
 
-  private void generateText() throws SQLException {
-    List<DTO.LeagueAccount> leagueAccounts = player.leagueAccounts;
+  private void generateText(Map<DTO.LeagueAccount, CurrentGameInfo> accountsWithGame, List<DTO.LeagueAccount> accountNotInGame) throws SQLException {
 
-    List<DTO.LeagueAccount> accountsInGame = new ArrayList<>();
-    List<DTO.LeagueAccount> accountNotInGame = new ArrayList<>();
-
-    for(DTO.LeagueAccount leagueAccount : leagueAccounts) {
-      DTO.CurrentGameInfo currentGameInfo = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(leagueAccount.leagueAccount_id);
-      if(currentGameInfo != null) {
-        accountsInGame.add(leagueAccount);
-      }else {
-        accountNotInGame.add(leagueAccount);
-      }
-    }
-
-    if(accountsInGame.isEmpty()) {
+    
+    if(accountsWithGame.isEmpty()) {
 
       if(serverConfig.getInfopanelRankedOption().isOptionActivated()) {
 
@@ -314,7 +314,7 @@ public class TreatPlayerWorker implements Runnable {
           LeagueAccount leagueAccount = accountNotInGame.get(0);
 
           getTextInformationPanelRankOption(infochannelMessage, player, leagueAccount, false);
-        }else {
+        }else if (accountNotInGame.size() > 1){
 
           infochannelMessage.append(String.format(LanguageManager.getText(server.serv_language, "infoPanelRankedTitleMultipleAccount"), player.getUser().getAsMention()) + "\n");
 
@@ -327,13 +327,14 @@ public class TreatPlayerWorker implements Runnable {
       } else {
         notInGameWithoutRankInfo(infochannelMessage, player);
       }
-    }else if (accountsInGame.size() == 1) {
+    }else if (accountsWithGame.size() == 1) {
+      Entry<DTO.LeagueAccount, CurrentGameInfo> entry = accountsWithGame.entrySet().iterator().next();
       infochannelMessage.append(player.getUser().getAsMention() + " : " 
-          + InfoPanelRefresherUtil.getCurrentGameInfoStringForOneAccount(accountsInGame.get(0), server.serv_language) + "\n");
+          + InfoPanelRefresherUtil.getCurrentGameInfoStringForOneAccount(entry.getKey(), entry.getValue(), server.serv_language) + "\n");
     }else {
       infochannelMessage.append(player.getUser().getAsMention() + " : " 
           + LanguageManager.getText(server.serv_language, "informationPanelMultipleAccountInGame") + "\n"
-          + InfoPanelRefresherUtil.getCurrentGameInfoStringForMultipleAccounts(accountsInGame, server.serv_language));
+          + InfoPanelRefresherUtil.getCurrentGameInfoStringForMultipleAccounts(accountsWithGame, server.serv_language));
     }
   }
 
@@ -366,17 +367,17 @@ public class TreatPlayerWorker implements Runnable {
 
     List<LastRankQueue> lastRanksByQueue = new ArrayList<>();
 
-    if(lastRank.lastRank_soloqLastRefresh != null) {
+    if(lastRank.lastRank_soloqLastRefresh != null && lastRank.lastRank_soloqSecond != null) {
       lastRanksByQueue.add(new LastRankQueue(lastRank.lastRank_soloq, lastRank.lastRank_soloqSecond,
           lastRank.lastRank_soloqLastRefresh, GameQueueConfigId.SOLOQ));
     }
 
-    if(lastRank.lastRank_flexLastRefresh != null) {
+    if(lastRank.lastRank_flexLastRefresh != null && lastRank.lastRank_tftSecond != null) {
       lastRanksByQueue.add(new LastRankQueue(lastRank.lastRank_flex, lastRank.lastRank_flexSecond,
           lastRank.lastRank_flexLastRefresh, GameQueueConfigId.FLEX));
     }
 
-    if(lastRank.lastRank_tftLastRefresh != null) {
+    if(lastRank.lastRank_tftLastRefresh != null && lastRank.lastRank_tftSecond != null) {
       lastRanksByQueue.add(new LastRankQueue(lastRank.lastRank_tft, lastRank.lastRank_tftSecond,
           lastRank.lastRank_tftLastRefresh, GameQueueConfigId.RANKED_TFT));
     }

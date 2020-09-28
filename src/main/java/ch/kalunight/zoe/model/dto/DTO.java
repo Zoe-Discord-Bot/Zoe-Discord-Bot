@@ -242,6 +242,12 @@ public class DTO {
       team_fk_server = baseData.getLong("team_fk_server");
       team_name = baseData.getString("team_name");
     }
+    
+    public Team(long id, long serverId, String teamName) {
+      team_id = id;
+      team_fk_server = serverId;
+      team_name = teamName;
+    }
   }
   
   public static class RankHistoryChannel {

@@ -15,8 +15,11 @@ import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.config.option.RegionOption;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.BannedAccount;
+import ch.kalunight.zoe.model.dto.DTO.LastRank;
+import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.repositories.BannedAccountRepository;
 import ch.kalunight.zoe.repositories.ConfigRepository;
+import ch.kalunight.zoe.repositories.LastRankRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
@@ -123,6 +126,15 @@ public class CreatePlayerCommand extends ZoeCommand {
       PlayerRepository.createPlayer(server.serv_id, event.getGuild().getIdLong(), user.getIdLong(), false);
       DTO.Player player = PlayerRepository.getPlayer(server.serv_guildId, user.getIdLong());
       LeagueAccountRepository.createLeagueAccount(player.player_id, summoner, region.getName());
+      
+      LeagueAccount leagueAccount = 
+          LeagueAccountRepository.getLeagueAccountWithSummonerId(server.serv_guildId, summoner.getId(), region);
+      
+      LastRankRepository.createLastRank(leagueAccount.leagueAccount_id);
+      LastRank lastRank = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
+      
+      //TODO: Refresh lastRank
+      
 
       if(config.getZoeRoleOption().getRole() != null) {
         Member member = event.getGuild().getMember(user);

@@ -30,6 +30,7 @@ import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.api.endpoints.tft_league.dto.TFTLeagueEntry;
 import net.rithms.riot.api.endpoints.tft_match.dto.TFTMatch;
+import net.rithms.riot.api.endpoints.tft_summoner.dto.TFTSummoner;
 import net.rithms.riot.api.request.ratelimit.RateLimitException;
 import net.rithms.riot.constant.Platform;
 
@@ -199,7 +200,33 @@ public class CachedRiotApi {
           Thread.currentThread().interrupt();
         }
       } catch (RiotApiException e) {
-        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND || e.getErrorCode() == RiotApiException.BAD_REQUEST) {
+          return null;
+        }
+      }
+    }while(needToRetry);
+    
+    return summoner;
+  }
+  
+  public TFTSummoner getTFTSummonerByNameWithRateLimit(Platform platform, String name) throws RiotApiException {
+    TFTSummoner summoner = null;
+    boolean needToRetry;
+    do {
+      needToRetry = true;
+      try {
+        summoner = riotApi.getTFTSummonerByName(platform, name);
+        needToRetry = false;
+      }catch(RateLimitException e) {
+        try {
+          logger.info("Waiting rate limit ({} sec) to retry in getTFTSummoner", e.getRetryAfter());
+          TimeUnit.SECONDS.sleep(e.getRetryAfter());
+        } catch (InterruptedException e1) {
+          logger.error("Thread Interupted when waiting the rate limit in getSummoner !", e1);
+          Thread.currentThread().interrupt();
+        }
+      } catch (RiotApiException e) {
+        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND || e.getErrorCode() == RiotApiException.BAD_REQUEST) {
           return null;
         }
       }
@@ -322,14 +349,15 @@ public class CachedRiotApi {
     return mastery;
   }
   
-  public Set<TFTLeagueEntry> getTFTLeagueEntryWithRateLimit(Platform platform, String summonerId) {
+  public Set<TFTLeagueEntry> getTFTLeagueEntries(Platform platform, String summonerId) throws RiotApiException {
+    return riotApi.getTFTLeagueEntryBySummoner(platform, summonerId);
+  }
+  
+  public Set<TFTLeagueEntry> getTFTLeagueEntriesWithRateLimit(Platform platform, String summonerId) {
     Set<TFTLeagueEntry> leagueEntries = null;
     boolean needToRetry;
     
     do {
-      leagueEntryRequestCount.incrementAndGet();
-      increaseCallCountForGivenRegion(platform);
-      
       needToRetry = true;
       try {
         leagueEntries = riotApi.getTFTLeagueEntryBySummoner(platform, summonerId);

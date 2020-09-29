@@ -14,7 +14,7 @@ public class FullTierUtil {
   
   public static String getTierRankTextDifference(LeagueEntry oldEntry, LeagueEntry newEntry, String lang, GameQueueConfigId queue) {
     
-    if(queue == GameQueueConfigId.SOLOQ) {
+    if(queue == GameQueueConfigId.RANKED_TFT) {
       return threathTFT(oldEntry, newEntry, lang);
     }
     

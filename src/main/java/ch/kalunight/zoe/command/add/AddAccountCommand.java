@@ -121,8 +121,12 @@ public class AddAccountCommand extends ZoeCommand {
 
     BannedAccount bannedAccount = BannedAccountRepository.getBannedAccount(summoner.getId(), region);
     if(bannedAccount == null) {
-
+      
       LeagueAccountRepository.createLeagueAccount(player.player_id, summoner, region.getName());
+      DTO.LeagueAccount leagueAccount = LeagueAccountRepository.getLeagueAccountWithSummonerId(server.serv_guildId, summoner.getId(), region);
+      
+      CreatePlayerCommand.updateLastRank(leagueAccount);
+      
       event.reply(String.format(LanguageManager.getText(server.serv_language, "accountAddedToPlayer"),
           newAccount.getSummoner().getName(), user.getName()));
     }else {

@@ -104,7 +104,7 @@ CREATE TABLE league_account (
   leagueAccount_summonerId						VARCHAR				NOT NULL,
   leagueAccount_accountId						VARCHAR				NOT NULL,
   leagueAccount_puuid							VARCHAR				NOT NULL,
-  leagueAccount_server							VARCHAR				NOT NULL		
+  leagueAccount_server							VARCHAR				NOT NULL
 );
 
 CREATE TABLE current_game_info (

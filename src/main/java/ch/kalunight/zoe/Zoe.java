@@ -189,7 +189,7 @@ public class Zoe {
     return builder.build();
   }
 
-  private static void initRiotApi(String riotTocken, String tftTocken) {
+  public static void initRiotApi(String riotTocken, String tftTocken) {
     ApiConfig config = new ApiConfig().setKey(riotTocken).setTFTKey(tftTocken);
 
     config.setMaxAsyncThreads(ServerData.NBR_PROC);

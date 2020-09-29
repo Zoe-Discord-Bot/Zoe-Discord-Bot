@@ -148,6 +148,9 @@ public class DTO {
     public String leagueAccount_summonerId;
     public String leagueAccount_accoundId;
     public String leagueAccount_puuid;
+    public String leagueAccount_tftSummonerId;
+    public String leagueAccount_tftAccountId;
+    public String leagueAccount_tftPuuid;
     public Platform leagueAccount_server;
     public Summoner summoner;
 
@@ -160,6 +163,9 @@ public class DTO {
       leagueAccount_summonerId = baseData.getString("leagueAccount_summonerId");
       leagueAccount_accoundId = baseData.getString("leagueAccount_accountId");
       leagueAccount_puuid = baseData.getString("leagueAccount_puuid");
+      leagueAccount_tftSummonerId = baseData.getString("leagueAccount_tftSummonerId");
+      leagueAccount_tftAccountId = baseData.getString("leagueAccount_tftAccountId");
+      leagueAccount_tftPuuid = baseData.getString("leagueAccount_tftPuuid");
       leagueAccount_server = Platform.getPlatformByName(baseData.getString("leagueAccount_server"));
     }
     

@@ -34,6 +34,7 @@ import ch.kalunight.zoe.service.rankchannel.RankedChannelLoLRefresher;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.FullTierUtil;
 import ch.kalunight.zoe.util.InfoPanelRefresherUtil;
+import ch.kalunight.zoe.util.LastRankUtil;
 import ch.kalunight.zoe.util.Ressources;
 import ch.kalunight.zoe.util.TreatedPlayer;
 import net.rithms.riot.api.RiotApiException;
@@ -141,29 +142,9 @@ public class TreatPlayerWorker implements Runnable {
 
   private void refreshTFT(LeagueAccount leagueAccount, LastRank lastRank) throws SQLException {
     Set<TFTLeagueEntry> tftLeagueEntries = Zoe.getRiotApi().
-        getTFTLeagueEntryWithRateLimit(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
+        getTFTLeagueEntriesWithRateLimit(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
 
-    TFTLeagueEntry tftLeagueEntry = null;
-
-    for(TFTLeagueEntry checkLeagueEntry : tftLeagueEntries) {
-      if(checkLeagueEntry.getQueueType().equals(GameQueueConfigId.RANKED_TFT.getQueueType())) {
-        tftLeagueEntry = checkLeagueEntry;
-      }
-    }
-
-    if(tftLeagueEntry != null) {
-      FullTier fullTier = new FullTier(tftLeagueEntry);
-
-      if(lastRank.lastRank_tft == null) {
-        LastRankRepository.updateLastRankTftWithLeagueAccountId(tftLeagueEntry, leagueAccount.leagueAccount_id);
-        lastRank.lastRank_tft = tftLeagueEntry;
-      }else if (fullTier.equals(new FullTier(lastRank.lastRank_tft))){
-        LastRankRepository.updateLastRankTftWithLeagueAccountId(tftLeagueEntry, leagueAccount.leagueAccount_id);
-        LastRankRepository.updateLastRankTftSecondWithLeagueAccountId(lastRank.lastRank_tft, leagueAccount.leagueAccount_id);
-        lastRank.lastRank_tftSecond = lastRank.lastRank_tft;
-        lastRank.lastRank_tft = tftLeagueEntry;
-      }
-    }
+    LastRankUtil.updateTFTLastRank(leagueAccount, lastRank, tftLeagueEntries);
   }
 
   private void refreshLoL(LeagueAccount leagueAccount, LastRank lastRank,
@@ -204,7 +185,7 @@ public class TreatPlayerWorker implements Runnable {
 
     gamesToDelete.put(currentGameDb, leagueAccount);
 
-    updateLoLLastRank(leagueAccount, currentGameDb, lastRank);
+    updateLoLLastRankIfGivenGameIsARanked(leagueAccount, currentGameDb, lastRank);
     searchForRefreshRankChannel(currentGameDb, leagueAccount, lastRank);
   }
 
@@ -215,7 +196,7 @@ public class TreatPlayerWorker implements Runnable {
     gamesToDelete.put(currentGameDb, leagueAccount);
     gamesToCreate.put(currentGame, leagueAccount);
 
-    if(updateLoLLastRank(leagueAccount, currentGameDb, lastRank)) {
+    if(updateLoLLastRankIfGivenGameIsARanked(leagueAccount, currentGameDb, lastRank)) {
       searchForRefreshRankChannel(currentGameDb, leagueAccount, lastRank);
     }
   }
@@ -223,7 +204,7 @@ public class TreatPlayerWorker implements Runnable {
   /**
    * @return true is the update has been done correctly, false otherwise.
    */
-  private boolean updateLoLLastRank(LeagueAccount leagueAccount, DTO.CurrentGameInfo currentGameDone, LastRank lastRank) throws SQLException {
+  private boolean updateLoLLastRankIfGivenGameIsARanked(LeagueAccount leagueAccount, DTO.CurrentGameInfo currentGameDone, LastRank lastRank) throws SQLException {
 
     CurrentGameInfo currentGameData = currentGameDone.currentgame_currentgame;
 
@@ -238,32 +219,10 @@ public class TreatPlayerWorker implements Runnable {
         logger.info("Error while getting leagueEntries in updateLoLLastRank.");
         return false;
       }
-
-      for(LeagueEntry checkLeagueEntry : leagueEntries) {
-        if(checkLeagueEntry.getQueueType().equals(GameQueueConfigId.SOLOQ.getQueueType())) {
-          if(lastRank.lastRank_soloq == null) {
-            LastRankRepository.updateLastRankSoloqWithLeagueAccountId(checkLeagueEntry, leagueAccount.leagueAccount_id);
-            lastRank.lastRank_soloq = checkLeagueEntry;
-          }else {
-            LastRankRepository.updateLastRankSoloqSecondWithLeagueAccountId(lastRank.lastRank_soloq, leagueAccount.leagueAccount_id);
-            lastRank.lastRank_soloqSecond = lastRank.lastRank_soloq;
-            LastRankRepository.updateLastRankSoloqWithLeagueAccountId(checkLeagueEntry, leagueAccount.leagueAccount_id);
-            lastRank.lastRank_soloq = checkLeagueEntry;
-          }
-        }else if(checkLeagueEntry.getQueueType().equals(GameQueueConfigId.FLEX.getQueueType())) {
-          if(lastRank.lastRank_soloq == null) {
-            LastRankRepository.updateLastRankFlexWithLeagueAccountId(checkLeagueEntry, leagueAccount.leagueAccount_id);
-            lastRank.lastRank_flex = checkLeagueEntry;
-          }else {
-            LastRankRepository.updateLastRankFlexSecondWithLeagueAccountId(lastRank.lastRank_soloq, leagueAccount.leagueAccount_id);
-            lastRank.lastRank_flexSecond = lastRank.lastRank_flex;
-            LastRankRepository.updateLastRankFlexWithLeagueAccountId(checkLeagueEntry, leagueAccount.leagueAccount_id);
-            lastRank.lastRank_flex = checkLeagueEntry;
-          }
-        }
-      }
+      
+      return LastRankUtil.updateLoLLastRank(leagueAccount, lastRank, leagueEntries);
     }
-    return true;
+    return false;
   }
 
 
@@ -367,17 +326,17 @@ public class TreatPlayerWorker implements Runnable {
 
     List<LastRankQueue> lastRanksByQueue = new ArrayList<>();
 
-    if(lastRank.lastRank_soloqLastRefresh != null && lastRank.lastRank_soloqSecond != null) {
+    if(lastRank.lastRank_soloqLastRefresh != null) {
       lastRanksByQueue.add(new LastRankQueue(lastRank.lastRank_soloq, lastRank.lastRank_soloqSecond,
           lastRank.lastRank_soloqLastRefresh, GameQueueConfigId.SOLOQ));
     }
 
-    if(lastRank.lastRank_flexLastRefresh != null && lastRank.lastRank_tftSecond != null) {
+    if(lastRank.lastRank_flexLastRefresh != null) {
       lastRanksByQueue.add(new LastRankQueue(lastRank.lastRank_flex, lastRank.lastRank_flexSecond,
           lastRank.lastRank_flexLastRefresh, GameQueueConfigId.FLEX));
     }
 
-    if(lastRank.lastRank_tftLastRefresh != null && lastRank.lastRank_tftSecond != null) {
+    if(lastRank.lastRank_tftLastRefresh != null) {
       lastRanksByQueue.add(new LastRankQueue(lastRank.lastRank_tft, lastRank.lastRank_tftSecond,
           lastRank.lastRank_tftLastRefresh, GameQueueConfigId.RANKED_TFT));
     }

@@ -102,7 +102,7 @@ public class RankLeaderboardService extends LeaderboardBaseService {
         Set<LeagueEntry> leaguesEntry = Zoe.getRiotApi().getLeagueEntriesBySummonerIdWithRateLimit(leagueAccount.leagueAccount_server,
             leagueAccount.leagueAccount_summonerId);
 
-        Set<TFTLeagueEntry> tftLeaguesEntry = Zoe.getRiotApi().getTFTLeagueEntryWithRateLimit(leagueAccount.leagueAccount_server,
+        Set<TFTLeagueEntry> tftLeaguesEntry = Zoe.getRiotApi().getTFTLeagueEntriesWithRateLimit(leagueAccount.leagueAccount_server,
             leagueAccount.leagueAccount_summonerId);
 
         if(tftLeaguesEntry != null && !tftLeaguesEntry.isEmpty()) {

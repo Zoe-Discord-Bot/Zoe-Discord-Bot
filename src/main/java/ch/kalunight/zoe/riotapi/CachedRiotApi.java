@@ -209,6 +209,10 @@ public class CachedRiotApi {
     return summoner;
   }
   
+  public TFTSummoner getTFTSummonerByName(Platform platform, String name) throws RiotApiException {
+    return riotApi.getTFTSummonerByName(platform, name);
+  }
+  
   public TFTSummoner getTFTSummonerByNameWithRateLimit(Platform platform, String name) throws RiotApiException {
     TFTSummoner summoner = null;
     boolean needToRetry;

@@ -18,8 +18,8 @@ public class LeagueAccountRepository {
 
   private static final String INSERT_LEAGUE_ACCOUNT = "INSERT INTO league_account " +
       "(leagueaccount_fk_player, leagueaccount_name, " +
-      "leagueaccount_summonerid, leagueaccount_accountid, leagueaccount_puuid, leagueaccount_server) " +
-      "VALUES (%d, '%s', '%s', '%s', '%s', '%s')";
+      "leagueaccount_summonerid, leagueaccount_accountid, leagueaccount_puuid, leagueaccount_server, leagueAccount_tftSummonerId, leagueAccount_tftAccountId, leagueAccount_tftPuuid) " +
+      "VALUES (%d, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')";
 
   private static final String SELECT_LEAGUES_ACCOUNTS_WITH_GUILDID_AND_PLAYER_DISCORD_ID =
       "SELECT " + 
@@ -272,12 +272,12 @@ public class LeagueAccountRepository {
     }
   }
 
-  public static void createLeagueAccount(long playerId, Summoner summoner, String server) throws SQLException {
+  public static void createLeagueAccount(long playerId, Summoner summoner, TFTSummoner tftSummoner, String server) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
 
       String finalQuery = String.format(INSERT_LEAGUE_ACCOUNT, playerId, summoner.getName(), summoner.getId(),
-          summoner.getAccountId(), summoner.getPuuid(), server);
+          summoner.getAccountId(), summoner.getPuuid(), server, tftSummoner.getId(), tftSummoner.getAccountId(), tftSummoner.getPuuid());
       query.execute(finalQuery);
     }
   }

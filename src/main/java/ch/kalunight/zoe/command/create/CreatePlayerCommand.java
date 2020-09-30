@@ -34,6 +34,7 @@ import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.api.endpoints.tft_league.dto.TFTLeagueEntry;
+import net.rithms.riot.api.endpoints.tft_summoner.dto.TFTSummoner;
 import net.rithms.riot.constant.Platform;
 
 public class CreatePlayerCommand extends ZoeCommand {
@@ -108,8 +109,10 @@ public class CreatePlayerCommand extends ZoeCommand {
     }
 
     Summoner summoner;
+    TFTSummoner tftSummoner;
     try {
       summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);
+      tftSummoner = Zoe.getRiotApi().getTFTSummonerByName(region, summonerName);
     }catch(RiotApiException e) {
       RiotApiUtil.handleRiotApi(event.getEvent(), e, server.serv_language);
       return;
@@ -129,7 +132,7 @@ public class CreatePlayerCommand extends ZoeCommand {
 
       PlayerRepository.createPlayer(server.serv_id, event.getGuild().getIdLong(), user.getIdLong(), false);
       DTO.Player player = PlayerRepository.getPlayer(server.serv_guildId, user.getIdLong());
-      LeagueAccountRepository.createLeagueAccount(player.player_id, summoner, region.getName());
+      LeagueAccountRepository.createLeagueAccount(player.player_id, summoner, tftSummoner, region.getName());
       
       LeagueAccount leagueAccount = 
           LeagueAccountRepository.getLeagueAccountWithSummonerId(server.serv_guildId, summoner.getId(), region);

@@ -31,6 +31,7 @@ import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.repositories.TeamRepository;
 import ch.kalunight.zoe.riotapi.CachedRiotApi;
 import ch.kalunight.zoe.service.rankchannel.RankedChannelLoLRefresher;
+import ch.kalunight.zoe.service.rankchannel.RankedChannelTFTRefresher;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.FullTierUtil;
 import ch.kalunight.zoe.util.InfoPanelRefresherUtil;
@@ -144,7 +145,11 @@ public class TreatPlayerWorker implements Runnable {
     Set<TFTLeagueEntry> tftLeagueEntries = Zoe.getRiotApi().
         getTFTLeagueEntriesWithRateLimit(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_tftSummonerId);
 
-    LastRankUtil.updateTFTLastRank(leagueAccount, lastRank, tftLeagueEntries);
+    if(LastRankUtil.updateTFTLastRank(leagueAccount, lastRank, tftLeagueEntries) && rankChannel != null) {
+      RankedChannelTFTRefresher tftRankedChannelRefresher = new RankedChannelTFTRefresher(rankChannel,
+          lastRank.lastRank_tftSecond, lastRank.lastRank_tft, player, leagueAccount, server);
+      ServerData.getRankedMessageGenerator().execute(tftRankedChannelRefresher);
+    }
   }
 
   private void refreshLoL(LeagueAccount leagueAccount, LastRank lastRank,

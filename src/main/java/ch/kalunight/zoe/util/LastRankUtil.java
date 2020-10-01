@@ -17,7 +17,10 @@ public class LastRankUtil {
     // hide default public constructor
   }
   
-  public static void updateTFTLastRank(LeagueAccount leagueAccount, LastRank lastRank, Set<TFTLeagueEntry> tftLeagueEntries)
+  /*
+   * @return true if the rank have changed.
+   */
+  public static boolean updateTFTLastRank(LeagueAccount leagueAccount, LastRank lastRank, Set<TFTLeagueEntry> tftLeagueEntries)
       throws SQLException {
     TFTLeagueEntry tftLeagueEntry = null;
 
@@ -33,13 +36,15 @@ public class LastRankUtil {
       if(lastRank.lastRank_tft == null) {
         LastRankRepository.updateLastRankTftWithLeagueAccountId(tftLeagueEntry, leagueAccount.leagueAccount_id);
         lastRank.lastRank_tft = tftLeagueEntry;
-      }else if (fullTier.equals(new FullTier(lastRank.lastRank_tft))){
+      }else if (!fullTier.equals(new FullTier(lastRank.lastRank_tft))){
         LastRankRepository.updateLastRankTftWithLeagueAccountId(tftLeagueEntry, leagueAccount.leagueAccount_id);
         LastRankRepository.updateLastRankTftSecondWithLeagueAccountId(lastRank.lastRank_tft, leagueAccount.leagueAccount_id);
         lastRank.lastRank_tftSecond = lastRank.lastRank_tft;
         lastRank.lastRank_tft = tftLeagueEntry;
+        return true;
       }
     }
+    return false;
   }
   
   /**

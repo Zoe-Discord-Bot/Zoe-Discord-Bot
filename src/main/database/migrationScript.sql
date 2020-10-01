@@ -18,6 +18,6 @@ ALTER TABLE league_account
 --! AFTER TFT MIGRATION SCRIPT
 	
 ALTER TABLE league_account 
-	ADD CONSTRAINT leagueAccount_tftSummonerId NOT NULL,
-	ADD CONSTRAINT leagueAccount_tftAccountId NOT NULL,
-	ADD CONSTRAINT leagueAccount_tftPuuid NOT NULL;
+	ALTER COLUMN leagueAccount_tftSummonerId SET NOT NULL,
+	ALTER COLUMN leagueAccount_tftAccountId SET NOT NULL,
+	ALTER COLUMN leagueAccount_tftPuuid SET NOT NULL;

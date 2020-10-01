@@ -14,6 +14,9 @@ import net.rithms.riot.constant.Platform;
 
 public class CacheManager {
 
+  /**
+   * @deprecated the cache is now in DB
+   */
   public static final File CACHE_FOLDER = new File("ressources/cache");
 
   private static final Logger logger = LoggerFactory.getLogger(CacheManager.class);

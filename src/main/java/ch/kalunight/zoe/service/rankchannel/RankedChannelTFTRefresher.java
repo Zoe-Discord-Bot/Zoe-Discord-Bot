@@ -65,7 +65,7 @@ public class RankedChannelTFTRefresher extends RankedChannelBaseRefresher {
     LastRank lastRank = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
 
     List<String> tftMatchsList = Zoe.getRiotApi()
-        .getTFTMatchListWithRateLimit(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_puuid, 20);
+        .getTFTMatchListWithRateLimit(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_tftPuuid, 20);
 
     for(String matchId : tftMatchsList) {
 

@@ -167,7 +167,7 @@ public class CreatePlayerCommand extends ZoeCommand {
     
     try {
       Set<TFTLeagueEntry> tftLeagueEntries = Zoe.getRiotApi().
-          getTFTLeagueEntries(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
+          getTFTLeagueEntries(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_tftSummonerId);
       LastRankUtil.updateTFTLastRank(leagueAccount, lastRank, tftLeagueEntries);
     } catch(RiotApiException e) {
       Zoe.logger.info("Fail to refresh TFT last rank while creating a leagueAccount, will be done at the next game.");

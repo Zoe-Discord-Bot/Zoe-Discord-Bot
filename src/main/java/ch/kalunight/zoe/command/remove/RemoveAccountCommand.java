@@ -6,7 +6,6 @@ import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.command.create.CreatePlayerCommand;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
@@ -20,7 +19,6 @@ import ch.kalunight.zoe.util.RiotApiUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.User;
 import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.constant.Platform;
 
 public class RemoveAccountCommand extends ZoeCommand {
@@ -36,22 +34,22 @@ public class RemoveAccountCommand extends ZoeCommand {
     this.arguments = "@MentionOfPlayer (Region) (SummonerName)";
     this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(RemoveCommand.USAGE_NAME, name, arguments, help);
   }
-  
+
   @Override
   protected void executeCommand(CommandEvent event) throws SQLException {
     event.getTextChannel().sendTyping().complete();
-    
+
     DTO.Server server = getServer(event.getGuild().getIdLong());
-    
+
     ServerConfiguration config = ConfigRepository.getServerConfiguration(server.serv_guildId);
-    
+
     if(!config.getUserSelfAdding().isOptionActivated() &&
         !event.getMember().getPermissions().contains(Permission.MANAGE_CHANNEL)) {
-        event.reply(String.format(LanguageManager.getText(server.serv_language, "deletePlayerMissingPermission"),
-            Permission.MANAGE_CHANNEL.getName()));
-        return;
+      event.reply(String.format(LanguageManager.getText(server.serv_language, "deletePlayerMissingPermission"),
+          Permission.MANAGE_CHANNEL.getName()));
+      return;
     }
-    
+
     User user = CreatePlayerCommand.getMentionedUser(event.getMessage().getMentionedMembers());
     if(user == null) {
       event.reply(String.format(LanguageManager.getText(server.serv_language, "removeAccountMissingMention"),
@@ -62,7 +60,7 @@ public class RemoveAccountCommand extends ZoeCommand {
           Permission.MANAGE_CHANNEL.getName()));
       return;
     }
-    
+
     DTO.Player player = PlayerRepository.getPlayer(server.serv_guildId, user.getIdLong());
     if(player == null) {
       event.reply(LanguageManager.getText(server.serv_language, "removeAccountUserNotRegistered"));
@@ -74,7 +72,7 @@ public class RemoveAccountCommand extends ZoeCommand {
       event.reply(LanguageManager.getText(server.serv_language, "removeAccountMalformed"));
       return;
     }
-    
+
     String regionName = listArgs.get(0);
     String summonerName = listArgs.get(1);
 
@@ -92,23 +90,15 @@ public class RemoveAccountCommand extends ZoeCommand {
       RiotApiUtil.handleRiotApi(event.getEvent(), e, server.serv_language);
       return;
     }
-    
+
     if(account == null) {
       event.reply(LanguageManager.getText(server.serv_language, "removeAccountNotLinkedToPlayer"));
       return;
     }
-    
-    
-    Summoner summoner;
-    try {
-    summoner = Zoe.getRiotApi().getSummoner(account.leagueAccount_server, account.leagueAccount_summonerId);
+
     LeagueAccountRepository.deleteAccountWithId(account.leagueAccount_id);
-    }catch(RiotApiException e) {
-      RiotApiUtil.handleRiotApi(event.getEvent(), e, server.serv_language);
-      return;
-    }
     event.reply(String.format(LanguageManager.getText(server.serv_language, "removeAccountDoneMessage"),
-        summoner.getName(), user.getName()));
+        account.leagueAccount_name, user.getName()));
   }
 
   @Override

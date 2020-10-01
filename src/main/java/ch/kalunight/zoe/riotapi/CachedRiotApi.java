@@ -107,6 +107,9 @@ public class CachedRiotApi {
       } catch (RiotApiException e) {
         if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
           return null;
+        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
+          logger.warn("Bad request received from Riot Api!", e);
+          return null;
         }
       }
     }while(needToRetry);
@@ -164,6 +167,9 @@ public class CachedRiotApi {
       } catch (RiotApiException e) {
         if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
           return null;
+        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
+          logger.warn("Bad request received from Riot Api!", e);
+          return null;
         }
       }
     }while(needToRetry);
@@ -200,7 +206,10 @@ public class CachedRiotApi {
           Thread.currentThread().interrupt();
         }
       } catch (RiotApiException e) {
-        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND || e.getErrorCode() == RiotApiException.BAD_REQUEST) {
+        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+          return null;
+        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
+          logger.warn("Bad request received from Riot Api!", e);
           return null;
         }
       }
@@ -230,7 +239,10 @@ public class CachedRiotApi {
           Thread.currentThread().interrupt();
         }
       } catch (RiotApiException e) {
-        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND || e.getErrorCode() == RiotApiException.BAD_REQUEST) {
+        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+          return null;
+        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
+          logger.warn("Bad request received from Riot Api!", e);
           return null;
         }
       }
@@ -289,6 +301,9 @@ public class CachedRiotApi {
       } catch (RiotApiException e) {
         if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
           return new HashSet<>();
+        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
+          logger.warn("Bad request received from Riot Api!", e);
+          return new HashSet<>();
         }
       }
     }while(needToRetry);
@@ -328,6 +343,9 @@ public class CachedRiotApi {
         }
       } catch (RiotApiException e) {
         if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+          return null;
+        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
+          logger.warn("Bad request received from Riot Api!", e);
           return null;
         }
       }
@@ -377,6 +395,9 @@ public class CachedRiotApi {
       } catch (RiotApiException e) {
         if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
           return new HashSet<>();
+        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
+          logger.warn("Bad request received from Riot Api!", e);
+          return null;
         }
       }
     }while(needToRetry);
@@ -410,6 +431,9 @@ public class CachedRiotApi {
         }
       } catch (RiotApiException e) {
         if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+          return new ArrayList<>();
+        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
+          logger.warn("Bad request received from Riot Api!", e);
           return new ArrayList<>();
         }
       }
@@ -445,6 +469,9 @@ public class CachedRiotApi {
       } catch (RiotApiException e) {
         if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
           return null;
+        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
+          logger.warn("Bad request received from Riot Api!", e);
+          return null;
         }
       }
     }while(needToRetry);
@@ -473,6 +500,9 @@ public class CachedRiotApi {
         }
       } catch (RiotApiException e) {
         if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+          return null;
+        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
+          logger.warn("Bad request received from Riot Api!", e);
           return null;
         }
       }
@@ -512,6 +542,9 @@ public class CachedRiotApi {
       } catch (RiotApiException e) {
         if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
           return new ArrayList<>();
+        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
+          logger.warn("Bad request received from Riot Api!", e);
+          return new ArrayList<>();
         }
       }
     }while(needToRetry);
@@ -541,6 +574,9 @@ public class CachedRiotApi {
         }
       } catch (RiotApiException e) {
         if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+          return null;
+        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
+          logger.warn("Bad request received from Riot Api!", e);
           return null;
         }
       }

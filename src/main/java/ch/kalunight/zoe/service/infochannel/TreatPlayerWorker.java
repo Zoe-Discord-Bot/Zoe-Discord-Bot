@@ -142,7 +142,7 @@ public class TreatPlayerWorker implements Runnable {
 
   private void refreshTFT(LeagueAccount leagueAccount, LastRank lastRank) throws SQLException {
     Set<TFTLeagueEntry> tftLeagueEntries = Zoe.getRiotApi().
-        getTFTLeagueEntriesWithRateLimit(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
+        getTFTLeagueEntriesWithRateLimit(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_tftSummonerId);
 
     LastRankUtil.updateTFTLastRank(leagueAccount, lastRank, tftLeagueEntries);
   }

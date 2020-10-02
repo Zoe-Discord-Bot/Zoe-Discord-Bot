@@ -120,7 +120,7 @@ public class InfoPanelRefresher implements Runnable {
       if(infochannel != null || rankChannel != null) {
 
         for(Player player : playersDTO) {
-          TreatPlayerWorker playerWorker = new TreatPlayerWorker(server, player, configuration);
+          TreatPlayerWorker playerWorker = new TreatPlayerWorker(server, player, rankChannel, configuration);
 
           playersToTreat.add(playerWorker);
           ServerData.getInfochannelHelperThread().execute(playerWorker);

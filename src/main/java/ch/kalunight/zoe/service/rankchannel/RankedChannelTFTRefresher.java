@@ -17,6 +17,7 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 import net.rithms.riot.api.endpoints.tft_match.dto.TFTMatch;
+import net.rithms.riot.constant.Platform;
 
 public class RankedChannelTFTRefresher extends RankedChannelBaseRefresher {
 
@@ -69,21 +70,67 @@ public class RankedChannelTFTRefresher extends RankedChannelBaseRefresher {
 
     for(String matchId : tftMatchsList) {
 
-      if(lastRank.lastRank_tftLastTreatedMatchId != null && matchId.equals(lastRank.lastRank_tftLastTreatedMatchId)) {
-        break;
-      }
-
       TFTMatch match = Zoe.getRiotApi().getTFTMatchWithRateLimit(leagueAccount.leagueAccount_server, matchId);
 
       if(match.getInfo().getQueueId() == GameQueueConfigId.RANKED_TFT.getId()) {
         matchs.add(match);
       }
     }
+    
+    if(lastRank.lastRank_tftLastTreatedMatchId != null) {
+      matchs = getMatchsAfterLastGame(matchs, lastRank.lastRank_tftLastTreatedMatchId, leagueAccount.leagueAccount_server);
+    }
 
-    if(!matchs.isEmpty() && lastRank.lastRank_tftLastTreatedMatchId == null) {
-      LastRankRepository.updateLastRankTFTLastTreatedMatch(matchs.get(0).getMetadata().getMatchId(), leagueAccount.leagueAccount_id);
+    if(!matchs.isEmpty()) {
+      
+      TFTMatch lastRankedMatch = getLatestMatch(matchs);
+      
+      if(lastRankedMatch != null) {
+        
+        if(lastRank.lastRank_tftLastTreatedMatchId == null) {
+          matchs.clear();
+          matchs.add(lastRankedMatch);
+        }
+        
+        LastRankRepository.updateLastRankTFTLastTreatedMatch(lastRankedMatch.getMetadata().getMatchId(), lastRank);
+      }
     }
     return matchs;
+  }
+
+  private List<TFTMatch> getMatchsAfterLastGame(List<TFTMatch> matchs, String lastTreatedGameID, Platform platform) {
+    
+    List<TFTMatch> matchsAfterTheGame = new ArrayList<>();
+    
+    TFTMatch lastTreatedMatch = null;
+    for(TFTMatch match : matchs) {
+      if(match.getMetadata().getMatchId().equals(lastTreatedGameID)) {
+        lastTreatedMatch = match;
+        break;
+      }
+    }
+    
+    if(lastTreatedMatch == null) {
+      return matchs;
+    }
+    
+    for(TFTMatch match : matchs) {
+      if(lastTreatedMatch.getInfo().getGameDateTime() < match.getInfo().getGameDateTime()) {
+        matchsAfterTheGame.add(match);
+      }
+    }
+    return matchsAfterTheGame;
+  }
+
+  private TFTMatch getLatestMatch(List<TFTMatch> matchs) {
+    TFTMatch lastRankedMatch = null;
+    
+    for(TFTMatch match : matchs) {
+      if(lastRankedMatch == null || lastRankedMatch.getInfo().getGameDateTime() < match.getInfo().getGameDateTime()) {
+        lastRankedMatch = match;
+      }
+    }
+    return lastRankedMatch;
   }
   
   @Override

@@ -106,12 +106,12 @@ public class FullTierUtil {
       usableRedEmote = Ressources.getRedTriangleEmote();
     }
     
-    FullTier oldFullTier = new FullTier(oldEntry);
-    FullTier newFullTier = new FullTier(newEntry);
-    
     if(oldEntry == null || newEntry == null) {
       return "?";
     }
+    
+    FullTier oldFullTier = new FullTier(oldEntry);
+    FullTier newFullTier = new FullTier(newEntry);
     
     if(newFullTier.getLeaguePoints() < oldFullTier.getLeaguePoints()) {
       

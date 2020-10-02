@@ -331,7 +331,7 @@ public class MessageBuilderRequest {
     if(gameWin) {
       if(oldFullTier.getTier() != newFullTier.getTier()) {
         message.setColor(Color.YELLOW);
-        message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeRankChangeWinDivisionSkippedTitle"),
+        message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeRankChangeWinTierTFT"),
             leagueAccount.leagueAccount_name, lpReceived, LanguageManager.getText(lang, newFullTier.getTier().getTranslationTag()), gameType));
       }else {
         message.setColor(Color.GREEN);

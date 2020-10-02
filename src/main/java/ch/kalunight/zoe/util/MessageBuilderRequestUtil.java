@@ -160,12 +160,13 @@ public class MessageBuilderRequestUtil {
     int i = 0;
     for(TFTMatch match : matchs) {
       i++;
+      
       TFTMatchParticipant participant = match.getInfo()
-          .getTFTMatchParticipantByPuuid(leagueAccount.leagueAccount_puuid);
+          .getTFTMatchParticipantByPuuid(leagueAccount.leagueAccount_tftPuuid);
 
       statsGame.append(String.format(LanguageManager.getText(lang, "numberPlace"), participant.getPlacement()) + " | ");
 
-      statsGame.append((participant.getLevel() + LanguageManager.getText(lang, "level")) + " | ");
+      statsGame.append((participant.getLevel() + " " + LanguageManager.getText(lang, "level")) + " | ");
       
       if(participant.getPlayersEliminated() == 0 || participant.getPlayersEliminated() == 1) {
         statsGame.append(String.format(LanguageManager.getText(lang, "playerKilled"), participant.getPlayersEliminated()) + " | ");
@@ -178,13 +179,15 @@ public class MessageBuilderRequestUtil {
       LocalTime timeOfDay = LocalTime.ofSecondOfDay((long) participant.getTimeEliminated());
       statsGame.append(timeOfDay.format(minutesSecondFormat));
       
-      if(i < matchs.size()) {
+      if(i < matchs.size() && i < 3) {
         statsGame.append("\n");
+      }else if(i > 3) {
+        break;
       }
     }
     
     if(matchs.isEmpty()) {
-      statsGame.append("*" + LanguageManager.getText(lang, "empty") + "*");
+      statsGame.append("*" + LanguageManager.getText(lang, "gameNotFinished") + "*");
     }
     
     return statsGame.toString();

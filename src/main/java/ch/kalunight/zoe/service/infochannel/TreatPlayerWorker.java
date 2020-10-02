@@ -85,9 +85,10 @@ public class TreatPlayerWorker implements Runnable {
     }
   }
 
-  public TreatPlayerWorker(Server server, Player player, ServerConfiguration configuration) {
+  public TreatPlayerWorker(Server server, Player player, RankHistoryChannel rankChannel,  ServerConfiguration configuration) {
     this.player = player;
     this.server = server;
+    this.rankChannel = rankChannel;
     this.infochannelMessage = new StringBuilder();
     this.serverConfig = configuration;
     playersInWork.add(this);
@@ -349,7 +350,7 @@ public class TreatPlayerWorker implements Runnable {
 
     LastRankQueue rankQueueToShow = null;
     for(LastRankQueue lastRankToCheck : lastRanksByQueue) {
-      if(rankQueueToShow == null || rankQueueToShow.lastRefresh.isAfter(lastRankToCheck.lastRefresh)) {
+      if(rankQueueToShow == null || rankQueueToShow.lastRefresh.isBefore(lastRankToCheck.lastRefresh)) {
         rankQueueToShow = lastRankToCheck;
       }
     }

@@ -49,6 +49,7 @@ import net.rithms.riot.api.endpoints.match.dto.Participant;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
+import net.rithms.riot.api.endpoints.tft_league.dto.TFTLeagueEntry;
 import net.rithms.riot.api.endpoints.tft_match.dto.TFTMatch;
 import net.rithms.riot.constant.Platform;
 
@@ -496,10 +497,10 @@ public class MessageBuilderRequest {
 
     for(ChampionMastery championMastery : masteries) {
       switch(championMastery.getChampionLevel()) {
-      case 5: nbrMastery5++; break;
-      case 6: nbrMastery6++; break;
-      case 7: nbrMastery7++; break;
-      default: break;
+        case 5: nbrMastery5++; break;
+        case 6: nbrMastery6++; break;
+        case 7: nbrMastery7++; break;
+        default: break;
       }
       totalNbrMasteries += championMastery.getChampionPoints();
     }
@@ -608,11 +609,14 @@ public class MessageBuilderRequest {
       logger.info("Error with the api : ", e);
     }
 
+    String unrankedTranslated = LanguageManager.getText(language, "unranked");
+
+    StringBuilder rankStringBuilder = new StringBuilder();
+
     if(rankPosition != null) {
 
       Iterator<LeagueEntry> iteratorPosition = rankPosition.iterator();
 
-      String unrankedTranslated = LanguageManager.getText(language, "unranked");
       String soloqRank = String.format(LanguageManager.getText(language, "statsProfileQueueSoloq"), unrankedTranslated);
       String flexRank = String.format(LanguageManager.getText(language, "statsProfileQueueFlex"), unrankedTranslated);
 
@@ -623,23 +627,61 @@ public class MessageBuilderRequest {
 
         FullTier fullTier = new FullTier(tier, rank, leaguePosition.getLeaguePoints());
 
-        if(leaguePosition.getQueueType().equals("RANKED_SOLO_5x5")) {
+        if(leaguePosition.getQueueType().equals(GameQueueConfigId.SOLOQ.getNameId())) {
           soloqRank = String.format(LanguageManager.getText(language, "statsProfileQueueSoloq"), 
               Ressources.getTierEmote().get(tier).getUsableEmote() + " " + fullTier.toString(language));
-        } else if(leaguePosition.getQueueType().equals("RANKED_FLEX_SR")) {
+        } else if(leaguePosition.getQueueType().equals(GameQueueConfigId.FLEX.getNameId())) {
           flexRank = String.format(LanguageManager.getText(language, "statsProfileQueueFlex"),
               Ressources.getTierEmote().get(tier).getUsableEmote() + " " + fullTier.toString(language));
         }
       }
 
-      stringBuilder = new StringBuilder();
+      rankStringBuilder.append(soloqRank + "\n");
+      rankStringBuilder.append(flexRank);
 
-      stringBuilder.append(soloqRank + "\n");
-      stringBuilder.append(flexRank);
+    }
+
+    Set<TFTLeagueEntry> tftRankPosition = null;
+    try {
+      tftRankPosition = Zoe.getRiotApi().getTFTLeagueEntries(leagueAccount.leagueAccount_server,
+          leagueAccount.leagueAccount_tftSummonerId);
+    }catch (RiotApiException e) {
+      if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
+        throw e;
+      }
+      logger.info("Error with the api : ", e);
+    }
+
+    if(tftRankPosition != null) {
+
+      Iterator<TFTLeagueEntry> iteratorPosition = tftRankPosition.iterator();
+
+      String tftRank = String.format(LanguageManager.getText(language, "statsProfileQueueTFT"), unrankedTranslated);
+
+      while(iteratorPosition.hasNext()) {
+        LeagueEntry leaguePosition = iteratorPosition.next();
+        Tier tier = Tier.valueOf(leaguePosition.getTier());
+        Rank rank = Rank.valueOf(leaguePosition.getRank());
+
+        FullTier fullTier = new FullTier(tier, rank, leaguePosition.getLeaguePoints());
+
+        if(leaguePosition.getQueueType().equals(GameQueueConfigId.RANKED_TFT.getNameId())) {
+          tftRank = String.format(LanguageManager.getText(language, "statsProfileQueueTFT"), 
+              Ressources.getTierEmote().get(tier).getUsableEmote() + " " + fullTier.toString(language));
+        }
+      }
+
+      rankStringBuilder.append("\n" + tftRank);
 
       field = new Field(LanguageManager.getText(language, "statsProfileRankedStats"), stringBuilder.toString(), true);
     }else {
-      field = new Field(LanguageManager.getText(language, "statsProfileRankedStats"), LanguageManager.getText(language, "unranked"), true);
+      String tftRank = String.format(LanguageManager.getText(language, "statsProfileQueueTFT"), unrankedTranslated);
+      if(rankPosition != null) {
+        rankStringBuilder.append("\n" + tftRank);
+        field = new Field(LanguageManager.getText(language, "statsProfileRankedStats"), stringBuilder.toString(), true);
+      }else {
+        field = new Field(LanguageManager.getText(language, "statsProfileRankedStats"), LanguageManager.getText(language, "unranked"), true);
+      }
     }
 
     message.addField(field);

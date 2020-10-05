@@ -268,7 +268,6 @@ public class TreatPlayerWorker implements Runnable {
 
 
   private void generateText(Map<DTO.LeagueAccount, CurrentGameInfo> accountsWithGame, List<DTO.LeagueAccount> accountNotInGame) throws SQLException {
-
     
     if(accountsWithGame.isEmpty()) {
 

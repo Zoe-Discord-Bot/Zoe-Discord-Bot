@@ -232,6 +232,7 @@
     "statsProfileNoGamePlayed": "No game played this week",
     "statsProfileQueueSoloq": "Solo/Duo : **%s**",
     "statsProfileQueueFlex": "Flex : **%s**",
+    "statsProfileQueueTFT": "TFT : **%s**",
     "statsProfileQueue3x3": "3x3 : **%s**",
     "unranked": "Unranked",
     "statsProfileRankedStats": "Ranked Stats",

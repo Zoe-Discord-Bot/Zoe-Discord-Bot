@@ -3,6 +3,9 @@ package ch.kalunight.zoe.util;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
 import java.util.List;
 import ch.kalunight.zoe.ServerData;
@@ -19,11 +22,15 @@ import net.rithms.riot.api.endpoints.match.dto.Participant;
 import net.rithms.riot.api.endpoints.match.dto.ParticipantStats;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
+import net.rithms.riot.api.endpoints.tft_match.dto.TFTMatch;
+import net.rithms.riot.api.endpoints.tft_match.dto.TFTMatchParticipant;
 import net.rithms.riot.constant.Platform;
 
 public class MessageBuilderRequestUtil {
 
   private static final DecimalFormat df = new DecimalFormat("#.##");
+  
+  private static final DateTimeFormatter minutesSecondFormat = new DateTimeFormatterBuilder().appendPattern("mm:ss").toFormatter();
 
   private MessageBuilderRequestUtil() {
     // Hide default public constructor
@@ -145,6 +152,45 @@ public class MessageBuilderRequestUtil {
     }else {
       return LanguageManager.getText(language, "unknown");
     }
+  }
+
+  public static String getResumeGameStatsTFT(LeagueAccount leagueAccount, String lang, List<TFTMatch> matchs) {
+    StringBuilder statsGame = new StringBuilder();
+
+    int i = 0;
+    for(TFTMatch match : matchs) {
+      i++;
+      
+      TFTMatchParticipant participant = match.getInfo()
+          .getTFTMatchParticipantByPuuid(leagueAccount.leagueAccount_tftPuuid);
+
+      statsGame.append(String.format(LanguageManager.getText(lang, "numberPlace"), participant.getPlacement()) + " | ");
+
+      statsGame.append((participant.getLevel() + " " + LanguageManager.getText(lang, "level")) + " | ");
+      
+      if(participant.getPlayersEliminated() == 0 || participant.getPlayersEliminated() == 1) {
+        statsGame.append(String.format(LanguageManager.getText(lang, "playerKilled"), participant.getPlayersEliminated()) + " | ");
+      }else {
+        statsGame.append(String.format(LanguageManager.getText(lang, "playersKilled"), participant.getPlayersEliminated()) + " | ");
+      }
+      
+      statsGame.append(String.format(LanguageManager.getText(lang, "playerDamageGiven"), participant.getTotalDamageToPlayers()) + " | ");
+      
+      LocalTime timeOfDay = LocalTime.ofSecondOfDay((long) participant.getTimeEliminated());
+      statsGame.append(timeOfDay.format(minutesSecondFormat));
+      
+      if(i < matchs.size() && i < 3) {
+        statsGame.append("\n");
+      }else if(i > 3) {
+        break;
+      }
+    }
+    
+    if(matchs.isEmpty()) {
+      statsGame.append("*" + LanguageManager.getText(lang, "gameNotFinished") + "*");
+    }
+    
+    return statsGame.toString();
   }
 
   public static String getResumeGameStats(LeagueAccount leagueAccount, String lang, Match match) {

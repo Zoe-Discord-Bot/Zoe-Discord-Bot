@@ -3,6 +3,7 @@ package ch.kalunight.zoe.model.player_data;
 import ch.kalunight.zoe.exception.NoValueRankException;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
+import net.rithms.riot.api.endpoints.tft_league.dto.TFTLeagueEntry;
 
 public class FullTier implements Comparable<FullTier> {
 
@@ -11,6 +12,10 @@ public class FullTier implements Comparable<FullTier> {
   private int leaguePoints;
 
   public FullTier(LeagueEntry leagueEntry) {
+    this(Tier.valueOf(leagueEntry.getTier()), Rank.valueOf(leagueEntry.getRank()), leagueEntry.getLeaguePoints());
+  }
+  
+  public FullTier(TFTLeagueEntry leagueEntry) {
     this(Tier.valueOf(leagueEntry.getTier()), Rank.valueOf(leagueEntry.getRank()), leagueEntry.getLeaguePoints());
   }
 
@@ -117,7 +122,35 @@ public class FullTier implements Comparable<FullTier> {
       
     return 0;
   }
+  
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + leaguePoints;
+    result = prime * result + ((rank == null) ? 0 : rank.hashCode());
+    result = prime * result + ((tier == null) ? 0 : tier.hashCode());
+    return result;
+  }
 
+  @Override
+  public boolean equals(Object obj) {
+    if(this == obj)
+      return true;
+    if(obj == null)
+      return false;
+    if(getClass() != obj.getClass())
+      return false;
+    FullTier other = (FullTier) obj;
+    if(leaguePoints != other.leaguePoints)
+      return false;
+    if(rank != other.rank)
+      return false;
+    if(tier != other.tier)
+      return false;
+    return true;
+  }
+  
   public Tier getTier() {
     return tier;
   }

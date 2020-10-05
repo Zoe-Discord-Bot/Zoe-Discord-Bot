@@ -2,7 +2,8 @@ package ch.kalunight.zoe.model;
 
 public enum GameQueueConfigId {
   SOLOQ(420, "soloq", "RANKED_SOLO_5x5"),
-  FLEX(440, "flex", "RANKED_FLEX_SR");
+  FLEX(440, "flex", "RANKED_FLEX_SR"),
+  RANKED_TFT(1100, "tft", "RANKED_TFT");
   
   private int id;
   private String nameId;

@@ -3,12 +3,15 @@ package ch.kalunight.zoe.util;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import com.google.common.base.Preconditions;
 import ch.kalunight.zoe.model.dto.DTO;
-import ch.kalunight.zoe.repositories.CurrentGameInfoRepository;
+import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
+import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
 
 public class InfoPanelRefresherUtil {
@@ -17,20 +20,18 @@ public class InfoPanelRefresherUtil {
     //Hide default public constructor
   }
 
-  public static String getCurrentGameInfoStringForOneAccount(DTO.LeagueAccount account, String language) 
-      throws SQLException {
+  public static String getCurrentGameInfoStringForOneAccount(DTO.LeagueAccount account,
+      CurrentGameInfo currentGameInfo, String language) {
     Preconditions.checkNotNull(account);
 
-    DTO.CurrentGameInfo currentGameInfo = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(account.leagueAccount_id);
-
     String gameStatus = LanguageManager.getText(language, 
-        NameConversion.convertGameQueueIdToString(currentGameInfo.currentgame_currentgame.getGameQueueConfigId())) 
+        NameConversion.convertGameQueueIdToString(currentGameInfo.getGameQueueConfigId())) 
         + " " + LanguageManager.getText(language, "withTheAccount") + " **" + account.leagueAccount_name + "**";
 
     double minutesOfGames = 0.0;
 
-    if(currentGameInfo.currentgame_currentgame.getGameLength() != 0l) {
-      minutesOfGames = currentGameInfo.currentgame_currentgame.getGameLength() + 180.0;
+    if(currentGameInfo.getGameLength() != 0l) {
+      minutesOfGames = currentGameInfo.getGameLength() + 180.0;
     }
 
     minutesOfGames = minutesOfGames / 60.0;
@@ -43,26 +44,24 @@ public class InfoPanelRefresherUtil {
     return gameStatus;
   }
 
-  public static String getCurrentGameInfoStringForMultipleAccounts(List<DTO.LeagueAccount> accounts, String language) 
-      throws SQLException {
-    Preconditions.checkNotNull(accounts);
+  public static String getCurrentGameInfoStringForMultipleAccounts(Map<DTO.LeagueAccount, 
+      CurrentGameInfo> accountsWithCurrentGame, String language) {
+    Preconditions.checkNotNull(accountsWithCurrentGame);
 
     StringBuilder stringBuilder = new StringBuilder();
 
-    for(DTO.LeagueAccount account : accounts) {
-
-      DTO.CurrentGameInfo currentGameInfo = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(account.leagueAccount_id);
+    for(Entry<LeagueAccount, CurrentGameInfo> currentGamePerLeagueAccount : accountsWithCurrentGame.entrySet()) {
 
       stringBuilder.append("-" + LanguageManager.getText(language, "account") 
-      + " **" + account.leagueAccount_name + "** : ");
+      + " **" + currentGamePerLeagueAccount.getKey().leagueAccount_name + "** : ");
 
       stringBuilder.append(LanguageManager.getText(language,
-          NameConversion.convertGameQueueIdToString(currentGameInfo.currentgame_currentgame.getGameQueueConfigId())));
+          NameConversion.convertGameQueueIdToString(currentGamePerLeagueAccount.getValue().getGameQueueConfigId())));
 
       double minutesOfGames = 0.0;
 
-      if(currentGameInfo.currentgame_currentgame.getGameLength() != 0l) {
-        minutesOfGames = currentGameInfo.currentgame_currentgame.getGameLength() + 180.0;
+      if(currentGamePerLeagueAccount.getValue().getGameLength() != 0l) {
+        minutesOfGames = currentGamePerLeagueAccount.getValue().getGameLength() + 180.0;
       }
 
       minutesOfGames = minutesOfGames / 60.0;

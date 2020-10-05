@@ -178,6 +178,10 @@ public abstract class LeaderboardBaseService implements Runnable {
     case BEST_OF_ALL_RANK:
     case SPECIFIC_QUEUE_RANK:
       return new RankLeaderboardService(guildId, channelId, leaderboardId);
+    /*case WINRATE:
+    case WINRATE_SPECIFIC_CHAMP:
+    case WINRATE_SPECIFIC_QUEUE:
+      return new WinrateLeaderboardService(guildId, channelId, leaderboardId);*/
     default:
       break;
     }

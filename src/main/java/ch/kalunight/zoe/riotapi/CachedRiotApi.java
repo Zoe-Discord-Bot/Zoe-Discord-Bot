@@ -28,6 +28,9 @@ import net.rithms.riot.api.endpoints.match.dto.MatchList;
 import net.rithms.riot.api.endpoints.match.dto.MatchTimeline;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
+import net.rithms.riot.api.endpoints.tft_league.dto.TFTLeagueEntry;
+import net.rithms.riot.api.endpoints.tft_match.dto.TFTMatch;
+import net.rithms.riot.api.endpoints.tft_summoner.dto.TFTSummoner;
 import net.rithms.riot.api.request.ratelimit.RateLimitException;
 import net.rithms.riot.constant.Platform;
 
@@ -104,6 +107,9 @@ public class CachedRiotApi {
       } catch (RiotApiException e) {
         if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
           return null;
+        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
+          logger.warn("Bad request received from Riot Api!", e);
+          return null;
         }
       }
     }while(needToRetry);
@@ -161,6 +167,9 @@ public class CachedRiotApi {
       } catch (RiotApiException e) {
         if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
           return null;
+        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
+          logger.warn("Bad request received from Riot Api!", e);
+          return null;
         }
       }
     }while(needToRetry);
@@ -198,6 +207,42 @@ public class CachedRiotApi {
         }
       } catch (RiotApiException e) {
         if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+          return null;
+        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
+          logger.warn("Bad request received from Riot Api!", e);
+          return null;
+        }
+      }
+    }while(needToRetry);
+    
+    return summoner;
+  }
+  
+  public TFTSummoner getTFTSummonerByName(Platform platform, String name) throws RiotApiException {
+    return riotApi.getTFTSummonerByName(platform, name);
+  }
+  
+  public TFTSummoner getTFTSummonerByNameWithRateLimit(Platform platform, String name) throws RiotApiException {
+    TFTSummoner summoner = null;
+    boolean needToRetry;
+    do {
+      needToRetry = true;
+      try {
+        summoner = riotApi.getTFTSummonerByName(platform, name);
+        needToRetry = false;
+      }catch(RateLimitException e) {
+        try {
+          logger.info("Waiting rate limit ({} sec) to retry in getTFTSummoner", e.getRetryAfter());
+          TimeUnit.SECONDS.sleep(e.getRetryAfter());
+        } catch (InterruptedException e1) {
+          logger.error("Thread Interupted when waiting the rate limit in getSummoner !", e1);
+          Thread.currentThread().interrupt();
+        }
+      } catch (RiotApiException e) {
+        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+          return null;
+        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
+          logger.warn("Bad request received from Riot Api!", e);
           return null;
         }
       }
@@ -256,6 +301,9 @@ public class CachedRiotApi {
       } catch (RiotApiException e) {
         if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
           return new HashSet<>();
+        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
+          logger.warn("Bad request received from Riot Api!", e);
+          return new HashSet<>();
         }
       }
     }while(needToRetry);
@@ -296,6 +344,9 @@ public class CachedRiotApi {
       } catch (RiotApiException e) {
         if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
           return null;
+        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
+          logger.warn("Bad request received from Riot Api!", e);
+          return null;
         }
       }
     }while(needToRetry);
@@ -320,6 +371,114 @@ public class CachedRiotApi {
     return mastery;
   }
   
+  public Set<TFTLeagueEntry> getTFTLeagueEntries(Platform platform, String summonerId) throws RiotApiException {
+    return riotApi.getTFTLeagueEntryBySummoner(platform, summonerId);
+  }
+  
+  public Set<TFTLeagueEntry> getTFTLeagueEntriesWithRateLimit(Platform platform, String summonerId) {
+    Set<TFTLeagueEntry> leagueEntries = null;
+    boolean needToRetry;
+    
+    do {
+      needToRetry = true;
+      try {
+        leagueEntries = riotApi.getTFTLeagueEntryBySummoner(platform, summonerId);
+        needToRetry = false;
+      }catch(RateLimitException e) {
+        try {
+          logger.info("Waiting rate limit ({} sec) to retry when getting a TFT rank", e.getRetryAfter());
+          TimeUnit.SECONDS.sleep(e.getRetryAfter());
+        } catch (InterruptedException e1) {
+          logger.error("Thread Interupted when waiting the rate limit !", e1);
+          Thread.currentThread().interrupt();
+        }
+      } catch (RiotApiException e) {
+        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+          return new HashSet<>();
+        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
+          logger.warn("Bad request received from Riot Api!", e);
+          return null;
+        }
+      }
+    }while(needToRetry);
+    
+    if(leagueEntries.isEmpty()) {
+      return new HashSet<>();
+    }
+    
+    return leagueEntries;
+  }
+  
+  public List<String> getTFTMatchListWithRateLimit(Platform platform, String summonerPuuid, Integer maxMatch) {
+    List<String> matchsList = null;
+    boolean needToRetry;
+    
+    do {
+      leagueEntryRequestCount.incrementAndGet();
+      increaseCallCountForGivenRegion(platform);
+      
+      needToRetry = true;
+      try {
+        matchsList = riotApi.getTFTMatchList(platform, summonerPuuid, maxMatch);
+        needToRetry = false;
+      }catch(RateLimitException e) {
+        try {
+          logger.info("Waiting rate limit ({} sec) to retry when getting a TFTMatchList", e.getRetryAfter());
+          TimeUnit.SECONDS.sleep(e.getRetryAfter());
+        } catch (InterruptedException e1) {
+          logger.error("Thread Interupted when waiting the rate limit !", e1);
+          Thread.currentThread().interrupt();
+        }
+      } catch (RiotApiException e) {
+        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+          return new ArrayList<>();
+        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
+          logger.warn("Bad request received from Riot Api!", e);
+          return new ArrayList<>();
+        }
+      }
+    }while(needToRetry);
+    
+    if(matchsList.isEmpty()) {
+      return new ArrayList<>();
+    }
+    
+    return matchsList;
+  }
+  
+  public TFTMatch getTFTMatchWithRateLimit(Platform platform, String matchId) {
+    TFTMatch match = null;
+    boolean needToRetry;
+    
+    do {
+      leagueEntryRequestCount.incrementAndGet();
+      increaseCallCountForGivenRegion(platform);
+      
+      needToRetry = true;
+      try {
+        match = riotApi.getTFTMatch(platform, matchId);
+        needToRetry = false;
+      }catch(RateLimitException e) {
+        try {
+          logger.info("Waiting rate limit ({} sec) to retry when getting a TFTMatch", e.getRetryAfter());
+          TimeUnit.SECONDS.sleep(e.getRetryAfter());
+        } catch (InterruptedException e1) {
+          logger.error("Thread Interupted when waiting the rate limit !", e1);
+          Thread.currentThread().interrupt();
+        }
+      } catch (RiotApiException e) {
+        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+          return null;
+        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
+          logger.warn("Bad request received from Riot Api!", e);
+          return null;
+        }
+      }
+    }while(needToRetry);
+    
+    return match;
+  }
+  
   public ChampionMastery getChampionMasteriesBySummonerByChampionWithRateLimit(Platform platform, String summonerId, int championId) throws RiotApiException {
     ChampionMastery mastery = null;
     boolean needToRetry;
@@ -341,6 +500,9 @@ public class CachedRiotApi {
         }
       } catch (RiotApiException e) {
         if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+          return null;
+        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
+          logger.warn("Bad request received from Riot Api!", e);
           return null;
         }
       }
@@ -380,6 +542,9 @@ public class CachedRiotApi {
       } catch (RiotApiException e) {
         if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
           return new ArrayList<>();
+        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
+          logger.warn("Bad request received from Riot Api!", e);
+          return new ArrayList<>();
         }
       }
     }while(needToRetry);
@@ -409,6 +574,9 @@ public class CachedRiotApi {
         }
       } catch (RiotApiException e) {
         if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+          return null;
+        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
+          logger.warn("Bad request received from Riot Api!", e);
           return null;
         }
       }

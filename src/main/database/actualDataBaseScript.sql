@@ -104,7 +104,7 @@ CREATE TABLE league_account (
   leagueAccount_summonerId						VARCHAR				NOT NULL,
   leagueAccount_accountId						VARCHAR				NOT NULL,
   leagueAccount_puuid							VARCHAR				NOT NULL,
-  leagueAccount_server							VARCHAR				NOT NULL		
+  leagueAccount_server							VARCHAR				NOT NULL
 );
 
 CREATE TABLE current_game_info (
@@ -148,6 +148,12 @@ CREATE TABLE leaderboard (
   lead_type		 								BIGINT				NOT NULL,
   lead_data										json,
   lead_lastRefresh 								TIMESTAMP			WITHOUT TIME ZONE
+);
+
+CREATE TABLE banned_account (
+  banAcc_id										SERIAL,
+  banAcc_summonerId								VARCHAR				NOT NULL,
+  banAcc_server									VARCHAR				NOT NULL
 );
 
 
@@ -315,3 +321,6 @@ CREATE INDEX idx_match_cache_gameId
 
 CREATE INDEX idx_match_cache_platform 
   ON match_cache(mCatch_platform);
+  
+ALTER TABLE ONLY banned_account
+  ADD CONSTRAINT banned_account_pkey PRIMARY KEY (banAcc_id);

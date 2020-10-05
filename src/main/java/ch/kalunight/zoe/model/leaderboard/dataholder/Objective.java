@@ -19,7 +19,10 @@ public enum Objective {
   SPECIFIC_QUEUE_RANK("leaderboardSpecificQueueRank", 200),
   BEST_OF_ALL_RANK("leaderboardBestOfAllRank", 201),
   AVERAGE_KDA("leaderboardObjectiveAverageKDA", 300),
-  AVERAGE_KDA_SPECIFIC_CHAMP("leaderboardObjectiveAverageKDASpecificChamp", 301);
+  AVERAGE_KDA_SPECIFIC_CHAMP("leaderboardObjectiveAverageKDASpecificChamp", 301)/*,
+  WINRATE("leaderboardObjectiveWinrate", 400),
+  WINRATE_SPECIFIC_QUEUE("leaderboardObjectiveWinrateSpecificQueue", 401),
+  WINRATE_SPECIFIC_CHAMP("leaderboardObjectiveWinrateSpecificChamp", 402)*/;
 
   private static final Gson gson = new GsonBuilder().create();
 
@@ -54,7 +57,9 @@ public enum Objective {
     switch(objective) {
       case MASTERY_POINT_SPECIFIC_CHAMP:
       case AVERAGE_KDA_SPECIFIC_CHAMP:
+      /*case WINRATE_SPECIFIC_CHAMP:*/
         return new SpecificChampionObjectiveDataHandler(objective, waiter, event, server);
+      /*case WINRATE_SPECIFIC_QUEUE:*/
       case SPECIFIC_QUEUE_RANK:
         return new SpecificQueueDataHandler(objective, waiter, event, server);
       default:

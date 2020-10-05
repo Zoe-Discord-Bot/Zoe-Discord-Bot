@@ -284,9 +284,11 @@ public class StatsProfileCommand extends ZoeCommand {
       return;
     }
 
-    byte[] imageBytes;
+    byte[] imageBytes = null;
     try {
-      imageBytes = generateMasteriesChart(player, championsMasteries, server, lolAccount);
+      if(championsMasteries != null && !championsMasteries.isEmpty()) {
+        imageBytes = generateMasteriesChart(player, championsMasteries, server, lolAccount);
+      }
     } catch(IOException e) {
       logger.info("Got a error in encoding bytesMap image : {}", e);
       event.reply(LanguageManager.getText(server.serv_language, "statsProfileUnexpectedErrorGraph"));
@@ -311,10 +313,14 @@ public class StatsProfileCommand extends ZoeCommand {
 
     messageBuilder.setEmbed(embed);
 
-    if(player != null) {
-      event.getTextChannel().sendMessage(messageBuilder.build()).addFile(imageBytes, player.getUser().getId() + ".png").queue();
+    if(imageBytes != null) {
+      if(player != null) {
+        event.getTextChannel().sendMessage(messageBuilder.build()).addFile(imageBytes, player.getUser().getId() + ".png").queue();
+      }else {
+        event.getTextChannel().sendMessage(messageBuilder.build()).addFile(imageBytes, url + ".png").queue();
+      }
     }else {
-      event.getTextChannel().sendMessage(messageBuilder.build()).addFile(imageBytes, url + ".png").queue();
+      event.getTextChannel().sendMessage(messageBuilder.build()).queue();
     }
   }
 
@@ -376,6 +382,9 @@ public class StatsProfileCommand extends ZoeCommand {
       if(championMastery != null) {
         allMasteries += championMastery.getChampionPoints();
       }
+    }
+    if(championsMasteries.isEmpty()) {
+      return 0;
     }
     return allMasteries / championsMasteries.size();
   }

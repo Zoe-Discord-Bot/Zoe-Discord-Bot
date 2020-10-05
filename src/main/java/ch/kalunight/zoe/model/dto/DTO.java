@@ -15,6 +15,7 @@ import ch.kalunight.zoe.Zoe;
 import net.dv8tion.jda.api.entities.User;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
+import net.rithms.riot.api.endpoints.tft_league.dto.TFTLeagueEntry;
 import net.rithms.riot.constant.Platform;
 
 public class DTO {
@@ -147,6 +148,9 @@ public class DTO {
     public String leagueAccount_summonerId;
     public String leagueAccount_accoundId;
     public String leagueAccount_puuid;
+    public String leagueAccount_tftSummonerId;
+    public String leagueAccount_tftAccountId;
+    public String leagueAccount_tftPuuid;
     public Platform leagueAccount_server;
     public Summoner summoner;
 
@@ -159,6 +163,9 @@ public class DTO {
       leagueAccount_summonerId = baseData.getString("leagueAccount_summonerId");
       leagueAccount_accoundId = baseData.getString("leagueAccount_accountId");
       leagueAccount_puuid = baseData.getString("leagueAccount_puuid");
+      leagueAccount_tftSummonerId = baseData.getString("leagueAccount_tftSummonerId");
+      leagueAccount_tftAccountId = baseData.getString("leagueAccount_tftAccountId");
+      leagueAccount_tftPuuid = baseData.getString("leagueAccount_tftPuuid");
       leagueAccount_server = Platform.getPlatformByName(baseData.getString("leagueAccount_server"));
     }
     
@@ -174,12 +181,22 @@ public class DTO {
   public static class CurrentGameInfo {
     public long currentgame_id;
     public net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo currentgame_currentgame;
+    public Platform currentgame_server;
+    public String currentgame_gameid;
 
     public CurrentGameInfo(ResultSet baseData) throws SQLException {
       currentgame_id = baseData.getLong("currentgame_id");
       if(baseData.getString("currentgame_currentgame") != null) {
         currentgame_currentgame = gson.fromJson(baseData.getString("currentgame_currentgame"),
             net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo.class);
+      }
+      
+      if(baseData.getString("currentgame_server") != null) {
+        currentgame_server = Platform.getPlatformByName(baseData.getString("currentgame_server"));
+      }
+      
+      if(baseData.getString("currentgame_gameid") != null) {
+        currentgame_gameid = baseData.getString("currentgame_gameid");
       }
     }
   }
@@ -231,6 +248,12 @@ public class DTO {
       team_fk_server = baseData.getLong("team_fk_server");
       team_name = baseData.getString("team_name");
     }
+    
+    public Team(long id, long serverId, String teamName) {
+      team_id = id;
+      team_fk_server = serverId;
+      team_name = teamName;
+    }
   }
   
   public static class RankHistoryChannel {
@@ -267,9 +290,10 @@ public class DTO {
     public LeagueEntry lastRank_flex;
     public LeagueEntry lastRank_flexSecond;
     public LocalDateTime lastRank_flexLastRefresh;
-    public LeagueEntry lastRank_tft;
-    public LeagueEntry lastRank_tftSecond;
+    public TFTLeagueEntry lastRank_tft;
+    public TFTLeagueEntry lastRank_tftSecond;
     public LocalDateTime lastRank_tftLastRefresh;
+    public String lastRank_tftLastTreatedMatchId;
     
     public LastRank(ResultSet baseData) throws SQLException {
       lastRank_id = baseData.getLong("lastRank_id");
@@ -306,17 +330,22 @@ public class DTO {
       
       lastRank = baseData.getString("lastRank_tft");
       if(lastRank != null) {
-        lastRank_tft = gson.fromJson(lastRank, LeagueEntry.class);
+        lastRank_tft = gson.fromJson(lastRank, TFTLeagueEntry.class);
       }
       
       lastRank = baseData.getString("lastRank_tftSecond");
       if(lastRank != null) {
-        lastRank_tftSecond = gson.fromJson(lastRank, LeagueEntry.class);
+        lastRank_tftSecond = gson.fromJson(lastRank, TFTLeagueEntry.class);
       }
       
       lastRank = baseData.getString("lastRank_tftLastRefresh");
       if(lastRank != null) {
         lastRank_tftLastRefresh = LocalDateTime.parse(lastRank.split("\\.")[0], DB_TIME_PATTERN);
+      }
+      
+      lastRank = baseData.getString("lastRank_tftLastTreatedMatchId");
+      if(lastRank != null) {
+        lastRank_tftLastTreatedMatchId = lastRank;
       }
     }
   }

@@ -69,7 +69,7 @@ public class ServerData {
   }
 
   static {
-    logger.info("ThreadPools has been lauched with {} threads", NBR_PROC);
+    logger.info("ThreadPools has been started with {} threads", NBR_PROC);
     SERVER_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Server-Executor-Thread %d").build());
     INFOCHANNEL_HELPER_THREAD.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Infochannel-Helper-Thread %d").build());
     INFOCARDS_GENERATOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe InfoCards-Generator-Thread %d").build());

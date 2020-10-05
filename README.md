@@ -10,7 +10,7 @@ Your help is always welcome! You can find [here](https://github.com/KaluNight/Zo
 
 ## Built with
 
-* [Riot Api Java](https://github.com/taycaldwell/riot-api-java)
+* [Riot Api Java](https://github.com/KaluNight/riot-api-java)
 * [JDA](https://github.com/DV8FromTheWorld/JDA)
 
 ## License 

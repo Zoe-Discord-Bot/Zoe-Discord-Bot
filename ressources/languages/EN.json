@@ -410,5 +410,6 @@
     "gameNotFinished" : "Game not finished",
     "leaderboardObjectiveWinrate" : "Global Winrate",
     "leaderboardObjectiveWinrateSpecificQueue" : "Winrate for a specific queue",
-    "leaderboardObjectiveWinrateSpecificChamp" : "Winrate for a specific champ"
+    "leaderboardObjectiveWinrateSpecificChamp" : "Winrate for a specific champ",
+    "perfectKDA" : "Perfect KDA!"
 }

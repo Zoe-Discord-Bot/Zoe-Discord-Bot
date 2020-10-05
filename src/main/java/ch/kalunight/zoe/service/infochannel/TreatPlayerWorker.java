@@ -102,7 +102,7 @@ public class TreatPlayerWorker implements Runnable {
       List<LeagueAccount> accountNotInGame = new ArrayList<>();
       
       refreshPlayer(accountsInGame, accountNotInGame);
-      generateText(accountsInGame, accountNotInGame); 
+      generateText(accountsInGame, accountNotInGame);
       createOutputObject();
     }catch(SQLException e) {
       logger.error("Unexpected SQLException when threathing text", e);

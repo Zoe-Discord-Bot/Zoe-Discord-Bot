@@ -146,7 +146,7 @@ public class TreatPlayerWorker implements Runnable {
     Set<TFTLeagueEntry> tftLeagueEntries = Zoe.getRiotApi().
         getTFTLeagueEntriesWithRateLimit(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_tftSummonerId);
 
-    if(LastRankUtil.updateTFTLastRank(leagueAccount, lastRank, tftLeagueEntries) && rankChannel != null) {
+    if(LastRankUtil.updateTFTLastRank(lastRank, tftLeagueEntries) && rankChannel != null) {
       RankedChannelTFTRefresher tftRankedChannelRefresher = new RankedChannelTFTRefresher(rankChannel,
           lastRank.lastRank_tftSecond, lastRank.lastRank_tft, player, leagueAccount, server);
       ServerData.getRankedMessageGenerator().execute(tftRankedChannelRefresher);
@@ -226,7 +226,7 @@ public class TreatPlayerWorker implements Runnable {
         return false;
       }
       
-      return LastRankUtil.updateLoLLastRank(leagueAccount, lastRank, leagueEntries);
+      return LastRankUtil.updateLoLLastRank(lastRank, leagueEntries);
     }
     return false;
   }

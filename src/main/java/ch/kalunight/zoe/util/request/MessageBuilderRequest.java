@@ -486,6 +486,10 @@ public class MessageBuilderRequest {
       stringBuilder.append(champion.getDisplayName() + " " + champion.getName() + " - **" 
           + MessageBuilderRequestUtil.getMasteryUnit(championMastery.getChampionPoints()) +"**\n");
     }
+    
+    if(threeBestchampionMasteries.isEmpty()) {
+      stringBuilder.append("*" + LanguageManager.getText(language, "empty") + "*");
+    }
 
     Field field = new Field(LanguageManager.getText(language, "statsProfileTopChamp"), stringBuilder.toString(), true);
     message.addField(field);
@@ -627,10 +631,10 @@ public class MessageBuilderRequest {
 
         FullTier fullTier = new FullTier(tier, rank, leaguePosition.getLeaguePoints());
 
-        if(leaguePosition.getQueueType().equals(GameQueueConfigId.SOLOQ.getNameId())) {
+        if(leaguePosition.getQueueType().equals(GameQueueConfigId.SOLOQ.getQueueType())) {
           soloqRank = String.format(LanguageManager.getText(language, "statsProfileQueueSoloq"), 
               Ressources.getTierEmote().get(tier).getUsableEmote() + " " + fullTier.toString(language));
-        } else if(leaguePosition.getQueueType().equals(GameQueueConfigId.FLEX.getNameId())) {
+        } else if(leaguePosition.getQueueType().equals(GameQueueConfigId.FLEX.getQueueType())) {
           flexRank = String.format(LanguageManager.getText(language, "statsProfileQueueFlex"),
               Ressources.getTierEmote().get(tier).getUsableEmote() + " " + fullTier.toString(language));
         }
@@ -665,7 +669,7 @@ public class MessageBuilderRequest {
 
         FullTier fullTier = new FullTier(tier, rank, leaguePosition.getLeaguePoints());
 
-        if(leaguePosition.getQueueType().equals(GameQueueConfigId.RANKED_TFT.getNameId())) {
+        if(leaguePosition.getQueueType().equals(GameQueueConfigId.RANKED_TFT.getQueueType())) {
           tftRank = String.format(LanguageManager.getText(language, "statsProfileQueueTFT"), 
               Ressources.getTierEmote().get(tier).getUsableEmote() + " " + fullTier.toString(language));
         }
@@ -673,12 +677,12 @@ public class MessageBuilderRequest {
 
       rankStringBuilder.append("\n" + tftRank);
 
-      field = new Field(LanguageManager.getText(language, "statsProfileRankedStats"), stringBuilder.toString(), true);
+      field = new Field(LanguageManager.getText(language, "statsProfileRankedStats"), rankStringBuilder.toString(), true);
     }else {
       String tftRank = String.format(LanguageManager.getText(language, "statsProfileQueueTFT"), unrankedTranslated);
       if(rankPosition != null) {
         rankStringBuilder.append("\n" + tftRank);
-        field = new Field(LanguageManager.getText(language, "statsProfileRankedStats"), stringBuilder.toString(), true);
+        field = new Field(LanguageManager.getText(language, "statsProfileRankedStats"), rankStringBuilder.toString(), true);
       }else {
         field = new Field(LanguageManager.getText(language, "statsProfileRankedStats"), LanguageManager.getText(language, "unranked"), true);
       }

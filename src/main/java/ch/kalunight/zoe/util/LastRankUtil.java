@@ -3,10 +3,8 @@ package ch.kalunight.zoe.util;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.Set;
-
 import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.dto.DTO.LastRank;
-import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.repositories.LastRankRepository;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
@@ -21,7 +19,7 @@ public class LastRankUtil {
   /*
    * @return true if the rank have changed.
    */
-  public static boolean updateTFTLastRank(LeagueAccount leagueAccount, LastRank lastRank, Set<TFTLeagueEntry> tftLeagueEntries)
+  public static boolean updateTFTLastRank(LastRank lastRank, Set<TFTLeagueEntry> tftLeagueEntries)
       throws SQLException {
     TFTLeagueEntry tftLeagueEntry = null;
 
@@ -51,7 +49,7 @@ public class LastRankUtil {
   /**
    * @return true is the update has been done correctly, false otherwise.
    */
-  public static boolean updateLoLLastRank(LeagueAccount leagueAccount, LastRank lastRank, Set<LeagueEntry> leagueEntries) throws SQLException {
+  public static boolean updateLoLLastRank(LastRank lastRank, Set<LeagueEntry> leagueEntries) throws SQLException {
 
     for(LeagueEntry checkLeagueEntry : leagueEntries) {
       if(checkLeagueEntry.getQueueType().equals(GameQueueConfigId.SOLOQ.getQueueType())) {

@@ -26,7 +26,6 @@ import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.repositories.CurrentGameInfoRepository;
 import ch.kalunight.zoe.repositories.LastRankRepository;
-import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.repositories.TeamRepository;
 import ch.kalunight.zoe.riotapi.CachedRiotApi;
@@ -52,6 +51,8 @@ public class TreatPlayerWorker implements Runnable {
   protected static final CachedRiotApi riotApi = Zoe.getRiotApi();
 
   private Player player;
+  
+  private List<LeagueAccount> leaguesAccounts;
 
   private DTO.Team team;
   
@@ -85,8 +86,10 @@ public class TreatPlayerWorker implements Runnable {
     }
   }
 
-  public TreatPlayerWorker(Server server, Player player, RankHistoryChannel rankChannel,  ServerConfiguration configuration) {
+  public TreatPlayerWorker(Server server, Player player, List<LeagueAccount> leaguesAccounts,
+      RankHistoryChannel rankChannel,  ServerConfiguration configuration) {
     this.player = player;
+    this.leaguesAccounts = leaguesAccounts;
     this.server = server;
     this.rankChannel = rankChannel;
     this.infochannelMessage = new StringBuilder();
@@ -120,10 +123,8 @@ public class TreatPlayerWorker implements Runnable {
 
   private void refreshPlayer(Map<LeagueAccount, CurrentGameInfo> accountsInGame, List<LeagueAccount> accountNotInGame) throws SQLException {
     team = TeamRepository.getTeamByPlayerAndGuild(server.serv_guildId, player.player_discordId);
-    
-    List<LeagueAccount> leaguesAccount = LeagueAccountRepository.getLeaguesAccountsWithPlayerID(server.serv_guildId, player.player_id);
 
-    for(LeagueAccount leagueAccount : leaguesAccount) {
+    for(LeagueAccount leagueAccount : leaguesAccounts) {
       LastRank lastRank = getLastRank(leagueAccount);
 
       refreshLoL(leagueAccount, lastRank, accountsInGame, accountNotInGame);

@@ -56,6 +56,7 @@ import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
+import net.rithms.riot.constant.Platform;
 
 public class InfoPanelRefresher implements Runnable {
 
@@ -120,10 +121,17 @@ public class InfoPanelRefresher implements Runnable {
       if(infochannel != null || rankChannel != null) {
 
         for(Player player : playersDTO) {
-          TreatPlayerWorker playerWorker = new TreatPlayerWorker(server, player, rankChannel, configuration);
-
+          List<LeagueAccount> leaguesAccounts = LeagueAccountRepository.getLeaguesAccountsWithPlayerID(server.serv_guildId, player.player_id);
+          
+          TreatPlayerWorker playerWorker = new TreatPlayerWorker(server, player, leaguesAccounts, rankChannel, configuration);
+          
           playersToTreat.add(playerWorker);
-          ServerData.getInfochannelHelperThread().execute(playerWorker);
+          if(!leaguesAccounts.isEmpty()) {
+            ServerData.getInfochannelHelperThread(leaguesAccounts.get(0).leagueAccount_server).execute(playerWorker);
+          }else {
+            // When there's no accounts, we go in a not really used threadpool
+            ServerData.getInfochannelHelperThread(Platform.OCE).execute(playerWorker);
+          }
         }
 
         TreatPlayerWorker.awaitAll(playersToTreat);
@@ -195,7 +203,7 @@ public class InfoPanelRefresher implements Runnable {
           gameCreated = true;
           CurrentGameInfoRepository.createCurrentGame(gameToCreate.getKey(), leagueAccount);
         }else {
-          DTO.CurrentGameInfo currentGame = CurrentGameInfoRepository.getCurrentGameWithServerAndGameId(leagueAccount.leagueAccount_server, Long.toString(gameToCreate.getKey().getGameId()));
+          DTO.CurrentGameInfo currentGame = CurrentGameInfoRepository.getCurrentGameWithServerAndGameId(leagueAccount.leagueAccount_server, Long.toString(gameToCreate.getKey().getGameId()), server);
           LeagueAccountRepository.updateAccountCurrentGameWithAccountId(leagueAccount.leagueAccount_id, currentGame.currentgame_id);
         }
       }

@@ -21,6 +21,17 @@ public class ServerRepository {
   private static final String SELECT_SERVER_WITH_GUILDID = "SELECT serv_id, serv_guildId, serv_language, serv_lastRefresh FROM server "
       + "WHERE serv_guildId = ?";
   
+  private static final String SELECT_SERVER_WITH_CURRENT_GAME_ID = 
+      "SELECT " + 
+      "server.serv_id,server.serv_guildid,server.serv_language,server.serv_lastrefresh " + 
+      "FROM game_info_card " + 
+      "INNER JOIN current_game_info ON game_info_card.gamecard_fk_currentgame = current_game_info.currentgame_id " + 
+      "INNER JOIN league_account ON current_game_info.currentgame_id = league_account.leagueaccount_fk_currentgame " + 
+      "INNER JOIN league_account AS league_account_1 ON game_info_card.gamecard_id = league_account_1.leagueaccount_fk_gamecard " + 
+      "INNER JOIN info_channel ON game_info_card.gamecard_fk_infochannel = info_channel.infochannel_id " + 
+      "INNER JOIN server ON info_channel.infochannel_fk_server = server.serv_id " + 
+      "WHERE current_game_info.currentgame_id = ?";
+  
   private static final String SELECT_SERVER_WITH_SERV_ID = "SELECT serv_id, serv_guildId, serv_language, serv_lastRefresh FROM server "
       + "WHERE serv_id = ?";
   
@@ -60,6 +71,23 @@ public class ServerRepository {
   
   private ServerRepository() {
     //Hide default public constructor
+  }
+  
+  public static DTO.Server getServerWithCurrentGameId(long currentGameId) throws SQLException {
+    ResultSet result = null;
+    try (Connection conn = RepoRessources.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(SELECT_SERVER_WITH_CURRENT_GAME_ID, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+      
+      stmt.setLong(1, currentGameId);
+      result = stmt.executeQuery();
+      int rowCount = result.last() ? result.getRow() : 0;
+      if(rowCount == 0) {
+        return null;
+      }
+      return new DTO.Server(result);
+    }finally {
+      RepoRessources.closeResultSet(result);
+    }
   }
   
   public static boolean checkServerExist(long guildId) throws SQLException {

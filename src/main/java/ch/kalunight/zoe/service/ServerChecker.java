@@ -36,7 +36,9 @@ public class ServerChecker extends TimerTask {
   
   private static final int MINIMAL_DELAY_BETWEEN_EACH_REFRESH = 5;
   
-  private static AtomicInteger currentDelayBetweenRefresh = new AtomicInteger(MINIMAL_DELAY_BETWEEN_EACH_REFRESH);
+  private static final int START_DELAY_BETWEEN_EACH_REFRESH = 90;
+  
+  private static AtomicInteger currentDelayBetweenRefresh = new AtomicInteger(START_DELAY_BETWEEN_EACH_REFRESH);
 
   private static DateTime nextDiscordBotListRefresh = DateTime.now().plusSeconds(TIME_BETWEEN_EACH_DISCORD_BOT_LIST_REFRESH);
 

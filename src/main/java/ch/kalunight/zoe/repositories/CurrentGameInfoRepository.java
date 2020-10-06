@@ -11,6 +11,7 @@ import javax.annotation.Nullable;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.DTO.Server;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.constant.Platform;
 
@@ -28,14 +29,30 @@ public class CurrentGameInfoRepository {
 
   private static final String SELECT_CURRENT_GAME_INFO_WITH_SERVER_AND_GAME_ID = 
       "SELECT " + 
+      "current_game_info.currentgame_id, " + 
+      "current_game_info.currentgame_currentgame, " + 
+      "current_game_info.currentgame_server, " + 
+      "current_game_info.currentgame_gameid " + 
+      "FROM game_info_card " + 
+      "INNER JOIN current_game_info ON game_info_card.gamecard_fk_currentgame = current_game_info.currentgame_id " + 
+      "INNER JOIN league_account ON current_game_info.currentgame_id = league_account.leagueaccount_fk_currentgame " + 
+      "INNER JOIN player ON league_account.leagueaccount_fk_player = player.player_id " + 
+      "INNER JOIN server ON player.player_fk_server = server.serv_id " + 
+      "INNER JOIN info_channel ON server.serv_id = info_channel.infochannel_fk_server " + 
+      "INNER JOIN league_account AS league_account_1 ON game_info_card.gamecard_id = league_account_1.leagueaccount_fk_gamecard " + 
+      "INNER JOIN info_channel AS info_channel_1 ON game_info_card.gamecard_fk_infochannel = info_channel_1.infochannel_id " + 
+      "WHERE current_game_info.currentgame_server = '%s' " + 
+      "AND current_game_info.currentgame_gameid = '%s' " + 
+      "AND server.serv_guildid = %s";
+
+  private static final String SELECT_ALL_CURRENT_GAME =
+      "SELECT " + 
           "current_game_info.currentgame_id, " + 
           "current_game_info.currentgame_currentgame, " + 
           "current_game_info.currentgame_server, " + 
           "current_game_info.currentgame_gameid " + 
-          "FROM current_game_info " + 
-          "WHERE current_game_info.currentgame_server = '%s' " + 
-          "AND current_game_info.currentgame_gameid = '%s'";
-
+          "FROM current_game_info";
+  
   private static final String SELECT_CURRENT_GAME_WITHOUT_GAME_INFO_CARD_WITH_GUILD_ID =
       "SELECT " + 
           "current_game_info.currentgame_id, " + 
@@ -78,6 +95,29 @@ public class CurrentGameInfoRepository {
 
   private CurrentGameInfoRepository() {
     //hide default public constructor
+  }
+  
+  public static List<DTO.CurrentGameInfo> getAllCurrentGameInfo() throws SQLException {
+    ResultSet result = null;
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+
+      String finalQuery = String.format(SELECT_ALL_CURRENT_GAME);
+      result = query.executeQuery(finalQuery);
+
+      List<DTO.CurrentGameInfo> gameCards = new ArrayList<>();
+      if(0 != (result.last() ? result.getRow() : 0)) {
+        result.first();
+        while(!result.isAfterLast()) {
+          gameCards.add(new DTO.CurrentGameInfo(result));
+          result.next();
+        }
+      }
+
+      return gameCards;
+    }finally {
+      RepoRessources.closeResultSet(result);
+    }
   }
 
   public static List<DTO.CurrentGameInfo> getCurrentGameWithoutLinkWithGameCardAndWithGuildId(long guildId) throws SQLException {
@@ -122,12 +162,12 @@ public class CurrentGameInfoRepository {
   }
 
   @Nullable
-  public static DTO.CurrentGameInfo getCurrentGameWithServerAndGameId(Platform platform, String gameID) throws SQLException {
+  public static DTO.CurrentGameInfo getCurrentGameWithServerAndGameId(Platform platform, String gameID, Server server) throws SQLException {
     ResultSet result = null;
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
 
-      String finalQuery = String.format(SELECT_CURRENT_GAME_INFO_WITH_SERVER_AND_GAME_ID, platform.getName(), gameID);
+      String finalQuery = String.format(SELECT_CURRENT_GAME_INFO_WITH_SERVER_AND_GAME_ID, platform.getName(), gameID, server.serv_guildId);
       result = query.executeQuery(finalQuery);
       int rowCount = result.last() ? result.getRow() : 0;
       if(rowCount == 0) {

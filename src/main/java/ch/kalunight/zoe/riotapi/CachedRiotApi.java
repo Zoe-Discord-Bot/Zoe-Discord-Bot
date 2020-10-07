@@ -58,15 +58,21 @@ public class CachedRiotApi {
   private final AtomicInteger championMasteryRequestCount = new AtomicInteger(0);
   private final AtomicInteger currentGameInfoRequestCount = new AtomicInteger(0);
   private static final Map<Platform, AtomicInteger> callByEndpoints = Collections.synchronizedMap(new EnumMap<Platform, AtomicInteger>(Platform.class));
-
+  private static final Map<Platform, AtomicInteger> callTFTByEndpoints = Collections.synchronizedMap(new EnumMap<Platform, AtomicInteger>(Platform.class));
+  
   static {
     for(Platform platform : Platform.values()) {
       callByEndpoints.put(platform, new AtomicInteger(0));
+      callTFTByEndpoints.put(platform, new AtomicInteger(0));
     }
   }
 
   private static void increaseCallCountForGivenRegion(Platform platform) {
     callByEndpoints.get(platform).incrementAndGet();
+  }
+  
+  private static void increaseTFTCallCountForGivenRegion(Platform platform) {
+    callTFTByEndpoints.get(platform).incrementAndGet();
   }
 
   public CachedRiotApi(RiotApi riotApi) {
@@ -227,6 +233,7 @@ public class CachedRiotApi {
     boolean needToRetry;
     do {
       needToRetry = true;
+      increaseTFTCallCountForGivenRegion(platform);
       try {
         summoner = riotApi.getTFTSummonerByName(platform, name);
         needToRetry = false;
@@ -380,6 +387,7 @@ public class CachedRiotApi {
     boolean needToRetry;
     
     do {
+      increaseTFTCallCountForGivenRegion(platform);
       needToRetry = true;
       try {
         leagueEntries = riotApi.getTFTLeagueEntryBySummoner(platform, summonerId);
@@ -415,7 +423,7 @@ public class CachedRiotApi {
     
     do {
       leagueEntryRequestCount.incrementAndGet();
-      increaseCallCountForGivenRegion(platform);
+      increaseTFTCallCountForGivenRegion(platform);
       
       needToRetry = true;
       try {
@@ -452,7 +460,7 @@ public class CachedRiotApi {
     
     do {
       leagueEntryRequestCount.incrementAndGet();
-      increaseCallCountForGivenRegion(platform);
+      increaseTFTCallCountForGivenRegion(platform);
       
       needToRetry = true;
       try {
@@ -610,6 +618,7 @@ public class CachedRiotApi {
     synchronized(callByEndpoints) {
       for(Platform platform : Platform.values()) {
         callByEndpoints.put(platform, new AtomicInteger(0));
+        callTFTByEndpoints.put(platform, new AtomicInteger(0));
       }
     }
   }

@@ -106,7 +106,9 @@ public class RankLeaderboardService extends LeaderboardBaseService {
             leagueAccount.leagueAccount_tftSummonerId);
 
         if(tftLeaguesEntry != null && !tftLeaguesEntry.isEmpty()) {
-          leaguesEntry = new HashSet<>();
+          if(leaguesEntry == null) {
+            leaguesEntry = new HashSet<>();
+          }
           leaguesEntry.add((LeagueEntry) tftLeaguesEntry.iterator().next());
         }
 

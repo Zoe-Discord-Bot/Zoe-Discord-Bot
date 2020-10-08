@@ -4,14 +4,11 @@ import java.awt.Color;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-
-import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.exception.NoValueRankException;
 import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.DTO.LastRank;
 import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Server;
@@ -19,6 +16,7 @@ import ch.kalunight.zoe.model.leaderboard.dataholder.Objective;
 import ch.kalunight.zoe.model.leaderboard.dataholder.PlayerRank;
 import ch.kalunight.zoe.model.leaderboard.dataholder.QueueSelected;
 import ch.kalunight.zoe.model.player_data.FullTier;
+import ch.kalunight.zoe.repositories.LastRankRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
@@ -29,7 +27,6 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
-import net.rithms.riot.api.endpoints.tft_league.dto.TFTLeagueEntry;
 
 public class RankLeaderboardService extends LeaderboardBaseService {
 
@@ -99,24 +96,29 @@ public class RankLeaderboardService extends LeaderboardBaseService {
       FullTier fullTierBestAccountRank = null;
       GameQueueConfigId queue = null;
       for(DTO.LeagueAccount leagueAccount : leaguesAccounts) {
-        Set<LeagueEntry> leaguesEntry = Zoe.getRiotApi().getLeagueEntriesBySummonerIdWithRateLimit(leagueAccount.leagueAccount_server,
-            leagueAccount.leagueAccount_summonerId);
+        List<LeagueEntry> leaguesEntries = new ArrayList<>();
+        
+        LastRank lastRank = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
 
-        Set<TFTLeagueEntry> tftLeaguesEntry = Zoe.getRiotApi().getTFTLeagueEntriesWithRateLimit(leagueAccount.leagueAccount_server,
-            leagueAccount.leagueAccount_tftSummonerId);
-
-        if(tftLeaguesEntry != null && !tftLeaguesEntry.isEmpty()) {
-          if(leaguesEntry == null) {
-            leaguesEntry = new HashSet<>();
+        if(lastRank != null) {
+          if(lastRank.lastRank_soloq != null) {
+            leaguesEntries.add(lastRank.lastRank_soloq);
           }
-          leaguesEntry.add((LeagueEntry) tftLeaguesEntry.iterator().next());
+          
+          if(lastRank.lastRank_flex != null) {
+            leaguesEntries.add(lastRank.lastRank_flex);
+          }
+          
+          if(lastRank.lastRank_tft != null) {
+            leaguesEntries.add(lastRank.lastRank_tft);
+          }
         }
 
         long rankValue = 0;
         FullTier fullTierRankValue = null;
         GameQueueConfigId queueOfRankValue = null;
         if(queueSelected != null) {
-          for(LeagueEntry leagueEntry : leaguesEntry) {
+          for(LeagueEntry leagueEntry : leaguesEntries) {
             if(leagueEntry.getQueueType().equals(queueSelected.getGameQueue().getQueueType())) {
               try {
                 fullTierRankValue = new FullTier(leagueEntry);
@@ -131,7 +133,7 @@ public class RankLeaderboardService extends LeaderboardBaseService {
           long bestRankQueueAccountValue = 0;
           FullTier bestRankQueueAccountFullTier = null;
           GameQueueConfigId queueSelectedByQueue = null;
-          for(LeagueEntry leagueEntry : leaguesEntry) {
+          for(LeagueEntry leagueEntry : leaguesEntries) {
             try {
               FullTier queueToEvaluate = new FullTier(leagueEntry);
               if(bestRankQueueAccountValue < queueToEvaluate.value() || bestRankQueueAccountFullTier == null 

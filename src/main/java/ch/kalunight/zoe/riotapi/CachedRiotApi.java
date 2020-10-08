@@ -42,6 +42,7 @@ public class CachedRiotApi {
   public static final boolean CACHE_ENABLE = true;
 
   public static final int RIOT_API_HUGE_LIMIT = 15000;
+  public static final int RIOT_API_TFT_HUGE_LIMIT = 30000;
   public static final Duration RIOT_API_HUGE_TIME = Duration.ofMinutes(10);
 
   private static final Logger logger = LoggerFactory.getLogger(CachedRiotApi.class);
@@ -239,6 +240,9 @@ public class CachedRiotApi {
         needToRetry = false;
       }catch(RateLimitException e) {
         try {
+          if(platform == Platform.RU && e.getRetryAfter() > 10) {
+            return null;
+          }
           logger.info("Waiting rate limit ({} sec) to retry in getTFTSummoner", e.getRetryAfter());
           TimeUnit.SECONDS.sleep(e.getRetryAfter());
         } catch (InterruptedException e1) {
@@ -379,6 +383,8 @@ public class CachedRiotApi {
   }
   
   public Set<TFTLeagueEntry> getTFTLeagueEntries(Platform platform, String summonerId) throws RiotApiException {
+    increaseTFTCallCountForGivenRegion(platform);
+    
     return riotApi.getTFTLeagueEntryBySummoner(platform, summonerId);
   }
   
@@ -394,6 +400,9 @@ public class CachedRiotApi {
         needToRetry = false;
       }catch(RateLimitException e) {
         try {
+          if(platform == Platform.RU && e.getRetryAfter() > 10) {
+            return new HashSet<>();
+          }
           logger.info("Waiting rate limit ({} sec) to retry when getting a TFT rank", e.getRetryAfter());
           TimeUnit.SECONDS.sleep(e.getRetryAfter());
         } catch (InterruptedException e1) {
@@ -405,7 +414,7 @@ public class CachedRiotApi {
           return new HashSet<>();
         }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
           logger.warn("Bad request received from Riot Api!", e);
-          return null;
+          return new HashSet<>();
         }
       }
     }while(needToRetry);
@@ -431,6 +440,9 @@ public class CachedRiotApi {
         needToRetry = false;
       }catch(RateLimitException e) {
         try {
+          if(platform == Platform.RU && e.getRetryAfter() > 10) {
+            return new ArrayList<>();
+          }
           logger.info("Waiting rate limit ({} sec) to retry when getting a TFTMatchList", e.getRetryAfter());
           TimeUnit.SECONDS.sleep(e.getRetryAfter());
         } catch (InterruptedException e1) {
@@ -468,6 +480,9 @@ public class CachedRiotApi {
         needToRetry = false;
       }catch(RateLimitException e) {
         try {
+          if(platform == Platform.RU && e.getRetryAfter() > 10) {
+            return null;
+          }
           logger.info("Waiting rate limit ({} sec) to retry when getting a TFTMatch", e.getRetryAfter());
           TimeUnit.SECONDS.sleep(e.getRetryAfter());
         } catch (InterruptedException e1) {
@@ -637,6 +652,14 @@ public class CachedRiotApi {
 
   public int getApiCallRemainingPerRegion(Platform platform) {  
     int remainingCall = RIOT_API_HUGE_LIMIT - callByEndpoints.get(platform).intValue();
+    if(remainingCall < 0) {
+      return 0;
+    }
+    return remainingCall;
+  }
+  
+  public int getApiCallRemainingPerRegionTFT(Platform platform) {
+    int remainingCall = RIOT_API_TFT_HUGE_LIMIT - callTFTByEndpoints.get(platform).intValue();
     if(remainingCall < 0) {
       return 0;
     }

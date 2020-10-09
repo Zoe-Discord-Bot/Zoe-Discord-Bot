@@ -105,6 +105,9 @@ public class CachedRiotApi {
         needToRetry = false;
       }catch(RateLimitException e) {
         try {
+          if(e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10) {
+            return null;
+          }
           logger.info("Waiting rate limit ({} sec) to retry", e.getRetryAfter());
           TimeUnit.SECONDS.sleep(e.getRetryAfter());
         } catch (InterruptedException e1) {
@@ -165,6 +168,9 @@ public class CachedRiotApi {
         needToRetry = false;
       }catch(RateLimitException e) {
         try {
+          if(e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10) {
+            return null;
+          }
           logger.info("Waiting rate limit ({} sec) to retry in getMatchList", e.getRetryAfter());
           TimeUnit.SECONDS.sleep(e.getRetryAfter());
         } catch (InterruptedException e1) {
@@ -206,6 +212,9 @@ public class CachedRiotApi {
         needToRetry = false;
       }catch(RateLimitException e) {
         try {
+          if(e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10) {
+            return null;
+          }
           logger.info("Waiting rate limit ({} sec) to retry in getSummoner", e.getRetryAfter());
           TimeUnit.SECONDS.sleep(e.getRetryAfter());
         } catch (InterruptedException e1) {
@@ -240,7 +249,7 @@ public class CachedRiotApi {
         needToRetry = false;
       }catch(RateLimitException e) {
         try {
-          if(platform == Platform.RU && e.getRetryAfter() > 10) {
+          if(e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10) {
             return null;
           }
           logger.info("Waiting rate limit ({} sec) to retry in getTFTSummoner", e.getRetryAfter());
@@ -303,6 +312,9 @@ public class CachedRiotApi {
         needToRetry = false;
       }catch(RateLimitException e) {
         try {
+          if(e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10) {
+            return new HashSet<>();
+          }
           logger.info("Waiting rate limit ({} sec) to retry when getting the rank", e.getRetryAfter());
           TimeUnit.SECONDS.sleep(e.getRetryAfter());
         } catch (InterruptedException e1) {
@@ -346,6 +358,9 @@ public class CachedRiotApi {
         needToRetry = false;
       }catch(RateLimitException e) {
         try {
+          if(e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10) {
+            return null;
+          }
           logger.info("Waiting rate limit ({} sec) to retry when getting current match", e.getRetryAfter());
           TimeUnit.SECONDS.sleep(e.getRetryAfter());
         } catch (InterruptedException e1) {
@@ -400,7 +415,7 @@ public class CachedRiotApi {
         needToRetry = false;
       }catch(RateLimitException e) {
         try {
-          if(platform == Platform.RU && e.getRetryAfter() > 10) {
+          if(e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10) {
             return new HashSet<>();
           }
           logger.info("Waiting rate limit ({} sec) to retry when getting a TFT rank", e.getRetryAfter());
@@ -440,7 +455,7 @@ public class CachedRiotApi {
         needToRetry = false;
       }catch(RateLimitException e) {
         try {
-          if(platform == Platform.RU && e.getRetryAfter() > 10) {
+          if(e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10) {
             return new ArrayList<>();
           }
           logger.info("Waiting rate limit ({} sec) to retry when getting a TFTMatchList", e.getRetryAfter());
@@ -480,7 +495,7 @@ public class CachedRiotApi {
         needToRetry = false;
       }catch(RateLimitException e) {
         try {
-          if(platform == Platform.RU && e.getRetryAfter() > 10) {
+          if(e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10) {
             return null;
           }
           logger.info("Waiting rate limit ({} sec) to retry when getting a TFTMatch", e.getRetryAfter());
@@ -515,6 +530,9 @@ public class CachedRiotApi {
         needToRetry = false;
       }catch(RateLimitException e) {
         try {
+          if(e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10) {
+            return null;
+          }
           logger.info("Waiting rate limit ({} sec) to retry when getting mastery", e.getRetryAfter());
           TimeUnit.SECONDS.sleep(e.getRetryAfter());
         } catch (InterruptedException e1) {
@@ -556,6 +574,9 @@ public class CachedRiotApi {
         needToRetry = false;
       }catch(RateLimitException e) {
         try {
+          if(e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10) {
+            return new ArrayList<>();
+          }
           logger.info("Waiting rate limit ({} sec) to retry when getting mastery", e.getRetryAfter());
           TimeUnit.SECONDS.sleep(e.getRetryAfter());
         } catch (InterruptedException e1) {
@@ -589,6 +610,9 @@ public class CachedRiotApi {
         needToRetry = false;
       }catch(RateLimitException e) {
         try {
+          if(e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10) {
+            return null;
+          }
           logger.info("Waiting rate limit ({} sec) to retry", e.getRetryAfter());
           TimeUnit.SECONDS.sleep(e.getRetryAfter());
         } catch (InterruptedException e1) {

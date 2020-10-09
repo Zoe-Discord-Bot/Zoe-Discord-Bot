@@ -270,7 +270,14 @@ public class InfoPanelRefresher implements Runnable {
     try {
       status = ServerStatusRepository.getServerStatus(server.serv_guildId);
     } catch (SQLException e) {
-      logger.error("SQL Exception when getting server status ! WARNING : The server may be not tracked anymore !", e);
+      logger.error("SQL Exception when getting status ! Retry in 1 seconds ... | SQL State : {}", e.getSQLState(), e);
+      try {
+        TimeUnit.SECONDS.sleep(1);
+        updateServerStatus();
+      } catch (InterruptedException e1) {
+        logger.error("InterruptedException while updating timeStamp and treatment !", e);
+        Thread.currentThread().interrupt();
+      }
       return;
     }
 

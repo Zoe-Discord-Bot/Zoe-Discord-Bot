@@ -9,6 +9,7 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
+import ch.kalunight.zoe.repositories.RepoRessources;
 import net.dv8tion.jda.api.JDA.Status;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
@@ -75,6 +76,8 @@ public class ShutDownCommand extends ZoeCommand {
         Thread.currentThread().interrupt();
       }
     }
+    
+    RepoRessources.shutdownDB();
     
     logger.info("JDA has been ShutDown !");
     logger.info("Zoe Process are now totally down ! Some process can remain and will be shutdown automatically.");

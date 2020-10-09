@@ -16,6 +16,7 @@ import org.knowm.xchart.style.PieStyler.AnnotationType;
 import org.knowm.xchart.style.Styler.ChartTheme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
@@ -69,23 +70,23 @@ public class RiotApiUsageChannelRefresh implements Runnable {
             + "\nTask in Players Data Worker Queue : " + ServerData.getPlayersDataQueue()
             + "\nInfocards Generated last 2 minutes : " + getInfocardCreatedCount()
             + "\nTask in Leaderboard Executor : " + ServerData.getLeaderboardExecutor().getQueue().size()).queue();
-        
+
         StringBuilder serverHelperStats = new StringBuilder();
         serverHelperStats.append("**Server Helper Threads Stats**\n");
-        
+
         for(Platform platform : Platform.values()) {
           ThreadPoolExecutor threadsPool = ServerData.getInfochannelHelperThread(platform);
-          
+
           serverHelperStats.append(platform.getName().toUpperCase() + " queue : " + threadsPool.getQueue().size() + "\n");
         }
-        
+
         rapiInfoChannel.sendMessage(serverHelperStats.toString()).queue();
 
         rapiInfoChannel.sendMessage("**Usage Stats**"
             + "\nTotal number of Players : " + PlayerRepository.countPlayers()
             + "\nTotal number of League Accounts : " + LeagueAccountRepository.countLeagueAccounts()
             + "\nTotal number of Leaderboards : " + LeaderboardRepository.countLeaderboards()).queue();
-        
+
         InfoPanelRefresher.getNbrServerSefreshedLast2Minutes().set(0);
 
         rapiInfoChannel.sendMessage("**Riot Request Stats**"
@@ -139,7 +140,7 @@ public class RiotApiUsageChannelRefresh implements Runnable {
             rapiInfoChannel.sendMessage("Got an error when generating graph for " + platform.getName()).queue();
           }
         }
-        
+
         for(Platform platform : Platform.values()) {
           long numberOfRequestRemaining = Zoe.getRiotApi().getApiCallRemainingPerRegionTFT(platform);
 

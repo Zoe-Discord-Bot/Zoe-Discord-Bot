@@ -1,12 +1,15 @@
 package ch.kalunight.zoe.repositories;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.postgresql.ds.PGSimpleDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.translation.LanguageManager;
@@ -14,18 +17,32 @@ import net.dv8tion.jda.api.entities.MessageChannel;
 
 public class RepoRessources {
 
-  public static String DB_USERNAME = "zoeadmin";
-  public static String DB_PASSWORD = "";
-  public static String DB_URL = "";
+  public static final String DB_USERNAME = "zoeadmin";
   
+  private static HikariDataSource dataSource;
+
   private static final Logger logger = LoggerFactory.getLogger(RepoRessources.class);
   
   private RepoRessources() {
     //hide Repo Ressources
   }
   
+  public static void setupDatabase(String password, String url) {
+    PGSimpleDataSource source = new PGSimpleDataSource();
+    source.setURL(url);
+    source.setDatabaseName("zoe");
+    source.setUser(DB_USERNAME); 
+    source.setPassword(password);
+    
+    HikariConfig config = new HikariConfig();
+    config.setDataSource(source);
+    config.setAutoCommit(true);
+    
+    dataSource = new HikariDataSource(config);
+  }
+  
   public static Connection getConnection() throws SQLException {
-    return DriverManager.getConnection(RepoRessources.DB_URL, RepoRessources.DB_USERNAME, RepoRessources.DB_PASSWORD);
+    return dataSource.getConnection();
   }
 
   public static void closeResultSet(ResultSet result) throws SQLException {
@@ -39,12 +56,12 @@ public class RepoRessources {
     channel.sendMessage(LanguageManager.getText(server.serv_language, "errorSQLPleaseReport")).complete();
   }
   
-  public static void setDB_PASSWORD(String dB_PASSWORD) {
-    DB_PASSWORD = dB_PASSWORD;
+  public static void shutdownDB() {
+    dataSource.close();
   }
-
-  public static void setDB_URL(String dB_URL) {
-    DB_URL = dB_URL;
+  
+  public static HikariDataSource getDataSource() {
+    return dataSource;
   }
   
 }

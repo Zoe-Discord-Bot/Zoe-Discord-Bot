@@ -129,8 +129,7 @@ public class Zoe {
       clientOwnerID = args[3];
       client.setOwnerId(clientOwnerID);
 
-      RepoRessources.setDB_URL(args[4]);
-      RepoRessources.setDB_PASSWORD(args[5]);
+      RepoRessources.setupDatabase(args[5], args[4]);
     }catch(Exception e) {
       logger.error("Error with parameters : 1. Discord Tocken 2. LoL tocken 3. TFT tocken 4. Owner Id 5. DB url 6. DB password", e);
       throw e;

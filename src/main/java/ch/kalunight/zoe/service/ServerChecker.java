@@ -36,7 +36,7 @@ public class ServerChecker extends TimerTask {
   
   private static final int MINIMAL_DELAY_BETWEEN_EACH_REFRESH = 5;
   
-  private static final int START_DELAY_BETWEEN_EACH_REFRESH = 90;
+  private static final int START_DELAY_BETWEEN_EACH_REFRESH = 30;
   
   private static AtomicInteger currentDelayBetweenRefresh = new AtomicInteger(START_DELAY_BETWEEN_EACH_REFRESH);
 

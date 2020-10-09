@@ -179,7 +179,7 @@ public class CurrentGameInfoRepository {
     }
   }
 
-  public static void createCurrentGame(CurrentGameInfo currentGame, DTO.LeagueAccount leagueAccount) throws SQLException {
+  public static long createCurrentGame(CurrentGameInfo currentGame, DTO.LeagueAccount leagueAccount) throws SQLException {
     ResultSet result = null;
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
@@ -191,7 +191,10 @@ public class CurrentGameInfoRepository {
       result = query.executeQuery(finalQuery);
       result.next();
 
-      LeagueAccountRepository.updateAccountCurrentGameWithAccountId(leagueAccount.leagueAccount_id, result.getLong("currentgame_id"));
+      long currentGameId = result.getLong("currentgame_id");
+      
+      LeagueAccountRepository.updateAccountCurrentGameWithAccountId(leagueAccount.leagueAccount_id, currentGameId);
+      return currentGameId;
     } finally {
       RepoRessources.closeResultSet(result);
     }

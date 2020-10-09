@@ -197,14 +197,12 @@ public class InfoPanelRefresher implements Runnable {
     }
 
     for(Entry<CurrentGameInfo, List<LeagueAccount>> gameToCreate : leaguesAccountsPerGameWaitingCreation.entrySet()) {
-      boolean gameCreated = false;
+      Long currentGameId = null;
       for(LeagueAccount leagueAccount : gameToCreate.getValue()) {
-        if(!gameCreated) {
-          gameCreated = true;
-          CurrentGameInfoRepository.createCurrentGame(gameToCreate.getKey(), leagueAccount);
+        if(currentGameId == null) {
+          currentGameId = CurrentGameInfoRepository.createCurrentGame(gameToCreate.getKey(), leagueAccount);
         }else {
-          DTO.CurrentGameInfo currentGame = CurrentGameInfoRepository.getCurrentGameWithServerAndGameId(leagueAccount.leagueAccount_server, Long.toString(gameToCreate.getKey().getGameId()), server);
-          LeagueAccountRepository.updateAccountCurrentGameWithAccountId(leagueAccount.leagueAccount_id, currentGame.currentgame_id);
+          LeagueAccountRepository.updateAccountCurrentGameWithAccountId(leagueAccount.leagueAccount_id, currentGameId);
         }
       }
     }
@@ -541,6 +539,10 @@ public class InfoPanelRefresher implements Runnable {
     DTO.GameInfoCard gameCard = GameInfoCardRepository.
         getGameInfoCardsWithCurrentGameId(server.serv_guildId, currentGame.currentgame_id);
 
+    if(gameCard == null) {
+      return;
+    }
+    
     List<DTO.LeagueAccount> leaguesAccountInTheGame = 
         LeagueAccountRepository.getLeaguesAccountsWithCurrentGameId(currentGame.currentgame_id);
 

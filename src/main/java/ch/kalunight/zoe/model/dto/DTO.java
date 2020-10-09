@@ -101,6 +101,11 @@ public class DTO {
         gamecard_creationtime = LocalDateTime.parse(baseData.getString("gamecard_creationtime"), DB_TIME_PATTERN);
       }
     }
+    
+    @Override
+    public String toString() {
+      return "[GameInfoCard: gamecard_id : " + gamecard_id + "]";
+    }
   }
 
   public static class InfoPanelMessage {
@@ -176,6 +181,11 @@ public class DTO {
       leagueAccount_puuid = summoner.getPuuid();
       leagueAccount_server = platform;
     }
+    
+    @Override
+    public String toString() {
+      return "[LeagueAccount: leagueAccount_id : " + leagueAccount_id + "]";
+    }
   }
 
   public static class CurrentGameInfo {
@@ -198,6 +208,11 @@ public class DTO {
       if(baseData.getString("currentgame_gameid") != null) {
         currentgame_gameid = baseData.getString("currentgame_gameid");
       }
+    }
+    
+    @Override
+    public String toString() {
+      return "[CurrentGameInfo currentgame_id : " + currentgame_id + "]";
     }
   }
   

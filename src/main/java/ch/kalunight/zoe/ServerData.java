@@ -35,10 +35,10 @@ public class ServerData {
 
   private static final ThreadPoolExecutor SERVER_EXECUTOR =
       new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
-  
-  private static final ThreadPoolExecutor INFOCHANNEL_HELPER_THREAD =
-      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
 
+  private static final Map<Platform, ThreadPoolExecutor> INFOCHANNEL_HELPER_THREAD =
+      Collections.synchronizedMap(new EnumMap<Platform, ThreadPoolExecutor>(Platform.class));
+  
   private static final ThreadPoolExecutor INFOCARDS_GENERATOR =
       new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
   
@@ -69,9 +69,8 @@ public class ServerData {
   }
 
   static {
-    logger.info("ThreadPools has been lauched with {} threads", NBR_PROC);
+    logger.info("ThreadPools has been started with {} threads", NBR_PROC);
     SERVER_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Server-Executor-Thread %d").build());
-    INFOCHANNEL_HELPER_THREAD.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Infochannel-Helper-Thread %d").build());
     INFOCARDS_GENERATOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe InfoCards-Generator-Thread %d").build());
     RANKED_MESSAGE_GENERATOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Ranked-Message-Generator-Thread %d").build());
     RESPONSE_WAITER.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Response-Waiter-Thread %d").build());
@@ -80,7 +79,12 @@ public class ServerData {
 
     for(Platform platform : Platform.values()) {
       ThreadPoolExecutor executor = new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
-      String nameOfThread = String.format("Zoe Match-%s-Worker", platform.getName().toUpperCase());
+      String nameOfThread = String.format("Zoe Infochannel-Helper-%s-Worker", platform.getName().toUpperCase());
+      executor.setThreadFactory(new ThreadFactoryBuilder().setNameFormat(nameOfThread + " %d").build());
+      INFOCHANNEL_HELPER_THREAD.put(platform, executor);
+      
+      executor = new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+      nameOfThread = String.format("Zoe Match-%s-Worker", platform.getName().toUpperCase());
       executor.setThreadFactory(new ThreadFactoryBuilder().setNameFormat(nameOfThread + " %d").build());
       MATCH_THREAD_EXECUTORS.put(platform, executor);
       
@@ -114,11 +118,15 @@ public class ServerData {
   public static void clearAllTask() {
     RESPONSE_WAITER.getQueue().clear();
     SERVER_EXECUTOR.getQueue().clear();
-    INFOCHANNEL_HELPER_THREAD.getQueue().clear();
     INFOCARDS_GENERATOR.getQueue().clear();
     RANKED_MESSAGE_GENERATOR.getQueue().clear();
     LEADERBOARD_EXECUTOR.getQueue().clear();
     COMMANDS_EXECUTOR.getQueue().clear();
+    
+    for(Platform platform : Platform.values()) {
+      ThreadPoolExecutor playerWorker = INFOCHANNEL_HELPER_THREAD.get(platform);
+      playerWorker.getQueue().clear();
+    }
     
     for(Platform platform : Platform.values()) {
       ThreadPoolExecutor playerWorker = MATCH_THREAD_EXECUTORS.get(platform);
@@ -158,13 +166,18 @@ public class ServerData {
 
     logger.info("Start to shutdown Infochannel Helper Threads, this can take 1 minutes max...");
     channel.sendMessage("Start to shutdown Infochannel Helper Threads, this can take 1 minutes max...").complete();
-    INFOCHANNEL_HELPER_THREAD.shutdown();
+    
+    for(Platform platform : Platform.values()) {
+      ThreadPoolExecutor matchWorker = INFOCHANNEL_HELPER_THREAD.get(platform);
+      matchWorker.shutdown();
+      logger.info("Start to shutdown Infochannel Helper {}, this can take 1 minutes max...", platform.getName());
 
-    INFOCHANNEL_HELPER_THREAD.awaitTermination(1, TimeUnit.MINUTES);
-    if(!INFOCHANNEL_HELPER_THREAD.isTerminated()) {
-      INFOCHANNEL_HELPER_THREAD.shutdownNow();
+      matchWorker.awaitTermination(1, TimeUnit.MINUTES);
+      if(!matchWorker.isTerminated()) {
+        matchWorker.shutdownNow();
+      }
+      logger.info("Shutdown of Infochannel Helper Threads has been completed !");
     }
-    logger.info("Shutdown of Infochannel Helper Threads has been completed !");
     channel.sendMessage("Shutdown of Infochannel Helper Threads has been completed !").complete();
 
     logger.info("Start to shutdown InfoCards Generator, this can take 1 minutes max...");
@@ -281,8 +294,8 @@ public class ServerData {
     return SERVER_EXECUTOR;
   }
   
-  public static ThreadPoolExecutor getInfochannelHelperThread() {
-    return INFOCHANNEL_HELPER_THREAD;
+  public static ThreadPoolExecutor getInfochannelHelperThread(Platform platform) {
+    return INFOCHANNEL_HELPER_THREAD.get(platform);
   }
 
   public static ThreadPoolExecutor getInfocardsGenerator() {

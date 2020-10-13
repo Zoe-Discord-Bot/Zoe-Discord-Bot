@@ -120,17 +120,18 @@ public class Zoe {
     CommandClientBuilder client = new CommandClientBuilder();
 
     String riotTocken;
+    String tftTocken;
 
     try {
       discordTocken = args[0];
       riotTocken = args[1];
-      clientOwnerID = args[2];
+      tftTocken = args[2];
+      clientOwnerID = args[3];
       client.setOwnerId(clientOwnerID);
 
-      RepoRessources.setDB_URL(args[3]);
-      RepoRessources.setDB_PASSWORD(args[4]);
+      RepoRessources.setupDatabase(args[5], args[4]);
     }catch(Exception e) {
-      logger.error("Error with parameters : 1. Discord Tocken 2. Riot tocken 3. Owner Id 4. DB url 5. DB password", e);
+      logger.error("Error with parameters : 1. Discord Tocken 2. LoL tocken 3. TFT tocken 4. Owner Id 5. DB url 6. DB password", e);
       throw e;
     }
     
@@ -141,7 +142,7 @@ public class Zoe {
       return;
     }
 
-    initRiotApi(riotTocken);
+    initRiotApi(riotTocken, tftTocken);
 
     try {
       discordBotListTocken = args[5];
@@ -187,8 +188,8 @@ public class Zoe {
     return builder.build();
   }
 
-  private static void initRiotApi(String riotTocken) {
-    ApiConfig config = new ApiConfig().setKey(riotTocken);
+  public static void initRiotApi(String riotTocken, String tftTocken) {
+    ApiConfig config = new ApiConfig().setKey(riotTocken).setTFTKey(tftTocken);
 
     config.setMaxAsyncThreads(ServerData.NBR_PROC);
     riotApi = new CachedRiotApi(new RiotApi(config));

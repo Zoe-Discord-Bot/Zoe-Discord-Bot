@@ -6,8 +6,12 @@ import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -18,24 +22,21 @@ import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.exception.NoValueRankException;
 import ch.kalunight.zoe.model.ComparableMessage;
-import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.GameInfoCardStatus;
 import ch.kalunight.zoe.model.dto.DTO.InfoChannel;
 import ch.kalunight.zoe.model.dto.DTO.InfoPanelMessage;
-import ch.kalunight.zoe.model.dto.DTO.LastRank;
 import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
+import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Player;
 import ch.kalunight.zoe.model.dto.DTO.RankHistoryChannel;
 import ch.kalunight.zoe.model.dto.DTO.ServerStatus;
 import ch.kalunight.zoe.model.player_data.FullTier;
-import ch.kalunight.zoe.model.player_data.Team;
 import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.CurrentGameInfoRepository;
 import ch.kalunight.zoe.repositories.GameInfoCardRepository;
 import ch.kalunight.zoe.repositories.InfoChannelRepository;
-import ch.kalunight.zoe.repositories.LastRankRepository;
 import ch.kalunight.zoe.repositories.LeaderboardRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
@@ -43,10 +44,9 @@ import ch.kalunight.zoe.repositories.RankHistoryChannelRepository;
 import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.repositories.ServerStatusRepository;
 import ch.kalunight.zoe.repositories.TeamRepository;
-import ch.kalunight.zoe.service.RankedChannelRefresher;
 import ch.kalunight.zoe.service.ServerChecker;
 import ch.kalunight.zoe.translation.LanguageManager;
-import ch.kalunight.zoe.util.request.RiotRequest;
+import ch.kalunight.zoe.util.TreatedPlayer;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageReaction;
@@ -55,8 +55,6 @@ import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.requests.ErrorResponse;
-import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.constant.Platform;
 
@@ -87,63 +85,18 @@ public class InfoPanelRefresher implements Runnable {
     guild = Zoe.getJda().getGuildById(server.serv_guildId);
   }
 
-  private class CurrentGameWithRegion {
-    public DTO.CurrentGameInfo currentGameInfo;
-    public Platform platform;
-
-    public CurrentGameWithRegion(DTO.CurrentGameInfo currentGameInfo, Platform platform) {
-      this.currentGameInfo = currentGameInfo;
-      this.platform = platform;
-    }
-
-    @Override
-    public int hashCode() {
-      final int prime = 31;
-      int result = 1;
-      result = prime * result + getEnclosingInstance().hashCode();
-      result = prime * result + ((currentGameInfo == null) ? 0 : currentGameInfo.hashCode());
-      result = prime * result + ((platform == null) ? 0 : platform.hashCode());
-      return result;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      if(this == obj)
-        return true;
-      if(obj == null)
-        return false;
-      if(getClass() != obj.getClass())
-        return false;
-      CurrentGameWithRegion other = (CurrentGameWithRegion) obj;
-      if(!getEnclosingInstance().equals(other.getEnclosingInstance()))
-        return false;
-      if(currentGameInfo == null) {
-        if(other.currentGameInfo != null)
-          return false;
-      } else if(currentGameInfo.currentgame_currentgame.getGameId() != other.currentGameInfo.currentgame_currentgame.getGameId())
-        return false;
-      if(platform != other.platform)
-        return false;
-      return true;
-    }
-
-    private InfoPanelRefresher getEnclosingInstance() {
-      return InfoPanelRefresher.this;
-    }
-  }
-
   @Override
   public void run() {
     try {
 
       nbrServerRefreshedLast2Minutes.incrementAndGet();
-      
+
       if(guild == null) {
         return;
       }
 
       DTO.InfoChannel infoChannelDTO = InfoChannelRepository.getInfoChannel(server.serv_guildId);
-      if(infoChannelDTO != null && guild != null) {
+      if(infoChannelDTO != null) {
         infochannel = guild.getTextChannelById(infoChannelDTO.infochannel_channelid);
       }
 
@@ -161,8 +114,36 @@ public class InfoPanelRefresher implements Runnable {
 
       rankChannel = RankHistoryChannelRepository.getRankHistoryChannel(server.serv_guildId);
 
-      if(infochannel != null) {
-        refreshAllLeagueAccountCurrentGamesAndDeleteOlderInfoCard(playersDTO);
+      List<TreatPlayerWorker> playersToTreat = new ArrayList<>();
+
+      List<TreatedPlayer> treatedPlayers = new ArrayList<>();
+
+      if(infochannel != null || rankChannel != null) {
+
+        for(Player player : playersDTO) {
+          List<LeagueAccount> leaguesAccounts = LeagueAccountRepository.getLeaguesAccountsWithPlayerID(server.serv_guildId, player.player_id);
+          
+          TreatPlayerWorker playerWorker = new TreatPlayerWorker(server, player, leaguesAccounts, rankChannel, configuration);
+          
+          playersToTreat.add(playerWorker);
+          if(!leaguesAccounts.isEmpty()) {
+            ServerData.getInfochannelHelperThread(leaguesAccounts.get(0).leagueAccount_server).execute(playerWorker);
+          }else {
+            // When there's no accounts, we go in a not really used threadpool
+            ServerData.getInfochannelHelperThread(Platform.OCE).execute(playerWorker);
+          }
+        }
+
+        TreatPlayerWorker.awaitAll(playersToTreat);
+
+        Map<CurrentGameInfo, List<LeagueAccount>> leaguesAccountsPerGameWaitingCreation = Collections.synchronizedMap(new HashMap<CurrentGameInfo, List<LeagueAccount>>());
+
+        Map<DTO.CurrentGameInfo, List<LeagueAccount>> leaguesAccountsPerGameWaitingDeletion = Collections.synchronizedMap(new HashMap<DTO.CurrentGameInfo, List<LeagueAccount>>());
+
+        loadTreatedPlayers(playersToTreat, treatedPlayers, leaguesAccountsPerGameWaitingCreation,
+            leaguesAccountsPerGameWaitingDeletion);
+
+        applyDBChange(leaguesAccountsPerGameWaitingCreation, leaguesAccountsPerGameWaitingDeletion);
       }
 
       if(infochannel != null && guild != null) {
@@ -171,7 +152,7 @@ public class InfoPanelRefresher implements Runnable {
         cleanRegisteredPlayerNoLongerInGuild(playersDTO);
         refreshGameCardStatus();
 
-        refreshInfoPanel(infoChannelDTO, configuration);
+        refreshInfoPanel(infoChannelDTO, configuration, treatedPlayers);
 
         if(ConfigRepository.getServerConfiguration(server.serv_guildId).getInfoCardsOption().isOptionActivated()) {
           createMissingInfoCard();
@@ -180,13 +161,14 @@ public class InfoPanelRefresher implements Runnable {
 
         cleanInfoChannel();
         clearLoadingEmote();
-      }else {
+      }else if(infoChannelDTO != null && infochannel == null) {
         InfoChannelRepository.deleteInfoChannel(server);
       }
     }catch (InsufficientPermissionException e) {
-      logger.debug("Permission {} missing for infochannel in the guild {}, try to autofix the issue... (Low chance to work)",
-          e.getPermission().getName(), guild.getName());
       try {
+        logger.debug("Permission {} missing for infochannel in the guild {}, try to autofix the issue... (Low chance to work)",
+            e.getPermission().getName(), guild.getName());
+
         PermissionOverride permissionOverride = infochannel
             .putPermissionOverride(guild.retrieveMember(Zoe.getJda().getSelfUser()).complete()).complete();
 
@@ -205,29 +187,114 @@ public class InfoPanelRefresher implements Runnable {
     }
   }
 
-private void updateServerStatus() {
-	ServerStatus status;
-	try {
-		status = ServerStatusRepository.getServerStatus(server.serv_guildId);
-	} catch (SQLException e) {
-        logger.error("SQL Exception when getting server status ! WARNING : The server may be not tracked anymore !", e);
-        return;
-	}
-	
-	try {
-        ServerRepository.updateTimeStamp(server.serv_guildId, LocalDateTime.now());
-        ServerStatusRepository.updateInTreatment(status.servstatus_id, false);
-      } catch(SQLException e) {
-        logger.error("SQL Exception when updating timeStamp and treatment ! Retry in 1 seconds ... | SQL State : {}", e.getSQLState(), e);
-        try {
-			TimeUnit.SECONDS.sleep(1);
-			updateServerStatus();
-		} catch (InterruptedException e1) {
-			logger.error("InterruptedException while updating timeStamp and treatment !", e);
-			Thread.currentThread().interrupt();
-		}
+  private void applyDBChange(Map<CurrentGameInfo, List<LeagueAccount>> leaguesAccountsPerGameWaitingCreation,
+      Map<DTO.CurrentGameInfo, List<LeagueAccount>> leaguesAccountsPerGameWaitingDeletion) throws SQLException {
+    for(Entry<DTO.CurrentGameInfo, List<LeagueAccount>> gameToDelete : leaguesAccountsPerGameWaitingDeletion.entrySet()) {
+      //Current game will be deleted in cleanUnlinkInfoCardAndCurrentGame()
+      for(LeagueAccount accountToUnlink : gameToDelete.getValue()) {
+        LeagueAccountRepository.updateAccountCurrentGameWithAccountId(accountToUnlink.leagueAccount_id, 0);
       }
-}
+    }
+
+    for(Entry<CurrentGameInfo, List<LeagueAccount>> gameToCreate : leaguesAccountsPerGameWaitingCreation.entrySet()) {
+      Long currentGameId = null;
+      for(LeagueAccount leagueAccount : gameToCreate.getValue()) {
+        if(currentGameId == null) {
+          currentGameId = CurrentGameInfoRepository.createCurrentGame(gameToCreate.getKey(), leagueAccount);
+        }else {
+          LeagueAccountRepository.updateAccountCurrentGameWithAccountId(leagueAccount.leagueAccount_id, currentGameId);
+        }
+      }
+    }
+  }
+
+  private void loadTreatedPlayers(List<TreatPlayerWorker> playersToTreat, List<TreatedPlayer> treatedPlayers,
+      Map<CurrentGameInfo, List<LeagueAccount>> leaguesAccountsPerGameWaitingCreation,
+      Map<DTO.CurrentGameInfo, List<LeagueAccount>> leaguesAccountsPerGameWaitingDeletion) {
+    for(TreatPlayerWorker treatPlayerWorker : playersToTreat) {
+      TreatedPlayer treatedPlayer = treatPlayerWorker.getTreatedPlayer();
+      treatedPlayers.add(treatedPlayer);
+
+      loadGameToCreate(leaguesAccountsPerGameWaitingCreation, treatedPlayer);
+
+      loadGameToDelete(leaguesAccountsPerGameWaitingDeletion, treatedPlayer);
+    }
+  }
+
+  private void loadGameToDelete(Map<DTO.CurrentGameInfo, List<LeagueAccount>> leaguesAccountsPerGameWaitingDeletion,
+      TreatedPlayer treatedPlayer) {
+    for(Entry<DTO.CurrentGameInfo, LeagueAccount> gameToDelete : treatedPlayer.getGamesToDelete().entrySet()) {
+      boolean gameAlreadyAdded = false;
+      for(Entry<DTO.CurrentGameInfo, List<LeagueAccount>> gameAlreadyWaitingToBeDeleted : leaguesAccountsPerGameWaitingDeletion.entrySet()) {
+
+        if(gameAlreadyWaitingToBeDeleted.getKey().currentgame_id == gameToDelete.getKey().currentgame_id) {
+          gameAlreadyAdded = true;
+          gameAlreadyWaitingToBeDeleted.getValue().add(gameToDelete.getValue());
+        }
+      }
+
+      if(!gameAlreadyAdded) {
+        List<LeagueAccount> leagueAccountsOfTheGame = new ArrayList<>();
+        leagueAccountsOfTheGame.add(gameToDelete.getValue());
+        leaguesAccountsPerGameWaitingDeletion.put(gameToDelete.getKey(), leagueAccountsOfTheGame);
+      }
+    }
+  }
+
+  private void loadGameToCreate(Map<CurrentGameInfo, List<LeagueAccount>> leaguesAccountsPerGameWaitingCreation,
+      TreatedPlayer treatedPlayer) {
+    Set<Entry<CurrentGameInfo, LeagueAccount>> gameToCreatePerAccount = treatedPlayer.getGamesToCreate().entrySet();
+    for(Entry<CurrentGameInfo, LeagueAccount> gamePerAccount : gameToCreatePerAccount) {
+      boolean gameAlreadyAdded = false;
+      for(Entry<CurrentGameInfo, List<LeagueAccount>> gamesAlreadyWaitingForCreation : leaguesAccountsPerGameWaitingCreation.entrySet()) {
+        if(gamePerAccount.getKey().getGameId() == gamesAlreadyWaitingForCreation.getKey().getGameId()) {
+          gameAlreadyAdded = true;
+
+          if(!gamesAlreadyWaitingForCreation.getValue().isEmpty() 
+              && gamesAlreadyWaitingForCreation.getValue().get(0).leagueAccount_server == gamePerAccount.getValue().leagueAccount_server) {
+            gamesAlreadyWaitingForCreation.getValue().add(gamePerAccount.getValue());
+          }
+        }
+      }
+
+      if(!gameAlreadyAdded) {
+        List<LeagueAccount> leagueAccountsOfTheGame = new ArrayList<>();
+        leagueAccountsOfTheGame.add(gamePerAccount.getValue());
+        leaguesAccountsPerGameWaitingCreation.put(gamePerAccount.getKey(), leagueAccountsOfTheGame);
+      }
+    }
+  }
+
+  private void updateServerStatus() {
+    ServerStatus status;
+    try {
+      status = ServerStatusRepository.getServerStatus(server.serv_guildId);
+    } catch (SQLException e) {
+      logger.error("SQL Exception when getting status ! Retry in 1 seconds ... | SQL State : {}", e.getSQLState(), e);
+      try {
+        TimeUnit.SECONDS.sleep(1);
+        updateServerStatus();
+      } catch (InterruptedException e1) {
+        logger.error("InterruptedException while updating timeStamp and treatment !", e);
+        Thread.currentThread().interrupt();
+      }
+      return;
+    }
+
+    try {
+      ServerRepository.updateTimeStamp(server.serv_guildId, LocalDateTime.now());
+      ServerStatusRepository.updateInTreatment(status.servstatus_id, false);
+    } catch(SQLException e) {
+      logger.error("SQL Exception when updating timeStamp and treatment ! Retry in 1 seconds ... | SQL State : {}", e.getSQLState(), e);
+      try {
+        TimeUnit.SECONDS.sleep(1);
+        updateServerStatus();
+      } catch (InterruptedException e1) {
+        logger.error("InterruptedException while updating timeStamp and treatment !", e);
+        Thread.currentThread().interrupt();
+      }
+    }
+  }
 
   private void cleanInfoChannel() {
     try {
@@ -283,13 +350,14 @@ private void updateServerStatus() {
     }
   }
 
-  private void refreshInfoPanel(DTO.InfoChannel infoChannelDTO, ServerConfiguration configuration) throws SQLException {
-    ArrayList<String> infoPanels = CommandEvent.splitMessage(refreshPannel(configuration));
+  private void refreshInfoPanel(DTO.InfoChannel infoChannelDTO, ServerConfiguration configuration, List<TreatedPlayer> treatedPlayers)
+      throws SQLException {
+    ArrayList<String> infoPanels = CommandEvent.splitMessage(refreshPannel(configuration, treatedPlayers));
 
     List<DTO.InfoPanelMessage> infoPanelMessages = InfoChannelRepository.getInfoPanelMessages(server.serv_guildId);
 
     removeDeletedMessageFromTheDB(infoPanelMessages);
-    
+
     checkMessageDisplaySync(infoPanelMessages, infoChannelDTO); 
 
     infoPanelMessages = InfoChannelRepository.getInfoPanelMessages(server.serv_guildId);
@@ -323,12 +391,12 @@ private void updateServerStatus() {
   }
 
   private void removeDeletedMessageFromTheDB(List<InfoPanelMessage> infoPanelMessages) throws SQLException {
-    
+
     List<InfoPanelMessage> infopanelMessagesDeleted = new ArrayList<>();
-    
+
     for(InfoPanelMessage messageToTest : infoPanelMessages) {
       try {
-       infochannel.retrieveMessageById(messageToTest.infopanel_messageId).complete();
+        infochannel.retrieveMessageById(messageToTest.infopanel_messageId).complete();
       }catch(ErrorResponseException e) {
         if(e.getErrorResponse() == ErrorResponse.UNKNOWN_MESSAGE) {
           InfoChannelRepository.deleteInfoPanelMessage(messageToTest.infopanel_id);
@@ -336,7 +404,7 @@ private void updateServerStatus() {
         }
       }
     }
-    
+
     infoPanelMessages.removeAll(infopanelMessagesDeleted);
   }
 
@@ -478,6 +546,10 @@ private void updateServerStatus() {
     DTO.GameInfoCard gameCard = GameInfoCardRepository.
         getGameInfoCardsWithCurrentGameId(server.serv_guildId, currentGame.currentgame_id);
 
+    if(gameCard == null) {
+      return;
+    }
+    
     List<DTO.LeagueAccount> leaguesAccountInTheGame = 
         LeagueAccountRepository.getLeaguesAccountsWithCurrentGameId(currentGame.currentgame_id);
 
@@ -486,120 +558,6 @@ private void updateServerStatus() {
         LeagueAccountRepository.updateAccountGameCardWithAccountId(leagueAccount.leagueAccount_id, gameCard.gamecard_id);
       }
     }
-  }
-
-  private void refreshAllLeagueAccountCurrentGamesAndDeleteOlderInfoCard(List<DTO.Player> playersDTO) throws SQLException {
-    List<CurrentGameWithRegion> gameAlreadyAskedToRiot = new ArrayList<>();
-
-    List<DTO.LeagueAccount> allLeaguesAccounts = LeagueAccountRepository.getAllLeaguesAccounts(guild.getIdLong());
-
-    for(DTO.Player player : playersDTO) {
-      player.leagueAccounts =
-          LeagueAccountRepository.getLeaguesAccounts(server.serv_guildId, player.player_discordId);
-
-      for(DTO.LeagueAccount leagueAccount : player.leagueAccounts) {
-
-        boolean alreadyLoaded = false;
-        for(CurrentGameWithRegion currentGameWithRegion : gameAlreadyAskedToRiot) {
-          if(leagueAccount.leagueAccount_server.equals(currentGameWithRegion.platform)
-              && currentGameWithRegion.currentGameInfo.currentgame_currentgame.
-              getParticipantByParticipantId(leagueAccount.leagueAccount_summonerId) != null) {
-            LeagueAccountRepository.updateAccountCurrentGameWithAccountId(leagueAccount.leagueAccount_id, 
-                currentGameWithRegion.currentGameInfo.currentgame_id);
-            alreadyLoaded = true;
-          }
-        }
-
-        if(alreadyLoaded) {
-          continue;
-        }
-
-        DTO.CurrentGameInfo currentGameDb = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(leagueAccount.leagueAccount_id);
-
-        CurrentGameWithRegion currentGameDbRegion = null;
-        if(currentGameDb != null) {
-          currentGameDbRegion = 
-              new CurrentGameWithRegion(currentGameDb, leagueAccount.leagueAccount_server);
-        }
-
-        if(currentGameDb == null || !gameAlreadyAskedToRiot.contains(currentGameDbRegion)) {
-
-          CurrentGameInfo currentGame;
-          try {
-            currentGame = Zoe.getRiotApi().getActiveGameBySummoner(
-                leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
-          } catch(RiotApiException e) {
-            if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
-              currentGame = null;
-            }else {
-              continue;
-            }
-          }
-
-          if(currentGameDb == null && currentGame != null) {
-            CurrentGameInfoRepository.createCurrentGame(currentGame, leagueAccount);
-          }else if(currentGameDb != null && currentGame != null) {
-            if(currentGame.getGameId() == currentGameDb.currentgame_currentgame.getGameId()) {
-              CurrentGameInfoRepository.updateCurrentGame(currentGame, leagueAccount);
-            }else {
-              CurrentGameInfoRepository.deleteCurrentGame(currentGameDb, server);
-
-              searchForRefreshRankChannel(allLeaguesAccounts, currentGameDb);
-
-              CurrentGameInfoRepository.createCurrentGame(currentGame, leagueAccount);
-            }
-          }else if(currentGameDb != null && currentGame == null) {
-            CurrentGameInfoRepository.deleteCurrentGame(currentGameDb, server);
-
-            searchForRefreshRankChannel(allLeaguesAccounts, currentGameDb);
-          }
-          if(currentGame != null) {
-            DTO.CurrentGameInfo currentGameInfo = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(leagueAccount.leagueAccount_id);
-            gameAlreadyAskedToRiot.add(new CurrentGameWithRegion(currentGameInfo, leagueAccount.leagueAccount_server));
-          }
-        }
-      }
-    }
-  }
-
-  private void searchForRefreshRankChannel(List<DTO.LeagueAccount> allLeaguesAccounts,
-      DTO.CurrentGameInfo currentGameDb) throws SQLException {
-    for(DTO.LeagueAccount leagueAccountToCheck : allLeaguesAccounts) {
-      if(currentGameDb.currentgame_currentgame.getParticipantByParticipantId(leagueAccountToCheck.leagueAccount_summonerId) != null) {
-        Player playerToUpdate = PlayerRepository.getPlayerByLeagueAccountAndGuild(guild.getIdLong(),
-            leagueAccountToCheck.leagueAccount_summonerId, leagueAccountToCheck.leagueAccount_server);
-        updateRankChannelMessage(playerToUpdate, leagueAccountToCheck, currentGameDb);
-      }
-    }
-  }
-
-  private void updateRankChannelMessage(DTO.Player player, DTO.LeagueAccount leagueAccount, DTO.CurrentGameInfo currentGameDb)
-      throws SQLException {
-    CurrentGameInfo gameOfTheChange = currentGameDb.currentgame_currentgame;
-
-    LastRank rankBeforeThisGame = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
-    if(rankBeforeThisGame == null) {
-      LastRankRepository.createLastRank(leagueAccount.leagueAccount_id);
-      rankBeforeThisGame = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
-    }
-
-    if(gameOfTheChange.getGameQueueConfigId() == GameQueueConfigId.SOLOQ.getId()) {
-
-      LeagueEntry entry = RiotRequest.getLeagueEntrySoloq(leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server);
-      RankedChannelRefresher rankedRefresher = 
-          new RankedChannelRefresher(rankChannel, rankBeforeThisGame.lastRank_soloq, entry,
-              gameOfTheChange, player, leagueAccount, server);
-      ServerData.getRankedMessageGenerator().execute(rankedRefresher);
-
-    }else if(gameOfTheChange.getGameQueueConfigId() == GameQueueConfigId.FLEX.getId()) {
-
-      LeagueEntry entry = RiotRequest.getLeagueEntryFlex(leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server);
-      RankedChannelRefresher rankedRefresher = 
-          new RankedChannelRefresher(rankChannel, rankBeforeThisGame.lastRank_flex, entry,
-              gameOfTheChange, player, leagueAccount, server);
-      ServerData.getRankedMessageGenerator().execute(rankedRefresher);
-    }
-
   }
 
   private void deleteDiscordInfoCard(long guildId, DTO.GameInfoCard gameCard) throws SQLException {
@@ -746,48 +704,31 @@ private void updateServerStatus() {
     }
   }
 
-  private String refreshPannel(ServerConfiguration configuration) throws SQLException {
+  private String refreshPannel(ServerConfiguration configuration, List<TreatedPlayer> treatedPlayers) throws SQLException {
 
-    final List<Team> teamList = TeamRepository.getAllPlayerInTeams(server.serv_guildId, server.serv_language);
+    final List<DTO.Team> teamList = TeamRepository.getTeamsByGuild(server.serv_guildId);
     final StringBuilder stringMessage = new StringBuilder();
 
     stringMessage.append("__**" + LanguageManager.getText(server.serv_language, "informationPanelTitle") + "**__\n \n");
 
-    for(Team team : teamList) {
+    List<TreatedPlayer> playersNotInTeam = new ArrayList<>();
+    playersNotInTeam.addAll(treatedPlayers);
 
-      List<DTO.Player> playersList = team.getPlayers();
+    for(DTO.Team team : teamList) {
+      generateATeam(treatedPlayers, stringMessage, playersNotInTeam, team, configuration);
+    }
 
-      if(teamList.size() != 1) {
-
-        int numberOfAccountRanked = 0;
-        int totRankValue = 0;
-
-        for(DTO.Player player : playersList) {
-          for(DTO.LeagueAccount leagueAccount : player.leagueAccounts) {
-            LastRank lastRank = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
-            if(lastRank != null && lastRank.lastRank_soloq != null) {
-              try {
-                totRankValue += new FullTier(lastRank.lastRank_soloq).value();
-                numberOfAccountRanked++;
-              } catch (NoValueRankException e) {
-                //Nothing to do
-              }
-            }
-          }
+    if(!playersNotInTeam.isEmpty()) {
+      if(teamList.isEmpty()) {
+        for(TreatedPlayer playerToShow : playersNotInTeam) { //We can order player here
+          stringMessage.append(playerToShow.getInfochannelMessage());
         }
-
-        if(totRankValue <= 0 || !ConfigRepository.getServerConfiguration(guild.getIdLong()).getInfopanelRankedOption().isOptionActivated()) {
-          stringMessage.append("**" + team.getName() + "**\n \n");
-        }else {
-          FullTier fulltier = new FullTier(totRankValue / numberOfAccountRanked);
-          stringMessage.append("**" + team.getName() + "** (" + LanguageManager.getText(server.serv_language, "rankedAvg") + " : " 
-              + fulltier.toStringWithoutLp(server.serv_language) + ")\n \n");
-        }
+        
+        stringMessage.append("\n");
+      }else {
+        generateATeam(playersNotInTeam, stringMessage, null, 
+            new DTO.Team(0, 0, LanguageManager.getText(server.serv_language, "teamNameOfPlayerWithoutTeam")), configuration);
       }
-
-      pseudoList(stringMessage, playersList, configuration);
-
-      stringMessage.append(" \n");
     }
 
     stringMessage.append(String.format(LanguageManager.getText(server.serv_language, "informationPanelRefreshedTime"), ServerChecker.getCurrentDelayBetweenRefresh()));
@@ -795,26 +736,46 @@ private void updateServerStatus() {
     return stringMessage.toString();
   }
 
-  private void pseudoList(final StringBuilder stringMessage, List<DTO.Player> playersList, ServerConfiguration configuration) {
+  private void generateATeam(List<TreatedPlayer> treatedPlayers, final StringBuilder stringMessage,
+      List<TreatedPlayer> playersNotInTeam, DTO.Team team, ServerConfiguration config) throws SQLException {
     
-    List<ThreathTextOfPlayer> threathTextWorkers = new ArrayList<>();
-    for(DTO.Player player : playersList) {
+    List<TreatedPlayer> playersInTeam = new ArrayList<>();
+    int numberOfAccountRanked = 0;
+    int totRankValue = 0;
 
-      ThreathTextOfPlayer threathTextWorker = new ThreathTextOfPlayer(server, player, configuration);
-      ServerData.getInfochannelHelperThread().execute(threathTextWorker);
-      threathTextWorkers.add(threathTextWorker);
+    for(TreatedPlayer player : treatedPlayers) {
+      if((player.getTeam() != null && player.getTeam().team_id == team.team_id) || team.team_id == 0) {
+        if(team.team_id != 0) {
+          playersNotInTeam.remove(player);
+        }
+        playersInTeam.add(player);
+        try {
+          totRankValue += player.getAverageSoloQRank().value();
+          numberOfAccountRanked++;
+        } catch (NoValueRankException e) {
+          //Nothing to do, we ignore unranked account
+        }
+      }
     }
-    
-    ThreathTextOfPlayer.awaitAll(playersList);
-    
-    for(ThreathTextOfPlayer threathTextWorker : threathTextWorkers) {
-      stringMessage.append(threathTextWorker.getStringMessage());
+
+    if(totRankValue <= 0 || !config.getInfopanelRankedOption().isOptionActivated()) {
+      stringMessage.append("**" + team.team_name + "**\n \n");
+    }else {
+      FullTier fulltier = new FullTier(totRankValue / numberOfAccountRanked);
+      stringMessage.append("**" + team.team_name + "** (" + LanguageManager.getText(server.serv_language, "rankedAvg") + " : " 
+          + fulltier.toStringWithoutLp(server.serv_language) + ")\n \n");
     }
+
+
+    for(TreatedPlayer playerToShow : playersInTeam) { //We can order player here
+      stringMessage.append(playerToShow.getInfochannelMessage());
+    }
+
+    stringMessage.append(" \n");
   }
-  
+
   public static AtomicLong getNbrServerSefreshedLast2Minutes() {
     return nbrServerRefreshedLast2Minutes;
   }
-
 
 }

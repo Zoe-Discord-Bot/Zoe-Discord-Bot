@@ -25,6 +25,7 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.User;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
+import net.rithms.riot.api.endpoints.tft_summoner.dto.TFTSummoner;
 import net.rithms.riot.constant.Platform;
 
 public class AddAccountCommand extends ZoeCommand {
@@ -100,8 +101,10 @@ public class AddAccountCommand extends ZoeCommand {
     }
 
     Summoner summoner;
+    TFTSummoner tftSummoner;
     try {
       summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);
+      tftSummoner = Zoe.getRiotApi().getTFTSummonerByName(region, summonerName);
     }catch(RiotApiException e) {
       RiotApiUtil.handleRiotApi(event.getEvent(), e, server.serv_language);
       return;
@@ -121,8 +124,12 @@ public class AddAccountCommand extends ZoeCommand {
 
     BannedAccount bannedAccount = BannedAccountRepository.getBannedAccount(summoner.getId(), region);
     if(bannedAccount == null) {
-
-      LeagueAccountRepository.createLeagueAccount(player.player_id, summoner, region.getName());
+      
+      LeagueAccountRepository.createLeagueAccount(player.player_id, summoner, tftSummoner, region.getName());
+      DTO.LeagueAccount leagueAccount = LeagueAccountRepository.getLeagueAccountWithSummonerId(server.serv_guildId, summoner.getId(), region);
+      
+      CreatePlayerCommand.updateLastRank(leagueAccount);
+      
       event.reply(String.format(LanguageManager.getText(server.serv_language, "accountAddedToPlayer"),
           newAccount.getSummoner().getName(), user.getName()));
     }else {

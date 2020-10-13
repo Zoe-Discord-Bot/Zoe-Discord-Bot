@@ -11,14 +11,15 @@ import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.DTO;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
+import net.rithms.riot.api.endpoints.tft_summoner.dto.TFTSummoner;
 import net.rithms.riot.constant.Platform;
 
 public class LeagueAccountRepository {
 
   private static final String INSERT_LEAGUE_ACCOUNT = "INSERT INTO league_account " +
       "(leagueaccount_fk_player, leagueaccount_name, " +
-      "leagueaccount_summonerid, leagueaccount_accountid, leagueaccount_puuid, leagueaccount_server) " +
-      "VALUES (%d, '%s', '%s', '%s', '%s', '%s')";
+      "leagueaccount_summonerid, leagueaccount_accountid, leagueaccount_puuid, leagueaccount_server, leagueAccount_tftSummonerId, leagueAccount_tftAccountId, leagueAccount_tftPuuid) " +
+      "VALUES (%d, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')";
 
   private static final String SELECT_LEAGUES_ACCOUNTS_WITH_GUILDID_AND_PLAYER_DISCORD_ID =
       "SELECT " + 
@@ -29,7 +30,10 @@ public class LeagueAccountRepository {
           "league_account.leagueaccount_name, " + 
           "league_account.leagueaccount_summonerid, " + 
           "league_account.leagueaccount_accountid, " +
-          "league_account.leagueaccount_puuid, " + 
+          "league_account.leagueaccount_puuid, " +
+          "league_account.leagueAccount_tftSummonerId, " +
+          "league_account.leagueAccount_tftAccountId, " +
+          "league_account.leagueAccount_tftPuuid, " +
           "league_account.leagueaccount_server " +
           "FROM server " + 
           "INNER JOIN player ON server.serv_id = player.player_fk_server " + 
@@ -47,6 +51,9 @@ public class LeagueAccountRepository {
           "league_account.leagueaccount_summonerid, " + 
           "league_account.leagueaccount_accountid, " + 
           "league_account.leagueaccount_puuid, " + 
+          "league_account.leagueAccount_tftSummonerId, " +
+          "league_account.leagueAccount_tftAccountId, " +
+          "league_account.leagueAccount_tftPuuid, " +
           "league_account.leagueaccount_server " + 
           "FROM game_info_card " + 
           "INNER JOIN league_account ON game_info_card.gamecard_id = league_account.leagueaccount_fk_gamecard " + 
@@ -62,6 +69,9 @@ public class LeagueAccountRepository {
           "league_account.leagueaccount_summonerid, " + 
           "league_account.leagueaccount_accountid, " + 
           "league_account.leagueaccount_puuid, " + 
+          "league_account.leagueAccount_tftSummonerId, " +
+          "league_account.leagueAccount_tftAccountId, " +
+          "league_account.leagueAccount_tftPuuid, " +
           "league_account.leagueaccount_server " + 
           "FROM league_account " + 
           "INNER JOIN player ON league_account.leagueaccount_fk_player = player.player_id " + 
@@ -77,6 +87,9 @@ public class LeagueAccountRepository {
       "league_account.leagueaccount_summonerid, " + 
       "league_account.leagueaccount_accountid, " + 
       "league_account.leagueaccount_puuid, " + 
+      "league_account.leagueAccount_tftSummonerId, " +
+      "league_account.leagueAccount_tftAccountId, " +
+      "league_account.leagueAccount_tftPuuid, " +
       "league_account.leagueaccount_server " + 
       "FROM server " + 
       "INNER JOIN player ON server.serv_id = player.player_fk_server " + 
@@ -97,6 +110,9 @@ public class LeagueAccountRepository {
           "league_account.leagueaccount_summonerid, " + 
           "league_account.leagueaccount_accountid, " + 
           "league_account.leagueaccount_puuid, " + 
+          "league_account.leagueAccount_tftSummonerId, " +
+          "league_account.leagueAccount_tftAccountId, " +
+          "league_account.leagueAccount_tftPuuid, " +
           "league_account.leagueaccount_server " + 
           "FROM league_account " + 
           "WHERE league_account.leagueaccount_fk_currentgame = %d";
@@ -110,6 +126,9 @@ public class LeagueAccountRepository {
       "league_account.leagueaccount_summonerid, " + 
       "league_account.leagueaccount_accountid, " + 
       "league_account.leagueaccount_puuid, " + 
+      "league_account.leagueAccount_tftSummonerId, " +
+      "league_account.leagueAccount_tftAccountId, " +
+      "league_account.leagueAccount_tftPuuid, " +
       "league_account.leagueaccount_server " + 
       "FROM server " + 
       "INNER JOIN player ON server.serv_id = player.player_fk_server " + 
@@ -127,6 +146,9 @@ public class LeagueAccountRepository {
           "league_account.leagueaccount_summonerid, " + 
           "league_account.leagueaccount_accountid, " + 
           "league_account.leagueaccount_puuid, " + 
+          "league_account.leagueAccount_tftSummonerId, " +
+          "league_account.leagueAccount_tftAccountId, " +
+          "league_account.leagueAccount_tftPuuid, " +
           "league_account.leagueaccount_server " + 
           "FROM server " + 
           "INNER JOIN player ON server.serv_id = player.player_fk_server " + 
@@ -142,6 +164,9 @@ public class LeagueAccountRepository {
 
   private static final String UPDATE_LEAGUE_ACCOUNT_NAME_WITH_ID =
       "UPDATE league_account SET leagueaccount_name = '%s' WHERE leagueaccount_id = %d";
+  
+  private static final String UPDATE_LEAGUE_ACCOUNT_TFT_DATA_WITH_ID = 
+      "UPDATE league_account SET leagueAccount_tftSummonerId = '%s', leagueAccount_tftAccountId = '%s', leagueAccount_tftPuuid = '%s' WHERE leagueaccount_id = %d";
 
   private static final String COUNT_LEAGUE_ACCOUNTS = "SELECT COUNT(*) FROM league_account";
 
@@ -161,6 +186,15 @@ public class LeagueAccountRepository {
       return result.getLong("count");
     }finally {
       RepoRessources.closeResultSet(result);
+    }
+  }
+
+  public static void updateAccountTFTDataWithId(long leagueAccountId, TFTSummoner summoner) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement();) {
+
+      String finalQuery = String.format(UPDATE_LEAGUE_ACCOUNT_TFT_DATA_WITH_ID, summoner.getId(), summoner.getAccountId(), summoner.getPuuid(), leagueAccountId);
+      query.executeUpdate(finalQuery);
     }
   }
 
@@ -238,12 +272,12 @@ public class LeagueAccountRepository {
     }
   }
 
-  public static void createLeagueAccount(long playerId, Summoner summoner, String server) throws SQLException {
+  public static void createLeagueAccount(long playerId, Summoner summoner, TFTSummoner tftSummoner, String server) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
 
       String finalQuery = String.format(INSERT_LEAGUE_ACCOUNT, playerId, summoner.getName(), summoner.getId(),
-          summoner.getAccountId(), summoner.getPuuid(), server);
+          summoner.getAccountId(), summoner.getPuuid(), server, tftSummoner.getId(), tftSummoner.getAccountId(), tftSummoner.getPuuid());
       query.execute(finalQuery);
     }
   }

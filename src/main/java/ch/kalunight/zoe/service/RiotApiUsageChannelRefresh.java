@@ -3,6 +3,7 @@ package ch.kalunight.zoe.service;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 import org.joda.time.DateTime;
@@ -15,6 +16,7 @@ import org.knowm.xchart.style.PieStyler.AnnotationType;
 import org.knowm.xchart.style.Styler.ChartTheme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
@@ -63,18 +65,28 @@ public class RiotApiUsageChannelRefresh implements Runnable {
         rapiInfoChannel.sendMessage("**Generic Stats**"
             + "\nTotal number of Servers : " + Zoe.getJda().getGuilds().size()
             + "\nTask in Server Executor Queue : " + ServerData.getServerExecutor().getQueue().size()
-            + "\nTask in Infochannel Helper Queue : " + ServerData.getInfochannelHelperThread().getQueue().size()
             + "\nInfoPannel refresh done last two minutes : " + InfoPanelRefresher.getNbrServerSefreshedLast2Minutes()
             + "\nTask in InfoCards Generator Queue : " + ServerData.getInfocardsGenerator().getQueue().size()
             + "\nTask in Players Data Worker Queue : " + ServerData.getPlayersDataQueue()
             + "\nInfocards Generated last 2 minutes : " + getInfocardCreatedCount()
             + "\nTask in Leaderboard Executor : " + ServerData.getLeaderboardExecutor().getQueue().size()).queue();
 
+        StringBuilder serverHelperStats = new StringBuilder();
+        serverHelperStats.append("**Server Helper Threads Stats**\n");
+
+        for(Platform platform : Platform.values()) {
+          ThreadPoolExecutor threadsPool = ServerData.getInfochannelHelperThread(platform);
+
+          serverHelperStats.append(platform.getName().toUpperCase() + " queue : " + threadsPool.getQueue().size() + "\n");
+        }
+
+        rapiInfoChannel.sendMessage(serverHelperStats.toString()).queue();
+
         rapiInfoChannel.sendMessage("**Usage Stats**"
             + "\nTotal number of Players : " + PlayerRepository.countPlayers()
             + "\nTotal number of League Accounts : " + LeagueAccountRepository.countLeagueAccounts()
             + "\nTotal number of Leaderboards : " + LeaderboardRepository.countLeaderboards()).queue();
-        
+
         InfoPanelRefresher.getNbrServerSefreshedLast2Minutes().set(0);
 
         rapiInfoChannel.sendMessage("**Riot Request Stats**"
@@ -122,6 +134,38 @@ public class RiotApiUsageChannelRefresh implements Runnable {
             description.append("Status of Api for " + platform.getName() + ". Max Calls : " 
                 + CachedRiotApi.RIOT_API_HUGE_LIMIT + " Calls Used : " 
                 + (CachedRiotApi.RIOT_API_HUGE_LIMIT - numberOfRequestRemaining));
+
+            descriptions.add(description.build());
+          } catch(IOException e) {
+            rapiInfoChannel.sendMessage("Got an error when generating graph for " + platform.getName()).queue();
+          }
+        }
+
+        for(Platform platform : Platform.values()) {
+          long numberOfRequestRemaining = Zoe.getRiotApi().getApiCallRemainingPerRegionTFT(platform);
+
+          PieChart pieChart = new PieChartBuilder()
+              .title("Request data for " + platform.getName() + " (TFT)")
+              .theme(ChartTheme.GGPlot2)
+              .build();
+
+          PieStyler styler = pieChart.getStyler();
+          styler.setAntiAlias(true);
+          styler.setAnnotationType(AnnotationType.LabelAndValue);
+          styler.setAnnotationDistance(1.1);
+          styler.setHasAnnotations(true);
+
+          pieChart.addSeries("Calls Used", CachedRiotApi.RIOT_API_TFT_HUGE_LIMIT - numberOfRequestRemaining);
+          pieChart.addSeries("Calls avaible", numberOfRequestRemaining);
+
+          try {
+            graphs.add(BitmapEncoder.getBitmapBytes(pieChart, BitmapFormat.PNG));
+            platformOrder.add(platform);
+
+            MessageBuilder description = new MessageBuilder();
+            description.append("Status of Api for " + platform.getName() + " (TFT). Max Calls : " 
+                + CachedRiotApi.RIOT_API_TFT_HUGE_LIMIT + " Calls Used : " 
+                + (CachedRiotApi.RIOT_API_TFT_HUGE_LIMIT - numberOfRequestRemaining));
 
             descriptions.add(description.build());
           } catch(IOException e) {

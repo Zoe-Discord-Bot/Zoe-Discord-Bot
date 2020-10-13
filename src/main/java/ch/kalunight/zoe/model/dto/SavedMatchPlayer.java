@@ -7,18 +7,32 @@ public class SavedMatchPlayer implements Serializable {
 
   private static final long serialVersionUID = 5432783425736075514L;
   
+  private boolean blueSide;
   private String accountId;
   private int championId;
   private int kills;
   private int deaths;
   private int assists;
+  private String role;
+  private String lane;
   
-  public SavedMatchPlayer(String accountId, int championId, ParticipantStats participantStats) {
+  public SavedMatchPlayer(boolean blueSide, String accountId, int championId, ParticipantStats participantStats, String role, String lane) {
+    this.blueSide = blueSide;
     this.accountId = accountId;
     this.championId = championId;
     this.kills = participantStats.getKills();
     this.deaths = participantStats.getDeaths();
     this.assists = participantStats.getAssists();
+    this.role = role;
+    this.lane = lane;
+  }
+
+  public boolean isBlueSide() {
+    return blueSide;
+  }
+
+  public void setBlueSide(boolean blueSide) {
+    this.blueSide = blueSide;
   }
 
   public String getAccountId() {
@@ -48,4 +62,21 @@ public class SavedMatchPlayer implements Serializable {
   public int getAssists() {
     return assists;
   }
+
+  public String getRole() {
+    return role;
+  }
+
+  public void setRole(String role) {
+    this.role = role;
+  }
+
+  public String getLane() {
+    return lane;
+  }
+
+  public void setLane(String lane) {
+    this.lane = lane;
+  }
+  
 }

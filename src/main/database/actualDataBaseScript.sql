@@ -104,12 +104,17 @@ CREATE TABLE league_account (
   leagueAccount_summonerId						VARCHAR				NOT NULL,
   leagueAccount_accountId						VARCHAR				NOT NULL,
   leagueAccount_puuid							VARCHAR				NOT NULL,
-  leagueAccount_server							VARCHAR				NOT NULL
+  leagueAccount_server							VARCHAR				NOT NULL,
+  leagueAccount_tftSummonerId 					VARCHAR				NOT NULL,
+  leagueAccount_tftAccountId					VARCHAR				NOT NULL,
+  leagueAccount_tftPuuid 						VARCHAR				NOT NULL
 );
 
 CREATE TABLE current_game_info (
   currentGame_id								SERIAL,
-  currentGame_currentGame						JSON
+  currentGame_currentGame						JSON,
+  currentgame_server 							VARCHAR				NOT NULL,
+  currentgame_gameid 							VARCHAR				NOT NULL
 );
 
 CREATE TABLE match_cache (
@@ -137,7 +142,8 @@ CREATE TABLE last_rank(
   lastRank_flexSecond 								json,
   lastRank_flexLastRefresh							TIMESTAMP			WITHOUT TIME ZONE,
   lastRank_tftSecond 								json,
-  lastRank_tftLastRefresh							TIMESTAMP			WITHOUT TIME ZONE
+  lastRank_tftLastRefresh							TIMESTAMP			WITHOUT TIME ZONE,
+  lastRank_tftLastTreatedMatchId 					VARCHAR
 );
 
 CREATE TABLE leaderboard (

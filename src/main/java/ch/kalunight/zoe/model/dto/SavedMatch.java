@@ -4,43 +4,28 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import ch.kalunight.zoe.exception.PlayerNotFoundException;
 import net.rithms.riot.api.endpoints.match.dto.Match;
 import net.rithms.riot.api.endpoints.match.dto.Participant;
 import net.rithms.riot.api.endpoints.match.dto.ParticipantIdentity;
+import net.rithms.riot.api.endpoints.match.dto.ParticipantTimeline;
 import net.rithms.riot.api.endpoints.match.dto.Player;
 
 public class SavedMatch implements Serializable {
 
+  private static final int BLUE_TEAM_ID = 100;
+
   private static final long serialVersionUID = -3423117740284389063L;
   
-  private List<SavedMatchPlayer> accountsIdBlueSide;
-  private List<SavedMatchPlayer> accountsIdRedSide;
+  private List<SavedMatchPlayer> accounts;
 
   private boolean blueSideHasWin;
   
   public SavedMatch(Match match) {
-    accountsIdBlueSide = new ArrayList<>();
-    accountsIdRedSide = new ArrayList<>();
+    accounts = new ArrayList<>();
     
     for(Participant participant : match.getParticipants()) {
-
-      Player player = null;
-
-      for(ParticipantIdentity participantIdentity : match.getParticipantIdentities()) {
-        if(participant.getParticipantId() == participantIdentity.getParticipantId()) {
-          player = participantIdentity.getPlayer();
-        }
-      }
-
-      if(player != null) {
-        SavedMatchPlayer savedPlayer = new SavedMatchPlayer(player.getAccountId(), participant.getChampionId(), participant.getStats());
-
-        if(participant.getTeamId() == 100) {
-          accountsIdBlueSide.add(savedPlayer);
-        }else {
-          accountsIdRedSide.add(savedPlayer);
-        }
-      }
+      buildPlayer(match, participant);
     }
     
     if(match.getTeamByTeamId(100).getWin().equals("Win")) {
@@ -49,14 +34,41 @@ public class SavedMatch implements Serializable {
       blueSideHasWin = false;
     }
   }
+
+  private void buildPlayer(Match match, Participant participant) {
+    Player player = null;
+
+    for(ParticipantIdentity participantIdentity : match.getParticipantIdentities()) {
+      if(participant.getParticipantId() == participantIdentity.getParticipantId()) {
+        player = participantIdentity.getPlayer();
+      }
+    }
+
+    if(player != null) {
+      ParticipantTimeline timeline = participant.getTimeline();
+      String role = null;
+      String lane = null;
+      if(timeline != null) {
+        role = timeline.getRole();
+        lane = timeline.getLane();
+      }
+      
+      boolean blueSide;
+      if(participant.getTeamId() == BLUE_TEAM_ID) {
+        blueSide = true;
+      }else {
+        blueSide = false;
+      }
+      
+      SavedMatchPlayer savedPlayer = new SavedMatchPlayer(blueSide, player.getAccountId(), participant.getChampionId(), participant.getStats(), role, lane);
+
+      accounts.add(savedPlayer);
+    }
+  }
   
   public SavedMatchPlayer getSavedMatchPlayerByAccountId(String accountId) {
-    List<SavedMatchPlayer> savedMatchPlayers = new ArrayList<>();
     
-    savedMatchPlayers.addAll(accountsIdBlueSide);
-    savedMatchPlayers.addAll(accountsIdRedSide);
-    
-    for(SavedMatchPlayer savedMatchPlayer : savedMatchPlayers) {
+    for(SavedMatchPlayer savedMatchPlayer : accounts) {
       if(savedMatchPlayer.getAccountId().equals(accountId)) {
         return savedMatchPlayer;
       }
@@ -65,32 +77,18 @@ public class SavedMatch implements Serializable {
   }
   
   public boolean isGivenAccountWinner(String accountId) {
-    boolean playerBlueSide = false;
     
-    for(SavedMatchPlayer player : accountsIdBlueSide) {
+    for(SavedMatchPlayer player : accounts) {
       if(player.getAccountId().equals(accountId)) {
-        playerBlueSide = true;
-        break;
+        return (player.isBlueSide() && blueSideHasWin) || (!player.isBlueSide() && !blueSideHasWin);
       }
     }
     
-    return (playerBlueSide && blueSideHasWin) || (!playerBlueSide && !blueSideHasWin);
-  }
-  
-  public List<SavedMatchPlayer> getAccountsIdBlueSide() {
-    return accountsIdBlueSide;
+    throw new PlayerNotFoundException("Impossible to give a winner in the game since the player is not in the game");
   }
 
-  public void setAccountsIdBlueSide(List<SavedMatchPlayer> accountsIdBlueSide) {
-    this.accountsIdBlueSide = accountsIdBlueSide;
-  }
-
-  public List<SavedMatchPlayer> getAccountsIdRedSide() {
-    return accountsIdRedSide;
-  }
-
-  public void setAccountsIdRedSide(List<SavedMatchPlayer> accountsIdRedSide) {
-    this.accountsIdRedSide = accountsIdRedSide;
+  public List<SavedMatchPlayer> getAccounts() {
+    return accounts;
   }
 
   public boolean isBlueSideHasWin() {

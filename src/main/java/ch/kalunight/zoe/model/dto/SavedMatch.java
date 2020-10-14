@@ -17,12 +17,12 @@ public class SavedMatch implements Serializable {
 
   private static final long serialVersionUID = -3423117740284389063L;
   
-  private List<SavedMatchPlayer> accounts;
+  private List<SavedMatchPlayer> players;
 
   private boolean blueSideHasWin;
   
   public SavedMatch(Match match) {
-    accounts = new ArrayList<>();
+    players = new ArrayList<>();
     
     for(Participant participant : match.getParticipants()) {
       buildPlayer(match, participant);
@@ -62,13 +62,13 @@ public class SavedMatch implements Serializable {
       
       SavedMatchPlayer savedPlayer = new SavedMatchPlayer(blueSide, player.getAccountId(), participant.getChampionId(), participant.getStats(), role, lane);
 
-      accounts.add(savedPlayer);
+      players.add(savedPlayer);
     }
   }
   
   public SavedMatchPlayer getSavedMatchPlayerByAccountId(String accountId) {
     
-    for(SavedMatchPlayer savedMatchPlayer : accounts) {
+    for(SavedMatchPlayer savedMatchPlayer : players) {
       if(savedMatchPlayer.getAccountId().equals(accountId)) {
         return savedMatchPlayer;
       }
@@ -78,7 +78,7 @@ public class SavedMatch implements Serializable {
   
   public boolean isGivenAccountWinner(String accountId) {
     
-    for(SavedMatchPlayer player : accounts) {
+    for(SavedMatchPlayer player : players) {
       if(player.getAccountId().equals(accountId)) {
         return (player.isBlueSide() && blueSideHasWin) || (!player.isBlueSide() && !blueSideHasWin);
       }
@@ -87,8 +87,8 @@ public class SavedMatch implements Serializable {
     throw new PlayerNotFoundException("Impossible to give a winner in the game since the player is not in the game");
   }
 
-  public List<SavedMatchPlayer> getAccounts() {
-    return accounts;
+  public List<SavedMatchPlayer> getPlayers() {
+    return players;
   }
 
   public boolean isBlueSideHasWin() {

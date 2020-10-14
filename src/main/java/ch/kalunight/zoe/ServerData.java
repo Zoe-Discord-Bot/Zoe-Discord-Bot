@@ -33,6 +33,12 @@ public class ServerData {
   
   public static final int NBR_PROC = Runtime.getRuntime().availableProcessors();
 
+  private static final ThreadPoolExecutor DATA_ANALYSIS_MANAGER =
+      new ThreadPoolExecutor(1, 1, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+  
+  private static final ThreadPoolExecutor DATA_ANALYSIS_THREAD =
+      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+  
   private static final ThreadPoolExecutor SERVER_EXECUTOR =
       new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
 
@@ -70,6 +76,7 @@ public class ServerData {
 
   static {
     logger.info("ThreadPools has been started with {} threads", NBR_PROC);
+    DATA_ANALYSIS_THREAD.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Analysis-Thread %d").build());
     SERVER_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Server-Executor-Thread %d").build());
     INFOCARDS_GENERATOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe InfoCards-Generator-Thread %d").build());
     RANKED_MESSAGE_GENERATOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Ranked-Message-Generator-Thread %d").build());
@@ -141,7 +148,24 @@ public class ServerData {
   }
 
   public static void shutDownTaskExecutor(TextChannel channel) throws InterruptedException {
+    
+    logger.info("Start to shutdown Data Analysis Thread, this can take 1 minutes max...");
+    channel.sendMessage("Start to shutdown Data Analysis Thread, this can take 1 minutes max...").complete();
+    DATA_ANALYSIS_THREAD.shutdown();
+    DATA_ANALYSIS_MANAGER.shutdown();
 
+    DATA_ANALYSIS_THREAD.awaitTermination(1, TimeUnit.MINUTES);
+    if(!DATA_ANALYSIS_THREAD.isTerminated()) {
+      DATA_ANALYSIS_THREAD.shutdownNow();
+    }
+    
+    if(!DATA_ANALYSIS_MANAGER.isTerminated()) {
+      DATA_ANALYSIS_MANAGER.shutdown();
+    }
+    
+    logger.info("Shutdown of Data Analysis Thread has been completed !");
+    channel.sendMessage("Shutdown of Data Analysis Thread has been completed !").complete();
+    
     logger.info("Start to shutdown Response Waiter, this can take 1 minutes max...");
     channel.sendMessage("Start to shutdown Response Waiter, this can take 1 minutes max...").complete();
     RESPONSE_WAITER.shutdown();

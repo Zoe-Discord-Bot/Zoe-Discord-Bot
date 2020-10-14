@@ -7,7 +7,9 @@ import java.sql.Statement;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -31,12 +33,40 @@ public class SavedMatchCacheRepository {
   private static final String INSERT_MATCH_CATCH = "INSERT INTO match_cache "
       + "(mCatch_gameId, mCatch_platform, mCatch_savedMatch, mCatch_creationTime) VALUES (%d, '%s', '%s', '%s')";
   
+  private static final String SELECT_MATCHS_BY_CHAMPION = "SELECT match_cache.mCache_savedMatch FROM match_cache " +
+      "WHERE match_cache.mCache_savedMatch -> 'players' ->> 'championId' = %d";
+  
   private static final String DELETE_MATCH_CACHE_OLD_OF_1_MONTHS = "DELETE FROM match_cache WHERE mcatch_creationtime < '%s'";
   
   private static final Gson gson = new GsonBuilder().create();
   
   private SavedMatchCacheRepository() {
     //hide Repo Ressources
+  }
+  
+  public static List<SavedMatch> getMatchsByChampion(int championId) throws SQLException {
+    ResultSet result = null;
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+
+      String finalQuery = String.format(SELECT_MATCHS_BY_CHAMPION, championId);
+      result = query.executeQuery(finalQuery);
+
+      List<SavedMatch> matchs = Collections.synchronizedList(new ArrayList<>());
+      int rowCount = result.last() ? result.getRow() : 0;
+      if(rowCount == 0) {
+        return matchs;
+      }
+      result.first();
+      while(!result.isAfterLast()) {
+        matchs.add(gson.fromJson(result.getString("mCatch_savedMatch"), SavedMatch.class));
+        result.next();
+      }
+
+      return matchs;
+    }finally {
+      RepoRessources.closeResultSet(result);
+    }
   }
   
   public static void createMatchCache(long gameId, Platform server, Match match) throws SQLException {

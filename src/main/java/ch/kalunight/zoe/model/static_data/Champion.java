@@ -1,6 +1,9 @@
 package ch.kalunight.zoe.model.static_data;
 
 import java.io.File;
+import java.util.List;
+
+import ch.kalunight.zoe.service.analysis.ChampionRole;
 import net.dv8tion.jda.api.entities.Emote;
 
 public class Champion {
@@ -9,6 +12,7 @@ public class Champion {
   private String name;
   private File championLogo;
   private Emote emote;
+  private List<ChampionRole> roles;
 
   public Champion(final int key, final String id, final String name, File championLogo) {
     this.id = id;
@@ -69,5 +73,13 @@ public class Champion {
 
   public void setEmote(Emote emote) {
     this.emote = emote;
+  }
+
+  public List<ChampionRole> getRoles() {
+    return roles;
+  }
+
+  public void setRoles(List<ChampionRole> roles) {
+    this.roles = roles;
   }
 }

@@ -34,22 +34,22 @@ public class ServerData {
   public static final int NBR_PROC = Runtime.getRuntime().availableProcessors();
 
   private static final ThreadPoolExecutor DATA_ANALYSIS_MANAGER =
-      new ThreadPoolExecutor(1, 1, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+      new ThreadPoolExecutor(1, 1, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
   
   private static final ThreadPoolExecutor DATA_ANALYSIS_THREAD =
-      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
   
   private static final ThreadPoolExecutor SERVER_EXECUTOR =
-      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
 
   private static final Map<Platform, ThreadPoolExecutor> INFOCHANNEL_HELPER_THREAD =
       Collections.synchronizedMap(new EnumMap<Platform, ThreadPoolExecutor>(Platform.class));
   
   private static final ThreadPoolExecutor INFOCARDS_GENERATOR =
-      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
   
   private static final ThreadPoolExecutor RANKED_MESSAGE_GENERATOR =
-      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
 
   private static final Map<Platform, ThreadPoolExecutor> PLAYERS_DATA_EXECUTORS =
       Collections.synchronizedMap(new EnumMap<Platform, ThreadPoolExecutor>(Platform.class));
@@ -58,10 +58,10 @@ public class ServerData {
       Collections.synchronizedMap(new EnumMap<Platform, ThreadPoolExecutor>(Platform.class));
   
   private static final ThreadPoolExecutor LEADERBOARD_EXECUTOR =
-      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
   
   private static final ThreadPoolExecutor COMMANDS_EXECUTOR =
-      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
 
   /**
    * Used by event waiter, define in {@link Zoe#main(String[])}
@@ -85,17 +85,17 @@ public class ServerData {
     COMMANDS_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Command-Executor-Thread %d").build());
 
     for(Platform platform : Platform.values()) {
-      ThreadPoolExecutor executor = new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+      ThreadPoolExecutor executor = new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
       String nameOfThread = String.format("Zoe Infochannel-Helper-%s-Worker", platform.getName().toUpperCase());
       executor.setThreadFactory(new ThreadFactoryBuilder().setNameFormat(nameOfThread + " %d").build());
       INFOCHANNEL_HELPER_THREAD.put(platform, executor);
       
-      executor = new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+      executor = new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
       nameOfThread = String.format("Zoe Match-%s-Worker", platform.getName().toUpperCase());
       executor.setThreadFactory(new ThreadFactoryBuilder().setNameFormat(nameOfThread + " %d").build());
       MATCH_THREAD_EXECUTORS.put(platform, executor);
       
-      executor = new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+      executor = new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
       nameOfThread = String.format("Zoe Player-Data-%s-Worker", platform.getName().toUpperCase());
       executor.setThreadFactory(new ThreadFactoryBuilder().setNameFormat(nameOfThread + " %d").build());
       PLAYERS_DATA_EXECUTORS.put(platform, executor);
@@ -304,6 +304,14 @@ public class ServerData {
     }
     
     return queueTotal;
+  }
+
+  public static ThreadPoolExecutor getDataAnalysisManager() {
+    return DATA_ANALYSIS_MANAGER;
+  }
+
+  public static ThreadPoolExecutor getDataAnalysisThread() {
+    return DATA_ANALYSIS_THREAD;
   }
 
   public static ConcurrentMap<String, Boolean> getServersIsInTreatment() {

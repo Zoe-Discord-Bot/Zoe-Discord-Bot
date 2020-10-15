@@ -3936,6 +3936,119 @@
 							"columnCompartment": {
 								"$ref": "AAAAAAFzcUqAWHQwFUQ="
 							}
+						},
+						{
+							"_type": "ERDEntityView",
+							"_id": "AAAAAAF1K2Kw5tx6Z5E=",
+							"_parent": {
+								"$ref": "AAAAAAFutjqgw1hxpqc="
+							},
+							"model": {
+								"$ref": "AAAAAAF1K2Kw5tx4uWY="
+							},
+							"subViews": [
+								{
+									"_type": "LabelView",
+									"_id": "AAAAAAF1K2Kw59x7XYo=",
+									"_parent": {
+										"$ref": "AAAAAAF1K2Kw5tx6Z5E="
+									},
+									"font": "Arial;13;1",
+									"left": 1096,
+									"top": 661,
+									"width": 232,
+									"height": 13,
+									"text": "ChampionRoleAnalysis"
+								},
+								{
+									"_type": "ERDColumnCompartmentView",
+									"_id": "AAAAAAF1K2Kw59x8egk=",
+									"_parent": {
+										"$ref": "AAAAAAF1K2Kw5tx6Z5E="
+									},
+									"model": {
+										"$ref": "AAAAAAF1K2Kw5tx4uWY="
+									},
+									"subViews": [
+										{
+											"_type": "ERDColumnView",
+											"_id": "AAAAAAF1K2MyAdyJO5Q=",
+											"_parent": {
+												"$ref": "AAAAAAF1K2Kw59x8egk="
+											},
+											"model": {
+												"$ref": "AAAAAAF1K2Mx2dyG5YA="
+											},
+											"font": "Arial;13;0",
+											"left": 1101,
+											"top": 684,
+											"width": 222,
+											"height": 13
+										},
+										{
+											"_type": "ERDColumnView",
+											"_id": "AAAAAAF1K2PP+9yT9NA=",
+											"_parent": {
+												"$ref": "AAAAAAF1K2Kw59x8egk="
+											},
+											"model": {
+												"$ref": "AAAAAAF1K2PP1dyQG6g="
+											},
+											"font": "Arial;13;0",
+											"left": 1101,
+											"top": 699,
+											"width": 222,
+											"height": 13
+										},
+										{
+											"_type": "ERDColumnView",
+											"_id": "AAAAAAF1K2QZeNyabFo=",
+											"_parent": {
+												"$ref": "AAAAAAF1K2Kw59x8egk="
+											},
+											"model": {
+												"$ref": "AAAAAAF1K2QZVNyXcPE="
+											},
+											"font": "Arial;13;0",
+											"left": 1101,
+											"top": 714,
+											"width": 222,
+											"height": 13
+										},
+										{
+											"_type": "ERDColumnView",
+											"_id": "AAAAAAF1K2VsU9ylDo8=",
+											"_parent": {
+												"$ref": "AAAAAAF1K2Kw59x8egk="
+											},
+											"model": {
+												"$ref": "AAAAAAF1K2VsKNyigvE="
+											},
+											"font": "Arial;13;0",
+											"left": 1101,
+											"top": 729,
+											"width": 222,
+											"height": 13
+										}
+									],
+									"font": "Arial;13;0",
+									"left": 1096,
+									"top": 679,
+									"width": 232,
+									"height": 68
+								}
+							],
+							"font": "Arial;13;0",
+							"left": 1096,
+							"top": 656,
+							"width": 232,
+							"height": 105,
+							"nameLabel": {
+								"$ref": "AAAAAAF1K2Kw59x7XYo="
+							},
+							"columnCompartment": {
+								"$ref": "AAAAAAF1K2Kw59x8egk="
+							}
 						}
 					]
 				},
@@ -5703,6 +5816,56 @@
 								"$ref": "AAAAAAFzcUqAV3QsPqs="
 							},
 							"name": "banAcc_server",
+							"type": "varchar",
+							"length": 0
+						}
+					]
+				},
+				{
+					"_type": "ERDEntity",
+					"_id": "AAAAAAF1K2Kw5tx4uWY=",
+					"_parent": {
+						"$ref": "AAAAAAFutjqgw1hwVjc="
+					},
+					"name": "ChampionRoleAnalysis",
+					"columns": [
+						{
+							"_type": "ERDColumn",
+							"_id": "AAAAAAF1K2Mx2dyG5YA=",
+							"_parent": {
+								"$ref": "AAAAAAF1K2Kw5tx4uWY="
+							},
+							"name": "cra_id",
+							"type": "autoId",
+							"length": 0
+						},
+						{
+							"_type": "ERDColumn",
+							"_id": "AAAAAAF1K2PP1dyQG6g=",
+							"_parent": {
+								"$ref": "AAAAAAF1K2Kw5tx4uWY="
+							},
+							"name": "cra_keyChampion",
+							"type": "number",
+							"length": 0
+						},
+						{
+							"_type": "ERDColumn",
+							"_id": "AAAAAAF1K2QZVNyXcPE=",
+							"_parent": {
+								"$ref": "AAAAAAF1K2Kw5tx4uWY="
+							},
+							"name": "cra_lastRefresh",
+							"type": "timestamp",
+							"length": 0
+						},
+						{
+							"_type": "ERDColumn",
+							"_id": "AAAAAAF1K2VsKNyigvE=",
+							"_parent": {
+								"$ref": "AAAAAAF1K2Kw5tx4uWY="
+							},
+							"name": "cra_roles",
 							"type": "varchar",
 							"length": 0
 						}

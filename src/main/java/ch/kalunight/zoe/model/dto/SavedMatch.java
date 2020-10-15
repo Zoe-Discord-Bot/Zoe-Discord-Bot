@@ -19,9 +19,16 @@ public class SavedMatch implements Serializable {
   
   private List<SavedMatchPlayer> players;
 
+  private int queueId;
+
+  private String gameVersion;
+  
   private boolean blueSideHasWin;
   
   public SavedMatch(Match match) {
+    queueId = match.getQueueId();
+    gameVersion = match.getGameVersion();
+    
     players = new ArrayList<>();
     
     for(Participant participant : match.getParticipants()) {
@@ -94,9 +101,13 @@ public class SavedMatch implements Serializable {
   public boolean isBlueSideHasWin() {
     return blueSideHasWin;
   }
+  
+  public int getQueueId() {
+    return queueId;
+  }
 
-  public void setBlueSideHasWin(boolean blueSideAsWin) {
-    this.blueSideHasWin = blueSideAsWin;
+  public String getGameVersion() {
+    return gameVersion;
   }
 
 }

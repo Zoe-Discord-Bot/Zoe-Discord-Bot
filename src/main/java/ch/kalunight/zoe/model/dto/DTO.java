@@ -12,6 +12,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import ch.kalunight.zoe.Zoe;
+import ch.kalunight.zoe.service.analysis.ChampionRole;
 import net.dv8tion.jda.api.entities.User;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
@@ -229,6 +230,28 @@ public class DTO {
       mCatch_platform = Platform.getPlatformByName(baseData.getString("mCatch_platform"));
       mCatch_savedMatch = gson.fromJson(baseData.getString("mCatch_savedMatch"), SavedMatch.class);
       mCatch_creationTime = LocalDateTime.parse(baseData.getString("mCatch_creationTime"), DB_TIME_PATTERN);
+    }
+  }
+  
+  public static class ChampionRoleAnalysis {
+    public long cra_id;
+    public int cra_keyChampion;
+    public LocalDateTime cra_lastRefresh;
+    public List<ChampionRole> cra_roles;
+    
+    public ChampionRoleAnalysis(ResultSet baseData) throws SQLException {
+      cra_id = baseData.getLong("cra_id");
+      cra_keyChampion = baseData.getInt("cra_keyChampion");
+      cra_lastRefresh = LocalDateTime.parse(baseData.getString("cra_lastRefresh"), DB_TIME_PATTERN);
+      
+      String[] roles = baseData.getString("cra_roles").split(";");
+      for(String strRole : roles) {
+        ChampionRole role = ChampionRole.valueOf(strRole);
+        
+        if(role != null) {
+          cra_roles.add(role);
+        }
+      }
     }
   }
   

@@ -1,6 +1,7 @@
  package ch.kalunight.zoe.service.analysis;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -10,13 +11,19 @@ import org.slf4j.LoggerFactory;
 
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.model.GameQueueConfigId;
+import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.SavedMatch;
+import ch.kalunight.zoe.model.static_data.Champion;
+import ch.kalunight.zoe.repositories.ChampionRoleAnalysisRepository;
 import ch.kalunight.zoe.repositories.SavedMatchCacheRepository;
+import ch.kalunight.zoe.util.Ressources;
 import net.rithms.riot.constant.Platform;
 
-public class ChampionRoleAnalysis implements Runnable {
+public class ChampionRoleAnalysisMainWorker implements Runnable {
 
-  private static final Logger logger = LoggerFactory.getLogger(ChampionRoleAnalysis.class);
+  private static final Logger logger = LoggerFactory.getLogger(ChampionRoleAnalysisMainWorker.class);
+  
+  private static final int MINIMUM_NUMBER_OF_MATCHS = 100;
   
   private static final int NORMAL_DRAFT_QUEUE_ID = 400;
   
@@ -34,7 +41,7 @@ public class ChampionRoleAnalysis implements Runnable {
   
   private AtomicInteger analysisDone;
   
-  public ChampionRoleAnalysis(int championId) {
+  public ChampionRoleAnalysisMainWorker(int championId) {
     this.championId = championId;
   }
   
@@ -42,14 +49,21 @@ public class ChampionRoleAnalysis implements Runnable {
   public void run() {
     
     try {
+      Champion champion = Ressources.getChampionDataById(championId);
+      
       String version = SavedMatchCacheRepository.getCurrentLoLVersion(Platform.EUW); //Select EUW region for patch version, usually the last region to be patched.
       
       if(version == null) {
         return;
       }
+      
       List<SavedMatch> matchsToAnalyse = SavedMatchCacheRepository.getMatchsByChampion(championId, GameQueueConfigId.SOLOQ.getId(), NORMAL_DRAFT_QUEUE_ID, version);
       
       int nbrMatchsToAnaylse = matchsToAnalyse.size();
+      
+      if(nbrMatchsToAnaylse < MINIMUM_NUMBER_OF_MATCHS && champion.getRoles() != null) {
+        return;
+      }
       
       for(SavedMatch matchToAnalyse : matchsToAnalyse) {
         RoleMatchAnalysisWorker roleAnalysisWorker = new RoleMatchAnalysisWorker(matchToAnalyse, this);
@@ -69,8 +83,27 @@ public class ChampionRoleAnalysis implements Runnable {
       
       String rolesList = getRolesString(ratioTop, ratioJng, ratioMid, ratioAdc, ratioSup);
       
+      DTO.ChampionRoleAnalysis champRole = ChampionRoleAnalysisRepository.getChampionRoleAnalysis(championId);
       
-      
+      if(champRole == null) {
+        ChampionRoleAnalysisRepository.createChampionRoles(championId, rolesList);
+      }else {
+        ChampionRoleAnalysisRepository.updateChampionsRoles(championId, rolesList);
+      }
+
+      if(champion != null) {
+        List<ChampionRole> championsRoles = new ArrayList<>();
+        
+        String[] roles = rolesList.split(";");
+        for(String strRole : roles) {
+          ChampionRole role = ChampionRole.valueOf(strRole);
+          
+          if(role != null) {
+            championsRoles.add(role);
+          }
+        }
+        champion.setRoles(championsRoles);
+      }
       
     } catch(SQLException e) {
       logger.error("SQL Error with a query", e);
@@ -86,22 +119,27 @@ public class ChampionRoleAnalysis implements Runnable {
     
     if(ratioTop > MINIMUM_POURCENTAGE_ROLE_COMMUN) {
       rolesListBuilder.append(ChampionRole.TOP.toString() + ";");
+      logger.info("champion id {} detected as playable in top. Ratio of this role : {}%", championId, ratioTop);
     }
     
     if(ratioJng > MINIMUM_POURCENTAGE_ROLE_COMMUN) {
       rolesListBuilder.append(ChampionRole.JUNGLE.toString() + ";");
+      logger.info("champion id {} detected as playable in jng. Ratio of this role : {}%", championId, ratioJng);
     }
     
     if(ratioMid > MINIMUM_POURCENTAGE_ROLE_COMMUN) {
       rolesListBuilder.append(ChampionRole.MID.toString() + ";");
+      logger.info("champion id {} detected as playable in mid. Ratio of this role : {}%", championId, ratioMid);
     }
     
     if(ratioAdc > MINIMUM_POURCENTAGE_ROLE_COMMUN) {
       rolesListBuilder.append(ChampionRole.ADC.toString() + ";");
+      logger.info("champion id {} detected as playable in adc. Ratio of this role : {}%", championId, ratioAdc);
     }
     
     if(ratioSup > MINIMUM_POURCENTAGE_ROLE_COMMUN) {
       rolesListBuilder.append(ChampionRole.SUPPORT.toString() + ";");
+      logger.info("champion id {} detected as playable in sup. Ratio of this role : {}%", championId, ratioSup);
     }
     
     return rolesListBuilder.toString();

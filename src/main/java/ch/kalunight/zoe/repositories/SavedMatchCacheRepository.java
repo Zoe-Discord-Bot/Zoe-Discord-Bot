@@ -37,6 +37,7 @@ public class SavedMatchCacheRepository {
       "WHERE match_cache.mCache_savedMatch -> 'players' ->> 'championId' = %d " +
       "AND (match_cache.mCache_savedMatch -> 'queueId' = %d OR match_cache.mCache_savedMatch -> 'queueId' = %d) " + 
       "AND match_cache.mCache_savedMatch -> 'gameVersion' = '%s'" +
+      "ORDER BY match_cache.mcatch_creationtime DESC" +
       "LIMIT 10000";
   
   private static final String DELETE_MATCH_CACHE_OLD_OF_1_MONTHS = "DELETE FROM match_cache WHERE mcatch_creationtime < '%s'";

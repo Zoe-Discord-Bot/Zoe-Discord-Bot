@@ -21,6 +21,9 @@ public class ChampionRoleAnalysisRepository {
   private static final String INSERT_CHAMPION_ROLE_ANALYSIS = "INSERT INTO champion_role_analysis "
       + "(cra_keychampion, cra_lastrefresh, cra_roles) VALUES (%d, '%s', '%s')";
   
+  private static final String UPDATE_CHAMPION_ROLE_ANALYSIS = "UPDATE champion_role_analysis "
+      + "SET cra_lastrefresh = '%s' cra_roles = '%s' WHERE cra_keychampion = %d";
+  
   private ChampionRoleAnalysisRepository() {
     //hide Repo Ressources
   }
@@ -42,11 +45,21 @@ public class ChampionRoleAnalysisRepository {
     }
   }
   
-  public static void createMatchCache(int championId, String roles) throws SQLException {
+  public static void createChampionRoles(int championId, String roles) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
       
       String finalQuery = String.format(INSERT_CHAMPION_ROLE_ANALYSIS, championId, DTO.DB_TIME_PATTERN.format(LocalDateTime.now()), roles);
+      
+      query.execute(finalQuery);
+    }
+  }
+  
+  public static void updateChampionsRoles(int championId, String roles) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement();) {
+      
+      String finalQuery = String.format(UPDATE_CHAMPION_ROLE_ANALYSIS, DTO.DB_TIME_PATTERN.format(LocalDateTime.now()), roles, championId);
       
       query.execute(finalQuery);
     }

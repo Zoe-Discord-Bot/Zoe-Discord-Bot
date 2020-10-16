@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -45,11 +46,14 @@ import ch.kalunight.zoe.command.delete.DeleteCommand;
 import ch.kalunight.zoe.command.remove.RemoveCommand;
 import ch.kalunight.zoe.command.show.ShowCommand;
 import ch.kalunight.zoe.command.stats.StatsCommand;
+import ch.kalunight.zoe.model.dto.DTO.ChampionRoleAnalysis;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.model.static_data.CustomEmote;
+import ch.kalunight.zoe.repositories.ChampionRoleAnalysisRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.repositories.RepoRessources;
 import ch.kalunight.zoe.riotapi.CachedRiotApi;
+import ch.kalunight.zoe.service.analysis.ChampionRole;
 import ch.kalunight.zoe.util.CommandUtil;
 import ch.kalunight.zoe.util.Ressources;
 import ch.kalunight.zoe.util.ZoeMemberCachePolicy;
@@ -75,11 +79,11 @@ public class Zoe {
   private static final ConcurrentLinkedQueue<List<CustomEmote>> emotesNeedToBeUploaded = new ConcurrentLinkedQueue<>();
 
   private static final List<Object> eventListenerList = Collections.synchronizedList(new ArrayList<>());
-  
+
   private static CommandClient commandClient = null;
 
   private static EventWaiter eventWaiter;
-  
+
   public static final Logger logger = LoggerFactory.getLogger(Zoe.class);
 
   private static final List<GatewayIntent> listOfGatway = Collections.synchronizedList(new ArrayList<>());
@@ -134,7 +138,7 @@ public class Zoe {
       logger.error("Error with parameters : 1. Discord Tocken 2. LoL tocken 3. TFT tocken 4. Owner Id 5. DB url 6. DB password", e);
       throw e;
     }
-    
+
     try {
       PlayerRepository.setupListOfRegisteredPlayers();
     }catch(SQLException e) {
@@ -162,7 +166,7 @@ public class Zoe {
 
     eventListenerList.add(commandClient);
     eventListenerList.add(setupEventListener);
-    
+
     try {
       jda = getNewJDAInstance(discordTocken, commandClient, setupEventListener);//
     } catch(IndexOutOfBoundsException e) {
@@ -177,14 +181,14 @@ public class Zoe {
   public static JDA getNewJDAInstance(String riotTocken, CommandClient newCommandClient, SetupEventListener setupEventListener) throws LoginException {
 
     commandClient = newCommandClient;
-    
+
     JDABuilder builder = JDABuilder.create(discordTocken, getListOfGatway())//
         .setStatus(OnlineStatus.DO_NOT_DISTURB)//
         .disableCache(CacheFlag.CLIENT_STATUS, CacheFlag.VOICE_STATE)
         .setMemberCachePolicy(new ZoeMemberCachePolicy())
         .setChunkingFilter(ChunkingFilter.NONE)
         .addEventListeners(commandClient, setupEventListener);
-    
+
     return builder.build();
   }
 
@@ -251,6 +255,27 @@ public class Zoe {
 
       Ressources.setChampions(champions);
     }
+
+    loadRoleChampions(champions);
+  }
+
+  private static void loadRoleChampions(List<Champion> champions) {
+    List<ChampionRole> allRoles = new ArrayList<>();
+    allRoles.addAll(Arrays.asList(ChampionRole.values()));
+
+    for(Champion champion : champions) {
+      try {
+        ChampionRoleAnalysis championRole = ChampionRoleAnalysisRepository.getChampionRoleAnalysis(champion.getKey());
+
+        if(championRole != null) {
+          champion.setRoles(championRole.cra_roles);
+        }else {
+          champion.setRoles(allRoles);
+        }
+      }catch (SQLException e) {
+        champion.setRoles(allRoles);
+      }
+    }
   }
 
   public static CachedRiotApi getRiotApi() {
@@ -264,7 +289,7 @@ public class Zoe {
   public static ConcurrentLinkedQueue<List<CustomEmote>> getEmotesNeedToBeUploaded() {
     return emotesNeedToBeUploaded;
   }
-  
+
   public static CommandClient getCommandClient() {
     return commandClient;
   }

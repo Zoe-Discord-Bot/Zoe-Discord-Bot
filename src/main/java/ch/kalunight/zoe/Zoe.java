@@ -54,6 +54,7 @@ import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.repositories.RepoRessources;
 import ch.kalunight.zoe.riotapi.CachedRiotApi;
 import ch.kalunight.zoe.service.analysis.ChampionRole;
+import ch.kalunight.zoe.service.analysis.ChampionRoleAnalysisMainWorker;
 import ch.kalunight.zoe.util.CommandUtil;
 import ch.kalunight.zoe.util.Ressources;
 import ch.kalunight.zoe.util.ZoeMemberCachePolicy;
@@ -271,6 +272,8 @@ public class Zoe {
           champion.setRoles(championRole.cra_roles);
         }else {
           champion.setRoles(allRoles);
+          ChampionRoleAnalysisMainWorker roleAnalyser = new ChampionRoleAnalysisMainWorker(champion.getKey());
+          ServerData.getDataAnalysisManager().execute(roleAnalyser);
         }
       }catch (SQLException e) {
         champion.setRoles(allRoles);

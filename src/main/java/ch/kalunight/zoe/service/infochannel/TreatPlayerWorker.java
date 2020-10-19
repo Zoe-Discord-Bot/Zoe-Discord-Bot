@@ -192,8 +192,9 @@ public class TreatPlayerWorker implements Runnable {
 
     gamesToDelete.put(currentGameDb, leagueAccount);
 
-    updateLoLLastRankIfGivenGameIsARanked(leagueAccount, currentGameDb, lastRank);
-    searchForRefreshRankChannel(currentGameDb, leagueAccount, lastRank);
+    if(updateLoLLastRankIfGivenGameIsARanked(leagueAccount, currentGameDb, lastRank)) {
+      searchForRefreshRankChannel(currentGameDb, leagueAccount, lastRank);
+    }
   }
 
 

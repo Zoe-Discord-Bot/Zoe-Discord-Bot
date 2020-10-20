@@ -10,7 +10,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
@@ -55,7 +55,7 @@ public class ServerChecker extends TimerTask {
 
     try {
 
-      if(ServerData.getServerExecutor().getQueue().size() > NUMBER_OF_TASKS_ALLOWED_IN_QUEUE) {
+      if(ServerThreadsManager.getServerExecutor().getQueue().size() > NUMBER_OF_TASKS_ALLOWED_IN_QUEUE) {
         currentDelayBetweenRefresh.getAndIncrement();
       }else {
         if(currentDelayBetweenRefresh.get() > MINIMAL_DELAY_BETWEEN_EACH_REFRESH) {
@@ -70,17 +70,17 @@ public class ServerChecker extends TimerTask {
         ServerRepository.updateTimeStamp(server.serv_guildId, LocalDateTime.now());
 
         Runnable task = new InfoPanelRefresher(server);
-        ServerData.getServerExecutor().execute(task);
+        ServerThreadsManager.getServerExecutor().execute(task);
       }
 
-      for(DTO.Server serverAskedTreatment : ServerData.getServersAskedTreatment()) {
+      for(DTO.Server serverAskedTreatment : ServerThreadsManager.getServersAskedTreatment()) {
         DTO.ServerStatus status = ServerStatusRepository.getServerStatus(serverAskedTreatment.serv_guildId);
         if(!status.servstatus_inTreatment) {
           ServerStatusRepository.updateInTreatment(status.servstatus_id, true);
           ServerRepository.updateTimeStamp(serverAskedTreatment.serv_guildId, LocalDateTime.now());
 
           Runnable task = new InfoPanelRefresher(serverAskedTreatment);
-          ServerData.getServerExecutor().execute(task);
+          ServerThreadsManager.getServerExecutor().execute(task);
 
           List<Leaderboard> leaderboards = LeaderboardRepository.getLeaderboardsWithGuildId(serverAskedTreatment.serv_guildId);
           for(Leaderboard leaderboard : leaderboards) {
@@ -91,7 +91,7 @@ public class ServerChecker extends TimerTask {
                     serverAskedTreatment.serv_guildId, leaderboard.lead_message_channelId, leaderboard.lead_id);
 
             if(leaderboardRefreshService != null) {
-              ServerData.getLeaderboardExecutor().execute(leaderboardRefreshService);
+              ServerThreadsManager.getLeaderboardExecutor().execute(leaderboardRefreshService);
             }else {
               logger.error("Impossible to get the service correspondig to the objective id {} !", leaderboard.lead_type);
             }
@@ -99,12 +99,12 @@ public class ServerChecker extends TimerTask {
         }
       }
 
-      ServerData.getServersAskedTreatment().clear();
+      ServerThreadsManager.getServersAskedTreatment().clear();
 
       refreshLeaderboard();
 
       if(nextRAPIChannelRefresh.isBeforeNow() && RiotApiUsageChannelRefresh.getRapiInfoChannel() != null) {
-        ServerData.getServerExecutor().execute(new RiotApiUsageChannelRefresh());
+        ServerThreadsManager.getServerExecutor().execute(new RiotApiUsageChannelRefresh());
 
         setNextRAPIChannelRefresh(DateTime.now().plusMinutes(TIME_BETWEEN_EACH_RAPI_CHANNEL_REFRESH_IN_MINUTES));
       }
@@ -132,9 +132,9 @@ public class ServerChecker extends TimerTask {
       logger.error("Unexpected error in ServerChecker", e);
     }finally {
       logger.debug("ServerChecker thread ended !");
-      ServerData.getServerCheckerThreadTimer().schedule(new DataSaver(), 0);
-      logger.debug("Zoe Server-Executor Queue : {}", ServerData.getServerExecutor().getQueue().size());
-      logger.debug("Zoe InfoCards-Generator Queue : {}", ServerData.getInfocardsGenerator().getQueue().size());
+      ServerThreadsManager.getServerCheckerThreadTimer().schedule(new DataSaver(), 0);
+      logger.debug("Zoe Server-Executor Queue : {}", ServerThreadsManager.getServerExecutor().getQueue().size());
+      logger.debug("Zoe InfoCards-Generator Queue : {}", ServerThreadsManager.getInfocardsGenerator().getQueue().size());
       logger.debug("Zoe number of User cached : {}", Zoe.getJda().getUserCache().size());
     }
   }
@@ -152,7 +152,7 @@ public class ServerChecker extends TimerTask {
               server.serv_guildId, leaderboardToRefresh.lead_message_channelId, leaderboardToRefresh.lead_id);
 
       if(leaderboardRefreshService != null) {
-        ServerData.getLeaderboardExecutor().execute(leaderboardRefreshService);
+        ServerThreadsManager.getLeaderboardExecutor().execute(leaderboardRefreshService);
       }else {
         logger.error("Impossible to get the service correspondig to the objective id {} !", leaderboardToRefresh.lead_type);
       }

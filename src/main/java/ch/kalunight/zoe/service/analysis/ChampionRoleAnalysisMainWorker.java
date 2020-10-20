@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.SavedMatch;
@@ -68,7 +68,7 @@ public class ChampionRoleAnalysisMainWorker implements Runnable {
       for(SavedMatch matchToAnalyse : matchsToAnalyse) {
         RoleMatchAnalysisWorker roleAnalysisWorker = new RoleMatchAnalysisWorker(matchToAnalyse, this);
         
-        ServerData.getDataAnalysisThread().execute(roleAnalysisWorker);
+        ServerThreadsManager.getDataAnalysisThread().execute(roleAnalysisWorker);
       }
       
       do {

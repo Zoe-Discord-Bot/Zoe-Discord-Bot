@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
@@ -150,7 +150,7 @@ public class TreatPlayerWorker implements Runnable {
     if(LastRankUtil.updateTFTLastRank(lastRank, tftLeagueEntries) && rankChannel != null) {
       RankedChannelTFTRefresher tftRankedChannelRefresher = new RankedChannelTFTRefresher(rankChannel,
           lastRank.lastRank_tftSecond, lastRank.lastRank_tft, player, leagueAccount, server);
-      ServerData.getRankedMessageGenerator().execute(tftRankedChannelRefresher);
+      ServerThreadsManager.getRankedMessageGenerator().execute(tftRankedChannelRefresher);
     }
   }
 
@@ -255,14 +255,14 @@ public class TreatPlayerWorker implements Runnable {
       RankedChannelLoLRefresher rankedRefresher = 
           new RankedChannelLoLRefresher(rankChannel, lastRank.lastRank_soloqSecond, lastRank.lastRank_soloq,
               gameOfTheChange, player, leagueAccount, server);
-      ServerData.getRankedMessageGenerator().execute(rankedRefresher);
+      ServerThreadsManager.getRankedMessageGenerator().execute(rankedRefresher);
 
     }else if(gameOfTheChange.getGameQueueConfigId() == GameQueueConfigId.FLEX.getId()) {
 
       RankedChannelLoLRefresher rankedRefresher = 
           new RankedChannelLoLRefresher(rankChannel, lastRank.lastRank_flexSecond, lastRank.lastRank_flex,
               gameOfTheChange, player, leagueAccount, server);
-      ServerData.getRankedMessageGenerator().execute(rankedRefresher);
+      ServerThreadsManager.getRankedMessageGenerator().execute(rankedRefresher);
     }
 
   }

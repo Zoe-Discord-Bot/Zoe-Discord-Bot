@@ -5,7 +5,7 @@ import java.sql.SQLException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.repositories.SavedMatchCacheRepository;
 import ch.kalunight.zoe.service.CleanCacheService;
@@ -30,7 +30,7 @@ public class CacheManager {
       logger.info("The cache is disable, no file will be cached.");
       return;
     }
-    ServerData.getServerExecutor().execute(new CleanCacheService());
+    ServerThreadsManager.getServerExecutor().execute(new CleanCacheService());
   }
 
   public static void cleanMatchCache() throws SQLException {

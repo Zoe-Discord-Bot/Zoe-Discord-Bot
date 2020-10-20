@@ -21,9 +21,9 @@ import ch.kalunight.zoe.repositories.ServerStatusRepository;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.rithms.riot.constant.Platform;
 
-public class ServerData {
+public class ServerThreadsManager {
 
-  private static final Logger logger = LoggerFactory.getLogger(ServerData.class);
+  private static final Logger logger = LoggerFactory.getLogger(ServerThreadsManager.class);
 
   private static final List<DTO.Server> serversAskedTreatment = Collections.synchronizedList(new ArrayList<DTO.Server>()); 
 
@@ -70,7 +70,7 @@ public class ServerData {
   
   private static boolean rebootAsked = false;
 
-  private ServerData() {
+  private ServerThreadsManager() {
     // Hide public default constructor
   }
 
@@ -367,6 +367,6 @@ public class ServerData {
   }
 
   public static void setRebootAsked(boolean rebootAsked) {
-    ServerData.rebootAsked = rebootAsked;
+    ServerThreadsManager.rebootAsked = rebootAsked;
   }
 }

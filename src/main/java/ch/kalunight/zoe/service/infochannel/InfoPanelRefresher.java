@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.exception.NoValueRankException;
 import ch.kalunight.zoe.model.ComparableMessage;
@@ -127,10 +127,10 @@ public class InfoPanelRefresher implements Runnable {
           
           playersToTreat.add(playerWorker);
           if(!leaguesAccounts.isEmpty()) {
-            ServerData.getInfochannelHelperThread(leaguesAccounts.get(0).leagueAccount_server).execute(playerWorker);
+            ServerThreadsManager.getInfochannelHelperThread(leaguesAccounts.get(0).leagueAccount_server).execute(playerWorker);
           }else {
             // When there's no accounts, we go in a not really used threadpool
-            ServerData.getInfochannelHelperThread(Platform.OCE).execute(playerWorker);
+            ServerThreadsManager.getInfochannelHelperThread(Platform.OCE).execute(playerWorker);
           }
         }
 
@@ -337,7 +337,7 @@ public class InfoPanelRefresher implements Runnable {
 
           DTO.CurrentGameInfo currentGame = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(account.leagueAccount_id);
 
-          ServerData.getInfocardsGenerator().execute(
+          ServerThreadsManager.getInfocardsGenerator().execute(
               new InfoCardsWorker(server, infochannel, accountsLinked.get(0), currentGame, gameInfoCard));
           break;
         case IN_WAIT_OF_DELETING:

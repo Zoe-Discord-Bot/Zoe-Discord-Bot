@@ -6,7 +6,7 @@ import java.util.TimerTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.service.analysis.ChampionRoleAnalysisMainWorker;
 import ch.kalunight.zoe.util.Ressources;
@@ -35,13 +35,13 @@ public class DataSaver extends TimerTask {
       if(nextCleanCacheTime.isBefore(LocalDateTime.now())) {
         setNextCleanCacheTime(LocalDateTime.now().plusHours(TIME_BETWEEN_CLEAN_CACHE_IN_HOURS));
         CleanCacheService cleanCacheThread = new CleanCacheService();
-        ServerData.getServerExecutor().execute(cleanCacheThread);
+        ServerThreadsManager.getServerExecutor().execute(cleanCacheThread);
       }
       
       if(nextRefreshCacheDb.isBefore(LocalDateTime.now())) {
         logger.info("Refresh cache started !");
         setNextRefreshCacheDb(LocalDateTime.now().plusHours(TIME_BETWEEN_EACH_DB_REFRESH_IN_HOURS));
-        ServerData.getServerExecutor().submit(new SummonerCacheRefresh());
+        ServerThreadsManager.getServerExecutor().submit(new SummonerCacheRefresh());
       }
       
       if(nextRefreshChampionsRole.isBefore(LocalDateTime.now())) {
@@ -49,7 +49,7 @@ public class DataSaver extends TimerTask {
         setNextRefreshChampionRole(LocalDateTime.now().plusHours(TIME_BETWEEN_EACH_CHAMPION_ROLE_REFRESH_IN_HOURS));
         
         for(Champion champion : Ressources.getChampions()) {
-          ServerData.getDataAnalysisManager().submit(new ChampionRoleAnalysisMainWorker(champion.getKey())); 
+          ServerThreadsManager.getDataAnalysisManager().submit(new ChampionRoleAnalysisMainWorker(champion.getKey())); 
         }
       }
       
@@ -57,7 +57,7 @@ public class DataSaver extends TimerTask {
       logger.error("Error : {}", e.getMessage(), e);
     } finally {
       TimerTask mainThread = new ServerChecker();
-      ServerData.getServerCheckerThreadTimer().schedule(mainThread, WAIT_TIME_BETWEEN_EACH_REFRESH_IN_MS);
+      ServerThreadsManager.getServerCheckerThreadTimer().schedule(mainThread, WAIT_TIME_BETWEEN_EACH_REFRESH_IN_MS);
     }
   }
   

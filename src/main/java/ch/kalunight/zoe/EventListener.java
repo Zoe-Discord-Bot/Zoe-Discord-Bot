@@ -177,12 +177,12 @@ public class EventListener extends ListenerAdapter {
           DTO.InfoChannel infochannel = InfoChannelRepository.getInfoChannel(event.getGuild().getIdLong());
           DTO.RankHistoryChannel rankchannel = RankHistoryChannelRepository.getRankHistoryChannel(event.getGuild().getIdLong());
 
-          if((infochannel != null || rankchannel != null) && registedPlayer != null && !ServerData.isServerWillBeTreated(server)
+          if((infochannel != null || rankchannel != null) && registedPlayer != null && !ServerThreadsManager.isServerWillBeTreated(server)
               && server.serv_lastRefresh.isBefore(LocalDateTime.now().minusSeconds(5))) {
 
-            ServerData.getServersIsInTreatment().put(event.getGuild().getId(), true);
+            ServerThreadsManager.getServersIsInTreatment().put(event.getGuild().getId(), true);
             ServerRepository.updateTimeStamp(server.serv_guildId, LocalDateTime.now());
-            ServerData.getServerExecutor().execute(new InfoPanelRefresher(server, true));
+            ServerThreadsManager.getServerExecutor().execute(new InfoPanelRefresher(server, true));
           }
         }
       }catch(SQLException e) {

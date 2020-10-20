@@ -7,7 +7,7 @@ import java.util.function.BiConsumer;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 
-import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.dto.DTO;
@@ -82,10 +82,10 @@ public class CreateInfoChannelCommand extends ZoeCommand {
       
       event.reply(LanguageManager.getText(server.serv_language, "channelCreatedMessage"));
       
-      if(!ServerData.isServerWillBeTreated(server)) {
-        ServerData.getServersIsInTreatment().put(event.getGuild().getId(), true);
+      if(!ServerThreadsManager.isServerWillBeTreated(server)) {
+        ServerThreadsManager.getServersIsInTreatment().put(event.getGuild().getId(), true);
         ServerRepository.updateTimeStamp(server.serv_guildId, LocalDateTime.now());
-        ServerData.getServerExecutor().execute(new InfoPanelRefresher(server, false));
+        ServerThreadsManager.getServerExecutor().execute(new InfoPanelRefresher(server, false));
       }
     } catch(InsufficientPermissionException e) {
       event.reply(LanguageManager.getText(server.serv_language, "impossibleToCreateInfoChannelMissingPerms"));

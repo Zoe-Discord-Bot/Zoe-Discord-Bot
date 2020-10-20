@@ -196,7 +196,7 @@ public class Zoe {
   public static void initRiotApi(String riotTocken, String tftTocken) {
     ApiConfig config = new ApiConfig().setKey(riotTocken).setTFTKey(tftTocken);
 
-    config.setMaxAsyncThreads(ServerData.NBR_PROC);
+    config.setMaxAsyncThreads(ServerThreadsManager.NBR_PROC);
     riotApi = new CachedRiotApi(new RiotApi(config));
   }
 
@@ -273,7 +273,7 @@ public class Zoe {
         }else {
           champion.setRoles(allRoles);
           ChampionRoleAnalysisMainWorker roleAnalyser = new ChampionRoleAnalysisMainWorker(champion.getKey());
-          ServerData.getDataAnalysisManager().execute(roleAnalyser);
+          ServerThreadsManager.getDataAnalysisManager().execute(roleAnalyser);
         }
       }catch (SQLException e) {
         champion.setRoles(allRoles);

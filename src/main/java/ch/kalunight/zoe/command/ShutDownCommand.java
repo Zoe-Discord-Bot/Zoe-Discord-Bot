@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.repositories.RepoRessources;
 import net.dv8tion.jda.api.JDA.Status;
@@ -47,13 +47,13 @@ public class ShutDownCommand extends ZoeCommand {
     
     Zoe.getJda().getPresence().setPresence(OnlineStatus.DO_NOT_DISTURB, Activity.of(ActivityType.DEFAULT, "Shuting down ..."));
     
-    ServerData.getServerCheckerThreadTimer().cancel();
+    ServerThreadsManager.getServerCheckerThreadTimer().cancel();
 
     logger.info("The server checker thread has been safely stopped ...");
     channel.sendMessage("The server checker thread has been safely stopped ...").complete();
 
     try {
-      ServerData.shutDownTaskExecutor(channel);
+      ServerThreadsManager.shutDownTaskExecutor(channel);
     } catch(InterruptedException e) {
       event.reply("Thread got interupted ! Shut down without finish task : " + e.getMessage());
       logger.error("Error in shutDownTaskExecutor : {}", e.getMessage(), e);

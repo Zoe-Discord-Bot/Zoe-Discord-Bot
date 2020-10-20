@@ -5,7 +5,7 @@ import java.util.function.BiConsumer;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 
-import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
@@ -30,7 +30,7 @@ public class RefreshCommand extends ZoeCommand {
     
     DTO.Server server = getServer(event.getGuild().getIdLong());
     
-    ServerData.getServersAskedTreatment().add(server);
+    ServerThreadsManager.getServersAskedTreatment().add(server);
     event.reply(LanguageManager.getText(server.serv_language, "refreshCommandDoneMessage"));
   }
 

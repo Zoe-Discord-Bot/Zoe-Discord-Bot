@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 
-import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.repositories.ServerStatusRepository;
@@ -32,7 +32,7 @@ public abstract class ZoeCommand extends Command {
   @Override
   protected void execute(CommandEvent event) {
       Runnable commandRunnable = getCommandRunnable(event);
-      ServerData.getCommandsExecutor().execute(commandRunnable);
+      ServerThreadsManager.getCommandsExecutor().execute(commandRunnable);
   }
 
   private Runnable getCommandRunnable(CommandEvent event) {

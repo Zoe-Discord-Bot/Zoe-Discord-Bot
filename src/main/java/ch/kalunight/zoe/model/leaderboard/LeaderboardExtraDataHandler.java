@@ -8,7 +8,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
-import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.leaderboard.dataholder.Objective;
@@ -85,7 +85,7 @@ public abstract class LeaderboardExtraDataHandler {
       LeaderboardBaseService baseLeaderboardService = LeaderboardBaseService.getServiceWithObjective(objective,
           server.serv_guildId, leaderboardChannel.getIdLong(), leaderboard.lead_id);
 
-      ServerData.getLeaderboardExecutor().execute(baseLeaderboardService);
+      ServerThreadsManager.getLeaderboardExecutor().execute(baseLeaderboardService);
 
       event.getTextChannel().sendMessage(LanguageManager.getText(server.serv_language, "leaderboardSuccessfullyCreated")).queue();
     }catch(ErrorResponseException error) {

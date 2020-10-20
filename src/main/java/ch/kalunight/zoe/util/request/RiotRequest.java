@@ -13,7 +13,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.KDAReceiver;
 import ch.kalunight.zoe.model.WinRateReceiver;
@@ -158,7 +158,7 @@ public class RiotRequest {
     
     for(MatchReference matchReference : referencesMatchList) {
       MatchWinrateReceiverWorker matchWorker = new MatchWinrateReceiverWorker(winRateReceiver, gameLoadingConflict, matchReference, region, summoner);
-      ServerData.getMatchsWorker(region).execute(matchWorker);
+      ServerThreadsManager.getMatchsWorker(region).execute(matchWorker);
     }
 
     MatchWinrateReceiverWorker.awaitAll(referencesMatchList);
@@ -244,7 +244,7 @@ public class RiotRequest {
     
     for(MatchReference matchReference : referencesMatchList) {
       MatchKDAReceiverWorker matchWorker = new MatchKDAReceiverWorker(kdaReceiver, gameLoadingConflict, matchReference, region, summoner);
-      ServerData.getMatchsWorker(region).execute(matchWorker);
+      ServerThreadsManager.getMatchsWorker(region).execute(matchWorker);
     }
 
     MatchReceiverWorker.awaitAll(referencesMatchList);
@@ -279,7 +279,7 @@ public class RiotRequest {
     
     for(MatchReference matchReference : referencesMatchList) {
       MatchKDAReceiverWorker matchWorker = new MatchKDAReceiverWorker(kdaReceiver, gameLoadingConflict, matchReference, region, summoner);
-      ServerData.getMatchsWorker(region).execute(matchWorker);
+      ServerThreadsManager.getMatchsWorker(region).execute(matchWorker);
     }
 
     MatchReceiverWorker.awaitAll(referencesMatchList);

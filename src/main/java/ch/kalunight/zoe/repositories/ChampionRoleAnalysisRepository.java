@@ -19,10 +19,10 @@ public class ChampionRoleAnalysisRepository {
       "WHERE champion_role_analysis.cra_keychampion = %d";
   
   private static final String INSERT_CHAMPION_ROLE_ANALYSIS = "INSERT INTO champion_role_analysis "
-      + "(cra_keychampion, cra_lastrefresh, cra_roles) VALUES (%d, '%s', '%s')";
+      + "(cra_keychampion, cra_lastrefresh, cra_roles, cra_roles_stats) VALUES (%d, '%s', '%s', '%s')";
   
   private static final String UPDATE_CHAMPION_ROLE_ANALYSIS = "UPDATE champion_role_analysis "
-      + "SET cra_lastrefresh = '%s' cra_roles = '%s' WHERE cra_keychampion = %d";
+      + "SET cra_lastrefresh = '%s' cra_roles = '%s' cra_roles_stats = '%s' WHERE cra_keychampion = %d";
   
   private ChampionRoleAnalysisRepository() {
     //hide Repo Ressources
@@ -45,21 +45,23 @@ public class ChampionRoleAnalysisRepository {
     }
   }
   
-  public static void createChampionRoles(int championId, String roles) throws SQLException {
+  public static void createChampionRoles(int championId, String roles, String stats) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
       
-      String finalQuery = String.format(INSERT_CHAMPION_ROLE_ANALYSIS, championId, DTO.DB_TIME_PATTERN.format(LocalDateTime.now()), roles);
+      String finalQuery = String.format(INSERT_CHAMPION_ROLE_ANALYSIS, championId,
+          DTO.DB_TIME_PATTERN.format(LocalDateTime.now()), roles, stats);
       
       query.execute(finalQuery);
     }
   }
   
-  public static void updateChampionsRoles(int championId, String roles) throws SQLException {
+  public static void updateChampionsRoles(int championId, String roles, String stats) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
       
-      String finalQuery = String.format(UPDATE_CHAMPION_ROLE_ANALYSIS, DTO.DB_TIME_PATTERN.format(LocalDateTime.now()), roles, championId);
+      String finalQuery = String.format(UPDATE_CHAMPION_ROLE_ANALYSIS,
+          DTO.DB_TIME_PATTERN.format(LocalDateTime.now()), roles, stats, championId);
       
       query.execute(finalQuery);
     }

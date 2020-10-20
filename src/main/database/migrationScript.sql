@@ -5,13 +5,16 @@ ALTER TABLE match_cache -- Convert to jsonb for better process time
     SET DATA TYPE jsonb
     USING mCatch_savedMatch::jsonb;
     
-CREATE INDEX index_matchcache_json ON match_cache USING gin ((mCatch_savedMatch));
+CREATE INDEX index_matchcache_championId ON match_cache USING gin ((mCatch_savedMatch -> 'championId'));
+CREATE INDEX index_matchcache_queueId ON match_cache USING gin ((mCatch_savedMatch -> 'queueId'));
+CREATE INDEX index_matchcache_gameVersion ON match_cache USING gin ((mCatch_savedMatch -> 'gameVersion'));
 
 CREATE TABLE champion_role_analysis (
   cra_id 										SERIAL,
   cra_keyChampion								BIGINT 				NOT NULL UNIQUE,
   cra_lastRefresh 								TIMESTAMP			WITHOUT TIME ZONE,
-  cra_roles										VARCHAR 			NOT NULL
+  cra_roles										VARCHAR 			NOT NULL,
+  cra_roles_stats								VARCHAR				NOT NULL
 );
 
 ALTER TABLE ONLY champion_role_analysis

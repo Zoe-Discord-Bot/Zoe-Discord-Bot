@@ -238,20 +238,27 @@ public class DTO {
     public int cra_keyChampion;
     public LocalDateTime cra_lastRefresh;
     public List<ChampionRole> cra_roles;
+    public String cra_roles_stats;
     
     public ChampionRoleAnalysis(ResultSet baseData) throws SQLException {
       cra_id = baseData.getLong("cra_id");
       cra_keyChampion = baseData.getInt("cra_keyChampion");
       cra_lastRefresh = LocalDateTime.parse(baseData.getString("cra_lastRefresh"), DB_TIME_PATTERN);
+      cra_roles = new ArrayList<>();
       
       String[] roles = baseData.getString("cra_roles").split(";");
       for(String strRole : roles) {
+        if(strRole.isEmpty()) {
+          continue;
+        }
         ChampionRole role = ChampionRole.valueOf(strRole);
         
         if(role != null) {
           cra_roles.add(role);
         }
       }
+      
+      cra_roles_stats = baseData.getString("cra_roles_stats");
     }
   }
   

@@ -1,6 +1,7 @@
  package ch.kalunight.zoe.service.analysis;
 
 import java.sql.SQLException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -23,6 +24,8 @@ public class ChampionRoleAnalysisMainWorker implements Runnable {
 
   private static final Logger logger = LoggerFactory.getLogger(ChampionRoleAnalysisMainWorker.class);
   
+  private static final DecimalFormat STATS_FORMAT = new DecimalFormat("###.##");
+  
   private static final int MINIMUM_NUMBER_OF_MATCHS = 100;
   
   private static final int NORMAL_DRAFT_QUEUE_ID = 400;
@@ -30,6 +33,8 @@ public class ChampionRoleAnalysisMainWorker implements Runnable {
   private static final double MINIMUM_POURCENTAGE_ROLE_COMMON = 5.0;
   
   private int championId;
+  
+  private Champion champion;
   
   private AtomicInteger nbrTop = new AtomicInteger();
   private AtomicInteger nbrJng = new AtomicInteger();
@@ -49,7 +54,7 @@ public class ChampionRoleAnalysisMainWorker implements Runnable {
   public void run() {
     
     try {
-      Champion champion = Ressources.getChampionDataById(championId);
+      champion = Ressources.getChampionDataById(championId);
       
       String version = SavedMatchCacheRepository.getCurrentLoLVersion(Platform.EUW); //Select EUW region for patch version, usually the last region to be patched.
       
@@ -71,31 +76,41 @@ public class ChampionRoleAnalysisMainWorker implements Runnable {
         ServerThreadsManager.getDataAnalysisThread().execute(roleAnalysisWorker);
       }
       
-      do {
+      while(nbrMatchsToAnaylse != analysisDone.get()){
         TimeUnit.MILLISECONDS.sleep(500);
-      }while(nbrMatchsToAnaylse != analysisDone.get());
+      }
       
-      double ratioTop = ((double) nbrTop.get() / nbrMatchsToAnaylse) * 100.0;
-      double ratioJng = ((double) nbrJng.get() / nbrMatchsToAnaylse) * 100.0;
-      double ratioMid = ((double) nbrMid.get() / nbrMatchsToAnaylse) * 100.0;
-      double ratioAdc = ((double) nbrAdc.get() / nbrMatchsToAnaylse) * 100.0;
-      double ratioSup = ((double) nbrSup.get() / nbrMatchsToAnaylse) * 100.0;
+      if(nbrMatch.get() == 0) {
+        return;
+      }
       
-      String rolesList = getRolesString(ratioTop, ratioJng, ratioMid, ratioAdc, ratioSup);
+      double ratioTop = ((double) nbrTop.get() / nbrMatch.get()) * 100.0;
+      double ratioJng = ((double) nbrJng.get() / nbrMatch.get()) * 100.0;
+      double ratioMid = ((double) nbrMid.get() / nbrMatch.get()) * 100.0;
+      double ratioAdc = ((double) nbrAdc.get() / nbrMatch.get()) * 100.0;
+      double ratioSup = ((double) nbrSup.get() / nbrMatch.get()) * 100.0;
+      
+      StringBuilder rolesList = new StringBuilder();
+      StringBuilder rolesStatsList = new StringBuilder();
+      
+      getRolesString(ratioTop, ratioJng, ratioMid, ratioAdc, ratioSup, rolesList, rolesStatsList);
       
       DTO.ChampionRoleAnalysis champRole = ChampionRoleAnalysisRepository.getChampionRoleAnalysis(championId);
       
       if(champRole == null) {
-        ChampionRoleAnalysisRepository.createChampionRoles(championId, rolesList);
+        ChampionRoleAnalysisRepository.createChampionRoles(championId, rolesList.toString(), rolesStatsList.toString());
       }else {
-        ChampionRoleAnalysisRepository.updateChampionsRoles(championId, rolesList);
+        ChampionRoleAnalysisRepository.updateChampionsRoles(championId, rolesList.toString(), rolesStatsList.toString());
       }
 
       if(champion != null) {
         List<ChampionRole> championsRoles = new ArrayList<>();
         
-        String[] roles = rolesList.split(";");
+        String[] roles = rolesList.toString().split(";");
         for(String strRole : roles) {
+          if(strRole.isEmpty()) {
+            continue;
+          }
           ChampionRole role = ChampionRole.valueOf(strRole);
           
           if(role != null) {
@@ -114,32 +129,37 @@ public class ChampionRoleAnalysisMainWorker implements Runnable {
     
   }
 
-  private String getRolesString(double ratioTop, double ratioJng, double ratioMid, double ratioAdc, double ratioSup) {
-    StringBuilder rolesListBuilder = new StringBuilder();
+  private String getRolesString(double ratioTop, double ratioJng, double ratioMid, double ratioAdc, double ratioSup,
+      StringBuilder rolesListBuilder, StringBuilder rolesStatsListBuilder) {
     
     if(ratioTop > MINIMUM_POURCENTAGE_ROLE_COMMON) {
       rolesListBuilder.append(ChampionRole.TOP.toString() + ";");
-      logger.info("champion id {} detected as playable in top. Ratio of this role : {}%", championId, ratioTop);
+      rolesStatsListBuilder.append(STATS_FORMAT.format(ratioTop) + ";");
+      logger.info("{} detected as playable in top. Ratio of this role : {}%", champion.getName(), ratioTop);
     }
     
     if(ratioJng > MINIMUM_POURCENTAGE_ROLE_COMMON) {
       rolesListBuilder.append(ChampionRole.JUNGLE.toString() + ";");
-      logger.info("champion id {} detected as playable in jng. Ratio of this role : {}%", championId, ratioJng);
+      rolesStatsListBuilder.append(STATS_FORMAT.format(ratioJng) + ";");
+      logger.info("{} detected as playable in jng. Ratio of this role : {}%", champion.getName(), ratioJng);
     }
     
     if(ratioMid > MINIMUM_POURCENTAGE_ROLE_COMMON) {
       rolesListBuilder.append(ChampionRole.MID.toString() + ";");
-      logger.info("champion id {} detected as playable in mid. Ratio of this role : {}%", championId, ratioMid);
+      rolesStatsListBuilder.append(STATS_FORMAT.format(ratioMid) + ";");
+      logger.info("{} detected as playable in mid. Ratio of this role : {}%", champion.getName(), ratioMid);
     }
     
     if(ratioAdc > MINIMUM_POURCENTAGE_ROLE_COMMON) {
       rolesListBuilder.append(ChampionRole.ADC.toString() + ";");
-      logger.info("champion id {} detected as playable in adc. Ratio of this role : {}%", championId, ratioAdc);
+      rolesStatsListBuilder.append(STATS_FORMAT.format(ratioAdc) + ";");
+      logger.info("{} detected as playable in adc. Ratio of this role : {}%", champion.getName(), ratioAdc);
     }
     
     if(ratioSup > MINIMUM_POURCENTAGE_ROLE_COMMON) {
       rolesListBuilder.append(ChampionRole.SUPPORT.toString() + ";");
-      logger.info("champion id {} detected as playable in sup. Ratio of this role : {}%", championId, ratioSup);
+      rolesStatsListBuilder.append(STATS_FORMAT.format(ratioSup) + ";");
+      logger.info("{} detected as playable in sup. Ratio of this role : {}%", champion.getName(), ratioSup);
     }
     
     return rolesListBuilder.toString();

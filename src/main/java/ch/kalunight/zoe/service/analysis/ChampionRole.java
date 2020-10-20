@@ -3,11 +3,11 @@ package ch.kalunight.zoe.service.analysis;
 import javax.annotation.Nullable;
 
 public enum ChampionRole {
-  TOP("TOP_LANE", "SOLO"),
+  TOP("TOP", "SOLO"),
   JUNGLE("JUNGLE", "NONE"),
-  MID("MID_LANE", "SOLO"),
-  ADC("BOT_LANE", "DUO_CARRY"),
-  SUPPORT("BOT_LANE", "DUO_SUPPORT");
+  MID("MIDDLE", "SOLO"),
+  ADC("BOTTOM", "DUO_CARRY"),
+  SUPPORT("BOTTOM", "DUO_SUPPORT");
   
   private String lane;
   private String role;
@@ -19,11 +19,11 @@ public enum ChampionRole {
 
   @Nullable
   public static ChampionRole getChampionRoleWithLaneAndRole(String lane, String role) {
-    if(lane.equals(TOP.lane)){
+    if(lane.equals(TOP.lane) && role.equals(TOP.role)){
       return TOP;
     }
     
-    if(lane.equals(MID.lane)) {
+    if(lane.equals(MID.lane) && role.equals(MID.role)) {
       return MID;
     }
     

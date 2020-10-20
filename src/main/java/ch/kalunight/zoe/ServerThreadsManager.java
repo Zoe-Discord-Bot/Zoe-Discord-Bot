@@ -76,6 +76,7 @@ public class ServerThreadsManager {
 
   static {
     logger.info("ThreadPools has been started with {} threads", NBR_PROC);
+    DATA_ANALYSIS_MANAGER.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Analysis-Thread Manager").build());
     DATA_ANALYSIS_THREAD.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Analysis-Thread %d").build());
     SERVER_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Server-Executor-Thread %d").build());
     INFOCARDS_GENERATOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe InfoCards-Generator-Thread %d").build());

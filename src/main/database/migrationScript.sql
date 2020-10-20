@@ -5,7 +5,7 @@ ALTER TABLE match_cache -- Convert to jsonb for better process time
     SET DATA TYPE jsonb
     USING mCatch_savedMatch::jsonb;
     
-CREATE INDEX index_matchcache_championId ON match_cache USING gin ((mCatch_savedMatch -> 'championId'));
+CREATE INDEX index_matchcache_json ON match_cache USING gin ((mCatch_savedMatch));
 
 CREATE TABLE champion_role_analysis (
   cra_id 										SERIAL,

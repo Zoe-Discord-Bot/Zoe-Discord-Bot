@@ -21,6 +21,8 @@ import net.rithms.riot.api.RiotApi;
 import net.rithms.riot.api.RiotApiAsync;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.champion_mastery.dto.ChampionMastery;
+import net.rithms.riot.api.endpoints.clash.dto.ClashTeam;
+import net.rithms.riot.api.endpoints.clash.dto.ClashTeamMember;
 import net.rithms.riot.api.endpoints.clash.dto.ClashTournament;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 import net.rithms.riot.api.endpoints.match.dto.Match;
@@ -382,6 +384,112 @@ public class CachedRiotApi {
   
   public List<ClashTournament> getClashTournaments(Platform platform) throws RiotApiException {
     return riotApi.getClashTournaments(platform);
+  }
+  
+  public ClashTournament getClashTournamentById(Platform platform, String tournamentId) {
+    ClashTournament tournament = null;
+
+    boolean needToRetry;
+    do {
+      currentGameInfoRequestCount.incrementAndGet();
+      increaseCallCountForGivenRegion(platform);
+      
+      needToRetry = true;
+      try {
+        tournament = riotApi.getClashTournamentByTournament(platform, tournamentId);
+        needToRetry = false;
+      }catch(RateLimitException e) {
+        try {
+          if(e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10) {
+            return tournament;
+          }
+          logger.info("Waiting rate limit ({} sec) to retry when getting clash tournament", e.getRetryAfter());
+          TimeUnit.SECONDS.sleep(e.getRetryAfter());
+        } catch (InterruptedException e1) {
+          logger.error("Thread Interupted when waiting the rate limit !", e1);
+          Thread.currentThread().interrupt();
+        }
+      } catch (RiotApiException e) {
+        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+          return tournament;
+        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
+          logger.warn("Bad request received from Riot Api!", e);
+          return tournament;
+        }
+      }
+    }while(needToRetry);
+    
+    return tournament;
+  }
+  
+  public ClashTeam getClashTeamByTeamIdWithRateLimit(Platform platform, String teamId) throws RiotApiException {
+    ClashTeam clashTeam = null;
+    boolean needToRetry;
+    
+    do {
+      increaseCallCountForGivenRegion(platform);
+      
+      needToRetry = true;
+      try {
+        clashTeam = riotApi.getClashTeamByTeamId(platform, teamId);
+        needToRetry = false;
+      }catch(RateLimitException e) {
+        try {
+          if(e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10) {
+            return clashTeam;
+          }
+          logger.info("Waiting rate limit ({} sec) to retry when getting clash team", e.getRetryAfter());
+          TimeUnit.SECONDS.sleep(e.getRetryAfter());
+        } catch (InterruptedException e1) {
+          logger.error("Thread Interupted when waiting the rate limit !", e1);
+          Thread.currentThread().interrupt();
+        }
+      } catch (RiotApiException e) {
+        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+          return clashTeam;
+        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
+          logger.warn("Bad request received from Riot Api!", e);
+          return clashTeam;
+        }
+      }
+    }while(needToRetry);
+    
+    return clashTeam;
+  }
+  
+  public List<ClashTeamMember> getClashPlayerBySummonerIdWithRateLimit(Platform platform, String summonerId) throws RiotApiException {
+    List<ClashTeamMember> clashTeamMembers = new ArrayList<>();
+    boolean needToRetry;
+    
+    do {
+      increaseCallCountForGivenRegion(platform);
+      
+      needToRetry = true;
+      try {
+        clashTeamMembers = riotApi.getClashPlayersBySummoner(platform, summonerId);
+        needToRetry = false;
+      }catch(RateLimitException e) {
+        try {
+          if(e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10) {
+            return clashTeamMembers;
+          }
+          logger.info("Waiting rate limit ({} sec) to retry when getting Clash Player", e.getRetryAfter());
+          TimeUnit.SECONDS.sleep(e.getRetryAfter());
+        } catch (InterruptedException e1) {
+          logger.error("Thread Interupted when waiting the rate limit !", e1);
+          Thread.currentThread().interrupt();
+        }
+      } catch (RiotApiException e) {
+        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+          return clashTeamMembers;
+        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
+          logger.warn("Bad request received from Riot Api!", e);
+          return clashTeamMembers;
+        }
+      }
+    }while(needToRetry);
+    
+    return clashTeamMembers;
   }
   
   public String getValidationCode(Platform platform, String summonerId) throws RiotApiException {

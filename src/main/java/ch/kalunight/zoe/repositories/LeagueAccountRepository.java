@@ -58,6 +58,23 @@ public class LeagueAccountRepository {
           "FROM game_info_card " + 
           "INNER JOIN league_account ON game_info_card.gamecard_id = league_account.leagueaccount_fk_gamecard " + 
           "WHERE game_info_card.gamecard_id = %d";
+  
+  private static final String SELECT_LEAGUE_ACCOUNT_WITH_LEAGUEACCOUNT_ID =
+      "SELECT " + 
+          "league_account.leagueaccount_id, " + 
+          "league_account.leagueaccount_fk_player, " + 
+          "league_account.leagueaccount_fk_gamecard, " +
+          "league_account.leagueaccount_fk_currentgame, " +
+          "league_account.leagueaccount_name, " + 
+          "league_account.leagueaccount_summonerid, " + 
+          "league_account.leagueaccount_accountid, " + 
+          "league_account.leagueaccount_puuid, " + 
+          "league_account.leagueAccount_tftSummonerId, " +
+          "league_account.leagueAccount_tftAccountId, " +
+          "league_account.leagueAccount_tftPuuid, " +
+          "league_account.leagueaccount_server " + 
+          "FROM game_info_card " + 
+          "WHERE league_account.leagueaccount_id = %d";
 
   private static final String SELECT_ALL_LEAGUES_ACCOUNTS_WITH_GUILD_ID =
       "SELECT " + 
@@ -384,6 +401,23 @@ public class LeagueAccountRepository {
       
       String finalQuery = String.format(SELECT_LEAGUE_ACCOUNT_WITH_GUILD_ID_AND_SUMMONER_ID_AND_SERVER,
           guildId, summonerId, region.getName());
+      result = query.executeQuery(finalQuery);
+      int rowCount = result.last() ? result.getRow() : 0;
+      if(rowCount == 0) {
+        return null;
+      }
+      return new DTO.LeagueAccount(result);
+    }finally {
+      RepoRessources.closeResultSet(result);
+    }
+  }
+  
+  public static DTO.LeagueAccount getLeagueAccountWithLeagueAccountId(long leagueAccountId) throws SQLException {
+    ResultSet result = null;
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+      
+      String finalQuery = String.format(SELECT_LEAGUE_ACCOUNT_WITH_LEAGUEACCOUNT_ID, leagueAccountId);
       result = query.executeQuery(finalQuery);
       int rowCount = result.last() ? result.getRow() : 0;
       if(rowCount == 0) {

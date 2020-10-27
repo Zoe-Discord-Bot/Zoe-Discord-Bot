@@ -104,6 +104,8 @@ public class InfoPanelRefresher implements Runnable {
 
       List<DTO.Player> playersDTO = PlayerRepository.getPlayers(server.serv_guildId);
 
+      cleanRegisteredPlayerNoLongerInGuild(playersDTO);
+      
       if(needToWait) {
         TimeUnit.SECONDS.sleep(5);
       }
@@ -149,7 +151,6 @@ public class InfoPanelRefresher implements Runnable {
       if(infochannel != null && guild != null) {
 
         cleanUnlinkInfoCardAndCurrentGame();
-        cleanRegisteredPlayerNoLongerInGuild(playersDTO);
         refreshGameCardStatus();
 
         refreshInfoPanel(infoChannelDTO, configuration, treatedPlayers);
@@ -639,6 +640,12 @@ public class InfoPanelRefresher implements Runnable {
         }
       }catch (ErrorResponseException e) {
         if(e.getErrorResponse().equals(ErrorResponse.UNKNOWN_MEMBER)) {
+          iter.remove();
+          PlayerRepository.updateTeamOfPlayerDefineNull(player.player_id);
+          PlayerRepository.deletePlayer(player, guild.getIdLong());
+        }
+      }catch (NullPointerException e) {
+        if(guild != null) {
           iter.remove();
           PlayerRepository.updateTeamOfPlayerDefineNull(player.player_id);
           PlayerRepository.deletePlayer(player, guild.getIdLong());

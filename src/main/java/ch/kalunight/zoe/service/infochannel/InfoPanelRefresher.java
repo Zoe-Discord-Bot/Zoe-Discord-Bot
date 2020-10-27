@@ -7,7 +7,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -15,16 +14,18 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.jagrosh.jdautilities.command.CommandEvent;
+
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.exception.NoValueRankException;
 import ch.kalunight.zoe.model.ComparableMessage;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.dto.DTO;
-import ch.kalunight.zoe.model.dto.GameInfoCardStatus;
 import ch.kalunight.zoe.model.dto.DTO.InfoChannel;
 import ch.kalunight.zoe.model.dto.DTO.InfoPanelMessage;
 import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
@@ -32,6 +33,7 @@ import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Player;
 import ch.kalunight.zoe.model.dto.DTO.RankHistoryChannel;
 import ch.kalunight.zoe.model.dto.DTO.ServerStatus;
+import ch.kalunight.zoe.model.dto.GameInfoCardStatus;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.CurrentGameInfoRepository;
@@ -46,6 +48,7 @@ import ch.kalunight.zoe.repositories.ServerStatusRepository;
 import ch.kalunight.zoe.repositories.TeamRepository;
 import ch.kalunight.zoe.service.ServerChecker;
 import ch.kalunight.zoe.translation.LanguageManager;
+import ch.kalunight.zoe.util.InfoPanelRefresherUtil;
 import ch.kalunight.zoe.util.TreatedPlayer;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
@@ -104,7 +107,7 @@ public class InfoPanelRefresher implements Runnable {
 
       List<DTO.Player> playersDTO = PlayerRepository.getPlayers(server.serv_guildId);
 
-      cleanRegisteredPlayerNoLongerInGuild(playersDTO);
+      InfoPanelRefresherUtil.cleanRegisteredPlayerNoLongerInGuild(guild, playersDTO);
       
       if(needToWait) {
         TimeUnit.SECONDS.sleep(5);
@@ -620,35 +623,6 @@ public class InfoPanelRefresher implements Runnable {
           } catch (ErrorResponseException e) {
             logger.warn("Error when removing reaction : {}", e.getMessage(), e);
           }
-        }
-      }
-    }
-  }
-
-
-  private void cleanRegisteredPlayerNoLongerInGuild(List<DTO.Player> listPlayers) throws SQLException {
-
-    Iterator<DTO.Player> iter = listPlayers.iterator();
-
-    while (iter.hasNext()) {
-      DTO.Player player = iter.next();
-      try {
-        if(guild.retrieveMemberById(player.getUser().getId()).complete() == null) {
-          iter.remove();
-          PlayerRepository.updateTeamOfPlayerDefineNull(player.player_id);
-          PlayerRepository.deletePlayer(player, guild.getIdLong());
-        }
-      }catch (ErrorResponseException e) {
-        if(e.getErrorResponse().equals(ErrorResponse.UNKNOWN_MEMBER)) {
-          iter.remove();
-          PlayerRepository.updateTeamOfPlayerDefineNull(player.player_id);
-          PlayerRepository.deletePlayer(player, guild.getIdLong());
-        }
-      }catch (NullPointerException e) {
-        if(guild != null) {
-          iter.remove();
-          PlayerRepository.updateTeamOfPlayerDefineNull(player.player_id);
-          PlayerRepository.deletePlayer(player, guild.getIdLong());
         }
       }
     }

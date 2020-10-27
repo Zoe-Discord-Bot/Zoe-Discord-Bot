@@ -10,7 +10,7 @@ import java.util.List;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import ch.kalunight.zoe.model.dto.ClashTeamMessageManager;
+import ch.kalunight.zoe.model.dto.ClashTeamData;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.ClashChannel;
 
@@ -39,19 +39,31 @@ public class ClashChannelRepository {
   
   private static final String UPDATE_CLASH_CHANNEL_TEAM_MESSAGES_WITH_ID = "UPDATE clash_channel SET clashchannel_teammessages = '%s' WHERE clashchannel_id = %d";
   
+  private static final String DELETE_CLASH_CHANNEL_WITH_ID = 
+      "DELETE FROM clash_channel WHERE clashchannel_id = %d";
+  
   private static final Gson gson = new GsonBuilder().create();
   
   private ClashChannelRepository() {
     //hide default public constructor
   }
   
-  public static void updateChampionsRoles(ClashTeamMessageManager clashMessages, Long clashChannelId) throws SQLException {
+  public static void updateChampionsRoles(ClashTeamData clashMessages, Long clashChannelId) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
       
       String finalQuery = String.format(UPDATE_CLASH_CHANNEL_TEAM_MESSAGES_WITH_ID,
           gson.toJson(clashMessages), clashChannelId);
       
+      query.execute(finalQuery);
+    }
+  }
+  
+  public static void deleteClashChannel(long clashChannelId) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement();) {
+
+      String finalQuery = String.format(DELETE_CLASH_CHANNEL_WITH_ID, clashChannelId);
       query.execute(finalQuery);
     }
   }

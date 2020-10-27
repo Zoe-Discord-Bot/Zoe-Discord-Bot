@@ -125,17 +125,16 @@ public class DTO {
     public long clashChannel_id;
     public long clashChannel_fk_server;
     public long clashChannel_channelId;
-    public ClashTeamMessageManager clashChannel_teamMessages;
+    public ClashTeamData clashChannel_data;
     public String clashChannel_timezone;
     
     public ClashChannel(ResultSet baseData) throws SQLException {
       clashChannel_id = baseData.getLong("clashChannel_id");
       clashChannel_fk_server = baseData.getLong("clashChannel_fk_server");
       clashChannel_channelId = baseData.getLong("clashChannel_channelId");
-      clashChannel_teamMessages = gson.fromJson(baseData.getString("clashChannel_teamMessages"), ClashTeamMessageManager.class);
+      clashChannel_data = gson.fromJson(baseData.getString("clashChannel_data"), ClashTeamData.class);
       clashChannel_timezone = baseData.getString("clashChannel_timezone");
     }
-    
   }
 
   public static class Player {

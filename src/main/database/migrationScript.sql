@@ -24,7 +24,7 @@ CREATE TABLE clash_channel (
 	clashChannel_id								SERIAL,
 	clashChannel_fk_server						BIGINT				NOT NULL,
 	clashChannel_channelId						BIGINT				NOT NULL,
-	clashChannel_teamMessages					jsonb				NOT NULL,
+	clashChannel_data							jsonb				NOT NULL,
 	clashChannel_timezone						VARCHAR				NOT NULL
 );
 

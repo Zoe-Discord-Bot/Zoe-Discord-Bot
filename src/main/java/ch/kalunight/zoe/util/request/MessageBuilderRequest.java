@@ -21,6 +21,8 @@ import ch.kalunight.zoe.command.stats.StatsProfileCommand;
 import ch.kalunight.zoe.exception.NoValueRankException;
 import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.InfocardPlayerData;
+import ch.kalunight.zoe.model.PlayerRankedResult;
+import ch.kalunight.zoe.model.RankedChangeType;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Player;
@@ -67,6 +69,152 @@ public class MessageBuilderRequest {
 
   private MessageBuilderRequest() {}
 
+  public static PlayerRankedResult getMatchDataMutiplePlayers(LeagueEntry oldEntry, LeagueEntry newEntry, 
+      CurrentGameInfo gameOfTheChange, LeagueAccount leagueAccount, String lang, RankedChangeType changeType) {
+
+    Match match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
+    String accountTitle = null;
+    String changeStats = null;
+    String statsGame = null;
+
+    FullTier oldFullTier = new FullTier(oldEntry);
+    FullTier newFullTier = new FullTier(newEntry);
+    
+    switch(changeType) {
+    case BO_CHANGE:
+      MiniSeries oldBo = oldEntry.getMiniSeries();
+      MiniSeries newBo = newEntry.getMiniSeries();
+      
+      Participant participant = match.getParticipantBySummonerId(leagueAccount.leagueAccount_summonerId);
+      String winAgain = match.getTeamByTeamId(participant.getTeamId()).getWin();
+
+      boolean win = winAgain.equalsIgnoreCase("Win");
+
+      if(win) {
+        accountTitle = String.format(LanguageManager.getText(lang, "rankChannelChangeBOProgressWinTitleWithoutGameType"),
+            leagueAccount.leagueAccount_name, oldBo.getProgress().length(),
+            oldFullTier.getHeigerDivision().toStringWithoutLp(lang));
+      }else if(winAgain.equalsIgnoreCase("Fail")) {
+        accountTitle = String.format(LanguageManager.getText(lang, "rankChannelChangeBOProgressLooseTitleWithoutGameType"),
+            leagueAccount.leagueAccount_name, oldBo.getProgress().length(),
+            oldFullTier.getHeigerDivision().toStringWithoutLp(lang));
+      }else {
+        logger.info("A game in rank channel generation message has been canceled");
+        return null;
+      }
+
+      changeStats = MessageBuilderRequestUtil.getBoStatus(newBo, lang);
+      break;
+    case BO_END:
+      MiniSeries bo = oldEntry.getMiniSeries();
+      boolean boWin;
+
+      if(oldFullTier.getTier() != newFullTier.getTier() || oldFullTier.getRank() != newFullTier.getRank()) {
+        boWin = true;
+      }else {
+        boWin = false;
+      }
+      
+      if(!boWin) {
+        accountTitle = String.format(LanguageManager.getText(lang, "rankChannelChangeBOEndedLooseTitleWithoutGameType"),
+            leagueAccount.leagueAccount_name, bo.getProgress().length(), oldFullTier.getHeigerDivision().toStringWithoutLp(lang));
+      }else {
+        accountTitle = String.format(LanguageManager.getText(lang, "rankChannelChangeBOEndedWinTitleWithoutGameType"),
+            leagueAccount.leagueAccount_name, bo.getProgress().length(), oldFullTier.getHeigerDivision().toStringWithoutLp(lang));
+      }
+
+      changeStats = oldFullTier.toString(lang) + " -> " + newFullTier.toString(lang) + "\n"
+          + MessageBuilderRequestUtil.getBoStatus(bo, lang, boWin);
+      break;
+    case BO_START:
+      bo = newEntry.getMiniSeries();
+      accountTitle = String.format(LanguageManager.getText(lang, "rankChannelBoStartedTitleWithoutGameType"), 
+          leagueAccount.leagueAccount_name, bo.getProgress().length(),
+          newFullTier.getHeigerDivision().toStringWithoutLp(lang));
+
+      changeStats = MessageBuilderRequestUtil.getBoStatus(bo, lang);
+      break;
+    case ONLY_LP:
+      int lpReceived = newEntry.getLeaguePoints() - oldEntry.getLeaguePoints();
+      boolean gameWin = (newEntry.getLeaguePoints() - oldEntry.getLeaguePoints()) > 0;
+
+      if(gameWin) {
+        accountTitle = String.format(LanguageManager.getText(lang, "rankChannelChangePointOnlyWinTitleWithoutGameType"),
+            leagueAccount.leagueAccount_name, lpReceived);
+      }else {
+        accountTitle = String.format(LanguageManager.getText(lang, "rankChannelChangePointOnlyLooseTitleWithoutGameType"),
+            leagueAccount.leagueAccount_name, lpReceived * -1);
+      }
+
+      changeStats = oldFullTier.toString(lang) + " -> " + newFullTier.toString(lang);
+      break;
+    case RANK_WITHOUT_BO:
+      boolean divisionJump = false;
+      boolean goodChange;
+
+      int valueOfTheDivisionJump;
+      try {
+        valueOfTheDivisionJump = newFullTier.value() - oldFullTier.value();
+      } catch (NoValueRankException e) {
+        valueOfTheDivisionJump = 0;
+      }
+
+      if(valueOfTheDivisionJump < 0) {
+        valueOfTheDivisionJump *= -1;
+        goodChange = false;
+      }else {
+        goodChange = true;
+      }
+
+      if(valueOfTheDivisionJump > 100) {
+        divisionJump = true;
+      }
+
+      if(goodChange) {
+        accountTitle = String.format(LanguageManager.getText(lang, "rankChannelChangeRankChangeWinDivisionSkippedTitleWithoutGameType"),
+            leagueAccount.leagueAccount_name);
+      }else {
+        if(divisionJump) {
+          accountTitle = String.format(LanguageManager.getText(lang, "rankChannelChangeLooseDivisionDecayTitleWithoutGameType"),
+              leagueAccount.leagueAccount_name);
+        }else {
+          accountTitle = String.format(LanguageManager.getText(lang, "rankChannelChangeLooseDivisionTitleWithoutGameType"),
+              leagueAccount.leagueAccount_name);
+        }
+      }
+
+      changeStats = oldFullTier.toString(lang) + " -> " + newFullTier.toString(lang);
+      break;
+    default:
+      return null;
+    }
+
+    statsGame = MessageBuilderRequestUtil.getResumeGameStats(leagueAccount, lang, match);
+
+    return new PlayerRankedResult(gameOfTheChange.getGameId(), leagueAccount.leagueAccount_server, accountTitle, changeStats, statsGame);
+  }
+  
+  public static MessageEmbed createCombinedMessage(List<PlayerRankedResult> playersRankedResult, CurrentGameInfo currentGameInfo, String lang) {
+
+    EmbedBuilder message = new EmbedBuilder();
+
+    String gameType = getGameType(currentGameInfo, lang);
+
+    message.setColor(Color.PINK);
+    message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeMultipleResultTitle"), gameType));
+
+    for(PlayerRankedResult playerRankedResult : playersRankedResult) {
+      Field field = new Field(playerRankedResult.getCatTitle(), playerRankedResult.getLpResult() + "\n" + playerRankedResult.getGameStats(), true);
+
+      message.addField(field);
+    }
+
+    message.setFooter(LanguageManager.getText(lang, GENERATED_AT_STRING));
+    message.setTimestamp(Instant.now());
+
+    return message.build();
+  }
+  
   public static MessageEmbed createRankChannelCardBoStarted(LeagueEntry newEntry, 
       CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang) {
 

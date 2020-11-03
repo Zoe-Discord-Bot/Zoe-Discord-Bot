@@ -28,7 +28,7 @@
     "regionTagInvalid": "The region tag is invalid. (Valid tag : EUW, EUNE, NA, BR, JP, KR, LAN, LAS, OCE, RU, TR)",
     "riotApiSummonerByNameError500": "Riot server occured an issue. Please retry.",
     "riotApiSummonerByNameError503": "Riot server is unavailable. Please retry later.",
-    "riotApiSummonerByNameError429": "I can't access now to riot server. Please retry later.",
+    "riotApiSummonerByNameError429": "I can't access the riot server. Please retry later.",
     "riotApiSummonerByNameError404": "The summonerName is incorrect. Please verify the SummonerName and the region and retry.",
     "riotApiSummonerByNameErrorUnexpected": "I got an unexpected error, please retry. Error code : %d",
     "accountAlreadyLinkedToAnotherPlayer": "This account is already linked with the player %s !",

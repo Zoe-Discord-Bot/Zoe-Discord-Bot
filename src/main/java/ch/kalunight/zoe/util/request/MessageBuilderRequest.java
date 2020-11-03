@@ -204,7 +204,7 @@ public class MessageBuilderRequest {
     message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeMultipleResultTitle"), gameType));
 
     for(PlayerRankedResult playerRankedResult : playersRankedResult) {
-      Field field = new Field(playerRankedResult.getCatTitle(), playerRankedResult.getLpResult() + "\n" + playerRankedResult.getGameStats(), true);
+      Field field = new Field(playerRankedResult.getCatTitle(), playerRankedResult.getLpResult() + "\n" + playerRankedResult.getGameStats(), false);
 
       message.addField(field);
     }
@@ -462,7 +462,7 @@ public class MessageBuilderRequest {
   }
 
   public static MessageEmbed createRankChannelCardLeaguePointChangeOnlyTFT(LeagueEntry oldEntry, LeagueEntry newEntry, 
-      List<TFTMatch> matchs, Player player, LeagueAccount leagueAccount, String lang) throws NoValueRankException {
+      TFTMatch match, Player player, LeagueAccount leagueAccount, String lang) throws NoValueRankException {
 
     EmbedBuilder message = new EmbedBuilder();
 
@@ -495,14 +495,9 @@ public class MessageBuilderRequest {
 
     message.setDescription(oldFullTier.toString(lang) + " -> " + newFullTier.toString(lang));
 
-    String statsGame = MessageBuilderRequestUtil.getResumeGameStatsTFT(leagueAccount, lang, matchs);
+    String statsGame = MessageBuilderRequestUtil.getResumeGameStatsTFT(leagueAccount, lang, match);
 
-    String stringResumeGame;
-    if(matchs.size() > 1) {
-      stringResumeGame = RESUME_OF_LAST_GAME;
-    }else {
-      stringResumeGame = RESUME_OF_THE_GAME_STRING;
-    }
+    String stringResumeGame = RESUME_OF_LAST_GAME;
 
     Field field = new Field(LanguageManager.getText(lang, stringResumeGame), statsGame, true);
     message.addField(field);

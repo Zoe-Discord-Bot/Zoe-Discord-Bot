@@ -343,9 +343,8 @@ public class CachedRiotApi {
     return gameInfo;
   }
   
-  public CurrentGameInfo getActiveGameBySummonerWithRateLimit(Platform platform, 
-      String summonerId) throws RiotApiException {
-    CurrentGameInfo gameInfo = riotApi.getActiveGameBySummoner(platform, summonerId);
+  public CurrentGameInfo getActiveGameBySummonerWithRateLimit(Platform platform, String summonerId) throws RiotApiException {
+    CurrentGameInfo gameInfo = null;
 
     boolean needToRetry;
     do {
@@ -372,7 +371,7 @@ public class CachedRiotApi {
           return null;
         }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
           logger.warn("Bad request received from Riot Api!", e);
-          return null;
+          throw e;
         }
       }
     }while(needToRetry);

@@ -192,7 +192,7 @@ public class DTO {
     public long currentgame_id;
     public net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo currentgame_currentgame;
     public Platform currentgame_server;
-    public String currentgame_gameid;
+    public Long currentgame_gameid;
 
     public CurrentGameInfo(ResultSet baseData) throws SQLException {
       currentgame_id = baseData.getLong("currentgame_id");
@@ -206,10 +206,57 @@ public class DTO {
       }
       
       if(baseData.getString("currentgame_gameid") != null) {
-        currentgame_gameid = baseData.getString("currentgame_gameid");
+        currentgame_gameid = baseData.getLong("currentgame_gameid");
       }
     }
     
+    
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+      result = prime * result + ((currentgame_gameid == null) ? 0 : currentgame_gameid.hashCode());
+      result = prime * result + (int) (currentgame_id ^ (currentgame_id >>> 32));
+      result = prime * result + ((currentgame_server == null) ? 0 : currentgame_server.hashCode());
+      return result;
+    }
+
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      
+      if (obj == null) {
+        return false;
+      }
+      
+      if (getClass() != obj.getClass()) {
+        return false;
+      }
+      
+      CurrentGameInfo other = (CurrentGameInfo) obj;
+      if (currentgame_gameid == null) {
+        if (other.currentgame_gameid != null) {
+          return false;
+        }
+      } else if (!currentgame_gameid.equals(other.currentgame_gameid)) {
+        return false;
+      }
+      
+      if (currentgame_id != other.currentgame_id) {
+        return false;
+      }
+      
+      if (currentgame_server != other.currentgame_server) {
+        return false;
+      }
+      
+      return true;
+    }
+
+
     @Override
     public String toString() {
       return "[CurrentGameInfo currentgame_id : " + currentgame_id + "]";

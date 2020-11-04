@@ -221,6 +221,8 @@ public class RiotRequest {
           if(matchList.getMatches().size() != 100) {
             allMatchReceived = true;
           }
+        }else {
+          allMatchReceived = true;
         }
       } catch(RiotApiException e) {
         logger.debug("Impossible to get matchs history : {}", e.getMessage());
@@ -340,6 +342,8 @@ public class RiotRequest {
           if(matchList.getMatches().size() != 100) {
             allMatchReceived = true;
           }
+        }else {
+          allMatchReceived = true;
         }
       } catch(RiotApiException e) {
         logger.debug("Impossible to get matchs history : {}", e.getMessage());

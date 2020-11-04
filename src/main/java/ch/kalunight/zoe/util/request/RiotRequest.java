@@ -200,6 +200,7 @@ public class RiotRequest {
     int startIndex = -100;
     
     do {
+      logger.debug("Start loading match history for {} with champion id {} (index : {})", summoner.getName(), championKey, startIndex);
       startIndex += 100;
       MatchList matchList = null;
 
@@ -216,6 +217,10 @@ public class RiotRequest {
               break;
             }
           }
+          
+          if(matchList.getMatches().size() != 100) {
+            allMatchReceived = true;
+          }
         }
       } catch(RiotApiException e) {
         logger.debug("Impossible to get matchs history : {}", e.getMessage());
@@ -225,6 +230,8 @@ public class RiotRequest {
       }
 
     }while(!allMatchReceived);
+    
+    logger.debug("End loading match history for {} with champion id {}", summoner.getName(), championKey);
     
     return referencesMatchList;
   }
@@ -328,6 +335,10 @@ public class RiotRequest {
               allMatchReceived = true;
               break;
             }
+          }
+          
+          if(matchList.getMatches().size() != 100) {
+            allMatchReceived = true;
           }
         }
       } catch(RiotApiException e) {

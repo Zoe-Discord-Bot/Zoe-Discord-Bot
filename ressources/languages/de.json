@@ -422,5 +422,5 @@
     "rankChannelChangeRankChangeWinDivisionSkippedTitleWithoutGameType": "%s hat eine Division übersprungen",
     "rankChannelChangePointOnlyLooseTitleWithoutGameType": "%s hat %s LP verloren",
     "rankChannelChangePointOnlyWinTitleWithoutGameType": "%s hat %s LP gewonnen",
-    "rankChannelChangeMultipleResultTitle": "Gruppen Ranglisten Ergebnis"
+    "rankChannelChangeMultipleResultTitle": "Gruppen Ranglisten Ergebnis (%s)"
 }

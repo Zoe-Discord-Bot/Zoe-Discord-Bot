@@ -148,6 +148,7 @@ public class EventListener extends ListenerAdapter {
       DTO.Player player = PlayerRepository.getPlayer(event.getGuild().getIdLong(), event.getUser().getIdLong());
 
       if(player != null) {
+        PlayerRepository.updateTeamOfPlayerDefineNull(player.player_id);
         PlayerRepository.deletePlayer(player, event.getGuild().getIdLong());
         logger.info("Player (Discord Id {}) deleted from the guild {}", player.player_discordId, event.getGuild().getIdLong());
       }

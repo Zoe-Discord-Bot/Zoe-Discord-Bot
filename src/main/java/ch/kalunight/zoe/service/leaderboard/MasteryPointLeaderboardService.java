@@ -9,10 +9,10 @@ import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
+import ch.kalunight.zoe.model.dto.DTO.Player;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.leaderboard.dataholder.PlayerPoints;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
-import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
@@ -28,9 +28,9 @@ public class MasteryPointLeaderboardService extends LeaderboardBaseService {
   }
 
   @Override
-  protected void runLeaderboardRefresh(Server server, Guild guild, TextChannel channel, Leaderboard leaderboard, Message message)
+  protected void runLeaderboardRefresh(Server server, Guild guild, TextChannel channel, Leaderboard leaderboard, Message message, List<Player> players)
       throws SQLException, RiotApiException {
-    List<PlayerPoints> playersPoints = orderAndGetPlayers(guild);
+    List<PlayerPoints> playersPoints = orderAndGetPlayers(guild, players);
     
     List<String> playersName = new ArrayList<>();
     List<String> dataList = new ArrayList<>();
@@ -51,8 +51,7 @@ public class MasteryPointLeaderboardService extends LeaderboardBaseService {
     message.editMessage(builder.build()).queue();
   }
 
-  private List<PlayerPoints> orderAndGetPlayers(Guild guild) throws SQLException, RiotApiException {
-    List<DTO.Player> players = PlayerRepository.getPlayers(guild.getIdLong());
+  private List<PlayerPoints> orderAndGetPlayers(Guild guild, List<Player> players) throws SQLException, RiotApiException {
     List<PlayerPoints> playersPoints = new ArrayList<>();
     
     for(DTO.Player player : players) {

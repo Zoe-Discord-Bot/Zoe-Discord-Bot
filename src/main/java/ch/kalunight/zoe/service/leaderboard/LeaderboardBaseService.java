@@ -9,11 +9,14 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
+import ch.kalunight.zoe.model.dto.DTO.Player;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.leaderboard.dataholder.Objective;
 import ch.kalunight.zoe.repositories.LeaderboardRepository;
+import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
+import ch.kalunight.zoe.util.InfoPanelRefresherUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
@@ -84,8 +87,11 @@ public abstract class LeaderboardBaseService implements Runnable {
       }
 
       message.addReaction("U+23F3").complete();
+      
+      List<Player> players = PlayerRepository.getPlayers(guildId);
+      InfoPanelRefresherUtil.cleanRegisteredPlayerNoLongerInGuild(guild, players);
 
-      runLeaderboardRefresh(server, guild, channel, leaderboard, message);
+      runLeaderboardRefresh(server, guild, channel, leaderboard, message, players);
       
       message.removeReaction("U+23F3", Zoe.getJda().getSelfUser()).queue();
 
@@ -116,7 +122,7 @@ public abstract class LeaderboardBaseService implements Runnable {
   }
 
   protected abstract void runLeaderboardRefresh(Server server, Guild guild, TextChannel channel,
-      Leaderboard leaderboard, Message message) throws SQLException, RiotApiException;
+      Leaderboard leaderboard, Message message, List<Player> players) throws SQLException, RiotApiException;
 
   protected EmbedBuilder buildBaseLeaderboardList(String playerTitle, List<String> playersName, String dataName, List<String> dataList) {
 

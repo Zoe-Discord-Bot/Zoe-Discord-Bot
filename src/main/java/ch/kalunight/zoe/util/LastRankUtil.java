@@ -47,7 +47,7 @@ public class LastRankUtil {
   }
   
   /**
-   * @return true is the update has been done correctly, false otherwise.
+   * @return true if the update has been done correctly, false otherwise.
    */
   public static boolean updateLoLLastRank(LastRank lastRank, Set<LeagueEntry> leagueEntries) throws SQLException {
 
@@ -63,11 +63,11 @@ public class LastRankUtil {
           lastRank.lastRank_soloq = checkLeagueEntry;
         }
       }else if(checkLeagueEntry.getQueueType().equals(GameQueueConfigId.FLEX.getQueueType())) {
-        if(lastRank.lastRank_soloq == null) {
+        if(lastRank.lastRank_flex == null) {
           LastRankRepository.updateLastRankFlexWithLeagueAccountId(checkLeagueEntry, lastRank, LocalDateTime.now());
           lastRank.lastRank_flex = checkLeagueEntry;
         }else {
-          LastRankRepository.updateLastRankFlexSecondWithLeagueAccountId(lastRank.lastRank_soloq, lastRank, LocalDateTime.now());
+          LastRankRepository.updateLastRankFlexSecondWithLeagueAccountId(lastRank.lastRank_flex, lastRank, LocalDateTime.now());
           lastRank.lastRank_flexSecond = lastRank.lastRank_flex;
           LastRankRepository.updateLastRankFlexWithLeagueAccountId(checkLeagueEntry, lastRank, LocalDateTime.now());
           lastRank.lastRank_flex = checkLeagueEntry;

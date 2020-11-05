@@ -7,7 +7,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -15,16 +14,18 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.jagrosh.jdautilities.command.CommandEvent;
+
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.exception.NoValueRankException;
 import ch.kalunight.zoe.model.ComparableMessage;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.dto.DTO;
-import ch.kalunight.zoe.model.dto.GameInfoCardStatus;
 import ch.kalunight.zoe.model.dto.DTO.InfoChannel;
 import ch.kalunight.zoe.model.dto.DTO.InfoPanelMessage;
 import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
@@ -32,6 +33,7 @@ import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Player;
 import ch.kalunight.zoe.model.dto.DTO.RankHistoryChannel;
 import ch.kalunight.zoe.model.dto.DTO.ServerStatus;
+import ch.kalunight.zoe.model.dto.GameInfoCardStatus;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.CurrentGameInfoRepository;
@@ -45,7 +47,9 @@ import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.repositories.ServerStatusRepository;
 import ch.kalunight.zoe.repositories.TeamRepository;
 import ch.kalunight.zoe.service.ServerChecker;
+import ch.kalunight.zoe.service.rankchannel.RankedChannelLoLRefresher;
 import ch.kalunight.zoe.translation.LanguageManager;
+import ch.kalunight.zoe.util.InfoPanelRefresherUtil;
 import ch.kalunight.zoe.util.TreatedPlayer;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
@@ -104,6 +108,8 @@ public class InfoPanelRefresher implements Runnable {
 
       List<DTO.Player> playersDTO = PlayerRepository.getPlayers(server.serv_guildId);
 
+      InfoPanelRefresherUtil.cleanRegisteredPlayerNoLongerInGuild(guild, playersDTO);
+
       if(needToWait) {
         TimeUnit.SECONDS.sleep(5);
       }
@@ -122,9 +128,9 @@ public class InfoPanelRefresher implements Runnable {
 
         for(Player player : playersDTO) {
           List<LeagueAccount> leaguesAccounts = LeagueAccountRepository.getLeaguesAccountsWithPlayerID(server.serv_guildId, player.player_id);
-          
+
           TreatPlayerWorker playerWorker = new TreatPlayerWorker(server, player, leaguesAccounts, rankChannel, configuration);
-          
+
           playersToTreat.add(playerWorker);
           if(!leaguesAccounts.isEmpty()) {
             ServerData.getInfochannelHelperThread(leaguesAccounts.get(0).leagueAccount_server).execute(playerWorker);
@@ -135,6 +141,8 @@ public class InfoPanelRefresher implements Runnable {
         }
 
         TreatPlayerWorker.awaitAll(playersToTreat);
+
+        executeRankChannel(playersToTreat);
 
         Map<CurrentGameInfo, List<LeagueAccount>> leaguesAccountsPerGameWaitingCreation = Collections.synchronizedMap(new HashMap<CurrentGameInfo, List<LeagueAccount>>());
 
@@ -149,7 +157,6 @@ public class InfoPanelRefresher implements Runnable {
       if(infochannel != null && guild != null) {
 
         cleanUnlinkInfoCardAndCurrentGame();
-        cleanRegisteredPlayerNoLongerInGuild(playersDTO);
         refreshGameCardStatus();
 
         refreshInfoPanel(infoChannelDTO, configuration, treatedPlayers);
@@ -184,6 +191,17 @@ public class InfoPanelRefresher implements Runnable {
       logger.error("The thread got a unexpected error (The channel got probably deleted when the refresh append)", e);
     } finally {
       updateServerStatus();
+    }
+  }
+
+  private void executeRankChannel(List<TreatPlayerWorker> playersToTreat) {
+
+    for(TreatPlayerWorker playerWorker : playersToTreat) {
+      if(playerWorker.getTreatedPlayer() != null) {
+        for(RankedChannelLoLRefresher rankChannelRefresher : playerWorker.getTreatedPlayer().getRankChannelsToProcess()) {
+          ServerData.getRankedMessageGenerator().execute(rankChannelRefresher);
+        }
+      }
     }
   }
 
@@ -327,25 +345,25 @@ public class InfoPanelRefresher implements Runnable {
 
     for(DTO.GameInfoCard gameInfoCard : gameInfoCards) {
       switch(gameInfoCard.gamecard_status) {
-        case IN_CREATION:
-          GameInfoCardRepository.updateGameInfoCardStatusWithId(gameInfoCard.gamecard_id, GameInfoCardStatus.IN_TREATMENT);
+      case IN_CREATION:
+        GameInfoCardRepository.updateGameInfoCardStatusWithId(gameInfoCard.gamecard_id, GameInfoCardStatus.IN_TREATMENT);
 
-          List<DTO.LeagueAccount> accountsLinked = LeagueAccountRepository
-              .getLeaguesAccountsWithGameCardsId(gameInfoCard.gamecard_id);
+        List<DTO.LeagueAccount> accountsLinked = LeagueAccountRepository
+            .getLeaguesAccountsWithGameCardsId(gameInfoCard.gamecard_id);
 
-          DTO.LeagueAccount account = accountsLinked.get(0);
+        DTO.LeagueAccount account = accountsLinked.get(0);
 
-          DTO.CurrentGameInfo currentGame = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(account.leagueAccount_id);
+        DTO.CurrentGameInfo currentGame = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(account.leagueAccount_id);
 
-          ServerData.getInfocardsGenerator().execute(
-              new InfoCardsWorker(server, infochannel, accountsLinked.get(0), currentGame, gameInfoCard));
-          break;
-        case IN_WAIT_OF_DELETING:
-          GameInfoCardRepository.deleteGameInfoCardsWithId(gameInfoCard.gamecard_id);
-          deleteDiscordInfoCard(server.serv_guildId, gameInfoCard);
-          break;
-        default:
-          break;
+        ServerData.getInfocardsGenerator().execute(
+            new InfoCardsWorker(server, infochannel, accountsLinked.get(0), currentGame, gameInfoCard));
+        break;
+      case IN_WAIT_OF_DELETING:
+        GameInfoCardRepository.deleteGameInfoCardsWithId(gameInfoCard.gamecard_id);
+        deleteDiscordInfoCard(server.serv_guildId, gameInfoCard);
+        break;
+      default:
+        break;
       }
     }
   }
@@ -549,7 +567,7 @@ public class InfoPanelRefresher implements Runnable {
     if(gameCard == null) {
       return;
     }
-    
+
     List<DTO.LeagueAccount> leaguesAccountInTheGame = 
         LeagueAccountRepository.getLeaguesAccountsWithCurrentGameId(currentGame.currentgame_id);
 
@@ -619,29 +637,6 @@ public class InfoPanelRefresher implements Runnable {
           } catch (ErrorResponseException e) {
             logger.warn("Error when removing reaction : {}", e.getMessage(), e);
           }
-        }
-      }
-    }
-  }
-
-
-  private void cleanRegisteredPlayerNoLongerInGuild(List<DTO.Player> listPlayers) throws SQLException {
-
-    Iterator<DTO.Player> iter = listPlayers.iterator();
-
-    while (iter.hasNext()) {
-      DTO.Player player = iter.next();
-      try {
-        if(guild.retrieveMemberById(player.getUser().getId()).complete() == null) {
-          iter.remove();
-          PlayerRepository.updateTeamOfPlayerDefineNull(player.player_id);
-          PlayerRepository.deletePlayer(player, guild.getIdLong());
-        }
-      }catch (ErrorResponseException e) {
-        if(e.getErrorResponse().equals(ErrorResponse.UNKNOWN_MEMBER)) {
-          iter.remove();
-          PlayerRepository.updateTeamOfPlayerDefineNull(player.player_id);
-          PlayerRepository.deletePlayer(player, guild.getIdLong());
         }
       }
     }
@@ -723,7 +718,7 @@ public class InfoPanelRefresher implements Runnable {
         for(TreatedPlayer playerToShow : playersNotInTeam) { //We can order player here
           stringMessage.append(playerToShow.getInfochannelMessage());
         }
-        
+
         stringMessage.append("\n");
       }else {
         generateATeam(playersNotInTeam, stringMessage, null, 
@@ -738,7 +733,7 @@ public class InfoPanelRefresher implements Runnable {
 
   private void generateATeam(List<TreatedPlayer> treatedPlayers, final StringBuilder stringMessage,
       List<TreatedPlayer> playersNotInTeam, DTO.Team team, ServerConfiguration config) throws SQLException {
-    
+
     List<TreatedPlayer> playersInTeam = new ArrayList<>();
     int numberOfAccountRanked = 0;
     int totRankValue = 0;

@@ -1,6 +1,8 @@
 package ch.kalunight.zoe.util.request;
 
+import java.sql.Timestamp;
 import java.text.DecimalFormat;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -9,7 +11,6 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -188,21 +189,40 @@ public class RiotRequest {
       throws RiotApiException {
     final List<MatchReference> referencesMatchList = new ArrayList<>();
 
-    DateTime actualTime = DateTime.now();
-    DateTime beginTime = actualTime.minusWeeks(1);
-
+    LocalDateTime beginTimeToHit = LocalDateTime.now().minusMonths(1);
+    Timestamp timeStampToHit = Timestamp.valueOf(beginTimeToHit);
+    
     Set<Integer> championToFilter = new HashSet<>();
     championToFilter.add(championKey);
 
-    for(int i = 0; i < 4; i++) {
-
+    boolean allMatchReceived = false;
+    
+    int startIndex = -100;
+    
+    do {
+      logger.debug("Start loading match history for {} with champion id {} (index : {})", summoner.getName(), championKey, startIndex);
+      startIndex += 100;
       MatchList matchList = null;
 
       try {
         matchList = Zoe.getRiotApi().getMatchListByAccountIdWithRateLimit(region, summoner.getAccountId(), championToFilter, null, null,
-            beginTime.getMillis(), actualTime.getMillis(), -1, -1);
+            -1, -1, startIndex, -1);
         if(matchList != null && matchList.getMatches() != null) {
-          referencesMatchList.addAll(matchList.getMatches());
+          for(MatchReference matchToCheck : matchList.getMatches()) {
+            final Timestamp matchTimeStamp = new Timestamp(matchToCheck.getTimestamp());
+            if(matchTimeStamp.after(timeStampToHit)) {
+              referencesMatchList.add(matchToCheck);
+            }else {
+              allMatchReceived = true;
+              break;
+            }
+          }
+          
+          if(matchList.getMatches().size() != 100) {
+            allMatchReceived = true;
+          }
+        }else {
+          allMatchReceived = true;
         }
       } catch(RiotApiException e) {
         logger.debug("Impossible to get matchs history : {}", e.getMessage());
@@ -211,9 +231,10 @@ public class RiotRequest {
         }
       }
 
-      actualTime = actualTime.minusWeeks(1);
-      beginTime = actualTime.minusWeeks(1);
-    }
+    }while(!allMatchReceived);
+    
+    logger.debug("End loading match history for {} with champion id {}", summoner.getName(), championKey);
+    
     return referencesMatchList;
   }
   
@@ -291,20 +312,38 @@ public class RiotRequest {
       throws RiotApiException {
     final List<MatchReference> referencesMatchList = new ArrayList<>();
 
-    DateTime actualTime = DateTime.now();
-    DateTime beginTime = actualTime.minusWeeks(1);
-
+    LocalDateTime beginTimeToHit = LocalDateTime.now().minusMonths(1);
+    Timestamp timeStampToHit = Timestamp.valueOf(beginTimeToHit);
+    
     Set<Integer> championToFilter = new HashSet<>();
 
-    for(int i = 0; i < 4; i++) {
-
+    boolean allMatchReceived = false;
+    
+    int startIndex = -100;
+    
+    do {
+      startIndex += 100;
       MatchList matchList = null;
 
       try {
         matchList = Zoe.getRiotApi().getMatchListByAccountIdWithRateLimit(region, summoner.getAccountId(), championToFilter, null, null,
-            beginTime.getMillis(), actualTime.getMillis(), -1, -1);
+            -1, -1, startIndex, -1);
         if(matchList != null && matchList.getMatches() != null) {
-          referencesMatchList.addAll(matchList.getMatches());
+          for(MatchReference matchToCheck : matchList.getMatches()) {
+            final Timestamp matchTimeStamp = new Timestamp(matchToCheck.getTimestamp());
+            if(matchTimeStamp.after(timeStampToHit)) {
+              referencesMatchList.add(matchToCheck);
+            }else {
+              allMatchReceived = true;
+              break;
+            }
+          }
+          
+          if(matchList.getMatches().size() != 100) {
+            allMatchReceived = true;
+          }
+        }else {
+          allMatchReceived = true;
         }
       } catch(RiotApiException e) {
         logger.debug("Impossible to get matchs history : {}", e.getMessage());
@@ -313,9 +352,8 @@ public class RiotRequest {
         }
       }
 
-      actualTime = actualTime.minusWeeks(1);
-      beginTime = actualTime.minusWeeks(1);
-    }
+    }while(!allMatchReceived);
+    
     return referencesMatchList;
   }
 

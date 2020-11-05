@@ -29,7 +29,7 @@ import net.rithms.riot.constant.Platform;
 public class MessageBuilderRequestUtil {
 
   private static final DecimalFormat df = new DecimalFormat("#.##");
-  
+
   private static final DateTimeFormatter minutesSecondFormat = new DateTimeFormatterBuilder().appendPattern("mm:ss").toFormatter();
 
   private MessageBuilderRequestUtil() {
@@ -154,42 +154,27 @@ public class MessageBuilderRequestUtil {
     }
   }
 
-  public static String getResumeGameStatsTFT(LeagueAccount leagueAccount, String lang, List<TFTMatch> matchs) {
+  public static String getResumeGameStatsTFT(LeagueAccount leagueAccount, String lang, TFTMatch match) {
     StringBuilder statsGame = new StringBuilder();
 
-    int i = 0;
-    for(TFTMatch match : matchs) {
-      i++;
-      
-      TFTMatchParticipant participant = match.getInfo()
-          .getTFTMatchParticipantByPuuid(leagueAccount.leagueAccount_tftPuuid);
+    TFTMatchParticipant participant = match.getInfo()
+        .getTFTMatchParticipantByPuuid(leagueAccount.leagueAccount_tftPuuid);
 
-      statsGame.append(String.format(LanguageManager.getText(lang, "numberPlace"), participant.getPlacement()) + " | ");
+    statsGame.append(String.format(LanguageManager.getText(lang, "numberPlace"), participant.getPlacement()) + " | ");
 
-      statsGame.append((participant.getLevel() + " " + LanguageManager.getText(lang, "level")) + " | ");
-      
-      if(participant.getPlayersEliminated() == 0 || participant.getPlayersEliminated() == 1) {
-        statsGame.append(String.format(LanguageManager.getText(lang, "playerKilled"), participant.getPlayersEliminated()) + " | ");
-      }else {
-        statsGame.append(String.format(LanguageManager.getText(lang, "playersKilled"), participant.getPlayersEliminated()) + " | ");
-      }
-      
-      statsGame.append(String.format(LanguageManager.getText(lang, "playerDamageGiven"), participant.getTotalDamageToPlayers()) + " | ");
-      
-      LocalTime timeOfDay = LocalTime.ofSecondOfDay((long) participant.getTimeEliminated());
-      statsGame.append(timeOfDay.format(minutesSecondFormat));
-      
-      if(i < matchs.size() && i < 3) {
-        statsGame.append("\n");
-      }else if(i > 3) {
-        break;
-      }
+    statsGame.append((participant.getLevel() + " " + LanguageManager.getText(lang, "level")) + " | ");
+
+    if(participant.getPlayersEliminated() == 0 || participant.getPlayersEliminated() == 1) {
+      statsGame.append(String.format(LanguageManager.getText(lang, "playerKilled"), participant.getPlayersEliminated()) + " | ");
+    }else {
+      statsGame.append(String.format(LanguageManager.getText(lang, "playersKilled"), participant.getPlayersEliminated()) + " | ");
     }
-    
-    if(matchs.isEmpty()) {
-      statsGame.append("*" + LanguageManager.getText(lang, "gameNotFinished") + "*");
-    }
-    
+
+    statsGame.append(String.format(LanguageManager.getText(lang, "playerDamageGiven"), participant.getTotalDamageToPlayers()) + " | ");
+
+    LocalTime timeOfDay = LocalTime.ofSecondOfDay((long) participant.getTimeEliminated());
+    statsGame.append(timeOfDay.format(minutesSecondFormat));
+
     return statsGame.toString();
   }
 

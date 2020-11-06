@@ -155,9 +155,8 @@ public class TreatPlayerWorker implements Runnable {
     if(!matchs.isEmpty()) {
       Set<TFTLeagueEntry> tftLeagueEntries = Zoe.getRiotApi().
           getTFTLeagueEntriesWithRateLimit(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_tftSummonerId);
-      LastRankUtil.updateTFTLastRank(lastRank, tftLeagueEntries);
 
-      if(rankChannel != null) {
+      if(rankChannel != null && LastRankUtil.updateTFTLastRank(lastRank, tftLeagueEntries)) {
         RankedChannelTFTRefresher tftRankedChannelRefresher = new RankedChannelTFTRefresher(rankChannel,
             lastRank.lastRank_tftSecond, lastRank.lastRank_tft, player, leagueAccount, server, matchs.get(0));
         ServerData.getRankedMessageGenerator().execute(tftRankedChannelRefresher);

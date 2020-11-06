@@ -176,7 +176,6 @@ public class PlayerRepository {
         playersOfTheDiscord.remove(player.player_discordId);
       }
       
-      CurrentGameInfoRepository.getCurrentGameWithoutLinkWithGameCardAndWithGuildId(guildId);
       Zoe.getJda().getGuildById(guildId).unloadMember(player.player_discordId);
     }
   }

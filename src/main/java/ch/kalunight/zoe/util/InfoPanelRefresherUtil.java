@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
 import com.google.common.base.Preconditions;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
@@ -19,7 +20,7 @@ import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
 
 public class InfoPanelRefresherUtil {
-
+  
   private InfoPanelRefresherUtil() {
     //Hide default public constructor
   }
@@ -79,11 +80,11 @@ public class InfoPanelRefresherUtil {
   }
   
   public static void cleanRegisteredPlayerNoLongerInGuild(Guild guild, List<DTO.Player> listPlayers) throws SQLException {
-
     Iterator<DTO.Player> iter = listPlayers.iterator();
 
     while (iter.hasNext()) {
       DTO.Player player = iter.next();
+      
       try {
         if(guild.retrieveMemberById(player.getUser().getId()).complete() == null) {
           iter.remove();
@@ -91,7 +92,7 @@ public class InfoPanelRefresherUtil {
           PlayerRepository.deletePlayer(player, guild.getIdLong());
         }
       }catch (ErrorResponseException e) {
-        if(e.getErrorResponse().equals(ErrorResponse.UNKNOWN_MEMBER)) {
+        if(e.getErrorResponse().equals(ErrorResponse.UNKNOWN_MEMBER) || e.getErrorResponse().equals(ErrorResponse.UNKNOWN_USER)) {
           iter.remove();
           PlayerRepository.updateTeamOfPlayerDefineNull(player.player_id);
           PlayerRepository.deletePlayer(player, guild.getIdLong());

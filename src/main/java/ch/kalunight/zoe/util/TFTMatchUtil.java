@@ -3,7 +3,6 @@ package ch.kalunight.zoe.util;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.dto.DTO.LastRank;
@@ -18,13 +17,23 @@ public class TFTMatchUtil {
     // Hide default public constructor
   }
 
-  public static List<TFTMatch> getTFTRankedMatchsSinceTheLastMessage(LeagueAccount leagueAccount, LastRank lastRank) throws SQLException{
+  public static List<TFTMatch> getTFTRankedMatchsSinceTheLastMessage(LeagueAccount leagueAccount, LastRank lastRank) throws SQLException {
+    
     List<TFTMatch> matchs = new ArrayList<>();
 
     List<String> tftMatchsList = Zoe.getRiotApi()
-        .getTFTMatchListWithRateLimit(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_tftPuuid, 20);
+        .getTFTMatchListWithRateLimit(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_tftPuuid, 5);
 
+    if(!tftMatchsList.isEmpty() && lastRank.lastRank_tftLastTreatedMatchId != null
+        && tftMatchsList.get(0).equals(lastRank.lastRank_tftLastTreatedMatchId)) { //if last treated match is the same than the last available match
+      return matchs;
+    }
+    
     for(String matchId : tftMatchsList) {
+      
+      if(lastRank.lastRank_tftLastTreatedMatchId != null && lastRank.lastRank_tftLastTreatedMatchId.equals(matchId)) {
+        break;
+      }
 
       TFTMatch match = Zoe.getRiotApi().getTFTMatchWithRateLimit(leagueAccount.leagueAccount_server, matchId);
       
@@ -35,10 +44,6 @@ public class TFTMatchUtil {
           LastRankRepository.updateLastRankTFTLastTreatedMatch(match.getMetadata().getMatchId(), lastRank);
           matchs.clear();
           return matchs;
-        }
-        
-        if(lastRank.lastRank_tftLastTreatedMatchId.equals(matchId)) {
-          break;
         }
       }
     }

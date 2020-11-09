@@ -197,7 +197,7 @@
     "mainShowCommandHelpMessage": "Si necesitas ayuda para comandos \"show\", escribe `>show help`",
     "mainStatsCommandHelpMessage": "Si necesitas ayuda para comandos \"stats\", escribe `>stats help`",
     "teamNameOfPlayerWithoutTeam": "Sin equipo",
-    "informationPanelRefreshedTime": "*Actualizado cada 5 minutos*",
+    "informationPanelRefreshedTime": "*Actualizado cada %s minutos*",
     "informationPanelNotInGame": "No está en partida",
     "informationPanelMultipleAccountInGame": "Múltiples cuentas están en partida",
     "informationPanelTitle": "Panel de información",
@@ -396,5 +396,11 @@
     "accountCantBeAddedOwnerChoice": "La persona que posee la cuenta tiene prohibido su uso. Si tu eres el propietario de la cuenta y quieres cambiar esta opción, por favor usa el comando ``>banAccount``.",
     "banAccountCommandProveAccountOwner": "Holi! Para empezar, entra en la cuenta de League Of Legends que quieres usar. Aquí tienes el comando para poder hacerlo : **%s**. Con este comando, ve a *Ajustes-> Verificación* en tu cuenta de League Of Legends e inserta el código dentro del espacio y pincha en guardar.\n\nUna vez que lo tengas hecho, respóndeme con un mensaje así ``(Región) (NombreDeInvocador)``. Después te enseñaré en qué servidor fue añadida tu cuenta y cómo puedes manejar tu cuenta. Si quieres para el proceso, escribe ``STOP``.",
     "banAccountCommandControlMessage": "Verificación completada. Ahora nos pondremos serios. He enviado antes una lista de todos los servidores donde fuiste añadido. Sólo puedo mostrar el nombre del servidor si formas parte de este mismo por razones de privacidad. En caso contrario sólo mostraré la ID.\nTienes varios derechos para esos servidores, aquí están todos:\n\n-Puedes borrar tu cuenta del servidor. Escribe este mensaje: ``kick numeroDelServidor`` para hacerlo. Debes elegir el número de un servidor mostrados arriba (no el ID). Además puedes borrar tu cuenta de todos los servidores escribiendo \"ALL\" en vez de el número.\nEjemplo 1: ``kick 2`` (Borrar tu cuenta del servidor marcado con el número 2)\nExample 2: ``kick all`` (Borra tu cuenta de todos los servidores donde fuiste añadido)\n\n-Puedes prevenir que te añadan a un servidor. Aquí el mensaje para esto: ``ban`` Esto protegerá tu cuenta de ser añadido por cualquiera (inlcuso por ti). Si la cuenta ya fue añadida a un servidor de antes, no la borraré. Utiliza el comando de arriba para hacerlo. Si la cuenta ya está protegida, utiliza ``ban`` de nuevo para desbloquearla y que pueda ser agregada a cualquier servidor otra vez.\n\n**Estado de cuenta actual : %s**\n\nSi deseas para el proceso escribe \"stop\".",
-    "banAccountCommandKickAllNoServer": "Tu cuenta está registrada en 0 servidor actualmente así que no tengo nada que borrar. Si quieres detener el modo de manejo de cuenta, envía ``Stop``."
+    "banAccountCommandKickAllNoServer": "Tu cuenta está registrada en 0 servidor actualmente así que no tengo nada que borrar. Si quieres detener el modo de manejo de cuenta, envía ``Stop``.",
+    "rankChannelChangeLooseDivisionTitleWithoutGameType": "%s ha perdido una división",
+    "rankChannelChangeLooseDivisionDecayTitleWithoutGameType": "%s ha descendido",
+    "rankChannelChangeRankChangeWinDivisionSkippedTitleWithoutGameType": "%s ha saltado una división",
+    "rankChannelChangePointOnlyLooseTitleWithoutGameType": "%s perdió %s LP",
+    "rankChannelChangePointOnlyWinTitleWithoutGameType": "%s ganó %s LP",
+    "statsProfileQueueTFT": "TFT : **%s**"
 }

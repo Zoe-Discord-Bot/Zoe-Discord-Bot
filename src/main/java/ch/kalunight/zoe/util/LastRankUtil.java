@@ -16,22 +16,16 @@ public class LastRankUtil {
     // hide default public constructor
   }
   
+  
   /*
    * @return true if the rank have changed.
    */
-  public static boolean updateTFTLastRank(LastRank lastRank, Set<TFTLeagueEntry> tftLeagueEntries)
+  public static boolean updateTFTLastRank(LastRank lastRank, TFTLeagueEntry tftLeagueEntry)
       throws SQLException {
-    TFTLeagueEntry tftLeagueEntry = null;
-
-    for(TFTLeagueEntry checkLeagueEntry : tftLeagueEntries) {
-      if(checkLeagueEntry.getQueueType().equals(GameQueueConfigId.RANKED_TFT.getQueueType())) {
-        tftLeagueEntry = checkLeagueEntry;
-      }
-    }
-
+  
     if(tftLeagueEntry != null) {
       FullTier fullTier = new FullTier(tftLeagueEntry);
-
+  
       if(lastRank.lastRank_tft == null) {
         LastRankRepository.updateLastRankTftWithLeagueAccountId(tftLeagueEntry, lastRank, LocalDateTime.now());
         lastRank.lastRank_tft = tftLeagueEntry;
@@ -44,6 +38,21 @@ public class LastRankUtil {
       }
     }
     return false;
+  }
+  
+  /*
+   * @return true if the rank have changed.
+   */
+  public static boolean updateTFTLastRank(LastRank lastRank, Set<TFTLeagueEntry> tftLeagueEntries) throws SQLException {
+    TFTLeagueEntry tftLeagueEntry = null;
+    
+    for(TFTLeagueEntry checkLeagueEntry : tftLeagueEntries) {
+      if(checkLeagueEntry.getQueueType().equals(GameQueueConfigId.RANKED_TFT.getQueueType())) {
+        tftLeagueEntry = checkLeagueEntry;
+      }
+    }
+    
+    return updateTFTLastRank(lastRank, tftLeagueEntry);
   }
   
   /**

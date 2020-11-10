@@ -51,6 +51,7 @@ public class SummonerDataWorker implements Runnable {
   @Override
   public void run() {
     try {
+      logger.debug("Start loading Summoner data worker for {} {}", platform.getName(), participant.getSummonerName());
       String unknownChampion = LanguageManager.getText(language, "unknown");
 
       Champion champion = null;
@@ -83,8 +84,10 @@ public class SummonerDataWorker implements Runnable {
 
       playerData.setRankData(rank);
 
+      logger.debug("Start loading Winrate Summoner data worker for {} {}", platform.getName(), participant.getSummonerName());
       playerData.setWinRateData(RiotRequest.getMasterysScore(participant.getSummonerId(), participant.getChampionId(), platform) + " | "
           + RiotRequest.getWinrateLastMonthWithGivenChampion(participant.getSummonerId(), platform, participant.getChampionId(), language));
+      logger.debug("End loading Summoner data worker for {} {}", platform.getName(), participant.getSummonerName());
     } catch (Exception e) {
       logger.error("Unexpected error in SummonerDataWorker !", e);
     } finally {
@@ -108,7 +111,7 @@ public class SummonerDataWorker implements Runnable {
         try {
           TimeUnit.MILLISECONDS.sleep(100);
         } catch (InterruptedException e) {
-          logger.error("Thread as been interupt when waiting Match Worker !", e);
+          logger.error("Thread as been interupt when waiting Match Worker !");
           Thread.currentThread().interrupt();
         }
       }

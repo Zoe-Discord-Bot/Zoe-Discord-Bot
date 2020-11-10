@@ -68,9 +68,9 @@ CREATE TABLE role_option (
 );
 
 CREATE TABLE info_panel_ranked_option (
-  infoPanelRanked_id 								SERIAL,
-  infoPanelRanked_fk_serverConfig 					BIGINT 				NOT NULL,
-  infoPanelRanked_activate 							boolean 			DEFAULT TRUE
+  infoPanelRanked_id 							SERIAL,
+  infoPanelRanked_fk_serverConfig 				BIGINT 				NOT NULL,
+  infoPanelRanked_activate 						boolean 			DEFAULT TRUE
 );
 
 CREATE TABLE info_channel (
@@ -126,24 +126,24 @@ CREATE TABLE match_cache (
 );
 
 CREATE TABLE rank_history_channel(
-  rhChannel_id										SERIAL,
-  rhChannel_fk_server								BIGINT				NOT NULL,
-  rhChannel_channelId								BIGINT	
+  rhChannel_id									SERIAL,
+  rhChannel_fk_server							BIGINT				NOT NULL,
+  rhChannel_channelId							BIGINT	
 );
 
 CREATE TABLE last_rank(
-  lastRank_id										SERIAL,
-  lastRank_fk_leagueAccount							BIGINT				NOT NULL,
-  lastRank_soloq									json,
-  lastRank_flex										json,
-  lastRank_tft										json,
-  lastRank_soloqSecond 								json,
-  lastRank_soloqLastRefresh							TIMESTAMP			WITHOUT TIME ZONE,
-  lastRank_flexSecond 								json,
-  lastRank_flexLastRefresh							TIMESTAMP			WITHOUT TIME ZONE,
-  lastRank_tftSecond 								json,
-  lastRank_tftLastRefresh							TIMESTAMP			WITHOUT TIME ZONE,
-  lastRank_tftLastTreatedMatchId					VARCHAR
+  lastRank_id									SERIAL,
+  lastRank_fk_leagueAccount						BIGINT				NOT NULL,
+  lastRank_soloq								json,
+  lastRank_flex									json,
+  lastRank_tft									json,
+  lastRank_soloqSecond 							json,
+  lastRank_soloqLastRefresh						TIMESTAMP			WITHOUT TIME ZONE,
+  lastRank_flexSecond 							json,
+  lastRank_flexLastRefresh						TIMESTAMP			WITHOUT TIME ZONE,
+  lastRank_tftSecond 							json,
+  lastRank_tftLastRefresh						TIMESTAMP			WITHOUT TIME ZONE,
+  lastRank_tftLastTreatedMatchId				VARCHAR
 );
 
 CREATE TABLE leaderboard (

@@ -5,6 +5,7 @@ import java.util.List;
 import ch.kalunight.zoe.model.config.option.ConfigurationOption;
 import ch.kalunight.zoe.model.config.option.GameInfoCardOption;
 import ch.kalunight.zoe.model.config.option.InfoPanelRankedOption;
+import ch.kalunight.zoe.model.config.option.RankChannelFilterOption;
 import ch.kalunight.zoe.model.config.option.RegionOption;
 import ch.kalunight.zoe.model.config.option.CleanChannelOption;
 import ch.kalunight.zoe.model.config.option.RoleOption;
@@ -43,6 +44,11 @@ public class ServerConfiguration {
   private InfoPanelRankedOption infopanelRankedOption;
   
   /**
+   * This option let config a filter on the rankchannel to show only one type of game (ALL/LOL/TFT)
+   */
+  private RankChannelFilterOption rankchannelFilterOption;
+  
+  /**
    * This option activate the command join/leave for everyone. They can join team joinable by everyone. NOT IMPLEMENTED
    */
   private boolean everyoneCanMoveOfTeam = false;
@@ -54,6 +60,7 @@ public class ServerConfiguration {
     this.infoCardsOption = new GameInfoCardOption(guildId);
     this.cleanChannelOption = new CleanChannelOption(guildId);
     this.infopanelRankedOption = new InfoPanelRankedOption(guildId);
+    this.rankchannelFilterOption = new RankChannelFilterOption(guildId);
     this.everyoneCanMoveOfTeam = false;
   }
 
@@ -65,9 +72,18 @@ public class ServerConfiguration {
     options.add(userSelfAdding);
     options.add(infoCardsOption);
     options.add(infopanelRankedOption);
+    options.add(rankchannelFilterOption);
     return options;
   }
   
+  public RankChannelFilterOption getRankchannelFilterOption() {
+    return rankchannelFilterOption;
+  }
+
+  public void setRankchannelFilterOption(RankChannelFilterOption rankchannelFilterOption) {
+    this.rankchannelFilterOption = rankchannelFilterOption;
+  }
+
   public RegionOption getDefaultRegion() {
     return defaultRegion;
   }

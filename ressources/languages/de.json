@@ -422,5 +422,17 @@
     "rankChannelChangeRankChangeWinDivisionSkippedTitleWithoutGameType": "%s hat eine Division übersprungen",
     "rankChannelChangePointOnlyLooseTitleWithoutGameType": "%s hat %s LP verloren",
     "rankChannelChangePointOnlyWinTitleWithoutGameType": "%s hat %s LP gewonnen",
-    "rankChannelChangeMultipleResultTitle": "Gruppen Ranglisten Ergebnis (%s)"
+    "rankChannelChangeMultipleResultTitle": "Gruppen Ranglisten Ergebnis (%s)",
+    "rankChannelFilterOptionTFTOnly": "Nur TFT Nachricht",
+    "rankChannelFilterOptionLoLOnly": "Nur LoL Nachricht",
+    "rankChannelFilterOptionChanged": "Okay, die Option des Servers wurde korrekt aktualisiert.",
+    "rankChannelFilterOptionNotChanged": "Dies ist bereits die Einstellung des Servers.",
+    "rankChannelFilterOptionLongDesc": "Einstellung : **%s**\n\nMit dieser Option kannst du einen Filter hinzufügen, welche Art von Nachrichten innerhalb des Rangkanals gesendet werden.\n\nHier sind meine Einstellungen : ",
+    "rankChannelFilterOptionTFTDesc": "Nur TFT-Nachricht im Rang-Kanal senden",
+    "rankChannelFilterOptionTFT": "Nur TFT angezeigt",
+    "rankChannelFilterOptionLoLDesc": "Nur LoL-Nachricht im Rang-Kanal senden",
+    "rankChannelFilterOptionLoL": "Nur LoL angezeigt",
+    "rankChannelFilterOptionAllDesc": "Senden aller Arten von Nachrichten im Rang-Kanal (LoL und TFT)",
+    "rankChannelFilterOptionAll": "Alle Typen werden angezeigt",
+    "rankChannelFilterOptionDesc": "Nachricht im Rang-Kanal nach Spiel filtern (LoL und TFT)"
 }

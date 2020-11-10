@@ -67,10 +67,16 @@ CREATE TABLE role_option (
   roleOption_roleId								BIGINT
 );
 
+CREATE TABLE rank_channel_filter_option (
+  rankchannelFilterOption_id					SERIAL,
+  rankchannelFilterOption_fk_serverConfig		BIGINT				NOT NULL,
+  rankchannelFilterOption_option				VARCHAR
+);
+
 CREATE TABLE info_panel_ranked_option (
-  infoPanelRanked_id 								SERIAL,
-  infoPanelRanked_fk_serverConfig 					BIGINT 				NOT NULL,
-  infoPanelRanked_activate 							boolean 			DEFAULT TRUE
+  infoPanelRanked_id 							SERIAL,
+  infoPanelRanked_fk_serverConfig 				BIGINT 				NOT NULL,
+  infoPanelRanked_activate 						boolean 			DEFAULT TRUE
 );
 
 CREATE TABLE info_channel (
@@ -113,8 +119,8 @@ CREATE TABLE league_account (
 CREATE TABLE current_game_info (
   currentGame_id								SERIAL,
   currentGame_currentGame						JSON,
-  currentgame_server 							VARCHAR				NOT NULL,
-  currentgame_gameid 							VARCHAR				NOT NULL
+  currentgame_server 							VARCHAR 			NOT NULL,
+  currentgame_gameid							VARCHAR				NOT NULL
 );
 
 CREATE TABLE match_cache (
@@ -126,9 +132,9 @@ CREATE TABLE match_cache (
 );
 
 CREATE TABLE rank_history_channel(
-  rhChannel_id										SERIAL,
-  rhChannel_fk_server								BIGINT				NOT NULL,
-  rhChannel_channelId								BIGINT	
+  rhChannel_id									SERIAL,
+  rhChannel_fk_server							BIGINT				NOT NULL,
+  rhChannel_channelId							BIGINT	
 );
 
 CREATE TABLE last_rank(
@@ -205,7 +211,10 @@ ALTER TABLE ONLY info_panel_message
   
 ALTER TABLE ONLY game_info_card
   ADD CONSTRAINT game_info_card_pkey PRIMARY KEY (gameCard_id);
-  
+
+ALTER TABLE ONLY rank_channel_filter_option
+  ADD CONSTRAINT rank_channel_filter_option_pkey PRIMARY KEY (rankchannelFilterOption_id);  
+
 ALTER TABLE ONLY league_account
   ADD CONSTRAINT league_account_pkey PRIMARY KEY (leagueAccount_id);
   
@@ -296,6 +305,11 @@ ALTER TABLE league_account
 ALTER TABLE league_account
   ADD CONSTRAINT league_account_fk_currentGame_const 
   FOREIGN KEY (leagueAccount_fk_currentGame) REFERENCES current_game_info (currentGame_id);
+  
+ALTER TABLE rank_channel_filter_option
+  ADD CONSTRAINT rank_channel_filter_option_fk_serverConfig_const 
+  FOREIGN KEY (rankchannelFilterOption_fk_serverConfig) REFERENCES server_configuration (servConfig_id)
+  ON DELETE CASCADE;
   
 ALTER TABLE game_info_card
   ADD CONSTRAINT game_info_card_fk_currentGame_const 

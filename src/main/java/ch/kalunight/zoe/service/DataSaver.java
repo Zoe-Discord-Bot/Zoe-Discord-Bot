@@ -54,7 +54,7 @@ public class DataSaver extends TimerTask {
       }
       
     } catch(Exception e) {
-      logger.error("Error : {}", e.getMessage(), e);
+      logger.error("Error in dataSaver : {}", e.getMessage(), e);
     } finally {
       TimerTask mainThread = new ServerChecker();
       ServerThreadsManager.getServerCheckerThreadTimer().schedule(mainThread, WAIT_TIME_BETWEEN_EACH_REFRESH_IN_MS);

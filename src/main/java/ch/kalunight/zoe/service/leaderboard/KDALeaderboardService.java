@@ -10,12 +10,12 @@ import ch.kalunight.zoe.model.KDAReceiver;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
+import ch.kalunight.zoe.model.dto.DTO.Player;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.leaderboard.dataholder.Objective;
 import ch.kalunight.zoe.model.leaderboard.dataholder.PlayerKDA;
 import ch.kalunight.zoe.model.leaderboard.dataholder.SpecificChamp;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
-import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.request.RiotRequest;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -31,7 +31,7 @@ public class KDALeaderboardService extends LeaderboardBaseService {
   }
 
   @Override
-  protected void runLeaderboardRefresh(Server server, Guild guild, TextChannel channel, Leaderboard leaderboard, Message message)
+  protected void runLeaderboardRefresh(Server server, Guild guild, TextChannel channel, Leaderboard leaderboard, Message message, List<Player> players)
       throws SQLException, RiotApiException {
 
     Objective objective = Objective.getObjectiveWithId(leaderboard.lead_type);
@@ -40,13 +40,13 @@ public class KDALeaderboardService extends LeaderboardBaseService {
       specificChamp = gson.fromJson(leaderboard.lead_data, SpecificChamp.class);
     }
 
-    List<PlayerKDA> playersKDA = orderAndGetPlayers(guild, specificChamp);
+    List<PlayerKDA> playersKDA = orderAndGetPlayers(guild, specificChamp, players);
 
     List<String> playersName = new ArrayList<>();
     List<String> dataList = new ArrayList<>();
 
     for(PlayerKDA playerKDA : playersKDA) {
-      playersName.add(playerKDA.getPlayer().getUser().getAsMention());
+      playersName.add(playerKDA.getPlayer().getUser().getName() + "#" + playerKDA.getPlayer().getUser().getDiscriminator());
       if(playerKDA.getKdaReceiver().getAverageKDA() == KDAReceiver.PERFECT_KDA_VALUE) {
         dataList.add("**"+ LanguageManager.getText(server.serv_language, "perfectKDA") + "** *(" + playerKDA.getKdaReceiver().getAverageStats() + ")*");
       }else {
@@ -81,8 +81,7 @@ public class KDALeaderboardService extends LeaderboardBaseService {
     message.editMessage(builder.build()).queue();
   }
 
-  private List<PlayerKDA> orderAndGetPlayers(Guild guild, SpecificChamp champ) throws SQLException {
-    List<DTO.Player> players = PlayerRepository.getPlayers(guild.getIdLong());
+  private List<PlayerKDA> orderAndGetPlayers(Guild guild, SpecificChamp champ, List<Player> players) throws SQLException {
     List<PlayerKDA> playersKDA = new ArrayList<>();
 
     for(DTO.Player player : players) {

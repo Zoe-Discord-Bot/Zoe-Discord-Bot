@@ -12,6 +12,8 @@ import ch.kalunight.zoe.model.config.option.CleanChannelOption;
 import ch.kalunight.zoe.model.config.option.CleanChannelOption.CleanChannelOptionInfo;
 import ch.kalunight.zoe.model.config.option.GameInfoCardOption;
 import ch.kalunight.zoe.model.config.option.InfoPanelRankedOption;
+import ch.kalunight.zoe.model.config.option.RankChannelFilterOption;
+import ch.kalunight.zoe.model.config.option.RankChannelFilterOption.RankChannelFilter;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -38,6 +40,9 @@ public class ConfigRepository {
 
   private static final String INSERT_INTO_CLEAN_CHANNEL_OPTION = "INSERT INTO clean_channel_option "
       + "(cleanOption_fk_serverConfig, cleanOption_option) VALUES (%d, '%s')";
+  
+  private static final String INSERT_INTO_RANK_CHANNEL_FILTER_OPTION = "INSERT INTO rank_channel_filter_option "
+      + "(rankchannelFilterOption_fk_serverConfig, rankchannelFilterOption_option) VALUES (%d, '%s')";
 
   private static final String INSERT_INTO_GAME_INFO_CARD_OPTION = "INSERT INTO game_info_card_option "
       + "(gameCardOption_fk_serverConfig, gameCardOption_activate) VALUES (%d, %s)";
@@ -78,6 +83,13 @@ public class ConfigRepository {
       "INNER JOIN server_configuration ON server.serv_id = server_configuration.servconfig_fk_server " + 
       "INNER JOIN info_panel_ranked_option ON server_configuration.servconfig_id = info_panel_ranked_option.infopanelranked_fk_serverconfig " + 
       "WHERE server.serv_guildid = %d";
+  
+  private static final String SELECT_RANK_CHANNEL_FILTER_WITH_GUILDID = "SELECT " + 
+      "rank_channel_filter_option.rankchannelfilteroption_option " + 
+      "FROM server " + 
+      "INNER JOIN server_configuration ON server.serv_id = server_configuration.servconfig_fk_server " + 
+      "INNER JOIN rank_channel_filter_option ON server_configuration.servconfig_id = rank_channel_filter_option.rankchannelfilteroption_fk_serverconfig " + 
+      "WHERE server.serv_guildid = %d";
 
   private static final String UPDATE_CLEAN_CHANNEL_OPTION_WITH_GUILD_ID =
       "UPDATE clean_channel_option " +
@@ -86,6 +98,14 @@ public class ConfigRepository {
       "WHERE server.serv_guildId = %d AND " +
       "server.serv_id = server_configuration.servConfig_fk_server AND " +
       "server_configuration.servConfig_id = clean_channel_option.cleanOption_fk_serverConfig";
+  
+  private static final String UPDATE_RANK_CHANNEL_FILTER_OPTION_WITH_GUILD_ID =
+      "UPDATE rank_channel_filter_option " +
+      "SET rankchannelFilterOption_option = '%s' " +
+      "FROM server, server_configuration " +
+      "WHERE server.serv_guildId = %d AND " +
+      "server.serv_id = server_configuration.servConfig_fk_server AND " +
+      "server_configuration.servConfig_id = rank_channel_filter_option.rankchannelFilterOption_fk_serverConfig";
   
   private static final String UPDATE_INFOPANEL_RANKED_OPTION_WITH_GUILD_ID =
       "UPDATE info_panel_ranked_option " +
@@ -174,6 +194,10 @@ public class ConfigRepository {
     //Create InfoPanelRankedOption
     finalQuery = String.format(INSERT_INTO_INFOPANEL_RANKED_OPTION, servConfigId);
     statement.execute(finalQuery);
+    
+    //Create RankchannelFilterOption
+    finalQuery = String.format(INSERT_INTO_RANK_CHANNEL_FILTER_OPTION, servConfigId, RankChannelFilter.ALL.toString());
+    statement.execute(finalQuery);
   }
   
   public static DTO.ServerConfig getServerConfigDTO(long serverId) throws SQLException{
@@ -238,6 +262,16 @@ public class ConfigRepository {
         infopanelRankedOption.setOptionActivated(infopanelRankedOptionActivate);
       }
       
+      RankChannelFilter rankchannelFilter = getRankChannelFilterOption(guildId);
+      RankChannelFilterOption rankchannelFilterOption = new RankChannelFilterOption(guildId);
+      if(rankchannelFilter == null) {
+        rankchannelFilterOption.setRankChannelFilter(rankchannelFilter);
+        //Create RankchannelFilterOption
+        createRankchannelFilterOption(conn.createStatement(), guildId, RankChannelFilter.ALL);
+      }else {
+        rankchannelFilterOption.setRankChannelFilter(rankchannelFilter);
+      }
+      
       ServerConfiguration serverConfig = new ServerConfiguration(guildId);
       serverConfig.setUserSelfAdding(selfAddingOption);
       serverConfig.setDefaultRegion(regionOption);
@@ -245,6 +279,7 @@ public class ConfigRepository {
       serverConfig.setInfoCardsOption(infoCardOption);
       serverConfig.setZoeRoleOption(roleOption);
       serverConfig.setInfopanelRankedOption(infopanelRankedOption);
+      serverConfig.setRankchannelFilterOption(rankchannelFilterOption);
       
       return serverConfig;
     }finally {
@@ -272,6 +307,26 @@ public class ConfigRepository {
     statement.execute(finalQuery);
   }
 
+  private static void createRankchannelFilterOption(Statement statement, long guildId, RankChannelFilter rankFilter) throws SQLException {
+    
+    Server server = ServerRepository.getServerWithGuildId(guildId);
+
+    //Get servConfig_id from ServerConfiguration
+    String finalQuery = String.format(SELECT_SERVER_CONFIG_WITH_SERV_ID, server.serv_id);
+    ResultSet result = null;
+    long servConfigId;
+    try {
+      result = statement.executeQuery(finalQuery);
+      result.next();
+      servConfigId = result.getLong("servConfig_id");
+    }finally {
+      RepoRessources.closeResultSet(result);
+    }
+    
+    finalQuery = String.format(INSERT_INTO_RANK_CHANNEL_FILTER_OPTION, servConfigId, rankFilter.toString());
+    statement.execute(finalQuery);
+  }
+  
   private static RoleOption getRoleOption(ResultSet result, long guildId) throws SQLException {
     RoleOption roleOption = new RoleOption(guildId);
     long roleId = result.getLong("roleOption_roleId");
@@ -350,6 +405,24 @@ public class ConfigRepository {
       }
   }
   
+  public static RankChannelFilter getRankChannelFilterOption(long guildId) throws SQLException {
+    ResultSet result = null;
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+
+      String finalQuery = String.format(SELECT_RANK_CHANNEL_FILTER_WITH_GUILDID, guildId);
+      result = query.executeQuery(finalQuery);
+      int rowCount = result.last() ? result.getRow() : 0;
+      if(rowCount == 0) {
+        return null;
+      }
+      
+      return RankChannelFilter.valueOf(result.getString("rankchannelFilterOption_option"));
+    }finally {
+      RepoRessources.closeResultSet(result);
+    }
+}
+  
   public static void updateInfoPanelRanked(long guildID, boolean activate) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
@@ -380,6 +453,18 @@ public class ConfigRepository {
 
       String finalQuery = String.format(UPDATE_GAME_INFO_CARD_OPTION_WITH_GUILD_ID, 
           activate, guildId);
+      query.executeUpdate(finalQuery);
+    }
+  }
+  
+  public static void updateRankchannelFilter(long guildId, RankChannelFilter rankchannelFilter)
+      throws SQLException {
+
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement();) {
+
+      String finalQuery = String.format(UPDATE_RANK_CHANNEL_FILTER_OPTION_WITH_GUILD_ID, 
+          rankchannelFilter.toString(), guildId);
       query.executeUpdate(finalQuery);
     }
   }

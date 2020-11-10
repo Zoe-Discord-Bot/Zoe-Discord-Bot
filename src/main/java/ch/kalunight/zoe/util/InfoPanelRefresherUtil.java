@@ -2,20 +2,25 @@ package ch.kalunight.zoe.util;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
 import com.google.common.base.Preconditions;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
+import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
 
 public class InfoPanelRefresherUtil {
-
+  
   private InfoPanelRefresherUtil() {
     //Hide default public constructor
   }
@@ -72,6 +77,34 @@ public class InfoPanelRefresherUtil {
       stringBuilder.append(" (" + minutesGameLength + "m " + secondesGameLength + "s)\n");
     }
     return stringBuilder.toString();
+  }
+  
+  public static void cleanRegisteredPlayerNoLongerInGuild(Guild guild, List<DTO.Player> listPlayers) throws SQLException {
+    Iterator<DTO.Player> iter = listPlayers.iterator();
+
+    while (iter.hasNext()) {
+      DTO.Player player = iter.next();
+      
+      try {
+        if(guild.retrieveMemberById(player.getUser().getId()).complete() == null) {
+          iter.remove();
+          PlayerRepository.updateTeamOfPlayerDefineNull(player.player_id);
+          PlayerRepository.deletePlayer(player, guild.getIdLong());
+        }
+      }catch (ErrorResponseException e) {
+        if(e.getErrorResponse().equals(ErrorResponse.UNKNOWN_MEMBER) || e.getErrorResponse().equals(ErrorResponse.UNKNOWN_USER)) {
+          iter.remove();
+          PlayerRepository.updateTeamOfPlayerDefineNull(player.player_id);
+          PlayerRepository.deletePlayer(player, guild.getIdLong());
+        }
+      }catch (NullPointerException e) {
+        if(guild != null) {
+          iter.remove();
+          PlayerRepository.updateTeamOfPlayerDefineNull(player.player_id);
+          PlayerRepository.deletePlayer(player, guild.getIdLong());
+        }
+      }
+    }
   }
 
   public static List<DTO.LeagueAccount> checkIfOthersAccountsInKnowInTheMatch(

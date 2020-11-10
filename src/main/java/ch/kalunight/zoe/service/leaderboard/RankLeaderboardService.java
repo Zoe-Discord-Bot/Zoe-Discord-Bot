@@ -11,6 +11,7 @@ import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.LastRank;
 import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
+import ch.kalunight.zoe.model.dto.DTO.Player;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.leaderboard.dataholder.Objective;
 import ch.kalunight.zoe.model.leaderboard.dataholder.PlayerRank;
@@ -18,7 +19,6 @@ import ch.kalunight.zoe.model.leaderboard.dataholder.QueueSelected;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.repositories.LastRankRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
-import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.Ressources;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -36,7 +36,7 @@ public class RankLeaderboardService extends LeaderboardBaseService {
 
   @Override
   protected void runLeaderboardRefresh(Server server, Guild guild, TextChannel channel, Leaderboard leaderboard,
-      Message message) throws SQLException, RiotApiException {
+      Message message, List<Player> players) throws SQLException, RiotApiException {
 
     Objective objective = Objective.getObjectiveWithId(leaderboard.lead_type);
     QueueSelected queueSelected = null;
@@ -44,13 +44,13 @@ public class RankLeaderboardService extends LeaderboardBaseService {
       queueSelected = gson.fromJson(leaderboard.lead_data, QueueSelected.class);
     }
 
-    List<PlayerRank> playersRank = orderAndGetPlayers(guild, objective, queueSelected);
+    List<PlayerRank> playersRank = orderAndGetPlayers(guild, objective, queueSelected, players);
 
     List<String> playersName = new ArrayList<>();
     List<String> dataList = new ArrayList<>();
 
     for(PlayerRank playerRank : playersRank) {
-      playersName.add(playerRank.getPlayer().getUser().getAsMention());
+      playersName.add(playerRank.getPlayer().getUser().getName() + "#" + playerRank.getPlayer().getUser().getDiscriminator());
       FullTier fullTier = playerRank.getFullTier();
       if(queueSelected == null) {
         dataList.add(Ressources.getTierEmote().get(fullTier.getTier()).getUsableEmote() + " " + fullTier.toString(server.serv_language) 
@@ -85,8 +85,7 @@ public class RankLeaderboardService extends LeaderboardBaseService {
 
   }
 
-  private List<PlayerRank> orderAndGetPlayers(Guild guild, Objective objective, QueueSelected queueSelected) throws SQLException, RiotApiException {
-    List<DTO.Player> players = PlayerRepository.getPlayers(guild.getIdLong());
+  private List<PlayerRank> orderAndGetPlayers(Guild guild, Objective objective, QueueSelected queueSelected, List<Player> players) throws SQLException, RiotApiException {
     List<PlayerRank> playersPoints = new ArrayList<>();
 
     for(DTO.Player player : players) {

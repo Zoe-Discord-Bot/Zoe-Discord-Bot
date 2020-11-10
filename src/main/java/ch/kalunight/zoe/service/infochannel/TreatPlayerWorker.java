@@ -15,8 +15,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.Zoe;
+import ch.kalunight.zoe.model.GameAccessDataServerSpecific;
 import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
+import ch.kalunight.zoe.model.config.option.RankChannelFilterOption.RankChannelFilter;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.LastRank;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
@@ -26,6 +28,7 @@ import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.repositories.CurrentGameInfoRepository;
 import ch.kalunight.zoe.repositories.LastRankRepository;
+import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.repositories.TeamRepository;
 import ch.kalunight.zoe.riotapi.CachedRiotApi;
@@ -36,11 +39,13 @@ import ch.kalunight.zoe.util.FullTierUtil;
 import ch.kalunight.zoe.util.InfoPanelRefresherUtil;
 import ch.kalunight.zoe.util.LastRankUtil;
 import ch.kalunight.zoe.util.Ressources;
+import ch.kalunight.zoe.util.TFTMatchUtil;
 import ch.kalunight.zoe.util.TreatedPlayer;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.tft_league.dto.TFTLeagueEntry;
+import net.rithms.riot.api.endpoints.tft_match.dto.TFTMatch;
 
 public class TreatPlayerWorker implements Runnable {
 
@@ -51,11 +56,11 @@ public class TreatPlayerWorker implements Runnable {
   protected static final CachedRiotApi riotApi = Zoe.getRiotApi();
 
   private Player player;
-  
+
   private List<LeagueAccount> leaguesAccounts;
 
   private DTO.Team team;
-  
+
   private Server server;
 
   private ServerConfiguration serverConfig;
@@ -65,13 +70,15 @@ public class TreatPlayerWorker implements Runnable {
   private RankHistoryChannel rankChannel;
 
   private List<FullTier> soloqRank = new ArrayList<>();
-  
+
   private Map<DTO.CurrentGameInfo, LeagueAccount> gamesToDelete = Collections.synchronizedMap(new HashMap<>());
-  
+
   private Map<CurrentGameInfo, LeagueAccount> gamesToCreate = Collections.synchronizedMap(new HashMap<>());
-  
+
+  private List<RankedChannelLoLRefresher> rankChannelsToProcess = Collections.synchronizedList(new ArrayList<>());
+
   private TreatedPlayer treatedPlayer = null;
-  
+
   private class LastRankQueue {
     public LeagueEntry leagueEntry;
     public LeagueEntry leagueEntrySecond;
@@ -103,7 +110,7 @@ public class TreatPlayerWorker implements Runnable {
     try {
       Map<LeagueAccount, CurrentGameInfo> accountsInGame = Collections.synchronizedMap(new HashMap<>());
       List<LeagueAccount> accountNotInGame = new ArrayList<>();
-      
+
       refreshPlayer(accountsInGame, accountNotInGame);
       generateText(accountsInGame, accountNotInGame);
       createOutputObject();
@@ -118,7 +125,7 @@ public class TreatPlayerWorker implements Runnable {
 
 
   private void createOutputObject() {
-    treatedPlayer = new TreatedPlayer(player, team, infochannelMessage.toString(), soloqRank, gamesToDelete, gamesToCreate);
+    treatedPlayer = new TreatedPlayer(player, team, infochannelMessage.toString(), soloqRank, gamesToDelete, gamesToCreate, rankChannelsToProcess);
   }
 
   private void refreshPlayer(Map<LeagueAccount, CurrentGameInfo> accountsInGame, List<LeagueAccount> accountNotInGame) throws SQLException {
@@ -144,13 +151,24 @@ public class TreatPlayerWorker implements Runnable {
 
 
   private void refreshTFT(LeagueAccount leagueAccount, LastRank lastRank) throws SQLException {
-    Set<TFTLeagueEntry> tftLeagueEntries = Zoe.getRiotApi().
-        getTFTLeagueEntriesWithRateLimit(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_tftSummonerId);
+    List<TFTMatch> matchs = TFTMatchUtil.getTFTRankedMatchsSinceTheLastMessage(leagueAccount, lastRank);
 
-    if(LastRankUtil.updateTFTLastRank(lastRank, tftLeagueEntries) && rankChannel != null) {
-      RankedChannelTFTRefresher tftRankedChannelRefresher = new RankedChannelTFTRefresher(rankChannel,
-          lastRank.lastRank_tftSecond, lastRank.lastRank_tft, player, leagueAccount, server);
-      ServerThreadsManager.getRankedMessageGenerator().execute(tftRankedChannelRefresher);
+    if(!matchs.isEmpty()) {
+      Set<TFTLeagueEntry> tftLeagueEntries = Zoe.getRiotApi().
+          getTFTLeagueEntriesWithRateLimit(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_tftSummonerId);
+
+      boolean rankUpdated = LastRankUtil.updateTFTLastRank(lastRank, tftLeagueEntries);
+      
+      if(rankChannel != null && rankUpdated) {
+        
+        if(serverConfig.getRankchannelFilterOption().getRankChannelFilter() == RankChannelFilter.LOL_ONLY) {
+          return;
+        }
+        
+        RankedChannelTFTRefresher tftRankedChannelRefresher = new RankedChannelTFTRefresher(rankChannel,
+            lastRank.lastRank_tftSecond, lastRank.lastRank_tft, player, leagueAccount, server, matchs.get(0));
+        ServerThreadsManager.getRankedMessageGenerator().execute(tftRankedChannelRefresher);
+      }
     }
   }
 
@@ -160,14 +178,17 @@ public class TreatPlayerWorker implements Runnable {
 
     CurrentGameInfo currentGame;
     try {
-      currentGame = Zoe.getRiotApi().getActiveGameBySummoner(
-          leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
-      accountsInGame.put(leagueAccount, currentGame);
+      currentGame = Zoe.getRiotApi().getActiveGameBySummonerWithRateLimit(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
+      if(currentGame == null) {
+        accountNotInGame.add(leagueAccount);
+      }else {
+        accountsInGame.put(leagueAccount, currentGame);
+      }
     } catch(RiotApiException e) {
-      accountNotInGame.add(leagueAccount);
       if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
         currentGame = null;
       }else {
+        logger.error("Riot Api exception in refresh LoL !", e);
         return;
       }
     }
@@ -181,7 +202,7 @@ public class TreatPlayerWorker implements Runnable {
     }else if(currentGameDb != null) {
       manageDeleteGame(leagueAccount, currentGameDb, lastRank);
     }
-    
+
     if(lastRank.lastRank_soloq != null) {
       soloqRank.add(new FullTier(lastRank.lastRank_soloq));
     }
@@ -192,8 +213,9 @@ public class TreatPlayerWorker implements Runnable {
 
     gamesToDelete.put(currentGameDb, leagueAccount);
 
-    updateLoLLastRankIfGivenGameIsARanked(leagueAccount, currentGameDb, lastRank);
-    searchForRefreshRankChannel(currentGameDb, leagueAccount, lastRank);
+    if(updateLoLLastRankIfGivenGameIsARanked(leagueAccount, currentGameDb, lastRank)) {
+      searchForRefreshRankChannel(currentGameDb, leagueAccount, lastRank);
+    }
   }
 
 
@@ -226,19 +248,28 @@ public class TreatPlayerWorker implements Runnable {
         logger.info("Error while getting leagueEntries in updateLoLLastRank.");
         return false;
       }
-      
+
       return LastRankUtil.updateLoLLastRank(lastRank, leagueEntries);
     }
     return false;
   }
 
 
-  private void manageNewGame(LeagueAccount leagueAccount, CurrentGameInfo currentGame) {
-    gamesToCreate.put(currentGame, leagueAccount);
+  private void manageNewGame(LeagueAccount leagueAccount, CurrentGameInfo currentGame) throws SQLException {
+    DTO.CurrentGameInfo currentGameDB = CurrentGameInfoRepository.getCurrentGameWithServerAndGameId(leagueAccount.leagueAccount_server, currentGame.getGameId(), server);
+    if(currentGameDB != null) {
+      LeagueAccountRepository.updateAccountCurrentGameWithAccountId(leagueAccount.leagueAccount_id, currentGameDB.currentgame_id);
+    }else {
+      gamesToCreate.put(currentGame, leagueAccount);
+    }
   }
 
   private void searchForRefreshRankChannel(DTO.CurrentGameInfo currentGameDb, LeagueAccount leagueAccount, LastRank lastRank) throws SQLException {
 
+    if(serverConfig.getRankchannelFilterOption().getRankChannelFilter() == RankChannelFilter.TFT_ONLY) {
+      return;
+    }
+    
     if(currentGameDb.currentgame_currentgame.getParticipantByParticipantId(leagueAccount.leagueAccount_summonerId) != null) {
       Player playerToUpdate = PlayerRepository.getPlayerByLeagueAccountAndGuild(server.serv_guildId,
           leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server);
@@ -255,21 +286,28 @@ public class TreatPlayerWorker implements Runnable {
       RankedChannelLoLRefresher rankedRefresher = 
           new RankedChannelLoLRefresher(rankChannel, lastRank.lastRank_soloqSecond, lastRank.lastRank_soloq,
               gameOfTheChange, player, leagueAccount, server);
-      ServerThreadsManager.getRankedMessageGenerator().execute(rankedRefresher);
+
+      GameAccessDataServerSpecific gameAccessData = new GameAccessDataServerSpecific(currentGameDb.currentgame_gameid, currentGameDb.currentgame_server, server.serv_guildId);
+      RankedChannelLoLRefresher.addMatchToTreat(gameAccessData, leagueAccount);
+
+      rankChannelsToProcess.add(rankedRefresher);
 
     }else if(gameOfTheChange.getGameQueueConfigId() == GameQueueConfigId.FLEX.getId()) {
 
       RankedChannelLoLRefresher rankedRefresher = 
           new RankedChannelLoLRefresher(rankChannel, lastRank.lastRank_flexSecond, lastRank.lastRank_flex,
               gameOfTheChange, player, leagueAccount, server);
-      ServerThreadsManager.getRankedMessageGenerator().execute(rankedRefresher);
+
+      GameAccessDataServerSpecific gameAccessData = new GameAccessDataServerSpecific(currentGameDb.currentgame_gameid, currentGameDb.currentgame_server, server.serv_guildId);
+      RankedChannelLoLRefresher.addMatchToTreat(gameAccessData, leagueAccount);
+
+      rankChannelsToProcess.add(rankedRefresher);
     }
 
   }
 
-
   private void generateText(Map<DTO.LeagueAccount, CurrentGameInfo> accountsWithGame, List<DTO.LeagueAccount> accountNotInGame) throws SQLException {
-    
+
     if(accountsWithGame.isEmpty()) {
 
       if(serverConfig.getInfopanelRankedOption().isOptionActivated()) {

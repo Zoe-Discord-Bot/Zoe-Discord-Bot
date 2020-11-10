@@ -175,6 +175,7 @@ public class PlayerRepository {
       if(playersOfTheDiscord != null) {
         playersOfTheDiscord.remove(player.player_discordId);
       }
+      
       Zoe.getJda().getGuildById(guildId).unloadMember(player.player_discordId);
     }
   }

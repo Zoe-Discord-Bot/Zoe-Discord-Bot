@@ -20,6 +20,8 @@ public class DataSaver extends TimerTask {
   private static final int TIME_BETWEEN_EACH_CHAMPION_ROLE_REFRESH_IN_HOURS = 12;
   
   private static final int TIME_BETWEEN_CLEAN_CACHE_IN_HOURS = 48;
+  
+  private static final int TIME_BETWEEN_EACH_CLASH_TOURNAMENT_DB_IN_HOUURS = 4;
 
   private static final Logger logger = LoggerFactory.getLogger(DataSaver.class);
   
@@ -28,6 +30,8 @@ public class DataSaver extends TimerTask {
   private static LocalDateTime nextRefreshCacheDb = LocalDateTime.now().plusHours(3);
   
   private static LocalDateTime nextRefreshChampionsRole = LocalDateTime.now().plusHours(1);
+  
+  private static LocalDateTime nextRefreshClashTournament = LocalDateTime.now().plusHours(TIME_BETWEEN_EACH_CLASH_TOURNAMENT_DB_IN_HOUURS);
 
   @Override
   public void run() {
@@ -52,6 +56,14 @@ public class DataSaver extends TimerTask {
           ServerThreadsManager.getDataAnalysisManager().submit(new ChampionRoleAnalysisMainWorker(champion.getKey())); 
         }
       }
+      
+      if(nextRefreshClashTournament.isBefore(LocalDateTime.now())) {
+        logger.info("Refresh champion roles started !");
+        setNextRefreshChampionRole(LocalDateTime.now().plusHours(TIME_BETWEEN_EACH_CHAMPION_ROLE_REFRESH_IN_HOURS));
+        
+        
+      }
+      
       
     } catch(Exception e) {
       logger.error("Error in dataSaver : {}", e.getMessage(), e);

@@ -1,7 +1,10 @@
 package ch.kalunight.zoe.model.dto;
 
 import java.io.Serializable;
+import com.google.common.util.concurrent.AtomicDouble;
+
 import net.rithms.riot.api.endpoints.match.dto.ParticipantStats;
+import net.rithms.riot.api.endpoints.match.dto.ParticipantTimeline;
 
 public class SavedMatchPlayer implements Serializable {
 
@@ -13,18 +16,30 @@ public class SavedMatchPlayer implements Serializable {
   private int kills;
   private int deaths;
   private int assists;
+  private int creepScores;
+  private int level;
   private String role;
   private String lane;
   
-  public SavedMatchPlayer(boolean blueSide, String accountId, int championId, ParticipantStats participantStats, String role, String lane) {
+  public SavedMatchPlayer(boolean blueSide, String accountId, int championId, ParticipantStats participantStats, ParticipantTimeline timeline, String role, String lane) {
     this.blueSide = blueSide;
     this.accountId = accountId;
     this.championId = championId;
     this.kills = participantStats.getKills();
     this.deaths = participantStats.getDeaths();
     this.assists = participantStats.getAssists();
+    this.creepScores = participantStats.getTotalMinionsKilled() + participantStats.getNeutralMinionsKilled();
+    this.level = participantStats.getChampLevel();
     this.role = role;
     this.lane = lane;
+  }
+
+  public int getCreepScores() {
+    return creepScores;
+  }
+
+  public int getLevel() {
+    return level;
   }
 
   public boolean isBlueSide() {

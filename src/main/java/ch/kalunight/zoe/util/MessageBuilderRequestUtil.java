@@ -9,17 +9,17 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
 import java.util.List;
 import ch.kalunight.zoe.ServerThreadsManager;
+import ch.kalunight.zoe.exception.PlayerNotFoundException;
 import ch.kalunight.zoe.model.InfocardPlayerData;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.SavedMatch;
+import ch.kalunight.zoe.model.dto.SavedMatchPlayer;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.service.infochannel.SummonerDataWorker;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.rithms.riot.api.endpoints.league.dto.MiniSeries;
-import net.rithms.riot.api.endpoints.match.dto.Match;
-import net.rithms.riot.api.endpoints.match.dto.Participant;
-import net.rithms.riot.api.endpoints.match.dto.ParticipantStats;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
 import net.rithms.riot.api.endpoints.tft_match.dto.TFTMatch;
@@ -178,10 +178,10 @@ public class MessageBuilderRequestUtil {
     return statsGame.toString();
   }
 
-  public static String getResumeGameStats(LeagueAccount leagueAccount, String lang, Match match) {
+  public static String getResumeGameStats(LeagueAccount leagueAccount, String lang, SavedMatch match) {
     StringBuilder statsGame = new StringBuilder();
 
-    Participant participant = match.getParticipantBySummonerId(leagueAccount.leagueAccount_summonerId);
+    SavedMatchPlayer participant = match.getSavedMatchPlayerByAccountId(leagueAccount.leagueAccount_accoundId);
 
     Champion champion = Ressources.getChampionDataById(participant.getChampionId());
 
@@ -191,33 +191,33 @@ public class MessageBuilderRequestUtil {
       statsGame.append("Unknown");
     }
 
-    ParticipantStats stats = participant.getStats();
-
-    String gameDuration = MessageBuilderRequestUtil.getMatchTimeFromDuration(match.getGameDuration());
+    String gameDuration = MessageBuilderRequestUtil.getMatchTimeFromDuration(match.getGameDurations());
 
     String showableResult = getParticipantMatchResult(lang, match, participant);
 
-    int totalcs = stats.getTotalMinionsKilled() + stats.getNeutralMinionsKilled();
+    int totalcs = participant.getCreepScores();
 
-    statsGame.append(" | " + stats.getKills() + "/" + stats.getDeaths() + "/" + stats.getAssists() 
+    statsGame.append(" | " + participant.getKills() + "/" + participant.getDeaths() + "/" + participant.getAssists() 
     + " | " + totalcs + " " + LanguageManager.getText(lang, "creepScoreAbreviation")
-    + " | " + LanguageManager.getText(lang, "level") + " " + stats.getChampLevel()
+    + " | " + LanguageManager.getText(lang, "level") + " " + participant.getLevel()
     + " | " + gameDuration
     + " | " + showableResult);
     return statsGame.toString();
   }
 
-  private static String getParticipantMatchResult(String lang, Match match, Participant participant) {
-    String result = match.getTeamByTeamId(participant.getTeamId()).getWin();
+  private static String getParticipantMatchResult(String lang, SavedMatch match, SavedMatchPlayer participant) {
     String showableResult;
 
-    if(result.equalsIgnoreCase("Win")) {
-      showableResult = LanguageManager.getText(lang, "win");
-    }else if(result.equalsIgnoreCase("Fail")) {
-      showableResult = LanguageManager.getText(lang, "loose");
-    }else {
+    try {
+      if(match.isGivenAccountWinner(participant.getAccountId())) {
+        showableResult = LanguageManager.getText(lang, "win");
+      }else {
+        showableResult = LanguageManager.getText(lang, "loose");
+      }
+    }catch (PlayerNotFoundException e) {
       showableResult = LanguageManager.getText(lang, "canceled");
     }
+
     return showableResult;
   }
 

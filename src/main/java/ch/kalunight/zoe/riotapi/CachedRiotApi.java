@@ -17,6 +17,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.SavedMatch;
+import ch.kalunight.zoe.repositories.SavedMatchCacheRepository;
+import ch.kalunight.zoe.model.dto.DTO.MatchCache;
 import net.rithms.riot.api.RiotApi;
 import net.rithms.riot.api.RiotApiAsync;
 import net.rithms.riot.api.RiotApiException;
@@ -47,6 +50,8 @@ public class CachedRiotApi {
   public static final int RIOT_API_TFT_HUGE_LIMIT = 30000;
   public static final Duration RIOT_API_HUGE_TIME = Duration.ofMinutes(10);
 
+  private static Map<Platform, List<ClashTournament>> tournamentCache = Collections.synchronizedMap(new EnumMap<Platform, List<ClashTournament>>(Platform.class));
+  
   private static final Logger logger = LoggerFactory.getLogger(CachedRiotApi.class);
 
   private static LocalDateTime lastReset = LocalDateTime.now();
@@ -381,44 +386,73 @@ public class CachedRiotApi {
     return gameInfo;
   }
   
-  public List<ClashTournament> getClashTournaments(Platform platform) throws RiotApiException {
-    return riotApi.getClashTournaments(platform);
+  public List<ClashTournament> getClashTournamentsWithRateLimit(Platform platform) throws RiotApiException {
+    
+    List<ClashTournament> clashTournaments = tournamentCache.get(platform);
+    
+    if(clashTournaments != null) {
+      return clashTournaments;
+    }else {
+      refreshClashTournaments();
+      return tournamentCache.get(platform);
+    }
   }
   
-  public ClashTournament getClashTournamentById(Platform platform, String tournamentId) {
-    ClashTournament tournament = null;
-
-    boolean needToRetry;
-    do {
-      currentGameInfoRequestCount.incrementAndGet();
-      increaseCallCountForGivenRegion(platform);
-      
-      needToRetry = true;
-      try {
-        tournament = riotApi.getClashTournamentByTournament(platform, tournamentId);
-        needToRetry = false;
-      }catch(RateLimitException e) {
-        try {
-          if(e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10) {
-            return tournament;
-          }
-          logger.info("Waiting rate limit ({} sec) to retry when getting clash tournament", e.getRetryAfter());
-          TimeUnit.SECONDS.sleep(e.getRetryAfter());
-        } catch (InterruptedException e1) {
-          logger.error("Thread Interupted when waiting the rate limit !", e1);
-          Thread.currentThread().interrupt();
-        }
-      } catch (RiotApiException e) {
-        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
-          return tournament;
-        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
-          logger.warn("Bad request received from Riot Api!", e);
-          return tournament;
-        }
-      }
-    }while(needToRetry);
+  public void refreshClashTournaments() {
     
-    return tournament;
+    for(Platform platform : Platform.values()) {
+
+      boolean needToRetry;
+      do {
+        increaseCallCountForGivenRegion(platform);
+        
+        needToRetry = true;
+        try {
+          List<ClashTournament> clashTournaments = riotApi.getClashTournaments(platform);
+          tournamentCache.put(platform, clashTournaments);
+          
+          needToRetry = false;
+        }catch(RateLimitException e) {
+          try {
+            if(e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10) {
+              break;
+            }
+            logger.info("Waiting rate limit ({} sec) to retry when getting clash tournament", e.getRetryAfter());
+            TimeUnit.SECONDS.sleep(e.getRetryAfter());
+          } catch (InterruptedException e1) {
+            logger.error("Thread Interupted when waiting the rate limit !", e1);
+            Thread.currentThread().interrupt();
+          }
+        } catch (RiotApiException e) {
+          if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+            break;
+          }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
+            logger.warn("Bad request received from Riot Api!", e);
+            break;
+          }
+        }
+      }while(needToRetry);
+    }
+    
+  }
+  
+  public ClashTournament getClashTournamentById(Platform platform, int tournamentId) {
+    
+    List<ClashTournament> clashTournaments = tournamentCache.get(platform);
+    
+    if(clashTournaments == null) {
+      refreshClashTournaments();
+      
+      clashTournaments = tournamentCache.get(platform);
+    }
+    
+    for(ClashTournament clashTournament : clashTournaments) {
+      if(clashTournament.getId() == tournamentId) {
+        return clashTournament;
+      }
+    }
+    
+    return null;
   }
   
   public ClashTeam getClashTeamByTeamIdWithRateLimit(Platform platform, String teamId) throws RiotApiException {
@@ -703,8 +737,19 @@ public class CachedRiotApi {
     return masterys;
   }
 
-  public Match getMatchWithRateLimit(Platform server, long gameId) {
-    Match match = null;
+  public SavedMatch getMatchWithRateLimit(Platform server, long gameId) {
+    SavedMatch match = null;
+    
+    try {
+      MatchCache matchCache = getCachedMatch(server, gameId);
+      
+      if(matchCache != null) {
+        return matchCache.mCatch_savedMatch;
+      }
+    } catch (SQLException e) {
+      logger.warn("Error while getting cached match", e);
+    }
+    
     boolean needToRetry;
     do {
       apiMatchRequestCount.incrementAndGet();
@@ -713,8 +758,14 @@ public class CachedRiotApi {
       needToRetry = true;
       try {
         increaseCallCountForGivenRegion(server);
-        match = riotApi.getMatch(server, gameId);
+        Match completeMatch = riotApi.getMatch(server, gameId);
+        if(completeMatch == null) {
+          return null;
+        }
+        
+        match = new SavedMatch(completeMatch);
         needToRetry = false;
+        SavedMatchCacheRepository.createMatchCache(gameId, server, completeMatch);
       }catch(RateLimitException e) {
         try {
           if(e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10) {
@@ -733,6 +784,8 @@ public class CachedRiotApi {
           logger.warn("Bad request received from Riot Api!", e);
           return null;
         }
+      } catch (SQLException e) {
+        logger.info("Error while creating match inside the catch, the result is anyway returned", e);
       }
     }while(needToRetry);
     

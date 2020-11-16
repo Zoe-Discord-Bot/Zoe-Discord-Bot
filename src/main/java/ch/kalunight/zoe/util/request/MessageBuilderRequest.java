@@ -19,11 +19,13 @@ import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.stats.StatsProfileCommand;
 import ch.kalunight.zoe.exception.NoValueRankException;
+import ch.kalunight.zoe.exception.PlayerNotFoundException;
 import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.InfocardPlayerData;
 import ch.kalunight.zoe.model.PlayerRankedResult;
 import ch.kalunight.zoe.model.RankedChangeType;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.SavedMatch;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Player;
 import ch.kalunight.zoe.model.player_data.FullTier;
@@ -47,7 +49,6 @@ import net.rithms.riot.api.endpoints.league.dto.MiniSeries;
 import net.rithms.riot.api.endpoints.match.dto.Match;
 import net.rithms.riot.api.endpoints.match.dto.MatchList;
 import net.rithms.riot.api.endpoints.match.dto.MatchReference;
-import net.rithms.riot.api.endpoints.match.dto.Participant;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
@@ -72,35 +73,27 @@ public class MessageBuilderRequest {
   public static PlayerRankedResult getMatchDataMutiplePlayers(LeagueEntry oldEntry, LeagueEntry newEntry, 
       CurrentGameInfo gameOfTheChange, LeagueAccount leagueAccount, String lang, RankedChangeType changeType) {
 
-    Match match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
+    SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
     String accountTitle = null;
     String changeStats = null;
     String statsGame = null;
 
     FullTier oldFullTier = new FullTier(oldEntry);
     FullTier newFullTier = new FullTier(newEntry);
-    
+
     switch(changeType) {
     case BO_CHANGE:
       MiniSeries oldBo = oldEntry.getMiniSeries();
       MiniSeries newBo = newEntry.getMiniSeries();
-      
-      Participant participant = match.getParticipantBySummonerId(leagueAccount.leagueAccount_summonerId);
-      String winAgain = match.getTeamByTeamId(participant.getTeamId()).getWin();
 
-      boolean win = winAgain.equalsIgnoreCase("Win");
-
-      if(win) {
+      if(match.isGivenAccountWinner(leagueAccount.leagueAccount_accoundId)) {
         accountTitle = String.format(LanguageManager.getText(lang, "rankChannelChangeBOProgressWinTitleWithoutGameType"),
             leagueAccount.leagueAccount_name, oldBo.getProgress().length(),
             oldFullTier.getHeigerDivision().toStringWithoutLp(lang));
-      }else if(winAgain.equalsIgnoreCase("Fail")) {
+      }else {
         accountTitle = String.format(LanguageManager.getText(lang, "rankChannelChangeBOProgressLooseTitleWithoutGameType"),
             leagueAccount.leagueAccount_name, oldBo.getProgress().length(),
             oldFullTier.getHeigerDivision().toStringWithoutLp(lang));
-      }else {
-        logger.info("A game in rank channel generation message has been canceled");
-        return null;
       }
 
       changeStats = MessageBuilderRequestUtil.getBoStatus(newBo, lang);
@@ -114,7 +107,7 @@ public class MessageBuilderRequest {
       }else {
         boWin = false;
       }
-      
+
       if(!boWin) {
         accountTitle = String.format(LanguageManager.getText(lang, "rankChannelChangeBOEndedLooseTitleWithoutGameType"),
             leagueAccount.leagueAccount_name, bo.getProgress().length(), oldFullTier.getHeigerDivision().toStringWithoutLp(lang));
@@ -193,7 +186,7 @@ public class MessageBuilderRequest {
 
     return new PlayerRankedResult(gameOfTheChange.getGameId(), leagueAccount.leagueAccount_server, accountTitle, changeStats, statsGame);
   }
-  
+
   public static MessageEmbed createCombinedMessage(List<PlayerRankedResult> playersRankedResult, CurrentGameInfo currentGameInfo, String lang) {
 
     EmbedBuilder message = new EmbedBuilder();
@@ -214,11 +207,11 @@ public class MessageBuilderRequest {
 
     return message.build();
   }
-  
+
   public static MessageEmbed createRankChannelCardBoStarted(LeagueEntry newEntry, 
       CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang) {
 
-    Match match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
+    SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
 
     EmbedBuilder message = new EmbedBuilder();
 
@@ -254,7 +247,7 @@ public class MessageBuilderRequest {
   public static MessageEmbed createRankChannelBoInProgress(LeagueEntry oldEntry, LeagueEntry newEntry, 
       CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang) {
 
-    Match match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
+    SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
 
     EmbedBuilder message = new EmbedBuilder();
 
@@ -266,24 +259,20 @@ public class MessageBuilderRequest {
     User user = player.getUser();
     message.setAuthor(user.getName(), null, user.getAvatarUrl());
 
-    Participant participant = match.getParticipantBySummonerId(leagueAccount.leagueAccount_summonerId);
-    String winAgain = match.getTeamByTeamId(participant.getTeamId()).getWin();
-
     FullTier oldFullTier = new FullTier(oldEntry);
-
-    boolean win = winAgain.equalsIgnoreCase("Win");
-
-    if(win) {
-      message.setColor(Color.GREEN);
-      message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeBOProgressWinTitle"),
-          leagueAccount.leagueAccount_name, oldBo.getProgress().length(),
-          oldFullTier.getHeigerDivision().toStringWithoutLp(lang), gameType));
-    }else if(winAgain.equalsIgnoreCase("Fail")) {
-      message.setColor(Color.RED);
-      message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeBOProgressLooseTitle"),
-          leagueAccount.leagueAccount_name, oldBo.getProgress().length(),
-          oldFullTier.getHeigerDivision().toStringWithoutLp(lang), gameType));
-    }else {
+    try {
+      if(match.isGivenAccountWinner(leagueAccount.leagueAccount_accoundId)) {
+        message.setColor(Color.GREEN);
+        message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeBOProgressWinTitle"),
+            leagueAccount.leagueAccount_name, oldBo.getProgress().length(),
+            oldFullTier.getHeigerDivision().toStringWithoutLp(lang), gameType));
+      }else {
+        message.setColor(Color.RED);
+        message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeBOProgressLooseTitle"),
+            leagueAccount.leagueAccount_name, oldBo.getProgress().length(),
+            oldFullTier.getHeigerDivision().toStringWithoutLp(lang), gameType));
+      }
+    }catch(PlayerNotFoundException e) {
       logger.info("A game in rank channel generation message has been canceled");
       return null;
     }
@@ -305,9 +294,9 @@ public class MessageBuilderRequest {
   }
 
   public static MessageEmbed createRankChannelCardBoEnded(LeagueEntry oldEntry, LeagueEntry newEntry, 
-      CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang) throws NoValueRankException {
+      CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang) {
 
-    Match match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
+    SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
 
     EmbedBuilder message = new EmbedBuilder();
 
@@ -356,7 +345,7 @@ public class MessageBuilderRequest {
   public static MessageEmbed createRankChannelCardLeagueChange(LeagueEntry oldEntry, LeagueEntry newEntry, 
       CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang) {
 
-    Match match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
+    SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
 
     EmbedBuilder message = new EmbedBuilder();
 
@@ -422,7 +411,7 @@ public class MessageBuilderRequest {
   public static MessageEmbed createRankChannelCardLeaguePointChangeOnly(LeagueEntry oldEntry, LeagueEntry newEntry, 
       CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang) {
 
-    Match match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
+    SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
 
     EmbedBuilder message = new EmbedBuilder();
 
@@ -629,7 +618,7 @@ public class MessageBuilderRequest {
       stringBuilder.append(champion.getDisplayName() + " " + champion.getName() + " - **" 
           + MessageBuilderRequestUtil.getMasteryUnit(championMastery.getChampionPoints()) +"**\n");
     }
-    
+
     if(threeBestchampionMasteries.isEmpty()) {
       stringBuilder.append("*" + LanguageManager.getText(language, "empty") + "*");
     }
@@ -644,10 +633,10 @@ public class MessageBuilderRequest {
 
     for(ChampionMastery championMastery : masteries) {
       switch(championMastery.getChampionLevel()) {
-        case 5: nbrMastery5++; break;
-        case 6: nbrMastery6++; break;
-        case 7: nbrMastery7++; break;
-        default: break;
+      case 5: nbrMastery5++; break;
+      case 6: nbrMastery6++; break;
+      case 7: nbrMastery7++; break;
+      default: break;
       }
       totalNbrMasteries += championMastery.getChampionPoints();
     }

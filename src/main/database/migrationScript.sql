@@ -34,3 +34,28 @@ ALTER TABLE ONLY clash_channel
 ALTER TABLE clash_channel
   ADD CONSTRAINT clash_channel_fk_server_const
   FOREIGN KEY (clash_channel_fk_server) REFERENCES server (serv_id);
+  
+CREATE TABLE summoner_cache (
+  sumCache_id									SERIAL,
+  sumCache_summonerId							VARCHAR				NOT NULL,
+  sumCache_tftSummonerId						VARCHAR				NOT NULL,
+  sumCache_server								VARCHAR				NOT NULL,
+  sumCache_name									VARCHAR,
+  sumCache_level								BIGINT,
+  sumCache_masteries							json
+);
+
+ALTER TABLE ONLY summoner_cache
+  ADD CONSTRAINT sumCache_id_pkey PRIMARY KEY (sumCache_id);
+  
+ALTER TABLE summoner_cache
+  ADD UNIQUE (sumCache_summonerId, sumCache_tftSummonerId, sumCache_server);
+
+CREATE INDEX idx_summoner_cache_summonerId
+  ON summoner_cache(sumCache_summonerId);
+
+CREATE INDEX idx_sumCache_cache_tftSummonerId
+  ON summoner_cache(sumCache_tftSummonerId);
+  
+CREATE INDEX idx_sumCache_cache_server
+  ON summoner_cache(sumCache_server);

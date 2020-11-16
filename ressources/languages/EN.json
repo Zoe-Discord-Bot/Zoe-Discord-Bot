@@ -438,5 +438,10 @@
 	"clashChannelDeletionBecauseOfLeagueAccountDeletion" : "The account linked to this channel has been deleted. I will no longer refresh this clash channel from now.",
 	"clashChannelTitle" : "Clash Channel for the account %s (%s)",
 	"clashChannelLeagueAccountNotInGame" : "The selected League Account is not in a Clash Team.",
-	"clashChannelBottomNotInClashTeamMesssage": "Refreshed every hour. You can refresh it with the command ``>clash refresh``. All messages sended in this channel will be deleted."
+	"clashChannelBottomNotInClashTeamMesssage": "Refreshed every hour. You can refresh it with the command ``>clash refresh``. All messages sended in this channel will be deleted.",
+	"clashChannelClashTournamentError": "Error with the riot server",
+	"clashChannelClashTournamentNotAvailable": "No clash tournament available",
+	"clashChannelClashTournamentUpcoming": "**Upcoming Tournament :**",
+	"clashChannelClashTournamentUpcomingInfo" : "%s of the %s %s",
+	"clashChannelClashTournamentBasicName" : "Clash Tournament"
 }

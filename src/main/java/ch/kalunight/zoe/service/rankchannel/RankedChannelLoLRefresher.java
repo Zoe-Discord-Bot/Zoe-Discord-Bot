@@ -8,10 +8,10 @@ import java.util.Map;
 import org.apache.commons.collections4.map.HashedMap;
 
 import ch.kalunight.zoe.Zoe;
-import ch.kalunight.zoe.exception.NoValueRankException;
 import ch.kalunight.zoe.model.GameAccessDataServerSpecific;
 import ch.kalunight.zoe.model.PlayerRankedResult;
 import ch.kalunight.zoe.model.RankedChangeType;
+import ch.kalunight.zoe.model.dto.SavedMatch;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Player;
 import ch.kalunight.zoe.model.dto.DTO.RankHistoryChannel;
@@ -20,7 +20,6 @@ import ch.kalunight.zoe.util.request.MessageBuilderRequest;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
-import net.rithms.riot.api.endpoints.match.dto.Match;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 
 public class RankedChannelLoLRefresher extends RankedChannelBaseRefresher {
@@ -29,7 +28,7 @@ public class RankedChannelLoLRefresher extends RankedChannelBaseRefresher {
 
   private static final Map<GameAccessDataServerSpecific, List<PlayerRankedResult>> matchsWaitingToComplete = Collections.synchronizedMap(new HashedMap<GameAccessDataServerSpecific, List<PlayerRankedResult>>());
 
-  private static final Map<GameAccessDataServerSpecific, Match> listCachedMatchs = Collections.synchronizedMap(new HashedMap<GameAccessDataServerSpecific, Match>());
+  private static final Map<GameAccessDataServerSpecific, SavedMatch> listCachedMatchs = Collections.synchronizedMap(new HashedMap<GameAccessDataServerSpecific, SavedMatch>());
 
   private CurrentGameInfo gameOfTheChange;
 
@@ -85,7 +84,7 @@ public class RankedChannelLoLRefresher extends RankedChannelBaseRefresher {
         leagueAccounts = Collections.synchronizedList(new ArrayList<>());
         leagueAccounts.add(leagueAccount);
         matchsToTreat.put(gameAccessData, leagueAccounts);
-        Match match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameAccessData.getGameId());
+        SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameAccessData.getGameId());
         listCachedMatchs.put(gameAccessData, match);
       }
     }
@@ -124,14 +123,9 @@ public class RankedChannelLoLRefresher extends RankedChannelBaseRefresher {
       message = treatMultiplePlayerResponse.getMessageEmbed();
     }
 
-    try {
-      if(message == null) {
-        message = MessageBuilderRequest.createRankChannelCardBoEnded(oldEntry, newEntry, gameOfTheChange,
-            player, leagueAccount, server.serv_language);
-      }
-    } catch(NoValueRankException e) {
-      logger.error("Error when creating Rank Message", e);
-      return;
+    if(message == null) {
+      message = MessageBuilderRequest.createRankChannelCardBoEnded(oldEntry, newEntry, gameOfTheChange,
+          player, leagueAccount, server.serv_language);
     }
 
     TextChannel textChannelWhereSend = Zoe.getJda().getTextChannelById(rankChannel.rhChannel_channelId);

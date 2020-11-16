@@ -38,7 +38,7 @@ import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.constant.Platform;
 
 public class RiotRequest {
-
+  
   private static final Logger logger = LoggerFactory.getLogger(RiotRequest.class);
 
   private static final DecimalFormat df = new DecimalFormat("###.#");

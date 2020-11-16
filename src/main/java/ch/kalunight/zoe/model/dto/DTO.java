@@ -7,13 +7,16 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.TimeZone;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.service.analysis.ChampionRole;
 import net.dv8tion.jda.api.entities.User;
+import net.rithms.riot.api.endpoints.champion_mastery.dto.ChampionMastery;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.api.endpoints.tft_league.dto.TFTLeagueEntry;
@@ -126,14 +129,14 @@ public class DTO {
     public long clashChannel_fk_server;
     public long clashChannel_channelId;
     public ClashTeamData clashChannel_data;
-    public String clashChannel_timezone;
+    public TimeZone clashChannel_timezone;
     
     public ClashChannel(ResultSet baseData) throws SQLException {
       clashChannel_id = baseData.getLong("clashChannel_id");
       clashChannel_fk_server = baseData.getLong("clashChannel_fk_server");
       clashChannel_channelId = baseData.getLong("clashChannel_channelId");
       clashChannel_data = gson.fromJson(baseData.getString("clashChannel_data"), ClashTeamData.class);
-      clashChannel_timezone = baseData.getString("clashChannel_timezone");
+      clashChannel_timezone = TimeZone.getTimeZone(baseData.getString("clashChannel_timezone"));
     }
   }
 
@@ -387,6 +390,26 @@ public class DTO {
       banAcc_server = Platform.getPlatformByName(baseData.getString("banAcc_server"));
     }
     
+  }
+  
+  public static class SummonerCache {
+    public long sumCache_id;
+    public String sumCache_summonerId;
+    public String sumCache_tftSummonerId;
+    public Platform sumCache_server;
+    public String sumCache_name;
+    public long sumCache_level;
+    public List<ChampionMastery> sumCache_masteries;
+    
+    public SummonerCache(ResultSet baseData) throws SQLException {
+      sumCache_id = baseData.getLong("sumCache_id");
+      sumCache_summonerId = baseData.getString("sumCache_summonerId");
+      sumCache_tftSummonerId = baseData.getString("sumCache_tftSummonerId");
+      sumCache_server = Platform.getPlatformByName(baseData.getString("sumCache_server"));
+      sumCache_name = baseData.getString("sumCache_name");
+      sumCache_level = baseData.getLong("sumCache_level");
+      sumCache_masteries = gson.fromJson(baseData.getString("sumCache_level"), new TypeToken<List<ChampionMastery>>(){}.getType());
+    }
   }
   
   public static class LastRank {

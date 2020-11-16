@@ -120,6 +120,32 @@ public class TreatClashChannel implements Runnable {
     
     messageBuilder.append(LanguageManager.getText(server.serv_language, "clashChannelLeagueAccountNotInGame") + "\n\n");
     
+    List<ClashTournament> nextTournaments = null;
+    try {
+      nextTournaments = Zoe.getRiotApi().getClashTournamentsWithRateLimit(leagueAccount.leagueAccount_server);
+      
+      if(nextTournaments == null || nextTournaments.isEmpty()) {
+        messageBuilder.append(LanguageManager.getText(server.serv_language, "clashChannelClashTournamentNotAvailable") + "\n\n");
+      }else {
+        messageBuilder.append(LanguageManager.getText(server.serv_language, "clashChannelClashTournamentUpcoming") + "\n");
+        
+        String tournamentBasicName = LanguageManager.getText(server.serv_language, "clashChannelClashTournamentBasicName");
+        
+        for(ClashTournament clashTournament : nextTournaments) {
+          List<ClashTournamentPhase> phases = clashTournament.getSchedule();
+          
+         
+          
+          messageBuilder.append(String.format(LanguageManager.getText(server.serv_language, "clashChannelClashTournamentUpcomingInfo"), tournamentBasicName)); //Suite implementation timeZone
+        }
+      }
+      
+    } catch (RiotApiException e) {
+      logger.warn("Impossible to access to riot server !", e);
+      
+      messageBuilder.append(LanguageManager.getText(server.serv_language, "clashChannelClashTournamentError") + "\n\n");
+    }
+    
     messageBuilder.append("**" + LanguageManager.getText(server.serv_language, "clashChannelBottomNotInClashTeamMesssage") + "**");
     
     editOrCreateTheseMessages(clashMessageManager.getInfoMessagesId(), messageBuilder.toString());
@@ -223,7 +249,7 @@ public class TreatClashChannel implements Runnable {
     for(ClashTeamMember clashPlayer : clashPlayerRegistrations) {
       ClashTeam team = Zoe.getRiotApi().getClashTeamByTeamIdWithRateLimit(platform, clashPlayer.getTeamId());
 
-      ClashTournament tournamentToCheck = Zoe.getRiotApi().getClashTournamentById(platform, team.getTournamentId());
+      ClashTournament tournamentToCheck = Zoe.getRiotApi().getClashTournamentById(platform, team.getTournamentIdInt());
 
       if(teamRegistration == null || teamRegistration.tournament.getSchedule().get(0).getStartTime().isAfter(tournamentToCheck.getSchedule().get(0).getStartTime())) {
         teamRegistration = new ClashTeamRegistration(tournamentToCheck, team);

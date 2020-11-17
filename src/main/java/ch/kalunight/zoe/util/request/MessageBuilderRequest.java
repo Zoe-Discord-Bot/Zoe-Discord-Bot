@@ -26,6 +26,7 @@ import ch.kalunight.zoe.model.PlayerRankedResult;
 import ch.kalunight.zoe.model.RankedChangeType;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.SavedMatch;
+import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Player;
 import ch.kalunight.zoe.model.player_data.FullTier;
@@ -46,12 +47,10 @@ import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.champion_mastery.dto.ChampionMastery;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 import net.rithms.riot.api.endpoints.league.dto.MiniSeries;
-import net.rithms.riot.api.endpoints.match.dto.Match;
 import net.rithms.riot.api.endpoints.match.dto.MatchList;
 import net.rithms.riot.api.endpoints.match.dto.MatchReference;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
-import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.api.endpoints.tft_league.dto.TFTLeagueEntry;
 import net.rithms.riot.api.endpoints.tft_match.dto.TFTMatch;
 import net.rithms.riot.constant.Platform;
@@ -598,15 +597,15 @@ public class MessageBuilderRequest {
 
     EmbedBuilder message = new EmbedBuilder();
 
-    Summoner summoner = Zoe.getRiotApi().getSummoner(leagueAccount.leagueAccount_server,
+    SavedSummoner summoner = Zoe.getRiotApi().getSummoner(leagueAccount.leagueAccount_server,
         leagueAccount.leagueAccount_summonerId);
 
     if(player != null) {
       message.setTitle(String.format(LanguageManager.getText(language, "statsProfileTitle"),
-          player.getUser().getName(), summoner.getName(), summoner.getSummonerLevel()));
+          player.getUser().getName(), summoner.getName(), summoner.getLevel()));
     }else {
       message.setTitle(String.format(LanguageManager.getText(language, "statsProfileTitle"),
-          leagueAccount.leagueAccount_name, summoner.getName(), summoner.getSummonerLevel()));
+          leagueAccount.leagueAccount_name, summoner.getName(), summoner.getLevel()));
     }
 
     List<ChampionMastery> threeBestchampionMasteries = StatsProfileCommand.getBestMasteries(masteries, 3);
@@ -677,7 +676,7 @@ public class MessageBuilderRequest {
     if(matchList != null) {
       List<MatchReference> matchsReference = matchList.getMatches();
 
-      List<Match> threeMostRecentMatch = new ArrayList<>();
+      List<SavedMatch> threeMostRecentMatch = new ArrayList<>();
 
       if(matchsReference.size() < 3) {
         for(MatchReference matchReference : matchsReference) {
@@ -710,11 +709,11 @@ public class MessageBuilderRequest {
 
       if(!threeMostRecentMatch.isEmpty()) {
         String unknownTranslated = LanguageManager.getText(language, "unknown");
-        for(Match match : threeMostRecentMatch) {
+        for(SavedMatch match : threeMostRecentMatch) {
           LocalDateTime matchTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(match.getGameCreation()), ZoneId.ofOffset("UTC", ZoneOffset.UTC));
           Champion champion = new Champion(-1, unknownTranslated, unknownTranslated, null);
           try {
-            champion = Ressources.getChampionDataById(match.getParticipantBySummonerId(leagueAccount.leagueAccount_summonerId).getChampionId());
+            champion = Ressources.getChampionDataById(match.getSavedMatchPlayerByAccountId(leagueAccount.leagueAccount_accoundId).getChampionId());
           }catch(NullPointerException e) {
             logger.debug("Data errored, can't detect champion");
           }

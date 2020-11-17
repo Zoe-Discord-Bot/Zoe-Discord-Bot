@@ -5,11 +5,12 @@ import java.sql.SQLException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.SavedMatch;
 import ch.kalunight.zoe.repositories.SavedMatchCacheRepository;
 import ch.kalunight.zoe.service.CleanCacheService;
-import net.rithms.riot.api.endpoints.match.dto.Match;
 import net.rithms.riot.constant.Platform;
 
 public class CacheManager {
@@ -50,12 +51,12 @@ public class CacheManager {
    return SavedMatchCacheRepository.getMatch(gameid, platform);
   }
   
-  public static void createCacheMatch(Platform platform, Match match) throws SQLException {
+  public static void createCacheMatch(Platform platform, long gameId, SavedMatch match) throws SQLException {
     if(!CachedRiotApi.CACHE_ENABLE) {
       return;
     }
     
-    SavedMatchCacheRepository.createMatchCache(match.getGameId(), platform, match);
+    SavedMatchCacheRepository.createMatchCache(gameId, platform, match);
   }
 
 }

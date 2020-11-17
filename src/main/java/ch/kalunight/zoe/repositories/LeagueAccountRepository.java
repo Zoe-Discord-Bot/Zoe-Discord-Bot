@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.List;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.SavedSummoner;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.api.endpoints.tft_summoner.dto.TFTSummoner;
@@ -382,7 +383,7 @@ public class LeagueAccountRepository {
 
       for(DTO.LeagueAccount account : getLeaguesAccounts(guildId, discordPlayerId)) {
         if(account.leagueAccount_server.equals(region)) {
-          Summoner summoner = Zoe.getRiotApi().getSummoner(region, account.leagueAccount_summonerId);
+          SavedSummoner summoner = Zoe.getRiotApi().getSummoner(region, account.leagueAccount_summonerId);
           if(summoner.getName().equals(summonerName)) {
             return account;
           }

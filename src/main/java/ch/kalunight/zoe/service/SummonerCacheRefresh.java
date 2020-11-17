@@ -6,10 +6,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import net.dv8tion.jda.api.entities.Guild;
 import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 
 public class SummonerCacheRefresh implements Runnable {
 
@@ -37,7 +37,7 @@ public class SummonerCacheRefresh implements Runnable {
 
   private void refreshAccountName(DTO.LeagueAccount account) throws SQLException {
     try {
-      Summoner summoner = 
+      SavedSummoner summoner = 
           Zoe.getRiotApi().getSummoner(account.leagueAccount_server, account.leagueAccount_summonerId);
       LeagueAccountRepository.updateAccountNameWithAccountId(account.leagueAccount_id, summoner.getName());
     }catch(RiotApiException e) {

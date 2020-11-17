@@ -12,6 +12,7 @@ import com.jagrosh.jdautilities.menu.Paginator;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
@@ -22,7 +23,6 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 
 public class ShowPlayerCommand extends ZoeCommand {
 
@@ -86,7 +86,7 @@ public class ShowPlayerCommand extends ZoeCommand {
       }
       accountsNmb += leagueAccounts.size();
       for(DTO.LeagueAccount leagueAccount : leagueAccounts) {
-        Summoner summoner;
+        SavedSummoner summoner;
         try {
           summoner = Zoe.getRiotApi().getSummoner(leagueAccount.leagueAccount_server,
               leagueAccount.leagueAccount_summonerId);

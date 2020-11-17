@@ -15,7 +15,6 @@ import com.google.gson.GsonBuilder;
 
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.SavedMatch;
-import net.rithms.riot.api.endpoints.match.dto.Match;
 import net.rithms.riot.constant.Platform;
 
 public class SavedMatchCacheRepository {
@@ -96,15 +95,13 @@ public class SavedMatchCacheRepository {
     }
   }
   
-  public static void createMatchCache(long gameId, Platform server, Match match) throws SQLException {
+  public static void createMatchCache(long gameId, Platform server, SavedMatch match) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
-
-      SavedMatch savedMatch = new SavedMatch(match);
       
       LocalDateTime creationTime = Instant.ofEpochMilli(match.getGameCreation()).atZone(ZoneId.systemDefault()).toLocalDateTime();
       
-      String finalQuery = String.format(INSERT_MATCH_CATCH, gameId, server.getName(), gson.toJson(savedMatch), DTO.DB_TIME_PATTERN.format(creationTime));
+      String finalQuery = String.format(INSERT_MATCH_CATCH, gameId, server.getName(), gson.toJson(match), DTO.DB_TIME_PATTERN.format(creationTime));
       query.execute(finalQuery);
     }
   }

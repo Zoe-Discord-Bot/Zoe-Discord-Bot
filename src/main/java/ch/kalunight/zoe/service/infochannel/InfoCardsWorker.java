@@ -55,8 +55,7 @@ public class InfoCardsWorker implements Runnable {
               .getSummonerWithRateLimit(account.leagueAccount_server, account.leagueAccount_summonerId);
         }
         
-        logger.info("Start generate infocards for the account " + account.summoner.getName() 
-        + " (" + account.leagueAccount_server.getName() + ")");
+        logger.info("Start generate infocards for the account {} ({})", account.summoner.getName(),  account.leagueAccount_server.getName());
 
         Stopwatch stopWatch = Stopwatch.createStarted();
         generateInfoCard(account, currentGameInfo);

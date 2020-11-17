@@ -11,12 +11,9 @@ import java.util.TimeZone;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
-
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.service.analysis.ChampionRole;
 import net.dv8tion.jda.api.entities.User;
-import net.rithms.riot.api.endpoints.champion_mastery.dto.ChampionMastery;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.api.endpoints.tft_league.dto.TFTLeagueEntry;
@@ -169,6 +166,9 @@ public class DTO {
     public long leagueAccount_fk_player;
     public long leagueAccount_fk_gamecard;
     public long leagueAccount_fk_currentgame;
+    /**
+     * @deprecated we now get this data inside {@link SummonerCache}
+     */
     public String leagueAccount_name;
     public String leagueAccount_summonerId;
     public String leagueAccount_accoundId;
@@ -177,7 +177,7 @@ public class DTO {
     public String leagueAccount_tftAccountId;
     public String leagueAccount_tftPuuid;
     public Platform leagueAccount_server;
-    public Summoner summoner;
+    public SavedSummoner summoner;
 
     public LeagueAccount(ResultSet baseData) throws SQLException {
       leagueAccount_id = baseData.getLong("leagueAccount_id");
@@ -397,18 +397,28 @@ public class DTO {
     public String sumCache_summonerId;
     public String sumCache_tftSummonerId;
     public Platform sumCache_server;
-    public String sumCache_name;
-    public long sumCache_level;
-    public List<ChampionMastery> sumCache_masteries;
+    public SavedSummoner sumCache_data;
     
     public SummonerCache(ResultSet baseData) throws SQLException {
       sumCache_id = baseData.getLong("sumCache_id");
       sumCache_summonerId = baseData.getString("sumCache_summonerId");
       sumCache_tftSummonerId = baseData.getString("sumCache_tftSummonerId");
       sumCache_server = Platform.getPlatformByName(baseData.getString("sumCache_server"));
-      sumCache_name = baseData.getString("sumCache_name");
-      sumCache_level = baseData.getLong("sumCache_level");
-      sumCache_masteries = gson.fromJson(baseData.getString("sumCache_level"), new TypeToken<List<ChampionMastery>>(){}.getType());
+      sumCache_data = gson.fromJson(baseData.getString("sumCache_data"), SavedSummoner.class);
+    }
+  }
+  
+  public static class ChampionMasteryCache {
+    public long champMasCache_id;
+    public String champMasCache_summonerId;
+    public Platform champMasCache_server;
+    public SavedChampionMastery champMasCache_data;
+    
+    public ChampionMasteryCache(ResultSet baseData) throws SQLException {
+      champMasCache_id = baseData.getLong("champMasCache_id");
+      champMasCache_summonerId = baseData.getString("champMasCache_summonerId");
+      champMasCache_server = Platform.getPlatformByName(baseData.getString("champMasCache_server"));
+      champMasCache_data = gson.fromJson(baseData.getString("champMasCache_data"), SavedChampionMastery.class);
     }
   }
   

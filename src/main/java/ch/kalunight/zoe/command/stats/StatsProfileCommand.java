@@ -30,6 +30,7 @@ import ch.kalunight.zoe.command.create.CreatePlayerCommand;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.config.option.RegionOption;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.static_data.Champion;
@@ -139,7 +140,7 @@ public class StatsProfileCommand extends ZoeCommand {
     }else if(accounts.isEmpty()) {
       event.reply(LanguageManager.getText(server.serv_language, "statsProfileNeedARegisteredAccount"));
     }else {
-      Summoner summoner;
+      SavedSummoner summoner;
 
       SelectionDialog.Builder selectAccountBuilder = new SelectionDialog.Builder()
           .setEventWaiter(waiter)
@@ -167,7 +168,7 @@ public class StatsProfileCommand extends ZoeCommand {
         selectAccountBuilder.addChoices(String.format(LanguageManager.getText(server.serv_language, "showPlayerAccount"),
             summoner.getName(),
             choiceAccount.leagueAccount_server.getName().toUpperCase(),
-            RiotRequest.getSoloqRank(summoner.getId(), choiceAccount.leagueAccount_server).toString(server.serv_language)));
+            RiotRequest.getSoloqRank(choiceAccount.leagueAccount_summonerId, choiceAccount.leagueAccount_server).toString(server.serv_language)));
         accountsName.add(summoner.getName());
       }
 
@@ -235,7 +236,7 @@ public class StatsProfileCommand extends ZoeCommand {
 
         selectionMessage.clearReactions().queue();
 
-        Summoner summoner;
+        SavedSummoner summoner;
         try {
           summoner = Zoe.getRiotApi().getSummoner(account.leagueAccount_server,
               account.leagueAccount_summonerId);

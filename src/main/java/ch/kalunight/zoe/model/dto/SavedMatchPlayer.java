@@ -1,10 +1,8 @@
 package ch.kalunight.zoe.model.dto;
 
 import java.io.Serializable;
-import com.google.common.util.concurrent.AtomicDouble;
 
 import net.rithms.riot.api.endpoints.match.dto.ParticipantStats;
-import net.rithms.riot.api.endpoints.match.dto.ParticipantTimeline;
 
 public class SavedMatchPlayer implements Serializable {
 
@@ -21,7 +19,7 @@ public class SavedMatchPlayer implements Serializable {
   private String role;
   private String lane;
   
-  public SavedMatchPlayer(boolean blueSide, String accountId, int championId, ParticipantStats participantStats, ParticipantTimeline timeline, String role, String lane) {
+  public SavedMatchPlayer(boolean blueSide, String accountId, int championId, ParticipantStats participantStats, String role, String lane) {
     this.blueSide = blueSide;
     this.accountId = accountId;
     this.championId = championId;

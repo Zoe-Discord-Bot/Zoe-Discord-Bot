@@ -23,6 +23,8 @@ public class SavedMatch implements Serializable {
 
   private String gameVersion;
 
+  private long gameCreation;
+  
   /**
    * Match duration in seconds.
    */
@@ -34,6 +36,7 @@ public class SavedMatch implements Serializable {
     queueId = match.getQueueId();
     gameVersion = match.getGameVersion();
     gameDurations = match.getGameDuration();
+    gameCreation = match.getGameCreation();
 
     players = new ArrayList<>();
 
@@ -74,7 +77,7 @@ public class SavedMatch implements Serializable {
       }
 
       SavedMatchPlayer savedPlayer = new SavedMatchPlayer(blueSide, player.getAccountId(), participant.getChampionId(),
-          participant.getStats(), participant.getTimeline(), role, lane);
+          participant.getStats(), role, lane);
 
       players.add(savedPlayer);
     }
@@ -109,6 +112,10 @@ public class SavedMatch implements Serializable {
     }
 
     throw new PlayerNotFoundException("Impossible to give a winner in the game since the player is not in the game");
+  }
+
+  public long getGameCreation() {
+    return gameCreation;
   }
 
   public long getGameDurations() {

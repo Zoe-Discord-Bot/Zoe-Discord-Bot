@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.google.common.base.Preconditions;
+
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
@@ -28,10 +29,10 @@ public class InfoPanelRefresherUtil {
   public static String getCurrentGameInfoStringForOneAccount(DTO.LeagueAccount account,
       CurrentGameInfo currentGameInfo, String language) {
     Preconditions.checkNotNull(account);
-
+    
     String gameStatus = LanguageManager.getText(language, 
         NameConversion.convertGameQueueIdToString(currentGameInfo.getGameQueueConfigId())) 
-        + " " + LanguageManager.getText(language, "withTheAccount") + " **" + account.leagueAccount_name + "**";
+        + " " + LanguageManager.getText(language, "withTheAccount") + " **" + account.summoner.getName() + "**";
 
     double minutesOfGames = 0.0;
 
@@ -56,9 +57,9 @@ public class InfoPanelRefresherUtil {
     StringBuilder stringBuilder = new StringBuilder();
 
     for(Entry<LeagueAccount, CurrentGameInfo> currentGamePerLeagueAccount : accountsWithCurrentGame.entrySet()) {
-
+      
       stringBuilder.append("-" + LanguageManager.getText(language, "account") 
-      + " **" + currentGamePerLeagueAccount.getKey().leagueAccount_name + "** : ");
+      + " **" + currentGamePerLeagueAccount.getKey().summoner.getName() + "** : ");
 
       stringBuilder.append(LanguageManager.getText(language,
           NameConversion.convertGameQueueIdToString(currentGamePerLeagueAccount.getValue().getGameQueueConfigId())));

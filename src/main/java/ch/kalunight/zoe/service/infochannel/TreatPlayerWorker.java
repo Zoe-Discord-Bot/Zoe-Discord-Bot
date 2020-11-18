@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,6 +21,7 @@ import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.config.option.RankChannelFilterOption.RankChannelFilter;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.model.dto.DTO.LastRank;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Player;
@@ -111,6 +113,8 @@ public class TreatPlayerWorker implements Runnable {
       Map<LeagueAccount, CurrentGameInfo> accountsInGame = Collections.synchronizedMap(new HashMap<>());
       List<LeagueAccount> accountNotInGame = new ArrayList<>();
 
+      cleanUnreachableSummoner();
+
       refreshPlayer(accountsInGame, accountNotInGame);
       generateText(accountsInGame, accountNotInGame);
       createOutputObject();
@@ -123,6 +127,28 @@ public class TreatPlayerWorker implements Runnable {
     }
   }
 
+
+  private void cleanUnreachableSummoner() {
+
+    Iterator<LeagueAccount> leagueAccountsIterator = leaguesAccounts.iterator();
+
+    while(leagueAccountsIterator.hasNext()) {
+      LeagueAccount leagueAccount = leagueAccountsIterator.next();
+
+      SavedSummoner summoner;
+      try {
+        summoner = Zoe.getRiotApi().getSummonerWithRateLimit(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
+        if(summoner != null) {
+          leagueAccount.summoner = summoner;
+        }else {
+          leagueAccountsIterator.remove();
+        }
+      }catch(RiotApiException e) {
+        logger.warn("Error while the getting summoner, will not be showed on the infopannel this time. Error Code : {}", e.getErrorCode(), e);
+        leagueAccountsIterator.remove();
+      }
+    }
+  }
 
   private void createOutputObject() {
     treatedPlayer = new TreatedPlayer(player, team, infochannelMessage.toString(), soloqRank, gamesToDelete, gamesToCreate, rankChannelsToProcess);
@@ -158,13 +184,13 @@ public class TreatPlayerWorker implements Runnable {
           getTFTLeagueEntriesWithRateLimit(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_tftSummonerId);
 
       boolean rankUpdated = LastRankUtil.updateTFTLastRank(lastRank, tftLeagueEntries);
-      
+
       if(rankChannel != null && rankUpdated) {
-        
+
         if(serverConfig.getRankchannelFilterOption().getRankChannelFilter() == RankChannelFilter.LOL_ONLY) {
           return;
         }
-        
+
         RankedChannelTFTRefresher tftRankedChannelRefresher = new RankedChannelTFTRefresher(rankChannel,
             lastRank.lastRank_tftSecond, lastRank.lastRank_tft, player, leagueAccount, server, matchs.get(0));
         ServerThreadsManager.getRankedMessageGenerator().execute(tftRankedChannelRefresher);
@@ -269,7 +295,7 @@ public class TreatPlayerWorker implements Runnable {
     if(serverConfig.getRankchannelFilterOption().getRankChannelFilter() == RankChannelFilter.TFT_ONLY) {
       return;
     }
-    
+
     if(currentGameDb.currentgame_currentgame.getParticipantByParticipantId(leagueAccount.leagueAccount_summonerId) != null) {
       Player playerToUpdate = PlayerRepository.getPlayerByLeagueAccountAndGuild(server.serv_guildId,
           leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server);
@@ -362,7 +388,7 @@ public class TreatPlayerWorker implements Runnable {
     String baseText;
     if(mutlipleAccount) {
       baseText = "infoPanelRankedTextMultipleAccount";
-      accountString = leagueAccount.leagueAccount_name;
+      accountString = leagueAccount.summoner.getName();
     }else {
       baseText = "infoPanelRankedTextOneAccount";
       accountString = player.getUser().getAsMention();
@@ -422,7 +448,7 @@ public class TreatPlayerWorker implements Runnable {
   }
 
   private void notInGameUnranked(final StringBuilder stringMessage, DTO.LeagueAccount leagueAccount) {
-    stringMessage.append("- " + leagueAccount.leagueAccount_name + " : " 
+    stringMessage.append("- " + leagueAccount.summoner.getName() + " : " 
         + LanguageManager.getText(server.serv_language, "unranked") + " \n");
   }
 

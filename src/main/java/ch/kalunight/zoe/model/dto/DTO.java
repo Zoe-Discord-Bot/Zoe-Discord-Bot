@@ -200,6 +200,7 @@ public class DTO {
       leagueAccount_accoundId = summoner.getAccountId();
       leagueAccount_puuid = summoner.getPuuid();
       leagueAccount_server = platform;
+      this.summoner = new SavedSummoner(summoner);
     }
     
     @Override

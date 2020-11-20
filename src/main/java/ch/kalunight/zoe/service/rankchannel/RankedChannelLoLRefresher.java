@@ -20,7 +20,6 @@ import ch.kalunight.zoe.util.request.MessageBuilderRequest;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
-import net.rithms.riot.api.endpoints.match.dto.Match;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 
 public class RankedChannelLoLRefresher extends RankedChannelBaseRefresher {
@@ -28,8 +27,6 @@ public class RankedChannelLoLRefresher extends RankedChannelBaseRefresher {
   private static final Map<GameAccessDataServerSpecific, List<LeagueAccount>> matchsToTreat = Collections.synchronizedMap(new HashedMap<GameAccessDataServerSpecific, List<LeagueAccount>>());
 
   private static final Map<GameAccessDataServerSpecific, List<PlayerRankedResult>> matchsWaitingToComplete = Collections.synchronizedMap(new HashedMap<GameAccessDataServerSpecific, List<PlayerRankedResult>>());
-
-  private static final Map<GameAccessDataServerSpecific, Match> listCachedMatchs = Collections.synchronizedMap(new HashedMap<GameAccessDataServerSpecific, Match>());
 
   private CurrentGameInfo gameOfTheChange;
 
@@ -85,8 +82,6 @@ public class RankedChannelLoLRefresher extends RankedChannelBaseRefresher {
         leagueAccounts = Collections.synchronizedList(new ArrayList<>());
         leagueAccounts.add(leagueAccount);
         matchsToTreat.put(gameAccessData, leagueAccounts);
-        Match match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameAccessData.getGameId());
-        listCachedMatchs.put(gameAccessData, match);
       }
     }
   }

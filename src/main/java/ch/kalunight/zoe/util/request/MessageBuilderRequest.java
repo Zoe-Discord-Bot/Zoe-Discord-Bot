@@ -79,12 +79,12 @@ public class MessageBuilderRequest {
 
     FullTier oldFullTier = new FullTier(oldEntry);
     FullTier newFullTier = new FullTier(newEntry);
-    
+
     switch(changeType) {
     case BO_CHANGE:
       MiniSeries oldBo = oldEntry.getMiniSeries();
       MiniSeries newBo = newEntry.getMiniSeries();
-      
+
       Participant participant = match.getParticipantBySummonerId(leagueAccount.leagueAccount_summonerId);
       String winAgain = match.getTeamByTeamId(participant.getTeamId()).getWin();
 
@@ -114,7 +114,7 @@ public class MessageBuilderRequest {
       }else {
         boWin = false;
       }
-      
+
       if(!boWin) {
         accountTitle = String.format(LanguageManager.getText(lang, "rankChannelChangeBOEndedLooseTitleWithoutGameType"),
             leagueAccount.leagueAccount_name, bo.getProgress().length(), oldFullTier.getHeigerDivision().toStringWithoutLp(lang));
@@ -193,7 +193,7 @@ public class MessageBuilderRequest {
 
     return new PlayerRankedResult(gameOfTheChange.getGameId(), leagueAccount.leagueAccount_server, accountTitle, changeStats, statsGame);
   }
-  
+
   public static MessageEmbed createCombinedMessage(List<PlayerRankedResult> playersRankedResult, CurrentGameInfo currentGameInfo, String lang) {
 
     EmbedBuilder message = new EmbedBuilder();
@@ -214,7 +214,7 @@ public class MessageBuilderRequest {
 
     return message.build();
   }
-  
+
   public static MessageEmbed createRankChannelCardBoStarted(LeagueEntry newEntry, 
       CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang) {
 
@@ -390,9 +390,15 @@ public class MessageBuilderRequest {
     }
 
     if(goodChange) {
-      message.setColor(Color.YELLOW);
-      message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeRankChangeWinDivisionSkippedTitle"),
-          leagueAccount.leagueAccount_name, gameType));
+      if(divisionJump) {
+        message.setColor(Color.YELLOW);
+        message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeRankChangeWinDivisionSkippedTitle"),
+            leagueAccount.leagueAccount_name, gameType));
+      }else {
+        message.setColor(Color.GREEN);
+        message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeWonDivision"),
+            leagueAccount.leagueAccount_name, newFullTier.toStringWithoutLp(lang), gameType));
+      }
     }else {
       if(divisionJump) {
         message.setColor(Color.BLACK);
@@ -629,7 +635,7 @@ public class MessageBuilderRequest {
       stringBuilder.append(champion.getDisplayName() + " " + champion.getName() + " - **" 
           + MessageBuilderRequestUtil.getMasteryUnit(championMastery.getChampionPoints()) +"**\n");
     }
-    
+
     if(threeBestchampionMasteries.isEmpty()) {
       stringBuilder.append("*" + LanguageManager.getText(language, "empty") + "*");
     }
@@ -644,10 +650,10 @@ public class MessageBuilderRequest {
 
     for(ChampionMastery championMastery : masteries) {
       switch(championMastery.getChampionLevel()) {
-        case 5: nbrMastery5++; break;
-        case 6: nbrMastery6++; break;
-        case 7: nbrMastery7++; break;
-        default: break;
+      case 5: nbrMastery5++; break;
+      case 6: nbrMastery6++; break;
+      case 7: nbrMastery7++; break;
+      default: break;
       }
       totalNbrMasteries += championMastery.getChampionPoints();
     }

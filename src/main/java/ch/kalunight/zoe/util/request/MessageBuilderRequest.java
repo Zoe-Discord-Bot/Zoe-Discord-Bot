@@ -84,7 +84,7 @@ public class MessageBuilderRequest {
     case BO_CHANGE:
       MiniSeries oldBo = oldEntry.getMiniSeries();
       MiniSeries newBo = newEntry.getMiniSeries();
-
+      
       if(match.isGivenAccountWinner(leagueAccount.leagueAccount_accoundId)) {
         accountTitle = String.format(LanguageManager.getText(lang, "rankChannelChangeBOProgressWinTitleWithoutGameType"),
             leagueAccount.summoner.getName(), oldBo.getProgress().length(),

@@ -26,7 +26,7 @@
     "addCommandMalformedWithoutRegionOption": "La commande est mal formée. Merci de respecter le modèle : `>add %s @DiscordPlayerMention (Region) (SummonerName)`",
     "addCommandMalformedWithRegionOption": "La commande est mal formée. Merci de respecter le modèle : `>add %s @DiscordPlayerMention (Region) (SummonerName)`\nSi la région du serveur n'est pas définie, la région (%s) sera utilisée par défaut.",
     "regionTagInvalid": "Le nom du serveur est invalide. (Nom valide : EUW, EUNE, NA, BR, JP, KR, LAN, LAS, OCE, RU, TR)",
-    "riotApiSummonerByNameError500": "Les serveurs de Riot rencontrent actuellement un problème. Veuillez réessayer.",
+    "riotApiSummonerByNameError500": "Les serveurs de Riot ont rencontré un problème. Veuillez réessayer.",
     "riotApiSummonerByNameError503": "Les serveurs de Riot sont actuellement indisponibles. Veuillez réessayer plus tard.",
     "riotApiSummonerByNameError429": "Je ne peux actuellement pas accéder aux serveurs de Riot. Veuillez réessayer plus tard.",
     "riotApiSummonerByNameError404": "Le nom de l'invocateur est incorrect. Veuillez vérifier le nom de l'invocateur, sa région et réessayez.",
@@ -434,5 +434,7 @@
     "rankChannelFilterOptionLoL": "Affiche seulement LoL",
     "rankChannelFilterOptionAllDesc": "Envoie tous les types de messages dans le canal de rang (LoL et TFT)",
     "rankChannelFilterOptionAll": "LoL et TFT",
-    "rankChannelFilterOptionDesc": "Filtre les messages du canal de rang par jeu (LoL et TFT)"
+    "rankChannelFilterOptionDesc": "Filtre les messages du canal de rang par jeu (LoL et TFT)",
+    "rankChannelChangeWonDivisionWithoutGameType": "%s est monté %s",
+    "rankChannelChangeWonDivision": "%s est monté %s (%s)"
 }

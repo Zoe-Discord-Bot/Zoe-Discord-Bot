@@ -303,6 +303,7 @@
     "rankChannelChangePointOnlyLooseTitle": "%s lost %s LP (%s)",
     "generatedAt": "Generated at",
     "rankChannelChangeRankChangeWinDivisionSkippedTitle": "%s skipped a division (%s)",
+	"rankChannelChangeWonDivision": "%s has reached %s (%s)",
     "rankChannelChangeLooseDivisionDecayTitle": "%s has decay (%s)",
     "rankChannelChangeLooseDivisionTitle": "%s lost a division (%s)",
     "rankChannelBoStartedTitle": "%s has started a BO%d for the %s (%s)",

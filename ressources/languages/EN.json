@@ -322,6 +322,7 @@
     "rankChannelChangeBOEndedWinTitleWithoutGameType": "%s won his BO%d for the %s",
     "rankChannelChangeBOProgressLooseTitleWithoutGameType": "%s lost a game in his BO%d for the %s",
     "rankChannelChangeBOProgressWinTitleWithoutGameType": "%s won a game in his BO%d for the %s",
+	"rankChannelChangeWonDivisionWithoutGameType": "%s has reached %s",
     "rankChannelChangeBOProgressDesc": "Resume of the BO :",
     "iron": "Iron",
     "bronze": "Bronze",

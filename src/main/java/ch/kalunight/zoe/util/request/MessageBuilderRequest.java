@@ -171,8 +171,13 @@ public class MessageBuilderRequest {
       }
 
       if(goodChange) {
+        if(divisionJump) {
         accountTitle = String.format(LanguageManager.getText(lang, "rankChannelChangeRankChangeWinDivisionSkippedTitleWithoutGameType"),
             leagueAccount.leagueAccount_name);
+        }else {
+          accountTitle = String.format(LanguageManager.getText(lang, "rankChannelChangeWonDivisionWithoutGameType"),
+              leagueAccount.leagueAccount_name, newFullTier.toStringWithoutLp(lang));
+        }
       }else {
         if(divisionJump) {
           accountTitle = String.format(LanguageManager.getText(lang, "rankChannelChangeLooseDivisionDecayTitleWithoutGameType"),
@@ -601,7 +606,7 @@ public class MessageBuilderRequest {
     message.addField(masteriesWRThisMonthTranslated, redTeamWinrateString.toString(), true);
 
     message.setFooter(LanguageManager.getText(server.serv_language, "infoCardsGameFooter") 
-        + " : " + MessageBuilderRequestUtil.getMatchTimeFromDuration(currentGameInfo.getGameLength()), null);
+        + " : " + MessageBuilderRequestUtil.getMatchTimeFromDurationInGame(currentGameInfo.getGameLength()), null);
 
     message.setColor(Color.GREEN);
 

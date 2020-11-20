@@ -52,7 +52,7 @@ public class SummonerCacheRepository {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
       
-      String finalQuery = String.format(INSERT_SUMMONER_CACHE, summonerId, server, gson.toJson(summonerToCache));
+      String finalQuery = String.format(INSERT_SUMMONER_CACHE, summonerId, server.getName(), gson.toJson(summonerToCache));
       query.execute(finalQuery);
     }
   }

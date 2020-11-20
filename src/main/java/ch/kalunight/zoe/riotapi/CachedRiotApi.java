@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.SavedChampionMastery;
 import ch.kalunight.zoe.model.dto.SavedMatch;
+import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
 import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.repositories.ChampionMasteryRepository;
 import ch.kalunight.zoe.repositories.SavedMatchCacheRepository;
@@ -616,7 +617,7 @@ public class CachedRiotApi {
     return riotApi.getThirdPartyCodeBySummoner(platform, summonerId);
   }
 
-  public ChampionMastery getChampionMasteriesBySummonerByChampion(Platform platform, String summonerId, int championId) throws RiotApiException {
+  public SavedSimpleMastery getChampionMasteriesBySummonerByChampion(Platform platform, String summonerId, int championId) throws RiotApiException {
 
     ChampionMasteryCache championMasteryCache = null;
     try {
@@ -627,7 +628,7 @@ public class CachedRiotApi {
 
     if(championMasteryCache != null) {
 
-      ChampionMastery championMastery = championMasteryCache.champMasCache_data.getChampionMasteryWithChampionId(championId);
+      SavedSimpleMastery championMastery = championMasteryCache.champMasCache_data.getChampionMasteryWithChampionId(championId);
 
       if(championMastery != null) {
         return championMastery;

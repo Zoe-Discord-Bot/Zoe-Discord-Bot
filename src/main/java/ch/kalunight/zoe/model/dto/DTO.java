@@ -396,14 +396,12 @@ public class DTO {
   public static class SummonerCache {
     public long sumCache_id;
     public String sumCache_summonerId;
-    public String sumCache_tftSummonerId;
     public Platform sumCache_server;
     public SavedSummoner sumCache_data;
     
     public SummonerCache(ResultSet baseData) throws SQLException {
       sumCache_id = baseData.getLong("sumCache_id");
       sumCache_summonerId = baseData.getString("sumCache_summonerId");
-      sumCache_tftSummonerId = baseData.getString("sumCache_tftSummonerId");
       sumCache_server = Platform.getPlatformByName(baseData.getString("sumCache_server"));
       sumCache_data = gson.fromJson(baseData.getString("sumCache_data"), SavedSummoner.class);
     }

@@ -33,7 +33,7 @@ ALTER TABLE ONLY clash_channel
   
 ALTER TABLE clash_channel
   ADD CONSTRAINT clash_channel_fk_server_const
-  FOREIGN KEY (clash_channel_fk_server) REFERENCES server (serv_id);
+  FOREIGN KEY (clashChannel_fk_server) REFERENCES server (serv_id);
   
 CREATE TABLE summoner_cache (
   sumCache_id									SERIAL,

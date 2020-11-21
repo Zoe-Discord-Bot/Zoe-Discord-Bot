@@ -134,8 +134,12 @@ public class TreatPlayerWorker implements Runnable {
     for(LeagueAccount leagueAccount : leaguesAccounts) {
       LastRank lastRank = getLastRank(leagueAccount);
 
-      refreshLoL(leagueAccount, lastRank, accountsInGame, accountNotInGame);
-      refreshTFT(leagueAccount, lastRank);
+      if(lastRank != null) {
+        refreshLoL(leagueAccount, lastRank, accountsInGame, accountNotInGame);
+        refreshTFT(leagueAccount, lastRank);
+      }else {
+        logger.warn("Error while refreshing a player ! last rank == null. Guild Id {}", server.serv_guildId);
+      }
     }
   }
 
@@ -158,13 +162,13 @@ public class TreatPlayerWorker implements Runnable {
           getTFTLeagueEntriesWithRateLimit(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_tftSummonerId);
 
       boolean rankUpdated = LastRankUtil.updateTFTLastRank(lastRank, tftLeagueEntries);
-      
+
       if(rankChannel != null && rankUpdated) {
-        
+
         if(serverConfig.getRankchannelFilterOption().getRankChannelFilter() == RankChannelFilter.LOL_ONLY) {
           return;
         }
-        
+
         RankedChannelTFTRefresher tftRankedChannelRefresher = new RankedChannelTFTRefresher(rankChannel,
             lastRank.lastRank_tftSecond, lastRank.lastRank_tft, player, leagueAccount, server, matchs.get(0));
         ServerData.getRankedMessageGenerator().execute(tftRankedChannelRefresher);
@@ -269,7 +273,7 @@ public class TreatPlayerWorker implements Runnable {
     if(serverConfig.getRankchannelFilterOption().getRankChannelFilter() == RankChannelFilter.TFT_ONLY) {
       return;
     }
-    
+
     if(currentGameDb.currentgame_currentgame.getParticipantByParticipantId(leagueAccount.leagueAccount_summonerId) != null) {
       Player playerToUpdate = PlayerRepository.getPlayerByLeagueAccountAndGuild(server.serv_guildId,
           leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server);
@@ -454,6 +458,13 @@ public class TreatPlayerWorker implements Runnable {
     }while(needToWait);
   }
 
+  public Player getPlayer() {
+    return player;
+  }
+
+  public Server getServer() {
+    return server;
+  }
 
   public TreatedPlayer getTreatedPlayer() {
     return treatedPlayer;

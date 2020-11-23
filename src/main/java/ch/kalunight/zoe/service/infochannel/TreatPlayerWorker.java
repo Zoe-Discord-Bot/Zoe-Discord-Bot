@@ -160,8 +160,12 @@ public class TreatPlayerWorker implements Runnable {
     for(LeagueAccount leagueAccount : leaguesAccounts) {
       LastRank lastRank = getLastRank(leagueAccount);
 
-      refreshLoL(leagueAccount, lastRank, accountsInGame, accountNotInGame);
-      refreshTFT(leagueAccount, lastRank);
+      if(lastRank != null) {
+        refreshLoL(leagueAccount, lastRank, accountsInGame, accountNotInGame);
+        refreshTFT(leagueAccount, lastRank);
+      }else {
+        logger.warn("Error while refreshing a player ! last rank == null. Guild Id {}", server.serv_guildId);
+      }
     }
   }
 
@@ -480,6 +484,13 @@ public class TreatPlayerWorker implements Runnable {
     }while(needToWait);
   }
 
+  public Player getPlayer() {
+    return player;
+  }
+
+  public Server getServer() {
+    return server;
+  }
 
   public TreatedPlayer getTreatedPlayer() {
     return treatedPlayer;

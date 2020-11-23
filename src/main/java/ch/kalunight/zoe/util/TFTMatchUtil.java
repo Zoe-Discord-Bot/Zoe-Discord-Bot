@@ -37,7 +37,7 @@ public class TFTMatchUtil {
 
       TFTMatch match = Zoe.getRiotApi().getTFTMatchWithRateLimit(leagueAccount.leagueAccount_server, matchId);
       
-      if(match.getInfo().getQueueId() == GameQueueConfigId.RANKED_TFT.getId()) {
+      if(match != null && match.getInfo().getQueueId() == GameQueueConfigId.RANKED_TFT.getId()) {
         matchs.add(match);
         
         if(lastRank.lastRank_tftLastTreatedMatchId == null) {

@@ -33,6 +33,8 @@ import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Server;
+import ch.kalunight.zoe.model.dto.SavedChampionMastery;
+import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
@@ -49,7 +51,6 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.champion_mastery.dto.ChampionMastery;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.constant.Platform;
 
@@ -115,6 +116,17 @@ public class StatsProfileCommand extends ZoeCommand {
     DTO.LeagueAccount leagueAccount = getLeagueAccountWithParam(event, server);
 
     if(leagueAccount != null) {
+      SavedSummoner summoner;
+      try {
+        summoner = Zoe.getRiotApi().getSummoner(leagueAccount.leagueAccount_server,
+            leagueAccount.leagueAccount_summonerId);
+      } catch(RiotApiException e) {
+        RiotApiUtil.handleRiotApi(event.getEvent(), e, server.serv_language);
+        return;
+      }
+
+      leagueAccount.summoner = summoner;
+      
       generateStatsMessage(event, null, leagueAccount, server);
       return;
     }
@@ -245,6 +257,8 @@ public class StatsProfileCommand extends ZoeCommand {
           return;
         }
 
+        account.summoner = summoner;
+
         selectionMessage.getTextChannel().sendMessage(String.format(
             LanguageManager.getText(server.serv_language, "statsProfileSelectionDoneMessage"),
             summoner.getName(), Zoe.getJda().retrieveUserById(player.player_discordId).complete()
@@ -271,7 +285,7 @@ public class StatsProfileCommand extends ZoeCommand {
 
     String url = Integer.toString(random.nextInt(100000));
 
-    List<ChampionMastery> championsMasteries;
+    SavedChampionMastery championsMasteries;
     try {
       championsMasteries = Zoe.getRiotApi().getChampionMasteriesBySummoner(lolAccount.leagueAccount_server,
           lolAccount.leagueAccount_summonerId);
@@ -287,7 +301,7 @@ public class StatsProfileCommand extends ZoeCommand {
 
     byte[] imageBytes = null;
     try {
-      if(championsMasteries != null && !championsMasteries.isEmpty()) {
+      if(championsMasteries != null && !championsMasteries.getChampionMasteries().isEmpty()) {
         imageBytes = generateMasteriesChart(player, championsMasteries, server, lolAccount);
       }
     } catch(IOException e) {
@@ -325,9 +339,9 @@ public class StatsProfileCommand extends ZoeCommand {
     }
   }
 
-  private byte[] generateMasteriesChart(DTO.Player player, List<ChampionMastery> championsMasteries,
+  private byte[] generateMasteriesChart(DTO.Player player, SavedChampionMastery championsMasteries,
       DTO.Server server, LeagueAccount leagueAccount) throws IOException {
-    List<ChampionMastery> listHeigherChampion = getBestMasteries(championsMasteries, NUMBER_OF_CHAMPIONS_IN_GRAPH);
+    List<SavedSimpleMastery> listHeigherChampion = getBestMasteries(championsMasteries, NUMBER_OF_CHAMPIONS_IN_GRAPH);
     CategoryChartBuilder masteriesGraphBuilder = new CategoryChartBuilder();
 
     masteriesGraphBuilder.chartTheme = ChartTheme.GGPlot2;
@@ -337,7 +351,7 @@ public class StatsProfileCommand extends ZoeCommand {
           player.getUser().getName()));
     }else {
       masteriesGraphBuilder.title(String.format(LanguageManager.getText(server.serv_language, "statsProfileGraphTitle"),
-          leagueAccount.leagueAccount_name));
+          leagueAccount.summoner.getName()));
     }
 
     CategoryChart masteriesGraph = masteriesGraphBuilder.build();
@@ -377,9 +391,9 @@ public class StatsProfileCommand extends ZoeCommand {
     return BitmapEncoder.getBitmapBytes(masteriesGraph, BitmapFormat.PNG);
   }
 
-  private long getMoyenneMasteries(List<ChampionMastery> championsMasteries) {
+  private long getMoyenneMasteries(List<SavedSimpleMastery> championsMasteries) {
     long allMasteries = 0;
-    for(ChampionMastery championMastery : championsMasteries) {
+    for(SavedSimpleMastery championMastery : championsMasteries) {
       if(championMastery != null) {
         allMasteries += championMastery.getChampionPoints();
       }
@@ -390,14 +404,14 @@ public class StatsProfileCommand extends ZoeCommand {
     return allMasteries / championsMasteries.size();
   }
 
-  public static List<ChampionMastery> getBestMasteries(List<ChampionMastery> championsMasteries, int nbrTop) {
-    List<ChampionMastery> listHeigherChampion = new ArrayList<>();
+  public static List<SavedSimpleMastery> getBestMasteries(SavedChampionMastery championsMasteries, int nbrTop) {
+    List<SavedSimpleMastery> listHeigherChampion = new ArrayList<>();
 
     for(int i = 0; i < nbrTop; i++) {
 
-      ChampionMastery heigherActual = null;
+      SavedSimpleMastery heigherActual = null;
 
-      for(ChampionMastery championMastery : championsMasteries) {
+      for(SavedSimpleMastery championMastery : championsMasteries.getChampionMasteries()) {
 
         if(listHeigherChampion.contains(championMastery)) {
           continue;

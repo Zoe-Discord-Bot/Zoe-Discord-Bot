@@ -4680,6 +4680,104 @@
 							"columnCompartment": {
 								"$ref": "AAAAAAF11pE9Fkp23eo="
 							}
+						},
+						{
+							"_type": "ERDEntityView",
+							"_id": "AAAAAAF2CO3MCzbWsA4=",
+							"_parent": {
+								"$ref": "AAAAAAFutjqgw1hxpqc="
+							},
+							"model": {
+								"$ref": "AAAAAAF2CO3MCjbUWPQ="
+							},
+							"subViews": [
+								{
+									"_type": "LabelView",
+									"_id": "AAAAAAF2CO3MCzbXlEM=",
+									"_parent": {
+										"$ref": "AAAAAAF2CO3MCzbWsA4="
+									},
+									"font": "Arial;13;1",
+									"left": 752,
+									"top": 973,
+									"width": 257,
+									"height": 13,
+									"text": "ClashTournamentCache"
+								},
+								{
+									"_type": "ERDColumnCompartmentView",
+									"_id": "AAAAAAF2CO3MCzbYKtA=",
+									"_parent": {
+										"$ref": "AAAAAAF2CO3MCzbWsA4="
+									},
+									"model": {
+										"$ref": "AAAAAAF2CO3MCjbUWPQ="
+									},
+									"subViews": [
+										{
+											"_type": "ERDColumnView",
+											"_id": "AAAAAAF2CO8JdjbqfiQ=",
+											"_parent": {
+												"$ref": "AAAAAAF2CO3MCzbYKtA="
+											},
+											"model": {
+												"$ref": "AAAAAAF2CO8JSTbn4SA="
+											},
+											"font": "Arial;13;0",
+											"left": 757,
+											"top": 996,
+											"width": 247,
+											"height": 13
+										},
+										{
+											"_type": "ERDColumnView",
+											"_id": "AAAAAAF2CPd97jb0ryk=",
+											"_parent": {
+												"$ref": "AAAAAAF2CO3MCzbYKtA="
+											},
+											"model": {
+												"$ref": "AAAAAAF2CPd9uzbxRe8="
+											},
+											"font": "Arial;13;0",
+											"left": 757,
+											"top": 1011,
+											"width": 247,
+											"height": 13
+										},
+										{
+											"_type": "ERDColumnView",
+											"_id": "AAAAAAF2CRab8jb7z4c=",
+											"_parent": {
+												"$ref": "AAAAAAF2CO3MCzbYKtA="
+											},
+											"model": {
+												"$ref": "AAAAAAF2CRabxTb4TcE="
+											},
+											"font": "Arial;13;0",
+											"left": 757,
+											"top": 1026,
+											"width": 247,
+											"height": 13
+										}
+									],
+									"font": "Arial;13;0",
+									"left": 752,
+									"top": 991,
+									"width": 257,
+									"height": 53
+								}
+							],
+							"font": "Arial;13;0",
+							"left": 752,
+							"top": 968,
+							"width": 257,
+							"height": 89,
+							"nameLabel": {
+								"$ref": "AAAAAAF2CO3MCzbXlEM="
+							},
+							"columnCompartment": {
+								"$ref": "AAAAAAF2CO3MCzbYKtA="
+							}
 						}
 					]
 				},
@@ -6890,6 +6988,46 @@
 								"$ref": "AAAAAAF11pE9FEpyWsU="
 							},
 							"name": "champMasCache_data",
+							"type": "json",
+							"length": 0
+						}
+					]
+				},
+				{
+					"_type": "ERDEntity",
+					"_id": "AAAAAAF2CO3MCjbUWPQ=",
+					"_parent": {
+						"$ref": "AAAAAAFutjqgw1hwVjc="
+					},
+					"name": "ClashTournamentCache",
+					"columns": [
+						{
+							"_type": "ERDColumn",
+							"_id": "AAAAAAF2CO8JSTbn4SA=",
+							"_parent": {
+								"$ref": "AAAAAAF2CO3MCjbUWPQ="
+							},
+							"name": "clashTourCache_id",
+							"type": "autoId",
+							"length": 0
+						},
+						{
+							"_type": "ERDColumn",
+							"_id": "AAAAAAF2CPd9uzbxRe8=",
+							"_parent": {
+								"$ref": "AAAAAAF2CO3MCjbUWPQ="
+							},
+							"name": "clashTourCache_server",
+							"type": "varchar",
+							"length": 0
+						},
+						{
+							"_type": "ERDColumn",
+							"_id": "AAAAAAF2CRabxTb4TcE=",
+							"_parent": {
+								"$ref": "AAAAAAF2CO3MCjbUWPQ="
+							},
+							"name": "clashTourCache_data",
 							"type": "json",
 							"length": 0
 						}

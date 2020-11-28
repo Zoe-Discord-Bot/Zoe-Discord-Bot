@@ -72,3 +72,13 @@ CREATE INDEX idx_champion_mastery_cache_summonerId
   
 CREATE INDEX idx_champion_mastery_cache_server
   ON champion_mastery_cache(champMasCache_server);
+  
+CREATE TABLE clash_tournament_cache (
+  clashTourCache_id								SERIAL,
+  clashTourCache_server							VARCHAR				NOT NULL,
+  clashTourCache_data							jsonb				NOT NULL
+);
+
+ALTER TABLE ONLY clash_tournament_cache
+  ADD CONSTRAINT clash_tournament_cache_id_pkey PRIMARY KEY (clash_tournament_cache_id);
+  

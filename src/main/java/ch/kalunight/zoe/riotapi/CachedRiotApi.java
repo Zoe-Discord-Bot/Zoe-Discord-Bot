@@ -644,7 +644,7 @@ public class CachedRiotApi {
 
     SavedChampionMastery championMasteryToCache = new SavedChampionMastery(masteries);
 
-    ChampionMastery championMasteryToReturn = championMasteryToCache.getChampionMasteryWithChampionId(championId);
+    SavedSimpleMastery championMasteryToReturn = championMasteryToCache.getChampionMasteryWithChampionId(championId);
 
     try {
       ChampionMasteryRepository.createMasteryCache(summonerId, platform, championMasteryToCache);
@@ -775,8 +775,8 @@ public class CachedRiotApi {
     return match;
   }
 
-  public ChampionMastery getChampionMasteriesBySummonerByChampionWithRateLimit(Platform platform, String summonerId, int championId) throws RiotApiException {
-    ChampionMastery championMasteryToReturn = null;
+  public SavedSimpleMastery getChampionMasteriesBySummonerByChampionWithRateLimit(Platform platform, String summonerId, int championId) throws RiotApiException {
+    SavedSimpleMastery championMasteryToReturn = null;
     boolean needToRetry;
     do {
 
@@ -791,7 +791,7 @@ public class CachedRiotApi {
 
         if(championMasteryCache != null) {
 
-          ChampionMastery championMastery = championMasteryCache.champMasCache_data.getChampionMasteryWithChampionId(championId);
+          SavedSimpleMastery championMastery = championMasteryCache.champMasCache_data.getChampionMasteryWithChampionId(championId);
 
           if(championMastery != null) {
             return championMastery;
@@ -842,7 +842,8 @@ public class CachedRiotApi {
     return championMasteryToReturn;
   }
 
-  public List<ChampionMastery> getChampionMasteriesBySummoner(Platform platform, String summonerId) throws RiotApiException {
+  public SavedChampionMastery getChampionMasteriesBySummoner(Platform platform, String summonerId) throws RiotApiException {
+    SavedChampionMastery championMasteries = null;
     ChampionMasteryCache championMasteryCache = null;
     try {
       championMasteryCache = ChampionMasteryRepository.getChampionMasteryWithSummonerId(summonerId, platform);
@@ -851,7 +852,7 @@ public class CachedRiotApi {
     }
 
     if(championMasteryCache != null) {
-      return championMasteryCache.champMasCache_data.getChampionMasteries();
+      return championMasteryCache.champMasCache_data;
     }
     
     List<ChampionMastery> masteries = riotApi.getChampionMasteriesBySummoner(platform, summonerId);
@@ -860,20 +861,20 @@ public class CachedRiotApi {
     increaseCallCountForGivenRegion(platform);
     
     if(masteries != null) {
-      SavedChampionMastery championMasteryToCache = new SavedChampionMastery(masteries);
+      championMasteries = new SavedChampionMastery(masteries);
 
       try {
-        ChampionMasteryRepository.createMasteryCache(summonerId, platform, championMasteryToCache);
+        ChampionMasteryRepository.createMasteryCache(summonerId, platform, championMasteries);
       } catch (SQLException e) {
         logger.warn("Error while creating a new mastery cache, result returned anyway", e);
       }
     }
 
-    return masteries;
+    return championMasteries;
   }
 
-  public List<ChampionMastery> getChampionMasteriesBySummonerWithRateLimit(Platform platform, String summonerId) throws RiotApiException {
-    List<ChampionMastery> masteries = null;
+  public SavedChampionMastery getChampionMasteriesBySummonerWithRateLimit(Platform platform, String summonerId) throws RiotApiException {
+    SavedChampionMastery masteries = null;
     boolean needToRetry;
     do {
 
@@ -888,17 +889,17 @@ public class CachedRiotApi {
         }
 
         if(championMasteryCache != null) {
-          return championMasteryCache.champMasCache_data.getChampionMasteries();
+          return championMasteryCache.champMasCache_data;
         }
         
-        masteries = riotApi.getChampionMasteriesBySummoner(platform, summonerId);
+        List<ChampionMastery> baseDataMasteries = riotApi.getChampionMasteriesBySummoner(platform, summonerId);
         needToRetry = false;
         
         championMasteryRequestCount.incrementAndGet();
         increaseCallCountForGivenRegion(platform);
         
         if(masteries != null) {
-          SavedChampionMastery championMasteryToCache = new SavedChampionMastery(masteries);
+          SavedChampionMastery championMasteryToCache = new SavedChampionMastery(baseDataMasteries);
 
           try {
             ChampionMasteryRepository.createMasteryCache(summonerId, platform, championMasteryToCache);
@@ -910,7 +911,7 @@ public class CachedRiotApi {
       }catch(RateLimitException e) {
         try {
           if(e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10) {
-            return new ArrayList<>();
+            return null;
           }
           logger.info("Waiting rate limit ({} sec) to retry when getting mastery", e.getRetryAfter());
           TimeUnit.SECONDS.sleep(e.getRetryAfter());
@@ -920,10 +921,10 @@ public class CachedRiotApi {
         }
       } catch (RiotApiException e) {
         if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
-          return new ArrayList<>();
+          return null;
         }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
           logger.warn("Bad request received from Riot Api!", e);
-          return new ArrayList<>();
+          return null;
         }
       }
     }while(needToRetry);

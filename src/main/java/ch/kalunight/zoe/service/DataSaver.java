@@ -58,7 +58,7 @@ public class DataSaver extends TimerTask {
       }
       
       if(nextRefreshClashTournament.isBefore(LocalDateTime.now())) {
-        logger.info("Refresh champion roles started !");
+        logger.info("Refresh clash tournament cash roles started !");
         setNextRefreshChampionRole(LocalDateTime.now().plusHours(TIME_BETWEEN_EACH_CHAMPION_ROLE_REFRESH_IN_HOURS));
         
         

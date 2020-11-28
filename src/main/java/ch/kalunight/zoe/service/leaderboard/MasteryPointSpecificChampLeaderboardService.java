@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
 import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Player;
@@ -20,7 +21,6 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.champion_mastery.dto.ChampionMastery;
 
 public class MasteryPointSpecificChampLeaderboardService extends LeaderboardBaseService {
   
@@ -65,7 +65,7 @@ public class MasteryPointSpecificChampLeaderboardService extends LeaderboardBase
       
       long bestAccountPoints = 0;
       for(DTO.LeagueAccount leagueAccount : leaguesAccounts) {
-        ChampionMastery mastery = Zoe.getRiotApi().getChampionMasteriesBySummonerByChampionWithRateLimit(leagueAccount.leagueAccount_server,
+        SavedSimpleMastery mastery = Zoe.getRiotApi().getChampionMasteriesBySummonerByChampionWithRateLimit(leagueAccount.leagueAccount_server,
             leagueAccount.leagueAccount_summonerId, championId);
         
         if(mastery == null) {

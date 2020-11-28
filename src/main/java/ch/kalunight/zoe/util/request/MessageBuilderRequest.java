@@ -25,7 +25,9 @@ import ch.kalunight.zoe.model.InfocardPlayerData;
 import ch.kalunight.zoe.model.PlayerRankedResult;
 import ch.kalunight.zoe.model.RankedChangeType;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.SavedChampionMastery;
 import ch.kalunight.zoe.model.dto.SavedMatch;
+import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Player;
 import ch.kalunight.zoe.model.player_data.FullTier;
@@ -43,7 +45,6 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.MessageEmbed.Field;
 import net.dv8tion.jda.api.entities.User;
 import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.champion_mastery.dto.ChampionMastery;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 import net.rithms.riot.api.endpoints.league.dto.MiniSeries;
 import net.rithms.riot.api.endpoints.match.dto.MatchList;
@@ -591,7 +592,7 @@ public class MessageBuilderRequest {
   }
 
   public static MessageEmbed createProfileMessage(DTO.Player player, DTO.LeagueAccount leagueAccount,
-      List<ChampionMastery> masteries, String language, String url) throws RiotApiException {    
+      SavedChampionMastery masteries, String language, String url) throws RiotApiException {    
     
     String latestGameTranslated = LanguageManager.getText(language, "statsProfileLatestGames");
 
@@ -607,11 +608,11 @@ public class MessageBuilderRequest {
           leagueAccount.summoner.getLevel()));
     }
 
-    List<ChampionMastery> threeBestchampionMasteries = StatsProfileCommand.getBestMasteries(masteries, 3);
+    List<SavedSimpleMastery> threeBestchampionMasteries = StatsProfileCommand.getBestMasteries(masteries, 3);
 
     StringBuilder stringBuilder = new StringBuilder();
 
-    for(ChampionMastery championMastery : threeBestchampionMasteries) {
+    for(SavedSimpleMastery championMastery : threeBestchampionMasteries) {
       Champion champion = Ressources.getChampionDataById(championMastery.getChampionId());
       stringBuilder.append(champion.getDisplayName() + " " + champion.getName() + " - **" 
           + MessageBuilderRequestUtil.getMasteryUnit(championMastery.getChampionPoints()) +"**\n");
@@ -629,7 +630,7 @@ public class MessageBuilderRequest {
     int nbrMastery5 = 0;
     long totalNbrMasteries = 0;
 
-    for(ChampionMastery championMastery : masteries) {
+    for(SavedSimpleMastery championMastery : masteries.getChampionMasteries()) {
       switch(championMastery.getChampionLevel()) {
       case 5: nbrMastery5++; break;
       case 6: nbrMastery6++; break;
@@ -639,7 +640,7 @@ public class MessageBuilderRequest {
       totalNbrMasteries += championMastery.getChampionPoints();
     }
 
-    double moyennePoints = (double) totalNbrMasteries / masteries.size();
+    double moyennePoints = (double) totalNbrMasteries / masteries.getChampionMasteries().size();
 
     CustomEmote masteryEmote7 = Ressources.getMasteryEmote().get(Mastery.getEnum(7));
     CustomEmote masteryEmote6 = Ressources.getMasteryEmote().get(Mastery.getEnum(6));

@@ -6,18 +6,25 @@ public class SavedSimpleMastery {
 
   private int championId;
   
-  private long championPoint;
+  private long championPoints;
+  
+  private int championLevel;
   
   public SavedSimpleMastery(ChampionMastery championMastery) {
     this.championId = championMastery.getChampionId();
-    this.championPoint = championMastery.getChampionPoints();
+    this.championPoints = championMastery.getChampionPoints();
+    this.championLevel = championMastery.getChampionLevel();
   }
 
   public int getChampionId() {
     return championId;
   }
 
-  public long getChampionPoint() {
-    return championPoint;
+  public long getChampionPoints() {
+    return championPoints;
+  }
+  
+  public int getChampionLevel() {
+    return championLevel;
   }
 }

@@ -14,6 +14,7 @@ import com.google.gson.GsonBuilder;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.service.analysis.ChampionRole;
 import net.dv8tion.jda.api.entities.User;
+import net.rithms.riot.api.endpoints.clash.dto.ClashTournament;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.api.endpoints.tft_league.dto.TFTLeagueEntry;
@@ -418,6 +419,18 @@ public class DTO {
       champMasCache_summonerId = baseData.getString("champMasCache_summonerId");
       champMasCache_server = Platform.getPlatformByName(baseData.getString("champMasCache_server"));
       champMasCache_data = gson.fromJson(baseData.getString("champMasCache_data"), SavedChampionMastery.class);
+    }
+  }
+  
+  public static class ClashTournamentCache {
+    public long clashTourCache_id;
+    public Platform clashTourCache_server;
+    public ClashTournament clashTourCache_data;
+    
+    public ClashTournamentCache(ResultSet baseData) throws SQLException {
+      clashTourCache_id = baseData.getLong("clashTourCache_id");
+      clashTourCache_server = Platform.getPlatformByName(baseData.getString("clashTourCache_server"));
+      clashTourCache_data = gson.fromJson(baseData.getString("clashTourCache_data"), ClashTournament.class);
     }
   }
   

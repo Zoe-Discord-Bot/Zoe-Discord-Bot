@@ -18,6 +18,7 @@ import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.KDAReceiver;
 import ch.kalunight.zoe.model.WinRateReceiver;
+import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
 import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.model.player_data.Rank;
@@ -30,7 +31,6 @@ import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.NameConversion;
 import ch.kalunight.zoe.util.Ressources;
 import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.champion_mastery.dto.ChampionMastery;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 import net.rithms.riot.api.endpoints.match.dto.MatchList;
 import net.rithms.riot.api.endpoints.match.dto.MatchReference;
@@ -355,7 +355,7 @@ public class RiotRequest {
   }
 
   public static String getMasterysScore(String summonerId, int championId, Platform platform) {
-    ChampionMastery mastery = null;
+    SavedSimpleMastery mastery = null;
     try {
       mastery = Zoe.getRiotApi().getChampionMasteriesBySummonerByChampionWithRateLimit(platform, summonerId, championId);
     } catch(RiotApiException e) {

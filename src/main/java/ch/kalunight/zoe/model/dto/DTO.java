@@ -11,6 +11,8 @@ import java.util.TimeZone;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.service.analysis.ChampionRole;
 import net.dv8tion.jda.api.entities.User;
@@ -399,12 +401,14 @@ public class DTO {
     public String sumCache_summonerId;
     public Platform sumCache_server;
     public SavedSummoner sumCache_data;
+    public LocalDateTime sumCache_lastRefresh;
     
     public SummonerCache(ResultSet baseData) throws SQLException {
       sumCache_id = baseData.getLong("sumCache_id");
       sumCache_summonerId = baseData.getString("sumCache_summonerId");
       sumCache_server = Platform.getPlatformByName(baseData.getString("sumCache_server"));
       sumCache_data = gson.fromJson(baseData.getString("sumCache_data"), SavedSummoner.class);
+      sumCache_lastRefresh = LocalDateTime.parse(baseData.getString("sumCache_lastRefresh"), DB_TIME_PATTERN);
     }
   }
   
@@ -413,24 +417,28 @@ public class DTO {
     public String champMasCache_summonerId;
     public Platform champMasCache_server;
     public SavedChampionMastery champMasCache_data;
+    public LocalDateTime championMasCache_lastRefresh;
     
     public ChampionMasteryCache(ResultSet baseData) throws SQLException {
       champMasCache_id = baseData.getLong("champMasCache_id");
       champMasCache_summonerId = baseData.getString("champMasCache_summonerId");
       champMasCache_server = Platform.getPlatformByName(baseData.getString("champMasCache_server"));
       champMasCache_data = gson.fromJson(baseData.getString("champMasCache_data"), SavedChampionMastery.class);
+      championMasCache_lastRefresh = LocalDateTime.parse(baseData.getString("championMasCache_lastRefresh"), DB_TIME_PATTERN);
     }
   }
   
   public static class ClashTournamentCache {
     public long clashTourCache_id;
     public Platform clashTourCache_server;
-    public ClashTournament clashTourCache_data;
+    public List<ClashTournament> clashTourCache_data;
+    public LocalDateTime clashTourCache_lastRefresh;
     
     public ClashTournamentCache(ResultSet baseData) throws SQLException {
       clashTourCache_id = baseData.getLong("clashTourCache_id");
       clashTourCache_server = Platform.getPlatformByName(baseData.getString("clashTourCache_server"));
-      clashTourCache_data = gson.fromJson(baseData.getString("clashTourCache_data"), ClashTournament.class);
+      clashTourCache_data = gson.fromJson(baseData.getString("clashTourCache_data"), new TypeToken<List<ClashTournament>>(){}.getType());
+      clashTourCache_lastRefresh = LocalDateTime.parse(baseData.getString("championMasCache_lastRefresh"), DB_TIME_PATTERN);
     }
   }
   

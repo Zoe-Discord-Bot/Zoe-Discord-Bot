@@ -6,6 +6,8 @@ import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
+
+import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.command.create.CreatePlayerCommand;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
@@ -19,6 +21,7 @@ import ch.kalunight.zoe.util.RiotApiUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.User;
 import net.rithms.riot.api.RiotApiException;
+import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.constant.Platform;
 
 public class RemoveAccountCommand extends ZoeCommand {
@@ -82,10 +85,14 @@ public class RemoveAccountCommand extends ZoeCommand {
       return;
     }
 
+    
     DTO.LeagueAccount account;
     try {
+
+      Summoner summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);
+      
       account = LeagueAccountRepository
-          .getLeagueAccountByName(server.serv_guildId, player.player_discordId, summonerName, region);
+          .getLeagueAccountWithSummonerId(server.serv_guildId, summoner.getId(), region);
     } catch(RiotApiException e) {
       RiotApiUtil.handleRiotApi(event.getEvent(), e, server.serv_language);
       return;
@@ -95,10 +102,10 @@ public class RemoveAccountCommand extends ZoeCommand {
       event.reply(LanguageManager.getText(server.serv_language, "removeAccountNotLinkedToPlayer"));
       return;
     }
-
+    
     LeagueAccountRepository.deleteAccountWithId(account.leagueAccount_id);
     event.reply(String.format(LanguageManager.getText(server.serv_language, "removeAccountDoneMessage"),
-        account.leagueAccount_name, user.getName()));
+        summonerName, user.getName()));
   }
 
   @Override

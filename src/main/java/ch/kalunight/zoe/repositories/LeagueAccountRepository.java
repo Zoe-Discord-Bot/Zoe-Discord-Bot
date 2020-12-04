@@ -7,10 +7,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.DTO;
-import ch.kalunight.zoe.model.dto.SavedSummoner;
-import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.api.endpoints.tft_summoner.dto.TFTSummoner;
 import net.rithms.riot.constant.Platform;
@@ -375,25 +372,6 @@ public class LeagueAccountRepository {
       RepoRessources.closeResultSet(result);
     }
   }
-  
-  public static DTO.LeagueAccount getLeagueAccountByName(long guildId, long discordPlayerId,
-      String summonerName, Platform region) throws SQLException, RiotApiException {
-    ResultSet result = null;
-    try (Connection conn = RepoRessources.getConnection();) {
-
-      for(DTO.LeagueAccount account : getLeaguesAccounts(guildId, discordPlayerId)) {
-        if(account.leagueAccount_server.equals(region)) {
-          SavedSummoner summoner = Zoe.getRiotApi().getSummoner(region, account.leagueAccount_summonerId);
-          if(summoner.getName().equals(summonerName)) {
-            return account;
-          }
-        }
-      }
-      return null;
-    }finally {
-      RepoRessources.closeResultSet(result);
-    }
-  }  
 
   public static DTO.LeagueAccount getLeagueAccountWithSummonerId(long guildId, String summonerId, Platform region) throws SQLException {
     ResultSet result = null;

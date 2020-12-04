@@ -358,10 +358,25 @@ public class CachedRiotApi {
 
     SavedSummoner summonerToCache = new SavedSummoner(summoner);
 
+    SummonerCache summonerCache = null;
     try {
-      SummonerCacheRepository.createSummonerCache(summoner.getId(), platform, summonerToCache);
+      summonerCache = SummonerCacheRepository.getSummonerWithSummonerId(summoner.getId(), platform);
     } catch (SQLException e) {
-      logger.warn("Error while saving a summoner, summoner returned anyway", e);
+      logger.warn("Error while getting summoner cache !", e);
+    }
+
+    if(summonerCache == null) {
+      try {
+        SummonerCacheRepository.createSummonerCache(summoner.getId(), platform, summonerToCache);
+      } catch (SQLException e) {
+        logger.warn("Error while saving a summoner, summoner returned anyway", e);
+      }
+    }else {
+      try {
+        SummonerCacheRepository.updateSummonerCache(summonerToCache, summonerCache.sumCache_id);
+      } catch (SQLException e) {
+        logger.warn("Error while saving a summoner, summoner returned anyway", e);
+      }
     }
 
     return summoner;
@@ -375,10 +390,25 @@ public class CachedRiotApi {
 
     SavedSummoner summonerToCache = new SavedSummoner(summoner);
 
+    SummonerCache summonerCache = null;
     try {
-      SummonerCacheRepository.createSummonerCache(summoner.getId(), platform, summonerToCache);
+      summonerCache = SummonerCacheRepository.getSummonerWithSummonerId(summoner.getId(), platform);
     } catch (SQLException e) {
-      logger.warn("Error while saving a summoner, summoner returned anyway", e);
+      logger.warn("Error while getting summoner cache !", e);
+    }
+
+    if(summonerCache == null) {
+      try {
+        SummonerCacheRepository.createSummonerCache(summoner.getId(), platform, summonerToCache);
+      } catch (SQLException e) {
+        logger.warn("Error while saving a summoner, summoner returned anyway", e);
+      }
+    }else {
+      try {
+        SummonerCacheRepository.updateSummonerCache(summonerToCache, summonerCache.sumCache_id);
+      } catch (SQLException e) {
+        logger.warn("Error while saving a summoner, summoner returned anyway", e);
+      }
     }
 
     return summoner;
@@ -854,12 +884,12 @@ public class CachedRiotApi {
     if(championMasteryCache != null) {
       return championMasteryCache.champMasCache_data;
     }
-    
+
     List<ChampionMastery> masteries = riotApi.getChampionMasteriesBySummoner(platform, summonerId);
 
     championMasteryRequestCount.incrementAndGet();
     increaseCallCountForGivenRegion(platform);
-    
+
     if(masteries != null) {
       championMasteries = new SavedChampionMastery(masteries);
 
@@ -880,7 +910,7 @@ public class CachedRiotApi {
 
       needToRetry = true;
       try {
-        
+
         ChampionMasteryCache championMasteryCache = null;
         try {
           championMasteryCache = ChampionMasteryRepository.getChampionMasteryWithSummonerId(summonerId, platform);
@@ -891,13 +921,13 @@ public class CachedRiotApi {
         if(championMasteryCache != null) {
           return championMasteryCache.champMasCache_data;
         }
-        
+
         List<ChampionMastery> baseDataMasteries = riotApi.getChampionMasteriesBySummoner(platform, summonerId);
         needToRetry = false;
-        
+
         championMasteryRequestCount.incrementAndGet();
         increaseCallCountForGivenRegion(platform);
-        
+
         if(masteries != null) {
           SavedChampionMastery championMasteryToCache = new SavedChampionMastery(baseDataMasteries);
 
@@ -907,7 +937,7 @@ public class CachedRiotApi {
             logger.warn("Error while creating a new mastery cache, result returned anyway", e);
           }
         }
-        
+
       }catch(RateLimitException e) {
         try {
           if(e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10) {

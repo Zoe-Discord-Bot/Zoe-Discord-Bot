@@ -39,7 +39,8 @@ CREATE TABLE summoner_cache (
   sumCache_id									SERIAL,
   sumCache_summonerId							VARCHAR				NOT NULL,
   sumCache_server								VARCHAR				NOT NULL,
-  sumCache_data									jsonb				NOT NULL
+  sumCache_data									jsonb				NOT NULL,
+  sumCache_lastRefresh 							TIMESTAMP			WITHOUT TIME ZONE
 );
 
 ALTER TABLE ONLY summoner_cache
@@ -58,7 +59,8 @@ CREATE TABLE champion_mastery_cache (
   champMasCache_id								SERIAL,
   champMasCache_summonerId						VARCHAR				NOT NULL,
   champMasCache_server							VARCHAR				NOT NULL,
-  champMasCache_data							jsonb				NOT NULL
+  champMasCache_data							jsonb				NOT NULL,
+  champMasCache_lastRefresh 					TIMESTAMP			WITHOUT TIME ZONE
 );
 
 ALTER TABLE ONLY champion_mastery_cache
@@ -76,7 +78,8 @@ CREATE INDEX idx_champion_mastery_cache_server
 CREATE TABLE clash_tournament_cache (
   clashTourCache_id								SERIAL,
   clashTourCache_server							VARCHAR				NOT NULL,
-  clashTourCache_data							jsonb				NOT NULL
+  clashTourCache_data							jsonb				NOT NULL,
+  clashTourCache_lastRefresh 					TIMESTAMP			WITHOUT TIME ZONE
 );
 
 ALTER TABLE ONLY clash_tournament_cache

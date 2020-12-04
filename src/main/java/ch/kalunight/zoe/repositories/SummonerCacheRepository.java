@@ -28,7 +28,7 @@ public class SummonerCacheRepository {
       "AND summoner_cache.sumcache_server = '%s'";
   
   private static final String INSERT_SUMMONER_CACHE = "INSERT INTO summoner_cache "
-      + "(sumCache_summonerId, sumCache_server, sumCache_data, summoner_cache.sumcache_lastrefresh) VALUES ('%s', '%s', '%s', '%s')";
+      + "(sumCache_summonerId, sumCache_server, sumCache_data, sumcache_lastrefresh) VALUES ('%s', '%s', '%s', '%s')";
   
   private static final String UPDATE_SUMMONER_CACHE_WITH_ID = 
       "UPDATE summoner_cache SET sumcache_data = '%s', sumcache_lastrefresh = '%s' WHERE sumcache_id = %d";

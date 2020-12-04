@@ -83,5 +83,5 @@ CREATE TABLE clash_tournament_cache (
 );
 
 ALTER TABLE ONLY clash_tournament_cache
-  ADD CONSTRAINT clash_tournament_cache_id_pkey PRIMARY KEY (clash_tournament_cache_id);
+  ADD CONSTRAINT clash_tournament_cache_id_pkey PRIMARY KEY (clashTourCache_id);
   

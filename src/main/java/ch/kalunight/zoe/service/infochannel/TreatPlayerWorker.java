@@ -80,6 +80,8 @@ public class TreatPlayerWorker implements Runnable {
   private List<RankedChannelLoLRefresher> rankChannelsToProcess = Collections.synchronizedList(new ArrayList<>());
 
   private TreatedPlayer treatedPlayer = null;
+  
+  private boolean forceRefreshCache;
 
   private class LastRankQueue {
     public LeagueEntry leagueEntry;
@@ -96,13 +98,14 @@ public class TreatPlayerWorker implements Runnable {
   }
 
   public TreatPlayerWorker(Server server, Player player, List<LeagueAccount> leaguesAccounts,
-      RankHistoryChannel rankChannel,  ServerConfiguration configuration) {
+      RankHistoryChannel rankChannel,  ServerConfiguration configuration, boolean forceRefreshCache) {
     this.player = player;
     this.leaguesAccounts = leaguesAccounts;
     this.server = server;
     this.rankChannel = rankChannel;
     this.infochannelMessage = new StringBuilder();
     this.serverConfig = configuration;
+    this.forceRefreshCache = forceRefreshCache;
     playersInWork.add(this);
   }
 
@@ -137,7 +140,7 @@ public class TreatPlayerWorker implements Runnable {
 
       SavedSummoner summoner;
       try {
-        summoner = Zoe.getRiotApi().getSummonerWithRateLimit(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
+        summoner = Zoe.getRiotApi().getSummonerWithRateLimit(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId, forceRefreshCache);
         if(summoner != null) {
           leagueAccount.summoner = summoner;
         }else {

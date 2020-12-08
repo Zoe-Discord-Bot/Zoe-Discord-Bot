@@ -132,11 +132,11 @@ public class RiotRequest {
   }
 
   public static String getWinrateLastMonthWithGivenChampion(String summonerId, Platform region,
-      int championKey, String language) {
+      int championKey, String language, boolean forceRefreshCache) {
 
     SavedSummoner summoner;
     try {
-      summoner = Zoe.getRiotApi().getSummonerWithRateLimit(region, summonerId);
+      summoner = Zoe.getRiotApi().getSummonerWithRateLimit(region, summonerId, forceRefreshCache);
     } catch(RiotApiException e) {
       logger.warn("Impossible to get the summoner : {}", e.getMessage());
       return LanguageManager.getText(language, "unknown");
@@ -235,11 +235,11 @@ public class RiotRequest {
     return referencesMatchList;
   }
   
-  public static KDAReceiver getKDALastMonthOneChampionOnly(String summonerId, Platform region, int championId) {
+  public static KDAReceiver getKDALastMonthOneChampionOnly(String summonerId, Platform region, int championId, boolean forceRefreshCache) {
 
     SavedSummoner summoner;
     try {
-      summoner = Zoe.getRiotApi().getSummonerWithRateLimit(region, summonerId);
+      summoner = Zoe.getRiotApi().getSummonerWithRateLimit(region, summonerId, forceRefreshCache);
     } catch(RiotApiException e) {
       logger.warn("Impossible to get the summoner : {}", e.getMessage());
       return null;
@@ -270,11 +270,11 @@ public class RiotRequest {
     return kdaReceiver;
   }
   
-  public static KDAReceiver getKDALastMonth(String summonerId, Platform region) {
+  public static KDAReceiver getKDALastMonth(String summonerId, Platform region, boolean forceRefreshCache) {
 
     SavedSummoner summoner;
     try {
-      summoner = Zoe.getRiotApi().getSummonerWithRateLimit(region, summonerId);
+      summoner = Zoe.getRiotApi().getSummonerWithRateLimit(region, summonerId, forceRefreshCache);
     } catch(RiotApiException e) {
       logger.warn("Impossible to get the summoner : {}", e.getMessage());
       return null;
@@ -354,10 +354,10 @@ public class RiotRequest {
     return referencesMatchList;
   }
 
-  public static String getMasterysScore(String summonerId, int championId, Platform platform) {
+  public static String getMasterysScore(String summonerId, int championId, Platform platform, boolean forceRefreshCache) {
     SavedSimpleMastery mastery = null;
     try {
-      mastery = Zoe.getRiotApi().getChampionMasteriesBySummonerByChampionWithRateLimit(platform, summonerId, championId);
+      mastery = Zoe.getRiotApi().getChampionMasteriesBySummonerByChampionWithRateLimit(platform, summonerId, championId, forceRefreshCache);
     } catch(RiotApiException e) {
       logger.debug("Impossible to get mastery score : {}", e.getMessage());
       if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {

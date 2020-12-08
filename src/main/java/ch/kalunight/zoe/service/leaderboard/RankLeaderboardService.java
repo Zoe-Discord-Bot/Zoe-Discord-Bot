@@ -30,13 +30,13 @@ import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 
 public class RankLeaderboardService extends LeaderboardBaseService {
 
-  public RankLeaderboardService(long guildId, long channelId, long leaderboardId) {
-    super(guildId, channelId, leaderboardId);
+  public RankLeaderboardService(long guildId, long channelId, long leaderboardId, boolean forceRefreshCache) {
+    super(guildId, channelId, leaderboardId, forceRefreshCache);
   }
 
   @Override
   protected void runLeaderboardRefresh(Server server, Guild guild, TextChannel channel, Leaderboard leaderboard,
-      Message message, List<Player> players) throws SQLException, RiotApiException {
+      Message message, List<Player> players, boolean forceRefreshCache) throws SQLException, RiotApiException {
 
     Objective objective = Objective.getObjectiveWithId(leaderboard.lead_type);
     QueueSelected queueSelected = null;
@@ -44,7 +44,7 @@ public class RankLeaderboardService extends LeaderboardBaseService {
       queueSelected = gson.fromJson(leaderboard.lead_data, QueueSelected.class);
     }
 
-    List<PlayerRank> playersRank = orderAndGetPlayers(guild, objective, queueSelected, players);
+    List<PlayerRank> playersRank = orderAndGetPlayers(guild, objective, queueSelected, players, forceRefreshCache);
 
     List<String> playersName = new ArrayList<>();
     List<String> dataList = new ArrayList<>();
@@ -85,7 +85,7 @@ public class RankLeaderboardService extends LeaderboardBaseService {
 
   }
 
-  private List<PlayerRank> orderAndGetPlayers(Guild guild, Objective objective, QueueSelected queueSelected, List<Player> players) throws SQLException, RiotApiException {
+  private List<PlayerRank> orderAndGetPlayers(Guild guild, Objective objective, QueueSelected queueSelected, List<Player> players, boolean forceRefreshCache) throws SQLException, RiotApiException {
     List<PlayerRank> playersPoints = new ArrayList<>();
 
     for(DTO.Player player : players) {

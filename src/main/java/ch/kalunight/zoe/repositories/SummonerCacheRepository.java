@@ -33,6 +33,12 @@ public class SummonerCacheRepository {
   private static final String UPDATE_SUMMONER_CACHE_WITH_ID = 
       "UPDATE summoner_cache SET sumcache_data = '%s', sumcache_lastrefresh = '%s' WHERE sumcache_id = %d";
   
+  private static final String DELETE_SUMMONER_CACHE_WITH_ID = 
+      "DELETE FROM summoner_cache WHERE sumcache_id = %d";
+  
+  private static final String DELETE_SUMMONER_CACHE_WITH_SERVER_AND_SUMMONER_ID = 
+      "DELETE FROM summoner_cache WHERE sumcache_server = '%s' AND sumcache_summonerid = '%s'";
+  
   private SummonerCacheRepository() {
     //hide default public constructor
   }
@@ -70,6 +76,24 @@ public class SummonerCacheRepository {
       
       String finalQuery = String.format(INSERT_SUMMONER_CACHE, summonerId, server.getName(), gson.toJson(summonerToCache), DTO.DB_TIME_PATTERN.format(LocalDateTime.now()));
       query.execute(finalQuery);
+    }
+  }
+  
+  public static void deleteSummonerCacheWithId(long summonerCacheId) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement();) {
+      
+      String finalQuery = String.format(DELETE_SUMMONER_CACHE_WITH_ID, summonerCacheId);
+      query.executeUpdate(finalQuery);
+    }
+  }
+  
+  public static void deleteSummonerCacheWithSummonerIDAndServer(Platform platform, String summonerId) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement();) {
+      
+      String finalQuery = String.format(DELETE_SUMMONER_CACHE_WITH_SERVER_AND_SUMMONER_ID, platform.getName(), summonerId);
+      query.executeUpdate(finalQuery);
     }
   }
 }

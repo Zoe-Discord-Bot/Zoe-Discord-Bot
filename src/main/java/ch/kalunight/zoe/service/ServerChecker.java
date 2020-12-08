@@ -69,7 +69,7 @@ public class ServerChecker extends TimerTask {
         ServerStatusRepository.updateInTreatment(status.servstatus_id, true);
         ServerRepository.updateTimeStamp(server.serv_guildId, LocalDateTime.now());
 
-        Runnable task = new InfoPanelRefresher(server);
+        Runnable task = new InfoPanelRefresher(server, false);
         ServerThreadsManager.getServerExecutor().execute(task);
       }
 
@@ -79,7 +79,7 @@ public class ServerChecker extends TimerTask {
           ServerStatusRepository.updateInTreatment(status.servstatus_id, true);
           ServerRepository.updateTimeStamp(serverAskedTreatment.serv_guildId, LocalDateTime.now());
 
-          Runnable task = new InfoPanelRefresher(serverAskedTreatment);
+          Runnable task = new InfoPanelRefresher(serverAskedTreatment, true);
           ServerThreadsManager.getServerExecutor().execute(task);
 
           List<Leaderboard> leaderboards = LeaderboardRepository.getLeaderboardsWithGuildId(serverAskedTreatment.serv_guildId);
@@ -88,7 +88,7 @@ public class ServerChecker extends TimerTask {
 
             LeaderboardBaseService leaderboardRefreshService = 
                 LeaderboardBaseService.getServiceWithObjective(Objective.getObjectiveWithId(leaderboard.lead_type),
-                    serverAskedTreatment.serv_guildId, leaderboard.lead_message_channelId, leaderboard.lead_id);
+                    serverAskedTreatment.serv_guildId, leaderboard.lead_message_channelId, leaderboard.lead_id, true);
 
             if(leaderboardRefreshService != null) {
               ServerThreadsManager.getLeaderboardExecutor().execute(leaderboardRefreshService);
@@ -149,7 +149,7 @@ public class ServerChecker extends TimerTask {
 
       LeaderboardBaseService leaderboardRefreshService = 
           LeaderboardBaseService.getServiceWithObjective(Objective.getObjectiveWithId(leaderboardToRefresh.lead_type),
-              server.serv_guildId, leaderboardToRefresh.lead_message_channelId, leaderboardToRefresh.lead_id);
+              server.serv_guildId, leaderboardToRefresh.lead_message_channelId, leaderboardToRefresh.lead_id, false);
 
       if(leaderboardRefreshService != null) {
         ServerThreadsManager.getLeaderboardExecutor().execute(leaderboardRefreshService);

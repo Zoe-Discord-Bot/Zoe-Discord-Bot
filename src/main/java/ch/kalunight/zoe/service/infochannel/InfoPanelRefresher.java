@@ -76,15 +76,19 @@ public class InfoPanelRefresher implements Runnable {
   private Guild guild;
 
   private boolean needToWait = false;
+  
+  private boolean forceRefreshCache;
 
-  public InfoPanelRefresher(DTO.Server server) {
+  public InfoPanelRefresher(DTO.Server server, boolean forceRefreshCache) {
     this.server = server;
+    this.forceRefreshCache = forceRefreshCache; 
     guild = Zoe.getJda().getGuildById(server.serv_guildId);
   }
 
-  public InfoPanelRefresher(DTO.Server server, boolean needToWait) {
+  public InfoPanelRefresher(DTO.Server server, boolean needToWait, boolean forceRefreshCache) {
     this.server = server;
     this.needToWait = needToWait;
+    this.forceRefreshCache = forceRefreshCache;
     guild = Zoe.getJda().getGuildById(server.serv_guildId);
   }
 
@@ -128,7 +132,7 @@ public class InfoPanelRefresher implements Runnable {
         for(Player player : playersDTO) {
           List<LeagueAccount> leaguesAccounts = LeagueAccountRepository.getLeaguesAccountsWithPlayerID(server.serv_guildId, player.player_id);
 
-          TreatPlayerWorker playerWorker = new TreatPlayerWorker(server, player, leaguesAccounts, rankChannel, configuration);
+          TreatPlayerWorker playerWorker = new TreatPlayerWorker(server, player, leaguesAccounts, rankChannel, configuration, forceRefreshCache);
 
           playersToTreat.add(playerWorker);
           if(!leaguesAccounts.isEmpty()) {
@@ -360,7 +364,7 @@ public class InfoPanelRefresher implements Runnable {
         DTO.CurrentGameInfo currentGame = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(account.leagueAccount_id);
 
         ServerThreadsManager.getInfocardsGenerator().execute(
-            new InfoCardsWorker(server, infochannel, accountsLinked.get(0), currentGame, gameInfoCard));
+            new InfoCardsWorker(server, infochannel, accountsLinked.get(0), currentGame, gameInfoCard, forceRefreshCache));
         break;
       case IN_WAIT_OF_DELETING:
         GameInfoCardRepository.deleteGameInfoCardsWithId(gameInfoCard.gamecard_id);

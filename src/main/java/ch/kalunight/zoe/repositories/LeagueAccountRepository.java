@@ -422,6 +422,10 @@ public class LeagueAccountRepository {
     }
   }
 
+  /**
+   * We don't use this field anymore, please now use {@link SummonerCacheRepository}
+   */
+  @Deprecated
   public static void updateAccountNameWithAccountId(long leagueAccountId, String name) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {

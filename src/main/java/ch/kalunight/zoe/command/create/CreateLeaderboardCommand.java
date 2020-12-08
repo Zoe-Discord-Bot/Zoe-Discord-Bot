@@ -100,7 +100,7 @@ public class CreateLeaderboardCommand extends ZoeCommand {
         event.reply(String.format(LanguageManager.getText(server.serv_language, "leaderboardObjectiveSelected"),
             LanguageManager.getText(server.serv_language, objective.getTranslationId())));
 
-        LeaderboardExtraDataHandler dataNeeded = Objective.getDataNeeded(objective, waiter, server, event);
+        LeaderboardExtraDataHandler dataNeeded = Objective.getDataNeeded(objective, waiter, server, event, true);
 
         dataNeeded.handleSecondCreationPart();
       }

@@ -119,7 +119,7 @@ public class StatsProfileCommand extends ZoeCommand {
       SavedSummoner summoner;
       try {
         summoner = Zoe.getRiotApi().getSummoner(leagueAccount.leagueAccount_server,
-            leagueAccount.leagueAccount_summonerId);
+            leagueAccount.leagueAccount_summonerId, false);
       } catch(RiotApiException e) {
         RiotApiUtil.handleRiotApi(event.getEvent(), e, server.serv_language);
         return;
@@ -171,7 +171,7 @@ public class StatsProfileCommand extends ZoeCommand {
       for(DTO.LeagueAccount choiceAccount : accounts) {
         try {
           summoner = Zoe.getRiotApi().getSummoner(choiceAccount.leagueAccount_server,
-              choiceAccount.leagueAccount_summonerId);
+              choiceAccount.leagueAccount_summonerId, false);
         }catch(RiotApiException e) {
           RiotApiUtil.handleRiotApi(event.getEvent(), e, server.serv_language);
           return;
@@ -251,7 +251,7 @@ public class StatsProfileCommand extends ZoeCommand {
         SavedSummoner summoner;
         try {
           summoner = Zoe.getRiotApi().getSummoner(account.leagueAccount_server,
-              account.leagueAccount_summonerId);
+              account.leagueAccount_summonerId, true);
         } catch(RiotApiException e) {
           RiotApiUtil.handleRiotApi(event.getEvent(), e, server.serv_language);
           return;
@@ -288,7 +288,7 @@ public class StatsProfileCommand extends ZoeCommand {
     SavedChampionMastery championsMasteries;
     try {
       championsMasteries = Zoe.getRiotApi().getChampionMasteriesBySummoner(lolAccount.leagueAccount_server,
-          lolAccount.leagueAccount_summonerId);
+          lolAccount.leagueAccount_summonerId, true);
     } catch(RiotApiException e) {
       if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
         event.reply(LanguageManager.getText(server.serv_language, "statsProfileRateLimitError"));

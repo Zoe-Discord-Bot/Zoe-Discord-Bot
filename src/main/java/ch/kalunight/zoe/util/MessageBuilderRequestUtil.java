@@ -70,7 +70,7 @@ public class MessageBuilderRequestUtil {
 
     for(CurrentGameParticipant participant : teamParticipant) {
       InfocardPlayerData playerData = new InfocardPlayerData(isBlueTeam);
-      SummonerDataWorker playerWorker = new SummonerDataWorker(participant, listIdPlayers, platform, language, playerData, gameQueueConfigId);
+      SummonerDataWorker playerWorker = new SummonerDataWorker(participant, listIdPlayers, platform, language, playerData, gameQueueConfigId, false);
       ServerThreadsManager.getPlayersDataWorker(platform).execute(playerWorker);
       playersDataToWait.add(playerData);
     }

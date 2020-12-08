@@ -20,8 +20,8 @@ import net.dv8tion.jda.api.entities.Message;
 
 public class SpecificQueueDataHandler extends LeaderboardExtraDataHandler {
 
-  public SpecificQueueDataHandler(Objective objective, EventWaiter waiter, CommandEvent event, Server server) {
-    super(objective, waiter, event, server);
+  public SpecificQueueDataHandler(Objective objective, EventWaiter waiter, CommandEvent event, Server server, boolean forceRefreshCache) {
+    super(objective, waiter, event, server, forceRefreshCache);
   }
 
   @Override

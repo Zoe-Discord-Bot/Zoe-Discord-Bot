@@ -29,12 +29,14 @@ public abstract class LeaderboardExtraDataHandler {
   protected EventWaiter waiter;
   protected CommandEvent event;
   protected Server server;
+  protected boolean forceRefreshCache;
 
-  public LeaderboardExtraDataHandler(Objective objective, EventWaiter waiter, CommandEvent event, Server server) {
+  public LeaderboardExtraDataHandler(Objective objective, EventWaiter waiter, CommandEvent event, Server server, boolean forceRefreshCache) {
     this.objective = objective;
     this.waiter = waiter;
     this.event = event;
     this.server = server;
+    this.forceRefreshCache = forceRefreshCache;
   }
 
   public abstract void handleSecondCreationPart();
@@ -83,7 +85,7 @@ public abstract class LeaderboardExtraDataHandler {
       }
 
       LeaderboardBaseService baseLeaderboardService = LeaderboardBaseService.getServiceWithObjective(objective,
-          server.serv_guildId, leaderboardChannel.getIdLong(), leaderboard.lead_id);
+          server.serv_guildId, leaderboardChannel.getIdLong(), leaderboard.lead_id, forceRefreshCache);
 
       ServerThreadsManager.getLeaderboardExecutor().execute(baseLeaderboardService);
 

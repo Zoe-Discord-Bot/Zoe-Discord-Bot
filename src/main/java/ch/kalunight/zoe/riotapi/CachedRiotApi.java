@@ -22,9 +22,11 @@ import ch.kalunight.zoe.model.dto.SavedMatch;
 import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
 import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.repositories.ChampionMasteryRepository;
+import ch.kalunight.zoe.repositories.ClashTournamentRepository;
 import ch.kalunight.zoe.repositories.SavedMatchCacheRepository;
 import ch.kalunight.zoe.repositories.SummonerCacheRepository;
 import ch.kalunight.zoe.model.dto.DTO.ChampionMasteryCache;
+import ch.kalunight.zoe.model.dto.DTO.ClashTournamentCache;
 import ch.kalunight.zoe.model.dto.DTO.MatchCache;
 import ch.kalunight.zoe.model.dto.DTO.SummonerCache;
 import net.rithms.riot.api.RiotApi;
@@ -56,8 +58,6 @@ public class CachedRiotApi {
   public static final int RIOT_API_HUGE_LIMIT = 15000;
   public static final int RIOT_API_TFT_HUGE_LIMIT = 30000;
   public static final Duration RIOT_API_HUGE_TIME = Duration.ofMinutes(10);
-
-  private static Map<Platform, List<ClashTournament>> tournamentCache = Collections.synchronizedMap(new EnumMap<Platform, List<ClashTournament>>(Platform.class));
 
   private static final Logger logger = LoggerFactory.getLogger(CachedRiotApi.class);
 
@@ -222,52 +222,69 @@ public class CachedRiotApi {
     return matchList;
   }
 
-  public SavedSummoner getSummoner(Platform platform, String summonerId) throws RiotApiException {
+  public SavedSummoner getSummoner(Platform platform, String summonerId, boolean forceRefreshCache) throws RiotApiException {
 
     SummonerCache summonerCache = null;
-    try {
-      summonerCache = SummonerCacheRepository.getSummonerWithSummonerId(summonerId, platform);
-    } catch (SQLException e) {
-      logger.warn("Error while getting summoner cache !", e);
+    if(!forceRefreshCache) {
+      try {
+        summonerCache = SummonerCacheRepository.getSummonerWithSummonerId(summonerId, platform);
+      } catch (SQLException e) {
+        logger.warn("Error while getting summoner cache !", e);
+      }
     }
 
-    if(summonerCache != null) {
+    if(summonerCache != null && summonerCache.sumCache_lastRefresh.isAfter(LocalDateTime.now().minusHours(CacheRefreshTime.SUMMONER_CACHE_REFRESH_TIME_IN_HOURS))) {
       return summonerCache.sumCache_data;
     }
 
-    Summoner summoner = riotApi.getSummoner(platform, summonerId);
+    try {
+      Summoner summoner = riotApi.getSummoner(platform, summonerId);
 
-    summonerRequestCount.incrementAndGet();
-    increaseCallCountForGivenRegion(platform);
+      summonerRequestCount.incrementAndGet();
+      increaseCallCountForGivenRegion(platform);
 
-    if(summoner != null) {
-      SavedSummoner summonerToCache = new SavedSummoner(summoner);
+      if(summoner != null) {
+        SavedSummoner summonerToCache = new SavedSummoner(summoner);
 
-      try {
-        SummonerCacheRepository.createSummonerCache(summonerId, platform, summonerToCache);
-      } catch (SQLException e) {
-        logger.warn("Error while saving a summoner, summoner returned anyway", e);
+        try {
+          SummonerCacheRepository.createSummonerCache(summonerId, platform, summonerToCache);
+        } catch (SQLException e) {
+          logger.warn("Error while saving a summoner, summoner returned anyway", e);
+        }
+
+        return summonerToCache;
       }
-
-      return summonerToCache;
+    }catch(RiotApiException e) {
+      if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+        try {
+          SummonerCacheRepository.deleteSummonerCacheWithSummonerIDAndServer(platform, summonerId);
+        } catch (SQLException e1) {
+          logger.warn("Impossible to delete summoner correctly, null returned anyway.");
+        }
+        return null;
+      }else {
+        throw e;
+      }
     }
 
     return null;
   }
 
-  public SavedSummoner getSummonerWithRateLimit(Platform platform, String summonerId) throws RiotApiException {
+  public SavedSummoner getSummonerWithRateLimit(Platform platform, String summonerId, boolean forceRefreshCache) throws RiotApiException {
     boolean needToRetry;
     do {
       needToRetry = true;
       try {
         SummonerCache summonerCache = null;
-        try {
-          summonerCache = SummonerCacheRepository.getSummonerWithSummonerId(summonerId, platform);
-        } catch (SQLException e) {
-          logger.warn("Error while getting summoner cache !", e);
+        if(!forceRefreshCache) {
+          try {
+            summonerCache = SummonerCacheRepository.getSummonerWithSummonerId(summonerId, platform);
+          } catch (SQLException e) {
+            logger.warn("Error while getting summoner cache !", e);
+          }
         }
 
-        if(summonerCache != null) {
+        if(summonerCache != null && summonerCache.sumCache_lastRefresh.isAfter(LocalDateTime.now().minusHours(CacheRefreshTime.SUMMONER_CACHE_REFRESH_TIME_IN_HOURS))) {
           return summonerCache.sumCache_data;
         }
 
@@ -302,6 +319,11 @@ public class CachedRiotApi {
         }
       } catch (RiotApiException e) {
         if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+          try {
+            SummonerCacheRepository.deleteSummonerCacheWithSummonerIDAndServer(platform, summonerId);
+          } catch (SQLException e1) {
+            logger.warn("Impossible to delete summoner correctly, null returned anyway.");
+          }
           return null;
         }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
           logger.warn("Bad request received from Riot Api!", e);
@@ -504,19 +526,26 @@ public class CachedRiotApi {
     return gameInfo;
   }
 
-  public List<ClashTournament> getClashTournamentsWithRateLimit(Platform platform) throws RiotApiException {
+  public List<ClashTournament> getClashTournamentsWithRateLimit(Platform platform, boolean forceRefreshCache) throws SQLException {
 
-    List<ClashTournament> clashTournaments = tournamentCache.get(platform);
+    ClashTournamentCache clashTournamentCache = null;
+    if(!forceRefreshCache) {
+      clashTournamentCache = ClashTournamentRepository.getClashTournamentCache(platform);
+    }
 
-    if(clashTournaments != null) {
-      return clashTournaments;
+    if(clashTournamentCache != null && !clashTournamentCache.clashTourCache_lastRefresh.isBefore(LocalDateTime.now().minusHours(CacheRefreshTime.CLASH_TOURNAMENT_REFRESH_TIME_IN_HOURS))) {
+      return clashTournamentCache.clashTourCache_data;
     }else {
       refreshClashTournaments();
-      return tournamentCache.get(platform);
+      clashTournamentCache = ClashTournamentRepository.getClashTournamentCache(platform);
+      if(clashTournamentCache != null) {
+        return clashTournamentCache.clashTourCache_data;
+      }
+      return new ArrayList<>();
     }
   }
 
-  public void refreshClashTournaments() {
+  public synchronized void refreshClashTournaments() throws SQLException {
 
     for(Platform platform : Platform.values()) {
 
@@ -527,7 +556,14 @@ public class CachedRiotApi {
         needToRetry = true;
         try {
           List<ClashTournament> clashTournaments = riotApi.getClashTournaments(platform);
-          tournamentCache.put(platform, clashTournaments);
+
+          ClashTournamentCache tournamentCache = ClashTournamentRepository.getClashTournamentCache(platform);
+
+          if(tournamentCache == null) {
+            ClashTournamentRepository.createClashTournamentCache(platform, clashTournaments);
+          }else {
+            ClashTournamentRepository.updateClashTournamentCache(clashTournaments, tournamentCache.clashTourCache_id);
+          }
 
           needToRetry = false;
         }catch(RateLimitException e) {
@@ -554,15 +590,9 @@ public class CachedRiotApi {
 
   }
 
-  public ClashTournament getClashTournamentById(Platform platform, int tournamentId) {
+  public ClashTournament getClashTournamentById(Platform platform, int tournamentId, boolean forceRefreshCache) throws SQLException {
 
-    List<ClashTournament> clashTournaments = tournamentCache.get(platform);
-
-    if(clashTournaments == null) {
-      refreshClashTournaments();
-
-      clashTournaments = tournamentCache.get(platform);
-    }
+    List<ClashTournament> clashTournaments = getClashTournamentsWithRateLimit(platform, forceRefreshCache);
 
     for(ClashTournament clashTournament : clashTournaments) {
       if(clashTournament.getId() == tournamentId) {
@@ -647,16 +677,18 @@ public class CachedRiotApi {
     return riotApi.getThirdPartyCodeBySummoner(platform, summonerId);
   }
 
-  public SavedSimpleMastery getChampionMasteriesBySummonerByChampion(Platform platform, String summonerId, int championId) throws RiotApiException {
+  public SavedSimpleMastery getChampionMasteriesBySummonerByChampion(Platform platform, String summonerId, int championId, boolean forceRefreshCache) throws RiotApiException {
 
     ChampionMasteryCache championMasteryCache = null;
-    try {
-      championMasteryCache = ChampionMasteryRepository.getChampionMasteryWithSummonerId(summonerId, platform);
-    } catch (SQLException e) {
-      logger.warn("Error while getting champion mastery cache !", e);
+    if(!forceRefreshCache) {
+      try {
+        championMasteryCache = ChampionMasteryRepository.getChampionMasteryWithSummonerId(summonerId, platform);
+      } catch (SQLException e) {
+        logger.warn("Error while getting champion mastery cache !", e);
+      }
     }
 
-    if(championMasteryCache != null) {
+    if(championMasteryCache != null && championMasteryCache.championMasCache_lastRefresh.isAfter(LocalDateTime.now().minusHours(CacheRefreshTime.MASTERY_CACHE_REFRESH_TIME_IN_HOURS))) {
 
       SavedSimpleMastery championMastery = championMasteryCache.champMasCache_data.getChampionMasteryWithChampionId(championId);
 
@@ -805,7 +837,7 @@ public class CachedRiotApi {
     return match;
   }
 
-  public SavedSimpleMastery getChampionMasteriesBySummonerByChampionWithRateLimit(Platform platform, String summonerId, int championId) throws RiotApiException {
+  public SavedSimpleMastery getChampionMasteriesBySummonerByChampionWithRateLimit(Platform platform, String summonerId, int championId, boolean forceRefreshCache) throws RiotApiException {
     SavedSimpleMastery championMasteryToReturn = null;
     boolean needToRetry;
     do {
@@ -813,13 +845,15 @@ public class CachedRiotApi {
       needToRetry = true;
       try {
         ChampionMasteryCache championMasteryCache = null;
-        try {
-          championMasteryCache = ChampionMasteryRepository.getChampionMasteryWithSummonerId(summonerId, platform);
-        } catch (SQLException e) {
-          logger.warn("Error while getting champion mastery cache !", e);
+        if(!forceRefreshCache) {
+          try {
+            championMasteryCache = ChampionMasteryRepository.getChampionMasteryWithSummonerId(summonerId, platform);
+          } catch (SQLException e) {
+            logger.warn("Error while getting champion mastery cache !", e);
+          }
         }
 
-        if(championMasteryCache != null) {
+        if(championMasteryCache != null && championMasteryCache.championMasCache_lastRefresh.isAfter(LocalDateTime.now().minusHours(CacheRefreshTime.MASTERY_CACHE_REFRESH_TIME_IN_HOURS))) {
 
           SavedSimpleMastery championMastery = championMasteryCache.champMasCache_data.getChampionMasteryWithChampionId(championId);
 
@@ -872,16 +906,18 @@ public class CachedRiotApi {
     return championMasteryToReturn;
   }
 
-  public SavedChampionMastery getChampionMasteriesBySummoner(Platform platform, String summonerId) throws RiotApiException {
+  public SavedChampionMastery getChampionMasteriesBySummoner(Platform platform, String summonerId, boolean forceRefreshCache) throws RiotApiException {
     SavedChampionMastery championMasteries = null;
     ChampionMasteryCache championMasteryCache = null;
-    try {
-      championMasteryCache = ChampionMasteryRepository.getChampionMasteryWithSummonerId(summonerId, platform);
-    } catch (SQLException e) {
-      logger.warn("Error while getting champion mastery cache !", e);
+    if(!forceRefreshCache) {
+      try {
+        championMasteryCache = ChampionMasteryRepository.getChampionMasteryWithSummonerId(summonerId, platform);
+      } catch (SQLException e) {
+        logger.warn("Error while getting champion mastery cache !", e);
+      }
     }
 
-    if(championMasteryCache != null) {
+    if(championMasteryCache != null && championMasteryCache.championMasCache_lastRefresh.isAfter(LocalDateTime.now().minusHours(CacheRefreshTime.MASTERY_CACHE_REFRESH_TIME_IN_HOURS))) {
       return championMasteryCache.champMasCache_data;
     }
 
@@ -903,7 +939,7 @@ public class CachedRiotApi {
     return championMasteries;
   }
 
-  public SavedChampionMastery getChampionMasteriesBySummonerWithRateLimit(Platform platform, String summonerId) throws RiotApiException {
+  public SavedChampionMastery getChampionMasteriesBySummonerWithRateLimit(Platform platform, String summonerId, boolean forceRefreshCache) throws RiotApiException {
     SavedChampionMastery masteries = null;
     boolean needToRetry;
     do {
@@ -912,13 +948,15 @@ public class CachedRiotApi {
       try {
 
         ChampionMasteryCache championMasteryCache = null;
-        try {
-          championMasteryCache = ChampionMasteryRepository.getChampionMasteryWithSummonerId(summonerId, platform);
-        } catch (SQLException e) {
-          logger.warn("Error while getting champion mastery cache !", e);
+        if(!forceRefreshCache) {
+          try {
+            championMasteryCache = ChampionMasteryRepository.getChampionMasteryWithSummonerId(summonerId, platform);
+          } catch (SQLException e) {
+            logger.warn("Error while getting champion mastery cache !", e);
+          }
         }
 
-        if(championMasteryCache != null) {
+        if(championMasteryCache != null && championMasteryCache.championMasCache_lastRefresh.isAfter(LocalDateTime.now().minusHours(CacheRefreshTime.MASTERY_CACHE_REFRESH_TIME_IN_HOURS))) {
           return championMasteryCache.champMasCache_data;
         }
 

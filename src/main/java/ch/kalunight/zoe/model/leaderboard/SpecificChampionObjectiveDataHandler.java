@@ -24,8 +24,8 @@ public class SpecificChampionObjectiveDataHandler extends LeaderboardExtraDataHa
   private static final String LEADERBOARD_CHAMPION_SELECTED_THEN_SEND_CHANNEL = "leaderboardChampionSelectedThenSendChannel";
   private static final String LEADERBOARD_BAD_CHAMPION_NUMBER_SELECTION = "leaderboardBadChampionNumberSelection";
 
-  public SpecificChampionObjectiveDataHandler(Objective objective, EventWaiter waiter, CommandEvent event, Server server) {
-    super(objective, waiter, event, server);
+  public SpecificChampionObjectiveDataHandler(Objective objective, EventWaiter waiter, CommandEvent event, Server server, boolean forceRefreshCache) {
+    super(objective, waiter, event, server, forceRefreshCache);
   }
 
   @Override

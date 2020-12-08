@@ -24,16 +24,16 @@ import net.rithms.riot.api.RiotApiException;
 
 public class MasteryPointSpecificChampLeaderboardService extends LeaderboardBaseService {
   
-  public MasteryPointSpecificChampLeaderboardService(long guildId, long channelId, long leaderboardId) {
-    super(guildId, channelId, leaderboardId);
+  public MasteryPointSpecificChampLeaderboardService(long guildId, long channelId, long leaderboardId, boolean forceRefreshCache) {
+    super(guildId, channelId, leaderboardId, forceRefreshCache);
   }
 
   @Override
-  protected void runLeaderboardRefresh(Server server, Guild guild, TextChannel channel, Leaderboard leaderboard, Message message, List<Player> players)
+  protected void runLeaderboardRefresh(Server server, Guild guild, TextChannel channel, Leaderboard leaderboard, Message message, List<Player> players, boolean forceRefreshCache)
       throws SQLException, RiotApiException {
     
     SpecificChamp specificChamp = gson.fromJson(leaderboard.lead_data, SpecificChamp.class);
-    List<PlayerPoints> playersPoints = orderAndGetPlayers(guild, specificChamp.getChampion().getKey(), players);
+    List<PlayerPoints> playersPoints = orderAndGetPlayers(guild, specificChamp.getChampion().getKey(), players, forceRefreshCache);
     
     List<String> playersName = new ArrayList<>();
     List<String> dataList = new ArrayList<>();
@@ -57,7 +57,7 @@ public class MasteryPointSpecificChampLeaderboardService extends LeaderboardBase
     message.editMessage(builder.build()).queue();
   }
   
-  private List<PlayerPoints> orderAndGetPlayers(Guild guild, int championId, List<Player> players) throws SQLException, RiotApiException {
+  private List<PlayerPoints> orderAndGetPlayers(Guild guild, int championId, List<Player> players, boolean forceRefreshCache) throws SQLException, RiotApiException {
     List<PlayerPoints> playersPoints = new ArrayList<>();
     
     for(DTO.Player player : players) {
@@ -66,7 +66,7 @@ public class MasteryPointSpecificChampLeaderboardService extends LeaderboardBase
       long bestAccountPoints = 0;
       for(DTO.LeagueAccount leagueAccount : leaguesAccounts) {
         SavedSimpleMastery mastery = Zoe.getRiotApi().getChampionMasteriesBySummonerByChampionWithRateLimit(leagueAccount.leagueAccount_server,
-            leagueAccount.leagueAccount_summonerId, championId);
+            leagueAccount.leagueAccount_summonerId, championId, forceRefreshCache);
         
         if(mastery == null) {
           continue;

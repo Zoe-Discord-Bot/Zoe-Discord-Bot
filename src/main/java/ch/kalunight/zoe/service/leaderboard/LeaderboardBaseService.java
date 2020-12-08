@@ -45,11 +45,14 @@ public abstract class LeaderboardBaseService implements Runnable {
   private long channelId;
 
   private long leaderboardId;
-
-  public LeaderboardBaseService(long guildId, long channelId, long leaderboardId) {
+  
+  private boolean forceRefreshCache;
+  
+  public LeaderboardBaseService(long guildId, long channelId, long leaderboardId, boolean forceRefreshCache) {
     this.guildId = guildId;
     this.channelId = channelId;
     this.leaderboardId = leaderboardId;
+    this.forceRefreshCache = forceRefreshCache;
   }
 
   @Override
@@ -91,7 +94,7 @@ public abstract class LeaderboardBaseService implements Runnable {
       List<Player> players = PlayerRepository.getPlayers(guildId);
       InfoPanelRefresherUtil.cleanRegisteredPlayerNoLongerInGuild(guild, players);
 
-      runLeaderboardRefresh(server, guild, channel, leaderboard, message, players);
+      runLeaderboardRefresh(server, guild, channel, leaderboard, message, players, forceRefreshCache);
       
       message.removeReaction("U+23F3", Zoe.getJda().getSelfUser()).queue();
 
@@ -122,7 +125,7 @@ public abstract class LeaderboardBaseService implements Runnable {
   }
 
   protected abstract void runLeaderboardRefresh(Server server, Guild guild, TextChannel channel,
-      Leaderboard leaderboard, Message message, List<Player> players) throws SQLException, RiotApiException;
+      Leaderboard leaderboard, Message message, List<Player> players, boolean forceRefreshCache) throws SQLException, RiotApiException;
 
   protected EmbedBuilder buildBaseLeaderboardList(String playerTitle, List<String> playersName, String dataName, List<String> dataList) {
 
@@ -171,19 +174,19 @@ public abstract class LeaderboardBaseService implements Runnable {
     return builder;
   }
 
-  public static LeaderboardBaseService getServiceWithObjective(Objective objective, long guildId, long channelId, long leaderboardId) {
+  public static LeaderboardBaseService getServiceWithObjective(Objective objective, long guildId, long channelId, long leaderboardId, boolean forceRefreshCache) {
 
     switch(objective) {
     case AVERAGE_KDA:
     case AVERAGE_KDA_SPECIFIC_CHAMP:
-      return new KDALeaderboardService(guildId, channelId, leaderboardId);
+      return new KDALeaderboardService(guildId, channelId, leaderboardId, forceRefreshCache);
     case MASTERY_POINT:
-      return new MasteryPointLeaderboardService(guildId, channelId, leaderboardId);
+      return new MasteryPointLeaderboardService(guildId, channelId, leaderboardId, forceRefreshCache);
     case MASTERY_POINT_SPECIFIC_CHAMP:
-      return new MasteryPointSpecificChampLeaderboardService(guildId, channelId, leaderboardId);
+      return new MasteryPointSpecificChampLeaderboardService(guildId, channelId, leaderboardId, forceRefreshCache);
     case BEST_OF_ALL_RANK:
     case SPECIFIC_QUEUE_RANK:
-      return new RankLeaderboardService(guildId, channelId, leaderboardId);
+      return new RankLeaderboardService(guildId, channelId, leaderboardId, forceRefreshCache);
     /*case WINRATE:
     case WINRATE_SPECIFIC_CHAMP:
     case WINRATE_SPECIFIC_QUEUE:

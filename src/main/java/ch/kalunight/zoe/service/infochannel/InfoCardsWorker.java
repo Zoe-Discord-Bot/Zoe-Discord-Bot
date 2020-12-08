@@ -36,14 +36,17 @@ public class InfoCardsWorker implements Runnable {
   private DTO.CurrentGameInfo currentGameInfo;
   
   private DTO.GameInfoCard gameInfoCard;
+  
+  private boolean forceRefreshCache;
 
   public InfoCardsWorker(DTO.Server server, TextChannel controlPanel, DTO.LeagueAccount account, DTO.CurrentGameInfo currentGameInfo,
-      DTO.GameInfoCard gameInfoCard) {
+      DTO.GameInfoCard gameInfoCard, boolean forceRefreshCache) {
     this.server = server;
     this.controlPanel = controlPanel;
     this.account = account;
     this.currentGameInfo = currentGameInfo;
     this.gameInfoCard = gameInfoCard;
+    this.forceRefreshCache = forceRefreshCache;
   }
 
   @Override
@@ -52,7 +55,7 @@ public class InfoCardsWorker implements Runnable {
       if(controlPanel.canTalk()) {
         if(account.summoner == null) {
           account.summoner = Zoe.getRiotApi()
-              .getSummonerWithRateLimit(account.leagueAccount_server, account.leagueAccount_summonerId);
+              .getSummonerWithRateLimit(account.leagueAccount_server, account.leagueAccount_summonerId, forceRefreshCache);
         }
         
         logger.info("Start generate infocards for the account {} ({})", account.summoner.getName(),  account.leagueAccount_server.getName());

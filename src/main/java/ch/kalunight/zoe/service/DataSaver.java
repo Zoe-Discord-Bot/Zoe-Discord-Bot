@@ -14,9 +14,7 @@ import ch.kalunight.zoe.util.Ressources;
 public class DataSaver extends TimerTask {
 
   private static final int WAIT_TIME_BETWEEN_EACH_REFRESH_IN_MS = 10000;
-  
-  private static final int TIME_BETWEEN_EACH_DB_REFRESH_IN_HOURS = 12;
-  
+
   private static final int TIME_BETWEEN_EACH_CHAMPION_ROLE_REFRESH_IN_HOURS = 12;
   
   private static final int TIME_BETWEEN_CLEAN_CACHE_IN_HOURS = 48;
@@ -26,8 +24,6 @@ public class DataSaver extends TimerTask {
   private static final Logger logger = LoggerFactory.getLogger(DataSaver.class);
   
   private static LocalDateTime nextCleanCacheTime = LocalDateTime.now().plusHours(1);
-  
-  private static LocalDateTime nextRefreshCacheDb = LocalDateTime.now().plusHours(3);
   
   private static LocalDateTime nextRefreshChampionsRole = LocalDateTime.now().plusHours(1);
   
@@ -41,13 +37,7 @@ public class DataSaver extends TimerTask {
         CleanCacheService cleanCacheThread = new CleanCacheService();
         ServerThreadsManager.getServerExecutor().execute(cleanCacheThread);
       }
-      
-      if(nextRefreshCacheDb.isBefore(LocalDateTime.now())) {
-        logger.info("Refresh cache started !");
-        setNextRefreshCacheDb(LocalDateTime.now().plusHours(TIME_BETWEEN_EACH_DB_REFRESH_IN_HOURS));
-        ServerThreadsManager.getServerExecutor().submit(new SummonerCacheRefresh());
-      }
-      
+
       if(nextRefreshChampionsRole.isBefore(LocalDateTime.now())) {
         logger.info("Refresh champion roles started !");
         setNextRefreshChampionRole(LocalDateTime.now().plusHours(TIME_BETWEEN_EACH_CHAMPION_ROLE_REFRESH_IN_HOURS));
@@ -75,10 +65,6 @@ public class DataSaver extends TimerTask {
   
   private static void setNextCleanCacheTime(LocalDateTime nextCleanCacheTime) {
     DataSaver.nextCleanCacheTime = nextCleanCacheTime;
-  }
-
-  private static void setNextRefreshCacheDb(LocalDateTime nextRefreshCacheDb) {
-    DataSaver.nextRefreshCacheDb = nextRefreshCacheDb;
   }
 
   private static void setNextRefreshChampionRole(LocalDateTime nextRefreshChampionsRole) {

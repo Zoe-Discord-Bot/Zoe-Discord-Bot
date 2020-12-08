@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.print.attribute.standard.MediaSize.Other;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +15,6 @@ import ch.kalunight.zoe.model.dto.ClashStatus;
 import ch.kalunight.zoe.model.dto.ClashTeamData;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.ClashChannel;
-import ch.kalunight.zoe.model.dto.DTO.CurrentGameInfo;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.repositories.ClashChannelRepository;
@@ -49,10 +46,13 @@ public class TreatClashChannel implements Runnable {
   private Guild guild;
 
   private TextChannel clashChannel;
+  
+  private boolean forceRefreshCache;
 
-  public TreatClashChannel(Server server, ClashChannel clashChannel) {
+  public TreatClashChannel(Server server, ClashChannel clashChannel, boolean forceRefreshCache) {
     this.server = server;
     this.clashChannelDB = clashChannel;
+    this.forceRefreshCache = forceRefreshCache;
   }
 
   private class ClashTeamRegistration {
@@ -122,7 +122,7 @@ public class TreatClashChannel implements Runnable {
     
     List<ClashTournament> nextTournaments = null;
     try {
-      nextTournaments = Zoe.getRiotApi().getClashTournamentsWithRateLimit(leagueAccount.leagueAccount_server);
+      nextTournaments = Zoe.getRiotApi().getClashTournamentsWithRateLimit(leagueAccount.leagueAccount_server, forceRefreshCache);
       
       if(nextTournaments == null || nextTournaments.isEmpty()) {
         messageBuilder.append(LanguageManager.getText(server.serv_language, "clashChannelClashTournamentNotAvailable") + "\n\n");
@@ -140,8 +140,8 @@ public class TreatClashChannel implements Runnable {
         }
       }
       
-    } catch (RiotApiException e) {
-      logger.warn("Impossible to access to riot server !", e);
+    } catch (SQLException e) {
+      logger.warn("SQL Error !", e);
       
       messageBuilder.append(LanguageManager.getText(server.serv_language, "clashChannelClashTournamentError") + "\n\n");
     }
@@ -242,14 +242,14 @@ public class TreatClashChannel implements Runnable {
 
   }
 
-  private ClashTeamRegistration getFirstRegistration(Platform platform, List<ClashTeamMember> clashPlayerRegistrations) throws RiotApiException {
+  private ClashTeamRegistration getFirstRegistration(Platform platform, List<ClashTeamMember> clashPlayerRegistrations) throws RiotApiException, SQLException {
 
     ClashTeamRegistration teamRegistration = null;
 
     for(ClashTeamMember clashPlayer : clashPlayerRegistrations) {
       ClashTeam team = Zoe.getRiotApi().getClashTeamByTeamIdWithRateLimit(platform, clashPlayer.getTeamId());
 
-      ClashTournament tournamentToCheck = Zoe.getRiotApi().getClashTournamentById(platform, team.getTournamentIdInt());
+      ClashTournament tournamentToCheck = Zoe.getRiotApi().getClashTournamentById(platform, team.getTournamentIdInt(), forceRefreshCache);
 
       if(teamRegistration == null || teamRegistration.tournament.getSchedule().get(0).getStartTime().isAfter(tournamentToCheck.getSchedule().get(0).getStartTime())) {
         teamRegistration = new ClashTeamRegistration(tournamentToCheck, team);

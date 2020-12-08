@@ -32,12 +32,14 @@ public class ClashTournamentRepository {
   private static final String UPDATE_CLASH_TOURNAMENT_CACHE_WITH_ID = 
       "UPDATE clash_tournament_cache SET clashtourcache_data = '%s', clashtourcache_lastrefresh = '%s' WHERE clashtourcache_id = %d";
   
+  private static final String INSERT_CLASH_TOURNAMENT_CACHE = "INSERT INTO clash_tournament_cache (clashTourCache_server, clashTourCache_data, clashTourCache_lastRefresh) VALUES ('%s', '%s', '%s')";
+  
   private ClashTournamentRepository() {
     //hide default public constructor
   }
   
   @Nullable
-  public static DTO.ClashTournamentCache getCurrentGameWithServerAndGameId(Platform platform) throws SQLException {
+  public static DTO.ClashTournamentCache getClashTournamentCache(Platform platform) throws SQLException {
     ResultSet result = null;
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
@@ -54,7 +56,7 @@ public class ClashTournamentRepository {
     }
   }
   
-  public static void updateSummonerCache(List<ClashTournament> listTournament, long cacheId) throws SQLException {
+  public static void updateClashTournamentCache(List<ClashTournament> listTournament, long cacheId) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
 
@@ -63,5 +65,17 @@ public class ClashTournamentRepository {
       query.execute(finalQuery);
     }
   }
+  
+  public static void createClashTournamentCache(Platform platform, List<ClashTournament> clashTourCacheData) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement();) {
+      
+      String finalQuery = String.format(INSERT_CLASH_TOURNAMENT_CACHE, platform.getName(), clashTourCacheData,
+          DTO.DB_TIME_PATTERN.format(LocalDateTime.now()));
+      
+      query.execute(finalQuery);
+    }
+  }
+  
   
 }

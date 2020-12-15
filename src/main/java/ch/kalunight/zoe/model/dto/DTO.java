@@ -16,6 +16,7 @@ import com.google.gson.reflect.TypeToken;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.service.analysis.ChampionRole;
 import net.dv8tion.jda.api.entities.User;
+import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.clash.dto.ClashTournament;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
@@ -180,7 +181,7 @@ public class DTO {
     public String leagueAccount_tftAccountId;
     public String leagueAccount_tftPuuid;
     public Platform leagueAccount_server;
-    public SavedSummoner summoner;
+    private SavedSummoner summoner = null;
 
     public LeagueAccount(ResultSet baseData) throws SQLException {
       leagueAccount_id = baseData.getLong("leagueAccount_id");
@@ -204,6 +205,19 @@ public class DTO {
       leagueAccount_puuid = summoner.getPuuid();
       leagueAccount_server = platform;
       this.summoner = new SavedSummoner(summoner);
+    }
+    
+    public SavedSummoner getSummoner() throws RiotApiException {
+      return getSummoner(false);
+    }
+    
+    public SavedSummoner getSummoner(boolean forceRefreshCache) throws RiotApiException {
+      if(summoner != null && !forceRefreshCache) {
+        return summoner;
+      }
+      
+      summoner = Zoe.getRiotApi().getSummonerWithRateLimit(leagueAccount_server, leagueAccount_summonerId, forceRefreshCache);
+      return summoner;
     }
     
     @Override
@@ -417,14 +431,14 @@ public class DTO {
     public String champMasCache_summonerId;
     public Platform champMasCache_server;
     public SavedChampionMastery champMasCache_data;
-    public LocalDateTime championMasCache_lastRefresh;
+    public LocalDateTime champMasCache_lastRefresh;
     
     public ChampionMasteryCache(ResultSet baseData) throws SQLException {
       champMasCache_id = baseData.getLong("champMasCache_id");
       champMasCache_summonerId = baseData.getString("champMasCache_summonerId");
       champMasCache_server = Platform.getPlatformByName(baseData.getString("champMasCache_server"));
       champMasCache_data = gson.fromJson(baseData.getString("champMasCache_data"), SavedChampionMastery.class);
-      championMasCache_lastRefresh = LocalDateTime.parse(baseData.getString("championMasCache_lastRefresh"), DB_TIME_PATTERN);
+      champMasCache_lastRefresh = LocalDateTime.parse(baseData.getString("champMasCache_lastRefresh"), DB_TIME_PATTERN);
     }
   }
   

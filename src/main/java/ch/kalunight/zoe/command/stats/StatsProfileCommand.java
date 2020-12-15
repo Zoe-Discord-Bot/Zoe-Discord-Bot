@@ -116,17 +116,13 @@ public class StatsProfileCommand extends ZoeCommand {
     DTO.LeagueAccount leagueAccount = getLeagueAccountWithParam(event, server);
 
     if(leagueAccount != null) {
-      SavedSummoner summoner;
       try {
-        summoner = Zoe.getRiotApi().getSummoner(leagueAccount.leagueAccount_server,
-            leagueAccount.leagueAccount_summonerId, false);
+        leagueAccount.getSummoner();
       } catch(RiotApiException e) {
         RiotApiUtil.handleRiotApi(event.getEvent(), e, server.serv_language);
         return;
       }
 
-      leagueAccount.summoner = summoner;
-      
       generateStatsMessage(event, null, leagueAccount, server);
       return;
     }
@@ -147,12 +143,19 @@ public class StatsProfileCommand extends ZoeCommand {
 
     List<DTO.LeagueAccount> accounts = LeagueAccountRepository.getLeaguesAccounts(server.serv_guildId, user.getIdLong());
 
+    SavedSummoner summoner;
     if(accounts.size() == 1) {
+      try {
+        summoner = Zoe.getRiotApi().getSummoner(accounts.get(0).leagueAccount_server,
+            accounts.get(0).leagueAccount_summonerId, false);
+      }catch(RiotApiException e) {
+        RiotApiUtil.handleRiotApi(event.getEvent(), e, server.serv_language);
+        return;
+      }
       generateStatsMessage(event, player, accounts.get(0), server);
     }else if(accounts.isEmpty()) {
       event.reply(LanguageManager.getText(server.serv_language, "statsProfileNeedARegisteredAccount"));
     }else {
-      SavedSummoner summoner;
 
       SelectionDialog.Builder selectAccountBuilder = new SelectionDialog.Builder()
           .setEventWaiter(waiter)
@@ -248,21 +251,15 @@ public class StatsProfileCommand extends ZoeCommand {
 
         selectionMessage.clearReactions().queue();
 
-        SavedSummoner summoner;
         try {
-          summoner = Zoe.getRiotApi().getSummoner(account.leagueAccount_server,
-              account.leagueAccount_summonerId, true);
-        } catch(RiotApiException e) {
+          selectionMessage.getTextChannel().sendMessage(String.format(
+              LanguageManager.getText(server.serv_language, "statsProfileSelectionDoneMessage"),
+              account.getSummoner().getName(), Zoe.getJda().retrieveUserById(player.player_discordId).complete()
+              .getName())).queue();
+        } catch (RiotApiException e) {
           RiotApiUtil.handleRiotApi(event.getEvent(), e, server.serv_language);
           return;
         }
-
-        account.summoner = summoner;
-
-        selectionMessage.getTextChannel().sendMessage(String.format(
-            LanguageManager.getText(server.serv_language, "statsProfileSelectionDoneMessage"),
-            summoner.getName(), Zoe.getJda().retrieveUserById(player.player_discordId).complete()
-            .getName())).queue();
 
         generateStatsMessage(event, player, account, server);
       }
@@ -304,7 +301,7 @@ public class StatsProfileCommand extends ZoeCommand {
       if(championsMasteries != null && !championsMasteries.getChampionMasteries().isEmpty()) {
         imageBytes = generateMasteriesChart(player, championsMasteries, server, lolAccount);
       }
-    } catch(IOException e) {
+    } catch(IOException | RiotApiException e) {
       logger.info("Got a error in encoding bytesMap image : {}", e);
       event.reply(LanguageManager.getText(server.serv_language, "statsProfileUnexpectedErrorGraph"));
       return;
@@ -340,7 +337,7 @@ public class StatsProfileCommand extends ZoeCommand {
   }
 
   private byte[] generateMasteriesChart(DTO.Player player, SavedChampionMastery championsMasteries,
-      DTO.Server server, LeagueAccount leagueAccount) throws IOException {
+      DTO.Server server, LeagueAccount leagueAccount) throws IOException, RiotApiException {
     List<SavedSimpleMastery> listHeigherChampion = getBestMasteries(championsMasteries, NUMBER_OF_CHAMPIONS_IN_GRAPH);
     CategoryChartBuilder masteriesGraphBuilder = new CategoryChartBuilder();
 
@@ -351,7 +348,7 @@ public class StatsProfileCommand extends ZoeCommand {
           player.getUser().getName()));
     }else {
       masteriesGraphBuilder.title(String.format(LanguageManager.getText(server.serv_language, "statsProfileGraphTitle"),
-          leagueAccount.summoner.getName()));
+          leagueAccount.getSummoner().getName()));
     }
 
     CategoryChart masteriesGraph = masteriesGraphBuilder.build();

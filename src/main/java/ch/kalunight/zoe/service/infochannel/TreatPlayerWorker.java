@@ -140,10 +140,8 @@ public class TreatPlayerWorker implements Runnable {
 
       SavedSummoner summoner;
       try {
-        summoner = Zoe.getRiotApi().getSummonerWithRateLimit(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId, forceRefreshCache);
-        if(summoner != null) {
-          leagueAccount.summoner = summoner;
-        }else {
+        summoner = leagueAccount.getSummoner(forceRefreshCache);
+        if(summoner == null) {
           leagueAccountsIterator.remove();
         }
       }catch(RiotApiException e) {
@@ -339,7 +337,7 @@ public class TreatPlayerWorker implements Runnable {
 
   }
 
-  private void generateText(Map<DTO.LeagueAccount, CurrentGameInfo> accountsWithGame, List<DTO.LeagueAccount> accountNotInGame) throws SQLException {
+  private void generateText(Map<DTO.LeagueAccount, CurrentGameInfo> accountsWithGame, List<DTO.LeagueAccount> accountNotInGame) throws SQLException, RiotApiException {
 
     if(accountsWithGame.isEmpty()) {
 
@@ -375,7 +373,7 @@ public class TreatPlayerWorker implements Runnable {
   }
 
   private void getTextInformationPanelRankOption(final StringBuilder stringMessage, DTO.Player player,
-      DTO.LeagueAccount leagueAccount, boolean mutlipleAccount) throws SQLException {
+      DTO.LeagueAccount leagueAccount, boolean mutlipleAccount) throws SQLException, RiotApiException {
     LastRank lastRank = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
 
     LeagueEntry soloq = lastRank.lastRank_soloq;
@@ -395,7 +393,7 @@ public class TreatPlayerWorker implements Runnable {
     String baseText;
     if(mutlipleAccount) {
       baseText = "infoPanelRankedTextMultipleAccount";
-      accountString = leagueAccount.summoner.getName();
+      accountString = leagueAccount.getSummoner().getName();
     }else {
       baseText = "infoPanelRankedTextOneAccount";
       accountString = player.getUser().getAsMention();
@@ -454,8 +452,8 @@ public class TreatPlayerWorker implements Runnable {
         + LanguageManager.getText(server.serv_language, "informationPanelNotInGame") + " \n");
   }
 
-  private void notInGameUnranked(final StringBuilder stringMessage, DTO.LeagueAccount leagueAccount) {
-    stringMessage.append("- " + leagueAccount.summoner.getName() + " : " 
+  private void notInGameUnranked(final StringBuilder stringMessage, DTO.LeagueAccount leagueAccount) throws RiotApiException {
+    stringMessage.append("- " + leagueAccount.getSummoner().getName() + " : " 
         + LanguageManager.getText(server.serv_language, "unranked") + " \n");
   }
 

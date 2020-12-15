@@ -2,19 +2,23 @@ package ch.kalunight.zoe.model.dto;
 
 import java.util.List;
 
+import net.rithms.riot.constant.Platform;
+
 public class ClashTeamData {
 
   private List<Long> infoMessagesId;
   private List<Long> enemyTeamMessages;
   private Long gameCardId;
-  private Long selectedLeagueAccount;
+  private Platform selectedPlatform;
+  private String selectedSummonerId;
   private ClashStatus clashStatus;
   
-  public ClashTeamData(List<Long> infoMessagesId, List<Long> teamsSpecificInfo, Long gameCardId, Long selectedLeagueAccount, ClashStatus clashStatus) {
+  public ClashTeamData(List<Long> infoMessagesId, List<Long> teamsSpecificInfo, Long gameCardId, Platform selectedPlatform, String selectedSummonerId, ClashStatus clashStatus) {
     this.infoMessagesId = infoMessagesId;
     this.enemyTeamMessages = teamsSpecificInfo;
     this.gameCardId = gameCardId;
-    this.selectedLeagueAccount = selectedLeagueAccount;
+    this.selectedPlatform = selectedPlatform;
+    this.selectedSummonerId = selectedSummonerId;
     this.clashStatus = clashStatus;
   }
 
@@ -33,13 +37,21 @@ public class ClashTeamData {
   public void setTeamsSpecificInfo(List<Long> teamsSpecificInfo) {
     this.enemyTeamMessages = teamsSpecificInfo;
   }
-
-  public Long getSelectedLeagueAccountId() {
-    return selectedLeagueAccount;
+  
+  public Platform getSelectedPlatform() {
+    return selectedPlatform;
   }
 
-  public void setSelectedLeagueAccountId(Long selectedLeagueAccountId) {
-    this.selectedLeagueAccount = selectedLeagueAccountId;
+  public void setSelectedPlatform(Platform selectedPlatform) {
+    this.selectedPlatform = selectedPlatform;
+  }
+
+  public String getSelectedSummonerId() {
+    return selectedSummonerId;
+  }
+
+  public void setSelectedSummonerId(String selectedSummonerId) {
+    this.selectedSummonerId = selectedSummonerId;
   }
 
   public ClashStatus getClashStatus() {

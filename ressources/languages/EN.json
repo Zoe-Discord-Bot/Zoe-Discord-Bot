@@ -29,7 +29,7 @@
     "riotApiSummonerByNameError500": "An error has occurred on the Riot Server. Please retry.",
     "riotApiSummonerByNameError503": "Riot server is unavailable. Please retry later.",
     "riotApiSummonerByNameError429": "I can't access the riot server. Please retry later.",
-    "riotApiSummonerByNameError404": "The summonerName is incorrect. Please verify the SummonerName and the region and retry.",
+    "riotApiSummonerByNameError404": "The summoner name is incorrect. Please verify the summoner name and the region and retry.",
     "riotApiSummonerByNameErrorUnexpected": "I got an unexpected error, please retry. Error code : %d",
     "accountAlreadyLinkedToAnotherPlayer": "This account is already linked with the player %s !",
     "accountAddedToPlayer": "The account \"%s\" has been added to the player %s.",
@@ -445,5 +445,14 @@
 	"clashChannelClashTournamentNotAvailable": "No clash tournament available",
 	"clashChannelClashTournamentUpcoming": "**Upcoming Tournament :**",
 	"clashChannelClashTournamentUpcomingInfo" : "%s of the %s %s",
-	"clashChannelClashTournamentBasicName" : "Clash Tournament"
+	"clashChannelClashTournamentBasicName" : "Clash Tournament",
+	"createClashChannelHelpMessage": "Create a new Clash Channel where i can send info about current clash and upcoming one about one specific league account. Manage Channel permission needed.",
+	"createClashChannelAskLeagueAccount": "Perfect, now i need a League Account. Please send an account with this format ``(Region) (Summoner Name)``. You can cancel the command by sending ``Stop``.",
+	"createClashChannelCancelMessage": "Creation of the clash channel canceled.",
+	"createClashMalformedLeagueAccount" : "The command is malformed. Please respect this pattern : `>create player @DiscordPlayerMention (Region) (SummonerName)`",
+	"createClashChannelRegionTagInvalid": "The region tag is invalid. Please retry. (Valid tag : EUW, EUNE, NA, BR, JP, KR, LAN, LAS, OCE, RU, TR)",
+	"createClashChannelErrorDatabase": "A database error occured ! Please report this issue here : https://discord.gg/AyAYWGM",
+	"createClashChannelLeagueAccountSelected": "Perfect ! You have correctly selected the account server *%s* %s.\nNow, you have to select a time zone. Please, choose one from the list above. You can directly copy and past one or directly send his number.",
+	"createClashChannelSummonerNotFound": "The summoner \"%s\" server \"%s\" has not been found. Please verify it and retry. Send \"Stop\" if you want to cancel the creation.",
+	"createClashChannelAlreadyCreatedForThisSummoner": "This summoner has already a clash channel. Please select another one. Send \"Stop\" if you want to cancel the creation."
 }

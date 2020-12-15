@@ -53,12 +53,7 @@ public class InfoCardsWorker implements Runnable {
   public void run() {
     try {
       if(controlPanel.canTalk()) {
-        if(account.summoner == null) {
-          account.summoner = Zoe.getRiotApi()
-              .getSummonerWithRateLimit(account.leagueAccount_server, account.leagueAccount_summonerId, forceRefreshCache);
-        }
-        
-        logger.info("Start generate infocards for the account {} ({})", account.summoner.getName(),  account.leagueAccount_server.getName());
+        logger.info("Start generate infocards for the account {} ({})", account.getSummoner(forceRefreshCache).getName(),  account.leagueAccount_server.getName());
 
         Stopwatch stopWatch = Stopwatch.createStarted();
         generateInfoCard(account, currentGameInfo);

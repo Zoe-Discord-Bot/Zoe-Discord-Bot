@@ -25,7 +25,7 @@ public abstract class ZoeCommand extends Command {
   private static final AtomicInteger commandFinishedCorrectly = new AtomicInteger(0);
   private static final AtomicInteger commandFinishedWithError = new AtomicInteger(0);
 
-  private static final Logger logger = LoggerFactory.getLogger(ZoeCommand.class);
+  protected static final Logger logger = LoggerFactory.getLogger(ZoeCommand.class);
 
   private static final ConcurrentHashMap<Long, DTO.Server> servers = new ConcurrentHashMap<>();
 

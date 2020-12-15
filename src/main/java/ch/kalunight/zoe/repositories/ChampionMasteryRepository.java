@@ -68,7 +68,7 @@ public class ChampionMasteryRepository {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
 
-      String finalQuery = String.format(INSERT_MASTERY_CACHE, summonerId, server, gson.toJson(championMasteryToCache), DTO.DB_TIME_PATTERN.format(LocalDateTime.now()));
+      String finalQuery = String.format(INSERT_MASTERY_CACHE, summonerId, server.getName(), gson.toJson(championMasteryToCache), DTO.DB_TIME_PATTERN.format(LocalDateTime.now()));
       query.execute(finalQuery);
     }
   }

@@ -4,7 +4,7 @@ import java.util.List;
 
 import net.rithms.riot.constant.Platform;
 
-public class ClashTeamData {
+public class ClashChannelData {
 
   private List<Long> infoMessagesId;
   private List<Long> enemyTeamMessages;
@@ -13,7 +13,7 @@ public class ClashTeamData {
   private String selectedSummonerId;
   private ClashStatus clashStatus;
   
-  public ClashTeamData(List<Long> infoMessagesId, List<Long> teamsSpecificInfo, Long gameCardId, Platform selectedPlatform, String selectedSummonerId, ClashStatus clashStatus) {
+  public ClashChannelData(List<Long> infoMessagesId, List<Long> teamsSpecificInfo, Long gameCardId, Platform selectedPlatform, String selectedSummonerId, ClashStatus clashStatus) {
     this.infoMessagesId = infoMessagesId;
     this.enemyTeamMessages = teamsSpecificInfo;
     this.gameCardId = gameCardId;

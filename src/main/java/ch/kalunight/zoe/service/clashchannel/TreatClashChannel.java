@@ -12,7 +12,7 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.ClashStatus;
-import ch.kalunight.zoe.model.dto.ClashTeamData;
+import ch.kalunight.zoe.model.dto.ClashChannelData;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.ClashChannel;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
@@ -74,7 +74,7 @@ public class TreatClashChannel implements Runnable {
         return;
       }
 
-      ClashTeamData clashMessageManager = clashChannelDB.clashChannel_data;
+      ClashChannelData clashMessageManager = clashChannelDB.clashChannel_data;
 
       cleanClashChannel(clashMessageManager);
 
@@ -109,7 +109,7 @@ public class TreatClashChannel implements Runnable {
     }
   }
 
-  private void refreshWaitForTeamRegistration(ClashTeamData clashMessageManager, LeagueAccount leagueAccount) {
+  private void refreshWaitForTeamRegistration(ClashChannelData clashMessageManager, LeagueAccount leagueAccount) {
 
     cleanTeamAndGameMessages(clashMessageManager);
 
@@ -168,7 +168,7 @@ public class TreatClashChannel implements Runnable {
     CommandEvent.splitMessage(messageToSend); // Implement the management of the message
   }
 
-  private void cleanClashChannel(ClashTeamData clashMessageManager) {
+  private void cleanClashChannel(ClashChannelData clashMessageManager) {
     List<Long> allMessagesToBeSaved = new ArrayList<>();
 
     allMessagesToBeSaved.addAll(clashMessageManager.getInfoMessagesId());
@@ -204,7 +204,7 @@ public class TreatClashChannel implements Runnable {
     return false;
   }
 
-  private void cleanTeamAndGameMessages(ClashTeamData clashMessageManager) {
+  private void cleanTeamAndGameMessages(ClashChannelData clashMessageManager) {
 
     for(Long teamMessageId : clashMessageManager.getEnemyTeamMessages()) {
       try {
@@ -230,7 +230,7 @@ public class TreatClashChannel implements Runnable {
 
   }
 
-  private void updateClashStatus(ClashTeamData clashMessageManager, ClashTeamRegistration clashTeamRegistration, DTO.CurrentGameInfo currentGame) {
+  private void updateClashStatus(ClashChannelData clashMessageManager, ClashTeamRegistration clashTeamRegistration, DTO.CurrentGameInfo currentGame) {
 
     if(clashTeamRegistration == null) {
       clashMessageManager.setClashStatus(ClashStatus.WAIT_FOR_TEAM_REGISTRATION);

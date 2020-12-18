@@ -4,15 +4,18 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import ch.kalunight.zoe.model.dto.ClashTeamData;
+import ch.kalunight.zoe.model.dto.ClashChannelData;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.ClashChannel;
+import net.rithms.riot.api.endpoints.clash.dto.ClashTournament;
+import net.rithms.riot.constant.Platform;
 
 public class ClashChannelRepository {
 
@@ -42,13 +45,15 @@ public class ClashChannelRepository {
   private static final String DELETE_CLASH_CHANNEL_WITH_ID = 
       "DELETE FROM clash_channel WHERE clashchannel_id = %d";
   
+  private static final String INSERT_CLASH_CHANNEL = "INSERT INTO clash_channel (clashchannel_channelid, clashchannel_teammessages, clashchannel_timezone) VALUES (%d, '%s', '%s')";
+  
   private static final Gson gson = new GsonBuilder().create();
   
   private ClashChannelRepository() {
     //hide default public constructor
   }
   
-  public static void updateChampionsRoles(ClashTeamData clashMessages, Long clashChannelId) throws SQLException {
+  public static void updateChampionsRoles(ClashChannelData clashMessages, Long clashChannelId) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
       
@@ -64,6 +69,17 @@ public class ClashChannelRepository {
         Statement query = conn.createStatement();) {
 
       String finalQuery = String.format(DELETE_CLASH_CHANNEL_WITH_ID, clashChannelId);
+      query.execute(finalQuery);
+    }
+  }
+  
+  public static void createClashChannel(long channelId, String timezone, ClashChannelData clashChannelData) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement();) {
+      
+      String finalQuery = String.format(INSERT_CLASH_CHANNEL, channelId, clashChannelData,
+          timezone);
+      
       query.execute(finalQuery);
     }
   }

@@ -452,7 +452,10 @@
 	"createClashMalformedLeagueAccount" : "The command is malformed. Please respect this pattern : `>create player @DiscordPlayerMention (Region) (SummonerName)`",
 	"createClashChannelRegionTagInvalid": "The region tag is invalid. Please retry. (Valid tag : EUW, EUNE, NA, BR, JP, KR, LAN, LAS, OCE, RU, TR)",
 	"createClashChannelErrorDatabase": "A database error occured ! Please report this issue here : https://discord.gg/AyAYWGM",
-	"createClashChannelLeagueAccountSelected": "Perfect ! You have correctly selected the account server *%s* %s.\nNow, you have to select a time zone. Please, choose one from the list above. You can directly copy and past one or directly send his number.",
+	"createClashChannelLeagueAccountSelected": "Perfect ! You have correctly selected the account *%s* %s.\nNow, you have to select a time zone. Please, choose one from the list above. You can directly copy and past one or directly send his number.",
 	"createClashChannelSummonerNotFound": "The summoner \"%s\" server \"%s\" has not been found. Please verify it and retry. Send \"Stop\" if you want to cancel the creation.",
-	"createClashChannelAlreadyCreatedForThisSummoner": "This summoner has already a clash channel. Please select another one. Send \"Stop\" if you want to cancel the creation."
+	"createClashChannelAlreadyCreatedForThisSummoner": "This summoner has already a clash channel. Please select another one. Send \"Stop\" if you want to cancel the creation.",
+	"paginationTimeZoneList": "List of available time zone :",
+	"createClashChannelTournamentBadTimeZoneSelection": "Please select a time zone with a valid number or directly with the name (copy and past).",
+	"createClashChannelTournamentTimeZoneSelected": "Perfect! The clash channel has been correctly created."
 }

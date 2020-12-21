@@ -457,5 +457,7 @@
 	"createClashChannelAlreadyCreatedForThisSummoner": "This summoner has already a clash channel. Please select another one. Send \"Stop\" if you want to cancel the creation.",
 	"paginationTimeZoneList": "List of available time zone :",
 	"createClashChannelTournamentBadTimeZoneSelection": "Please select a time zone with a valid number or directly with the name (copy and past).",
-	"createClashChannelTournamentTimeZoneSelected": "Perfect! The clash channel has been correctly created."
+	"createClashChannelTournamentTimeZoneSelected": "Perfect! The clash channel has been correctly created.",
+	"clashChannelLoadingMessage": "The Clash Channel is loading...",
+	"impossibleToCreateClashChannelMissingPerms": "Impossible to create the Clash Channel ! I don't have the permission to do that."
 }

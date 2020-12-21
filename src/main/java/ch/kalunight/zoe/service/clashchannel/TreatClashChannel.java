@@ -78,7 +78,8 @@ public class TreatClashChannel implements Runnable {
 
       cleanClashChannel(clashMessageManager);
 
-      DTO.LeagueAccount leagueAccount = LeagueAccountRepository.getLeagueAccountWithLeagueAccountId(clashMessageManager.getSelectedLeagueAccountId());
+      DTO.LeagueAccount leagueAccount = LeagueAccountRepository.getLeagueAccountWithSummonerId(server.serv_guildId, clashMessageManager.getSelectedSummonerId(),
+          clashMessageManager.getSelectedPlatform());
 
       if(leagueAccount == null) {
         clashChannel.sendMessage(LanguageManager.getText(server.serv_language, "clashChannelDeletionBecauseOfLeagueAccountDeletion")).queue();
@@ -90,9 +91,7 @@ public class TreatClashChannel implements Runnable {
 
       ClashTeamRegistration firstClashTeam = getFirstRegistration(leagueAccount.leagueAccount_server, clashPlayerRegistrations);
 
-      DTO.CurrentGameInfo currentGameInfo = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(clashChannelDB.clashChannel_data.getSelectedLeagueAccountId());
-
-      updateClashStatus(clashMessageManager, firstClashTeam, currentGameInfo);
+      updateClashStatus(clashMessageManager, firstClashTeam);
 
       switch (clashMessageManager.getClashStatus()) {
       case WAIT_FOR_GAME_END:
@@ -230,11 +229,11 @@ public class TreatClashChannel implements Runnable {
 
   }
 
-  private void updateClashStatus(ClashChannelData clashMessageManager, ClashTeamRegistration clashTeamRegistration, DTO.CurrentGameInfo currentGame) {
+  private void updateClashStatus(ClashChannelData clashMessageManager, ClashTeamRegistration clashTeamRegistration) {
 
     if(clashTeamRegistration == null) {
       clashMessageManager.setClashStatus(ClashStatus.WAIT_FOR_TEAM_REGISTRATION);
-    }else if(currentGame != null && currentGame.currentgame_currentgame.getGameQueueConfigId() == CLASH_QUEUE_ID) {
+    }else if(clashMessageManager.getGameCardId() != null) {
       clashMessageManager.setClashStatus(ClashStatus.WAIT_FOR_GAME_END);
     }else {
       clashMessageManager.setClashStatus(ClashStatus.WAIT_FOR_GAME_START);

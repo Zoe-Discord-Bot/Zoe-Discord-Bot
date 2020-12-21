@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,8 +13,7 @@ import com.google.gson.GsonBuilder;
 import ch.kalunight.zoe.model.dto.ClashChannelData;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.ClashChannel;
-import net.rithms.riot.api.endpoints.clash.dto.ClashTournament;
-import net.rithms.riot.constant.Platform;
+import ch.kalunight.zoe.model.dto.DTO.Server;
 
 public class ClashChannelRepository {
 
@@ -23,7 +21,7 @@ public class ClashChannelRepository {
       "clash_channel.clashchannel_id, " + 
       "clash_channel.clashchannel_fk_server, " + 
       "clash_channel.clashchannel_channelid, " + 
-      "clash_channel.clashchannel_teammessages, " + 
+      "clash_channel.clashchannel_data, " + 
       "clash_channel.clashchannel_timezone " + 
       "FROM server " + 
       "INNER JOIN clash_channel ON server.serv_id = clash_channel.clashchannel_fk_server " + 
@@ -31,7 +29,7 @@ public class ClashChannelRepository {
   
   private static final String SELECT_ALL_CLASH_CHANNELS_WITHOUT_GIVEN_CLASH_CHANNEL_ID = "SELECT " + 
       "clash_channel.clashchannel_timezone, " + 
-      "clash_channel.clashchannel_teammessages, " + 
+      "clash_channel.clashchannel_data, " + 
       "clash_channel.clashchannel_channelid, " + 
       "clash_channel.clashchannel_fk_server, " + 
       "clash_channel.clashchannel_id " + 
@@ -40,12 +38,12 @@ public class ClashChannelRepository {
       "WHERE clash_channel.clashchannel_id <> %d" +
       "AND server.serv_guildid = %d";
   
-  private static final String UPDATE_CLASH_CHANNEL_TEAM_MESSAGES_WITH_ID = "UPDATE clash_channel SET clashchannel_teammessages = '%s' WHERE clashchannel_id = %d";
+  private static final String UPDATE_CLASH_CHANNEL_TEAM_MESSAGES_WITH_ID = "UPDATE clash_channel SET clashchannel_data = '%s' WHERE clashchannel_id = %d";
   
   private static final String DELETE_CLASH_CHANNEL_WITH_ID = 
       "DELETE FROM clash_channel WHERE clashchannel_id = %d";
   
-  private static final String INSERT_CLASH_CHANNEL = "INSERT INTO clash_channel (clashchannel_channelid, clashchannel_teammessages, clashchannel_timezone) VALUES (%d, '%s', '%s')";
+  private static final String INSERT_CLASH_CHANNEL = "INSERT INTO clash_channel (clashchannel_fk_server, clashchannel_channelid, clashchannel_data, clashchannel_timezone) VALUES (%d, %d, '%s', '%s')";
   
   private static final Gson gson = new GsonBuilder().create();
   
@@ -73,11 +71,11 @@ public class ClashChannelRepository {
     }
   }
   
-  public static void createClashChannel(long channelId, String timezone, ClashChannelData clashChannelData) throws SQLException {
+  public static void createClashChannel(Server server, long channelId, String timezone, ClashChannelData clashChannelData) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
       
-      String finalQuery = String.format(INSERT_CLASH_CHANNEL, channelId, clashChannelData,
+      String finalQuery = String.format(INSERT_CLASH_CHANNEL, server.serv_id, channelId, gson.toJson(clashChannelData),
           timezone);
       
       query.execute(finalQuery);

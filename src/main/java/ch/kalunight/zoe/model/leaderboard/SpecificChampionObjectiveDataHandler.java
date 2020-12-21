@@ -92,7 +92,7 @@ public class SpecificChampionObjectiveDataHandler extends LeaderboardExtraDataHa
     
     try {
       int championNumber = Integer.parseInt(message.getMessage().getContentRaw());
-      if(championNumber > 1 || championNumber < championsNameOrdered.size()) {
+      if(championNumber >= 1 && championNumber < championsNameOrdered.size()) {
         String championNameSelected = championsNameOrdered.get(championNumber - 1);
         
         selectChampionWithName(message, server, objective, championsNameOrdered, championNameSelected);

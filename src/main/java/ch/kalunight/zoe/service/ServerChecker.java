@@ -4,14 +4,13 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.TimerTask;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
+import ch.kalunight.zoe.model.RefreshStatus;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
 import ch.kalunight.zoe.model.dto.DTO.Server;
@@ -31,14 +30,16 @@ public class ServerChecker extends TimerTask {
   private static final int TIME_BETWEEN_EACH_STATUS_REFRESH_IN_HOURS = 1;
 
   private static final int TIME_BETWEEN_EACH_RAPI_CHANNEL_REFRESH_IN_MINUTES = 2;
-  
+
   private static final int NUMBER_OF_TASKS_ALLOWED_IN_QUEUE = 10;
-  
+
   private static final int MINIMAL_DELAY_BETWEEN_EACH_REFRESH = 5;
-  
+
   private static final int START_DELAY_BETWEEN_EACH_REFRESH = 30;
-  
-  private static AtomicInteger currentDelayBetweenRefresh = new AtomicInteger(START_DELAY_BETWEEN_EACH_REFRESH);
+
+  private static final int MAX_REFRESH_RATE_BEFORE_SMART_MOD = 60;
+
+  private static final RefreshStatus lastStatus = new RefreshStatus(START_DELAY_BETWEEN_EACH_REFRESH, false);
 
   private static DateTime nextDiscordBotListRefresh = DateTime.now().plusSeconds(TIME_BETWEEN_EACH_DISCORD_BOT_LIST_REFRESH);
 
@@ -48,6 +49,26 @@ public class ServerChecker extends TimerTask {
 
   private static final Logger logger = LoggerFactory.getLogger(ServerChecker.class);
 
+  private void manageRefreshRate() {
+
+    if(lastStatus.isSmartModeEnable().get()) {
+      if(lastStatus.getSmartModEnd().isBefore(LocalDateTime.now())) {
+        lastStatus.isSmartModeEnable().set(false);
+        lastStatus.getRefresRatehInMinute().set(START_DELAY_BETWEEN_EACH_REFRESH);
+        lastStatus.setSmartModEnd(null);
+      }
+    }else {
+      if(ServerData.getServerExecutor().getQueue().size() > NUMBER_OF_TASKS_ALLOWED_IN_QUEUE) {
+        if(lastStatus.getRefresRatehInMinute().incrementAndGet() > MAX_REFRESH_RATE_BEFORE_SMART_MOD) {
+          lastStatus.setSmartModEnd(LocalDateTime.now().plusMinutes(30));
+          lastStatus.isSmartModeEnable().set(true);
+        }
+      }else if(MINIMAL_DELAY_BETWEEN_EACH_REFRESH < lastStatus.getRefresRatehInMinute().get()) {
+        lastStatus.getRefresRatehInMinute().decrementAndGet();
+      }
+    }
+  }
+
   @Override
   public void run() {
 
@@ -55,22 +76,18 @@ public class ServerChecker extends TimerTask {
 
     try {
 
-      if(ServerData.getServerExecutor().getQueue().size() > NUMBER_OF_TASKS_ALLOWED_IN_QUEUE) {
-        currentDelayBetweenRefresh.getAndIncrement();
-      }else {
-        if(currentDelayBetweenRefresh.get() > MINIMAL_DELAY_BETWEEN_EACH_REFRESH) {
-          currentDelayBetweenRefresh.getAndDecrement();
+      manageRefreshRate();
+
+      if(!lastStatus.isSmartModeEnable().get()) {
+        for(DTO.Server server : ServerRepository.getGuildWhoNeedToBeRefresh(lastStatus.getRefresRatehInMinute().get())) {
+
+          DTO.ServerStatus status = ServerStatusRepository.getServerStatus(server.serv_guildId);
+          ServerStatusRepository.updateInTreatment(status.servstatus_id, true);
+          ServerRepository.updateTimeStamp(server.serv_guildId, LocalDateTime.now());
+
+          Runnable task = new InfoPanelRefresher(server);
+          ServerData.getServerExecutor().execute(task);
         }
-      }
-      
-      for(DTO.Server server : ServerRepository.getGuildWhoNeedToBeRefresh(currentDelayBetweenRefresh.get())) {
-
-        DTO.ServerStatus status = ServerStatusRepository.getServerStatus(server.serv_guildId);
-        ServerStatusRepository.updateInTreatment(status.servstatus_id, true);
-        ServerRepository.updateTimeStamp(server.serv_guildId, LocalDateTime.now());
-
-        Runnable task = new InfoPanelRefresher(server);
-        ServerData.getServerExecutor().execute(task);
       }
 
       for(DTO.Server serverAskedTreatment : ServerData.getServersAskedTreatment()) {
@@ -171,7 +188,8 @@ public class ServerChecker extends TimerTask {
     ServerChecker.nextRAPIChannelRefresh = nextRAPIChannelRefresh;
   }
 
-  public static int getCurrentDelayBetweenRefresh() {
-    return currentDelayBetweenRefresh.get();
+  public static RefreshStatus getLastStatus() {
+    return lastStatus;
   }
+  
 }

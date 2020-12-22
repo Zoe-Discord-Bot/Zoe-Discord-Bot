@@ -48,6 +48,7 @@ public class ShutDownCommand extends ZoeCommand {
     Zoe.getJda().getPresence().setPresence(OnlineStatus.DO_NOT_DISTURB, Activity.of(ActivityType.DEFAULT, "Shuting down ..."));
     
     ServerData.getServerCheckerThreadTimer().cancel();
+    ServerData.getDiscordDetectionDelayedTask().cancel();
 
     logger.info("The server checker thread has been safely stopped ...");
     channel.sendMessage("The server checker thread has been safely stopped ...").complete();

@@ -76,16 +76,8 @@ public class InfoPanelRefresher implements Runnable {
 
   private Guild guild;
 
-  private boolean needToWait = false;
-
   public InfoPanelRefresher(DTO.Server server) {
     this.server = server;
-    guild = Zoe.getJda().getGuildById(server.serv_guildId);
-  }
-
-  public InfoPanelRefresher(DTO.Server server, boolean needToWait) {
-    this.server = server;
-    this.needToWait = needToWait;
     guild = Zoe.getJda().getGuildById(server.serv_guildId);
   }
 
@@ -109,10 +101,6 @@ public class InfoPanelRefresher implements Runnable {
       List<DTO.Player> playersDTO = PlayerRepository.getPlayers(server.serv_guildId);
 
       InfoPanelRefresherUtil.cleanRegisteredPlayerNoLongerInGuild(guild, playersDTO);
-
-      if(needToWait) {
-        TimeUnit.SECONDS.sleep(5);
-      }
 
       if(infochannel != null) {
         cleanOldInfoChannelMessage();
@@ -731,8 +719,12 @@ public class InfoPanelRefresher implements Runnable {
       }
     }
 
-    stringMessage.append(String.format(LanguageManager.getText(server.serv_language, "informationPanelRefreshedTime"), ServerChecker.getCurrentDelayBetweenRefresh()));
-
+    if(ServerChecker.getLastStatus().isSmartModeEnable().get()) {
+      stringMessage.append(LanguageManager.getText(server.serv_language, "informationPanelSmartModEnable"));
+    }else {
+      stringMessage.append(String.format(LanguageManager.getText(server.serv_language, "informationPanelRefreshedTime"), ServerChecker.getLastStatus().getRefresRatehInMinute().get()));
+    }
+    
     return stringMessage.toString();
   }
 

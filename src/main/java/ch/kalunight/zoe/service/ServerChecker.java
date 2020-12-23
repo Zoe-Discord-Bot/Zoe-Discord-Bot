@@ -121,7 +121,7 @@ public class ServerChecker extends TimerTask {
       refreshLeaderboard();
 
       if(nextRAPIChannelRefresh.isBeforeNow() && RiotApiUsageChannelRefresh.getRapiInfoChannel() != null) {
-        ServerData.getServerExecutor().execute(new RiotApiUsageChannelRefresh());
+        ServerData.getMonitoringDataExecutor().execute(new RiotApiUsageChannelRefresh());
 
         setNextRAPIChannelRefresh(DateTime.now().plusMinutes(TIME_BETWEEN_EACH_RAPI_CHANNEL_REFRESH_IN_MINUTES));
       }

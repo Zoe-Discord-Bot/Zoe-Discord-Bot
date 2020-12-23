@@ -2,7 +2,6 @@ package ch.kalunight.zoe.command.create;
 
 import java.awt.Color;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -15,36 +14,23 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.Paginator;
 
-import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.dto.ClashChannelData;
 import ch.kalunight.zoe.model.dto.ClashStatus;
 import ch.kalunight.zoe.model.dto.DTO;
-import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.model.dto.DTO.BannedAccount;
-import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Server;
-import ch.kalunight.zoe.model.leaderboard.dataholder.Objective;
-import ch.kalunight.zoe.model.leaderboard.dataholder.SpecificChamp;
-import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.repositories.BannedAccountRepository;
 import ch.kalunight.zoe.repositories.ClashChannelRepository;
 import ch.kalunight.zoe.repositories.ConfigRepository;
-import ch.kalunight.zoe.repositories.InfoChannelRepository;
-import ch.kalunight.zoe.repositories.LeagueAccountRepository;
-import ch.kalunight.zoe.repositories.PlayerRepository;
-import ch.kalunight.zoe.repositories.ServerRepository;
-import ch.kalunight.zoe.service.infochannel.InfoPanelRefresher;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import ch.kalunight.zoe.util.PaginatorUtil;
-import ch.kalunight.zoe.util.Ressources;
 import ch.kalunight.zoe.util.RiotApiUtil;
 import ch.kalunight.zoe.util.TimeZoneUtil;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -77,7 +63,6 @@ public class CreateClashChannel extends ZoeCommand {
     private String channelName;
     private Platform platform;
     private Summoner summoner;
-    private String timezone;
   }
 
   @Override

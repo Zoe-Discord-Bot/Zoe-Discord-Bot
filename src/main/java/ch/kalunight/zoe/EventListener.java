@@ -5,7 +5,9 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +23,7 @@ import ch.kalunight.zoe.repositories.InfoChannelRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.repositories.RankHistoryChannelRepository;
 import ch.kalunight.zoe.repositories.ServerRepository;
-import ch.kalunight.zoe.service.infochannel.InfoPanelRefresher;
+import ch.kalunight.zoe.service.infochannel.DelayedInfochannelRefresh;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import ch.kalunight.zoe.util.EventListenerUtil;
@@ -179,11 +181,21 @@ public class EventListener extends ListenerAdapter {
           DTO.RankHistoryChannel rankchannel = RankHistoryChannelRepository.getRankHistoryChannel(event.getGuild().getIdLong());
 
           if((infochannel != null || rankchannel != null) && registedPlayer != null && !ServerThreadsManager.isServerWillBeTreated(server)
-              && server.serv_lastRefresh.isBefore(LocalDateTime.now().minusSeconds(5))) {
-
-            ServerThreadsManager.getServersIsInTreatment().put(event.getGuild().getId(), true);
-            ServerRepository.updateTimeStamp(server.serv_guildId, LocalDateTime.now());
-            ServerThreadsManager.getServerExecutor().execute(new InfoPanelRefresher(server, true));
+              && server.serv_lastRefresh.isBefore(LocalDateTime.now().minusSeconds(20))) {
+            
+            Map<Long, AtomicInteger> countForThisServer = DelayedInfochannelRefresh.getGameChangeDetectedByServer();
+            
+            synchronized (countForThisServer) {
+              AtomicInteger refreshAskedForThisServer = countForThisServer.get(server.serv_guildId);
+              
+              if(refreshAskedForThisServer == null) {
+                refreshAskedForThisServer = new AtomicInteger(0);
+                countForThisServer.put(server.serv_guildId, refreshAskedForThisServer);
+              }
+              
+              DelayedInfochannelRefresh delayedRefresh = new DelayedInfochannelRefresh(server, refreshAskedForThisServer.incrementAndGet());
+              ServerThreadsManager.getDiscordDetectionDelayedTask().schedule(delayedRefresh, 5000);
+            }
           }
         }
       }catch(SQLException e) {

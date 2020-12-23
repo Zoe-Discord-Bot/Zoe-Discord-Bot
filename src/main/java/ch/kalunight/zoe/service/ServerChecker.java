@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.Zoe;
+import ch.kalunight.zoe.model.RefreshStatus;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
 import ch.kalunight.zoe.model.dto.DTO.Server;
@@ -38,7 +39,11 @@ public class ServerChecker extends TimerTask {
   
   private static final int START_DELAY_BETWEEN_EACH_REFRESH = 30;
   
+  private static final int MAX_REFRESH_RATE_BEFORE_SMART_MOD = 60;
+  
   private static AtomicInteger currentDelayBetweenRefresh = new AtomicInteger(START_DELAY_BETWEEN_EACH_REFRESH);
+
+  private static final RefreshStatus lastStatus = new RefreshStatus(START_DELAY_BETWEEN_EACH_REFRESH, false);
 
   private static DateTime nextDiscordBotListRefresh = DateTime.now().plusSeconds(TIME_BETWEEN_EACH_DISCORD_BOT_LIST_REFRESH);
 
@@ -48,29 +53,45 @@ public class ServerChecker extends TimerTask {
 
   private static final Logger logger = LoggerFactory.getLogger(ServerChecker.class);
 
+  private void manageRefreshRate() {
+
+    if(lastStatus.isSmartModeEnable().get()) {
+      if(lastStatus.getSmartModEnd().isBefore(LocalDateTime.now())) {
+        lastStatus.isSmartModeEnable().set(false);
+        lastStatus.getRefresRatehInMinute().set(START_DELAY_BETWEEN_EACH_REFRESH);
+        lastStatus.setSmartModEnd(null);
+      }
+    }else {
+      if(ServerThreadsManager.getServerExecutor().getQueue().size() > NUMBER_OF_TASKS_ALLOWED_IN_QUEUE) {
+        if(lastStatus.getRefresRatehInMinute().incrementAndGet() > MAX_REFRESH_RATE_BEFORE_SMART_MOD) {
+          lastStatus.setSmartModEnd(LocalDateTime.now().plusMinutes(30));
+          lastStatus.isSmartModeEnable().set(true);
+        }
+      }else if(MINIMAL_DELAY_BETWEEN_EACH_REFRESH < lastStatus.getRefresRatehInMinute().get()) {
+        lastStatus.getRefresRatehInMinute().decrementAndGet();
+      }
+    }
+  }
+  
   @Override
   public void run() {
 
     logger.debug("ServerChecker thread started !");
 
     try {
-
-      if(ServerThreadsManager.getServerExecutor().getQueue().size() > NUMBER_OF_TASKS_ALLOWED_IN_QUEUE) {
-        currentDelayBetweenRefresh.getAndIncrement();
-      }else {
-        if(currentDelayBetweenRefresh.get() > MINIMAL_DELAY_BETWEEN_EACH_REFRESH) {
-          currentDelayBetweenRefresh.getAndDecrement();
-        }
-      }
       
-      for(DTO.Server server : ServerRepository.getGuildWhoNeedToBeRefresh(currentDelayBetweenRefresh.get())) {
+      manageRefreshRate();
+      
+      if(!lastStatus.isSmartModeEnable().get()) {
+        for(DTO.Server server : ServerRepository.getGuildWhoNeedToBeRefresh(lastStatus.getRefresRatehInMinute().get())) {
 
-        DTO.ServerStatus status = ServerStatusRepository.getServerStatus(server.serv_guildId);
-        ServerStatusRepository.updateInTreatment(status.servstatus_id, true);
-        ServerRepository.updateTimeStamp(server.serv_guildId, LocalDateTime.now());
+          DTO.ServerStatus status = ServerStatusRepository.getServerStatus(server.serv_guildId);
+          ServerStatusRepository.updateInTreatment(status.servstatus_id, true);
+          ServerRepository.updateTimeStamp(server.serv_guildId, LocalDateTime.now());
 
-        Runnable task = new InfoPanelRefresher(server, false);
-        ServerThreadsManager.getServerExecutor().execute(task);
+          Runnable task = new InfoPanelRefresher(server, false);
+          ServerThreadsManager.getServerExecutor().execute(task);
+        }
       }
 
       for(DTO.Server serverAskedTreatment : ServerThreadsManager.getServersAskedTreatment()) {

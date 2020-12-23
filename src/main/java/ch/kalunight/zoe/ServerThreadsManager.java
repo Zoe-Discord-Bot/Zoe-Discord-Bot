@@ -30,6 +30,8 @@ public class ServerThreadsManager {
   private static final ConcurrentHashMap<String, Boolean> serversIsInTreatment = new ConcurrentHashMap<>();
 
   private static final Timer serverCheckerThreadTimer = new Timer("ServerChecker-Timer-Executor");
+    
+  private static final Timer DISCORD_DETECTION_DELAYED_TASK = new Timer("Zoe Discord-Status-Delayed-Refresh-Timer");
   
   public static final int NBR_PROC = Runtime.getRuntime().availableProcessors();
 
@@ -370,4 +372,9 @@ public class ServerThreadsManager {
   public static void setRebootAsked(boolean rebootAsked) {
     ServerThreadsManager.rebootAsked = rebootAsked;
   }
+  
+  public static Timer getDiscordDetectionDelayedTask() {
+    return DISCORD_DETECTION_DELAYED_TASK;
+  }
+
 }

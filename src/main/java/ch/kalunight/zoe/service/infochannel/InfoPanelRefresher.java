@@ -74,21 +74,12 @@ public class InfoPanelRefresher implements Runnable {
   private RankHistoryChannel rankChannel;
 
   private Guild guild;
-
-  private boolean needToWait = false;
   
   private boolean forceRefreshCache;
 
   public InfoPanelRefresher(DTO.Server server, boolean forceRefreshCache) {
     this.server = server;
     this.forceRefreshCache = forceRefreshCache; 
-    guild = Zoe.getJda().getGuildById(server.serv_guildId);
-  }
-
-  public InfoPanelRefresher(DTO.Server server, boolean needToWait, boolean forceRefreshCache) {
-    this.server = server;
-    this.needToWait = needToWait;
-    this.forceRefreshCache = forceRefreshCache;
     guild = Zoe.getJda().getGuildById(server.serv_guildId);
   }
 
@@ -112,10 +103,6 @@ public class InfoPanelRefresher implements Runnable {
       List<DTO.Player> playersDTO = PlayerRepository.getPlayers(server.serv_guildId);
 
       InfoPanelRefresherUtil.cleanRegisteredPlayerNoLongerInGuild(guild, playersDTO);
-
-      if(needToWait) {
-        TimeUnit.SECONDS.sleep(5);
-      }
 
       if(infochannel != null) {
         cleanOldInfoChannelMessage();

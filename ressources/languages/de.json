@@ -434,5 +434,7 @@
     "rankChannelFilterOptionLoL": "Nur LoL angezeigt",
     "rankChannelFilterOptionAllDesc": "Senden aller Arten von Nachrichten im Rang-Kanal (LoL und TFT)",
     "rankChannelFilterOptionAll": "Alle Typen werden angezeigt",
-    "rankChannelFilterOptionDesc": "Nachricht im Rang-Kanal nach Spiel filtern (LoL und TFT)"
+    "rankChannelFilterOptionDesc": "Nachricht im Rang-Kanal nach Spiel filtern (LoL und TFT)",
+    "rankChannelChangeWonDivisionWithoutGameType": "%s hat %s erreicht",
+    "rankChannelChangeWonDivision": "%s hat %s (%s) erreicht"
 }

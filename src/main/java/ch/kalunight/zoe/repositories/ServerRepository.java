@@ -56,6 +56,7 @@ public class ServerRepository {
       "LEFT JOIN rank_history_channel ON server.serv_id = rank_history_channel.rhchannel_fk_server " + 
       "INNER JOIN server_status ON server.serv_id = server_status.servstatus_fk_server " + 
       "WHERE server.serv_lastrefresh < '%s' " +
+      "AND (rank_history_channel.rhchannel_channelid IS NOT NULL OR info_channel.infochannel_channelid IS NOT NULL) " +
       "AND server_status.servstatus_intreatment = %s";
   
   private static final String SELECT_SERVERS_WITH_LEAGUE_ACCOUNT = "SELECT " + 

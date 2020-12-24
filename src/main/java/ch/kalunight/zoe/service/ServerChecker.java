@@ -38,6 +38,10 @@ public class ServerChecker extends TimerTask {
   private static final int START_DELAY_BETWEEN_EACH_REFRESH = 30;
 
   private static final int MAX_REFRESH_RATE_BEFORE_SMART_MOD = 60;
+  
+  private static final int DURATION_OF_SMART_MOD = 60;
+  
+  private static final int TEST_PHASE_AFTER_SMART_MOD = 10;
 
   private static final RefreshStatus lastStatus = new RefreshStatus(START_DELAY_BETWEEN_EACH_REFRESH, false);
 
@@ -55,12 +59,12 @@ public class ServerChecker extends TimerTask {
       if(lastStatus.getSmartModEnd().isBefore(LocalDateTime.now())) {
         lastStatus.isSmartModeEnable().set(false);
         lastStatus.getRefresRatehInMinute().set(START_DELAY_BETWEEN_EACH_REFRESH);
-        lastStatus.setSmartModEnd(null);
       }
     }else {
       if(ServerData.getServerExecutor().getQueue().size() > NUMBER_OF_TASKS_ALLOWED_IN_QUEUE) {
-        if(lastStatus.getRefresRatehInMinute().incrementAndGet() > MAX_REFRESH_RATE_BEFORE_SMART_MOD) {
-          lastStatus.setSmartModEnd(LocalDateTime.now().plusMinutes(30));
+        if(lastStatus.getRefresRatehInMinute().incrementAndGet() > MAX_REFRESH_RATE_BEFORE_SMART_MOD
+            && lastStatus.getSmartModEnd().isBefore(LocalDateTime.now().minusMinutes(TEST_PHASE_AFTER_SMART_MOD))) {
+          lastStatus.setSmartModEnd(LocalDateTime.now().plusMinutes(DURATION_OF_SMART_MOD));
           lastStatus.isSmartModeEnable().set(true);
         }
       }else if(MINIMAL_DELAY_BETWEEN_EACH_REFRESH < lastStatus.getRefresRatehInMinute().get()) {

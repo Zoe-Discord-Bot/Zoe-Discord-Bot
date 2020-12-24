@@ -724,7 +724,7 @@ public class InfoPanelRefresher implements Runnable {
     }else {
       stringMessage.append(String.format(LanguageManager.getText(server.serv_language, "informationPanelRefreshedTime"), ServerChecker.getLastStatus().getRefresRatehInMinute().get()));
     }
-    
+
     return stringMessage.toString();
   }
 

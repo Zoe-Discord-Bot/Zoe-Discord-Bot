@@ -15,7 +15,7 @@ public class RefreshStatus {
   public RefreshStatus(int lastRefreshInMinute, boolean smartMode) {
     this.refreshRateInMinute = new AtomicInteger(lastRefreshInMinute);
     this.smartModEnable = new AtomicBoolean(smartMode);
-    this.smartModEnd = null;
+    this.smartModEnd = LocalDateTime.now();
   }
   
   public LocalDateTime getSmartModEnd() {

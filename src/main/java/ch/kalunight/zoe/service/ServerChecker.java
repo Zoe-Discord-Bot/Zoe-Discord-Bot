@@ -2,6 +2,7 @@ package ch.kalunight.zoe.service;
 
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.TimerTask;
 import org.joda.time.DateTime;
@@ -31,17 +32,19 @@ public class ServerChecker extends TimerTask {
 
   private static final int TIME_BETWEEN_EACH_RAPI_CHANNEL_REFRESH_IN_MINUTES = 2;
 
-  private static final int NUMBER_OF_TASKS_ALLOWED_IN_QUEUE = 10;
+  private static final int NUMBER_OF_TASKS_ALLOWED_IN_QUEUE = 20;
 
   private static final int MINIMAL_DELAY_BETWEEN_EACH_REFRESH = 5;
 
   private static final int START_DELAY_BETWEEN_EACH_REFRESH = 30;
 
   private static final int MAX_REFRESH_RATE_BEFORE_SMART_MOD = 60;
-  
+
   private static final int DURATION_OF_SMART_MOD = 60;
-  
+
   private static final int TEST_PHASE_AFTER_SMART_MOD = 10;
+
+  private static final int MAXIMUM_IN_SERVERS_REFRESH_QUEUE = 100;
 
   private static final RefreshStatus lastStatus = new RefreshStatus(START_DELAY_BETWEEN_EACH_REFRESH, false);
 
@@ -53,7 +56,7 @@ public class ServerChecker extends TimerTask {
 
   private static final Logger logger = LoggerFactory.getLogger(ServerChecker.class);
 
-  private void manageRefreshRate() {
+  private List<DTO.Server> manageRefreshRate() throws SQLException {
 
     if(lastStatus.isSmartModeEnable().get()) {
       if(lastStatus.getSmartModEnd().isBefore(LocalDateTime.now())) {
@@ -71,6 +74,17 @@ public class ServerChecker extends TimerTask {
         lastStatus.getRefresRatehInMinute().decrementAndGet();
       }
     }
+
+    if(!lastStatus.isSmartModeEnable().get()) {
+      List<DTO.Server> serversToRefresh = ServerRepository.getGuildWhoNeedToBeRefresh(lastStatus.getRefresRatehInMinute().get());
+
+      if(ServerData.getServerExecutor().getQueue().size() < MAXIMUM_IN_SERVERS_REFRESH_QUEUE) {
+        return serversToRefresh; //Server Queue is not huge so we can add some passive refresh
+      }else {
+        lastStatus.getRefresRatehInMinute().addAndGet(3); //Since we can't treat all servers due to queues overload, we add an extra delay.
+      }
+    }
+    return new ArrayList<>();
   }
 
   @Override
@@ -80,18 +94,16 @@ public class ServerChecker extends TimerTask {
 
     try {
 
-      manageRefreshRate();
+      List<DTO.Server> serversToRefresh = manageRefreshRate();
 
-      if(!lastStatus.isSmartModeEnable().get()) {
-        for(DTO.Server server : ServerRepository.getGuildWhoNeedToBeRefresh(lastStatus.getRefresRatehInMinute().get())) {
+      for(DTO.Server server : serversToRefresh) {
 
-          DTO.ServerStatus status = ServerStatusRepository.getServerStatus(server.serv_guildId);
-          ServerStatusRepository.updateInTreatment(status.servstatus_id, true);
-          ServerRepository.updateTimeStamp(server.serv_guildId, LocalDateTime.now());
+        DTO.ServerStatus status = ServerStatusRepository.getServerStatus(server.serv_guildId);
+        ServerStatusRepository.updateInTreatment(status.servstatus_id, true);
+        ServerRepository.updateTimeStamp(server.serv_guildId, LocalDateTime.now());
 
-          Runnable task = new InfoPanelRefresher(server);
-          ServerData.getServerExecutor().execute(task);
-        }
+        Runnable task = new InfoPanelRefresher(server);
+        ServerData.getServerExecutor().execute(task);
       }
 
       for(DTO.Server serverAskedTreatment : ServerData.getServersAskedTreatment()) {
@@ -195,5 +207,5 @@ public class ServerChecker extends TimerTask {
   public static RefreshStatus getLastStatus() {
     return lastStatus;
   }
-  
+
 }

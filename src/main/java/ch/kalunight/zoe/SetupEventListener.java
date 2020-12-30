@@ -19,6 +19,7 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.repositories.ServerStatusRepository;
 import ch.kalunight.zoe.riotapi.CacheManager;
+import ch.kalunight.zoe.service.CachePlayerService;
 import ch.kalunight.zoe.service.RiotApiUsageChannelRefresh;
 import ch.kalunight.zoe.service.ServerChecker;
 import ch.kalunight.zoe.translation.LanguageManager;
@@ -124,6 +125,10 @@ public class SetupEventListener extends ListenerAdapter {
     Zoe.getJda().getPresence().setActivity(Activity.playing("type \">help\""));
 
     setZoeIsBooted(true);
+
+    logger.info("Cache all registered players ...");
+    ServerData.getServerExecutor().execute(new CachePlayerService());
+    logger.info("Cache all registered players !");
     
     logger.info("Booting finished !");
   }

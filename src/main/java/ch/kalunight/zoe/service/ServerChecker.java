@@ -44,7 +44,9 @@ public class ServerChecker extends TimerTask {
 
   private static final int TEST_PHASE_AFTER_SMART_MOD = 10;
 
-  private static final int MAXIMUM_IN_SERVERS_REFRESH_QUEUE = 100;
+  private static final int MAXIMUM_IN_SERVERS_REFRESH_QUEUE = 25;
+  
+  private static final int QUEUE_EMPTY_MINUTES_TO_SKIP = 2;
 
   private static final RefreshStatus lastStatus = new RefreshStatus(START_DELAY_BETWEEN_EACH_REFRESH, false);
 
@@ -78,9 +80,36 @@ public class ServerChecker extends TimerTask {
     if(!lastStatus.isSmartModeEnable().get()) {
       List<DTO.Server> serversToRefresh = ServerRepository.getGuildWhoNeedToBeRefresh(lastStatus.getRefresRatehInMinute().get());
 
-      if(ServerData.getServerExecutor().getQueue().size() < MAXIMUM_IN_SERVERS_REFRESH_QUEUE) {
+      if(ServerData.getServerExecutor().getQueue().size() + serversToRefresh.size() < MAXIMUM_IN_SERVERS_REFRESH_QUEUE) {
+        
+        while(serversToRefresh.isEmpty()) {
+          synchronized (lastStatus.getRefresRatehInMinute()) {
+            int currentRefreshRate = lastStatus.getRefresRatehInMinute().get();
+            int newRefreshValue = currentRefreshRate - QUEUE_EMPTY_MINUTES_TO_SKIP;
+            if(MINIMAL_DELAY_BETWEEN_EACH_REFRESH < newRefreshValue) {
+              serversToRefresh = ServerRepository.getGuildWhoNeedToBeRefresh(newRefreshValue);
+              lastStatus.getRefresRatehInMinute().set(newRefreshValue);
+              if(serversToRefresh.size() + ServerData.getServerExecutor().getQueue().size() >= MAXIMUM_IN_SERVERS_REFRESH_QUEUE) {
+                int numberOfserversWhoCanBeTreated = MAXIMUM_IN_SERVERS_REFRESH_QUEUE - ServerData.getServerExecutor().getQueue().size();
+                List<Server> serversToAdd = new ArrayList<>();
+                for(Server serverToAdd : serversToRefresh) {
+                  if(numberOfserversWhoCanBeTreated > serversToAdd.size()) {
+                    serversToAdd.add(serverToAdd);
+                  }else {
+                    break;
+                  }
+                }
+                serversToRefresh = serversToAdd;
+              }
+              
+            }else {
+              break;
+            }
+          }
+        }
+        
         return serversToRefresh; //Server Queue is not huge so we can add some passive refresh
-      }else {
+      }else if (!serversToRefresh.isEmpty()) {
         lastStatus.getRefresRatehInMinute().addAndGet(3); //Since we can't treat all servers due to queues overload, we add an extra delay.
       }
     }

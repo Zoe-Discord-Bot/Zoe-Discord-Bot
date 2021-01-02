@@ -33,7 +33,7 @@ public class ServerChecker extends TimerTask {
 
   private static final int TIME_BETWEEN_EACH_RAPI_CHANNEL_REFRESH_IN_MINUTES = 2;
   
-  private static final int NUMBER_OF_TASKS_IN_QUEUE_ENDED = 10;
+  private static final int NUMBER_OF_TASKS_IN_QUEUE_ENDED = 20;
 
   private static final RefreshStatus lastStatus = new RefreshStatus();
 

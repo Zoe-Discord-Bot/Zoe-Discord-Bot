@@ -121,8 +121,6 @@ public class RefreshStatus {
         refreshRateInMinute.set(newRefreshRate);
       }
       refreshLoadsHistory.clear();
-    }else {
-      addRefreshLoadStatus(RefreshLoadStatus.OVER_USED);
     }
   }
 

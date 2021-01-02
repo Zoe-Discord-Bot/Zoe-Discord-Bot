@@ -20,6 +20,9 @@ import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
+import ch.kalunight.zoe.model.RefreshLoadStatus;
+import ch.kalunight.zoe.model.RefreshPhase;
+import ch.kalunight.zoe.model.RefreshStatus;
 import ch.kalunight.zoe.repositories.LeaderboardRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
@@ -64,12 +67,37 @@ public class RiotApiUsageChannelRefresh implements Runnable {
 
         rapiInfoChannel.sendMessage("**Generic Stats**"
             + "\nTotal number of Servers : " + Zoe.getJda().getGuilds().size()
-            + "\nTask in Server Executor Queue : " + ServerData.getServerExecutor().getQueue().size()
+            + "\nTask in Server Executor Queue : " +  (ServerData.getServerExecutor().getActiveCount() + ServerData.getServerExecutor().getQueue().size())
             + "\nInfoPannel refresh done last two minutes : " + InfoPanelRefresher.getNbrServerSefreshedLast2Minutes()
             + "\nTask in InfoCards Generator Queue : " + ServerData.getInfocardsGenerator().getQueue().size()
             + "\nTask in Players Data Worker Queue : " + ServerData.getPlayersDataQueue()
             + "\nInfocards Generated last 2 minutes : " + getInfocardCreatedCount()
             + "\nTask in Leaderboard Executor : " + ServerData.getLeaderboardExecutor().getQueue().size()).queue();
+
+        StringBuilder refreshStatusText = new StringBuilder();
+
+        RefreshStatus refreshStatus = ServerChecker.getLastStatus();
+        
+        synchronized (refreshStatus) {
+          refreshStatusText.append("**Refresh Status**"
+              + "\nNumber Of Server Managed : " + refreshStatus.getNumberOfServerManaged()
+              + "\nCurrent Status : " + refreshStatus.getRefreshPhase().toString());
+
+          if(refreshStatus.getRefreshPhase().equals(RefreshPhase.CLASSIC_MOD)) {
+            refreshStatusText.append("\nRefresh Rate : " + refreshStatus.getRefresRatehInMinute().get());
+          }else if (refreshStatus.getRefreshPhase().equals(RefreshPhase.IN_EVALUATION_PHASE)) {
+            refreshStatusText.append("\nCurrent Tested Refresh Rate : " + refreshStatus.getRefresRatehInMinute().get()
+                + "\nRefresh rate evaluation period end date (UTC) : " + refreshStatus.getSmartModEnd().toString());
+          }
+          
+          refreshStatusText.append("\nHistory of load status : ");
+          
+          for(RefreshLoadStatus loadStatus : refreshStatus.getRefreshLoadsHistory()) {
+            refreshStatusText.append(loadStatus.toString() + "|");
+          }
+        }
+
+        rapiInfoChannel.sendMessage(refreshStatusText.toString()).queue();
 
         StringBuilder serverHelperStats = new StringBuilder();
         serverHelperStats.append("**Server Helper Threads Stats**\n");

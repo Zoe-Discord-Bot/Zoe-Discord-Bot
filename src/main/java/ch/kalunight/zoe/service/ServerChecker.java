@@ -17,6 +17,7 @@ import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.leaderboard.dataholder.Objective;
 import ch.kalunight.zoe.repositories.LeaderboardRepository;
+import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.repositories.ServerStatusRepository;
 import ch.kalunight.zoe.service.infochannel.InfoPanelRefresher;
@@ -31,24 +32,10 @@ public class ServerChecker extends TimerTask {
   private static final int TIME_BETWEEN_EACH_STATUS_REFRESH_IN_HOURS = 1;
 
   private static final int TIME_BETWEEN_EACH_RAPI_CHANNEL_REFRESH_IN_MINUTES = 2;
-
-  private static final int NUMBER_OF_TASKS_ALLOWED_IN_QUEUE = 20;
-
-  private static final int MINIMAL_DELAY_BETWEEN_EACH_REFRESH = 5;
-
-  private static final int START_DELAY_BETWEEN_EACH_REFRESH = 30;
-
-  private static final int MAX_REFRESH_RATE_BEFORE_SMART_MOD = 60;
-
-  private static final int DURATION_OF_SMART_MOD = 60;
-
-  private static final int TEST_PHASE_AFTER_SMART_MOD = 10;
-
-  private static final int MAXIMUM_IN_SERVERS_REFRESH_QUEUE = 25;
   
-  private static final int QUEUE_EMPTY_MINUTES_TO_SKIP = 2;
+  private static final int NUMBER_OF_TASKS_IN_QUEUE_ENDED = 10;
 
-  private static final RefreshStatus lastStatus = new RefreshStatus(START_DELAY_BETWEEN_EACH_REFRESH, false);
+  private static final RefreshStatus lastStatus = new RefreshStatus();
 
   private static DateTime nextDiscordBotListRefresh = DateTime.now().plusSeconds(TIME_BETWEEN_EACH_DISCORD_BOT_LIST_REFRESH);
 
@@ -59,61 +46,27 @@ public class ServerChecker extends TimerTask {
   private static final Logger logger = LoggerFactory.getLogger(ServerChecker.class);
 
   private List<DTO.Server> manageRefreshRate() throws SQLException {
-
-    if(lastStatus.isSmartModeEnable().get()) {
-      if(lastStatus.getSmartModEnd().isBefore(LocalDateTime.now())) {
-        lastStatus.isSmartModeEnable().set(false);
-        lastStatus.getRefresRatehInMinute().set(START_DELAY_BETWEEN_EACH_REFRESH);
-      }
-    }else {
-      if(ServerData.getServerExecutor().getQueue().size() > NUMBER_OF_TASKS_ALLOWED_IN_QUEUE) {
-        if(lastStatus.getRefresRatehInMinute().incrementAndGet() > MAX_REFRESH_RATE_BEFORE_SMART_MOD
-            && lastStatus.getSmartModEnd().isBefore(LocalDateTime.now().minusMinutes(TEST_PHASE_AFTER_SMART_MOD))) {
-          lastStatus.setSmartModEnd(LocalDateTime.now().plusMinutes(DURATION_OF_SMART_MOD));
-          lastStatus.isSmartModeEnable().set(true);
-        }
-      }else if(MINIMAL_DELAY_BETWEEN_EACH_REFRESH < lastStatus.getRefresRatehInMinute().get()) {
-        lastStatus.getRefresRatehInMinute().decrementAndGet();
-      }
+    
+    int queueSize = ServerData.getServerExecutor().getActiveCount() + ServerData.getServerExecutor().getQueue().size();
+    
+    switch (lastStatus.getRefreshPhase()) {
+    case NEED_TO_INIT:
+      List<Server> allServers = ServerRepository.getAllServers();
+      lastStatus.init(PlayerRepository.getListDiscordIdOfRegisteredPlayers().size());
+      return allServers;
+    case IN_EVALUATION_PHASE:
+      boolean loadingEnded = queueSize < NUMBER_OF_TASKS_IN_QUEUE_ENDED;
+      lastStatus.manageEvaluationPhase(loadingEnded);
+      return new ArrayList<>();
+    case CLASSIC_MOD:
+      lastStatus.manageClassicMod(PlayerRepository.getListDiscordIdOfRegisteredPlayers().size(), queueSize);
+      return ServerRepository.getGuildWhoNeedToBeRefresh(lastStatus.getRefresRatehInMinute().get());
+    case SMART_MOD:
+      lastStatus.manageSmartMod(PlayerRepository.getListDiscordIdOfRegisteredPlayers().size());
+      return new ArrayList<>();
+    default:
+      return new ArrayList<>();
     }
-
-    if(!lastStatus.isSmartModeEnable().get()) {
-      List<DTO.Server> serversToRefresh = ServerRepository.getGuildWhoNeedToBeRefresh(lastStatus.getRefresRatehInMinute().get());
-
-      if(ServerData.getServerExecutor().getQueue().size() + serversToRefresh.size() < MAXIMUM_IN_SERVERS_REFRESH_QUEUE) {
-        
-        while(serversToRefresh.isEmpty()) {
-          synchronized (lastStatus.getRefresRatehInMinute()) {
-            int currentRefreshRate = lastStatus.getRefresRatehInMinute().get();
-            int newRefreshValue = currentRefreshRate - QUEUE_EMPTY_MINUTES_TO_SKIP;
-            if(MINIMAL_DELAY_BETWEEN_EACH_REFRESH < newRefreshValue) {
-              serversToRefresh = ServerRepository.getGuildWhoNeedToBeRefresh(newRefreshValue);
-              lastStatus.getRefresRatehInMinute().set(newRefreshValue);
-              if(serversToRefresh.size() + ServerData.getServerExecutor().getQueue().size() >= MAXIMUM_IN_SERVERS_REFRESH_QUEUE) {
-                int numberOfserversWhoCanBeTreated = MAXIMUM_IN_SERVERS_REFRESH_QUEUE - ServerData.getServerExecutor().getQueue().size();
-                List<Server> serversToAdd = new ArrayList<>();
-                for(Server serverToAdd : serversToRefresh) {
-                  if(numberOfserversWhoCanBeTreated > serversToAdd.size()) {
-                    serversToAdd.add(serverToAdd);
-                  }else {
-                    break;
-                  }
-                }
-                serversToRefresh = serversToAdd;
-              }
-              
-            }else {
-              break;
-            }
-          }
-        }
-        
-        return serversToRefresh; //Server Queue is not huge so we can add some passive refresh
-      }else if (!serversToRefresh.isEmpty()) {
-        lastStatus.getRefresRatehInMinute().addAndGet(3); //Since we can't treat all servers due to queues overload, we add an extra delay.
-      }
-    }
-    return new ArrayList<>();
   }
 
   @Override

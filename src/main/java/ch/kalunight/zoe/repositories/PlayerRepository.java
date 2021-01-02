@@ -10,6 +10,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.Player;
@@ -66,10 +70,12 @@ public class PlayerRepository {
 
   private static final String COUNT_PLAYERS = "SELECT COUNT(*) FROM player";
   
+  private static final Logger logger = LoggerFactory.getLogger(PlayerRepository.class);
+  
   /**
    * This list contain discordId of player registered by guildid. Sync with the DB
    * First long : Guild id
-   * List of long : Discord Id
+   * List of long : User's Discord Id
    */
   private static final Map<Long, List<Long>> LIST_DISCORD_ID_OF_REGISTERED_PLAYERS = Collections.synchronizedMap(new HashMap<>());
   
@@ -85,6 +91,8 @@ public class PlayerRepository {
       String finalQuery = SELECT_ALL_PLAYERS_DISCORD_ID;
       result = query.executeQuery(finalQuery);
 
+      long numberOfPlayers = 0;
+      
       LIST_DISCORD_ID_OF_REGISTERED_PLAYERS.clear();
       if(0 != (result.last() ? result.getRow() : 0)) {
         result.first();
@@ -94,8 +102,12 @@ public class PlayerRepository {
           
           addADiscordIdToTrack(serverGuildId, playerDiscordId);
           result.next();
+          
+          numberOfPlayers++;
         }
       }
+      
+      logger.info("List of registered player initated ! Number of guilds : {} / Number Of players : {}", LIST_DISCORD_ID_OF_REGISTERED_PLAYERS.size(), numberOfPlayers);
     }finally {
       RepoRessources.closeResultSet(result);
     }

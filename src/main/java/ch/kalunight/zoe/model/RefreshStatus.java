@@ -116,7 +116,7 @@ public class RefreshStatus {
         smartModEnd = LocalDateTime.now().plusMinutes(SMART_MOD_TIME_IN_MINUTES);
 
       }else {
-        logger.warn("Zoe is a bit overloaded ! {} are currently in queue. {} minutes added to the refresh cycle. Refresh rate is currently of {}",
+        logger.info("Zoe is a bit overloaded ! {} are currently in queue. {} minutes added to the refresh cycle. Refresh rate is currently of {}",
             queueSize, EVALUTATION_INCREASE_DELAY_VALUE_IN_MINUTES, refreshRateInMinute.get());
         refreshRateInMinute.set(newRefreshRate);
       }
@@ -128,11 +128,11 @@ public class RefreshStatus {
     int newRefreshRate = refreshRateInMinute.get() + EVALUTATION_INCREASE_DELAY_VALUE_IN_MINUTES;
 
     if(newRefreshRate >= MAX_REFRESH_RATE_IN_MINUTES) {
-      logger.info("Zoe is a bit overloaded and the refresh rate is to high ! {} are currently in queue. The smart mod has been enabled.", queueSize);
+      logger.info("Zoe is a bit overloaded and the refresh rate is to high ! {} are currently in queue. The smart mod has been enabled. (Force More Delay)", queueSize);
       refreshPhase = RefreshPhase.SMART_MOD;
       smartModEnd = LocalDateTime.now().plusMinutes(SMART_MOD_TIME_IN_MINUTES);
     }else {
-      logger.warn("Zoe is a bit overloaded ! {} are currently in queue. {} minutes added to the refresh cycle. Refresh rate is currently of {}",
+      logger.warn("Zoe is a bit overloaded ! {} are currently in queue. {} minutes added to the refresh cycle. Refresh rate is currently of {} (Force More Delay)",
           queueSize, EVALUTATION_INCREASE_DELAY_VALUE_IN_MINUTES, refreshRateInMinute.get());
       refreshRateInMinute.set(newRefreshRate);
     }

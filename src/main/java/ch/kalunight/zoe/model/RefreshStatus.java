@@ -116,9 +116,9 @@ public class RefreshStatus {
         smartModEnd = LocalDateTime.now().plusMinutes(SMART_MOD_TIME_IN_MINUTES);
 
       }else {
+        refreshRateInMinute.set(newRefreshRate);
         logger.info("Zoe is a bit overloaded ! {} are currently in queue. {} minutes added to the refresh cycle. Refresh rate is currently of {}",
             queueSize, EVALUTATION_INCREASE_DELAY_VALUE_IN_MINUTES, refreshRateInMinute.get());
-        refreshRateInMinute.set(newRefreshRate);
       }
       refreshLoadsHistory.clear();
     }
@@ -132,9 +132,9 @@ public class RefreshStatus {
       refreshPhase = RefreshPhase.SMART_MOD;
       smartModEnd = LocalDateTime.now().plusMinutes(SMART_MOD_TIME_IN_MINUTES);
     }else {
-      logger.warn("Zoe is a bit overloaded ! {} are currently in queue. {} minutes added to the refresh cycle. Refresh rate is currently of {} (Force More Delay)",
-          queueSize, EVALUTATION_INCREASE_DELAY_VALUE_IN_MINUTES, refreshRateInMinute.get());
       refreshRateInMinute.set(newRefreshRate);
+      logger.info("Zoe is a bit overloaded ! {} are currently in queue. {} minutes added to the refresh cycle. Refresh rate is currently of {} (Force More Delay)",
+          queueSize, EVALUTATION_INCREASE_DELAY_VALUE_IN_MINUTES, refreshRateInMinute.get());
     }
     refreshLoadsHistory.clear();
   }
@@ -151,10 +151,10 @@ public class RefreshStatus {
     if(isStatusRegular(RefreshLoadStatus.UNDER_USED)) {
       int newRefreshRate = refreshRateInMinute.get() - EVALUTATION_INCREASE_DELAY_VALUE_IN_MINUTES;
       if(newRefreshRate >= MINIMAL_REFRESH_RATE_IN_MINUTES) {
-        logger.info("Zoe has been underused for 1 minutes straight, we lower the refresh rate by {}. The refresh rate is now of {} minutes.",
-            EVALUTATION_INCREASE_DELAY_VALUE_IN_MINUTES, refreshRateInMinute.get());
         refreshRateInMinute.set(newRefreshRate);
         refreshLoadsHistory.clear();
+        logger.info("Zoe has been underused for 1 minutes straight, we lower the refresh rate by {}. The refresh rate is now of {} minutes.",
+            EVALUTATION_INCREASE_DELAY_VALUE_IN_MINUTES, refreshRateInMinute.get());
       }
     }
   }

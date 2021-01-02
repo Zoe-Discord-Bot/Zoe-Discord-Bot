@@ -163,7 +163,7 @@ public class RefreshStatus {
 
   public void manageSmartMod(int numberOfServerCurrentlyManaged) {
     synchronized (this) {
-      if(refreshPhase == RefreshPhase.CLASSIC_MOD) {
+      if(refreshPhase == RefreshPhase.SMART_MOD) {
         if(smartModEnd.isBefore(LocalDateTime.now())) {
           refreshRateInMinute.set(START_DELAY_BETWEEN_EACH_REFRESH_IN_MINUTES);
           evaluationEnd = LocalDateTime.now().plusMinutes(refreshRateInMinute.get());

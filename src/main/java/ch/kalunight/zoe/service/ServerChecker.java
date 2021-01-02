@@ -48,21 +48,22 @@ public class ServerChecker extends TimerTask {
   private List<DTO.Server> manageRefreshRate() throws SQLException {
     
     int queueSize = ServerData.getServerExecutor().getActiveCount() + ServerData.getServerExecutor().getQueue().size();
+    int numberOfManagerServer = PlayerRepository.getListDiscordIdOfRegisteredPlayers().size();
     
     switch (lastStatus.getRefreshPhase()) {
     case NEED_TO_INIT:
       List<Server> allServers = ServerRepository.getAllServers();
-      lastStatus.init(PlayerRepository.getListDiscordIdOfRegisteredPlayers().size());
+      lastStatus.init(numberOfManagerServer);
       return allServers;
     case IN_EVALUATION_PHASE:
       boolean loadingEnded = queueSize < NUMBER_OF_TASKS_IN_QUEUE_ENDED;
       lastStatus.manageEvaluationPhase(loadingEnded);
       return new ArrayList<>();
     case CLASSIC_MOD:
-      lastStatus.manageClassicMod(PlayerRepository.getListDiscordIdOfRegisteredPlayers().size(), queueSize);
+      lastStatus.manageClassicMod(numberOfManagerServer, queueSize);
       return ServerRepository.getGuildWhoNeedToBeRefresh(lastStatus.getRefresRatehInMinute().get());
     case SMART_MOD:
-      lastStatus.manageSmartMod(PlayerRepository.getListDiscordIdOfRegisteredPlayers().size());
+      lastStatus.manageSmartMod(numberOfManagerServer);
       return new ArrayList<>();
     default:
       return new ArrayList<>();

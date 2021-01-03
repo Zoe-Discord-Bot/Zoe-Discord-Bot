@@ -59,6 +59,15 @@ public class ServerRepository {
       "AND (rank_history_channel.rhchannel_channelid IS NOT NULL OR info_channel.infochannel_channelid IS NOT NULL) " +
       "AND server_status.servstatus_intreatment = %s";
   
+  private static final String SELECT_ALL_SERVERS_WITH_RANK_CHANNEL_OR_INFO_CHANNEL = "SELECT " + 
+      "server.serv_id,server.serv_guildid,server.serv_language,server.serv_lastrefresh " + 
+      "FROM info_channel " + 
+      "RIGHT JOIN server ON info_channel.infochannel_fk_server = server.serv_id " + 
+      "LEFT JOIN rank_history_channel ON server.serv_id = rank_history_channel.rhchannel_fk_server " + 
+      "INNER JOIN server_status ON server.serv_id = server_status.servstatus_fk_server " + 
+      "WHERE (rank_history_channel.rhchannel_channelid IS NOT NULL OR info_channel.infochannel_channelid IS NOT NULL) " +
+      "AND server_status.servstatus_intreatment = %s";
+  
   private static final String SELECT_SERVERS_WITH_LEAGUE_ACCOUNT = "SELECT " + 
       "server.serv_id,server.serv_guildid,server.serv_language,server.serv_lastrefresh " + 
       "FROM league_account " + 
@@ -264,6 +273,33 @@ public class ServerRepository {
       
       String finalQuery = String.format(UPDATE_TIMESTAMP_WITH_GUILD_ID, DTO.DB_TIME_PATTERN.format(timeStamp), guildId);
       query.executeUpdate(finalQuery);
+    }
+  }
+  
+  public static List<DTO.Server> getAllGuildTreatable() throws SQLException {
+    ResultSet result = null;
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+      
+      String finalQuery = String.format(SELECT_ALL_SERVERS_WITH_RANK_CHANNEL_OR_INFO_CHANNEL,
+          false);
+      result = query.executeQuery(finalQuery);
+      
+      List<DTO.Server> servers = new ArrayList<>();
+      int rowCount = result.last() ? result.getRow() : 0;
+      if(rowCount == 0) {
+        return servers;
+      }
+      
+      result.first();
+      while(!result.isAfterLast()) {
+        servers.add(new DTO.Server(result));
+        result.next();
+      }
+      
+      return servers;
+    }finally {
+      RepoRessources.closeResultSet(result);
     }
   }
   

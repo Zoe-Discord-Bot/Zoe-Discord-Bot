@@ -52,7 +52,7 @@ public class ServerChecker extends TimerTask {
     
     switch (lastStatus.getRefreshPhase()) {
     case NEED_TO_INIT:
-      List<Server> allServers = ServerRepository.getAllServers();
+      List<Server> allServers = ServerRepository.getAllGuildTreatable();
       lastStatus.init(numberOfManagerServer);
       return allServers;
     case IN_EVALUATION_PHASE:

@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.google.common.base.Preconditions;
+
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
@@ -20,7 +21,7 @@ import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
 
 public class InfoPanelRefresherUtil {
-  
+
   private InfoPanelRefresherUtil() {
     //Hide default public constructor
   }
@@ -80,10 +81,14 @@ public class InfoPanelRefresherUtil {
   }
 
   public static void cleanRegisteredPlayerNoLongerInGuild(Guild guild, List<DTO.Player> listPlayers) throws SQLException {
-      if(!PlayerRepository.getLoadedGuild().contains(guild.getIdLong())) {
+    if(!PlayerRepository.getLoadedGuild().contains(guild.getIdLong())) {
+      List<Long> idPlayers = PlayerRepository.getListDiscordIdOfRegisteredPlayers().get(guild.getIdLong());
+      if(idPlayers != null) {
         PlayerRepository.getLoadedGuild().add(guild.getIdLong());
-        guild.findMembers(e -> PlayerRepository.getListDiscordIdOfRegisteredPlayers().get(guild.getIdLong()).contains(e.getIdLong()));
+        guild.findMembers(e -> idPlayers.contains(e.getIdLong()));
       }
+    }
+
     Iterator<DTO.Player> iter = listPlayers.iterator();
 
     while (iter.hasNext()) {

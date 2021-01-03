@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 
 public class RefreshStatus {
 
-  private static final int NUMBER_OF_CYCLE_NEEDED_FOR_ACTION = 6; // 1 cycle happens every 10 seconds
+  private static final int NUMBER_OF_CYCLE_NEEDED_FOR_ACTION = 18; // 1 cycle happens every 10 seconds
 
   private static final int MINIMAL_REFRESH_RATE_IN_MINUTES = 5;
 

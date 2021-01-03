@@ -59,6 +59,9 @@ public class ServerChecker extends TimerTask {
       boolean loadingEnded = queueSize < NUMBER_OF_TASKS_IN_QUEUE_ENDED;
       lastStatus.manageEvaluationPhase(loadingEnded);
       return new ArrayList<>();
+    case IN_EVALUATION_PHASE_ON_ROAD:
+      lastStatus.manageEvaluationPhaseOnRoad(numberOfManagerServer, queueSize);
+      return ServerRepository.getGuildWhoNeedToBeRefresh(lastStatus.getRefresRatehInMinute().get());
     case CLASSIC_MOD:
       lastStatus.manageClassicMod(numberOfManagerServer, queueSize);
       return ServerRepository.getGuildWhoNeedToBeRefresh(lastStatus.getRefresRatehInMinute().get());

@@ -22,6 +22,8 @@ public class RefreshStatus {
   private static final int MAX_REFRESH_RATE_IN_MINUTES = 60;
 
   private static final int SMART_MOD_TIME_IN_MINUTES = 60;
+  
+  private static final int FAILED_HEIGHER_RATE_PUNISHEMENT_IN_HOURS = 6;
 
   private static final Logger logger = LoggerFactory.getLogger(RefreshStatus.class);
 
@@ -34,6 +36,8 @@ public class RefreshStatus {
   private LocalDateTime smartModEnd;
 
   private AtomicInteger numberOfServerManaged;
+  
+  private EvalutationOnRoadResultFailed lastEvaluationFailed;
 
   private List<RefreshLoadStatus> refreshLoadsHistory;
 
@@ -75,11 +79,42 @@ public class RefreshStatus {
           }else {
             refreshPhase = RefreshPhase.SMART_MOD;
             smartModEnd = LocalDateTime.now().plusMinutes(SMART_MOD_TIME_IN_MINUTES);
-            logger.info("Evaluation objective not achieved an max value reached! Smart mod is now enabled.");
+            logger.info("Evaluation objective not achieved and max value reached! Smart mod is now enabled.");
           } 
         }
       }else {
         logger.warn("Refresh status not in evaluation phase!");
+      }
+    }
+  }
+  
+  public void manageEvaluationPhaseOnRoad(int numberOfManagerServer, int queueSize) {
+    synchronized (this) {
+      if(refreshPhase == RefreshPhase.IN_EVALUATION_PHASE_ON_ROAD) {
+        numberOfServerManaged.set(numberOfManagerServer);
+        
+        if(queueSize < getNumberOfTaskUnderused()) {
+          addRefreshLoadStatus(RefreshLoadStatus.UNDER_USED);
+        } else if(queueSize > getNumberOfTaskAllowed()) {
+          addRefreshLoadStatus(RefreshLoadStatus.OVER_USED);
+        }else {
+          addRefreshLoadStatus(RefreshLoadStatus.NORMAL_STATE);
+        }
+        
+        if(evaluationEnd.isBefore(LocalDateTime.now())) {
+          if(isStatusRegular(RefreshLoadStatus.OVER_USED)) {
+            lastEvaluationFailed = new EvalutationOnRoadResultFailed(refreshRateInMinute.get(), evaluationEnd);
+            evaluationEnd = evaluationEnd.plusMinutes(EVALUTATION_INCREASE_DELAY_VALUE_IN_MINUTES);
+            refreshRateInMinute.addAndGet(EVALUTATION_INCREASE_DELAY_VALUE_IN_MINUTES);
+            logger.info("Impossible to maintain the rate of {}, we go back to the heigher rate ({} minutes). The evaluation period continue to wait the normal state. (Evaluation on road)",
+                refreshRateInMinute.get() - EVALUTATION_INCREASE_DELAY_VALUE_IN_MINUTES, refreshRateInMinute.get());
+          }else {
+            refreshPhase = RefreshPhase.CLASSIC_MOD;
+            logger.info("Evaluation on road ended correctly ! The refresh rate is {} minutes.", refreshRateInMinute.get());
+          }
+        }
+      }else {
+        logger.warn("Refresh status not in evaluation phase on road !");
       }
     }
   }
@@ -150,10 +185,14 @@ public class RefreshStatus {
     addRefreshLoadStatus(RefreshLoadStatus.UNDER_USED);
     if(isStatusRegular(RefreshLoadStatus.UNDER_USED)) {
       int newRefreshRate = refreshRateInMinute.get() - EVALUTATION_INCREASE_DELAY_VALUE_IN_MINUTES;
-      if(newRefreshRate >= MINIMAL_REFRESH_RATE_IN_MINUTES) {
+      if(newRefreshRate >= MINIMAL_REFRESH_RATE_IN_MINUTES &&
+          (lastEvaluationFailed == null || (lastEvaluationFailed.getTimeOfTheFail().isBefore(LocalDateTime.now().minusHours(FAILED_HEIGHER_RATE_PUNISHEMENT_IN_HOURS)) 
+              || newRefreshRate > lastEvaluationFailed.getRateFailed()))) {
         refreshRateInMinute.set(newRefreshRate);
         refreshLoadsHistory.clear();
-        logger.info("Zoe has been underused for 1 minutes straight, we lower the refresh rate by {}. The refresh rate is now of {} minutes.",
+        refreshPhase = RefreshPhase.IN_EVALUATION_PHASE_ON_ROAD;
+        evaluationEnd = LocalDateTime.now().plusMinutes(refreshRateInMinute.get());
+        logger.info("Zoe has been underused for 3 minutes straight, we lower the refresh rate by {}. The refresh rate is now of {} minutes.",
             EVALUTATION_INCREASE_DELAY_VALUE_IN_MINUTES, refreshRateInMinute.get());
       }
     }
@@ -203,7 +242,7 @@ public class RefreshStatus {
   }
 
   private double getNumberOfTaskUnderused() {
-    return getNumberOfTaskHandledEvery10Seconds() * 70 / 100; //70% of handled usage
+    return getNumberOfTaskHandledEvery10Seconds() * 50 / 100; //50% of handled usage
   }
 
   private double getNumberOfTaskAllowed() {

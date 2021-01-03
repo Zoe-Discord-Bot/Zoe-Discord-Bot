@@ -722,7 +722,8 @@ public class InfoPanelRefresher implements Runnable {
 
     if(ServerChecker.getLastStatus().getRefreshPhase().equals(RefreshPhase.SMART_MOD)) {
       stringMessage.append(LanguageManager.getText(server.serv_language, "informationPanelSmartModEnable"));
-    } else if (ServerChecker.getLastStatus().getRefreshPhase().equals(RefreshPhase.IN_EVALUATION_PHASE)) {
+    } else if (ServerChecker.getLastStatus().getRefreshPhase().equals(RefreshPhase.IN_EVALUATION_PHASE) 
+        || ServerChecker.getLastStatus().getRefreshPhase().equals(RefreshPhase.IN_EVALUATION_PHASE_ON_ROAD) ) {
       stringMessage.append(LanguageManager.getText(server.serv_language, "informationPanelEvaluationMod"));
     }else {
       stringMessage.append(String.format(LanguageManager.getText(server.serv_language, "informationPanelRefreshedTime"), ServerChecker.getLastStatus().getRefresRatehInMinute().get()));

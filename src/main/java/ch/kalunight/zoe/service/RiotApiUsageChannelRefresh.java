@@ -85,7 +85,7 @@ public class RiotApiUsageChannelRefresh implements Runnable {
 
           if(refreshStatus.getRefreshPhase().equals(RefreshPhase.CLASSIC_MOD)) {
             refreshStatusText.append("\nRefresh Rate : " + refreshStatus.getRefresRatehInMinute().get());
-          }else if (refreshStatus.getRefreshPhase().equals(RefreshPhase.IN_EVALUATION_PHASE)) {
+          }else if (refreshStatus.getRefreshPhase().equals(RefreshPhase.IN_EVALUATION_PHASE) || refreshStatus.getRefreshPhase().equals(RefreshPhase.IN_EVALUATION_PHASE_ON_ROAD)) {
             refreshStatusText.append("\nCurrent Tested Refresh Rate : " + refreshStatus.getRefresRatehInMinute().get()
                 + "\nRefresh rate evaluation period end date (UTC) : " + refreshStatus.getEvaluationEnd().toString());
           }else if(refreshStatus.getRefreshPhase().equals(RefreshPhase.SMART_MOD)) {

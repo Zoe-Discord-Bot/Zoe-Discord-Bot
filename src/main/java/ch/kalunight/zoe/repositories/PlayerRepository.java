@@ -79,6 +79,8 @@ public class PlayerRepository {
    */
   private static final Map<Long, List<Long>> LIST_DISCORD_ID_OF_REGISTERED_PLAYERS = Collections.synchronizedMap(new HashMap<>());
   
+  private static final List<Long> LOADED_GUILD = Collections.synchronizedList(new ArrayList<>());
+  
   private PlayerRepository() {
     //hide default public constructor
   }
@@ -254,4 +256,7 @@ public class PlayerRepository {
     return LIST_DISCORD_ID_OF_REGISTERED_PLAYERS;
   }
 
+  public static List<Long> getLoadedGuild() {
+    return LOADED_GUILD;
+  }
 }

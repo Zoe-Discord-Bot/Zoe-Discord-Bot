@@ -78,14 +78,19 @@ public class InfoPanelRefresherUtil {
     }
     return stringBuilder.toString();
   }
-  
+
   public static void cleanRegisteredPlayerNoLongerInGuild(Guild guild, List<DTO.Player> listPlayers) throws SQLException {
+      if(!PlayerRepository.getLoadedGuild().contains(guild.getIdLong())) {
+        PlayerRepository.getLoadedGuild().add(guild.getIdLong());
+        guild.findMembers(e -> PlayerRepository.getListDiscordIdOfRegisteredPlayers().get(guild.getIdLong()).contains(e.getIdLong()));
+      }
     Iterator<DTO.Player> iter = listPlayers.iterator();
 
     while (iter.hasNext()) {
       DTO.Player player = iter.next();
-      
+
       try {
+
         if(guild.retrieveMemberById(player.getUser().getId()).complete() == null) {
           iter.remove();
           PlayerRepository.updateTeamOfPlayerDefineNull(player.player_id);
@@ -128,7 +133,7 @@ public class InfoPanelRefresherUtil {
 
     ArrayList<DTO.Player> listOfPlayers = new ArrayList<>();
     List<DTO.LeagueAccount> leagueAccounts = checkIfOthersAccountsInKnowInTheMatch(currentGameInfo, server);
-    
+
     for(DTO.LeagueAccount leagueAccount : leagueAccounts) {
       DTO.Player player = PlayerRepository.getPlayerByLeagueAccountAndGuild(
           server.serv_guildId, leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server);
@@ -136,7 +141,7 @@ public class InfoPanelRefresherUtil {
         listOfPlayers.add(player);
       }
     }
-    
+
     return listOfPlayers;
   }
 }

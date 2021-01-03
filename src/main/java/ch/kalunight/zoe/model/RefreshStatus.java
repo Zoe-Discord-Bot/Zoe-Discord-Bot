@@ -22,7 +22,7 @@ public class RefreshStatus {
   private static final int MAX_REFRESH_RATE_IN_MINUTES = 60;
 
   private static final int SMART_MOD_TIME_IN_MINUTES = 60;
-  
+
   private static final int FAILED_HEIGHER_RATE_PUNISHEMENT_IN_HOURS = 6;
 
   private static final Logger logger = LoggerFactory.getLogger(RefreshStatus.class);
@@ -36,7 +36,7 @@ public class RefreshStatus {
   private LocalDateTime smartModEnd;
 
   private AtomicInteger numberOfServerManaged;
-  
+
   private EvalutationOnRoadResultFailed lastEvaluationFailed;
 
   private List<RefreshLoadStatus> refreshLoadsHistory;
@@ -87,12 +87,12 @@ public class RefreshStatus {
       }
     }
   }
-  
+
   public void manageEvaluationPhaseOnRoad(int numberOfManagerServer, int queueSize) {
     synchronized (this) {
       if(refreshPhase == RefreshPhase.IN_EVALUATION_PHASE_ON_ROAD) {
         numberOfServerManaged.set(numberOfManagerServer);
-        
+
         if(queueSize < getNumberOfTaskUnderused()) {
           addRefreshLoadStatus(RefreshLoadStatus.UNDER_USED);
         } else if(queueSize > getNumberOfTaskAllowed()) {
@@ -100,7 +100,7 @@ public class RefreshStatus {
         }else {
           addRefreshLoadStatus(RefreshLoadStatus.NORMAL_STATE);
         }
-        
+
         if(evaluationEnd.isBefore(LocalDateTime.now())) {
           if(isStatusRegular(RefreshLoadStatus.OVER_USED)) {
             lastEvaluationFailed = new EvalutationOnRoadResultFailed(refreshRateInMinute.get(), evaluationEnd);
@@ -162,16 +162,40 @@ public class RefreshStatus {
   private void manageClassicModForceMoreDelay(long queueSize) {
     int newRefreshRate = refreshRateInMinute.get() + EVALUTATION_INCREASE_DELAY_VALUE_IN_MINUTES;
 
-    if(newRefreshRate >= MAX_REFRESH_RATE_IN_MINUTES) {
-      logger.info("Zoe is a bit overloaded and the refresh rate is to high ! {} are currently in queue. The smart mod has been enabled. (Force More Delay)", queueSize);
-      refreshPhase = RefreshPhase.SMART_MOD;
-      smartModEnd = LocalDateTime.now().plusMinutes(SMART_MOD_TIME_IN_MINUTES);
-    }else {
-      refreshRateInMinute.set(newRefreshRate);
-      logger.info("Zoe is a bit overloaded ! {} are currently in queue. {} minutes added to the refresh cycle. Refresh rate is currently of {} (Force More Delay)",
-          queueSize, EVALUTATION_INCREASE_DELAY_VALUE_IN_MINUTES, refreshRateInMinute.get());
+    addRefreshLoadStatus(RefreshLoadStatus.WAY_TO_MUCH_OVER_USED);
+    if(isLast3CycleStatusSame(RefreshLoadStatus.WAY_TO_MUCH_OVER_USED)) {
+      if(newRefreshRate >= MAX_REFRESH_RATE_IN_MINUTES) {
+        logger.info("Zoe is a bit overloaded and the refresh rate is to high ! {} are currently in queue. The smart mod has been enabled. (Force More Delay)", queueSize);
+        refreshPhase = RefreshPhase.SMART_MOD;
+        smartModEnd = LocalDateTime.now().plusMinutes(SMART_MOD_TIME_IN_MINUTES);
+      }else {
+        refreshRateInMinute.set(newRefreshRate);
+        logger.info("Zoe is a bit overloaded ! {} are currently in queue. {} minutes added to the refresh cycle. Refresh rate is currently of {} (Force More Delay)",
+            queueSize, EVALUTATION_INCREASE_DELAY_VALUE_IN_MINUTES, refreshRateInMinute.get());
+      }
+      refreshLoadsHistory.clear();
     }
-    refreshLoadsHistory.clear();
+  }
+
+  private boolean isLast3CycleStatusSame(RefreshLoadStatus loadStatus) {
+
+    List<RefreshLoadStatus> last3 = refreshLoadsHistory.subList(Math.max(refreshLoadsHistory.size() - 3, 0), refreshLoadsHistory.size());
+
+    if(last3.size() == 3) {
+      boolean sameStatus = true;
+
+      for(RefreshLoadStatus last3Status : last3) {
+        if(!last3Status.equals(loadStatus)){
+          sameStatus = false;
+          break;
+        }
+      }
+
+      return sameStatus;
+
+    }else {
+      return false;
+    }
   }
 
   private void manageClassicModForceSmartMod(long queueSize) {
@@ -227,10 +251,19 @@ public class RefreshStatus {
     if(refreshLoadsHistory.size() == NUMBER_OF_CYCLE_NEEDED_FOR_ACTION) {
       statusRegular = true;
 
-      for(RefreshLoadStatus refreshLoadStatus : refreshLoadsHistory) {
-        if(!refreshLoadStatus.equals(refreshLoad)) {
-          statusRegular = false;
-          break;
+      if(refreshLoad.equals(RefreshLoadStatus.OVER_USED)) {
+        for(RefreshLoadStatus refreshLoadStatus : refreshLoadsHistory) {
+          if(!refreshLoadStatus.equals(RefreshLoadStatus.OVER_USED) && !refreshLoadStatus.equals(RefreshLoadStatus.WAY_TO_MUCH_OVER_USED)) {
+            statusRegular = false;
+            break;
+          }
+        }
+      }else {
+        for(RefreshLoadStatus refreshLoadStatus : refreshLoadsHistory) {
+          if(!refreshLoadStatus.equals(refreshLoad)) {
+            statusRegular = false;
+            break;
+          }
         }
       }
     }

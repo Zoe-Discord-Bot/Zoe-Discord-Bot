@@ -222,7 +222,12 @@ public class RefreshStatus {
     }
   }
 
-  public void manageSmartMod(int numberOfServerCurrentlyManaged) {
+  /**
+   * Manage Smart Mod. If smart mod end, return true.
+   * @param numberOfServerCurrentlyManaged
+   * @return True if smart mod has ended.
+   */
+  public boolean manageSmartMod(int numberOfServerCurrentlyManaged) {
     synchronized (this) {
       if(refreshPhase == RefreshPhase.SMART_MOD) {
         if(smartModEnd.isBefore(LocalDateTime.now())) {
@@ -231,11 +236,13 @@ public class RefreshStatus {
           numberOfServerManaged.set(numberOfServerCurrentlyManaged);
           refreshPhase = RefreshPhase.IN_EVALUATION_PHASE;
           logger.info("Smart mod ended! Evaluation of performance started.");
+          return true;
         }
       } else {
         logger.warn("Refresh status not in smart mod!");
       }
     }
+    return false;
   }
 
   private void addRefreshLoadStatus(RefreshLoadStatus refreshLoad) {

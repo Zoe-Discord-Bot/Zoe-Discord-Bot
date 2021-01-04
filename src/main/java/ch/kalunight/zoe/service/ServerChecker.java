@@ -66,7 +66,9 @@ public class ServerChecker extends TimerTask {
       lastStatus.manageClassicMod(numberOfManagerServer, queueSize);
       return ServerRepository.getGuildWhoNeedToBeRefresh(lastStatus.getRefresRatehInMinute().get());
     case SMART_MOD:
-      lastStatus.manageSmartMod(numberOfManagerServer);
+      if(lastStatus.manageSmartMod(numberOfManagerServer)) {
+        return ServerRepository.getAllGuildTreatable();
+      }
       return new ArrayList<>();
     default:
       return new ArrayList<>();

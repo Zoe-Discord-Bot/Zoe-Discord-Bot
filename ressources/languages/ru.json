@@ -392,5 +392,12 @@
     "banAccountCommandAccountDeleteOfTheBanList": "Отлично, аккаунт был удален из бан-листа! Теперь вы можете использовать его снова. Если вы хотите остановить процесс, отправьте ``Stop``.",
     "banAccountCommandMalformedAccount": "Отправленный ответ неправильно сформирован. Пожалуйста отправьте мне имя вашего аккаунта в формате:``(ТегРегиона) (ИмяпПризвателя)``. Список возможных тегов региона : EUW, EUNE, NA, BR, JP, KR, LAN, LAS, OCE, RU, TR. Если вы хотите остановить процесс, вы можете отправить команду:``STOP``.",
     "banAccountCommandHelp": "Запустить мастер бан-листа. Разрешить владельцу аккаунта удалять свой аккаунт с других серверов и добавлять его в бан-лист чтобы запретить его добавление на сервера.",
-    "statsProfileQueueTFT": "ТФТ : **%s**"
+    "statsProfileQueueTFT": "ТФТ : **%s**",
+    "rankChannelChangePointOnlyWinTitleWithoutGameType": "%s выиграл %s LP",
+    "rankChannelChangeMultipleResultTitle": "Результат групповой рейтинговый",
+    "rankChannelFilterOptionChanged": "Хорошо, опция сервера обновлена.",
+    "rankChannelFilterOptionNotChanged": "Этот вариант уже есть на сервере.",
+    "rankChannelFilterOptionLongDesc": "Параметр : **%s** ",
+    "rankChannelFilterOptionTFT": "Показывать только TFT",
+    "rankChannelFilterOptionLoL": "Показывать только LoL"
 }

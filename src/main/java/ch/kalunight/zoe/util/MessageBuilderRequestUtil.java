@@ -231,6 +231,21 @@ public class MessageBuilderRequestUtil {
 
     return String.format("%02d", minutesGameLength) + ":" + String.format("%02d", secondesGameLength);
   }
+  
+  public static String getMatchTimeFromDurationInGame(long duration) {
+    double minutesOfGames = 0.0;
+
+    if(duration != 0l) {
+      minutesOfGames = duration + 180.0;
+    }
+
+    minutesOfGames = minutesOfGames / 60.0;
+    String[] stringMinutesSecondes = Double.toString(minutesOfGames).split("\\.");
+    int minutesGameLength = Integer.parseInt(stringMinutesSecondes[0]);
+    int secondesGameLength = (int) (Double.parseDouble("0." + stringMinutesSecondes[1]) * 60.0);
+    
+    return String.format("%02d", minutesGameLength) + ":" + String.format("%02d", secondesGameLength);
+  }
 
   public static String getBoStatus(MiniSeries bo, String lang, boolean lastWin) {
 

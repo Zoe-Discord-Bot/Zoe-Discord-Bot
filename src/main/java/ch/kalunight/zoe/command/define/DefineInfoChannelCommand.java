@@ -77,7 +77,7 @@ public class DefineInfoChannelCommand extends ZoeCommand {
               if(!ServerData.isServerWillBeTreated(server)) {
                 ServerData.getServersIsInTreatment().put(event.getGuild().getId(), true);
                 ServerRepository.updateTimeStamp(server.serv_guildId, LocalDateTime.now());
-                ServerData.getServerExecutor().execute(new InfoPanelRefresher(server, false));
+                ServerData.getServerExecutor().execute(new InfoPanelRefresher(server));
               }
             }
           }

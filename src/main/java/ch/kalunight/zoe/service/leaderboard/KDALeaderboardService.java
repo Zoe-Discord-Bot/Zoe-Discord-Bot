@@ -46,7 +46,7 @@ public class KDALeaderboardService extends LeaderboardBaseService {
     List<String> dataList = new ArrayList<>();
 
     for(PlayerKDA playerKDA : playersKDA) {
-      playersName.add(playerKDA.getPlayer().getUser().getAsMention());
+      playersName.add(playerKDA.getPlayer().getUser().getName() + "#" + playerKDA.getPlayer().getUser().getDiscriminator());
       if(playerKDA.getKdaReceiver().getAverageKDA() == KDAReceiver.PERFECT_KDA_VALUE) {
         dataList.add("**"+ LanguageManager.getText(server.serv_language, "perfectKDA") + "** *(" + playerKDA.getKdaReceiver().getAverageStats() + ")*");
       }else {

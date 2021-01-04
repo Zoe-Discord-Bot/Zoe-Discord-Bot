@@ -18,6 +18,7 @@ import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.GameAccessDataServerSpecific;
 import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
+import ch.kalunight.zoe.model.config.option.RankChannelFilterOption.RankChannelFilter;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.LastRank;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
@@ -133,8 +134,12 @@ public class TreatPlayerWorker implements Runnable {
     for(LeagueAccount leagueAccount : leaguesAccounts) {
       LastRank lastRank = getLastRank(leagueAccount);
 
-      refreshLoL(leagueAccount, lastRank, accountsInGame, accountNotInGame);
-      refreshTFT(leagueAccount, lastRank);
+      if(lastRank != null) {
+        refreshLoL(leagueAccount, lastRank, accountsInGame, accountNotInGame);
+        refreshTFT(leagueAccount, lastRank);
+      }else {
+        logger.warn("Error while refreshing a player ! last rank == null. Guild Id {}", server.serv_guildId);
+      }
     }
   }
 
@@ -155,9 +160,15 @@ public class TreatPlayerWorker implements Runnable {
     if(!matchs.isEmpty()) {
       Set<TFTLeagueEntry> tftLeagueEntries = Zoe.getRiotApi().
           getTFTLeagueEntriesWithRateLimit(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_tftSummonerId);
-      LastRankUtil.updateTFTLastRank(lastRank, tftLeagueEntries);
 
-      if(rankChannel != null) {
+      boolean rankUpdated = LastRankUtil.updateTFTLastRank(lastRank, tftLeagueEntries);
+
+      if(rankChannel != null && rankUpdated) {
+
+        if(serverConfig.getRankchannelFilterOption().getRankChannelFilter() == RankChannelFilter.LOL_ONLY) {
+          return;
+        }
+
         RankedChannelTFTRefresher tftRankedChannelRefresher = new RankedChannelTFTRefresher(rankChannel,
             lastRank.lastRank_tftSecond, lastRank.lastRank_tft, player, leagueAccount, server, matchs.get(0));
         ServerData.getRankedMessageGenerator().execute(tftRankedChannelRefresher);
@@ -258,6 +269,10 @@ public class TreatPlayerWorker implements Runnable {
   }
 
   private void searchForRefreshRankChannel(DTO.CurrentGameInfo currentGameDb, LeagueAccount leagueAccount, LastRank lastRank) throws SQLException {
+
+    if(serverConfig.getRankchannelFilterOption().getRankChannelFilter() == RankChannelFilter.TFT_ONLY) {
+      return;
+    }
 
     if(currentGameDb.currentgame_currentgame.getParticipantByParticipantId(leagueAccount.leagueAccount_summonerId) != null) {
       Player playerToUpdate = PlayerRepository.getPlayerByLeagueAccountAndGuild(server.serv_guildId,
@@ -443,6 +458,13 @@ public class TreatPlayerWorker implements Runnable {
     }while(needToWait);
   }
 
+  public Player getPlayer() {
+    return player;
+  }
+
+  public Server getServer() {
+    return server;
+  }
 
   public TreatedPlayer getTreatedPlayer() {
     return treatedPlayer;

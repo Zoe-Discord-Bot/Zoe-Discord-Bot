@@ -29,21 +29,26 @@ public class ServerData {
 
   private static final ConcurrentHashMap<String, Boolean> serversIsInTreatment = new ConcurrentHashMap<>();
 
-  private static final Timer serverCheckerThreadTimer = new Timer("ServerChecker-Timer-Executor");
+  private static final Timer serverCheckerThreadTimer = new Timer("Zoe ServerChecker-Timer-Executor");
   
   public static final int NBR_PROC = Runtime.getRuntime().availableProcessors();
 
+  private static final Timer DISCORD_DETECTION_DELAYED_TASK = new Timer("Zoe Discord-Status-Delayed-Refresh-Timer");
+  
+  private static final ThreadPoolExecutor MONITORING_DATA_EXECUTOR =
+      new ThreadPoolExecutor(1, 1, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
+  
   private static final ThreadPoolExecutor SERVER_EXECUTOR =
-      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
 
   private static final Map<Platform, ThreadPoolExecutor> INFOCHANNEL_HELPER_THREAD =
       Collections.synchronizedMap(new EnumMap<Platform, ThreadPoolExecutor>(Platform.class));
   
   private static final ThreadPoolExecutor INFOCARDS_GENERATOR =
-      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
   
   private static final ThreadPoolExecutor RANKED_MESSAGE_GENERATOR =
-      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
 
   private static final Map<Platform, ThreadPoolExecutor> PLAYERS_DATA_EXECUTORS =
       Collections.synchronizedMap(new EnumMap<Platform, ThreadPoolExecutor>(Platform.class));
@@ -52,10 +57,10 @@ public class ServerData {
       Collections.synchronizedMap(new EnumMap<Platform, ThreadPoolExecutor>(Platform.class));
   
   private static final ThreadPoolExecutor LEADERBOARD_EXECUTOR =
-      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
   
   private static final ThreadPoolExecutor COMMANDS_EXECUTOR =
-      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
 
   /**
    * Used by event waiter, define in {@link Zoe#main(String[])}
@@ -76,7 +81,8 @@ public class ServerData {
     RESPONSE_WAITER.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Response-Waiter-Thread %d").build());
     LEADERBOARD_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Leaderboard-Refresher-Thread %d").build());
     COMMANDS_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Command-Executor-Thread %d").build());
-
+    MONITORING_DATA_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Data-Monitoring-Thread %d").build());
+    
     for(Platform platform : Platform.values()) {
       ThreadPoolExecutor executor = new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
       String nameOfThread = String.format("Zoe Infochannel-Helper-%s-Worker", platform.getName().toUpperCase());
@@ -142,6 +148,17 @@ public class ServerData {
 
   public static void shutDownTaskExecutor(TextChannel channel) throws InterruptedException {
 
+    logger.info("Start to shutdown Data Monitoring Executor, this can take 1 minutes max...");
+    channel.sendMessage("Start to shutdown Data Monitoring Executor, this can take 1 minutes max...").complete();
+    MONITORING_DATA_EXECUTOR.shutdown();
+
+    MONITORING_DATA_EXECUTOR.awaitTermination(1, TimeUnit.MINUTES);
+    if(!MONITORING_DATA_EXECUTOR.isTerminated()) {
+      MONITORING_DATA_EXECUTOR.shutdownNow();
+    }
+    logger.info("Shutdown of Data Monitoring Executor has been completed !");
+    channel.sendMessage("Shutdown of Data Monitoring Executor has been completed !").complete();
+    
     logger.info("Start to shutdown Response Waiter, this can take 1 minutes max...");
     channel.sendMessage("Start to shutdown Response Waiter, this can take 1 minutes max...").complete();
     RESPONSE_WAITER.shutdown();
@@ -152,7 +169,7 @@ public class ServerData {
     }
     logger.info("Shutdown of Response Waiter has been completed !");
     channel.sendMessage("Shutdown of Response Waiter has been completed !").complete();
-
+    
     logger.info("Start to shutdown Servers Executor, this can take 1 minutes max...");
     channel.sendMessage("Start to shutdown Servers Executor, this can take 1 minutes max...").complete();
     SERVER_EXECUTOR.shutdown();
@@ -328,6 +345,14 @@ public class ServerData {
   
   public static ThreadPoolExecutor getCommandsExecutor() {
     return COMMANDS_EXECUTOR;
+  }
+
+  public static ThreadPoolExecutor getMonitoringDataExecutor() {
+    return MONITORING_DATA_EXECUTOR;
+  }
+
+  public static Timer getDiscordDetectionDelayedTask() {
+    return DISCORD_DETECTION_DELAYED_TASK;
   }
 
   public static boolean isRebootAsked() {

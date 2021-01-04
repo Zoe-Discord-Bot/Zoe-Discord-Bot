@@ -24,6 +24,7 @@ import ch.kalunight.zoe.ServerData;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.exception.NoValueRankException;
 import ch.kalunight.zoe.model.ComparableMessage;
+import ch.kalunight.zoe.model.RefreshPhase;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.InfoChannel;
@@ -76,16 +77,8 @@ public class InfoPanelRefresher implements Runnable {
 
   private Guild guild;
 
-  private boolean needToWait = false;
-
   public InfoPanelRefresher(DTO.Server server) {
     this.server = server;
-    guild = Zoe.getJda().getGuildById(server.serv_guildId);
-  }
-
-  public InfoPanelRefresher(DTO.Server server, boolean needToWait) {
-    this.server = server;
-    this.needToWait = needToWait;
     guild = Zoe.getJda().getGuildById(server.serv_guildId);
   }
 
@@ -109,10 +102,6 @@ public class InfoPanelRefresher implements Runnable {
       List<DTO.Player> playersDTO = PlayerRepository.getPlayers(server.serv_guildId);
 
       InfoPanelRefresherUtil.cleanRegisteredPlayerNoLongerInGuild(guild, playersDTO);
-
-      if(needToWait) {
-        TimeUnit.SECONDS.sleep(5);
-      }
 
       if(infochannel != null) {
         cleanOldInfoChannelMessage();
@@ -173,22 +162,22 @@ public class InfoPanelRefresher implements Runnable {
       }
     }catch (InsufficientPermissionException e) {
       try {
-        logger.debug("Permission {} missing for infochannel in the guild {}, try to autofix the issue... (Low chance to work)",
+        logger.info("Permission {} missing for infochannel in the guild {}, try to autofix the issue... (Low chance to work)",
             e.getPermission().getName(), guild.getName());
 
         PermissionOverride permissionOverride = infochannel
             .putPermissionOverride(guild.retrieveMember(Zoe.getJda().getSelfUser()).complete()).complete();
 
         permissionOverride.getManager().grant(e.getPermission()).complete();
-        logger.debug("Autofix complete !");
+        logger.info("Autofix complete !");
       }catch(Exception e1) {
-        logger.debug("Autofix fail ! Error message : {} ", e1.getMessage());
+        logger.info("Autofix fail ! Error message : {} ", e1.getMessage());
       }
 
     } catch (SQLException e) {
-      logger.error("SQL Exception when refresh the infopanel ! SQL State : {}", e.getSQLState(), e);
+      logger.error("SQL Exception when refresh the infopanel in the guild id {} ! SQL State : {}", guild.getIdLong(), e.getSQLState(), e);
     } catch(Exception e) {
-      logger.error("The thread got a unexpected error (The channel got probably deleted when the refresh append)", e);
+      logger.error("The thread got a unexpected error in the guild id {} (The channel got probably deleted when the refresh append)", guild.getIdLong(), e);
     } finally {
       updateServerStatus();
     }
@@ -231,11 +220,16 @@ public class InfoPanelRefresher implements Runnable {
       Map<DTO.CurrentGameInfo, List<LeagueAccount>> leaguesAccountsPerGameWaitingDeletion) {
     for(TreatPlayerWorker treatPlayerWorker : playersToTreat) {
       TreatedPlayer treatedPlayer = treatPlayerWorker.getTreatedPlayer();
-      treatedPlayers.add(treatedPlayer);
 
-      loadGameToCreate(leaguesAccountsPerGameWaitingCreation, treatedPlayer);
+      if(treatedPlayer != null) {
+        treatedPlayers.add(treatedPlayer);
 
-      loadGameToDelete(leaguesAccountsPerGameWaitingDeletion, treatedPlayer);
+        loadGameToCreate(leaguesAccountsPerGameWaitingCreation, treatedPlayer);
+
+        loadGameToDelete(leaguesAccountsPerGameWaitingDeletion, treatedPlayer);
+      }else {
+        logger.error("Error while loading a player! Player id {} | Guild discord id {}", treatPlayerWorker.getPlayer().getUser().getId(), treatPlayerWorker.getServer().serv_guildId);
+      }
     }
   }
 
@@ -726,7 +720,14 @@ public class InfoPanelRefresher implements Runnable {
       }
     }
 
-    stringMessage.append(String.format(LanguageManager.getText(server.serv_language, "informationPanelRefreshedTime"), ServerChecker.getCurrentDelayBetweenRefresh()));
+    if(ServerChecker.getLastStatus().getRefreshPhase().equals(RefreshPhase.SMART_MOD)) {
+      stringMessage.append(LanguageManager.getText(server.serv_language, "informationPanelSmartModEnable"));
+    } else if (ServerChecker.getLastStatus().getRefreshPhase().equals(RefreshPhase.IN_EVALUATION_PHASE) 
+        || ServerChecker.getLastStatus().getRefreshPhase().equals(RefreshPhase.IN_EVALUATION_PHASE_ON_ROAD) ) {
+      stringMessage.append(LanguageManager.getText(server.serv_language, "informationPanelEvaluationMod"));
+    }else {
+      stringMessage.append(String.format(LanguageManager.getText(server.serv_language, "informationPanelRefreshedTime"), ServerChecker.getLastStatus().getRefresRatehInMinute().get()));
+    }
 
     return stringMessage.toString();
   }

@@ -181,7 +181,7 @@
     "selfAddingOptionStillDisable": "OK, die Option bleibt deaktiviert.",
     "configCommandMenuText": "Hier sind meine Optionen:",
     "configCommandMenuDescription": "** Konfigurationsoptionen: **",
-    "languageCommandStartMessage": "Tatsächlich spreche ich \"%s\". Alle meine Übersetzungen wurden von der Community gemacht. Wenn Sie einen Fehler bemerken, melden Sie ihn bitte hier (%s). Verfügbare Sprachen:",
+    "languageCommandStartMessage": "Momentan spreche ich \"%s\". Alle meine Übersetzungen wurden von der Community gemacht. Wenn Sie einen Fehler bemerken, melden Sie ihn bitte hier (%s). Verfügbare Sprachen:",
     "languageCommandMenuDescription": "** Sprachauswahl: **",
     "languageCommandSelected": "Okay, ich werde jetzt in %s sprechen. Hallo :D",
     "languageCommandSelectionEnded": "Auswahl der Sprache beendet",
@@ -436,5 +436,6 @@
     "rankChannelFilterOptionAll": "Alle Typen werden angezeigt",
     "rankChannelFilterOptionDesc": "Nachricht im Rang-Kanal nach Spiel filtern (LoL und TFT)",
     "rankChannelChangeWonDivisionWithoutGameType": "%s hat %s erreicht",
-    "rankChannelChangeWonDivision": "%s hat %s (%s) erreicht"
+    "rankChannelChangeWonDivision": "%s hat %s (%s) erreicht",
+    "informationPanelSmartModEnable": "*Smart Mod aktiviert: Aktualisiert nur mit Discord-Statuserkennung und Aktualisierungsbefehl.*"
 }

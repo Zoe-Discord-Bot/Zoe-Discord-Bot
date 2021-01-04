@@ -16,10 +16,10 @@ import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 
+import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.repositories.ServerStatusRepository;
 import ch.kalunight.zoe.riotapi.CacheManager;
-import ch.kalunight.zoe.service.CachePlayerService;
 import ch.kalunight.zoe.service.RiotApiUsageChannelRefresh;
 import ch.kalunight.zoe.service.ServerChecker;
 import ch.kalunight.zoe.translation.LanguageManager;
@@ -124,11 +124,9 @@ public class SetupEventListener extends ListenerAdapter {
     Zoe.getJda().getPresence().setStatus(OnlineStatus.ONLINE);
     Zoe.getJda().getPresence().setActivity(Activity.playing("type \">help\""));
 
-    setZoeIsBooted(true);
+    PlayerRepository.getLoadedGuild().clear();
     
-    logger.info("Cache all registered players ...");
-    ServerThreadsManager.getServerExecutor().execute(new CachePlayerService());
-    logger.info("Cache all registered players !");
+    setZoeIsBooted(true);
     
     logger.info("Booting finished !");
   }

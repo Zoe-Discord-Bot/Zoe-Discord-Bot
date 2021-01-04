@@ -61,13 +61,13 @@ public class DeletePlayerCommand extends ZoeCommand {
       if(player == null) {
         event.reply(String.format(LanguageManager.getText(server.serv_language, "deletePlayerUserNotRegistered"), user.getName()));
       } else {
-        PlayerRepository.deletePlayer(player, server.serv_guildId);
         if(config.getZoeRoleOption().getRole() != null) {
-          Member member = event.getGuild().getMember(user);
+          Member member = event.getGuild().retrieveMemberById(user.getId()).complete();
           if(member != null) {
             event.getGuild().removeRoleFromMember(member, config.getZoeRoleOption().getRole()).queue();
           }
         }
+        PlayerRepository.deletePlayer(player, server.serv_guildId);
         event.reply(String.format(LanguageManager.getText(server.serv_language, "deletePlayerDoneMessage"),
             player.getUser().getName()));
       }

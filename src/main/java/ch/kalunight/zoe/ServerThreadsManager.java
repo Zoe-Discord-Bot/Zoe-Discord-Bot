@@ -41,6 +41,9 @@ public class ServerThreadsManager {
   private static final ThreadPoolExecutor DATA_ANALYSIS_THREAD =
       new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
   
+  private static final ThreadPoolExecutor MONITORING_DATA_EXECUTOR =
+      new ThreadPoolExecutor(1, 1, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
+  
   private static final ThreadPoolExecutor SERVER_EXECUTOR =
       new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
 
@@ -86,7 +89,8 @@ public class ServerThreadsManager {
     RESPONSE_WAITER.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Response-Waiter-Thread %d").build());
     LEADERBOARD_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Leaderboard-Refresher-Thread %d").build());
     COMMANDS_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Command-Executor-Thread %d").build());
-
+    MONITORING_DATA_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Data-Monitoring-Thread %d").build());
+    
     for(Platform platform : Platform.values()) {
       ThreadPoolExecutor executor = new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
       String nameOfThread = String.format("Zoe Infochannel-Helper-%s-Worker", platform.getName().toUpperCase());
@@ -168,6 +172,17 @@ public class ServerThreadsManager {
     
     logger.info("Shutdown of Data Analysis Thread has been completed !");
     channel.sendMessage("Shutdown of Data Analysis Thread has been completed !").complete();
+
+    logger.info("Start to shutdown Data Monitoring Executor, this can take 1 minutes max...");
+    channel.sendMessage("Start to shutdown Data Monitoring Executor, this can take 1 minutes max...").complete();
+    MONITORING_DATA_EXECUTOR.shutdown();
+
+    MONITORING_DATA_EXECUTOR.awaitTermination(1, TimeUnit.MINUTES);
+    if(!MONITORING_DATA_EXECUTOR.isTerminated()) {
+      MONITORING_DATA_EXECUTOR.shutdownNow();
+    }
+    logger.info("Shutdown of Data Monitoring Executor has been completed !");
+    channel.sendMessage("Shutdown of Data Monitoring Executor has been completed !").complete();
     
     logger.info("Start to shutdown Response Waiter, this can take 1 minutes max...");
     channel.sendMessage("Start to shutdown Response Waiter, this can take 1 minutes max...").complete();
@@ -365,6 +380,14 @@ public class ServerThreadsManager {
     return COMMANDS_EXECUTOR;
   }
 
+  public static ThreadPoolExecutor getMonitoringDataExecutor() {
+    return MONITORING_DATA_EXECUTOR;
+  }
+
+  public static Timer getDiscordDetectionDelayedTask() {
+    return DISCORD_DETECTION_DELAYED_TASK;
+  }
+
   public static boolean isRebootAsked() {
     return rebootAsked;
   }
@@ -372,9 +395,6 @@ public class ServerThreadsManager {
   public static void setRebootAsked(boolean rebootAsked) {
     ServerThreadsManager.rebootAsked = rebootAsked;
   }
-  
-  public static Timer getDiscordDetectionDelayedTask() {
-    return DISCORD_DETECTION_DELAYED_TASK;
-  }
+ 
 
 }

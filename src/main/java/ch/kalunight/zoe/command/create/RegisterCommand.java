@@ -120,7 +120,7 @@ public class RegisterCommand extends ZoeCommand {
       CreatePlayerCommand.updateLastRank(leagueAccount);
       
       if(config.getZoeRoleOption().getRole() != null) {
-        Member member = event.getGuild().getMember(user);
+        Member member = event.getGuild().retrieveMember(user).complete();
         if(member != null) {
           event.getGuild().addRoleToMember(member, config.getZoeRoleOption().getRole()).queue();
         }

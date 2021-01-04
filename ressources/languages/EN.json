@@ -437,7 +437,6 @@
     "leaderboardObjectiveWinrateSpecificQueue": "Winrate for a specific queue",
     "leaderboardObjectiveWinrateSpecificChamp": "Winrate for a specific champ",
     "perfectKDA": "Perfect KDA!",
-   	"informationPanelSmartModEnable": "*Smart mod enabled : Updates with Discord status detection and refresh command only.*",
 	"clashChannelDeletionBecauseOfLeagueAccountDeletion" : "The account linked to this channel has been deleted. I will no longer refresh this clash channel from now.",
 	"clashChannelTitle" : "Clash Channel for the account %s (%s)",
 	"clashChannelLeagueAccountNotInGame" : "The selected League Account is not in a Clash Team.",
@@ -460,5 +459,7 @@
 	"createClashChannelTournamentBadTimeZoneSelection": "Please select a time zone with a valid number or directly with the name (copy and past).",
 	"createClashChannelTournamentTimeZoneSelected": "Perfect! The clash channel has been correctly created.",
 	"clashChannelLoadingMessage": "The Clash Channel is loading...",
-	"impossibleToCreateClashChannelMissingPerms": "Impossible to create the Clash Channel ! I don't have the permission to do that."
+	"impossibleToCreateClashChannelMissingPerms": "Impossible to create the Clash Channel ! I don't have the permission to do that.",
+	"informationPanelSmartModEnable": "*Smart mod enabled : Updates with Discord status detection and refresh command only.*",
+	"informationPanelEvaluationMod": "*Evaluation Phase: Evaluates current performance.*"
 }

@@ -1,9 +1,11 @@
 package ch.kalunight.zoe.repositories;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 import com.google.gson.Gson;
@@ -28,7 +30,7 @@ public class SummonerCacheRepository {
       "AND summoner_cache.sumcache_server = '%s'";
   
   private static final String INSERT_SUMMONER_CACHE = "INSERT INTO summoner_cache "
-      + "(sumCache_summonerId, sumCache_server, sumCache_data, sumcache_lastrefresh) VALUES ('%s', '%s', '%s', '%s')";
+      + "(sumCache_summonerId, sumCache_server, sumCache_data, sumcache_lastrefresh) VALUES (?, ?, to_json(?::json), ?)";
   
   private static final String UPDATE_SUMMONER_CACHE_WITH_ID = 
       "UPDATE summoner_cache SET sumcache_data = '%s', sumcache_lastrefresh = '%s' WHERE sumcache_id = %d";
@@ -72,10 +74,14 @@ public class SummonerCacheRepository {
   
   public static void createSummonerCache(String summonerId, Platform server, SavedSummoner summonerToCache) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement();) {
+        PreparedStatement preparedQuery = conn.prepareStatement(INSERT_SUMMONER_CACHE);) {
       
-      String finalQuery = String.format(INSERT_SUMMONER_CACHE, summonerId, server.getName(), gson.toJson(summonerToCache), DTO.DB_TIME_PATTERN.format(LocalDateTime.now()));
-      query.execute(finalQuery);
+      preparedQuery.setString(1, summonerId);
+      preparedQuery.setString(2, server.getName());
+      preparedQuery.setString(3, gson.toJson(summonerToCache));
+      preparedQuery.setTimestamp(4, Timestamp.valueOf(DTO.DB_TIME_PATTERN.format(LocalDateTime.now())));
+      
+      preparedQuery.executeUpdate();
     }
   }
   

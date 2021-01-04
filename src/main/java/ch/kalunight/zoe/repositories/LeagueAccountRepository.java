@@ -1,6 +1,7 @@
 package ch.kalunight.zoe.repositories;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -17,7 +18,7 @@ public class LeagueAccountRepository {
   private static final String INSERT_LEAGUE_ACCOUNT = "INSERT INTO league_account " +
       "(leagueaccount_fk_player, leagueaccount_name, " +
       "leagueaccount_summonerid, leagueaccount_accountid, leagueaccount_puuid, leagueaccount_server, leagueAccount_tftSummonerId, leagueAccount_tftAccountId, leagueAccount_tftPuuid) " +
-      "VALUES (%d, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')";
+      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
   private static final String SELECT_LEAGUES_ACCOUNTS_WITH_GUILDID_AND_PLAYER_DISCORD_ID =
       "SELECT " + 
@@ -289,11 +290,19 @@ public class LeagueAccountRepository {
 
   public static void createLeagueAccount(long playerId, Summoner summoner, TFTSummoner tftSummoner, String server) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement();) {
+        PreparedStatement createQuery = conn.prepareStatement(INSERT_LEAGUE_ACCOUNT)) {
 
-      String finalQuery = String.format(INSERT_LEAGUE_ACCOUNT, playerId, summoner.getName(), summoner.getId(),
-          summoner.getAccountId(), summoner.getPuuid(), server, tftSummoner.getId(), tftSummoner.getAccountId(), tftSummoner.getPuuid());
-      query.execute(finalQuery);
+      createQuery.setLong(1, playerId);
+      createQuery.setString(2, summoner.getName());
+      createQuery.setString(3, summoner.getId());
+      createQuery.setString(4, summoner.getAccountId());
+      createQuery.setString(5, summoner.getPuuid());
+      createQuery.setString(6, server);
+      createQuery.setString(7, tftSummoner.getId());
+      createQuery.setString(8, tftSummoner.getAccountId());
+      createQuery.setString(9, tftSummoner.getPuuid());
+      
+      createQuery.executeUpdate();
     }
   }
 

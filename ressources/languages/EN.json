@@ -437,5 +437,6 @@
     "leaderboardObjectiveWinrateSpecificQueue": "Winrate for a specific queue",
     "leaderboardObjectiveWinrateSpecificChamp": "Winrate for a specific champ",
     "perfectKDA": "Perfect KDA!",
-	"informationPanelSmartModEnable": "*Smart mod enabled : Updates with Discord status detection and refresh command only.*"
+	"informationPanelSmartModEnable": "*Smart mod enabled : Updates with Discord status detection and refresh command only.*",
+	"informationPanelEvaluationMod": "*Evaluation Phase: Evaluates current performance.*"
 }

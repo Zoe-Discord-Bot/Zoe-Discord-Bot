@@ -1,6 +1,7 @@
 package ch.kalunight.zoe.service.clashchannel;
 
 import java.sql.SQLException;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,10 +18,14 @@ import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.ClashChannel;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Server;
+import ch.kalunight.zoe.model.dto.DTO.SummonerCache;
+import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.repositories.ClashChannelRepository;
 import ch.kalunight.zoe.repositories.CurrentGameInfoRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
+import ch.kalunight.zoe.repositories.SummonerCacheRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
+import ch.kalunight.zoe.util.ClashUtil;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -46,7 +51,7 @@ public class TreatClashChannel implements Runnable {
   private Guild guild;
 
   private TextChannel clashChannel;
-  
+
   private boolean forceRefreshCache;
 
   public TreatClashChannel(Server server, ClashChannel clashChannel, boolean forceRefreshCache) {
@@ -81,12 +86,14 @@ public class TreatClashChannel implements Runnable {
       DTO.LeagueAccount leagueAccount = LeagueAccountRepository.getLeagueAccountWithSummonerId(server.serv_guildId, clashMessageManager.getSelectedSummonerId(),
           clashMessageManager.getSelectedPlatform());
 
+      SavedSummoner summonerCache = Zoe.getRiotApi().getSummoner(clashMessageManager.getSelectedPlatform(), clashMessageManager.getSelectedSummonerId(), forceRefreshCache);
+
       if(leagueAccount == null) {
         clashChannel.sendMessage(LanguageManager.getText(server.serv_language, "clashChannelDeletionBecauseOfLeagueAccountDeletion")).queue();
         ClashChannelRepository.deleteClashChannel(clashChannelDB.clashChannel_id);
         return;
       }
-      
+
       List<ClashTeamMember> clashPlayerRegistrations = Zoe.getRiotApi().getClashPlayerBySummonerIdWithRateLimit(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
 
       ClashTeamRegistration firstClashTeam = getFirstRegistration(leagueAccount.leagueAccount_server, clashPlayerRegistrations);
@@ -99,72 +106,121 @@ public class TreatClashChannel implements Runnable {
       case WAIT_FOR_GAME_START:
         break;
       case WAIT_FOR_TEAM_REGISTRATION:
-        refreshWaitForTeamRegistration(clashMessageManager, leagueAccount);
+        refreshWaitForTeamRegistration(clashMessageManager, leagueAccount, summonerCache);
         break;
       }
 
     }catch(Exception e) {
-      logger.error("Error while loading the clash channel");
+      logger.error("Error while loading the clash channel", e);
     }
   }
 
-  private void refreshWaitForTeamRegistration(ClashChannelData clashMessageManager, LeagueAccount leagueAccount) {
+  private void refreshWaitForTeamRegistration(ClashChannelData clashMessageManager, LeagueAccount leagueAccount, SavedSummoner summonerCache) {
 
     cleanTeamAndGameMessages(clashMessageManager);
 
     StringBuilder messageBuilder = new StringBuilder();
-    
-    messageBuilder.append("**" + String.format(LanguageManager.getText(server.serv_language, "clashChannelTitle"), leagueAccount.leagueAccount_name,
+
+    messageBuilder.append("**" + String.format(LanguageManager.getText(server.serv_language, "clashChannelTitle"), summonerCache.getName(),
         leagueAccount.leagueAccount_server.getName().toUpperCase()) + "**\n\n");
-    
+
     messageBuilder.append(LanguageManager.getText(server.serv_language, "clashChannelLeagueAccountNotInGame") + "\n\n");
-    
+
     List<ClashTournament> nextTournaments = null;
     try {
       nextTournaments = Zoe.getRiotApi().getClashTournamentsWithRateLimit(leagueAccount.leagueAccount_server, forceRefreshCache);
-      
+
       if(nextTournaments == null || nextTournaments.isEmpty()) {
         messageBuilder.append(LanguageManager.getText(server.serv_language, "clashChannelClashTournamentNotAvailable") + "\n\n");
       }else {
         messageBuilder.append(LanguageManager.getText(server.serv_language, "clashChannelClashTournamentUpcoming") + "\n");
-        
+
         String tournamentBasicName = LanguageManager.getText(server.serv_language, "clashChannelClashTournamentBasicName");
-        
+
         for(ClashTournament clashTournament : nextTournaments) {
           List<ClashTournamentPhase> phases = clashTournament.getSchedule();
-          
-         
-          
-          messageBuilder.append(String.format(LanguageManager.getText(server.serv_language, "clashChannelClashTournamentUpcomingInfo"), tournamentBasicName)); //Suite implementation timeZone
+
+          if(phases.size() == 1) {
+
+            ClashTournamentPhase phase = phases.get(0);
+
+            String dayNumber = ClashUtil.parseDayId(server.serv_language, clashTournament.getNameKeySecondary());
+
+            String tournamentName = LanguageManager.getText(server.serv_language, clashTournament.getNameKey());
+
+            if(tournamentName.startsWith("Translation error")) {
+              tournamentName = tournamentBasicName + " " + dayNumber;
+            }else {
+              tournamentName = tournamentName + " " + dayNumber;
+            }
+
+            messageBuilder.append(String.format(LanguageManager.getText(server.serv_language, "clashChannelClashTournamentUpcomingInfo"), tournamentName, 
+                phase.getStartTime().withZoneSameInstant(ZoneId.of(clashChannelDB.clashChannel_timezone.getID())), clashChannelDB.clashChannel_timezone.getDisplayName())); //Suite implementation timeZone
+          }
         }
       }
-      
+
     } catch (SQLException e) {
-      logger.warn("SQL Error !", e);
-      
+      logger.warn("SQL Error in refreshWaitForTeamRegistration !", e);
+
       messageBuilder.append(LanguageManager.getText(server.serv_language, "clashChannelClashTournamentError") + "\n\n");
     }
-    
+
     messageBuilder.append("**" + LanguageManager.getText(server.serv_language, "clashChannelBottomNotInClashTeamMesssage") + "**");
-    
+
     editOrCreateTheseMessages(clashMessageManager.getInfoMessagesId(), messageBuilder.toString());
   }
 
   private void editOrCreateTheseMessages(List<Long> infoMessagesId, String messageToSend) {
-    
+
     List<Message> messageToEditOrDelete = new ArrayList<>();
-    
+
     for(Long messageId : infoMessagesId) {
       try {
         messageToEditOrDelete.add(clashChannel.retrieveMessageById(messageId).complete());
       }catch(ErrorResponseException e) {
         if(!e.getErrorResponse().equals(ErrorResponse.UNKNOWN_MESSAGE)) {
+          logger.error("Unexpected error when getting a message", e);
           throw e;
         }
       }
     }
-    
-    CommandEvent.splitMessage(messageToSend); // Implement the management of the message
+
+    List<String> messagesToSendCutted = CommandEvent.splitMessage(messageToSend); 
+
+    if(messageToEditOrDelete.size() > messagesToSendCutted.size()) {
+      int messagesToTreat = messagesToSendCutted.size();
+      int messageToGet = 0;
+
+      for(Message messageToTreat : messageToEditOrDelete) {
+        if(messagesToTreat != 0) {
+          messageToTreat.editMessage(messagesToSendCutted.get(messageToGet)).queue();
+          messageToGet++;
+          messagesToTreat++;
+        }else {
+          messageToTreat.delete().queue();
+        }
+      }
+    }else if (messageToEditOrDelete.size() == messagesToSendCutted.size()) {
+      int messageToGet = 0;
+      for(Message messageToTreat : messageToEditOrDelete) {
+        messageToTreat.editMessage(messagesToSendCutted.get(messageToGet)).queue();
+        messageToGet++;
+      }
+    }else {
+      int messagesAlreadyCreated = messageToEditOrDelete.size();
+      int messagesAlreadyTreated = 0;
+
+      for(String messageToEditOrCreate : messagesToSendCutted) {
+        if(messagesAlreadyTreated < messagesAlreadyCreated) {
+          messageToEditOrDelete.get(messagesAlreadyTreated).editMessage(messageToEditOrCreate).queue();
+          messagesAlreadyTreated++;
+        }else {
+          clashChannel.sendMessage(messageToEditOrCreate).queue();
+        }
+      }
+    }
+    // Implement the management of the message (maybe with time order management ?)
   }
 
   private void cleanClashChannel(ClashChannelData clashMessageManager) {
@@ -226,6 +282,8 @@ public class TreatClashChannel implements Runnable {
     }
 
     clashMessageManager.setGameCardId(null);
+
+
 
   }
 

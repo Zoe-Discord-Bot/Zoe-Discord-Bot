@@ -65,6 +65,9 @@ public class ServerThreadsManager {
   private static final ThreadPoolExecutor LEADERBOARD_EXECUTOR =
       new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
   
+  private static final ThreadPoolExecutor CLASH_CHANNEL_EXECUTOR =
+      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
+  
   private static final ThreadPoolExecutor COMMANDS_EXECUTOR =
       new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
 
@@ -88,6 +91,7 @@ public class ServerThreadsManager {
     RANKED_MESSAGE_GENERATOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Ranked-Message-Generator-Thread %d").build());
     RESPONSE_WAITER.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Response-Waiter-Thread %d").build());
     LEADERBOARD_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Leaderboard-Refresher-Thread %d").build());
+    CLASH_CHANNEL_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Clash-Channel-Executor-Thread %d").build());
     COMMANDS_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Command-Executor-Thread %d").build());
     MONITORING_DATA_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Data-Monitoring-Thread %d").build());
     
@@ -386,6 +390,10 @@ public class ServerThreadsManager {
 
   public static Timer getDiscordDetectionDelayedTask() {
     return DISCORD_DETECTION_DELAYED_TASK;
+  }
+
+  public static ThreadPoolExecutor getClashChannelExecutor() {
+    return CLASH_CHANNEL_EXECUTOR;
   }
 
   public static boolean isRebootAsked() {

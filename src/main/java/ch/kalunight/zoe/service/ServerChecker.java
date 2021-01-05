@@ -13,13 +13,16 @@ import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.RefreshStatus;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.DTO.ClashChannel;
 import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.leaderboard.dataholder.Objective;
+import ch.kalunight.zoe.repositories.ClashChannelRepository;
 import ch.kalunight.zoe.repositories.LeaderboardRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.repositories.ServerStatusRepository;
+import ch.kalunight.zoe.service.clashchannel.TreatClashChannel;
 import ch.kalunight.zoe.service.infochannel.InfoPanelRefresher;
 import ch.kalunight.zoe.service.leaderboard.LeaderboardBaseService;
 import net.dv8tion.jda.api.OnlineStatus;
@@ -115,6 +118,13 @@ public class ServerChecker extends TimerTask {
             }else {
               logger.error("Impossible to get the service correspondig to the objective id {} !", leaderboard.lead_type);
             }
+          }
+          
+          List<ClashChannel> clashChannels = ClashChannelRepository.getClashChannels(serverAskedTreatment.serv_guildId);
+          
+          for(ClashChannel clashChannel : clashChannels) {
+            
+            ServerThreadsManager.getClashChannelExecutor().execute(new TreatClashChannel(serverAskedTreatment, clashChannel, true));
           }
         }
       }

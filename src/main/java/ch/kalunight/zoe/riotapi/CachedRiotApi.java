@@ -532,12 +532,9 @@ public class CachedRiotApi {
     return gameInfo;
   }
 
-  public List<ClashTournament> getClashTournamentsWithRateLimit(Platform platform, boolean forceRefreshCache) throws SQLException {
+  public List<ClashTournament> getClashTournamentsWithRateLimit(Platform platform) throws SQLException {
 
-    ClashTournamentCache clashTournamentCache = null;
-    if(!forceRefreshCache) {
-      clashTournamentCache = ClashTournamentRepository.getClashTournamentCache(platform);
-    }
+    ClashTournamentCache clashTournamentCache = ClashTournamentRepository.getClashTournamentCache(platform);
 
     if(clashTournamentCache != null && !clashTournamentCache.clashTourCache_lastRefresh.isBefore(LocalDateTime.now().minusHours(CacheRefreshTime.CLASH_TOURNAMENT_REFRESH_TIME_IN_HOURS))) {
       return clashTournamentCache.clashTourCache_data;
@@ -598,7 +595,7 @@ public class CachedRiotApi {
 
   public ClashTournament getClashTournamentById(Platform platform, int tournamentId, boolean forceRefreshCache) throws SQLException {
 
-    List<ClashTournament> clashTournaments = getClashTournamentsWithRateLimit(platform, forceRefreshCache);
+    List<ClashTournament> clashTournaments = getClashTournamentsWithRateLimit(platform);
 
     for(ClashTournament clashTournament : clashTournaments) {
       if(clashTournament.getId() == tournamentId) {

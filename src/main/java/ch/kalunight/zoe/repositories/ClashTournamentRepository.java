@@ -21,7 +21,6 @@ public class ClashTournamentRepository {
   private static final Gson gson = new GsonBuilder().create();
   
   private static final String SELECT_CLASH_TOURNAMENT_WITH_REGION = "SELECT " + 
-      "SELECT " + 
       "clash_tournament_cache.clashtourcache_id, " + 
       "clash_tournament_cache.clashtourcache_server, " + 
       "clash_tournament_cache.clashtourcache_data, " +
@@ -70,7 +69,7 @@ public class ClashTournamentRepository {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
       
-      String finalQuery = String.format(INSERT_CLASH_TOURNAMENT_CACHE, platform.getName(), clashTourCacheData,
+      String finalQuery = String.format(INSERT_CLASH_TOURNAMENT_CACHE, platform.getName(), gson.toJson(clashTourCacheData),
           DTO.DB_TIME_PATTERN.format(LocalDateTime.now()));
       
       query.execute(finalQuery);

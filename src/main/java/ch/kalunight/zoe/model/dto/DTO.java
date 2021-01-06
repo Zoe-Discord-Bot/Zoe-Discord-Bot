@@ -452,7 +452,7 @@ public class DTO {
       clashTourCache_id = baseData.getLong("clashTourCache_id");
       clashTourCache_server = Platform.getPlatformByName(baseData.getString("clashTourCache_server"));
       clashTourCache_data = gson.fromJson(baseData.getString("clashTourCache_data"), new TypeToken<List<ClashTournament>>(){}.getType());
-      clashTourCache_lastRefresh = LocalDateTime.parse(baseData.getString("championMasCache_lastRefresh"), DB_TIME_PATTERN);
+      clashTourCache_lastRefresh = LocalDateTime.parse(baseData.getString("clashTourCache_lastRefresh"), DB_TIME_PATTERN);
     }
   }
   

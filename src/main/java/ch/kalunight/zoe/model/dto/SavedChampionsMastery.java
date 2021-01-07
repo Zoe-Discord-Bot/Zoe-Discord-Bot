@@ -7,11 +7,11 @@ import javax.annotation.Nullable;
 
 import net.rithms.riot.api.endpoints.champion_mastery.dto.ChampionMastery;
 
-public class SavedChampionMastery {
+public class SavedChampionsMastery {
 
   private List<SavedSimpleMastery> championMasteries;
 
-  public SavedChampionMastery(List<ChampionMastery> championMasteries) {
+  public SavedChampionsMastery(List<ChampionMastery> championMasteries) {
     List<SavedSimpleMastery> savedSimpleMasteries = new ArrayList<>();
 
     if(championMasteries != null) {

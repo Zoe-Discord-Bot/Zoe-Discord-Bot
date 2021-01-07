@@ -11,7 +11,7 @@ public class LanguageUtil {
   private LanguageUtil() {
     //Hide default public constructor
   }
-  
+
   public static Function<Integer, String> getUpdateMessageAfterChangeSelectAction(String language, List<String> choices) {
     return new Function<Integer, String>() {
       @Override
@@ -28,5 +28,5 @@ public class LanguageUtil {
         message.clearReactions().queue();
       }};
   }
-  
+
 }

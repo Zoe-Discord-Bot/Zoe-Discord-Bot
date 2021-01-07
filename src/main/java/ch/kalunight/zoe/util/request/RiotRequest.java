@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.KDAReceiver;
+import ch.kalunight.zoe.model.MatchReceiver;
 import ch.kalunight.zoe.model.WinRateReceiver;
 import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
 import ch.kalunight.zoe.model.dto.SavedSummoner;
@@ -24,6 +25,7 @@ import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.model.player_data.Rank;
 import ch.kalunight.zoe.model.player_data.Tier;
 import ch.kalunight.zoe.model.static_data.Mastery;
+import ch.kalunight.zoe.service.match.MatchCollectorReciverWorker;
 import ch.kalunight.zoe.service.match.MatchKDAReceiverWorker;
 import ch.kalunight.zoe.service.match.MatchReceiverWorker;
 import ch.kalunight.zoe.service.match.MatchWinrateReceiverWorker;
@@ -305,6 +307,40 @@ public class RiotRequest {
     return kdaReceiver;
   }
   
+  public static MatchReceiver getAllMatchsByQueue(String summonerId, Platform region, boolean forceRefreshCache, Set<Integer> queuesId) {
+    SavedSummoner summoner;
+    try {
+      summoner = Zoe.getRiotApi().getSummonerWithRateLimit(region, summonerId, forceRefreshCache);
+    } catch(RiotApiException e) {
+      logger.warn("Impossible to get the summoner : {}", e.getMessage());
+      return null;
+    }
+
+    List<MatchReference> referencesMatchList;
+    try {
+      referencesMatchList = getMatchHistoryOfLastMonth(region, summoner, queuesId);
+    } catch(RiotApiException e) {
+      logger.info("Can't acces to history : {}", e.getMessage());
+      return null;
+    }
+
+    if(referencesMatchList.isEmpty()) {
+      return null;
+    }
+
+    AtomicBoolean gameLoadingConflict = new AtomicBoolean(false);
+    MatchReceiver matchReceiver = new MatchReceiver();
+    
+    for(MatchReference matchReference : referencesMatchList) {
+      MatchCollectorReciverWorker matchWorker = new MatchCollectorReciverWorker(matchReceiver, gameLoadingConflict, matchReference, region, summoner);
+      ServerThreadsManager.getMatchsWorker(region).execute(matchWorker);
+    }
+
+    MatchReceiverWorker.awaitAll(referencesMatchList);
+    
+    return matchReceiver;
+  }
+  
   private static List<MatchReference> getMatchHistoryOfLastMonth(Platform region, SavedSummoner summoner)
       throws RiotApiException {
     final List<MatchReference> referencesMatchList = new ArrayList<>();
@@ -324,6 +360,55 @@ public class RiotRequest {
 
       try {
         matchList = Zoe.getRiotApi().getMatchListByAccountIdWithRateLimit(region, summoner.getAccountId(), championToFilter, null, null,
+            -1, -1, startIndex, -1);
+        if(matchList != null && matchList.getMatches() != null) {
+          for(MatchReference matchToCheck : matchList.getMatches()) {
+            final Timestamp matchTimeStamp = new Timestamp(matchToCheck.getTimestamp());
+            if(matchTimeStamp.after(timeStampToHit)) {
+              referencesMatchList.add(matchToCheck);
+            }else {
+              allMatchReceived = true;
+              break;
+            }
+          }
+          
+          if(matchList.getMatches().size() != 100) {
+            allMatchReceived = true;
+          }
+        }else {
+          allMatchReceived = true;
+        }
+      } catch(RiotApiException e) {
+        logger.debug("Impossible to get matchs history : {}", e.getMessage());
+        if(e.getErrorCode() != RiotApiException.DATA_NOT_FOUND) {
+          throw e;
+        }
+      }
+
+    }while(!allMatchReceived);
+    
+    return referencesMatchList;
+  }
+  
+  private static List<MatchReference> getMatchHistoryOfLastMonth(Platform region, SavedSummoner summoner, Set<Integer> queuesList)
+      throws RiotApiException {
+    final List<MatchReference> referencesMatchList = new ArrayList<>();
+
+    LocalDateTime beginTimeToHit = LocalDateTime.now().minusMonths(1);
+    Timestamp timeStampToHit = Timestamp.valueOf(beginTimeToHit);
+    
+    Set<Integer> championToFilter = new HashSet<>();
+
+    boolean allMatchReceived = false;
+    
+    int startIndex = -100;
+    
+    do {
+      startIndex += 100;
+      MatchList matchList = null;
+
+      try {
+        matchList = Zoe.getRiotApi().getMatchListByAccountIdWithRateLimit(region, summoner.getAccountId(), championToFilter, queuesList, null,
             -1, -1, startIndex, -1);
         if(matchList != null && matchList.getMatches() != null) {
           for(MatchReference matchToCheck : matchList.getMatches()) {

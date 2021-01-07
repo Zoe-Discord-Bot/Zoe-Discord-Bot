@@ -467,4 +467,13 @@
 	"clashChannelClashTournamentMultiplePhaseTitle" : "%s in multiple phases :",
 	"clashChannelClashTournamentPhaseElement": "-%s: %s",
 	"clashChannelClashTournamentRegistered": "%s is registered for \"%s\" of the %s %s",
+	"clashChannelClashTournamentTeamName": "%s - %s | Tier %d",
+	"topAbr": "Top",
+	"jungleAbr": "Jng",
+	"midAbr": "Mid",
+	"adcAbr": "Adc",
+	"supportAbr" : "Sup",
+	"fillAbr" : "Fill",
+	"unselected" : "Unselected",
+	"clashChannelClashTournamentShowTeamMemberByPosition" : "%s : %s"
 }

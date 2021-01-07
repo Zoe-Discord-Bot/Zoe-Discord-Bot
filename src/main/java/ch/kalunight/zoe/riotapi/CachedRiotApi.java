@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.kalunight.zoe.model.dto.DTO;
-import ch.kalunight.zoe.model.dto.SavedChampionMastery;
+import ch.kalunight.zoe.model.dto.SavedChampionsMastery;
 import ch.kalunight.zoe.model.dto.SavedMatch;
 import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
 import ch.kalunight.zoe.model.dto.SavedSummoner;
@@ -707,7 +707,7 @@ public class CachedRiotApi {
     championMasteryRequestCount.incrementAndGet();
     increaseCallCountForGivenRegion(platform);
 
-    SavedChampionMastery championMasteryToCache = new SavedChampionMastery(masteries);
+    SavedChampionsMastery championMasteryToCache = new SavedChampionsMastery(masteries);
 
     SavedSimpleMastery championMasteryToReturn = championMasteryToCache.getChampionMasteryWithChampionId(championId);
 
@@ -873,7 +873,7 @@ public class CachedRiotApi {
         increaseCallCountForGivenRegion(platform);
 
         if(masteries != null) {
-          SavedChampionMastery championMasteryToCache = new SavedChampionMastery(masteries);
+          SavedChampionsMastery championMasteryToCache = new SavedChampionsMastery(masteries);
 
           championMasteryToReturn = championMasteryToCache.getChampionMasteryWithChampionId(championId);
 
@@ -912,8 +912,8 @@ public class CachedRiotApi {
     return championMasteryToReturn;
   }
 
-  public SavedChampionMastery getChampionMasteriesBySummoner(Platform platform, String summonerId, boolean forceRefreshCache) throws RiotApiException {
-    SavedChampionMastery championMasteries = null;
+  public SavedChampionsMastery getChampionMasteriesBySummoner(Platform platform, String summonerId, boolean forceRefreshCache) throws RiotApiException {
+    SavedChampionsMastery championMasteries = null;
     ChampionMasteryCache championMasteryCache = null;
     try {
       championMasteryCache = ChampionMasteryRepository.getChampionMasteryWithSummonerId(summonerId, platform);
@@ -932,7 +932,7 @@ public class CachedRiotApi {
     increaseCallCountForGivenRegion(platform);
 
     if(masteries != null) {
-      championMasteries = new SavedChampionMastery(masteries);
+      championMasteries = new SavedChampionsMastery(masteries);
 
       try {
         if(championMasteryCache == null) {
@@ -948,8 +948,8 @@ public class CachedRiotApi {
     return championMasteries;
   }
 
-  public SavedChampionMastery getChampionMasteriesBySummonerWithRateLimit(Platform platform, String summonerId, boolean forceRefreshCache) throws RiotApiException {
-    SavedChampionMastery masteries = null;
+  public SavedChampionsMastery getChampionMasteriesBySummonerWithRateLimit(Platform platform, String summonerId, boolean forceRefreshCache) throws RiotApiException {
+    SavedChampionsMastery masteries = null;
     boolean needToRetry;
     do {
 
@@ -976,7 +976,7 @@ public class CachedRiotApi {
         increaseCallCountForGivenRegion(platform);
 
         if(masteries != null) {
-          SavedChampionMastery championMasteryToCache = new SavedChampionMastery(baseDataMasteries);
+          SavedChampionsMastery championMasteryToCache = new SavedChampionsMastery(baseDataMasteries);
 
           try {
             if(championMasteryCache == null) {

@@ -33,7 +33,7 @@ import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Server;
-import ch.kalunight.zoe.model.dto.SavedChampionMastery;
+import ch.kalunight.zoe.model.dto.SavedChampionsMastery;
 import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.repositories.ConfigRepository;
@@ -282,7 +282,7 @@ public class StatsProfileCommand extends ZoeCommand {
 
     String url = Integer.toString(random.nextInt(100000));
 
-    SavedChampionMastery championsMasteries;
+    SavedChampionsMastery championsMasteries;
     try {
       championsMasteries = Zoe.getRiotApi().getChampionMasteriesBySummoner(lolAccount.leagueAccount_server,
           lolAccount.leagueAccount_summonerId, true);
@@ -336,7 +336,7 @@ public class StatsProfileCommand extends ZoeCommand {
     }
   }
 
-  private byte[] generateMasteriesChart(DTO.Player player, SavedChampionMastery championsMasteries,
+  private byte[] generateMasteriesChart(DTO.Player player, SavedChampionsMastery championsMasteries,
       DTO.Server server, LeagueAccount leagueAccount) throws IOException, RiotApiException {
     List<SavedSimpleMastery> listHeigherChampion = getBestMasteries(championsMasteries, NUMBER_OF_CHAMPIONS_IN_GRAPH);
     CategoryChartBuilder masteriesGraphBuilder = new CategoryChartBuilder();
@@ -401,7 +401,7 @@ public class StatsProfileCommand extends ZoeCommand {
     return allMasteries / championsMasteries.size();
   }
 
-  public static List<SavedSimpleMastery> getBestMasteries(SavedChampionMastery championsMasteries, int nbrTop) {
+  public static List<SavedSimpleMastery> getBestMasteries(SavedChampionsMastery championsMasteries, int nbrTop) {
     List<SavedSimpleMastery> listHeigherChampion = new ArrayList<>();
 
     for(int i = 0; i < nbrTop; i++) {

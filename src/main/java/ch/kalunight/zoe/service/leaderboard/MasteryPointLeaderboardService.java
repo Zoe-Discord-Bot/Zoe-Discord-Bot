@@ -12,7 +12,7 @@ import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Player;
 import ch.kalunight.zoe.model.dto.DTO.Server;
-import ch.kalunight.zoe.model.dto.SavedChampionMastery;
+import ch.kalunight.zoe.model.dto.SavedChampionsMastery;
 import ch.kalunight.zoe.model.leaderboard.dataholder.PlayerPoints;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
@@ -60,7 +60,7 @@ public class MasteryPointLeaderboardService extends LeaderboardBaseService {
       
       long bestAccountPoints = 0;
       for(DTO.LeagueAccount leagueAccount : leaguesAccounts) {
-        SavedChampionMastery masteries = Zoe.getRiotApi().getChampionMasteriesBySummonerWithRateLimit(leagueAccount.leagueAccount_server,
+        SavedChampionsMastery masteries = Zoe.getRiotApi().getChampionMasteriesBySummonerWithRateLimit(leagueAccount.leagueAccount_server,
             leagueAccount.leagueAccount_summonerId, forceRefreshCache);
         
         long totalAccountPoints = 0;

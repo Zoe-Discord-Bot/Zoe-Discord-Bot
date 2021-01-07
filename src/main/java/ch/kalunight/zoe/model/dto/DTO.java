@@ -430,14 +430,14 @@ public class DTO {
     public long champMasCache_id;
     public String champMasCache_summonerId;
     public Platform champMasCache_server;
-    public SavedChampionMastery champMasCache_data;
+    public SavedChampionsMastery champMasCache_data;
     public LocalDateTime champMasCache_lastRefresh;
     
     public ChampionMasteryCache(ResultSet baseData) throws SQLException {
       champMasCache_id = baseData.getLong("champMasCache_id");
       champMasCache_summonerId = baseData.getString("champMasCache_summonerId");
       champMasCache_server = Platform.getPlatformByName(baseData.getString("champMasCache_server"));
-      champMasCache_data = gson.fromJson(baseData.getString("champMasCache_data"), SavedChampionMastery.class);
+      champMasCache_data = gson.fromJson(baseData.getString("champMasCache_data"), SavedChampionsMastery.class);
       champMasCache_lastRefresh = LocalDateTime.parse(baseData.getString("champMasCache_lastRefresh"), DB_TIME_PATTERN);
     }
   }

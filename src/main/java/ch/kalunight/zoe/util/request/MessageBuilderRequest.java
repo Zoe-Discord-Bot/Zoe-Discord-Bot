@@ -25,7 +25,7 @@ import ch.kalunight.zoe.model.InfocardPlayerData;
 import ch.kalunight.zoe.model.PlayerRankedResult;
 import ch.kalunight.zoe.model.RankedChangeType;
 import ch.kalunight.zoe.model.dto.DTO;
-import ch.kalunight.zoe.model.dto.SavedChampionMastery;
+import ch.kalunight.zoe.model.dto.SavedChampionsMastery;
 import ch.kalunight.zoe.model.dto.SavedMatch;
 import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
@@ -600,7 +600,7 @@ public class MessageBuilderRequest {
   }
 
   public static MessageEmbed createProfileMessage(DTO.Player player, DTO.LeagueAccount leagueAccount,
-      SavedChampionMastery masteries, String language, String url) throws RiotApiException {    
+      SavedChampionsMastery masteries, String language, String url) throws RiotApiException {    
     
     String latestGameTranslated = LanguageManager.getText(language, "statsProfileLatestGames");
 

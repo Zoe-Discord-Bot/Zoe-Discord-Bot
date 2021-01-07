@@ -10,7 +10,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import ch.kalunight.zoe.model.dto.DTO;
-import ch.kalunight.zoe.model.dto.SavedChampionMastery;
+import ch.kalunight.zoe.model.dto.SavedChampionsMastery;
 import net.rithms.riot.constant.Platform;
 
 public class ChampionMasteryRepository {
@@ -54,7 +54,7 @@ public class ChampionMasteryRepository {
     }
   }
 
-  public static void updateChampionMastery(SavedChampionMastery championMastery, long cacheId) throws SQLException {
+  public static void updateChampionMastery(SavedChampionsMastery championMastery, long cacheId) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
 
@@ -64,7 +64,7 @@ public class ChampionMasteryRepository {
     }
   }
 
-  public static void createMasteryCache(String summonerId, Platform server, SavedChampionMastery championMasteryToCache) throws SQLException {
+  public static void createMasteryCache(String summonerId, Platform server, SavedChampionsMastery championMasteryToCache) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
 

@@ -19,40 +19,46 @@ import ch.kalunight.zoe.model.dto.SavedMatch;
 import ch.kalunight.zoe.model.dto.SavedMatchPlayer;
 import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.service.analysis.ChampionRole;
+import ch.kalunight.zoe.util.ClashUtil;
 import ch.kalunight.zoe.util.LoLQueueIdUtil;
 import ch.kalunight.zoe.util.request.RiotRequest;
 import net.rithms.riot.api.RiotApiException;
+import net.rithms.riot.api.endpoints.clash.constant.TeamPosition;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 import net.rithms.riot.constant.Platform;
 
-public class ClashTeamPlayerAnalysisDataCollector implements Runnable {
-  
+public class TeamPlayerAnalysisDataCollector implements Runnable {
+
   private static final Set<Integer> selectedQueuesId = Collections.synchronizedSet(new HashSet<>());
-  
-  private static final Logger logger = LoggerFactory.getLogger(ClashTeamPlayerAnalysisDataCollector.class);
-  
+
+  private static final Logger logger = LoggerFactory.getLogger(TeamPlayerAnalysisDataCollector.class);
+
   protected static final List<String> summonerIdInWork = Collections.synchronizedList(new ArrayList<>());
 
   private String summonerId;
-  
+
   private Platform platform;
+
+  private ChampionRole clashSelectedPosition;
   
+  private ChampionRole finalDeterminedPosition;
+
   private List<TeamPositionRated> determinedPositions;
-  
+
   private List<WinratePerChampion> winratePerChampions;
-  
+
   private SavedChampionsMastery masteryPerChampions;
-  
+
   private Set<LeagueEntry> eloOfThePlayer;
-  
+
   private AtomicInteger nbrTop = new AtomicInteger();
   private AtomicInteger nbrJng = new AtomicInteger();
   private AtomicInteger nbrMid = new AtomicInteger();
   private AtomicInteger nbrAdc = new AtomicInteger();
   private AtomicInteger nbrSup = new AtomicInteger();
-  
+
   private AtomicInteger nbrMatch = new AtomicInteger();
-  
+
   static {
     selectedQueuesId.add(LoLQueueIdUtil.NORMAL_DRAFT_QUEUE_ID);
     selectedQueuesId.add(LoLQueueIdUtil.RANKED_SOLO_QUEUE_ID);
@@ -60,14 +66,15 @@ public class ClashTeamPlayerAnalysisDataCollector implements Runnable {
     selectedQueuesId.add(LoLQueueIdUtil.RANKED_FLEX_QUEUE_ID);
     selectedQueuesId.add(LoLQueueIdUtil.CLASH_GAME_QUEUE_ID);
   }
-  
-  public ClashTeamPlayerAnalysisDataCollector(String summonerId, Platform platform) {
+
+  public TeamPlayerAnalysisDataCollector(String summonerId, Platform platform, TeamPosition position) {
     this.summonerId = summonerId;
     this.platform = platform;
     this.winratePerChampions = new ArrayList<>();
+    clashSelectedPosition = ClashUtil.convertTeamPosition(position);
     summonerIdInWork.add(summonerId);
   }
-  
+
   @Override
   public void run() {
     try {
@@ -80,67 +87,67 @@ public class ClashTeamPlayerAnalysisDataCollector implements Runnable {
       summonerIdInWork.remove(summonerId);
     }
   }
-  
+
   public void loadAllData() throws RiotApiException {
-    
+
     SavedSummoner summoner = Zoe.getRiotApi().getSummonerWithRateLimit(platform, summonerId, false);
-    
+
     MatchReceiver matchReceiver = RiotRequest.getAllMatchsByQueue(summonerId, platform, false, selectedQueuesId);
-    
+
     for(SavedMatch match : matchReceiver.matchs) {
       SavedMatchPlayer playerInMatch = match.getSavedMatchPlayerByAccountId(summoner.getAccountId());
-      
+
       collectRoleData(playerInMatch);
-      
+
       collectWinrateData(playerInMatch, match);
     }
-    
+
     masteryPerChampions = Zoe.getRiotApi().getChampionMasteriesBySummonerWithRateLimit(platform, summonerId, false);
-    
+
     eloOfThePlayer = Zoe.getRiotApi().getLeagueEntriesBySummonerIdWithRateLimit(platform, summonerId);
-    
+
     treatPosition();
   }
 
   private void treatPosition() {
     determinedPositions = new ArrayList<>();
-    
+
     if(nbrTop.get() != 0) {
       determinedPositions.add(new TeamPositionRated(ChampionRole.TOP, nbrTop.get()));
     }
-    
+
     if(nbrJng.get() != 0) {
       determinedPositions.add(new TeamPositionRated(ChampionRole.JUNGLE, nbrJng.get()));
     }
-    
+
     if(nbrMid.get() != 0) {
       determinedPositions.add(new TeamPositionRated(ChampionRole.MID, nbrMid.get()));
     }
-    
+
     if(nbrAdc.get() != 0) {
       determinedPositions.add(new TeamPositionRated(ChampionRole.ADC, nbrAdc.get()));
     }
-    
+
     if(nbrSup.get() != 0) {
       determinedPositions.add(new TeamPositionRated(ChampionRole.SUPPORT, nbrSup.get()));
     }
-    
+
     Collections.sort(determinedPositions);
   }
 
   private void collectWinrateData(SavedMatchPlayer playerInMatch, SavedMatch match) {
     WinratePerChampion winrate = getWinrateByChampion(playerInMatch.getChampionId());
-    
+
     if(winrate == null) {
       winrate = new WinratePerChampion(playerInMatch.getChampionId(), new ArrayList<>());
     }
-    
+
     winrate.getMatchs().add(match);
   }
 
   private void collectRoleData(SavedMatchPlayer playerInMatch) {
     ChampionRole role = ChampionRole.getChampionRoleWithLaneAndRole(playerInMatch.getLane(), playerInMatch.getRole());
-    
+
     if(role != null) {
       switch(role) {
       case ADC:
@@ -159,11 +166,11 @@ public class ClashTeamPlayerAnalysisDataCollector implements Runnable {
         nbrTop.incrementAndGet();
         break;
       }
-      
+
       nbrMatch.incrementAndGet();
     }
   }
-  
+
   private WinratePerChampion getWinrateByChampion(int championId) {
     for(WinratePerChampion checkWinratePerChampion : winratePerChampions) {
       if(checkWinratePerChampion.getChampionId() == championId) {
@@ -174,9 +181,9 @@ public class ClashTeamPlayerAnalysisDataCollector implements Runnable {
   }
 
   public static void awaitAll(List<String> summonersToWait) {
-    
+
     boolean needToWait;
-    
+
     do {
       needToWait = false;
       for(String summonerToWait : summonersToWait) {
@@ -185,7 +192,7 @@ public class ClashTeamPlayerAnalysisDataCollector implements Runnable {
           break;
         }
       }
-      
+
       if(needToWait) {
         try {
           TimeUnit.MILLISECONDS.sleep(100);
@@ -196,7 +203,7 @@ public class ClashTeamPlayerAnalysisDataCollector implements Runnable {
       }
     }while(needToWait);
   }
-  
+
   public String getSummonerId() {
     return summonerId;
   }
@@ -219,6 +226,18 @@ public class ClashTeamPlayerAnalysisDataCollector implements Runnable {
 
   public Set<LeagueEntry> getEloOfThePlayer() {
     return eloOfThePlayer;
+  }
+
+  public ChampionRole getClashSelectedPosition() {
+    return clashSelectedPosition;
+  }
+
+  public ChampionRole getFinalDeterminedPosition() {
+    return finalDeterminedPosition;
+  }
+
+  public void setFinalDeterminedPosition(ChampionRole finalDeterminedPosition) {
+    this.finalDeterminedPosition = finalDeterminedPosition;
   }
   
 }

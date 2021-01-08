@@ -16,7 +16,7 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.ClashStatus;
-import ch.kalunight.zoe.model.clash.ClashTeamPlayerAnalysisDataCollector;
+import ch.kalunight.zoe.model.clash.TeamPlayerAnalysisDataCollector;
 import ch.kalunight.zoe.model.dto.ClashChannelData;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.ClashChannel;
@@ -129,17 +129,20 @@ public class TreatClashChannel implements Runnable {
       SavedSummoner summonerCache) {
     
     List<ClashTeamMember> teamMembers = firstClashTeam.team.getPlayers();
-    List<ClashTeamPlayerAnalysisDataCollector> teamPlayersData = new ArrayList<>();
+    List<TeamPlayerAnalysisDataCollector> teamPlayersData = new ArrayList<>();
     List<String> summonerIdsToWait = new ArrayList<>();
     
     for(ClashTeamMember teamMember : teamMembers) {
-      teamPlayersData.add(new ClashTeamPlayerAnalysisDataCollector(teamMember.getSummonerId(), clashMessageManager.getSelectedPlatform()));
+      teamPlayersData.add(new TeamPlayerAnalysisDataCollector(teamMember.getSummonerId(), clashMessageManager.getSelectedPlatform(), teamMember.getTeamPosition()));
       summonerIdsToWait.add(teamMember.getSummonerId());
     }
     
-    ClashTeamPlayerAnalysisDataCollector.awaitAll(summonerIdsToWait);
+    TeamPlayerAnalysisDataCollector.awaitAll(summonerIdsToWait);
     
     //TODO Treat data (Determine final role in external methods) and create analysis process (external)
+    
+    
+    
   }
 
   private void refreshWaitForFullTeam(ClashChannelData clashMessageManager, ClashTeamRegistration firstClashTeam,

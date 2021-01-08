@@ -200,7 +200,7 @@ public class CachedRiotApi {
         needToRetry = false;
       }catch(RateLimitException e) {
         try {
-          if(e.getRateLimitType() != null && e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10) {
+          if(e.getRateLimitType() == null || (e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10)) {
             return null;
           }
           logger.info("Waiting rate limit ({} sec) to retry in getMatchList", e.getRetryAfter());
@@ -1044,7 +1044,7 @@ public class CachedRiotApi {
         SavedMatchCacheRepository.createMatchCache(gameId, server, match);
       }catch(RateLimitException e) {
         try {
-          if(e.getRateLimitType() != null && e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10) {
+          if(e.getRateLimitType() == null || (e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10)) {
             return null;
           }
           logger.info("Waiting rate limit ({} sec) to retry", e.getRetryAfter());

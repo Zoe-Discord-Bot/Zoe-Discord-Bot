@@ -280,7 +280,7 @@ public class TreatPlayerWorker implements Runnable {
         return false;
       }
 
-      return LastRankUtil.updateLoLLastRank(lastRank, leagueEntries);
+      return LastRankUtil.updateLoLLastRank(lastRank, leagueEntries).contains(currentGameData.getGameQueueConfigId());
     }
     return false;
   }

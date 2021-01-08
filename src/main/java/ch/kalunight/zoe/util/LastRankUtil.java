@@ -60,6 +60,7 @@ public class LastRankUtil {
    */
   public static boolean updateLoLLastRank(LastRank lastRank, Set<LeagueEntry> leagueEntries) throws SQLException {
 
+    boolean changeDone = false;
     for(LeagueEntry checkLeagueEntry : leagueEntries) {
       if(checkLeagueEntry.getQueueType().equals(GameQueueConfigId.SOLOQ.getQueueType())) {
         if(lastRank.lastRank_soloq == null) {
@@ -71,6 +72,7 @@ public class LastRankUtil {
           LastRankRepository.updateLastRankSoloqWithLeagueAccountId(checkLeagueEntry, lastRank, LocalDateTime.now());
           lastRank.lastRank_soloq = checkLeagueEntry;
         }
+        changeDone = true;
       }else if(checkLeagueEntry.getQueueType().equals(GameQueueConfigId.FLEX.getQueueType())) {
         if(lastRank.lastRank_flex == null) {
           LastRankRepository.updateLastRankFlexWithLeagueAccountId(checkLeagueEntry, lastRank, LocalDateTime.now());
@@ -81,9 +83,10 @@ public class LastRankUtil {
           LastRankRepository.updateLastRankFlexWithLeagueAccountId(checkLeagueEntry, lastRank, LocalDateTime.now());
           lastRank.lastRank_flex = checkLeagueEntry;
         }
+        changeDone = true;
       }
     }
-    return true;
+    return changeDone;
   }
   
 }

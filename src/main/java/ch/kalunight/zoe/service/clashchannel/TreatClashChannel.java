@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.jagrosh.jdautilities.command.CommandEvent;
 
+import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.ClashStatus;
 import ch.kalunight.zoe.model.clash.TeamPlayerAnalysisDataCollector;
@@ -130,14 +131,14 @@ public class TreatClashChannel implements Runnable {
     
     List<ClashTeamMember> teamMembers = firstClashTeam.team.getPlayers();
     List<TeamPlayerAnalysisDataCollector> teamPlayersData = new ArrayList<>();
-    List<String> summonerIdsToWait = new ArrayList<>();
     
     for(ClashTeamMember teamMember : teamMembers) {
-      teamPlayersData.add(new TeamPlayerAnalysisDataCollector(teamMember.getSummonerId(), clashMessageManager.getSelectedPlatform(), teamMember.getTeamPosition()));
-      summonerIdsToWait.add(teamMember.getSummonerId());
+      TeamPlayerAnalysisDataCollector player = new TeamPlayerAnalysisDataCollector(teamMember.getSummonerId(), clashMessageManager.getSelectedPlatform(), teamMember.getTeamPosition());
+      teamPlayersData.add(player);
+      ServerThreadsManager.getDataAnalysisThread().execute(player);
     }
     
-    TeamPlayerAnalysisDataCollector.awaitAll(summonerIdsToWait);
+    TeamPlayerAnalysisDataCollector.awaitAll(teamPlayersData);
     
     //TODO Treat data (Determine final role in external methods) and create analysis process (external)
     

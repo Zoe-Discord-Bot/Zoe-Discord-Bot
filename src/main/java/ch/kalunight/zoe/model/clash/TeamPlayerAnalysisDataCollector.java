@@ -27,15 +27,17 @@ import net.rithms.riot.api.endpoints.clash.constant.TeamPosition;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 import net.rithms.riot.constant.Platform;
 
-public class TeamPlayerAnalysisDataCollector implements Runnable {
+public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<TeamPlayerAnalysisDataCollector>{
 
   private static final Set<Integer> selectedQueuesId = Collections.synchronizedSet(new HashSet<>());
 
   private static final Logger logger = LoggerFactory.getLogger(TeamPlayerAnalysisDataCollector.class);
 
-  protected static final List<String> summonerIdInWork = Collections.synchronizedList(new ArrayList<>());
+  protected static final List<TeamPlayerAnalysisDataCollector> summonerIdInWork = Collections.synchronizedList(new ArrayList<>());
 
   private String summonerId;
+  
+  private SavedSummoner summoner;
 
   private Platform platform;
 
@@ -71,8 +73,10 @@ public class TeamPlayerAnalysisDataCollector implements Runnable {
     this.summonerId = summonerId;
     this.platform = platform;
     this.winratePerChampions = new ArrayList<>();
-    clashSelectedPosition = ClashUtil.convertTeamPosition(position);
-    summonerIdInWork.add(summonerId);
+    if(position != null) {
+      clashSelectedPosition = ClashUtil.convertTeamPosition(position);
+    }
+    summonerIdInWork.add(this);
   }
 
   @Override
@@ -84,13 +88,13 @@ public class TeamPlayerAnalysisDataCollector implements Runnable {
     } catch (Exception e) {
       logger.error("Unexpected exception in the collection of clash member data", e);
     }finally {
-      summonerIdInWork.remove(summonerId);
+      summonerIdInWork.remove(this);
     }
   }
 
   public void loadAllData() throws RiotApiException {
 
-    SavedSummoner summoner = Zoe.getRiotApi().getSummonerWithRateLimit(platform, summonerId, false);
+    summoner = Zoe.getRiotApi().getSummonerWithRateLimit(platform, summonerId, false);
 
     MatchReceiver matchReceiver = RiotRequest.getAllMatchsByQueue(summonerId, platform, false, selectedQueuesId);
 
@@ -180,13 +184,13 @@ public class TeamPlayerAnalysisDataCollector implements Runnable {
     return null;
   }
 
-  public static void awaitAll(List<String> summonersToWait) {
+  public static void awaitAll(List<TeamPlayerAnalysisDataCollector> summonersToWait) {
 
     boolean needToWait;
 
     do {
       needToWait = false;
-      for(String summonerToWait : summonersToWait) {
+      for(TeamPlayerAnalysisDataCollector summonerToWait : summonersToWait) {
         if(summonerIdInWork.contains(summonerToWait)) {
           needToWait = true;
           break;
@@ -197,11 +201,27 @@ public class TeamPlayerAnalysisDataCollector implements Runnable {
         try {
           TimeUnit.MILLISECONDS.sleep(100);
         } catch (InterruptedException e) {
-          logger.error("Thread as been interupt when waiting Match Worker !", e);
+          logger.error("Thread as been interupt when waiting TeamPlayerAnalysisDataCollector !", e);
           Thread.currentThread().interrupt();
         }
       }
     }while(needToWait);
+  }
+  
+  @Override
+  public int compareTo(TeamPlayerAnalysisDataCollector objectToCompare) {
+    
+    if(objectToCompare.getDeterminedPositions() == null) {
+      return 0;
+    }
+    
+    if(objectToCompare.getFinalDeterminedPosition().getOrder() > finalDeterminedPosition.getOrder()) {
+      return -1;
+    }else if (objectToCompare.getFinalDeterminedPosition().getOrder() < finalDeterminedPosition.getOrder()) {
+      return 1;
+    }
+    
+    return 0;
   }
 
   public String getSummonerId() {
@@ -247,6 +267,10 @@ public class TeamPlayerAnalysisDataCollector implements Runnable {
 
   public void setFinalDeterminedPosition(ChampionRole finalDeterminedPosition) {
     this.finalDeterminedPosition = finalDeterminedPosition;
+  }
+
+  public SavedSummoner getSummoner() {
+    return summoner;
   }
   
 }

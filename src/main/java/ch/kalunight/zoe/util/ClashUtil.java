@@ -63,7 +63,7 @@ public class ClashUtil {
 
         for(ChampionRole roleToCheck : rolesToDefine) {
           if(heighestRatioPlayer == null || (playerToDetermine.getDeterminedPositionsByRole(roleToCheck) != null 
-              && playerToDetermine.getDeterminedPositionsByRole(roleToCheck).getRatioOfPlay() > heighestRatioPlayer.getDeterminedPositionsByRole(roleToCheck).getRatioOfPlay())) {
+              && playerToDetermine.getDeterminedPositionsByRole(roleToCheck).getRatioOfPlay() > heighestRatioPlayer.getDeterminedPositionsByRole(heighestRationRole).getRatioOfPlay())) {
             heighestRatioPlayer = playerToDetermine;
             heighestRationRole = roleToCheck;
           }
@@ -156,6 +156,23 @@ public class ClashUtil {
     case UNSELECTED:
       return "unselected";
     case UTILITY:
+      return "supportAbr";
+    default:
+      return "Error";
+    }
+  }
+  
+  public static String getChampionRoleAbrID(ChampionRole championRole) {
+    switch (championRole) {
+    case ADC:
+      return "adcAbr";
+    case JUNGLE:
+      return "jungleAbr";
+    case MID:
+      return "midAbr";
+    case TOP:
+      return "topAbr";
+    case SUPPORT:
       return "supportAbr";
     default:
       return "Error";

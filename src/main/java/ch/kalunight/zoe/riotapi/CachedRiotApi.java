@@ -959,6 +959,9 @@ public class CachedRiotApi {
         ChampionMasteryCache championMasteryCache = null;
         try {
           championMasteryCache = ChampionMasteryRepository.getChampionMasteryWithSummonerId(summonerId, platform);
+          if(championMasteryCache != null) {
+            masteries = championMasteryCache.champMasCache_data;
+          }
         } catch (SQLException e) {
           logger.warn("Error while getting champion mastery cache !", e);
         }
@@ -975,14 +978,14 @@ public class CachedRiotApi {
         championMasteryRequestCount.incrementAndGet();
         increaseCallCountForGivenRegion(platform);
 
-        if(masteries != null) {
-          SavedChampionsMastery championMasteryToCache = new SavedChampionsMastery(baseDataMasteries);
+        if(baseDataMasteries != null) {
+          masteries = new SavedChampionsMastery(baseDataMasteries);
 
           try {
             if(championMasteryCache == null) {
-              ChampionMasteryRepository.createMasteryCache(summonerId, platform, championMasteryToCache);
+              ChampionMasteryRepository.createMasteryCache(summonerId, platform, masteries);
             }else {
-              ChampionMasteryRepository.updateChampionMastery(championMasteryToCache, championMasteryCache.champMasCache_id);
+              ChampionMasteryRepository.updateChampionMastery(masteries, championMasteryCache.champMasCache_id);
             }
           } catch (SQLException e) {
             logger.warn("Error while creating a new mastery cache, result returned anyway", e);

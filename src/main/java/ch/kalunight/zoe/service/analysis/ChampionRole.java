@@ -3,18 +3,20 @@ package ch.kalunight.zoe.service.analysis;
 import javax.annotation.Nullable;
 
 public enum ChampionRole {
-  TOP("TOP", "SOLO"),
-  JUNGLE("JUNGLE", "NONE"),
-  MID("MIDDLE", "SOLO"),
-  ADC("BOTTOM", "DUO_CARRY"),
-  SUPPORT("BOTTOM", "DUO_SUPPORT");
+  TOP("TOP", "SOLO", 1),
+  JUNGLE("JUNGLE", "NONE", 2),
+  MID("MIDDLE", "SOLO", 3),
+  ADC("BOTTOM", "DUO_CARRY", 4),
+  SUPPORT("BOTTOM", "DUO_SUPPORT", 5);
   
   private String lane;
   private String role;
+  private int order;
   
-  private ChampionRole(String lane, String role) {
+  private ChampionRole(String lane, String role, int order) {
     this.lane = lane;
     this.role = role;
+    this.order = order;
   }
 
   @Nullable
@@ -51,4 +53,9 @@ public enum ChampionRole {
   public String getRole() {
     return role;
   }
+
+  public int getOrder() {
+    return order;
+  }
+  
 }

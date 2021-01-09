@@ -437,5 +437,6 @@
     "rankChannelFilterOptionDesc": "Filtre les messages du canal de rang par jeu (LoL et TFT)",
     "rankChannelChangeWonDivisionWithoutGameType": "%s est monté %s",
     "rankChannelChangeWonDivision": "%s est monté %s (%s)",
-    "informationPanelSmartModEnable": "*Mode Intelligent activé : Les mises à jours se font quand les parties sont détectés avec le statut Discord ou la commande refresh.*"
+    "informationPanelSmartModEnable": "*Mode Intelligent activé : Les mises à jours se font quand les parties sont détectés avec le statut Discord ou la commande refresh.*",
+    "informationPanelEvaluationMod": "*Phase d'évaluation : Évaluation des performances actuelles*"
 }

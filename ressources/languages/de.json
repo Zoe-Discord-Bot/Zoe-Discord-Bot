@@ -437,5 +437,6 @@
     "rankChannelFilterOptionDesc": "Nachricht im Rang-Kanal nach Spiel filtern (LoL und TFT)",
     "rankChannelChangeWonDivisionWithoutGameType": "%s hat %s erreicht",
     "rankChannelChangeWonDivision": "%s hat %s (%s) erreicht",
-    "informationPanelSmartModEnable": "*Smart Mod aktiviert: Aktualisiert nur mit Discord-Statuserkennung und Aktualisierungsbefehl.*"
+    "informationPanelSmartModEnable": "*Smart Mod aktiviert: Aktualisiert nur mit Discord-Statuserkennung und Aktualisierungsbefehl.*",
+    "informationPanelEvaluationMod": "*Evaluierungsphase: Bewertet die aktuelle Leistung.*"
 }

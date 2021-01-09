@@ -113,7 +113,9 @@ public class InfoPanelRefresher implements Runnable {
 
       List<TreatedPlayer> treatedPlayers = new ArrayList<>();
 
-      if(infochannel != null || rankChannel != null) {
+      List<Leaderboard> leaderboardsOfTheServer = LeaderboardRepository.getLeaderboardsWithGuildId(guild.getIdLong());
+      
+      if(infochannel != null || rankChannel != null || !leaderboardsOfTheServer.isEmpty()) {
 
         for(Player player : playersDTO) {
           List<LeagueAccount> leaguesAccounts = LeagueAccountRepository.getLeaguesAccountsWithPlayerID(server.serv_guildId, player.player_id);

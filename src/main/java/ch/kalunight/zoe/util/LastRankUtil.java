@@ -2,6 +2,8 @@ package ch.kalunight.zoe.util;
 
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.dto.DTO.LastRank;
@@ -56,10 +58,11 @@ public class LastRankUtil {
   }
   
   /**
-   * @return true if the update has been done correctly, false otherwise.
+   * @return return queues updated
    */
-  public static boolean updateLoLLastRank(LastRank lastRank, Set<LeagueEntry> leagueEntries) throws SQLException {
+  public static List<Integer> updateLoLLastRank(LastRank lastRank, Set<LeagueEntry> leagueEntries) throws SQLException {
 
+    List<Integer> updatedRank = new ArrayList<>();
     for(LeagueEntry checkLeagueEntry : leagueEntries) {
       if(checkLeagueEntry.getQueueType().equals(GameQueueConfigId.SOLOQ.getQueueType())) {
         if(lastRank.lastRank_soloq == null) {
@@ -71,6 +74,7 @@ public class LastRankUtil {
           LastRankRepository.updateLastRankSoloqWithLeagueAccountId(checkLeagueEntry, lastRank, LocalDateTime.now());
           lastRank.lastRank_soloq = checkLeagueEntry;
         }
+        updatedRank.add(GameQueueConfigId.SOLOQ.getId());
       }else if(checkLeagueEntry.getQueueType().equals(GameQueueConfigId.FLEX.getQueueType())) {
         if(lastRank.lastRank_flex == null) {
           LastRankRepository.updateLastRankFlexWithLeagueAccountId(checkLeagueEntry, lastRank, LocalDateTime.now());
@@ -81,9 +85,10 @@ public class LastRankUtil {
           LastRankRepository.updateLastRankFlexWithLeagueAccountId(checkLeagueEntry, lastRank, LocalDateTime.now());
           lastRank.lastRank_flex = checkLeagueEntry;
         }
+        updatedRank.add(GameQueueConfigId.FLEX.getId());
       }
     }
-    return true;
+    return updatedRank;
   }
   
 }

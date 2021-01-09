@@ -113,23 +113,23 @@ public class TeamPlayerAnalysisDataCollector implements Runnable {
     determinedPositions = new ArrayList<>();
 
     if(nbrTop.get() != 0) {
-      determinedPositions.add(new TeamPositionRated(ChampionRole.TOP, nbrTop.get()));
+      determinedPositions.add(new TeamPositionRated(ChampionRole.TOP, nbrTop.get() / (double) nbrMatch.get() * 100.0));
     }
 
     if(nbrJng.get() != 0) {
-      determinedPositions.add(new TeamPositionRated(ChampionRole.JUNGLE, nbrJng.get()));
+      determinedPositions.add(new TeamPositionRated(ChampionRole.JUNGLE, nbrJng.get() / (double) nbrMatch.get() * 100.0));
     }
 
     if(nbrMid.get() != 0) {
-      determinedPositions.add(new TeamPositionRated(ChampionRole.MID, nbrMid.get()));
+      determinedPositions.add(new TeamPositionRated(ChampionRole.MID, nbrMid.get() / (double) nbrMatch.get() * 100.0));
     }
 
     if(nbrAdc.get() != 0) {
-      determinedPositions.add(new TeamPositionRated(ChampionRole.ADC, nbrAdc.get()));
+      determinedPositions.add(new TeamPositionRated(ChampionRole.ADC, nbrAdc.get() / (double) nbrMatch.get() * 100.0));
     }
 
     if(nbrSup.get() != 0) {
-      determinedPositions.add(new TeamPositionRated(ChampionRole.SUPPORT, nbrSup.get()));
+      determinedPositions.add(new TeamPositionRated(ChampionRole.SUPPORT, nbrSup.get() / (double) nbrMatch.get() * 100.0));
     }
 
     Collections.sort(determinedPositions);
@@ -214,6 +214,15 @@ public class TeamPlayerAnalysisDataCollector implements Runnable {
 
   public List<TeamPositionRated> getDeterminedPositions() {
     return determinedPositions;
+  }
+  
+  public TeamPositionRated getDeterminedPositionsByRole(ChampionRole role) {
+    for(TeamPositionRated determinedPosition : determinedPositions) {
+      if(determinedPosition.getChampionRole() == role) {
+        return determinedPosition;
+      }
+    }
+    return null;
   }
 
   public List<WinratePerChampion> getWinratePerChampions() {

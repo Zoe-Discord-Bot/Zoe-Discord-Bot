@@ -6,18 +6,18 @@ public class TeamPositionRated implements Comparable<TeamPositionRated> {
 
   private ChampionRole championRole;
   
-  private int numberOfTimePlayed;
+  private double playRatio;
 
-  public TeamPositionRated(ChampionRole role, int numberOfTimePlayed) {
+  public TeamPositionRated(ChampionRole role, double numberOfTimePlayed) {
     this.championRole = role;
-    this.numberOfTimePlayed = numberOfTimePlayed;
+    this.playRatio = numberOfTimePlayed;
   }
   
   @Override
   public int compareTo(TeamPositionRated objectToTest) {
-    if(objectToTest.getNumberOfTimePlayed() > numberOfTimePlayed) {
+    if(objectToTest.getRatioOfPlay() > playRatio) {
       return 1;
-    }else if(objectToTest.getNumberOfTimePlayed() < numberOfTimePlayed) {
+    }else if(objectToTest.getRatioOfPlay() < playRatio) {
       return -1;
     }
     
@@ -28,8 +28,8 @@ public class TeamPositionRated implements Comparable<TeamPositionRated> {
     return championRole;
   }
 
-  public int getNumberOfTimePlayed() {
-    return numberOfTimePlayed;
+  public double getRatioOfPlay() {
+    return playRatio;
   }
   
 }

@@ -26,39 +26,97 @@ public class ClashUtil {
     if(playersToDetermine.size() == 5) {
 
       Map<ChampionRole, List<TeamPlayerAnalysisDataCollector>> roleSelected = Collections.synchronizedMap(new EnumMap<>(ChampionRole.class));
-      for(ChampionRole role : ChampionRole.values()) {
-        List<TeamPlayerAnalysisDataCollector> selectedRole = new ArrayList<>();
-        roleSelected.put(role, selectedRole);
+      filterPlayerBySelectedRole(playersToDetermine, roleSelected);
 
-        for(TeamPlayerAnalysisDataCollector playerToDetermine : playersToDetermine) {
-          if(playerToDetermine.getClashSelectedPosition() == role) {
-            selectedRole.add(playerToDetermine);
+      List<ChampionRole> rolesToDefine = defineSelectedRoleAndGetRoleToDefine(roleSelected);
+
+      List<TeamPlayerAnalysisDataCollector> playersToStillDetermine = getPlayerToDetermine(playersToDetermine);
+
+      giveToEachPlayerMostPlayedRole(rolesToDefine, playersToStillDetermine);
+      
+      giveRemainingRoleRandomly(rolesToDefine, playersToStillDetermine);
+
+    }else {
+      throw new ImpossibleToDeterminePositionException("The given team is not equal to 5 ! Impossible to determine role !");
+    }
+  }
+
+  private static void giveRemainingRoleRandomly(List<ChampionRole> rolesToDefine,
+      List<TeamPlayerAnalysisDataCollector> playersToStillDetermine) {
+    if(!rolesToDefine.isEmpty()) {
+      int playerIdToSelect = 0;
+      for(ChampionRole role : rolesToDefine) {
+        playersToStillDetermine.get(playerIdToSelect).setFinalDeterminedPosition(role);
+        playerIdToSelect++;
+      }
+    }
+  }
+
+  private static void giveToEachPlayerMostPlayedRole(List<ChampionRole> rolesToDefine,
+      List<TeamPlayerAnalysisDataCollector> playersToStillDetermine) {
+    int rolesToRemove = rolesToDefine.size();
+
+    while(rolesToRemove > 0) {
+      TeamPlayerAnalysisDataCollector heighestRatioPlayer = null;
+      ChampionRole heighestRationRole = null;
+      for(TeamPlayerAnalysisDataCollector playerToDetermine : playersToStillDetermine) {
+
+        for(ChampionRole roleToCheck : rolesToDefine) {
+          if(heighestRatioPlayer == null || (playerToDetermine.getDeterminedPositionsByRole(roleToCheck) != null 
+              && playerToDetermine.getDeterminedPositionsByRole(roleToCheck).getRatioOfPlay() > heighestRatioPlayer.getDeterminedPositionsByRole(roleToCheck).getRatioOfPlay())) {
+            heighestRatioPlayer = playerToDetermine;
+            heighestRationRole = roleToCheck;
           }
         }
       }
       
-      List<ChampionRole> rolesToDefine = new ArrayList<>();
-      rolesToDefine.addAll(Arrays.asList(ChampionRole.values()));
-      
-      for(Entry<ChampionRole, List<TeamPlayerAnalysisDataCollector>> roleToCheck : roleSelected.entrySet()) {
-        if(roleToCheck.getValue().size() == 1) {
-          roleToCheck.getValue().get(0).setFinalDeterminedPosition(roleToCheck.getKey());
-          rolesToDefine.remove(roleToCheck.getKey());
-        }
+      if(heighestRatioPlayer != null) {
+        heighestRatioPlayer.setFinalDeterminedPosition(heighestRationRole);
+        playersToStillDetermine.remove(heighestRatioPlayer);
+        rolesToDefine.remove(heighestRationRole);
       }
+      
+      rolesToRemove--;
+    }
+  }
 
-      List<TeamPlayerAnalysisDataCollector> playersToStillDetermine = new ArrayList<>();
-      
+  private static List<TeamPlayerAnalysisDataCollector> getPlayerToDetermine(
+      List<TeamPlayerAnalysisDataCollector> playersToDetermine) {
+    List<TeamPlayerAnalysisDataCollector> playersToStillDetermine = new ArrayList<>();
+
+    for(TeamPlayerAnalysisDataCollector playerToDetermine : playersToDetermine) {
+      if(playerToDetermine.getFinalDeterminedPosition() == null) {
+        playersToStillDetermine.add(playerToDetermine);
+      }
+    }
+    return playersToStillDetermine;
+  }
+
+  private static List<ChampionRole> defineSelectedRoleAndGetRoleToDefine(
+      Map<ChampionRole, List<TeamPlayerAnalysisDataCollector>> roleSelected) {
+    List<ChampionRole> rolesToDefine = new ArrayList<>();
+    rolesToDefine.addAll(Arrays.asList(ChampionRole.values()));
+
+    for(Entry<ChampionRole, List<TeamPlayerAnalysisDataCollector>> roleToCheck : roleSelected.entrySet()) {
+      if(roleToCheck.getValue().size() == 1) {
+        roleToCheck.getValue().get(0).setFinalDeterminedPosition(roleToCheck.getKey());
+        rolesToDefine.remove(roleToCheck.getKey());
+      }
+    }
+    return rolesToDefine;
+  }
+
+  private static void filterPlayerBySelectedRole(List<TeamPlayerAnalysisDataCollector> playersToDetermine,
+      Map<ChampionRole, List<TeamPlayerAnalysisDataCollector>> roleSelected) {
+    for(ChampionRole role : ChampionRole.values()) {
+      List<TeamPlayerAnalysisDataCollector> selectedRole = new ArrayList<>();
+      roleSelected.put(role, selectedRole);
+
       for(TeamPlayerAnalysisDataCollector playerToDetermine : playersToDetermine) {
-        if(playerToDetermine.getFinalDeterminedPosition() == null) {
-          playersToStillDetermine.add(playerToDetermine);
+        if(playerToDetermine.getClashSelectedPosition() == role) {
+          selectedRole.add(playerToDetermine);
         }
       }
-      
-      
-      
-    }else {
-      throw new ImpossibleToDeterminePositionException("The given team is not equal to 5 ! Impossible to determine role !");
     }
   }
 

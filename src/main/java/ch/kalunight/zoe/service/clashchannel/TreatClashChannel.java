@@ -140,6 +140,10 @@ public class TreatClashChannel implements Runnable {
     
     TeamPlayerAnalysisDataCollector.awaitAll(teamPlayersData);
     
+    ClashUtil.determineRole(teamPlayersData);
+    
+    
+    
     //TODO Treat data (Determine final role in external methods) and create analysis process (external)
     
     

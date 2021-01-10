@@ -479,5 +479,7 @@
 	"statsPredictRoleHelpMessage": "Predict the role of 5 given accounts if they play together.",
 	"statsPredictRoleMalformedWithoutRegionOption": "The command is malformed. Please respect this pattern : `>stats predictRole (Region1) (SummonerName1) (Region2) (SummonerName2) (Region3) (SummonerName3) (Region4) (SummonerName4)(Region5) (SummonerName5)`",
 	"statsPredictRoleTitleDeterminedRole" : "Here's how i would put the team :",
-	"disclaimerAnalysis" : "Keep in mind that this analysis is not necessarily reliable"
+	"disclaimerAnalysis" : "Keep in mind that this analysis is not necessarily reliable",
+	"dangerosityReportHighWinrateInfo" : "High Winrate : %d%",
+	"dangerosityReportHighMasteryInfo" : "High Masteries : %d"
 }

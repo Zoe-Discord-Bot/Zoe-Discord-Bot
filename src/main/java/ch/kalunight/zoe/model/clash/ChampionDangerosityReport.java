@@ -1,5 +1,7 @@
 package ch.kalunight.zoe.model.clash;
 
+import ch.kalunight.zoe.model.dangerosityreport.DangerosityReport;
+
 public class ChampionDangerosityReport {
 
   private int championId;

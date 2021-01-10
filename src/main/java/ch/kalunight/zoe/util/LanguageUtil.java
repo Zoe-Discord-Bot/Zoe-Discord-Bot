@@ -3,6 +3,9 @@ package ch.kalunight.zoe.util;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
+
+import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
+import ch.kalunight.zoe.model.static_data.Mastery;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.entities.Message;
 
@@ -27,6 +30,28 @@ public class LanguageUtil {
       public void accept(Message message) {
         message.clearReactions().queue();
       }};
+  }
+
+  public static String convertMasteryToReadableText(SavedSimpleMastery mastery) {
+    StringBuilder masteryString = new StringBuilder();
+  
+    long points = mastery.getChampionPoints();
+    if(points > 1000 && points < 1000000) {
+      masteryString.append(points / 1000 + "K");
+    } else if(points > 1000000) {
+      masteryString.append(points / 1000000 + "M");
+    } else {
+      masteryString.append(Long.toString(points));
+    }
+  
+    try {
+      Mastery masteryLevel = Mastery.getEnum(mastery.getChampionLevel());
+      masteryString.append(Ressources.getMasteryEmote().get(masteryLevel).getEmote().getAsMention());
+    } catch(NullPointerException | IllegalArgumentException e) {
+      masteryString.append("");
+    }
+  
+    return masteryString.toString();
   }
 
 }

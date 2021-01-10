@@ -1,6 +1,10 @@
-package ch.kalunight.zoe.model.clash;
+package ch.kalunight.zoe.model.dangerosityreport;
+
+import java.text.DecimalFormat;
 
 public abstract class DangerosityReport {
+
+  protected DecimalFormat pourcentageFormat = new DecimalFormat("###,#");
 
   private DangerosityReportType reportType;
   

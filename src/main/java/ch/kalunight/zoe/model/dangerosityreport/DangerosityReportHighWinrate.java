@@ -1,4 +1,4 @@
-package ch.kalunight.zoe.model.clash;
+package ch.kalunight.zoe.model.dangerosityreport;
 
 import ch.kalunight.zoe.translation.LanguageManager;
 
@@ -13,6 +13,11 @@ public class DangerosityReportHighWinrate extends DangerosityReport {
 
   @Override
   protected String getInfoToShow(String lang) {
-    return String.format(LanguageManager.getText(lang, "dangerosityReportHighWinrateInfo"), winrate);
+    return String.format(LanguageManager.getText(lang, "dangerosityReportHighWinrateInfo"), pourcentageFormat.format(winrate));
   }
+
+  public double getWinrate() {
+    return winrate;
+  }
+
 }

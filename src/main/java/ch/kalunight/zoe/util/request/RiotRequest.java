@@ -24,14 +24,13 @@ import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.model.player_data.Rank;
 import ch.kalunight.zoe.model.player_data.Tier;
-import ch.kalunight.zoe.model.static_data.Mastery;
 import ch.kalunight.zoe.service.match.MatchCollectorReciverWorker;
 import ch.kalunight.zoe.service.match.MatchKDAReceiverWorker;
 import ch.kalunight.zoe.service.match.MatchReceiverWorker;
 import ch.kalunight.zoe.service.match.MatchWinrateReceiverWorker;
 import ch.kalunight.zoe.translation.LanguageManager;
+import ch.kalunight.zoe.util.LanguageUtil;
 import ch.kalunight.zoe.util.NameConversion;
-import ch.kalunight.zoe.util.Ressources;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 import net.rithms.riot.api.endpoints.match.dto.MatchList;
@@ -455,25 +454,7 @@ public class RiotRequest {
       return "0";
     }
     
-    StringBuilder masteryString = new StringBuilder();
-
-    long points = mastery.getChampionPoints();
-    if(points > 1000 && points < 1000000) {
-      masteryString.append(points / 1000 + "K");
-    } else if(points > 1000000) {
-      masteryString.append(points / 1000000 + "M");
-    } else {
-      masteryString.append(Long.toString(points));
-    }
-
-    try {
-      Mastery masteryLevel = Mastery.getEnum(mastery.getChampionLevel());
-      masteryString.append(Ressources.getMasteryEmote().get(masteryLevel).getEmote().getAsMention());
-    } catch(NullPointerException | IllegalArgumentException e) {
-      masteryString.append("");
-    }
-
-    return masteryString.toString();
+    return LanguageUtil.convertMasteryToReadableText(mastery);
   }
 
   public static String getActualGameStatus(CurrentGameInfo currentGameInfo, String language) {

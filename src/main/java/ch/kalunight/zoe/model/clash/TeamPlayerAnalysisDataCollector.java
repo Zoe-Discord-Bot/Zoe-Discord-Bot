@@ -14,12 +14,15 @@ import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.MatchReceiver;
 import ch.kalunight.zoe.model.TeamPositionRated;
+import ch.kalunight.zoe.model.dangerosityreport.DangerosityReport;
+import ch.kalunight.zoe.model.dangerosityreport.PickData;
 import ch.kalunight.zoe.model.dto.SavedChampionsMastery;
 import ch.kalunight.zoe.model.dto.SavedMatch;
 import ch.kalunight.zoe.model.dto.SavedMatchPlayer;
+import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
 import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.service.analysis.ChampionRole;
-import ch.kalunight.zoe.util.ClashUtil;
+import ch.kalunight.zoe.util.TeamUtil;
 import ch.kalunight.zoe.util.LoLQueueIdUtil;
 import ch.kalunight.zoe.util.request.RiotRequest;
 import net.rithms.riot.api.RiotApiException;
@@ -47,12 +50,14 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
 
   private List<TeamPositionRated> determinedPositions;
 
-  private List<WinratePerChampion> winratePerChampions;
-
-  private SavedChampionsMastery masteryPerChampions;
+  private List<DataPerChampion> dataPerChampions;
 
   private Set<LeagueEntry> eloOfThePlayer;
-
+  
+  private List<DangerosityReport> dangerosityReports;
+  
+  private List<PickData> picksCompiledData;
+  
   private AtomicInteger nbrTop = new AtomicInteger();
   private AtomicInteger nbrJng = new AtomicInteger();
   private AtomicInteger nbrMid = new AtomicInteger();
@@ -72,10 +77,12 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
   public TeamPlayerAnalysisDataCollector(String summonerId, Platform platform, TeamPosition position) {
     this.summonerId = summonerId;
     this.platform = platform;
-    this.winratePerChampions = new ArrayList<>();
+    this.dataPerChampions = new ArrayList<>();
     if(position != null) {
-      clashSelectedPosition = ClashUtil.convertTeamPosition(position);
+      clashSelectedPosition = TeamUtil.convertTeamPosition(position);
     }
+    this.dangerosityReports = new ArrayList<>();
+    this.picksCompiledData = new ArrayList<>();
     summonerIdInWork.add(this);
   }
 
@@ -106,7 +113,14 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
       collectWinrateData(playerInMatch, match);
     }
 
-    masteryPerChampions = Zoe.getRiotApi().getChampionMasteriesBySummonerWithRateLimit(platform, summonerId, false);
+    SavedChampionsMastery masteryPerChampions = Zoe.getRiotApi().getChampionMasteriesBySummonerWithRateLimit(platform, summonerId, false);
+    
+    for(SavedSimpleMastery mastery : masteryPerChampions.getChampionMasteries()) {
+      DataPerChampion dataOfChampion = getDataByChampion(mastery.getChampionId());
+      if(dataOfChampion != null) {
+        dataOfChampion.setMastery(mastery);
+      }
+    }
 
     eloOfThePlayer = Zoe.getRiotApi().getLeagueEntriesBySummonerIdWithRateLimit(platform, summonerId);
 
@@ -140,10 +154,10 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
   }
 
   private void collectWinrateData(SavedMatchPlayer playerInMatch, SavedMatch match) {
-    WinratePerChampion winrate = getWinrateByChampion(playerInMatch.getChampionId());
+    DataPerChampion winrate = getDataByChampion(playerInMatch.getChampionId());
 
     if(winrate == null) {
-      winrate = new WinratePerChampion(playerInMatch.getChampionId(), new ArrayList<>());
+      winrate = new DataPerChampion(playerInMatch.getChampionId(), new ArrayList<>());
     }
 
     winrate.getMatchs().add(match);
@@ -175,8 +189,8 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
     }
   }
 
-  private WinratePerChampion getWinrateByChampion(int championId) {
-    for(WinratePerChampion checkWinratePerChampion : winratePerChampions) {
+  private DataPerChampion getDataByChampion(int championId) {
+    for(DataPerChampion checkWinratePerChampion : dataPerChampions) {
       if(checkWinratePerChampion.getChampionId() == championId) {
         return checkWinratePerChampion;
       }
@@ -224,6 +238,10 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
     return 0;
   }
 
+  public List<DangerosityReport> getDangerosityReports() {
+    return dangerosityReports;
+  }
+
   public String getSummonerId() {
     return summonerId;
   }
@@ -245,12 +263,8 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
     return null;
   }
 
-  public List<WinratePerChampion> getWinratePerChampions() {
-    return winratePerChampions;
-  }
-
-  public SavedChampionsMastery getMasteryPerChampions() {
-    return masteryPerChampions;
+  public List<DataPerChampion> getDataPerChampions() {
+    return dataPerChampions;
   }
 
   public Set<LeagueEntry> getEloOfThePlayer() {
@@ -272,5 +286,8 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
   public SavedSummoner getSummoner() {
     return summoner;
   }
-  
+
+  public List<PickData> getPicksCompiledData() {
+    return picksCompiledData;
+  }
 }

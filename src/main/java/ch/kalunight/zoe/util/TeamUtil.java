@@ -10,15 +10,19 @@ import java.util.Map.Entry;
 import com.google.common.base.CharMatcher;
 
 import ch.kalunight.zoe.exception.ImpossibleToDeterminePositionException;
+import ch.kalunight.zoe.model.clash.DataPerChampion;
 import ch.kalunight.zoe.model.clash.TeamPlayerAnalysisDataCollector;
+import ch.kalunight.zoe.model.dangerosityreport.DangerosityReport;
+import ch.kalunight.zoe.model.dangerosityreport.DangerosityReportHighMastery;
+import ch.kalunight.zoe.model.dangerosityreport.DangerosityReportHighWinrate;
 import ch.kalunight.zoe.service.analysis.ChampionRole;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.rithms.riot.api.endpoints.clash.constant.TeamPosition;
 import net.rithms.riot.api.endpoints.clash.dto.ClashTeamMember;
 
-public class ClashUtil {
+public class TeamUtil {
 
-  private ClashUtil() {
+  private TeamUtil() {
     //hide public default class
   }
 
@@ -40,6 +44,7 @@ public class ClashUtil {
       throw new ImpossibleToDeterminePositionException("The given team is not equal to 5 ! Impossible to determine role !");
     }
   }
+
 
   private static void giveRemainingRoleRandomly(List<ChampionRole> rolesToDefine,
       List<TeamPlayerAnalysisDataCollector> playersToStillDetermine) {
@@ -116,6 +121,19 @@ public class ClashUtil {
         if(playerToDetermine.getClashSelectedPosition() == role) {
           selectedRole.add(playerToDetermine);
         }
+      }
+    }
+  }
+  
+  public static void determineDangerosity(List<TeamPlayerAnalysisDataCollector> teamPlayersData) {
+    for(TeamPlayerAnalysisDataCollector playerToLoad : teamPlayersData) {
+      for(DataPerChampion champion : playerToLoad.getDataPerChampions()) {
+        
+        List<DangerosityReport> dangerosityReportList = champion.getDangerosityReports();
+        
+        dangerosityReportList.add(new DangerosityReportHighMastery(champion.getMastery()));
+        dangerosityReportList.add(new DangerosityReportHighWinrate(champion.getWinrate(), champion.getNumberOfGame()));
+        
       }
     }
   }

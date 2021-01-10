@@ -30,7 +30,7 @@ import ch.kalunight.zoe.repositories.CurrentGameInfoRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.SummonerCacheRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
-import ch.kalunight.zoe.util.ClashUtil;
+import ch.kalunight.zoe.util.TeamUtil;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -140,9 +140,9 @@ public class TreatClashChannel implements Runnable {
     
     TeamPlayerAnalysisDataCollector.awaitAll(teamPlayersData);
     
-    ClashUtil.determineRole(teamPlayersData);
+    TeamUtil.determineRole(teamPlayersData);
     
-    
+    TeamUtil.determineDangerosity(teamPlayersData);
     
     //TODO Treat data (Determine final role in external methods) and create analysis process (external)
     
@@ -160,7 +160,7 @@ public class TreatClashChannel implements Runnable {
 
     String formatedSummonerName = summonerCache.getName() + "(" + clashMessageManager.getSelectedPlatform().getName().toUpperCase() + ")";
 
-    String dayNumber = ClashUtil.parseDayId(server.serv_language, firstClashTeam.tournament.getNameKeySecondary());
+    String dayNumber = TeamUtil.parseDayId(server.serv_language, firstClashTeam.tournament.getNameKeySecondary());
 
     String tournamentBasicName = LanguageManager.getText(server.serv_language, "clashChannelClashTournamentBasicName");
 
@@ -209,11 +209,11 @@ public class TreatClashChannel implements Runnable {
 
   private void addTeamMembersTextByPosition(TeamPosition position, List<ClashTeamMember> players,
       StringBuilder messageBuilder, Platform platform) throws RiotApiException {
-    List<ClashTeamMember> members = ClashUtil.getPlayerByPosition(position, players);
+    List<ClashTeamMember> members = TeamUtil.getPlayerByPosition(position, players);
 
     StringBuilder playerName = new StringBuilder();
 
-    playerName.append(LanguageManager.getText(server.serv_language, ClashUtil.getTeamPositionAbrID(position)) + " : ");
+    playerName.append(LanguageManager.getText(server.serv_language, TeamUtil.getTeamPositionAbrID(position)) + " : ");
     
     if(members.isEmpty()) {
       playerName.append("*" + LanguageManager.getText(server.serv_language, "empty") + "*");
@@ -315,7 +315,7 @@ public class TreatClashChannel implements Runnable {
       ClashTournament clashTournament, List<ClashTournamentPhase> phases) {
     ClashTournamentPhase phase = phases.get(0);
 
-    String dayNumber = ClashUtil.parseDayId(server.serv_language, clashTournament.getNameKeySecondary());
+    String dayNumber = TeamUtil.parseDayId(server.serv_language, clashTournament.getNameKeySecondary());
 
     String tournamentName = LanguageManager.getText(server.serv_language, clashTournament.getNameKey());
 

@@ -13,7 +13,7 @@ public class DangerosityReportOTP extends DangerosityReport {
 
   @Override
   protected String getInfoToShow(String lang) {
-    return String.format(LanguageManager.getText(lang, "dangerosityReportOTP"), pourcentageFormat.format(playRatio));
+    return String.format(LanguageManager.getText(lang, "dangerosityReportOTPInfo"), pourcentageFormat.format(playRatio));
   }
   
   public double getPlayRatio() {

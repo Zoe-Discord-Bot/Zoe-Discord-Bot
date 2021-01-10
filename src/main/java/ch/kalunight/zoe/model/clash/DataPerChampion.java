@@ -1,25 +1,33 @@
 package ch.kalunight.zoe.model.clash;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import ch.kalunight.zoe.model.dangerosityreport.DangerosityReport;
 import ch.kalunight.zoe.model.dto.SavedMatch;
 import ch.kalunight.zoe.model.dto.SavedMatchPlayer;
+import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
 
-public class WinratePerChampion {
+public class DataPerChampion {
 
   private int championId;
 
   private List<SavedMatch> matchs;
-
+  
   private Integer nbrWin;
 
   private Integer nbrLose;
 
   private Double winrate;
 
-  public WinratePerChampion(int championId, List<SavedMatch> matchs) {
+  private SavedSimpleMastery mastery;
+  
+  private List<DangerosityReport> dangerosityReports;
+  
+  public DataPerChampion(int championId, List<SavedMatch> matchs) {
     this.championId = championId;
     this.matchs = matchs;
+    this.dangerosityReports = new ArrayList<>();
   }
 
   public double getWinrate() {
@@ -64,6 +72,10 @@ public class WinratePerChampion {
     
     return nbrLose;
   }
+  
+  public List<DangerosityReport> getDangerosityReports() {
+    return dangerosityReports;
+  }
 
   public int getNumberOfGame() {
     if(nbrWin == null || nbrLose == null) {
@@ -79,6 +91,14 @@ public class WinratePerChampion {
 
   public List<SavedMatch> getMatchs() {
     return matchs;
+  }
+
+  public SavedSimpleMastery getMastery() {
+    return mastery;
+  }
+
+  public void setMastery(SavedSimpleMastery mastery) {
+    this.mastery = mastery;
   }
   
 }

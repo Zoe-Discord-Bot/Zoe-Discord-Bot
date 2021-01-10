@@ -4,6 +4,8 @@ import java.text.DecimalFormat;
 
 public abstract class DangerosityReport {
 
+  protected static final int BASE_SCORE = 0;
+  
   protected DecimalFormat pourcentageFormat = new DecimalFormat("###,#");
 
   private DangerosityReportType reportType;
@@ -14,6 +16,8 @@ public abstract class DangerosityReport {
   
   protected abstract String getInfoToShow(String lang);
 
+  protected abstract int getReportValue();
+  
   public DangerosityReportType getReportType() {
     return reportType;
   }

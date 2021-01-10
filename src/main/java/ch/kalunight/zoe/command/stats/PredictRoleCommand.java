@@ -19,7 +19,7 @@ import ch.kalunight.zoe.model.config.option.RegionOption;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
-import ch.kalunight.zoe.util.ClashUtil;
+import ch.kalunight.zoe.util.TeamUtil;
 import ch.kalunight.zoe.util.CommandUtil;
 import ch.kalunight.zoe.util.RiotApiUtil;
 import net.rithms.riot.api.RiotApiException;
@@ -114,14 +114,14 @@ public class PredictRoleCommand extends ZoeCommand {
 
       TeamPlayerAnalysisDataCollector.awaitAll(accountAnalyser);      
 
-      ClashUtil.determineRole(accountAnalyser);
+      TeamUtil.determineRole(accountAnalyser);
       
       Collections.sort(accountAnalyser);
 
       StringBuilder builder = new StringBuilder();
       builder.append(LanguageManager.getText(server.serv_language, "statsPredictRoleTitleDeterminedRole") + "\n");
       for(TeamPlayerAnalysisDataCollector playerToShow : accountAnalyser) {
-        builder.append(LanguageManager.getText(server.serv_language, ClashUtil.getChampionRoleAbrID(playerToShow.getFinalDeterminedPosition())) + " : *" 
+        builder.append(LanguageManager.getText(server.serv_language, TeamUtil.getChampionRoleAbrID(playerToShow.getFinalDeterminedPosition())) + " : *" 
             + playerToShow.getPlatform().getName().toUpperCase() + "* " + playerToShow.getSummoner().getName() + "\n");
       }
 

@@ -480,7 +480,10 @@
 	"statsPredictRoleMalformedWithoutRegionOption": "The command is malformed. Please respect this pattern : `>stats predictRole (Region1) (SummonerName1) (Region2) (SummonerName2) (Region3) (SummonerName3) (Region4) (SummonerName4)(Region5) (SummonerName5)`",
 	"statsPredictRoleTitleDeterminedRole" : "Here's how i would put the team :",
 	"disclaimerAnalysis" : "Keep in mind that this analysis is not necessarily reliable",
-	"dangerosityReportHighWinrateInfo" : "High Winrate : %s%",
+	"dangerosityReportHighWinrateInfo" : "High Winrate : %s% | %d games",
 	"dangerosityReportHighMasteryInfo" : "High Masteries : %s",
-	"dangerosityReportOTP" : "OTP | Play Rate : %s%"
+	"dangerosityReportOTPInfo" : "OTP | Play Rate : %s%",
+	"dangerosityReportHighEloDiffInfo" : "Huge elo diff : %s",
+	"dangerosityReportLittleChampionPoolInfo" : "Small Champion Pool : %d",
+	"dangerosityReportFlexPickInfo" : "Flex pick : %s"
 }

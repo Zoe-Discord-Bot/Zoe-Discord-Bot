@@ -128,26 +128,26 @@ public class TreatClashChannel implements Runnable {
 
   private void refreshWaitForGameStart(ClashChannelData clashMessageManager, ClashTeamRegistration firstClashTeam,
       SavedSummoner summonerCache) {
-    
+
     List<ClashTeamMember> teamMembers = firstClashTeam.team.getPlayers();
     List<TeamPlayerAnalysisDataCollector> teamPlayersData = new ArrayList<>();
-    
+
     for(ClashTeamMember teamMember : teamMembers) {
       TeamPlayerAnalysisDataCollector player = new TeamPlayerAnalysisDataCollector(teamMember.getSummonerId(), clashMessageManager.getSelectedPlatform(), teamMember.getTeamPosition());
       teamPlayersData.add(player);
       ServerThreadsManager.getDataAnalysisThread().execute(player);
     }
-    
+
     TeamPlayerAnalysisDataCollector.awaitAll(teamPlayersData);
-    
+
     TeamUtil.determineRole(teamPlayersData);
-    
+
     TeamUtil.determineDangerosity(teamPlayersData);
-    
+
     //TODO Treat data (Determine final role in external methods) and create analysis process (external)
-    
-    
-    
+
+
+
   }
 
   private void refreshWaitForFullTeam(ClashChannelData clashMessageManager, ClashTeamRegistration firstClashTeam,
@@ -158,7 +158,7 @@ public class TreatClashChannel implements Runnable {
     messageBuilder.append("**" + String.format(LanguageManager.getText(server.serv_language, "clashChannelTitle"), summonerCache.getName(),
         clashMessageManager.getSelectedPlatform().getName().toUpperCase()) + "**\n\n");
 
-    String formatedSummonerName = summonerCache.getName() + "(" + clashMessageManager.getSelectedPlatform().getName().toUpperCase() + ")";
+    String formatedSummonerName = summonerCache.getName() + " (" + clashMessageManager.getSelectedPlatform().getName().toUpperCase() + ")";
 
     String dayNumber = TeamUtil.parseDayId(server.serv_language, firstClashTeam.tournament.getNameKeySecondary());
 
@@ -186,8 +186,10 @@ public class TreatClashChannel implements Runnable {
         firstClashTeam.team.getTier().getTier()) + "**\n");
 
     addAllTeamToBuilder(clashMessageManager, firstClashTeam, messageBuilder);
-    
+
     messageBuilder.append("\n\n" + LanguageManager.getText(server.serv_language, "clashChannelBottomNotInClashTeamMesssage"));
+
+    editOrCreateTheseMessages(clashMessageManager.getInfoMessagesId(), messageBuilder.toString());
   }
 
   private void addAllTeamToBuilder(ClashChannelData clashMessageManager, ClashTeamRegistration firstClashTeam,
@@ -201,10 +203,18 @@ public class TreatClashChannel implements Runnable {
     addTeamMembersTextByPosition(TeamPosition.BOTTOM, firstClashTeam.team.getPlayers(), messageBuilder, clashMessageManager.getSelectedPlatform());
     messageBuilder.append("\n");
     addTeamMembersTextByPosition(TeamPosition.UTILITY, firstClashTeam.team.getPlayers(), messageBuilder, clashMessageManager.getSelectedPlatform());
-    messageBuilder.append("\n");
-    addTeamMembersTextByPosition(TeamPosition.FILL, firstClashTeam.team.getPlayers(), messageBuilder, clashMessageManager.getSelectedPlatform());
-    messageBuilder.append("\n");
-    addTeamMembersTextByPosition(TeamPosition.UNSELECTED, firstClashTeam.team.getPlayers(), messageBuilder, clashMessageManager.getSelectedPlatform());
+    
+    List<ClashTeamMember> membersFill = TeamUtil.getPlayerByPosition(TeamPosition.FILL, firstClashTeam.team.getPlayers());
+    if(!membersFill.isEmpty()) {
+      messageBuilder.append("\n");
+      addTeamMembersTextByPosition(TeamPosition.FILL, firstClashTeam.team.getPlayers(), messageBuilder, clashMessageManager.getSelectedPlatform());
+    }
+
+    List<ClashTeamMember> membersUnselected = TeamUtil.getPlayerByPosition(TeamPosition.UNSELECTED, firstClashTeam.team.getPlayers());
+    if(!membersUnselected.isEmpty()) {
+      messageBuilder.append("\n");
+      addTeamMembersTextByPosition(TeamPosition.UNSELECTED, firstClashTeam.team.getPlayers(), messageBuilder, clashMessageManager.getSelectedPlatform());
+    }
   }
 
   private void addTeamMembersTextByPosition(TeamPosition position, List<ClashTeamMember> players,
@@ -214,7 +224,7 @@ public class TreatClashChannel implements Runnable {
     StringBuilder playerName = new StringBuilder();
 
     playerName.append(LanguageManager.getText(server.serv_language, TeamUtil.getTeamPositionAbrID(position)) + " : ");
-    
+
     if(members.isEmpty()) {
       playerName.append("*" + LanguageManager.getText(server.serv_language, "empty") + "*");
     }else {
@@ -222,27 +232,28 @@ public class TreatClashChannel implements Runnable {
       for(ClashTeamMember player : members) {
         numberOfPlayerTreated++;
         SavedSummoner summoner = Zoe.getRiotApi().getSummonerWithRateLimit(platform, player.getSummonerId(), forceRefreshCache);
-        
+
         String summonerName;
         if(player.getTeamRole() == TeamRole.CAPTAIN) {
           summonerName = "👑 " + summoner.getName();
         }else {
           summonerName = summoner.getName();
         }
-        
+
         if(numberOfPlayerTreated == 1) {
           playerName.append(summonerName);
         }else {
           playerName.append(" " + summonerName);
         }
-        
+
         if(numberOfPlayerTreated != members.size()) {
           playerName.append(",");
         }
       }
     }
-    
+
     messageBuilder.append(playerName.toString());
+
   }
 
   private void refreshWaitForTeamRegistration(ClashChannelData clashMessageManager, SavedSummoner summonerCache) {

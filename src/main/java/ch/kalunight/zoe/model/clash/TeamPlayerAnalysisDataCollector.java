@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.kalunight.zoe.Zoe;
+import ch.kalunight.zoe.exception.NoValueRankException;
 import ch.kalunight.zoe.model.MatchReceiver;
 import ch.kalunight.zoe.model.TeamPositionRated;
 import ch.kalunight.zoe.model.dangerosityreport.DangerosityReport;
@@ -21,6 +22,8 @@ import ch.kalunight.zoe.model.dto.SavedMatch;
 import ch.kalunight.zoe.model.dto.SavedMatchPlayer;
 import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
 import ch.kalunight.zoe.model.dto.SavedSummoner;
+import ch.kalunight.zoe.model.player_data.FullTier;
+import ch.kalunight.zoe.model.player_data.Tier;
 import ch.kalunight.zoe.service.analysis.ChampionRole;
 import ch.kalunight.zoe.util.TeamUtil;
 import ch.kalunight.zoe.util.LoLQueueIdUtil;
@@ -39,13 +42,13 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
   protected static final List<TeamPlayerAnalysisDataCollector> summonerIdInWork = Collections.synchronizedList(new ArrayList<>());
 
   private String summonerId;
-  
+
   private SavedSummoner summoner;
 
   private Platform platform;
 
   private ChampionRole clashSelectedPosition;
-  
+
   private ChampionRole finalDeterminedPosition;
 
   private List<TeamPositionRated> determinedPositions;
@@ -53,11 +56,11 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
   private List<DataPerChampion> dataPerChampions;
 
   private Set<LeagueEntry> eloOfThePlayer;
-  
+
   private List<DangerosityReport> dangerosityReports;
-  
+
   private List<PickData> picksCompiledData;
-  
+
   private AtomicInteger nbrTop = new AtomicInteger();
   private AtomicInteger nbrJng = new AtomicInteger();
   private AtomicInteger nbrMid = new AtomicInteger();
@@ -114,7 +117,7 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
     }
 
     SavedChampionsMastery masteryPerChampions = Zoe.getRiotApi().getChampionMasteriesBySummonerWithRateLimit(platform, summonerId, false);
-    
+
     for(SavedSimpleMastery mastery : masteryPerChampions.getChampionMasteries()) {
       DataPerChampion dataOfChampion = getDataByChampion(mastery.getChampionId());
       if(dataOfChampion != null) {
@@ -221,20 +224,20 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
       }
     }while(needToWait);
   }
-  
+
   @Override
   public int compareTo(TeamPlayerAnalysisDataCollector objectToCompare) {
-    
+
     if(objectToCompare.getDeterminedPositions() == null) {
       return 0;
     }
-    
+
     if(objectToCompare.getFinalDeterminedPosition().getOrder() > finalDeterminedPosition.getOrder()) {
       return -1;
     }else if (objectToCompare.getFinalDeterminedPosition().getOrder() < finalDeterminedPosition.getOrder()) {
       return 1;
     }
-    
+
     return 0;
   }
 
@@ -253,7 +256,7 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
   public List<TeamPositionRated> getDeterminedPositions() {
     return determinedPositions;
   }
-  
+
   public TeamPositionRated getDeterminedPositionsByRole(ChampionRole role) {
     for(TeamPositionRated determinedPosition : determinedPositions) {
       if(determinedPosition.getChampionRole() == role) {
@@ -263,8 +266,54 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
     return null;
   }
 
+  public int getTotalNumberOfGames() {
+    int nbrOfGames = 0;
+    for(DataPerChampion data : dataPerChampions) {
+      nbrOfGames += data.getNumberOfGame();
+    }
+
+    return nbrOfGames;
+  }
+
+  public DataPerChampion getMostPlayedChampion() {
+    DataPerChampion championSelected = null;
+
+    for(DataPerChampion champion : dataPerChampions) {
+      if(championSelected == null || championSelected.getNumberOfGame() < champion.getNumberOfGame()) {
+        championSelected = champion;
+      }
+    }
+
+    return championSelected;
+  }
+
   public List<DataPerChampion> getDataPerChampions() {
     return dataPerChampions;
+  }
+
+  public DataPerChampion getDataPerChampionById(int championId) {
+    for(DataPerChampion champion : dataPerChampions) {
+      if(champion.getChampionId() == championId) {
+        return champion;
+      }
+    }
+    return null;
+  }
+
+  public FullTier getHeighestRank() {
+    FullTier fullTier = null;
+    try {
+      for(LeagueEntry entry : eloOfThePlayer) {
+        FullTier currentTestedElo = new FullTier(entry);
+        if((!currentTestedElo.getTier().equals(Tier.UNKNOWN) && !currentTestedElo.getTier().equals(Tier.UNRANKED))
+            && (fullTier == null || fullTier.value() < currentTestedElo.value())) {
+          fullTier = currentTestedElo;
+        }
+      }
+    }catch (NoValueRankException e) {
+      return null;
+    }
+    return fullTier;
   }
 
   public Set<LeagueEntry> getEloOfThePlayer() {

@@ -8,6 +8,18 @@ import ch.kalunight.zoe.util.TeamUtil;
 
 public class DangerosityReportFlexPick extends DangerosityReport {
 
+  private static final int FLEX_PICK_LOW_VALUE = 10;
+
+  private static final int FLEX_PICK_LOW_PLAYER_NEEDED = 2;
+  
+  private static final int FLEX_PICK_MEDIUM_VALUE = 20;
+
+  private static final int FLEX_PICK_MEDIUM_PLAYER_NEEDED = 3;
+  
+  private static final int FLEX_PICK_HIGH_VALUE = 30;
+
+  private static final int FLEX_PICK_HIGH_PLAYER_NEEDED = 4;
+  
   private List<ChampionRole> rolesWherePlayed;
   
   public DangerosityReportFlexPick(List<ChampionRole> flexRoles) {
@@ -30,6 +42,24 @@ public class DangerosityReportFlexPick extends DangerosityReport {
     }
     
     return String.format(LanguageManager.getText(lang, "dangerosityReportFlexPickInfo"), builder.toString());
+  }
+  
+  @Override
+  protected int getReportValue() {
+    
+    if(rolesWherePlayed.size() >= FLEX_PICK_HIGH_PLAYER_NEEDED) {
+      return FLEX_PICK_HIGH_VALUE;
+    }
+    
+    if(rolesWherePlayed.size() >= FLEX_PICK_MEDIUM_PLAYER_NEEDED) {
+      return FLEX_PICK_MEDIUM_VALUE;
+    }
+    
+    if(rolesWherePlayed.size() >= FLEX_PICK_LOW_PLAYER_NEEDED) {
+      return FLEX_PICK_LOW_VALUE;
+    }
+    
+    return BASE_SCORE;
   }
   
   public List<ChampionRole> getRolesWherePlayed() {

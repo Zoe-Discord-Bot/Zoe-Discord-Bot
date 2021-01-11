@@ -123,7 +123,6 @@ public class ServerChecker extends TimerTask {
           List<ClashChannel> clashChannels = ClashChannelRepository.getClashChannels(serverAskedTreatment.serv_guildId);
           
           for(ClashChannel clashChannel : clashChannels) {
-            
             ServerThreadsManager.getClashChannelExecutor().execute(new TreatClashChannel(serverAskedTreatment, clashChannel, true));
           }
         }

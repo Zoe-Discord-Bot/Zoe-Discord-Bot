@@ -10,11 +10,19 @@ import java.util.Map.Entry;
 import com.google.common.base.CharMatcher;
 
 import ch.kalunight.zoe.exception.ImpossibleToDeterminePositionException;
+import ch.kalunight.zoe.exception.NoValueRankException;
 import ch.kalunight.zoe.model.clash.DataPerChampion;
 import ch.kalunight.zoe.model.clash.TeamPlayerAnalysisDataCollector;
 import ch.kalunight.zoe.model.dangerosityreport.DangerosityReport;
+import ch.kalunight.zoe.model.dangerosityreport.DangerosityReportFlexPick;
+import ch.kalunight.zoe.model.dangerosityreport.DangerosityReportHighEloDiff;
 import ch.kalunight.zoe.model.dangerosityreport.DangerosityReportHighMastery;
 import ch.kalunight.zoe.model.dangerosityreport.DangerosityReportHighWinrate;
+import ch.kalunight.zoe.model.dangerosityreport.DangerosityReportLittleChampionPool;
+import ch.kalunight.zoe.model.dangerosityreport.DangerosityReportOTP;
+import ch.kalunight.zoe.model.dangerosityreport.PickData;
+import ch.kalunight.zoe.model.player_data.FullTier;
+import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.service.analysis.ChampionRole;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.rithms.riot.api.endpoints.clash.constant.TeamPosition;
@@ -37,7 +45,7 @@ public class TeamUtil {
       List<TeamPlayerAnalysisDataCollector> playersToStillDetermine = getPlayerToDetermine(playersToDetermine);
 
       giveToEachPlayerMostPlayedRole(rolesToDefine, playersToStillDetermine);
-      
+
       giveRemainingRoleRandomly(rolesToDefine, playersToStillDetermine);
 
     }else {
@@ -74,13 +82,13 @@ public class TeamUtil {
           }
         }
       }
-      
+
       if(heighestRatioPlayer != null) {
         heighestRatioPlayer.setFinalDeterminedPosition(heighestRationRole);
         playersToStillDetermine.remove(heighestRatioPlayer);
         rolesToDefine.remove(heighestRationRole);
       }
-      
+
       rolesToRemove--;
     }
   }
@@ -124,16 +132,93 @@ public class TeamUtil {
       }
     }
   }
-  
+
   public static void determineDangerosity(List<TeamPlayerAnalysisDataCollector> teamPlayersData) {
+
+    int totalRankValueOfPlayers = 0;
+    int numberOfPlayerRanked = 0;
+
     for(TeamPlayerAnalysisDataCollector playerToLoad : teamPlayersData) {
-      for(DataPerChampion champion : playerToLoad.getDataPerChampions()) {
+      generatePerChampionReport(playerToLoad);
+
+      FullTier eloOfPlayer = playerToLoad.getHeighestRank();
+      try {
+        if(eloOfPlayer != null) {
+          totalRankValueOfPlayers += eloOfPlayer.value();
+          numberOfPlayerRanked++;
+        }
+      }catch (NoValueRankException e) {
+        // This player has not a valid rank. So we just skip it.
+      }
+    }
+
+    manageHighEloReport(teamPlayersData, totalRankValueOfPlayers, numberOfPlayerRanked);
+
+    createFlexReport(teamPlayersData);
+    
+    generateChampionPick(teamPlayersData);
+  }
+
+  private static void generateChampionPick(List<TeamPlayerAnalysisDataCollector> teamPlayersData) {
+    for(TeamPlayerAnalysisDataCollector playerToTreat : teamPlayersData) {
+      for(DataPerChampion championToTreat : playerToTreat.getDataPerChampions()) {
+        List<DangerosityReport> combinedReport = new ArrayList<>();
+        combinedReport.addAll(championToTreat.getDangerosityReports());
+        combinedReport.addAll(playerToTreat.getDangerosityReports());
+        PickData pickForThisChampion = new PickData(playerToTreat.getSummonerId(), playerToTreat.getPlatform(),
+            playerToTreat.getSummoner(), championToTreat.getChampionId(), combinedReport);
         
-        List<DangerosityReport> dangerosityReportList = champion.getDangerosityReports();
-        
-        dangerosityReportList.add(new DangerosityReportHighMastery(champion.getMastery()));
-        dangerosityReportList.add(new DangerosityReportHighWinrate(champion.getWinrate(), champion.getNumberOfGame()));
-        
+        playerToTreat.getPicksCompiledData().add(pickForThisChampion);
+      }
+    }
+  }
+
+  private static void manageHighEloReport(List<TeamPlayerAnalysisDataCollector> teamPlayersData,
+      int totalRankValueOfPlayers, int numberOfPlayerRanked) {
+    if(numberOfPlayerRanked != 0) {
+      FullTier averageRank = new FullTier(totalRankValueOfPlayers / numberOfPlayerRanked); 
+
+      for(TeamPlayerAnalysisDataCollector playerToTreat : teamPlayersData) {
+        FullTier heighestRank = playerToTreat.getHeighestRank();
+        if(heighestRank != null) {
+          playerToTreat.getDangerosityReports().add(new DangerosityReportHighEloDiff(averageRank, heighestRank));
+        }
+      }
+    }
+  }
+
+  private static void generatePerChampionReport(TeamPlayerAnalysisDataCollector playerToLoad) {
+    for(DataPerChampion champion : playerToLoad.getDataPerChampions()) {
+
+      List<DangerosityReport> dangerosityReportList = champion.getDangerosityReports();
+
+      dangerosityReportList.add(new DangerosityReportHighMastery(champion.getMastery()));
+      dangerosityReportList.add(new DangerosityReportHighWinrate(champion.getWinrate(), champion.getNumberOfGame()));
+    }
+
+    playerToLoad.getDangerosityReports().add(new DangerosityReportLittleChampionPool(playerToLoad.getDataPerChampions().size()));
+
+    DataPerChampion champion = playerToLoad.getMostPlayedChampion();
+    if(champion != null) {
+      champion.getDangerosityReports().add(new DangerosityReportOTP(champion.getNumberOfGame() / (double) (playerToLoad.getTotalNumberOfGames() * 100)));
+    }
+  }
+
+  private static void createFlexReport(List<TeamPlayerAnalysisDataCollector> teamPlayersData) {
+    for(Champion championToCheck : Ressources.getChampions()) {
+      List<DataPerChampion> championPlayedPerRole = new ArrayList<>();
+      List<ChampionRole> rolesPlayed = new ArrayList<>();
+      for(TeamPlayerAnalysisDataCollector playerToCheck : teamPlayersData) {
+
+        DataPerChampion champion = playerToCheck.getDataPerChampionById(championToCheck.getKey());
+        if(champion != null) {
+          championPlayedPerRole.add(champion);
+          rolesPlayed.add(playerToCheck.getFinalDeterminedPosition());
+        }
+      }
+
+      for(DataPerChampion flexChampion : championPlayedPerRole) {
+        flexChampion.getDangerosityReports().add(new DangerosityReportFlexPick(rolesPlayed));
       }
     }
   }
@@ -179,7 +264,7 @@ public class TeamUtil {
       return "Error";
     }
   }
-  
+
   public static String getChampionRoleAbrID(ChampionRole championRole) {
     switch (championRole) {
     case ADC:

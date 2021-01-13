@@ -6,8 +6,10 @@ import ch.kalunight.zoe.service.analysis.ChampionRole;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.TeamUtil;
 
-public class DangerosityReportFlexPick extends DangerosityReport {
+public class DangerosityReportFlexPick extends DangerosityReport implements Comparable<DangerosityReportFlexPick> {
 
+  public static final int NUMBER_OF_GAME_NEEDED_TO_BE_CONSIDERED = 5;
+  
   private static final int FLEX_PICK_LOW_VALUE = 10;
 
   private static final int FLEX_PICK_LOW_PLAYER_NEEDED = 2;
@@ -22,9 +24,12 @@ public class DangerosityReportFlexPick extends DangerosityReport {
   
   private List<ChampionRole> rolesWherePlayed;
   
-  public DangerosityReportFlexPick(List<ChampionRole> flexRoles) {
+  private int cumuledGames;
+  
+  public DangerosityReportFlexPick(List<ChampionRole> flexRoles, int cumuledGames) {
     super(DangerosityReportType.FLEX_PICK);
     this.rolesWherePlayed = flexRoles;
+    this.cumuledGames = cumuledGames;
   }
 
   @Override
@@ -62,6 +67,26 @@ public class DangerosityReportFlexPick extends DangerosityReport {
     return BASE_SCORE;
   }
   
+  @Override
+  public int compareTo(DangerosityReportFlexPick objectToCheck) {
+    
+    if(objectToCheck.getCumuledGames() == getCumuledGames()) {
+      return 0;
+    }
+    
+    if(objectToCheck.getCumuledGames() > getCumuledGames()) {
+      return 1;
+    }else if(objectToCheck.getCumuledGames() < getCumuledGames()) {
+      return -1;
+    }
+    
+    return 0;
+  }
+  
+  public int getCumuledGames() {
+    return cumuledGames;
+  }
+
   public List<ChampionRole> getRolesWherePlayed() {
     return rolesWherePlayed;
   }

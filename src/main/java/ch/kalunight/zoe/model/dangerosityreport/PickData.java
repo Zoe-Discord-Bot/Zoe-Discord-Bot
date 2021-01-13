@@ -42,9 +42,9 @@ public class PickData implements Comparable<PickData> {
     }
     
     if(objectToPickData.getValueOfThePick() > getValueOfThePick()) {
-      return -1;
-    }else if (objectToPickData.getValueOfThePick() < getValueOfThePick()) {
       return 1;
+    }else if (objectToPickData.getValueOfThePick() < getValueOfThePick()) {
+      return -1;
     }
     
     return 0;

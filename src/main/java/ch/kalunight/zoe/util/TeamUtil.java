@@ -221,17 +221,19 @@ public class TeamUtil {
     for(Champion championToCheck : Ressources.getChampions()) {
       List<DataPerChampion> championPlayedPerRole = new ArrayList<>();
       List<ChampionRole> rolesPlayed = new ArrayList<>();
+      int cumuledGames = 0;
       for(TeamPlayerAnalysisDataCollector playerToCheck : teamPlayersData) {
 
         DataPerChampion champion = playerToCheck.getDataPerChampionById(championToCheck.getKey());
-        if(champion != null) {
+        if(champion != null && champion.getNumberOfGame() >= DangerosityReportFlexPick.NUMBER_OF_GAME_NEEDED_TO_BE_CONSIDERED) {
           championPlayedPerRole.add(champion);
+          cumuledGames += champion.getNumberOfGame();
           rolesPlayed.add(playerToCheck.getFinalDeterminedPosition());
         }
       }
 
       for(DataPerChampion flexChampion : championPlayedPerRole) {
-        flexChampion.getDangerosityReports().add(new DangerosityReportFlexPick(rolesPlayed));
+        flexChampion.getDangerosityReports().add(new DangerosityReportFlexPick(rolesPlayed, cumuledGames));
       }
     }
   }
@@ -364,9 +366,10 @@ public class TeamUtil {
     return teamPlayersData;
   }
 
-  public static List<DataPerChampion> getFlexPick(List<TeamPlayerAnalysisDataCollector> teamPlayersData) {
+  public static List<DataPerChampion> getFlexPickMostPlayed(List<TeamPlayerAnalysisDataCollector> teamPlayersData, int numberOfWantedFlexPick) {
 
     List<DataPerChampion> flexChampions = new ArrayList<>();
+    List<DangerosityReportFlexPick> flexPicksReport = new ArrayList<>();
     for(Champion championToCheck : Ressources.getChampions()) {
       boolean championFinded = false;
       for(TeamPlayerAnalysisDataCollector playerToCheck : teamPlayersData) {
@@ -377,6 +380,7 @@ public class TeamUtil {
               DangerosityReportFlexPick flexPickReport = (DangerosityReportFlexPick) report;
               if(flexPickReport.getReportValue() > DangerosityReport.BASE_SCORE) {
                 flexChampions.add(championData);
+                flexPicksReport.add(flexPickReport);
                 championFinded = true;
                 break;
               }
@@ -388,8 +392,37 @@ public class TeamUtil {
         }
       }
     }
+    
+    Collections.sort(flexPicksReport);
+    
+    List<DataPerChampion> flexChampionFiltered = new ArrayList<>();
+    
+    int championToGet = numberOfWantedFlexPick;
+    for(DangerosityReportFlexPick flexReport : flexPicksReport) {
+      
+      DataPerChampion champion = getChampionByReport(flexChampions, flexReport);
+      
+      if(champion != null) {
+        flexChampionFiltered.add(champion);
+      }
+      
+      championToGet--;
+      if(championToGet == 0) {
+        break;
+      }
+    }
 
-    return flexChampions;
+    return flexChampionFiltered;
+  }
+  
+  public static DataPerChampion getChampionByReport(List<DataPerChampion> championsToSearch, DangerosityReport report) {
+    for(DataPerChampion champion : championsToSearch) {
+      DangerosityReport reportToCheck = champion.getDangerosityReport(report.getReportType());
+      if(reportToCheck.equals(report)) {
+        return champion;
+      }
+    }
+    return null;
   }
 
   public static List<PickData> getHeighestDangerosity(List<TeamPlayerAnalysisDataCollector> players, int numberOfPickWanted) {

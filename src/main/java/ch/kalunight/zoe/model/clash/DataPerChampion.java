@@ -48,8 +48,8 @@ public class DataPerChampion implements Comparable<DataPerChampion> {
         }
       }
 
-      if(getNumberOfGame() == 0) {
-        winrate = nbrWin.doubleValue() / (nbrWin + nbrLose);
+      if(getNumberOfGame() != 0) {
+        winrate = (nbrWin.doubleValue() / (nbrWin + nbrLose)) * 100;
       }else {
         winrate = 0d;
       }

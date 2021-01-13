@@ -311,6 +311,8 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
     for(DataPerChampion dataPerChampion : dataPerChampions) {
       if(championWanted.size() < numberOfChampionsWanted) {
         championWanted.add(dataPerChampion);
+      }else {
+        break;
       }
     }
     return championWanted;

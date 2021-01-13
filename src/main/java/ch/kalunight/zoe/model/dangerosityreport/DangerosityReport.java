@@ -6,7 +6,7 @@ public abstract class DangerosityReport {
 
   public static final int BASE_SCORE = 0;
   
-  public static final DecimalFormat POURCENTAGE_FORMAT = new DecimalFormat("###,#");
+  public static final DecimalFormat POURCENTAGE_FORMAT = new DecimalFormat("###.#");
 
   private DangerosityReportType reportType;
   

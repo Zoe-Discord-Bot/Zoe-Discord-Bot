@@ -6,6 +6,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -154,7 +155,8 @@ public class TreatClashChannel implements Runnable {
         firstClashTeam.team.getName(),
         firstClashTeam.team.getTier().getTier()) + "**\n");
     
-    int playerShowed = 0;
+    Collections.sort(teamPlayersData);
+    
     for(TeamPlayerAnalysisDataCollector playerToShow : teamPlayersData) {
       
       String translationRole = LanguageManager.getText(server.serv_language, TeamUtil.getChampionRoleAbrID(playerToShow.getFinalDeterminedPosition()));
@@ -164,28 +166,25 @@ public class TreatClashChannel implements Runnable {
       FullTier rank = playerToShow.getHeighestRank();
       
       if(rank != null) {
-        elo = playerToShow.getHeighestRankType(server.serv_language) + rank.toString(server.serv_language);
+        elo = playerToShow.getHeighestRankType(server.serv_language) + " : " + rank.toString(server.serv_language);
       }
       
       messageBuilder.append("**" + String.format(LanguageManager.getText(server.serv_language, "clashChannelClashTournamentPlayerData"), translationRole,
           playerToShow.getSummoner().getName(), elo) + "**");
       
-      playerShowed++;
-      if(playerShowed < teamPlayersData.size()) {
-        messageBuilder.append("\n");
-      }
-      
-      messageBuilder.append(" -> ");
+      messageBuilder.append("\n");
       
       List<DataPerChampion> champions = playerToShow.getMostPlayedChampions(3);
       
       int championToLoad = champions.size();
       for(DataPerChampion champion : champions) {
+        messageBuilder.append("  -> ");
+        
         Champion championData = Ressources.getChampionDataById(champion.getChampionId());
         
         String championString = LanguageManager.getText(server.serv_language, "unknown");
         if(championData != null) {
-          championString = championData.getEmoteUsable() + " " + championData.getDisplayName();
+          championString = championData.getEmoteUsable() + " " + championData.getName();
         }
         
         String winrate = LanguageManager.getText(server.serv_language, "unknown");
@@ -205,36 +204,44 @@ public class TreatClashChannel implements Runnable {
           } 
         }
         
-        messageBuilder.append(String.format(LanguageManager.getText(server.serv_language, "clashChannelClashTournamentPlayerDataChampion"), championString, nbrGames, winrate, masteryPoint));
+        messageBuilder.append(String.format(LanguageManager.getText(server.serv_language, "clashChannelClashTournamentPlayerDataChampion"),
+            championString, Integer.toString(nbrGames), winrate + "%", masteryPoint));
         championToLoad--;
         if(championToLoad != 0) {
-          messageBuilder.append(", ");
+          messageBuilder.append("\n");
         }
       }
       
       messageBuilder.append("\n\n"); 
     }
     
-    List<DataPerChampion> championsFlex = TeamUtil.getFlexPick(teamPlayersData);
+    List<DataPerChampion> championsFlex = TeamUtil.getFlexPickMostPlayed(teamPlayersData, 3);
     
     StringBuilder flexChampionsText = new StringBuilder();
     
-    int championToTreat = championsFlex.size();
+    int championToTreat;
+    
+    if(championsFlex.size() < 3) {
+      championToTreat = championsFlex.size();
+    }else {
+      championToTreat = 3;
+    }
+    
     for(DataPerChampion flexPick : championsFlex) {
       Champion championData = Ressources.getChampionDataById(flexPick.getChampionId());
       
       String championString = LanguageManager.getText(server.serv_language, "unknown");
       if(championData != null) {
-        championString = championData.getEmoteUsable() + " " + championData.getDisplayName();
+        championString = championData.getEmoteUsable() + " " + championData.getName();
       }
       
-      flexChampionsText.append(championString + " (");
+      flexChampionsText.append(championString + " ("); 
       
       DangerosityReportFlexPick flexReport = (DangerosityReportFlexPick) flexPick.getDangerosityReport(DangerosityReportType.FLEX_PICK);
       int roleToTreat = flexReport.getRolesWherePlayed().size();
       for(ChampionRole role : flexReport.getRolesWherePlayed()) {
         
-        flexChampionsText.append(TeamUtil.getChampionRoleAbrID(role));
+        flexChampionsText.append(LanguageManager.getText(server.serv_language, TeamUtil.getChampionRoleAbrID(role)));
         
         roleToTreat--;
         if(roleToTreat != 0) {
@@ -247,6 +254,8 @@ public class TreatClashChannel implements Runnable {
       championToTreat--;
       if(championToTreat != 0) {
         flexChampionsText.append(", ");
+      }else {
+        break;
       }
     }
     
@@ -257,12 +266,12 @@ public class TreatClashChannel implements Runnable {
     StringBuilder dangerChampionsText = new StringBuilder();
     
     int pickToTreat = dangerousPlayers.size();
-    for(DataPerChampion flexPick : championsFlex) {
-      Champion championData = Ressources.getChampionDataById(flexPick.getChampionId());
+    for(PickData dangerousData : dangerousPlayers) {
+      Champion championData = Ressources.getChampionDataById(dangerousData.getChampionId());
       
       String championString = LanguageManager.getText(server.serv_language, "unknown");
       if(championData != null) {
-        championString = championData.getEmoteUsable() + " " + championData.getDisplayName();
+        championString = championData.getEmoteUsable() + " " + championData.getName();
       }
       
       dangerChampionsText.append(championString);
@@ -272,7 +281,7 @@ public class TreatClashChannel implements Runnable {
       }
     }
     
-    messageBuilder.append(dangerChampionsText.toString());
+    messageBuilder.append(String.format(LanguageManager.getText(server.serv_language, "clashChannelClashTournamentPotentialBamAgainstAlly"), dangerChampionsText.toString()) + "\n");
     
     editOrCreateTheseMessages(clashMessageManager.getInfoMessagesId(), messageBuilder.toString());
   }

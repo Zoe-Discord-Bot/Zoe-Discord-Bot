@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.exception.NoValueRankException;
+import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.MatchReceiver;
 import ch.kalunight.zoe.model.TeamPositionRated;
 import ch.kalunight.zoe.model.dangerosityreport.DangerosityReport;
@@ -25,6 +26,7 @@ import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.model.player_data.Tier;
 import ch.kalunight.zoe.service.analysis.ChampionRole;
+import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.TeamUtil;
 import ch.kalunight.zoe.util.LoLQueueIdUtil;
 import ch.kalunight.zoe.util.request.RiotRequest;
@@ -161,6 +163,7 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
 
     if(winrate == null) {
       winrate = new DataPerChampion(playerInMatch.getChampionId(), new ArrayList<>());
+      dataPerChampions.add(winrate);
     }
 
     winrate.getMatchs().add(match);
@@ -299,6 +302,19 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
     }
     return null;
   }
+  
+  public List<DataPerChampion> getMostPlayedChampions(int numberOfChampionsWanted){
+    List<DataPerChampion> championWanted = new ArrayList<>();
+    
+    Collections.sort(dataPerChampions);
+    
+    for(DataPerChampion dataPerChampion : dataPerChampions) {
+      if(championWanted.size() < numberOfChampionsWanted) {
+        championWanted.add(dataPerChampion);
+      }
+    }
+    return championWanted;
+  }
 
   public FullTier getHeighestRank() {
     FullTier fullTier = null;
@@ -314,6 +330,33 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
       return null;
     }
     return fullTier;
+  }
+  
+  public String getHeighestRankType(String lang) {
+    FullTier fullTier = null;
+    LeagueEntry heighestEntry = null;
+    try {
+      for(LeagueEntry entry : eloOfThePlayer) {
+        FullTier currentTestedElo = new FullTier(entry);
+        if((!currentTestedElo.getTier().equals(Tier.UNKNOWN) && !currentTestedElo.getTier().equals(Tier.UNRANKED))
+            && (fullTier == null || fullTier.value() < currentTestedElo.value())) {
+          fullTier = currentTestedElo;
+          heighestEntry = entry;
+        }
+      }
+    }catch (NoValueRankException e) {
+      return null;
+    }
+    
+    if(heighestEntry == null) {
+      return null;
+    }
+    
+    if(heighestEntry.getQueueType().equals(GameQueueConfigId.SOLOQ.getQueueType())) {
+      return LanguageManager.getText(lang, GameQueueConfigId.SOLOQ.getNameId());
+    }else {
+      return LanguageManager.getText(lang, GameQueueConfigId.FLEX.getNameId());
+    }
   }
 
   public Set<LeagueEntry> getEloOfThePlayer() {

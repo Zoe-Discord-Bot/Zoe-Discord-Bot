@@ -26,12 +26,12 @@ public class DangerosityReportHighMastery extends DangerosityReport {
   }
 
   @Override
-  protected String getInfoToShow(String lang) {
+  public String getInfoToShow(String lang) {
     return String.format(LanguageManager.getText(lang, "dangerosityReportHighMasteryInfo"), LanguageUtil.convertMasteryToReadableText(mastery));
   }
 
   @Override
-  protected int getReportValue() {
+  public int getReportValue() {
 
     if(mastery.getChampionPoints() > HIGH_MASTERY_HIGH_MASTERY_NEEDED) {
       return HIGH_MASTERY_HIGH_VALUE;
@@ -52,4 +52,8 @@ public class DangerosityReportHighMastery extends DangerosityReport {
     return mastery.getChampionPoints();
   }
 
+  public SavedSimpleMastery getRawMastery() {
+    return mastery;
+  }
+  
 }

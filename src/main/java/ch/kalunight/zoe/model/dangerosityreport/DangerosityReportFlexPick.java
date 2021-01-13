@@ -28,7 +28,7 @@ public class DangerosityReportFlexPick extends DangerosityReport {
   }
 
   @Override
-  protected String getInfoToShow(String lang) {
+  public String getInfoToShow(String lang) {
     StringBuilder builder = new StringBuilder();
     
     int treated = 0;
@@ -45,7 +45,7 @@ public class DangerosityReportFlexPick extends DangerosityReport {
   }
   
   @Override
-  protected int getReportValue() {
+  public int getReportValue() {
     
     if(rolesWherePlayed.size() >= FLEX_PICK_HIGH_PLAYER_NEEDED) {
       return FLEX_PICK_HIGH_VALUE;

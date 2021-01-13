@@ -24,12 +24,12 @@ public class DangerosityReportLittleChampionPool extends DangerosityReport {
   }
 
   @Override
-  protected String getInfoToShow(String lang) {
+  public String getInfoToShow(String lang) {
     return String.format(LanguageManager.getText(lang, "dangerosityReportLittleChampionPoolInfo"), championPoolSize);
   }
 
   @Override
-  protected int getReportValue() {
+  public int getReportValue() {
     
     if(LITTLE_CHAMPION_POOL_HIGH_CHAMPIONS_POOL_MINIMUM >= championPoolSize) {
       return LITTLE_CHAMPION_POOL_HIGH_VALUE;

@@ -29,16 +29,20 @@ public class DangerosityReportHighWinrate extends DangerosityReport {
   }
 
   @Override
-  protected String getInfoToShow(String lang) {
-    return String.format(LanguageManager.getText(lang, "dangerosityReportHighWinrateInfo"), pourcentageFormat.format(winrate), nbrGames);
+  public String getInfoToShow(String lang) {
+    return String.format(LanguageManager.getText(lang, "dangerosityReportHighWinrateInfo"), POURCENTAGE_FORMAT.format(winrate), nbrGames);
   }
 
   public double getWinrate() {
     return winrate;
   }
+  
+  public int getNbrGames() {
+    return nbrGames;
+  }
 
   @Override
-  protected int getReportValue() {
+  public int getReportValue() {
     
     if(nbrGames >= HIGH_WINRATE_MINIMAL_NUMBER_OF_GAME_NEEDED) {
       if(HIGH_WINRATE_HIGH_WINRATE_NEEDED <= winrate) {
@@ -56,5 +60,4 @@ public class DangerosityReportHighWinrate extends DangerosityReport {
     
     return BASE_SCORE;
   }
-
 }

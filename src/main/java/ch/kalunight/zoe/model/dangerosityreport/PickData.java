@@ -5,7 +5,7 @@ import java.util.List;
 import ch.kalunight.zoe.model.dto.SavedSummoner;
 import net.rithms.riot.constant.Platform;
 
-public class PickData {
+public class PickData implements Comparable<PickData> {
 
   private String summonerId;
   
@@ -32,6 +32,22 @@ public class PickData {
     }
     
     return totalValue;
+  }
+  
+  @Override
+  public int compareTo(PickData objectToPickData) {
+
+    if(getValueOfThePick() == objectToPickData.getValueOfThePick()) {
+      return 0;
+    }
+    
+    if(objectToPickData.getValueOfThePick() > getValueOfThePick()) {
+      return -1;
+    }else if (objectToPickData.getValueOfThePick() < getValueOfThePick()) {
+      return 1;
+    }
+    
+    return 0;
   }
   
   public String getSummonerId() {

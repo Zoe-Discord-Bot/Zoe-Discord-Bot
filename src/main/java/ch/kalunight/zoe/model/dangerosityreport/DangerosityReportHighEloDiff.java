@@ -29,12 +29,12 @@ public class DangerosityReportHighEloDiff extends DangerosityReport {
   }
 
   @Override
-  protected String getInfoToShow(String lang) {
+  public String getInfoToShow(String lang) {
     return String.format(LanguageManager.getText(lang, "dangerosityReportHighEloDiffInfo"), player.toStringWithoutLp(lang));
   }
   
   @Override
-  protected int getReportValue() {
+  public int getReportValue() {
     
     int rankDiff;
     try {

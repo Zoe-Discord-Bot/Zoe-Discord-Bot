@@ -16,8 +16,8 @@ public class DangerosityReportOTP extends DangerosityReport {
   }
 
   @Override
-  protected String getInfoToShow(String lang) {
-    return String.format(LanguageManager.getText(lang, "dangerosityReportOTPInfo"), pourcentageFormat.format(playRatio));
+  public String getInfoToShow(String lang) {
+    return String.format(LanguageManager.getText(lang, "dangerosityReportOTPInfo"), POURCENTAGE_FORMAT.format(playRatio));
   }
   
   public double getPlayRatio() {
@@ -25,7 +25,7 @@ public class DangerosityReportOTP extends DangerosityReport {
   }
 
   @Override
-  protected int getReportValue() {
+  public int getReportValue() {
     if(OTP_MINIMUM_RATIO >= playRatio) {
       return OTP_VALUE;
     }

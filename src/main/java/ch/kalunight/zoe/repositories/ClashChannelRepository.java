@@ -51,7 +51,7 @@ public class ClashChannelRepository {
     //hide default public constructor
   }
   
-  public static void updateChampionsRoles(ClashChannelData clashMessages, Long clashChannelId) throws SQLException {
+  public static void updateClashChannel(ClashChannelData clashMessages, Long clashChannelId) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
       

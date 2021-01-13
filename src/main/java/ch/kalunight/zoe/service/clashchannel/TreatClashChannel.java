@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -17,6 +18,7 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.ClashStatus;
+import ch.kalunight.zoe.model.ComparableMessage;
 import ch.kalunight.zoe.model.clash.DataPerChampion;
 import ch.kalunight.zoe.model.clash.TeamPlayerAnalysisDataCollector;
 import ch.kalunight.zoe.model.dangerosityreport.DangerosityReport;
@@ -28,6 +30,8 @@ import ch.kalunight.zoe.model.dangerosityreport.PickData;
 import ch.kalunight.zoe.model.dto.ClashChannelData;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.ClashChannel;
+import ch.kalunight.zoe.model.dto.DTO.InfoChannel;
+import ch.kalunight.zoe.model.dto.DTO.InfoPanelMessage;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.dto.DTO.SummonerCache;
@@ -36,6 +40,7 @@ import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.repositories.ClashChannelRepository;
 import ch.kalunight.zoe.repositories.CurrentGameInfoRepository;
+import ch.kalunight.zoe.repositories.InfoChannelRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.SummonerCacheRepository;
 import ch.kalunight.zoe.service.analysis.ChampionRole;
@@ -45,6 +50,7 @@ import ch.kalunight.zoe.util.Ressources;
 import ch.kalunight.zoe.util.TeamUtil;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageReaction;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.requests.ErrorResponse;
@@ -133,6 +139,12 @@ public class TreatClashChannel implements Runnable {
         break;
       }
 
+      checkMessageDisplaySync(clashMessageManager.getAllClashChannel(), clashChannel);
+
+      ClashChannelRepository.updateClashChannel(clashMessageManager, clashChannelDB.clashChannel_id);
+
+      clearLoadingEmote(clashMessageManager);
+      
     }catch(Exception e) {
       logger.error("Error while loading the clash channel", e);
     }
@@ -143,67 +155,67 @@ public class TreatClashChannel implements Runnable {
 
     List<ClashTeamMember> teamMembers = firstClashTeam.team.getPlayers();
     List<TeamPlayerAnalysisDataCollector> teamPlayersData = TeamUtil.getTeamPlayersData(clashMessageManager, teamMembers);
-    
+
     StringBuilder messageBuilder = new StringBuilder();
 
     messageBuilder.append("**" + String.format(LanguageManager.getText(server.serv_language, "clashChannelTitle"), summonerCache.getName(),
         clashMessageManager.getSelectedPlatform().getName().toUpperCase()) + "**\n\n");
 
     addRegisteredInfo(clashMessageManager, firstClashTeam, summonerCache, messageBuilder);
-    
+
     messageBuilder.append("**" + String.format(LanguageManager.getText(server.serv_language, "clashChannelClashTournamentTeamNameStats"), firstClashTeam.team.getAbbreviation(),
         firstClashTeam.team.getName(),
         firstClashTeam.team.getTier().getTier()) + "**\n");
-    
+
     Collections.sort(teamPlayersData);
-    
+
     for(TeamPlayerAnalysisDataCollector playerToShow : teamPlayersData) {
-      
+
       String translationRole = LanguageManager.getText(server.serv_language, TeamUtil.getChampionRoleAbrID(playerToShow.getFinalDeterminedPosition()));
-      
+
       String elo = LanguageManager.getText(server.serv_language, "unranked");
-      
+
       FullTier rank = playerToShow.getHeighestRank();
-      
+
       if(rank != null) {
         elo = playerToShow.getHeighestRankType(server.serv_language) + " : " + rank.toString(server.serv_language);
       }
-      
+
       messageBuilder.append("**" + String.format(LanguageManager.getText(server.serv_language, "clashChannelClashTournamentPlayerData"), translationRole,
           playerToShow.getSummoner().getName(), elo) + "**");
-      
+
       messageBuilder.append("\n");
-      
+
       List<DataPerChampion> champions = playerToShow.getMostPlayedChampions(3);
-      
+
       int championToLoad = champions.size();
       for(DataPerChampion champion : champions) {
         messageBuilder.append("  -> ");
-        
+
         Champion championData = Ressources.getChampionDataById(champion.getChampionId());
-        
+
         String championString = LanguageManager.getText(server.serv_language, "unknown");
         if(championData != null) {
           championString = championData.getEmoteUsable() + " " + championData.getName();
         }
-        
+
         String winrate = LanguageManager.getText(server.serv_language, "unknown");
         int nbrGames = 0;
         String masteryPoint = "0";
-        
+
         for(DangerosityReport report : champion.getDangerosityReports()) {
           if(report instanceof DangerosityReportHighWinrate) {
             DangerosityReportHighWinrate winrateReport = (DangerosityReportHighWinrate) report;
             winrate = DangerosityReport.POURCENTAGE_FORMAT.format(winrateReport.getWinrate());
             nbrGames = winrateReport.getNbrGames();
           }
-          
+
           if(report instanceof DangerosityReportHighMastery) {
             DangerosityReportHighMastery masteryReport = (DangerosityReportHighMastery) report;
             masteryPoint = LanguageUtil.convertMasteryToReadableText(masteryReport.getRawMastery());
           } 
         }
-        
+
         messageBuilder.append(String.format(LanguageManager.getText(server.serv_language, "clashChannelClashTournamentPlayerDataChampion"),
             championString, Integer.toString(nbrGames), winrate + "%", masteryPoint));
         championToLoad--;
@@ -211,38 +223,38 @@ public class TreatClashChannel implements Runnable {
           messageBuilder.append("\n");
         }
       }
-      
+
       messageBuilder.append("\n\n"); 
     }
-    
+
     List<DataPerChampion> championsFlex = TeamUtil.getFlexPickMostPlayed(teamPlayersData, 3);
-    
+
     StringBuilder flexChampionsText = new StringBuilder();
-    
+
     int championToTreat;
-    
+
     if(championsFlex.size() < 3) {
       championToTreat = championsFlex.size();
     }else {
       championToTreat = 3;
     }
-    
+
     for(DataPerChampion flexPick : championsFlex) {
       Champion championData = Ressources.getChampionDataById(flexPick.getChampionId());
-      
+
       String championString = LanguageManager.getText(server.serv_language, "unknown");
       if(championData != null) {
         championString = championData.getEmoteUsable() + " " + championData.getName();
       }
-      
+
       flexChampionsText.append(championString + " ("); 
-      
+
       DangerosityReportFlexPick flexReport = (DangerosityReportFlexPick) flexPick.getDangerosityReport(DangerosityReportType.FLEX_PICK);
       int roleToTreat = flexReport.getRolesWherePlayed().size();
       for(ChampionRole role : flexReport.getRolesWherePlayed()) {
-        
+
         flexChampionsText.append(LanguageManager.getText(server.serv_language, TeamUtil.getChampionRoleAbrID(role)));
-        
+
         roleToTreat--;
         if(roleToTreat != 0) {
           flexChampionsText.append(", ");
@@ -250,7 +262,7 @@ public class TreatClashChannel implements Runnable {
           flexChampionsText.append(")");
         }
       }
-      
+
       championToTreat--;
       if(championToTreat != 0) {
         flexChampionsText.append(", ");
@@ -258,31 +270,31 @@ public class TreatClashChannel implements Runnable {
         break;
       }
     }
-    
+
     messageBuilder.append(String.format(LanguageManager.getText(server.serv_language, "clashChannelClashTournamentPotentialFlexPick"), flexChampionsText.toString()) + "\n");
-    
+
     List<PickData> dangerousPlayers = TeamUtil.getHeighestDangerosity(teamPlayersData, 3);
-    
+
     StringBuilder dangerChampionsText = new StringBuilder();
-    
+
     int pickToTreat = dangerousPlayers.size();
     for(PickData dangerousData : dangerousPlayers) {
       Champion championData = Ressources.getChampionDataById(dangerousData.getChampionId());
-      
+
       String championString = LanguageManager.getText(server.serv_language, "unknown");
       if(championData != null) {
         championString = championData.getEmoteUsable() + " " + championData.getName();
       }
-      
+
       dangerChampionsText.append(championString);
       pickToTreat--;
       if(pickToTreat != 0) {
         dangerChampionsText.append(", ");
       }
     }
-    
+
     messageBuilder.append(String.format(LanguageManager.getText(server.serv_language, "clashChannelClashTournamentPotentialBamAgainstAlly"), dangerChampionsText.toString()) + "\n");
-    
+
     editOrCreateTheseMessages(clashMessageManager.getInfoMessagesId(), messageBuilder.toString());
   }
 
@@ -296,7 +308,7 @@ public class TreatClashChannel implements Runnable {
 
     addRegisteredInfo(clashMessageManager, firstClashTeam, summonerCache, messageBuilder);
 
-   
+
     messageBuilder.append("**" + String.format(LanguageManager.getText(server.serv_language, "clashChannelClashTournamentTeamName"), firstClashTeam.team.getAbbreviation(),
         firstClashTeam.team.getName(),
         firstClashTeam.team.getTier().getTier()) + "**\n");
@@ -345,7 +357,7 @@ public class TreatClashChannel implements Runnable {
     addTeamMembersTextByPosition(TeamPosition.BOTTOM, firstClashTeam.team.getPlayers(), messageBuilder, clashMessageManager.getSelectedPlatform());
     messageBuilder.append("\n");
     addTeamMembersTextByPosition(TeamPosition.UTILITY, firstClashTeam.team.getPlayers(), messageBuilder, clashMessageManager.getSelectedPlatform());
-    
+
     List<ClashTeamMember> membersFill = TeamUtil.getPlayerByPosition(TeamPosition.FILL, firstClashTeam.team.getPlayers());
     if(!membersFill.isEmpty()) {
       messageBuilder.append("\n");
@@ -491,20 +503,25 @@ public class TreatClashChannel implements Runnable {
     return CLASH_TOURNAMENT_DATE_TIME_PATTERN.format(dateTimeRegistrationToShow) + "-" + CLASH_TOURNAMENT_TIME_ONLY_PATTERN.format(dateTimeStartToShow);
   }
 
-  private void editOrCreateTheseMessages(List<Long> infoMessagesId, String messageToSend) {
+  private void editOrCreateTheseMessages(List<Long> messageListToUpdate, String messageToSend) {
 
     List<Message> messageToEditOrDelete = new ArrayList<>();
+    List<Long> messagesNotFound = new ArrayList<>();
 
-    for(Long messageId : infoMessagesId) {
+    for(Long messageId : messageListToUpdate) {
       try {
         messageToEditOrDelete.add(clashChannel.retrieveMessageById(messageId).complete());
       }catch(ErrorResponseException e) {
         if(!e.getErrorResponse().equals(ErrorResponse.UNKNOWN_MESSAGE)) {
           logger.error("Unexpected error when getting a message", e);
           throw e;
+        }else {
+          messagesNotFound.add(messageId);
         }
       }
     }
+
+    messageListToUpdate.removeAll(messagesNotFound);
 
     List<String> messagesToSendCutted = CommandEvent.splitMessage(messageToSend); 
 
@@ -518,6 +535,7 @@ public class TreatClashChannel implements Runnable {
           messageToGet++;
           messagesToTreat++;
         }else {
+          messageListToUpdate.remove(messageToTreat.getIdLong());
           messageToTreat.delete().queue();
         }
       }
@@ -536,7 +554,7 @@ public class TreatClashChannel implements Runnable {
           messageToEditOrDelete.get(messagesAlreadyTreated).editMessage(messageToEditOrCreate).queue();
           messagesAlreadyTreated++;
         }else {
-          clashChannel.sendMessage(messageToEditOrCreate).queue();
+          messageListToUpdate.add(clashChannel.sendMessage(messageToEditOrCreate).complete().getIdLong());
         }
       }
     }
@@ -544,11 +562,7 @@ public class TreatClashChannel implements Runnable {
   }
 
   private void cleanClashChannel(ClashChannelData clashMessageManager) {
-    List<Long> allMessagesToBeSaved = new ArrayList<>();
-
-    allMessagesToBeSaved.addAll(clashMessageManager.getInfoMessagesId());
-    allMessagesToBeSaved.addAll(clashMessageManager.getEnemyTeamMessages());
-    allMessagesToBeSaved.add(clashMessageManager.getGameCardId());
+    List<Long> allMessagesToBeSaved = clashMessageManager.getAllClashChannel();
 
     List<Message> messagesToDelete = clashChannel.getIterableHistory().stream()
         .limit(1000)
@@ -560,6 +574,46 @@ public class TreatClashChannel implements Runnable {
     }else {
       for(Message messageToDelete : messagesToDelete) {
         messageToDelete.delete().queue();
+      }
+    }
+
+    addLoadingEmote(clashMessageManager);
+  }
+
+  private void clearLoadingEmote(ClashChannelData clashMessageManager) {
+    for(Long messageToClear : clashMessageManager.getInfoMessagesId()) {
+
+      Message retrievedMessage;
+      try {
+        retrievedMessage = clashChannel.retrieveMessageById(messageToClear).complete();
+      } catch (ErrorResponseException e) {
+        logger.warn("Error when deleting loading emote : {}", e.getMessage(), e);
+        continue;
+      }
+
+      if(retrievedMessage != null) {
+        for(MessageReaction messageReaction : retrievedMessage.getReactions()) {
+          try {
+            messageReaction.removeReaction(Zoe.getJda().getSelfUser()).queue();
+          } catch (ErrorResponseException e) {
+            if(e.getErrorResponse() != ErrorResponse.MISSING_PERMISSIONS) {
+              logger.warn("Error when removing reaction : {}", e.getMessage(), e);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private void addLoadingEmote(ClashChannelData clashMessageManager) {
+    for(Long clashChannelId : clashMessageManager.getInfoMessagesId()) {
+      try {
+        Message message = clashChannel.retrieveMessageById(clashChannelId).complete();
+        message.addReaction("U+23F3").complete();
+      }catch(ErrorResponseException e) {
+        if(e.getErrorResponse() != ErrorResponse.MISSING_PERMISSIONS) {
+          throw e;
+        }
       }
     }
   }
@@ -638,5 +692,59 @@ public class TreatClashChannel implements Runnable {
 
     }
     return teamRegistration;
+  }
+
+  private void checkMessageDisplaySync(List<Long> allClashMessages, TextChannel clashChannel) {
+
+    List<Message> messagesToCheck = new ArrayList<>();
+    for(Long messageIdToLoad : allClashMessages) {
+      Message message = clashChannel.retrieveMessageById(messageIdToLoad).complete();
+      messagesToCheck.add(message);
+    }
+
+    boolean needToResend = false;
+
+    List<Message> orderedMessage = orderMessagesByTime(messagesToCheck);
+
+    for(Message messageToCompare : orderedMessage) {
+      for(Message secondMessageToCompare : orderedMessage) {
+        if(messageToCompare.getIdLong() != secondMessageToCompare.getIdLong()) {
+          if(messageToCompare.getTimeCreated().until(secondMessageToCompare.getTimeCreated(), ChronoUnit.MINUTES) > 5) {
+            needToResend = true;
+          }
+        }
+      }
+    }
+
+    if(needToResend) {
+
+      List<String> messagesTextToResend = new ArrayList<>();
+
+      for(Message messageToDelete : orderedMessage) {
+        messagesTextToResend.add(messageToDelete.getContentRaw());
+        messageToDelete.delete().queue();
+      }
+
+      for(String messageTextToString : messagesTextToResend) {
+        clashChannel.sendMessage(messageTextToString).queue();
+      }
+    }
+  }
+
+  private List<Message> orderMessagesByTime(List<Message> messagesToCheck) {
+
+    List<ComparableMessage> messagesToOrder = new ArrayList<>();
+
+    for(Message message : messagesToCheck) {
+      messagesToOrder.add(new ComparableMessage(message));
+    }
+
+    Collections.sort(messagesToOrder); 
+
+    List<Message> messagesOrdered = new ArrayList<>();
+    for(ComparableMessage messageOrdered : messagesToOrder) {
+      messagesOrdered.add(messageOrdered.getMessage());
+    }
+    return messagesOrdered;
   }
 }

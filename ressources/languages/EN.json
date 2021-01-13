@@ -487,7 +487,7 @@
 	"dangerosityReportLittleChampionPoolInfo" : "Small Champion Pool : %d",
 	"dangerosityReportFlexPickInfo" : "Flex pick : %s",
 	"clashChannelClashTournamentTeamNameStats": "%s - %s | Tier %d | Stats :",
-	"clashChannelClashTournamentPlayerData" : "%s %s (%s) :",
+	"clashChannelClashTournamentPlayerData" : "%s : %s (%s)",
 	"clashChannelClashTournamentPlayerDataChampion" : "%s (%s Games | %s Winrate | %s Mastery)",
 	"clashChannelClashTournamentPotentialFlexPick" : "Potential Flex pick : %s",
 	"clashChannelClashTournamentPotentialBamAgainstAlly" : "Probable ban against your team : %s"

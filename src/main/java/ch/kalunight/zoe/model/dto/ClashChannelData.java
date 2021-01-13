@@ -1,5 +1,6 @@
 package ch.kalunight.zoe.model.dto;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import net.rithms.riot.constant.Platform;
@@ -12,7 +13,7 @@ public class ClashChannelData {
   private Platform selectedPlatform;
   private String selectedSummonerId;
   private ClashStatus clashStatus;
-  
+
   public ClashChannelData(List<Long> infoMessagesId, List<Long> teamsSpecificInfo, Long gameCardId, Platform selectedPlatform, String selectedSummonerId, ClashStatus clashStatus) {
     this.infoMessagesId = infoMessagesId;
     this.enemyTeamMessages = teamsSpecificInfo;
@@ -20,6 +21,17 @@ public class ClashChannelData {
     this.selectedPlatform = selectedPlatform;
     this.selectedSummonerId = selectedSummonerId;
     this.clashStatus = clashStatus;
+  }
+
+  public List<Long> getAllClashChannel() {
+    List<Long> cumuledAllMessage = new ArrayList<>();
+
+    cumuledAllMessage.addAll(infoMessagesId);
+    cumuledAllMessage.addAll(enemyTeamMessages);
+    if(gameCardId != null) {
+      cumuledAllMessage.add(gameCardId);
+    }
+    return cumuledAllMessage;
   }
 
   public List<Long> getInfoMessagesId() {
@@ -37,7 +49,7 @@ public class ClashChannelData {
   public void setTeamsSpecificInfo(List<Long> teamsSpecificInfo) {
     this.enemyTeamMessages = teamsSpecificInfo;
   }
-  
+
   public Platform getSelectedPlatform() {
     return selectedPlatform;
   }
@@ -69,5 +81,5 @@ public class ClashChannelData {
   public void setGameCardId(Long gameCardId) {
     this.gameCardId = gameCardId;
   }
-  
+
 }

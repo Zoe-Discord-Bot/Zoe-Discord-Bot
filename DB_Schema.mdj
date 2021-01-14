@@ -4063,6 +4063,36 @@
 										},
 										{
 											"_type": "ERDColumnView",
+											"_id": "AAAAAAF3Ay8bM3fKuxk=",
+											"_parent": {
+												"$ref": "AAAAAAF1K2Kw59x8egk="
+											},
+											"model": {
+												"$ref": "AAAAAAF3Ay8a/nfHl+U="
+											},
+											"font": "Arial;13;0",
+											"left": 1069,
+											"top": 897,
+											"width": 222,
+											"height": 13
+										},
+										{
+											"_type": "ERDColumnView",
+											"_id": "AAAAAAF3Ay9es3fRwpg=",
+											"_parent": {
+												"$ref": "AAAAAAF1K2Kw59x8egk="
+											},
+											"model": {
+												"$ref": "AAAAAAF3Ay9ef3fOr1g="
+											},
+											"font": "Arial;13;0",
+											"left": 1069,
+											"top": 912,
+											"width": 222,
+											"height": 13
+										},
+										{
+											"_type": "ERDColumnView",
 											"_id": "AAAAAAF2LRVQ1uimwLM=",
 											"_parent": {
 												"$ref": "AAAAAAF1K2Kw59x8egk="
@@ -4072,7 +4102,7 @@
 											},
 											"font": "Arial;13;0",
 											"left": 1069,
-											"top": 897,
+											"top": 927,
 											"width": 222,
 											"height": 13
 										}
@@ -4081,14 +4111,14 @@
 									"left": 1064,
 									"top": 847,
 									"width": 232,
-									"height": 68
+									"height": 98
 								}
 							],
 							"font": "Arial;13;0",
 							"left": 1064,
 							"top": 824,
 							"width": 232,
-							"height": 105,
+							"height": 121,
 							"nameLabel": {
 								"$ref": "AAAAAAF1K2Kw59x7XYo="
 							},
@@ -4728,8 +4758,8 @@
 										"$ref": "AAAAAAF2CO3MCzbWsA4="
 									},
 									"font": "Arial;13;1",
-									"left": 752,
-									"top": 973,
+									"left": 744,
+									"top": 965,
 									"width": 273.23583984375,
 									"height": 13,
 									"text": "ClashTournamentCache"
@@ -4754,8 +4784,8 @@
 												"$ref": "AAAAAAF2CO8JSTbn4SA="
 											},
 											"font": "Arial;13;0",
-											"left": 757,
-											"top": 996,
+											"left": 749,
+											"top": 988,
 											"width": 263.23583984375,
 											"height": 13
 										},
@@ -4769,8 +4799,8 @@
 												"$ref": "AAAAAAF2CPd9uzbxRe8="
 											},
 											"font": "Arial;13;0",
-											"left": 757,
-											"top": 1011,
+											"left": 749,
+											"top": 1003,
 											"width": 263.23583984375,
 											"height": 13
 										},
@@ -4784,8 +4814,8 @@
 												"$ref": "AAAAAAF2CRabxTb4TcE="
 											},
 											"font": "Arial;13;0",
-											"left": 757,
-											"top": 1026,
+											"left": 749,
+											"top": 1018,
 											"width": 263.23583984375,
 											"height": 13
 										},
@@ -4799,22 +4829,22 @@
 												"$ref": "AAAAAAF2LRRPHuiZl5s="
 											},
 											"font": "Arial;13;0",
-											"left": 757,
-											"top": 1041,
+											"left": 749,
+											"top": 1033,
 											"width": 263.23583984375,
 											"height": 13
 										}
 									],
 									"font": "Arial;13;0",
-									"left": 752,
-									"top": 991,
+									"left": 744,
+									"top": 983,
 									"width": 273.23583984375,
 									"height": 68
 								}
 							],
 							"font": "Arial;13;0",
-							"left": 752,
-							"top": 968,
+							"left": 744,
+							"top": 960,
 							"width": 273.23583984375,
 							"height": 91,
 							"nameLabel": {
@@ -6745,6 +6775,26 @@
 							},
 							"name": "cra_roles",
 							"type": "varchar",
+							"length": 0
+						},
+						{
+							"_type": "ERDColumn",
+							"_id": "AAAAAAF3Ay8a/nfHl+U=",
+							"_parent": {
+								"$ref": "AAAAAAF1K2Kw5tx4uWY="
+							},
+							"name": "cra_roles_stats",
+							"type": "varchar",
+							"length": 0
+						},
+						{
+							"_type": "ERDColumn",
+							"_id": "AAAAAAF3Ay9ef3fOr1g=",
+							"_parent": {
+								"$ref": "AAAAAAF1K2Kw5tx4uWY="
+							},
+							"name": "cra_average_kda",
+							"type": "double",
 							"length": 0
 						},
 						{

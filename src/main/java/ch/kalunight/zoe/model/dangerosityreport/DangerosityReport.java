@@ -8,6 +8,8 @@ public abstract class DangerosityReport {
   
   public static final DecimalFormat POURCENTAGE_FORMAT = new DecimalFormat("###.#");
 
+  public static final DecimalFormat SMALL_NUMBER_FORMAT = new DecimalFormat("###.##");
+  
   private DangerosityReportType reportType;
   
   public DangerosityReport(DangerosityReportType reportType) {

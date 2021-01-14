@@ -273,7 +273,7 @@ public class TreatClashChannel implements Runnable {
 
     messageBuilder.append(String.format(LanguageManager.getText(server.serv_language, "clashChannelClashTournamentPotentialFlexPick"), flexChampionsText.toString()) + "\n");
 
-    List<PickData> dangerousPlayers = TeamUtil.getHeighestDangerosity(teamPlayersData, 3);
+    List<PickData> dangerousPlayers = TeamUtil.getHeighestDangerosity(teamPlayersData, 5);
 
     StringBuilder dangerChampionsText = new StringBuilder();
 

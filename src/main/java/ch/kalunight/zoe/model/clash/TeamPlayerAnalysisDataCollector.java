@@ -159,14 +159,14 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
   }
 
   private void collectWinrateData(SavedMatchPlayer playerInMatch, SavedMatch match) {
-    DataPerChampion winrate = getDataByChampion(playerInMatch.getChampionId());
+    DataPerChampion dataForTheChampion = getDataByChampion(playerInMatch.getChampionId());
 
-    if(winrate == null) {
-      winrate = new DataPerChampion(playerInMatch.getChampionId(), new ArrayList<>());
-      dataPerChampions.add(winrate);
+    if(dataForTheChampion == null) {
+      dataForTheChampion = new DataPerChampion(playerInMatch.getChampionId(), new ArrayList<>());
+      dataPerChampions.add(dataForTheChampion);
     }
 
-    winrate.getMatchs().add(match);
+    dataForTheChampion.getMatchs().add(match);
   }
 
   private void collectRoleData(SavedMatchPlayer playerInMatch) {

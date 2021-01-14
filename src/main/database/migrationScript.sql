@@ -14,7 +14,8 @@ CREATE TABLE champion_role_analysis (
   cra_keyChampion								BIGINT 				NOT NULL UNIQUE,
   cra_lastRefresh 								TIMESTAMP			WITHOUT TIME ZONE,
   cra_roles										VARCHAR 			NOT NULL,
-  cra_roles_stats								VARCHAR				NOT NULL
+  cra_roles_stats								VARCHAR				NOT NULL,
+  cra_average_kda								double precision	NOT NULL
 );
 
 ALTER TABLE ONLY champion_role_analysis

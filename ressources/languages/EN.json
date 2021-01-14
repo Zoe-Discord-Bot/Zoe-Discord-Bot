@@ -482,6 +482,7 @@
 	"disclaimerAnalysis" : "Keep in mind that this analysis is not necessarily reliable",
 	"dangerosityReportHighWinrateInfo" : "High Winrate : %s% | %d games",
 	"dangerosityReportHighMasteryInfo" : "High Masteries : %s",
+	"dangerosityReportHighKDAInfo" : "High KDA : %s",
 	"dangerosityReportOTPInfo" : "OTP | Play Rate : %s%",
 	"dangerosityReportHighEloDiffInfo" : "Huge elo diff : %s",
 	"dangerosityReportLittleChampionPoolInfo" : "Small Champion Pool : %d",

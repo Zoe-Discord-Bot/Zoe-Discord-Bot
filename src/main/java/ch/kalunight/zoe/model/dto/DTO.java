@@ -323,6 +323,7 @@ public class DTO {
     public LocalDateTime cra_lastRefresh;
     public List<ChampionRole> cra_roles;
     public String cra_roles_stats;
+    public double cra_average_kda;
     
     public ChampionRoleAnalysis(ResultSet baseData) throws SQLException {
       cra_id = baseData.getLong("cra_id");
@@ -343,6 +344,7 @@ public class DTO {
       }
       
       cra_roles_stats = baseData.getString("cra_roles_stats");
+      cra_average_kda = baseData.getDouble("cra_average_kda");
     }
   }
   

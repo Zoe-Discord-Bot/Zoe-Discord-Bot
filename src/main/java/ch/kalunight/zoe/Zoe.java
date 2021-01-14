@@ -46,6 +46,7 @@ import ch.kalunight.zoe.command.delete.DeleteCommand;
 import ch.kalunight.zoe.command.remove.RemoveCommand;
 import ch.kalunight.zoe.command.show.ShowCommand;
 import ch.kalunight.zoe.command.stats.StatsCommand;
+import ch.kalunight.zoe.model.dangerosityreport.DangerosityReportKDA;
 import ch.kalunight.zoe.model.dto.DTO.ChampionRoleAnalysis;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.model.static_data.CustomEmote;
@@ -272,6 +273,7 @@ public class Zoe {
           champion.setRoles(championRole.cra_roles);
         }else {
           champion.setRoles(allRoles);
+          champion.setAverageKDA(DangerosityReportKDA.DEFAULT_AVERAGE_KDA);
           ChampionRoleAnalysisMainWorker roleAnalyser = new ChampionRoleAnalysisMainWorker(champion.getKey());
           ServerThreadsManager.getDataAnalysisManager().execute(roleAnalyser);
         }

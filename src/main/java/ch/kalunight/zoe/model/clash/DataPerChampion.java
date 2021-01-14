@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ch.kalunight.zoe.model.dangerosityreport.DangerosityReport;
+import ch.kalunight.zoe.model.dangerosityreport.DangerosityReportKDA;
 import ch.kalunight.zoe.model.dangerosityreport.DangerosityReportType;
 import ch.kalunight.zoe.model.dto.SavedMatch;
 import ch.kalunight.zoe.model.dto.SavedMatchPlayer;
@@ -22,6 +23,8 @@ public class DataPerChampion implements Comparable<DataPerChampion> {
   private Double winrate;
 
   private SavedSimpleMastery mastery;
+  
+  private Double averageKDA;
   
   private List<DangerosityReport> dangerosityReports;
   
@@ -56,6 +59,29 @@ public class DataPerChampion implements Comparable<DataPerChampion> {
     }
     
     return winrate;
+  }
+  
+  public double getAverageKDA() {
+    if(averageKDA == null) {
+      int kills = 0;
+      int deaths = 0;
+      int assists = 0;
+      
+      for(SavedMatch match : matchs) {
+        SavedMatchPlayer matchPlayer = match.getSavedMatchPlayerByChampionId(championId);
+        if(matchPlayer != null) {
+          kills = matchPlayer.getKills();
+          deaths = matchPlayer.getDeaths();
+          deaths = matchPlayer.getAssists();
+        }
+      }
+      if(deaths == 0) {
+        averageKDA = DangerosityReportKDA.DEFAULT_AVERAGE_KDA; //Impossible with a huge sample size to have 0 death, we put a basic value of 2.5.
+      }else {
+        averageKDA = (kills + assists) / (double) deaths;
+      }
+    }
+    return averageKDA;
   }
   
   @Override

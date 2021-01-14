@@ -44,6 +44,10 @@ public class RoleMatchAnalysisWorker implements Runnable {
           
           mainAnalyser.getNbrMatch().incrementAndGet();
         }
+        
+        mainAnalyser.getKills().addAndGet(player.getKills());
+        mainAnalyser.getDeaths().addAndGet(player.getDeaths());
+        mainAnalyser.getAssists().addAndGet(player.getAssists());
       }
       
     }finally {

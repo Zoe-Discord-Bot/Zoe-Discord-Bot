@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.model.GameQueueConfigId;
+import ch.kalunight.zoe.model.dangerosityreport.DangerosityReportKDA;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.SavedMatch;
 import ch.kalunight.zoe.model.static_data.Champion;
@@ -41,6 +42,10 @@ public class ChampionRoleAnalysisMainWorker implements Runnable {
   private AtomicInteger nbrMid = new AtomicInteger();
   private AtomicInteger nbrAdc = new AtomicInteger();
   private AtomicInteger nbrSup = new AtomicInteger();
+  
+  private AtomicInteger kills = new AtomicInteger();
+  private AtomicInteger deaths = new AtomicInteger();
+  private AtomicInteger assists = new AtomicInteger();
   
   private AtomicInteger nbrMatch = new AtomicInteger();
   
@@ -97,10 +102,17 @@ public class ChampionRoleAnalysisMainWorker implements Runnable {
       
       DTO.ChampionRoleAnalysis champRole = ChampionRoleAnalysisRepository.getChampionRoleAnalysis(championId);
       
-      if(champRole == null) {
-        ChampionRoleAnalysisRepository.createChampionRoles(championId, rolesList.toString(), rolesStatsList.toString());
+      double averageKDA;
+      if(deaths.get() == 0) {
+        averageKDA = DangerosityReportKDA.DEFAULT_AVERAGE_KDA; //Impossible with a huge sample size to have 0 death, we put a basic value of 2.5.
       }else {
-        ChampionRoleAnalysisRepository.updateChampionsRoles(championId, rolesList.toString(), rolesStatsList.toString());
+        averageKDA = (kills.get() + assists.get()) / (double) deaths.get();
+      }
+      
+      if(champRole == null) {
+        ChampionRoleAnalysisRepository.createChampionRoles(championId, rolesList.toString(), rolesStatsList.toString(), averageKDA);
+      }else {
+        ChampionRoleAnalysisRepository.updateChampionsRoles(championId, rolesList.toString(), rolesStatsList.toString(), averageKDA);
       }
 
       if(champion != null) {
@@ -118,6 +130,7 @@ public class ChampionRoleAnalysisMainWorker implements Runnable {
           }
         }
         champion.setRoles(championsRoles);
+        champion.setAverageKDA(averageKDA);
       }
       
     } catch(SQLException e) {
@@ -195,6 +208,18 @@ public class ChampionRoleAnalysisMainWorker implements Runnable {
 
   public AtomicInteger getAnalysisDone() {
     return analysisDone;
+  }
+
+  public AtomicInteger getKills() {
+    return kills;
+  }
+
+  public AtomicInteger getDeaths() {
+    return deaths;
+  }
+
+  public AtomicInteger getAssists() {
+    return assists;
   }
   
 }

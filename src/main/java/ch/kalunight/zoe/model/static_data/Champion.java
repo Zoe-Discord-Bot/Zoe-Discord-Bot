@@ -13,6 +13,7 @@ public class Champion {
   private File championLogo;
   private Emote emote;
   private List<ChampionRole> roles;
+  private double averageKDA;
 
   public Champion(final int key, final String id, final String name, File championLogo) {
     this.id = id;
@@ -81,5 +82,13 @@ public class Champion {
 
   public void setRoles(List<ChampionRole> roles) {
     this.roles = roles;
+  }
+
+  public double getAverageKDA() {
+    return averageKDA;
+  }
+
+  public void setAverageKDA(double averageKDA) {
+    this.averageKDA = averageKDA;
   }
 }

@@ -41,18 +41,18 @@ public class MasteryPointSpecificChampLeaderboardService extends LeaderboardBase
     for(PlayerPoints playerPoints : playersPoints) {
       playersName.add(playerPoints.getPlayer().getUser().getName() + "#" + playerPoints.getPlayer().getUser().getDiscriminator());
       dataList.add(masteryPointsFormat.format(playerPoints.getPoints()) + " " 
-      + LanguageManager.getText(server.serv_language, "pointsShort"));
+      + LanguageManager.getText(server.getLanguage(), "pointsShort"));
     }
     
-    String playerTitle = LanguageManager.getText(server.serv_language, "leaderboardPlayersTitle");
-    String dataName = LanguageManager.getText(server.serv_language, "leaderboardObjectiveMasterPoint");
+    String playerTitle = LanguageManager.getText(server.getLanguage(), "leaderboardPlayersTitle");
+    String dataName = LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveMasterPoint");
     EmbedBuilder builder = buildBaseLeaderboardList(playerTitle, playersName,
         specificChamp.getChampion().getDisplayName() + " " + dataName, dataList);
     builder.setColor(Color.ORANGE);
-    builder.setTitle(String.format(LanguageManager.getText(server.serv_language, "leaderboardObjectiveMasterPointGivenSpecifiedChamp"), 
+    builder.setTitle(String.format(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveMasterPointGivenSpecifiedChamp"), 
         specificChamp.getChampion().getName()));
-    builder.setFooter(LanguageManager.getText(server.serv_language, "leaderboardRefreshMessage"));
-    message.editMessage(String.format(LanguageManager.getText(server.serv_language, "leaderboardObjectiveMasterPointGivenSpecifiedChamp"),
+    builder.setFooter(LanguageManager.getText(server.getLanguage(), "leaderboardRefreshMessage"));
+    message.editMessage(String.format(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveMasterPointGivenSpecifiedChamp"),
         specificChamp.getChampion().getName())).queue();
     message.editMessage(builder.build()).queue();
   }

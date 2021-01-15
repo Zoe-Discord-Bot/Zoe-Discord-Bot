@@ -27,7 +27,7 @@ public class SpecificQueueDataHandler extends LeaderboardExtraDataHandler {
   @Override
   public void handleSecondCreationPart() {
     
-    event.reply(LanguageManager.getText(server.serv_language, "leaderboardSelectQueue"));
+    event.reply(LanguageManager.getText(server.getLanguage(), "leaderboardSelectQueue"));
     
     SelectionDialog.Builder selectQueueBuilder = new SelectionDialog.Builder()
         .addUsers(event.getAuthor())
@@ -35,17 +35,17 @@ public class SpecificQueueDataHandler extends LeaderboardExtraDataHandler {
         .useLooping(true)
         .setColor(Color.GREEN)
         .setSelectedEnds("**", "**")
-        .setCanceled(getSelectionCancelAction(server.serv_language))
+        .setCanceled(getSelectionCancelAction(server.getLanguage()))
         .setTimeout(2, TimeUnit.MINUTES);
     
     List<GameQueueConfigId> queueOrder = new ArrayList<>();
     
     for(GameQueueConfigId queue : GameQueueConfigId.values()) {
-      selectQueueBuilder.addChoices(LanguageManager.getText(server.serv_language, queue.getNameId()));
+      selectQueueBuilder.addChoices(LanguageManager.getText(server.getLanguage(), queue.getNameId()));
       queueOrder.add(queue);
     }
     
-    selectQueueBuilder.setSelectionConsumer(getSelectionDoneAction(server.serv_language, queueOrder));
+    selectQueueBuilder.setSelectionConsumer(getSelectionDoneAction(server.getLanguage(), queueOrder));
     
     SelectionDialog queueChoiceMenu = selectQueueBuilder.build();
     queueChoiceMenu.display(event.getTextChannel());
@@ -63,7 +63,7 @@ public class SpecificQueueDataHandler extends LeaderboardExtraDataHandler {
         String extraDataNeeded = gson.toJson(new QueueSelected(selectedQueue));
 
         selectionMessage.getTextChannel().sendMessage(String.format(LanguageManager.getText(language, "leaderboardQueueSelectedThenSendChannel"),
-            LanguageManager.getText(server.serv_language, selectedQueue.getNameId()))).queue();
+            LanguageManager.getText(server.getLanguage(), selectedQueue.getNameId()))).queue();
         
         handleEndOfCreation(extraDataNeeded);
       }

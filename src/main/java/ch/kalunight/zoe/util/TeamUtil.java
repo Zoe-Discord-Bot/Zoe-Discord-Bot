@@ -5,10 +5,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
 
 import org.slf4j.Logger;
@@ -179,7 +177,7 @@ public class TeamUtil {
         List<DangerosityReport> combinedReport = new ArrayList<>();
         combinedReport.addAll(championToTreat.getDangerosityReports());
         combinedReport.addAll(playerToTreat.getDangerosityReports());
-        PickData pickForThisChampion = new PickData(playerToTreat.getSummonerId(), playerToTreat.getPlatform(),
+        PickData pickForThisChampion = new PickData(playerToTreat.getPlatform(),
             playerToTreat.getSummoner(), championToTreat.getChampionId(), combinedReport);
 
         playerToTreat.getPicksCompiledData().add(pickForThisChampion);

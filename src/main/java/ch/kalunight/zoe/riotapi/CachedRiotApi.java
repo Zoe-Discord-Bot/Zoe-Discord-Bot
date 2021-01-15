@@ -222,7 +222,7 @@ public class CachedRiotApi {
     return matchList;
   }
 
-  public SavedSummoner getSummoner(Platform platform, String summonerId, boolean forceRefreshCache) throws RiotApiException {
+  public SummonerCache getSummoner(Platform platform, String summonerId, boolean forceRefreshCache) throws RiotApiException {
 
     SummonerCache summonerCache = null;
     try {
@@ -233,7 +233,7 @@ public class CachedRiotApi {
 
     if((summonerCache != null && summonerCache.sumCache_lastRefresh.isAfter(LocalDateTime.now().minusHours(CacheRefreshTime.SUMMONER_CACHE_REFRESH_TIME_IN_HOURS)))
         && !forceRefreshCache) {
-      return summonerCache.sumCache_data;
+      return summonerCache;
     }
 
     try {
@@ -248,14 +248,16 @@ public class CachedRiotApi {
         try {
           if(summonerCache == null) {
             SummonerCacheRepository.createSummonerCache(summoner.getId(), platform, summonerToCache);
+            summonerCache = SummonerCacheRepository.getSummonerWithSummonerId(summonerId, platform);
           }else {
             SummonerCacheRepository.updateSummonerCache(summonerToCache, summonerCache.sumCache_id);
+            summonerCache.setSumCacheData(summonerToCache);
           }
         } catch (SQLException e) {
           logger.warn("Error while saving a summoner, summoner returned anyway", e);
         }
 
-        return summonerToCache;
+        return summonerCache;
       }
     }catch(RiotApiException e) {
       if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
@@ -273,7 +275,7 @@ public class CachedRiotApi {
     return null;
   }
 
-  public SavedSummoner getSummonerWithRateLimit(Platform platform, String summonerId, boolean forceRefreshCache) throws RiotApiException {
+  public SummonerCache getSummonerWithRateLimit(Platform platform, String summonerId, boolean forceRefreshCache) throws RiotApiException {
     boolean needToRetry;
     do {
       needToRetry = true;
@@ -287,7 +289,7 @@ public class CachedRiotApi {
 
         if((summonerCache != null && summonerCache.sumCache_lastRefresh.isAfter(LocalDateTime.now().minusHours(CacheRefreshTime.SUMMONER_CACHE_REFRESH_TIME_IN_HOURS)))
             && !forceRefreshCache) {
-          return summonerCache.sumCache_data;
+          return summonerCache;
         }
 
         Summoner summoner = riotApi.getSummoner(platform, summonerId);
@@ -299,18 +301,20 @@ public class CachedRiotApi {
 
         if(summoner != null) {
           SavedSummoner summonerToCache = new SavedSummoner(summoner);
-
+          
           try {
             if(summonerCache == null) {
               SummonerCacheRepository.createSummonerCache(summoner.getId(), platform, summonerToCache);
+              summonerCache = SummonerCacheRepository.getSummonerWithSummonerId(summonerId, platform);
             }else {
               SummonerCacheRepository.updateSummonerCache(summonerToCache, summonerCache.sumCache_id);
+              summonerCache.setSumCacheData(summonerToCache);
             }
           } catch (SQLException e) {
             logger.warn("Error while saving a summoner, summoner returned anyway", e);
           }
 
-          return summonerToCache;
+          return summonerCache;
         }
       }catch(RateLimitException e) {
         try {

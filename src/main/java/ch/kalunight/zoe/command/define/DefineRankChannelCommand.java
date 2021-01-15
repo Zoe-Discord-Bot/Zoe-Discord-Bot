@@ -35,24 +35,24 @@ public class DefineRankChannelCommand extends ZoeCommand {
 
     if(rankChannel != null) {
       TextChannel textChannel = event.getGuild().getTextChannelById(rankChannel.rhChannel_channelId);
-      event.reply(String.format(LanguageManager.getText(server.serv_language, "defineInfoChannelAlreadySet"), //Translation for both channel
+      event.reply(String.format(LanguageManager.getText(server.getLanguage(), "defineInfoChannelAlreadySet"), //Translation for both channel
           textChannel.getAsMention()));
     } else {
       if(event.getMessage().getMentionedChannels().size() != 1) {
-        event.reply(LanguageManager.getText(server.serv_language, "defineRankChannelMentionOfAChannelNeeded"));
+        event.reply(LanguageManager.getText(server.getLanguage(), "defineRankChannelMentionOfAChannelNeeded"));
       } else {
         TextChannel textChannel = event.getMessage().getMentionedChannels().get(0);
 
         if(textChannel.getGuild().getIdLong() != server.serv_guildId) {
-          event.reply(LanguageManager.getText(server.serv_language, "defineInfoChannelMentionOfAChannel")); //Translation for both channel
+          event.reply(LanguageManager.getText(server.getLanguage(), "defineInfoChannelMentionOfAChannel")); //Translation for both channel
 
         } else {
           if(!event.getMessage().getMentionedChannels().get(0).canTalk()) {
-            event.reply(LanguageManager.getText(server.serv_language, "defineInfoChannelMissingSpeakPermission")); //Translation for both channel
+            event.reply(LanguageManager.getText(server.getLanguage(), "defineInfoChannelMissingSpeakPermission")); //Translation for both channel
           } else {
             ServerConfiguration config = ConfigRepository.getServerConfiguration(server.serv_guildId);
             if(textChannel.equals(config.getCleanChannelOption().getCleanChannel())) {
-              event.reply(LanguageManager.getText(server.serv_language, "defineRankChannelImpossibleToDefineCleanChannel"));
+              event.reply(LanguageManager.getText(server.getLanguage(), "defineRankChannelImpossibleToDefineCleanChannel"));
             }else {
               RankHistoryChannelRepository.createRankHistoryChannel(server.serv_id, textChannel.getIdLong());
               
@@ -60,7 +60,7 @@ public class DefineRankChannelCommand extends ZoeCommand {
                 CommandUtil.giveRolePermission(event.getGuild(), textChannel, config);
               }
               
-              event.reply(LanguageManager.getText(server.serv_language, "defineRankChannelDoneMessage"));
+              event.reply(LanguageManager.getText(server.getLanguage(), "defineRankChannelDoneMessage"));
             }
           }
         }

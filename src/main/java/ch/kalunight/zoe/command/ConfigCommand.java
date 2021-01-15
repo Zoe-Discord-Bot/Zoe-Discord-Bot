@@ -49,8 +49,8 @@ public class ConfigCommand extends ZoeCommand {
         .setTimeout(2, TimeUnit.MINUTES)
         .useNumbers()
         .setColor(Color.BLUE)
-        .setText(LanguageManager.getText(server.serv_language, "configCommandMenuText"))
-        .setDescription(LanguageManager.getText(server.serv_language, "configCommandMenuDescription"))
+        .setText(LanguageManager.getText(server.getLanguage(), "configCommandMenuText"))
+        .setDescription(LanguageManager.getText(server.getLanguage(), "configCommandMenuDescription"))
         .useCancelButton(true)
         .setEventWaiter(waiter);
     
@@ -58,11 +58,11 @@ public class ConfigCommand extends ZoeCommand {
     
     List<ConfigurationOption> options = serverConfiguration.getAllConfigurationOption();
     for(ConfigurationOption option : options) {
-      builder.addChoice(option.getChoiceText(server.serv_language));
+      builder.addChoice(option.getChoiceText(server.getLanguage()));
     }
     
     builder.setSelection(getSelectionAction(options, event))
-    .setCancel(getCancelAction(server.serv_language));
+    .setCancel(getCancelAction(server.getLanguage()));
     
     builder.build().display(event.getChannel());
   }

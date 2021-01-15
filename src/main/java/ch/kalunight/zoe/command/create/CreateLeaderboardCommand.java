@@ -46,7 +46,7 @@ public class CreateLeaderboardCommand extends ZoeCommand {
 
     DTO.Server server = getServer(event.getGuild().getIdLong());
 
-    event.reply(LanguageManager.getText(server.serv_language, "createLeaderboardExplainMessage"));
+    event.reply(LanguageManager.getText(server.getLanguage(), "createLeaderboardExplainMessage"));
 
     List<Objective> objectiveList = new ArrayList<>();
     List<String> objectiveChoices = new ArrayList<>();
@@ -58,19 +58,19 @@ public class CreateLeaderboardCommand extends ZoeCommand {
         .useLooping(true)
         .setColor(Color.GREEN)
         .setSelectedEnds("**", "**")
-        .setCanceled(getSelectionCancelAction(server.serv_language, actionDone))
+        .setCanceled(getSelectionCancelAction(server.getLanguage(), actionDone))
         .setSelectionConsumer(getSelectionConsumer(server, event, objectiveList, actionDone))
         .setTimeout(2, TimeUnit.MINUTES);
 
     for(Objective objective : Objective.values()) {
-      String actualChoice = String.format(LanguageManager.getText(server.serv_language, objective.getTranslationId()));
+      String actualChoice = String.format(LanguageManager.getText(server.getLanguage(), objective.getTranslationId()));
 
       objectiveChoices.add(actualChoice);
       selectAccountBuilder.addChoices(actualChoice);
       objectiveList.add(objective);
     }
 
-    selectAccountBuilder.setText(LanguageManager.getText(server.serv_language, "createLeaderboardTitleListeObjective"));
+    selectAccountBuilder.setText(LanguageManager.getText(server.getLanguage(), "createLeaderboardTitleListeObjective"));
 
     SelectionDialog choiceLeaderBoard = selectAccountBuilder.build();
     choiceLeaderBoard.display(event.getChannel());
@@ -97,8 +97,8 @@ public class CreateLeaderboardCommand extends ZoeCommand {
 
         Objective objective = objectiveList.get(objectiveSelection - 1);
 
-        event.reply(String.format(LanguageManager.getText(server.serv_language, "leaderboardObjectiveSelected"),
-            LanguageManager.getText(server.serv_language, objective.getTranslationId())));
+        event.reply(String.format(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveSelected"),
+            LanguageManager.getText(server.getLanguage(), objective.getTranslationId())));
 
         LeaderboardExtraDataHandler dataNeeded = Objective.getDataNeeded(objective, waiter, server, event, true);
 

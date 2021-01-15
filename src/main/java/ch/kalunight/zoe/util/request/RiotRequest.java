@@ -19,8 +19,8 @@ import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.KDAReceiver;
 import ch.kalunight.zoe.model.MatchReceiver;
 import ch.kalunight.zoe.model.WinRateReceiver;
+import ch.kalunight.zoe.model.dto.DTO.SummonerCache;
 import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
-import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.model.player_data.Rank;
 import ch.kalunight.zoe.model.player_data.Tier;
@@ -135,7 +135,7 @@ public class RiotRequest {
   public static String getWinrateLastMonthWithGivenChampion(String summonerId, Platform region,
       int championKey, String language, boolean forceRefreshCache) {
 
-    SavedSummoner summoner;
+    SummonerCache summoner;
     try {
       summoner = Zoe.getRiotApi().getSummonerWithRateLimit(region, summonerId, forceRefreshCache);
     } catch(RiotApiException e) {
@@ -163,7 +163,7 @@ public class RiotRequest {
       ServerThreadsManager.getMatchsWorker(region).execute(matchWorker);
     }
 
-    MatchWinrateReceiverWorker.awaitAll(referencesMatchList);
+    MatchReceiverWorker.awaitAll(referencesMatchList);
 
     if(gameLoadingConflict.get()) {
       try {
@@ -186,7 +186,7 @@ public class RiotRequest {
     return df.format((nbrWins / (double) nbrGames) * 100) + "% (" + nbrWins + "W/" + (nbrGames - nbrWins) + "L)";
   }
 
-  private static List<MatchReference> getMatchHistoryOfLastMonthWithTheGivenChampion(Platform region, int championKey, SavedSummoner summoner)
+  private static List<MatchReference> getMatchHistoryOfLastMonthWithTheGivenChampion(Platform region, int championKey, SummonerCache summoner)
       throws RiotApiException {
     final List<MatchReference> referencesMatchList = new ArrayList<>();
 
@@ -205,7 +205,7 @@ public class RiotRequest {
       MatchList matchList = null;
 
       try {
-        matchList = Zoe.getRiotApi().getMatchListByAccountIdWithRateLimit(region, summoner.getAccountId(), championToFilter, null, null,
+        matchList = Zoe.getRiotApi().getMatchListByAccountIdWithRateLimit(region, summoner.getSumCacheData().getAccountId(), championToFilter, null, null,
             -1, -1, startIndex, -1);
         if(matchList != null && matchList.getMatches() != null) {
           for(MatchReference matchToCheck : matchList.getMatches()) {
@@ -238,7 +238,7 @@ public class RiotRequest {
   
   public static KDAReceiver getKDALastMonthOneChampionOnly(String summonerId, Platform region, int championId, boolean forceRefreshCache) {
 
-    SavedSummoner summoner;
+    SummonerCache summoner;
     try {
       summoner = Zoe.getRiotApi().getSummonerWithRateLimit(region, summonerId, forceRefreshCache);
     } catch(RiotApiException e) {
@@ -273,7 +273,7 @@ public class RiotRequest {
   
   public static KDAReceiver getKDALastMonth(String summonerId, Platform region, boolean forceRefreshCache) {
 
-    SavedSummoner summoner;
+    SummonerCache summoner;
     try {
       summoner = Zoe.getRiotApi().getSummonerWithRateLimit(region, summonerId, forceRefreshCache);
     } catch(RiotApiException e) {
@@ -307,7 +307,7 @@ public class RiotRequest {
   }
   
   public static MatchReceiver getAllMatchsByQueue(String summonerId, Platform region, boolean forceRefreshCache, Set<Integer> queuesId) {
-    SavedSummoner summoner;
+    SummonerCache summoner;
     try {
       summoner = Zoe.getRiotApi().getSummonerWithRateLimit(region, summonerId, forceRefreshCache);
     } catch(RiotApiException e) {
@@ -340,7 +340,7 @@ public class RiotRequest {
     return matchReceiver;
   }
   
-  private static List<MatchReference> getMatchHistoryOfLastMonth(Platform region, SavedSummoner summoner)
+  private static List<MatchReference> getMatchHistoryOfLastMonth(Platform region, SummonerCache summoner)
       throws RiotApiException {
     final List<MatchReference> referencesMatchList = new ArrayList<>();
 
@@ -358,7 +358,7 @@ public class RiotRequest {
       MatchList matchList = null;
 
       try {
-        matchList = Zoe.getRiotApi().getMatchListByAccountIdWithRateLimit(region, summoner.getAccountId(), championToFilter, null, null,
+        matchList = Zoe.getRiotApi().getMatchListByAccountIdWithRateLimit(region, summoner.getSumCacheData().getAccountId(), championToFilter, null, null,
             -1, -1, startIndex, -1);
         if(matchList != null && matchList.getMatches() != null) {
           for(MatchReference matchToCheck : matchList.getMatches()) {
@@ -389,7 +389,7 @@ public class RiotRequest {
     return referencesMatchList;
   }
   
-  private static List<MatchReference> getMatchHistoryOfLastMonth(Platform region, SavedSummoner summoner, Set<Integer> queuesList)
+  private static List<MatchReference> getMatchHistoryOfLastMonth(Platform region, SummonerCache summoner, Set<Integer> queuesList)
       throws RiotApiException {
     final List<MatchReference> referencesMatchList = new ArrayList<>();
 
@@ -407,7 +407,7 @@ public class RiotRequest {
       MatchList matchList = null;
 
       try {
-        matchList = Zoe.getRiotApi().getMatchListByAccountIdWithRateLimit(region, summoner.getAccountId(), championToFilter, queuesList, null,
+        matchList = Zoe.getRiotApi().getMatchListByAccountIdWithRateLimit(region, summoner.getSumCacheData().getAccountId(), championToFilter, queuesList, null,
             -1, -1, startIndex, -1);
         if(matchList != null && matchList.getMatches() != null) {
           for(MatchReference matchToCheck : matchList.getMatches()) {

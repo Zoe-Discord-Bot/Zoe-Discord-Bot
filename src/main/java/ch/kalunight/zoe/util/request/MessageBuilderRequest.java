@@ -94,7 +94,7 @@ public class MessageBuilderRequest {
       MiniSeries oldBo = oldEntry.getMiniSeries();
       MiniSeries newBo = newEntry.getMiniSeries();
       
-      if(match.isGivenAccountWinner(leagueAccount.leagueAccount_accoundId)) {
+      if(match.isGivenAccountWinner(leagueAccount.leagueAccount_summonerId)) {
         accountTitle = String.format(LanguageManager.getText(lang, "rankChannelChangeBOProgressWinTitleWithoutGameType"),
             summonerName, oldBo.getProgress().length(),
             oldFullTier.getHeigerDivision().toStringWithoutLp(lang));
@@ -269,7 +269,7 @@ public class MessageBuilderRequest {
 
     FullTier oldFullTier = new FullTier(oldEntry);
     try {
-      if(match.isGivenAccountWinner(leagueAccount.leagueAccount_accoundId)) {
+      if(match.isGivenAccountWinner(leagueAccount.leagueAccount_summonerId)) {
         message.setColor(Color.GREEN);
         message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeBOProgressWinTitle"),
             leagueAccount.getSummoner().getName(), oldBo.getProgress().length(),
@@ -519,14 +519,14 @@ public class MessageBuilderRequest {
   public static MessageEmbed createInfoCard(List<DTO.Player> players, CurrentGameInfo currentGameInfo,
       Platform region, DTO.Server server) throws SQLException {
 
-    String blueTeamTranslated = LanguageManager.getText(server.serv_language, BLUE_TEAM_STRING);
-    String redTeamTranslated = LanguageManager.getText(server.serv_language, RED_TEAM_STRING);
-    String masteriesWRThisMonthTranslated = LanguageManager.getText(server.serv_language, MASTERIES_WR_THIS_MONTH_STRING);
+    String blueTeamTranslated = LanguageManager.getText(server.getLanguage(), BLUE_TEAM_STRING);
+    String redTeamTranslated = LanguageManager.getText(server.getLanguage(), RED_TEAM_STRING);
+    String masteriesWRThisMonthTranslated = LanguageManager.getText(server.getLanguage(), MASTERIES_WR_THIS_MONTH_STRING);
     String rankTitleTranslated;
     if(currentGameInfo.getGameQueueConfigId() == GameQueueConfigId.FLEX.getId()) {
-      rankTitleTranslated = LanguageManager.getText(server.serv_language, "flexTitleRespectSize");
+      rankTitleTranslated = LanguageManager.getText(server.getLanguage(), "flexTitleRespectSize");
     } else {
-      rankTitleTranslated = LanguageManager.getText(server.serv_language, SOLO_Q_RANK_STRING);
+      rankTitleTranslated = LanguageManager.getText(server.getLanguage(), SOLO_Q_RANK_STRING);
     }
 
     Set<DTO.LeagueAccount> playersAccountsOfTheGame = new HashSet<>();
@@ -539,7 +539,7 @@ public class MessageBuilderRequest {
 
     StringBuilder title = new StringBuilder();
 
-    MessageBuilderRequestUtil.createTitle(players, currentGameInfo, title, server.serv_language, true);
+    MessageBuilderRequestUtil.createTitle(players, currentGameInfo, title, server.getLanguage(), true);
 
     message.setTitle(title.toString());
 
@@ -557,8 +557,8 @@ public class MessageBuilderRequest {
 
     List<InfocardPlayerData> playersData = new ArrayList<>();
 
-    MessageBuilderRequestUtil.createTeamDataMultipleSummoner(blueTeam, listIdPlayers, region, server.serv_language, playersData, true, currentGameInfo.getGameQueueConfigId());
-    MessageBuilderRequestUtil.createTeamDataMultipleSummoner(redTeam, listIdPlayers, region, server.serv_language, playersData, false, currentGameInfo.getGameQueueConfigId());
+    MessageBuilderRequestUtil.createTeamDataMultipleSummoner(blueTeam, listIdPlayers, region, server.getLanguage(), playersData, true, currentGameInfo.getGameQueueConfigId());
+    MessageBuilderRequestUtil.createTeamDataMultipleSummoner(redTeam, listIdPlayers, region, server.getLanguage(), playersData, false, currentGameInfo.getGameQueueConfigId());
 
     SummonerDataWorker.awaitAll(playersData);
 
@@ -591,7 +591,7 @@ public class MessageBuilderRequest {
     message.addField(rankTitleTranslated, redTeamRankString.toString(), true);
     message.addField(masteriesWRThisMonthTranslated, redTeamWinrateString.toString(), true);
 
-    message.setFooter(LanguageManager.getText(server.serv_language, "infoCardsGameFooter") 
+    message.setFooter(LanguageManager.getText(server.getLanguage(), "infoCardsGameFooter") 
         + " : " + MessageBuilderRequestUtil.getMatchTimeFromDuration(currentGameInfo.getGameLength()), null);
 
     message.setColor(Color.GREEN);
@@ -721,7 +721,7 @@ public class MessageBuilderRequest {
           LocalDateTime matchTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(match.getGameCreation()), ZoneId.ofOffset("UTC", ZoneOffset.UTC));
           Champion champion = new Champion(-1, unknownTranslated, unknownTranslated, null);
           try {
-            champion = Ressources.getChampionDataById(match.getSavedMatchPlayerByAccountId(leagueAccount.leagueAccount_accoundId).getChampionId());
+            champion = Ressources.getChampionDataById(match.getSavedMatchPlayerBySummonerId(leagueAccount.leagueAccount_summonerId).getChampionId());
           }catch(NullPointerException e) {
             logger.debug("Data errored, can't detect champion");
           }

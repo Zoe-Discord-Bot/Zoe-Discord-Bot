@@ -34,22 +34,30 @@ public class DTO {
   }
 
   public static class Server {
-    public long serv_id;
-    public long serv_guildId;
-    public String serv_language;
-    public LocalDateTime serv_lastRefresh;
+    public final long serv_id;
+    public final long serv_guildId;
+    private String serv_language;
+    public final LocalDateTime serv_lastRefresh;
 
     public Server(ResultSet baseData) throws SQLException {
       serv_id = baseData.getLong("serv_id");
       serv_guildId = baseData.getLong("serv_guildId");
-      serv_language = baseData.getString("serv_language");
+      this.serv_language = baseData.getString("serv_language");
       serv_lastRefresh = LocalDateTime.parse(baseData.getString("serv_lastRefresh"), DB_TIME_PATTERN);
+    }
+
+    public String getLanguage() {
+      return serv_language;
+    }
+
+    public void setLanguage(String serv_language) {
+      this.serv_language = serv_language;
     }
   }
   
   public static class ServerConfig {
-    public long servconfig_id;
-    public long servconfig_fk_server;
+    public final long servconfig_id;
+    public final long servconfig_fk_server;
 
     public ServerConfig(ResultSet baseData) throws SQLException {
       servconfig_id = baseData.getLong("servconfig_id");
@@ -58,9 +66,9 @@ public class DTO {
   }
 
   public static class ServerStatus {
-    public long servstatus_id;
-    public long servstatus_fk_server;
-    public boolean servstatus_inTreatment;
+    public final long servstatus_id;
+    public final long servstatus_fk_server;
+    public final boolean servstatus_inTreatment;
 
     public ServerStatus(ResultSet baseData) throws SQLException {
       servstatus_id = baseData.getLong("servstatus_id");
@@ -70,9 +78,9 @@ public class DTO {
   }
 
   public static class InfoChannel {
-    public long infoChannel_id;
-    public long infochannel_fk_server;
-    public long infochannel_channelid;
+    public final long infoChannel_id;
+    public final long infochannel_fk_server;
+    public final long infochannel_channelid;
 
     public InfoChannel(ResultSet baseData) throws SQLException {
       infoChannel_id = baseData.getLong("infochannel_id");
@@ -82,18 +90,18 @@ public class DTO {
   }
 
   public static class GameInfoCard {
-    public long gamecard_id;
-    public long gamecard_fk_infochannel;
-    public long gamecard_fk_currentgame;
+    public final long gamecard_id;
+    public final long gamecard_fk_infochannel;
+    public final long gamecard_fk_currentgame;
     /**
      * @deprecated
      * Deprecated, we now send all in one message using {@link #gamecard_infocardmessageid}. 
      * We save this line in the case we need to rollback to the old system.
      */
-    @Deprecated public long gamecard_titlemessageid;
-    public long gamecard_infocardmessageid;
-    public GameInfoCardStatus gamecard_status;
-    public LocalDateTime gamecard_creationtime;
+    @Deprecated public final long gamecard_titlemessageid;
+    public final long gamecard_infocardmessageid;
+    private GameInfoCardStatus gamecard_status;
+    public final LocalDateTime gamecard_creationtime;
 
     public GameInfoCard(ResultSet baseData) throws SQLException {
       gamecard_id = baseData.getLong("gamecard_id");
@@ -101,22 +109,27 @@ public class DTO {
       gamecard_fk_currentgame = baseData.getLong("gamecard_fk_currentgame");
       gamecard_titlemessageid = baseData.getLong("gamecard_titlemessageid");
       gamecard_infocardmessageid = baseData.getLong("gamecard_infocardmessageid");
-      gamecard_status = GameInfoCardStatus.valueOf(baseData.getString("gamecard_status"));
+      this.gamecard_status = GameInfoCardStatus.valueOf(baseData.getString("gamecard_status"));
       if(baseData.getString("gamecard_creationtime") != null) {
         gamecard_creationtime = LocalDateTime.parse(baseData.getString("gamecard_creationtime"), DB_TIME_PATTERN);
+      }else {
+        gamecard_creationtime = null;
       }
     }
-    
-    @Override
-    public String toString() {
-      return "[GameInfoCard: gamecard_id : " + gamecard_id + "]";
+
+    public GameInfoCardStatus getGamecardStatus() {
+      return gamecard_status;
+    }
+
+    public void setGameCardStatus(GameInfoCardStatus gamecard_status) {
+      this.gamecard_status = gamecard_status;
     }
   }
 
   public static class InfoPanelMessage {
-    public long infopanel_id;
-    public long infopanel_fk_infochannel;
-    public long infopanel_messageId;
+    public final long infopanel_id;
+    public final long infopanel_fk_infochannel;
+    public final long infopanel_messageId;
 
     public InfoPanelMessage(ResultSet baseData) throws SQLException {
       infopanel_id = baseData.getLong("infopanel_id");
@@ -126,11 +139,11 @@ public class DTO {
   }
   
   public static class ClashChannel {
-    public long clashChannel_id;
-    public long clashChannel_fk_server;
-    public long clashChannel_channelId;
-    public ClashChannelData clashChannel_data;
-    public TimeZone clashChannel_timezone;
+    public final long clashChannel_id;
+    public final long clashChannel_fk_server;
+    public final long clashChannel_channelId;
+    public final ClashChannelData clashChannel_data;
+    public final TimeZone clashChannel_timezone;
     
     public ClashChannel(ResultSet baseData) throws SQLException {
       clashChannel_id = baseData.getLong("clashChannel_id");
@@ -142,11 +155,11 @@ public class DTO {
   }
 
   public static class Player {
-    public long player_id;
-    public long player_fk_server;
-    public long player_fk_team;
-    public long player_discordId;
-    public boolean player_mentionnable;
+    public final long player_id;
+    public final long player_fk_server;
+    public final long player_fk_team;
+    public final long player_discordId;
+    public final boolean player_mentionnable;
     public List<DTO.LeagueAccount> leagueAccounts = Collections.synchronizedList(new ArrayList<>());
 
     public Player(ResultSet baseData) throws SQLException {
@@ -166,21 +179,21 @@ public class DTO {
   }
 
   public static class LeagueAccount {
-    public long leagueAccount_id;
-    public long leagueAccount_fk_player;
-    public long leagueAccount_fk_gamecard;
-    public long leagueAccount_fk_currentgame;
+    public final Long leagueAccount_id;
+    public final Long leagueAccount_fk_player;
+    public final Long leagueAccount_fk_gamecard;
+    public final Long leagueAccount_fk_currentgame;
     /**
      * @deprecated we now get this data inside {@link SummonerCache}
      */
-    public String leagueAccount_name;
-    public String leagueAccount_summonerId;
-    public String leagueAccount_accoundId;
-    public String leagueAccount_puuid;
-    public String leagueAccount_tftSummonerId;
-    public String leagueAccount_tftAccountId;
-    public String leagueAccount_tftPuuid;
-    public Platform leagueAccount_server;
+    public final String leagueAccount_name;
+    public final String leagueAccount_summonerId;
+    public final String leagueAccount_accoundId;
+    public final String leagueAccount_puuid;
+    public final String leagueAccount_tftSummonerId;
+    public final String leagueAccount_tftAccountId;
+    public final String leagueAccount_tftPuuid;
+    public final Platform leagueAccount_server;
     private SavedSummoner summoner = null;
 
     public LeagueAccount(ResultSet baseData) throws SQLException {
@@ -204,6 +217,14 @@ public class DTO {
       leagueAccount_accoundId = summoner.getAccountId();
       leagueAccount_puuid = summoner.getPuuid();
       leagueAccount_server = platform;
+      leagueAccount_tftSummonerId = null;
+      leagueAccount_tftAccountId = null;
+      leagueAccount_tftPuuid = null;
+      leagueAccount_id = null;
+      leagueAccount_fk_player = null;
+      leagueAccount_fk_gamecard = null;
+      leagueAccount_fk_currentgame = null;
+      
       this.summoner = new SavedSummoner(summoner);
     }
     
@@ -216,7 +237,10 @@ public class DTO {
         return summoner;
       }
       
-      summoner = Zoe.getRiotApi().getSummonerWithRateLimit(leagueAccount_server, leagueAccount_summonerId, forceRefreshCache);
+      SummonerCache summonerDB = Zoe.getRiotApi().getSummonerWithRateLimit(leagueAccount_server, leagueAccount_summonerId, forceRefreshCache);
+      if(summoner != null) {
+        summoner = summonerDB.sumCache_data;
+      }
       return summoner;
     }
     
@@ -227,24 +251,30 @@ public class DTO {
   }
 
   public static class CurrentGameInfo {
-    public long currentgame_id;
-    public net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo currentgame_currentgame;
-    public Platform currentgame_server;
-    public Long currentgame_gameid;
+    public final long currentgame_id;
+    public final net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo currentgame_currentgame;
+    public final Platform currentgame_server;
+    public final Long currentgame_gameid;
 
     public CurrentGameInfo(ResultSet baseData) throws SQLException {
       currentgame_id = baseData.getLong("currentgame_id");
       if(baseData.getString("currentgame_currentgame") != null) {
         currentgame_currentgame = gson.fromJson(baseData.getString("currentgame_currentgame"),
             net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo.class);
+      }else {
+        currentgame_currentgame = null;
       }
       
       if(baseData.getString("currentgame_server") != null) {
         currentgame_server = Platform.getPlatformByName(baseData.getString("currentgame_server"));
+      }else {
+        currentgame_server = null;
       }
       
       if(baseData.getString("currentgame_gameid") != null) {
         currentgame_gameid = baseData.getLong("currentgame_gameid");
+      }else {
+        currentgame_gameid = null;
       }
     }
     
@@ -302,11 +332,11 @@ public class DTO {
   }
   
   public static class MatchCache {
-    public long mCatch_id;
-    public String mCatch_gameId;
-    public Platform mCatch_platform;
-    public SavedMatch mCatch_savedMatch;
-    public LocalDateTime mCatch_creationTime;
+    public final long mCatch_id;
+    public final String mCatch_gameId;
+    public final Platform mCatch_platform;
+    public final SavedMatch mCatch_savedMatch;
+    public final LocalDateTime mCatch_creationTime;
     
     public MatchCache(ResultSet baseData) throws SQLException {
       mCatch_id = baseData.getLong("mCatch_id");
@@ -318,12 +348,12 @@ public class DTO {
   }
   
   public static class ChampionRoleAnalysis {
-    public long cra_id;
-    public int cra_keyChampion;
-    public LocalDateTime cra_lastRefresh;
-    public List<ChampionRole> cra_roles;
-    public String cra_roles_stats;
-    public double cra_average_kda;
+    public final long cra_id;
+    public final int cra_keyChampion;
+    public final LocalDateTime cra_lastRefresh;
+    public final List<ChampionRole> cra_roles;
+    public final String cra_roles_stats;
+    public final double cra_average_kda;
     
     public ChampionRoleAnalysis(ResultSet baseData) throws SQLException {
       cra_id = baseData.getLong("cra_id");
@@ -349,13 +379,13 @@ public class DTO {
   }
   
   public static class Leaderboard {
-    public long lead_id;
-    public long lead_fk_server;
-    public long lead_message_channelId;
-    public long lead_message_id;
-    public int lead_type;
-    public String lead_data;
-    public LocalDateTime lead_lastrefresh;
+    public final long lead_id;
+    public final long lead_fk_server;
+    public final long lead_message_channelId;
+    public final long lead_message_id;
+    public final int lead_type;
+    public final String lead_data;
+    public final LocalDateTime lead_lastrefresh;
     
     public Leaderboard(ResultSet baseData) throws SQLException {
       lead_id = baseData.getLong("lead_id");
@@ -369,10 +399,10 @@ public class DTO {
   }
 
   public static class Team {
-    public long team_id;
-    public long team_fk_server;
-    public String team_name;
-    public List<DTO.Player> players = Collections.synchronizedList(new ArrayList<>());
+    public final long team_id;
+    public final long team_fk_server;
+    public final String team_name;
+    public final List<DTO.Player> players = Collections.synchronizedList(new ArrayList<>());
 
     public Team(ResultSet baseData) throws SQLException {
       team_id = baseData.getLong("team_id");
@@ -388,9 +418,9 @@ public class DTO {
   }
   
   public static class RankHistoryChannel {
-    public long rhChannel_id;
-    public long rhChannel_fk_server;
-    public long rhChannel_channelId;
+    public final long rhChannel_id;
+    public final long rhChannel_fk_server;
+    public final long rhChannel_channelId;
     
     public RankHistoryChannel(ResultSet baseData) throws SQLException {
       rhChannel_id = baseData.getLong("rhChannel_id");
@@ -400,9 +430,9 @@ public class DTO {
   }
   
   public static class BannedAccount {
-    public long banAcc_id;
-    public String banAcc_summonerId;
-    public Platform banAcc_server;
+    public final long banAcc_id;
+    public final String banAcc_summonerId;
+    public final Platform banAcc_server;
     
     public BannedAccount(ResultSet baseData) throws SQLException {
       banAcc_id = baseData.getLong("banAcc_id");
@@ -413,27 +443,36 @@ public class DTO {
   }
   
   public static class SummonerCache {
-    public long sumCache_id;
-    public String sumCache_summonerId;
-    public Platform sumCache_server;
-    public SavedSummoner sumCache_data;
-    public LocalDateTime sumCache_lastRefresh;
+    public final long sumCache_id;
+    public final String sumCache_summonerId;
+    public final Platform sumCache_server;
+    private SavedSummoner sumCache_data;
+    public final LocalDateTime sumCache_lastRefresh;
     
     public SummonerCache(ResultSet baseData) throws SQLException {
       sumCache_id = baseData.getLong("sumCache_id");
       sumCache_summonerId = baseData.getString("sumCache_summonerId");
       sumCache_server = Platform.getPlatformByName(baseData.getString("sumCache_server"));
-      sumCache_data = gson.fromJson(baseData.getString("sumCache_data"), SavedSummoner.class);
+      this.sumCache_data = gson.fromJson(baseData.getString("sumCache_data"), SavedSummoner.class);
       sumCache_lastRefresh = LocalDateTime.parse(baseData.getString("sumCache_lastRefresh"), DB_TIME_PATTERN);
     }
+
+    public SavedSummoner getSumCacheData() {
+      return sumCache_data;
+    }
+
+    public void setSumCacheData(SavedSummoner sumCache_data) {
+      this.sumCache_data = sumCache_data;
+    }
+    
   }
   
   public static class ChampionMasteryCache {
-    public long champMasCache_id;
-    public String champMasCache_summonerId;
-    public Platform champMasCache_server;
-    public SavedChampionsMastery champMasCache_data;
-    public LocalDateTime champMasCache_lastRefresh;
+    public final long champMasCache_id;
+    public final String champMasCache_summonerId;
+    public final Platform champMasCache_server;
+    public final SavedChampionsMastery champMasCache_data;
+    public final LocalDateTime champMasCache_lastRefresh;
     
     public ChampionMasteryCache(ResultSet baseData) throws SQLException {
       champMasCache_id = baseData.getLong("champMasCache_id");
@@ -445,10 +484,10 @@ public class DTO {
   }
   
   public static class ClashTournamentCache {
-    public long clashTourCache_id;
-    public Platform clashTourCache_server;
-    public List<ClashTournament> clashTourCache_data;
-    public LocalDateTime clashTourCache_lastRefresh;
+    public final long clashTourCache_id;
+    public final Platform clashTourCache_server;
+    public final List<ClashTournament> clashTourCache_data;
+    public final LocalDateTime clashTourCache_lastRefresh;
     
     public ClashTournamentCache(ResultSet baseData) throws SQLException {
       clashTourCache_id = baseData.getLong("clashTourCache_id");
@@ -459,18 +498,18 @@ public class DTO {
   }
   
   public static class LastRank {
-    public long lastRank_id;
-    public long lastRank_fk_leagueAccount;
-    public LeagueEntry lastRank_soloq;
-    public LeagueEntry lastRank_soloqSecond;
-    public LocalDateTime lastRank_soloqLastRefresh;
-    public LeagueEntry lastRank_flex;
-    public LeagueEntry lastRank_flexSecond;
-    public LocalDateTime lastRank_flexLastRefresh;
-    public TFTLeagueEntry lastRank_tft;
-    public TFTLeagueEntry lastRank_tftSecond;
-    public LocalDateTime lastRank_tftLastRefresh;
-    public String lastRank_tftLastTreatedMatchId;
+    public final long lastRank_id;
+    public final long lastRank_fk_leagueAccount;
+    private LeagueEntry lastRank_soloq;
+    private LeagueEntry lastRank_soloqSecond;
+    public final LocalDateTime lastRank_soloqLastRefresh;
+    private LeagueEntry lastRank_flex;
+    private LeagueEntry lastRank_flexSecond;
+    public final LocalDateTime lastRank_flexLastRefresh;
+    private TFTLeagueEntry lastRank_tft;
+    private TFTLeagueEntry lastRank_tftSecond;
+    public final LocalDateTime lastRank_tftLastRefresh;
+    public final String lastRank_tftLastTreatedMatchId;
     
     public LastRank(ResultSet baseData) throws SQLException {
       lastRank_id = baseData.getLong("lastRank_id");
@@ -478,52 +517,120 @@ public class DTO {
       String lastRank = baseData.getString("lastRank_soloq");
       if(lastRank != null) {
         lastRank_soloq = gson.fromJson(lastRank, LeagueEntry.class);
+      }else {
+        lastRank_soloq = null;
       }
       
       lastRank = baseData.getString("lastRank_soloqSecond");
       if(lastRank != null) {
         lastRank_soloqSecond = gson.fromJson(lastRank, LeagueEntry.class);
+      }else {
+        lastRank_soloqSecond = null;
       }
       
       lastRank = baseData.getString("lastRank_soloqLastRefresh");
       if(lastRank != null) {
         lastRank_soloqLastRefresh = LocalDateTime.parse(lastRank.split("\\.")[0], DB_TIME_PATTERN);
+      }else {
+        lastRank_soloqLastRefresh = null;
       }
       
       lastRank = baseData.getString("lastRank_flex");
       if(lastRank != null) {
         lastRank_flex = gson.fromJson(lastRank, LeagueEntry.class);
+      }else {
+        lastRank_flex = null;
       }
       
       lastRank = baseData.getString("lastRank_flexSecond");
       if(lastRank != null) {
         lastRank_flexSecond = gson.fromJson(lastRank, LeagueEntry.class);
+      }else {
+        lastRank_flexSecond = null;
       }
       
       lastRank = baseData.getString("lastRank_flexLastRefresh");
       if(lastRank != null) {
         lastRank_flexLastRefresh = LocalDateTime.parse(lastRank.split("\\.")[0], DB_TIME_PATTERN);
+      }else {
+        lastRank_flexLastRefresh = null;
       }
       
       lastRank = baseData.getString("lastRank_tft");
       if(lastRank != null) {
         lastRank_tft = gson.fromJson(lastRank, TFTLeagueEntry.class);
+      }else {
+        lastRank_tft = null;
       }
       
       lastRank = baseData.getString("lastRank_tftSecond");
       if(lastRank != null) {
         lastRank_tftSecond = gson.fromJson(lastRank, TFTLeagueEntry.class);
+      }else {
+        lastRank_tftSecond = null;
       }
       
       lastRank = baseData.getString("lastRank_tftLastRefresh");
       if(lastRank != null) {
         lastRank_tftLastRefresh = LocalDateTime.parse(lastRank.split("\\.")[0], DB_TIME_PATTERN);
+      }else {
+        lastRank_tftLastRefresh = null;
       }
       
       lastRank = baseData.getString("lastRank_tftLastTreatedMatchId");
       if(lastRank != null) {
         lastRank_tftLastTreatedMatchId = lastRank;
+      }else {
+        lastRank_tftLastTreatedMatchId = null;
       }
+    }
+
+    public LeagueEntry getLastRankSoloq() {
+      return lastRank_soloq;
+    }
+
+    public void setLastRankSoloq(LeagueEntry lastRank_soloq) {
+      this.lastRank_soloq = lastRank_soloq;
+    }
+
+    public LeagueEntry getLastRankSoloqSecond() {
+      return lastRank_soloqSecond;
+    }
+
+    public void setLastRankSoloqSecond(LeagueEntry lastRank_soloqSecond) {
+      this.lastRank_soloqSecond = lastRank_soloqSecond;
+    }
+
+    public LeagueEntry getLastRankFlex() {
+      return lastRank_flex;
+    }
+
+    public void setLastRankFlex(LeagueEntry lastRank_flex) {
+      this.lastRank_flex = lastRank_flex;
+    }
+
+    public LeagueEntry getLastRankFlexSecond() {
+      return lastRank_flexSecond;
+    }
+
+    public void setLastRankFlexSecond(LeagueEntry lastRank_flexSecond) {
+      this.lastRank_flexSecond = lastRank_flexSecond;
+    }
+
+    public TFTLeagueEntry getLastRankTft() {
+      return lastRank_tft;
+    }
+
+    public void setLastRankTft(TFTLeagueEntry lastRank_tft) {
+      this.lastRank_tft = lastRank_tft;
+    }
+
+    public TFTLeagueEntry getLastRankTftSecond() {
+      return lastRank_tftSecond;
+    }
+
+    public void setLastRankTftSecond(TFTLeagueEntry lastRank_tftSecond) {
+      this.lastRank_tftSecond = lastRank_tftSecond;
     }
   }
 }

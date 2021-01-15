@@ -48,8 +48,8 @@ public class InfoPanelRankedOption extends ConfigurationOption {
 
         if(!optionActivated) {
 
-          choiceBuilder.setText(String.format(LanguageManager.getText(server.serv_language,
-              "infoPanelRankedOptionLongDescEnable"), LanguageManager.getText(server.serv_language, INFOPANEL_RANKED_DESC_ID)));
+          choiceBuilder.setText(String.format(LanguageManager.getText(server.getLanguage(),
+              "infoPanelRankedOptionLongDescEnable"), LanguageManager.getText(server.getLanguage(), INFOPANEL_RANKED_DESC_ID)));
 
           choiceBuilder.setAction(activateTheOption(event.getChannel(), server));
 
@@ -59,8 +59,8 @@ public class InfoPanelRankedOption extends ConfigurationOption {
 
         }else {
 
-          choiceBuilder.setText(String.format(LanguageManager.getText(server.serv_language, "infoPanelRankedOptionLongDescDisable"),
-              LanguageManager.getText(server.serv_language, INFOPANEL_RANKED_DESC_ID)));
+          choiceBuilder.setText(String.format(LanguageManager.getText(server.getLanguage(), "infoPanelRankedOptionLongDescDisable"),
+              LanguageManager.getText(server.getLanguage(), INFOPANEL_RANKED_DESC_ID)));
 
           choiceBuilder.setAction(disableTheOption(event.getChannel(), server));
 
@@ -88,9 +88,9 @@ public class InfoPanelRankedOption extends ConfigurationOption {
             RepoRessources.sqlErrorReport(messageChannel, server, e);
             return;
           }
-          messageChannel.sendMessage(LanguageManager.getText(server.serv_language, "cleanChannelOptionBeenDisable")).queue(); //Same text
+          messageChannel.sendMessage(LanguageManager.getText(server.getLanguage(), "cleanChannelOptionBeenDisable")).queue(); //Same text
         }else {
-          messageChannel.sendMessage(LanguageManager.getText(server.serv_language, "cleanChannelOptionStillEnable")).queue(); //Same text
+          messageChannel.sendMessage(LanguageManager.getText(server.getLanguage(), "cleanChannelOptionStillEnable")).queue(); //Same text
         }
       }};
   }
@@ -110,9 +110,9 @@ public class InfoPanelRankedOption extends ConfigurationOption {
             RepoRessources.sqlErrorReport(messageChannel, server, e);
             return;
           }
-          messageChannel.sendMessage(LanguageManager.getText(server.serv_language, "cleanChannelOptionBeenActivated")).queue(); //Same text
+          messageChannel.sendMessage(LanguageManager.getText(server.getLanguage(), "cleanChannelOptionBeenActivated")).queue(); //Same text
         }else {
-          messageChannel.sendMessage(LanguageManager.getText(server.serv_language, "cleanChannelOptionStillDisable")).queue(); //Same text
+          messageChannel.sendMessage(LanguageManager.getText(server.getLanguage(), "cleanChannelOptionStillDisable")).queue(); //Same text
         }
       }};
   }

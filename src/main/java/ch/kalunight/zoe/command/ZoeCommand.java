@@ -88,7 +88,7 @@ public abstract class ZoeCommand extends Command {
           executeCommand(event);
         } catch (InsufficientPermissionException e) {
           logger.info("Unexpected exception in {} commands. Error : {}", this.getClass().getName(), e.getMessage(), e);
-          event.reply(String.format(LanguageManager.getText(getServer(event.getGuild().getIdLong()).serv_language, "deletePlayerMissingPermission"), 
+          event.reply(String.format(LanguageManager.getText(getServer(event.getGuild().getIdLong()).getLanguage(), "deletePlayerMissingPermission"), 
               e.getPermission().getName()));
           commandFinishedCorrectly.incrementAndGet();
           return;

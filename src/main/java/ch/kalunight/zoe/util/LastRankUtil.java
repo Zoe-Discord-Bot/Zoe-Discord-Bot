@@ -28,14 +28,14 @@ public class LastRankUtil {
     if(tftLeagueEntry != null) {
       FullTier fullTier = new FullTier(tftLeagueEntry);
   
-      if(lastRank.lastRank_tft == null) {
+      if(lastRank.getLastRankTft() == null) {
         LastRankRepository.updateLastRankTftWithLeagueAccountId(tftLeagueEntry, lastRank, LocalDateTime.now());
-        lastRank.lastRank_tft = tftLeagueEntry;
-      }else if (!fullTier.equals(new FullTier(lastRank.lastRank_tft))){
+        lastRank.setLastRankTft(tftLeagueEntry);
+      }else if (!fullTier.equals(new FullTier(lastRank.getLastRankTft()))){
         LastRankRepository.updateLastRankTftWithLeagueAccountId(tftLeagueEntry, lastRank, LocalDateTime.now());
-        LastRankRepository.updateLastRankTftSecondWithLeagueAccountId(lastRank.lastRank_tft, lastRank, LocalDateTime.now());
-        lastRank.lastRank_tftSecond = lastRank.lastRank_tft;
-        lastRank.lastRank_tft = tftLeagueEntry;
+        LastRankRepository.updateLastRankTftSecondWithLeagueAccountId(lastRank.getLastRankTft(), lastRank, LocalDateTime.now());
+        lastRank.setLastRankTftSecond(lastRank.getLastRankTft());
+        lastRank.setLastRankTft(tftLeagueEntry);
         return true;
       }
     }
@@ -65,25 +65,25 @@ public class LastRankUtil {
     List<Integer> updatedRank = new ArrayList<>();
     for(LeagueEntry checkLeagueEntry : leagueEntries) {
       if(checkLeagueEntry.getQueueType().equals(GameQueueConfigId.SOLOQ.getQueueType())) {
-        if(lastRank.lastRank_soloq == null) {
+        if(lastRank.getLastRankSoloq() == null) {
           LastRankRepository.updateLastRankSoloqWithLeagueAccountId(checkLeagueEntry, lastRank, LocalDateTime.now());
-          lastRank.lastRank_soloq = checkLeagueEntry;
+          lastRank.setLastRankSoloq(checkLeagueEntry);
         }else {
-          LastRankRepository.updateLastRankSoloqSecondWithLeagueAccountId(lastRank.lastRank_soloq, lastRank, LocalDateTime.now());
-          lastRank.lastRank_soloqSecond = lastRank.lastRank_soloq;
+          LastRankRepository.updateLastRankSoloqSecondWithLeagueAccountId(lastRank.getLastRankSoloq(), lastRank, LocalDateTime.now());
+          lastRank.setLastRankSoloqSecond(lastRank.getLastRankSoloq());
           LastRankRepository.updateLastRankSoloqWithLeagueAccountId(checkLeagueEntry, lastRank, LocalDateTime.now());
-          lastRank.lastRank_soloq = checkLeagueEntry;
+          lastRank.setLastRankSoloq(checkLeagueEntry);
         }
         updatedRank.add(GameQueueConfigId.SOLOQ.getId());
       }else if(checkLeagueEntry.getQueueType().equals(GameQueueConfigId.FLEX.getQueueType())) {
-        if(lastRank.lastRank_flex == null) {
+        if(lastRank.getLastRankFlex() == null) {
           LastRankRepository.updateLastRankFlexWithLeagueAccountId(checkLeagueEntry, lastRank, LocalDateTime.now());
-          lastRank.lastRank_flex = checkLeagueEntry;
+          lastRank.setLastRankFlex(checkLeagueEntry);
         }else {
-          LastRankRepository.updateLastRankFlexSecondWithLeagueAccountId(lastRank.lastRank_flex, lastRank, LocalDateTime.now());
-          lastRank.lastRank_flexSecond = lastRank.lastRank_flex;
+          LastRankRepository.updateLastRankFlexSecondWithLeagueAccountId(lastRank.getLastRankFlex(), lastRank, LocalDateTime.now());
+          lastRank.setLastRankFlexSecond(lastRank.getLastRankFlex());
           LastRankRepository.updateLastRankFlexWithLeagueAccountId(checkLeagueEntry, lastRank, LocalDateTime.now());
-          lastRank.lastRank_flex = checkLeagueEntry;
+          lastRank.setLastRankFlex(checkLeagueEntry);
         }
         updatedRank.add(GameQueueConfigId.FLEX.getId());
       }

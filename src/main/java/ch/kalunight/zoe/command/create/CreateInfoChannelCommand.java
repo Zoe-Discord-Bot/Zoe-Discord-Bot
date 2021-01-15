@@ -43,12 +43,12 @@ public class CreateInfoChannelCommand extends ZoeCommand {
     String nameChannel = event.getArgs();
 
     if(nameChannel == null || nameChannel.equals("")) {
-      event.reply(LanguageManager.getText(server.serv_language, "nameOfInfochannelNeeded"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "nameOfInfochannelNeeded"));
       return;
     }
 
     if(nameChannel.length() > 100) {
-      event.reply(LanguageManager.getText(server.serv_language, "nameOfTheInfoChannelNeedToBeLess100Characters"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "nameOfTheInfoChannelNeedToBeLess100Characters"));
       return;
     }
 
@@ -60,7 +60,7 @@ public class CreateInfoChannelCommand extends ZoeCommand {
       if(infoChannel == null) {
         InfoChannelRepository.deleteInfoChannel(server);
       }else {
-        event.reply(String.format(LanguageManager.getText(server.serv_language, "infochannelAlreadyExist"), infoChannel.getAsMention()));
+        event.reply(String.format(LanguageManager.getText(server.getLanguage(), "infochannelAlreadyExist"), infoChannel.getAsMention()));
         return;
       }
     }
@@ -68,8 +68,8 @@ public class CreateInfoChannelCommand extends ZoeCommand {
     try {
       TextChannel infoChannel = event.getGuild().createTextChannel(nameChannel).complete();
       InfoChannelRepository.createInfoChannel(server.serv_id, infoChannel.getIdLong());
-      Message message = infoChannel.sendMessage(LanguageManager.getText(server.serv_language, "infoChannelTitle")
-            + "\n \n" + LanguageManager.getText(server.serv_language, "loading")).complete();
+      Message message = infoChannel.sendMessage(LanguageManager.getText(server.getLanguage(), "infoChannelTitle")
+            + "\n \n" + LanguageManager.getText(server.getLanguage(), "loading")).complete();
 
       dbInfochannel = InfoChannelRepository.getInfoChannel(server.serv_guildId);
       InfoChannelRepository.createInfoPanelMessage(dbInfochannel.infoChannel_id, message.getIdLong());
@@ -80,7 +80,7 @@ public class CreateInfoChannelCommand extends ZoeCommand {
         CommandUtil.giveRolePermission(event.getGuild(), infoChannel, config);
       }
       
-      event.reply(LanguageManager.getText(server.serv_language, "channelCreatedMessage"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "channelCreatedMessage"));
       
       if(!ServerThreadsManager.isServerWillBeTreated(server)) {
         ServerThreadsManager.getServersIsInTreatment().put(event.getGuild().getId(), true);
@@ -88,7 +88,7 @@ public class CreateInfoChannelCommand extends ZoeCommand {
         ServerThreadsManager.getServerExecutor().execute(new InfoPanelRefresher(server, false));
       }
     } catch(InsufficientPermissionException e) {
-      event.reply(LanguageManager.getText(server.serv_language, "impossibleToCreateInfoChannelMissingPerms"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "impossibleToCreateInfoChannelMissingPerms"));
     }
   }
 

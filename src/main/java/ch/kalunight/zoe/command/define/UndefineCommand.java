@@ -27,7 +27,7 @@ public class UndefineCommand extends ZoeCommand {
   @Override
   protected void executeCommand(CommandEvent event) throws SQLException {
     event.reply(LanguageManager.getText(
-        getServer(event.getGuild().getIdLong()).serv_language, "mainUndefineCommandHelpMessage"));
+        getServer(event.getGuild().getIdLong()).getLanguage(), "mainUndefineCommandHelpMessage"));
   }
 
   @Override

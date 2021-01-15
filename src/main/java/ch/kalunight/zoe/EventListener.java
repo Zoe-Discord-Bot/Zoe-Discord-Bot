@@ -65,7 +65,7 @@ public class EventListener extends ListenerAdapter {
           askingConfig(event.getGuild(), owner.getUser());
         }else {
           CommandUtil.getFullSpeakableChannel(
-              event.getGuild()).sendMessage(LanguageManager.getText(server.serv_language, "guildJoinHiAgain")).queue();
+              event.getGuild()).sendMessage(LanguageManager.getText(server.getLanguage(), "guildJoinHiAgain")).queue();
         }
       }
     }catch(SQLException e) {

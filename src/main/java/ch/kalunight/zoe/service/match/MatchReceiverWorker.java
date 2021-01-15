@@ -10,8 +10,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.kalunight.zoe.Zoe;
+import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.SavedMatch;
-import ch.kalunight.zoe.model.dto.SavedSummoner;
+import ch.kalunight.zoe.model.dto.DTO.SummonerCache;
 import ch.kalunight.zoe.riotapi.CachedRiotApi;
 import net.rithms.riot.api.endpoints.match.dto.MatchReference;
 import net.rithms.riot.constant.Platform;
@@ -32,14 +33,13 @@ public abstract class MatchReceiverWorker implements Runnable {
   
   protected MatchReference matchReference;
   
-  protected SavedSummoner summoner;
+  protected SummonerCache summoner;
   
   public MatchReceiverWorker(AtomicBoolean gameLoadingConflict,
-      MatchReference matchReference, Platform server, SavedSummoner summoner) {
+      MatchReference matchReference, Platform server, DTO.SummonerCache summoner) {
     this.gameLoadingConflict = gameLoadingConflict;
     this.server = server;
     this.matchReference = matchReference;
-    this.summoner = summoner;
     matchsInWork.add(matchReference);
   }
   

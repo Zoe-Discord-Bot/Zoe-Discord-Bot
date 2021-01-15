@@ -29,7 +29,7 @@ public class CreateCommand extends ZoeCommand {
   @Override
   protected void executeCommand(CommandEvent event) {
     DTO.Server server = getServer(event.getGuild().getIdLong());
-    event.reply(LanguageManager.getText(server.serv_language, "mainCreateCommandHelpMessage"));
+    event.reply(LanguageManager.getText(server.getLanguage(), "mainCreateCommandHelpMessage"));
   }
 
   @Override

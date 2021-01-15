@@ -31,7 +31,7 @@ public class RefreshCommand extends ZoeCommand {
     DTO.Server server = getServer(event.getGuild().getIdLong());
     
     ServerThreadsManager.getServersAskedTreatment().add(server);
-    event.reply(LanguageManager.getText(server.serv_language, "refreshCommandDoneMessage"));
+    event.reply(LanguageManager.getText(server.getLanguage(), "refreshCommandDoneMessage"));
   }
 
   @Override

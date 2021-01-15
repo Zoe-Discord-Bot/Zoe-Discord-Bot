@@ -23,7 +23,7 @@ public class AddCommand extends ZoeCommand {
   @Override
   protected void executeCommand(CommandEvent event) {
     DTO.Server server = getServer(event.getGuild().getIdLong());
-    event.reply(LanguageManager.getText(server.serv_language, "mainAddCommandHelpMessage"));
+    event.reply(LanguageManager.getText(server.getLanguage(), "mainAddCommandHelpMessage"));
   }
 
   @Override

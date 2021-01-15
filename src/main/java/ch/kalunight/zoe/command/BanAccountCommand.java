@@ -66,7 +66,7 @@ public class BanAccountCommand extends ZoeCommand {
     if(event.getChannelType().equals(ChannelType.TEXT)) {
       Server server = getServer(event.getGuild().getIdLong());
       if(server != null) {
-        language = server.serv_language;
+        language = server.getLanguage();
       }else {
         language = LanguageManager.DEFAULT_LANGUAGE;
       }

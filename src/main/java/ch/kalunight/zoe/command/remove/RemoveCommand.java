@@ -21,7 +21,7 @@ public class RemoveCommand extends ZoeCommand {
 
   @Override
   protected void executeCommand(CommandEvent event) {
-    event.reply(LanguageManager.getText(getServer(event.getGuild().getIdLong()).serv_language, "mainRemoveCommandHelpMessage"));
+    event.reply(LanguageManager.getText(getServer(event.getGuild().getIdLong()).getLanguage(), "mainRemoveCommandHelpMessage"));
   }
 
   @Override

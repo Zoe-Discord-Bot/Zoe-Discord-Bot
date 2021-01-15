@@ -30,9 +30,9 @@ import ch.kalunight.zoe.command.create.CreatePlayerCommand;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.config.option.RegionOption;
 import ch.kalunight.zoe.model.dto.DTO;
-import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Server;
+import ch.kalunight.zoe.model.dto.DTO.SummonerCache;
 import ch.kalunight.zoe.model.dto.SavedChampionsMastery;
 import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
 import ch.kalunight.zoe.model.static_data.Champion;
@@ -119,7 +119,7 @@ public class StatsProfileCommand extends ZoeCommand {
       try {
         leagueAccount.getSummoner();
       } catch(RiotApiException e) {
-        RiotApiUtil.handleRiotApi(event.getEvent(), e, server.serv_language);
+        RiotApiUtil.handleRiotApi(event.getEvent(), e, server.getLanguage());
         return;
       }
 
@@ -130,31 +130,31 @@ public class StatsProfileCommand extends ZoeCommand {
     List<User> userList = event.getMessage().getMentionedUsers();
     if(userList.size() != 1) {
 
-      event.reply(LanguageManager.getText(server.serv_language, "statsProfileMentionOnePlayer"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "statsProfileMentionOnePlayer"));
       return;
     }
 
     User user = userList.get(0);
     DTO.Player player = PlayerRepository.getPlayer(server.serv_guildId, user.getIdLong());
     if(player == null) {
-      event.reply(LanguageManager.getText(server.serv_language, "statsProfileNeedARegisteredPlayer"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "statsProfileNeedARegisteredPlayer"));
       return;
     }
 
     List<DTO.LeagueAccount> accounts = LeagueAccountRepository.getLeaguesAccounts(server.serv_guildId, user.getIdLong());
 
-    SavedSummoner summoner;
+    SummonerCache summoner;
     if(accounts.size() == 1) {
       try {
         summoner = Zoe.getRiotApi().getSummoner(accounts.get(0).leagueAccount_server,
             accounts.get(0).leagueAccount_summonerId, false);
       }catch(RiotApiException e) {
-        RiotApiUtil.handleRiotApi(event.getEvent(), e, server.serv_language);
+        RiotApiUtil.handleRiotApi(event.getEvent(), e, server.getLanguage());
         return;
       }
       generateStatsMessage(event, player, accounts.get(0), server);
     }else if(accounts.isEmpty()) {
-      event.reply(LanguageManager.getText(server.serv_language, "statsProfileNeedARegisteredAccount"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "statsProfileNeedARegisteredAccount"));
     }else {
 
       SelectionDialog.Builder selectAccountBuilder = new SelectionDialog.Builder()
@@ -176,15 +176,15 @@ public class StatsProfileCommand extends ZoeCommand {
           summoner = Zoe.getRiotApi().getSummoner(choiceAccount.leagueAccount_server,
               choiceAccount.leagueAccount_summonerId, false);
         }catch(RiotApiException e) {
-          RiotApiUtil.handleRiotApi(event.getEvent(), e, server.serv_language);
+          RiotApiUtil.handleRiotApi(event.getEvent(), e, server.getLanguage());
           return;
         }
 
-        selectAccountBuilder.addChoices(String.format(LanguageManager.getText(server.serv_language, "showPlayerAccount"),
-            summoner.getName(),
+        selectAccountBuilder.addChoices(String.format(LanguageManager.getText(server.getLanguage(), "showPlayerAccount"),
+            summoner.getSumCacheData().getName(),
             choiceAccount.leagueAccount_server.getName().toUpperCase(),
-            RiotRequest.getSoloqRank(choiceAccount.leagueAccount_summonerId, choiceAccount.leagueAccount_server).toString(server.serv_language)));
-        accountsName.add(summoner.getName());
+            RiotRequest.getSoloqRank(choiceAccount.leagueAccount_summonerId, choiceAccount.leagueAccount_server).toString(server.getLanguage())));
+        accountsName.add(summoner.getSumCacheData().getName());
       }
 
       selectAccountBuilder.setText(getUpdateMessageAfterChangeSelectAction(accountsName, server));
@@ -237,7 +237,7 @@ public class StatsProfileCommand extends ZoeCommand {
     return new Function<Integer, String>() {
       @Override
       public String apply(Integer index) {
-        return String.format(LanguageManager.getText(server.serv_language, "statsProfileSelectText"), choices.get(index - 1));
+        return String.format(LanguageManager.getText(server.getLanguage(), "statsProfileSelectText"), choices.get(index - 1));
       }
     };
   }
@@ -253,11 +253,11 @@ public class StatsProfileCommand extends ZoeCommand {
 
         try {
           selectionMessage.getTextChannel().sendMessage(String.format(
-              LanguageManager.getText(server.serv_language, "statsProfileSelectionDoneMessage"),
+              LanguageManager.getText(server.getLanguage(), "statsProfileSelectionDoneMessage"),
               account.getSummoner().getName(), Zoe.getJda().retrieveUserById(player.player_discordId).complete()
               .getName())).queue();
         } catch (RiotApiException e) {
-          RiotApiUtil.handleRiotApi(event.getEvent(), e, server.serv_language);
+          RiotApiUtil.handleRiotApi(event.getEvent(), e, server.getLanguage());
           return;
         }
 
@@ -272,7 +272,7 @@ public class StatsProfileCommand extends ZoeCommand {
       @Override
       public void accept(Message message) {
         message.clearReactions().queue();
-        message.editMessage(LanguageManager.getText(server.serv_language, "statsProfileSelectionEnded")).queue();
+        message.editMessage(LanguageManager.getText(server.getLanguage(), "statsProfileSelectionEnded")).queue();
       }
     };
   }
@@ -288,11 +288,11 @@ public class StatsProfileCommand extends ZoeCommand {
           lolAccount.leagueAccount_summonerId, true);
     } catch(RiotApiException e) {
       if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
-        event.reply(LanguageManager.getText(server.serv_language, "statsProfileRateLimitError"));
+        event.reply(LanguageManager.getText(server.getLanguage(), "statsProfileRateLimitError"));
         return;
       }
       logger.warn("Got a unexpected error : ", e);
-      event.reply(LanguageManager.getText(server.serv_language, "statsProfileUnexpectedError"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "statsProfileUnexpectedError"));
       return;
     }
 
@@ -303,21 +303,21 @@ public class StatsProfileCommand extends ZoeCommand {
       }
     } catch(IOException | RiotApiException e) {
       logger.info("Got a error in encoding bytesMap image : {}", e);
-      event.reply(LanguageManager.getText(server.serv_language, "statsProfileUnexpectedErrorGraph"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "statsProfileUnexpectedErrorGraph"));
       return;
     }
 
     MessageEmbed embed;
     try {
-      embed = MessageBuilderRequest.createProfileMessage(player, lolAccount, championsMasteries, server.serv_language, url);
+      embed = MessageBuilderRequest.createProfileMessage(player, lolAccount, championsMasteries, server.getLanguage(), url);
     } catch(RiotApiException e) {
       if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
         logger.debug("Get rate limited : {}", e);
-        event.reply(LanguageManager.getText(server.serv_language, "statsProfileRateLimitError"));
+        event.reply(LanguageManager.getText(server.getLanguage(), "statsProfileRateLimitError"));
         return;
       }
       logger.warn("Got a unexpected error : {}", e);
-      event.reply(LanguageManager.getText(server.serv_language, "statsProfileUnexpectedError"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "statsProfileUnexpectedError"));
       return;
     }
 
@@ -344,10 +344,10 @@ public class StatsProfileCommand extends ZoeCommand {
     masteriesGraphBuilder.chartTheme = ChartTheme.GGPlot2;
 
     if(player != null) {
-      masteriesGraphBuilder.title(String.format(LanguageManager.getText(server.serv_language, "statsProfileGraphTitle"),
+      masteriesGraphBuilder.title(String.format(LanguageManager.getText(server.getLanguage(), "statsProfileGraphTitle"),
           player.getUser().getName()));
     }else {
-      masteriesGraphBuilder.title(String.format(LanguageManager.getText(server.serv_language, "statsProfileGraphTitle"),
+      masteriesGraphBuilder.title(String.format(LanguageManager.getText(server.getLanguage(), "statsProfileGraphTitle"),
           leagueAccount.getSummoner().getName()));
     }
 
@@ -365,8 +365,8 @@ public class StatsProfileCommand extends ZoeCommand {
       masteriesGraph.setYAxisLabelOverrideMap(MASTERIES_TABLE_OF_HIGH_VALUE_Y_AXIS);
     }
 
-    masteriesGraph.setXAxisTitle(LanguageManager.getText(server.serv_language, "statsProfileGraphTitleX"));
-    masteriesGraph.setYAxisTitle(LanguageManager.getText(server.serv_language, "statsProfileGraphTitleY"));
+    masteriesGraph.setXAxisTitle(LanguageManager.getText(server.getLanguage(), "statsProfileGraphTitleX"));
+    masteriesGraph.setYAxisTitle(LanguageManager.getText(server.getLanguage(), "statsProfileGraphTitleY"));
 
     List<Double> xPointsMasteries = new ArrayList<>();
     List<Object> yName = new ArrayList<>();

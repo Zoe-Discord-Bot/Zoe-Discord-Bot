@@ -18,11 +18,12 @@ import ch.kalunight.zoe.model.MatchReceiver;
 import ch.kalunight.zoe.model.TeamPositionRated;
 import ch.kalunight.zoe.model.dangerosityreport.DangerosityReport;
 import ch.kalunight.zoe.model.dangerosityreport.PickData;
+import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.SavedChampionsMastery;
 import ch.kalunight.zoe.model.dto.SavedMatch;
 import ch.kalunight.zoe.model.dto.SavedMatchPlayer;
 import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
-import ch.kalunight.zoe.model.dto.SavedSummoner;
+import ch.kalunight.zoe.model.dto.DTO.SummonerCache;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.model.player_data.Tier;
 import ch.kalunight.zoe.service.analysis.ChampionRole;
@@ -45,7 +46,7 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
 
   private String summonerId;
 
-  private SavedSummoner summoner;
+  private DTO.SummonerCache summoner;
 
   private Platform platform;
 
@@ -111,7 +112,7 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
     MatchReceiver matchReceiver = RiotRequest.getAllMatchsByQueue(summonerId, platform, false, selectedQueuesId);
 
     for(SavedMatch match : matchReceiver.matchs) {
-      SavedMatchPlayer playerInMatch = match.getSavedMatchPlayerByAccountId(summoner.getAccountId());
+      SavedMatchPlayer playerInMatch = match.getSavedMatchPlayerBySummonerId(summoner.sumCache_summonerId);
 
       collectRoleData(playerInMatch);
 
@@ -377,7 +378,7 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
     this.finalDeterminedPosition = finalDeterminedPosition;
   }
 
-  public SavedSummoner getSummoner() {
+  public SummonerCache getSummoner() {
     return summoner;
   }
 

@@ -102,7 +102,7 @@ public class InfoCardsWorker implements Runnable {
       List<DTO.Player> players = card.getPlayers();
 
       StringBuilder title = new StringBuilder();
-      MessageBuilderRequestUtil.createTitle(players, currentGameInfo.currentgame_currentgame, title, server.serv_language, false);
+      MessageBuilderRequestUtil.createTitle(players, currentGameInfo.currentgame_currentgame, title, server.getLanguage(), false);
 
       DTO.InfoChannel infochannel = InfoChannelRepository.getInfoChannel(server.serv_guildId);
       TextChannel infoChannel = Zoe.getJda().getGuildById(server.serv_guildId).getTextChannelById(infochannel.infochannel_channelid);

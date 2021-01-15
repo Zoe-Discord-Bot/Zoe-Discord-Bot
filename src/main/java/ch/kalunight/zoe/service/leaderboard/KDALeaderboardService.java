@@ -48,36 +48,36 @@ public class KDALeaderboardService extends LeaderboardBaseService {
     for(PlayerKDA playerKDA : playersKDA) {
       playersName.add(playerKDA.getPlayer().getUser().getName() + "#" + playerKDA.getPlayer().getUser().getDiscriminator());
       if(playerKDA.getKdaReceiver().getAverageKDA() == KDAReceiver.PERFECT_KDA_VALUE) {
-        dataList.add("**"+ LanguageManager.getText(server.serv_language, "perfectKDA") + "** *(" + playerKDA.getKdaReceiver().getAverageStats() + ")*");
+        dataList.add("**"+ LanguageManager.getText(server.getLanguage(), "perfectKDA") + "** *(" + playerKDA.getKdaReceiver().getAverageStats() + ")*");
       }else {
         dataList.add("**"+ KDAReceiver.DECIMAL_FORMAT_KDA.format(playerKDA.getKdaReceiver().getAverageKDA()) + "** *(" + playerKDA.getKdaReceiver().getAverageStats() + ")*");
       }
     }
 
-    String playerTitle = LanguageManager.getText(server.serv_language, "leaderboardPlayersTitle");
+    String playerTitle = LanguageManager.getText(server.getLanguage(), "leaderboardPlayersTitle");
     String dataName;
     if(specificChamp != null) {
-      dataName = String.format(LanguageManager.getText(server.serv_language, "leaderboardObjectiveDataNameKDAWithSpecificChampion"), 
+      dataName = String.format(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveDataNameKDAWithSpecificChampion"), 
           specificChamp.getChampion().getEmoteUsable() + " " + specificChamp.getChampion().getName());
     }else {
-      dataName = LanguageManager.getText(server.serv_language, "leaderboardObjectiveDataNameKDA");
+      dataName = LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveDataNameKDA");
     }
 
     EmbedBuilder builder = buildBaseLeaderboardList(playerTitle, playersName, dataName, dataList);
     builder.setColor(Color.ORANGE);
 
     if(specificChamp != null) {
-      String leaderboardTitle = String.format(LanguageManager.getText(server.serv_language, "leaderboardObjectiveKDAWithSpecificChampionTitle"), 
+      String leaderboardTitle = String.format(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveKDAWithSpecificChampionTitle"), 
           specificChamp.getChampion().getName());
       builder.setTitle(leaderboardTitle);
       message.editMessage(leaderboardTitle).queue();
     }else {
-      String leaderboardTitle = LanguageManager.getText(server.serv_language, "leaderboardObjectiveKDATitle");
+      String leaderboardTitle = LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveKDATitle");
       builder.setTitle(leaderboardTitle);
       message.editMessage(leaderboardTitle).queue();
     }
 
-    builder.setFooter(LanguageManager.getText(server.serv_language, "leaderboardRefreshMessage"));
+    builder.setFooter(LanguageManager.getText(server.getLanguage(), "leaderboardRefreshMessage"));
     message.editMessage(builder.build()).queue();
   }
 

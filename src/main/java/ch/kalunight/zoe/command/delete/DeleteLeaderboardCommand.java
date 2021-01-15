@@ -56,7 +56,7 @@ public class DeleteLeaderboardCommand extends ZoeCommand {
     AtomicBoolean actionDone = new AtomicBoolean(false);
     
     if(leaderboardList.isEmpty()) {
-      event.reply(LanguageManager.getText(server.serv_language, "deleteLeaderboardCommandNoLeaderboardToDelete"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "deleteLeaderboardCommandNoLeaderboardToDelete"));
       return;
     }
 
@@ -66,7 +66,7 @@ public class DeleteLeaderboardCommand extends ZoeCommand {
         .useLooping(true)
         .setColor(Color.GREEN)
         .setSelectedEnds("**", "**")
-        .setCanceled(getSelectionCancelAction(server.serv_language, actionDone))
+        .setCanceled(getSelectionCancelAction(server.getLanguage(), actionDone))
         .setSelectionConsumer(getSelectionConsumer(server, event, leaderboardList, actionDone))
         .setTimeout(2, TimeUnit.MINUTES);
 
@@ -82,13 +82,13 @@ public class DeleteLeaderboardCommand extends ZoeCommand {
         }
       }
 
-      String showableString = Objective.getShowableDeletionFormat(leaderboard, server.serv_language, channel);
+      String showableString = Objective.getShowableDeletionFormat(leaderboard, server.getLanguage(), channel);
 
       leaderboardChoiceInOrder.add(leaderboard);
       selectAccountBuilder.addChoices(showableString);
     }
 
-    selectAccountBuilder.setText(LanguageManager.getText(server.serv_language, "deleteLeaderboardCommandListProposal"));
+    selectAccountBuilder.setText(LanguageManager.getText(server.getLanguage(), "deleteLeaderboardCommandListProposal"));
 
     SelectionDialog choiceLeaderBoard = selectAccountBuilder.build();
     choiceLeaderBoard.display(event.getChannel());
@@ -122,11 +122,11 @@ public class DeleteLeaderboardCommand extends ZoeCommand {
           LeaderboardRepository.deleteLeaderboardWithId(leaderboard.lead_id);
         } catch(SQLException e) {
           logger.error("SQL Exception throw while deleted a leaderboard !", e);
-          event.reply(LanguageManager.getText(server.serv_language, "deleteLeaderboardErrorDatabase"));
+          event.reply(LanguageManager.getText(server.getLanguage(), "deleteLeaderboardErrorDatabase"));
           return;
         }
 
-        event.reply(LanguageManager.getText(server.serv_language, "deleteLeaderboardDoneCorrectly"));
+        event.reply(LanguageManager.getText(server.getLanguage(), "deleteLeaderboardDoneCorrectly"));
       }
     };
   }

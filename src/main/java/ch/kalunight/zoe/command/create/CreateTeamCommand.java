@@ -35,25 +35,25 @@ public class CreateTeamCommand extends ZoeCommand {
     String nameTeam = event.getArgs();
     
     if(!checkNameValid(nameTeam)) {
-      event.reply(LanguageManager.getText(server.serv_language, "nameUseIllegalCharacter"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "nameUseIllegalCharacter"));
       return;
     }
     
     if(nameTeam.equals("--server")) {
-      event.reply(LanguageManager.getText(server.serv_language, "nameAlreadyUsedByTheSystem"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "nameAlreadyUsedByTheSystem"));
       return;
     }
 
     if(nameTeam.equals("")) {
-      event.reply(LanguageManager.getText(server.serv_language, "createTeamNeedName"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "createTeamNeedName"));
     } else {
       DTO.Team team = TeamRepository.getTeam(server.serv_guildId, nameTeam);
 
       if(team != null) {
-        event.reply(LanguageManager.getText(server.serv_language, "createTeamNameAlreadyExist"));
+        event.reply(LanguageManager.getText(server.getLanguage(), "createTeamNameAlreadyExist"));
       } else {
         TeamRepository.createTeam(server.serv_id, nameTeam);
-        event.reply(String.format(LanguageManager.getText(server.serv_language, "createTeamDoneMessage"), event.getArgs()));
+        event.reply(String.format(LanguageManager.getText(server.getLanguage(), "createTeamDoneMessage"), event.getArgs()));
       }
     }
   }

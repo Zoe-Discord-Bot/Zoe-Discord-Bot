@@ -29,7 +29,7 @@ public class DeleteCommand extends ZoeCommand {
   @Override
   protected void executeCommand(CommandEvent event) {
     DTO.Server server = getServer(event.getGuild().getIdLong());
-    event.reply(LanguageManager.getText(server.serv_language, "mainDeleteCommandHelpMessage"));
+    event.reply(LanguageManager.getText(server.getLanguage(), "mainDeleteCommandHelpMessage"));
   }
 
   @Override

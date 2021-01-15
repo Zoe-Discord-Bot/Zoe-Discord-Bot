@@ -14,7 +14,7 @@ public class NoSpecificDataNeededHandler extends LeaderboardExtraDataHandler {
 
   @Override
   public void handleSecondCreationPart() {
-    event.getTextChannel().sendMessage(LanguageManager.getText(server.serv_language, "leaderboardSelectChannelLeaderboard")).queue();
+    event.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "leaderboardSelectChannelLeaderboard")).queue();
     handleEndOfCreation("");
   }
 

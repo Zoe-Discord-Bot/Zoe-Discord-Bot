@@ -38,7 +38,7 @@ public class RankedChannelTFTRefresher extends RankedChannelBaseRefresher {
     MessageEmbed message;
     try {
       message = MessageBuilderRequest.createRankChannelCardLeaguePointChangeOnlyTFT
-      (oldEntry, newEntry, match, player, leagueAccount, server.serv_language);
+      (oldEntry, newEntry, match, player, leagueAccount, server.getLanguage());
     } catch (NoValueRankException | RiotApiException e) {
       logger.warn("Error while generating a TFT rank message!", e);
       return;

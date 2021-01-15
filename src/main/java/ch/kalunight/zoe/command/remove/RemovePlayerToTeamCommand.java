@@ -34,7 +34,7 @@ public class RemovePlayerToTeamCommand extends ZoeCommand {
     DTO.Server server = getServer(event.getGuild().getIdLong());
     
     if(event.getMessage().getMentionedMembers().size() != 1) {
-      event.reply(LanguageManager.getText(server.serv_language, "removePlayerToTeamMissingMention"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "removePlayerToTeamMissingMention"));
       return;
     }
 
@@ -42,19 +42,19 @@ public class RemovePlayerToTeamCommand extends ZoeCommand {
         .getMentionedMembers().get(0).getUser().getIdLong());
 
     if(player == null) {
-      event.reply(LanguageManager.getText(server.serv_language, "removePlayerToTeamMentionnedPlayerNotPlayer"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "removePlayerToTeamMentionnedPlayerNotPlayer"));
       return;
     }
 
     DTO.Team teamWhereRemove = TeamRepository.getTeamByPlayerAndGuild(server.serv_guildId, player.player_discordId);
     
     if(teamWhereRemove == null) {
-      event.reply(LanguageManager.getText(server.serv_language, "removePlayerToTeamNotInTheTeam"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "removePlayerToTeamNotInTheTeam"));
       return;
     }
 
     PlayerRepository.updateTeamOfPlayerDefineNull(player.player_id);
-    event.reply(String.format(LanguageManager.getText(server.serv_language, "removePlayerToTeamDoneMessage"),
+    event.reply(String.format(LanguageManager.getText(server.getLanguage(), "removePlayerToTeamDoneMessage"),
         Zoe.getJda().retrieveUserById(player.player_discordId).complete().getName(), teamWhereRemove.team_name));
   }
 

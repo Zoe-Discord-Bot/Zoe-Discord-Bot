@@ -13,7 +13,7 @@ public class SavedSummoner {
     this.name = summoner.getName();
     this.level = summoner.getSummonerLevel();
   }
-  
+
   public String getAccountId() {
     return accountId;
   }

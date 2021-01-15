@@ -181,7 +181,7 @@ public class MessageBuilderRequestUtil {
   public static String getResumeGameStats(LeagueAccount leagueAccount, String lang, SavedMatch match) {
     StringBuilder statsGame = new StringBuilder();
 
-    SavedMatchPlayer participant = match.getSavedMatchPlayerByAccountId(leagueAccount.leagueAccount_accoundId);
+    SavedMatchPlayer participant = match.getSavedMatchPlayerBySummonerId(leagueAccount.leagueAccount_summonerId);
 
     Champion champion = Ressources.getChampionDataById(participant.getChampionId());
 
@@ -209,7 +209,7 @@ public class MessageBuilderRequestUtil {
     String showableResult;
 
     try {
-      if(match.isGivenAccountWinner(participant.getAccountId())) {
+      if(match.isGivenAccountWinner(participant.getSummonerId())) {
         showableResult = LanguageManager.getText(lang, "win");
       }else {
         showableResult = LanguageManager.getText(lang, "loose");

@@ -47,15 +47,15 @@ public class RegisterCommand extends ZoeCommand {
     ServerConfiguration config = ConfigRepository.getServerConfiguration(server.serv_guildId);
 
     if(!config.getUserSelfAdding().isOptionActivated()) {
-      event.reply(String.format(LanguageManager.getText(server.serv_language, "registerCommandOptionRequired"),
-          LanguageManager.getText(server.serv_language, config.getUserSelfAdding().getDescription())));
+      event.reply(String.format(LanguageManager.getText(server.getLanguage(), "registerCommandOptionRequired"),
+          LanguageManager.getText(server.getLanguage(), config.getUserSelfAdding().getDescription())));
       return;
     }
 
     User user = event.getAuthor();
 
     if(CreatePlayerCommand.isTheGivenUserAlreadyRegister(user, server)) {
-      event.reply(LanguageManager.getText(server.serv_language, "registerCommandAlreadyInZoe"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "registerCommandAlreadyInZoe"));
       return;
     }
 
@@ -63,10 +63,10 @@ public class RegisterCommand extends ZoeCommand {
 
     List<String> listArgs = CreatePlayerCommand.getParameterInParenteses(event.getArgs());
     if(listArgs.size() != 2 && regionOption.getRegion() == null) {
-      event.reply(LanguageManager.getText(server.serv_language, "registerCommandMalformedWithoutRegionOption"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "registerCommandMalformedWithoutRegionOption"));
       return;
     }else if((listArgs.isEmpty() || listArgs.size() > 2) && regionOption.getRegion() != null) {
-      event.reply(String.format(LanguageManager.getText(server.serv_language, "registerCommandMalformedWithRegionOption"), 
+      event.reply(String.format(LanguageManager.getText(server.getLanguage(), "registerCommandMalformedWithRegionOption"), 
           regionOption.getRegion().getName().toUpperCase()));
       return;
     }
@@ -84,7 +84,7 @@ public class RegisterCommand extends ZoeCommand {
 
     Platform region = CreatePlayerCommand.getPlatform(regionName);
     if(region == null) {
-      event.reply(LanguageManager.getText(server.serv_language, "regionTagInvalid"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "regionTagInvalid"));
       return;
     }
 
@@ -94,7 +94,7 @@ public class RegisterCommand extends ZoeCommand {
       summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);
       tftSummoner = Zoe.getRiotApi().getTFTSummonerByName(region, summonerName);
     }catch(RiotApiException e) {
-      RiotApiUtil.handleRiotApi(event.getEvent(), e, server.serv_language);
+      RiotApiUtil.handleRiotApi(event.getEvent(), e, server.getLanguage());
       return;
     }
 
@@ -102,7 +102,7 @@ public class RegisterCommand extends ZoeCommand {
         .getPlayerByLeagueAccountAndGuild(server.serv_guildId, summoner.getId(), region);
 
     if(playerAlreadyWithTheAccount != null) {
-      event.reply(String.format(LanguageManager.getText(server.serv_language, "accountAlreadyLinkedToAnotherPlayer"),
+      event.reply(String.format(LanguageManager.getText(server.getLanguage(), "accountAlreadyLinkedToAnotherPlayer"),
           playerAlreadyWithTheAccount.getUser().getName()));
       return;
     }
@@ -125,10 +125,10 @@ public class RegisterCommand extends ZoeCommand {
           event.getGuild().addRoleToMember(member, config.getZoeRoleOption().getRole()).queue();
         }
       }
-      event.reply(String.format(LanguageManager.getText(server.serv_language, "registerCommandDoneMessage"), summoner.getName()));
+      event.reply(String.format(LanguageManager.getText(server.getLanguage(), "registerCommandDoneMessage"), summoner.getName()));
 
     }else {
-      event.reply(LanguageManager.getText(server.serv_language, "accountCantBeAddedOwnerChoice"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "accountCantBeAddedOwnerChoice"));
     }
   }
 

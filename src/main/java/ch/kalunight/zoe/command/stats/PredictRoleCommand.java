@@ -54,10 +54,10 @@ public class PredictRoleCommand extends ZoeCommand {
 
     List<String> listArgs = CreatePlayerCommand.getParameterInParenteses(event.getArgs());
     if(listArgs.size() != 10 && regionOption.getRegion() == null) {
-      event.reply(LanguageManager.getText(server.serv_language, "createPlayerMalformedWithoutRegionOption"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "createPlayerMalformedWithoutRegionOption"));
       return;
     }else if(listArgs.size() != 10 && listArgs.size() != 5 && regionOption.getRegion() != null) {
-      event.reply(String.format(LanguageManager.getText(server.serv_language, "createPlayerMalformedWithRegionOption"), 
+      event.reply(String.format(LanguageManager.getText(server.getLanguage(), "createPlayerMalformedWithRegionOption"), 
           regionOption.getRegion().getName().toUpperCase()));
       return;
     }
@@ -83,7 +83,7 @@ public class PredictRoleCommand extends ZoeCommand {
       if(listArgs.size() == 10) {
         region = CreatePlayerCommand.getPlatform(regionName);
         if(region == null) {
-          event.reply(LanguageManager.getText(server.serv_language, "regionTagInvalid"));
+          event.reply(LanguageManager.getText(server.getLanguage(), "regionTagInvalid"));
           return;
         }
       }else {
@@ -96,7 +96,7 @@ public class PredictRoleCommand extends ZoeCommand {
         leagueAccount.platform = region;
         leagueAccountToTreat.add(leagueAccount);
       }catch(RiotApiException e) {
-        RiotApiUtil.handleRiotApi(event.getEvent(), e, server.serv_language);
+        RiotApiUtil.handleRiotApi(event.getEvent(), e, server.getLanguage());
         return;
       }
       playerToTreath--;
@@ -119,13 +119,13 @@ public class PredictRoleCommand extends ZoeCommand {
       Collections.sort(accountAnalyser);
 
       StringBuilder builder = new StringBuilder();
-      builder.append(LanguageManager.getText(server.serv_language, "statsPredictRoleTitleDeterminedRole") + "\n");
+      builder.append(LanguageManager.getText(server.getLanguage(), "statsPredictRoleTitleDeterminedRole") + "\n");
       for(TeamPlayerAnalysisDataCollector playerToShow : accountAnalyser) {
-        builder.append(LanguageManager.getText(server.serv_language, TeamUtil.getChampionRoleAbrID(playerToShow.getFinalDeterminedPosition())) + " : *" 
-            + playerToShow.getPlatform().getName().toUpperCase() + "* " + playerToShow.getSummoner().getName() + "\n");
+        builder.append(LanguageManager.getText(server.getLanguage(), TeamUtil.getChampionRoleAbrID(playerToShow.getFinalDeterminedPosition())) + " : *" 
+            + playerToShow.getPlatform().getName().toUpperCase() + "* " + playerToShow.getSummoner().getSumCacheData().getName() + "\n");
       }
 
-      builder.append("*" + LanguageManager.getText(server.serv_language, "disclaimerAnalysis") + "*");
+      builder.append("*" + LanguageManager.getText(server.getLanguage(), "disclaimerAnalysis") + "*");
       
       event.reply(builder.toString());
       

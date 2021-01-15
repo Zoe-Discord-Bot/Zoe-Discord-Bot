@@ -46,7 +46,7 @@ public class StatsCommand extends ZoeCommand {
     
     DTO.Server server = getServer(event.getGuild().getIdLong());
     
-    event.reply(LanguageManager.getText(server.serv_language, "mainStatsCommandHelpMessage"));
+    event.reply(LanguageManager.getText(server.getLanguage(), "mainStatsCommandHelpMessage"));
   }
 
   @Override

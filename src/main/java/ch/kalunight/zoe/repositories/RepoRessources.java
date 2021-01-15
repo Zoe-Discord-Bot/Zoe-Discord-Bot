@@ -53,7 +53,7 @@ public class RepoRessources {
   
   public static void sqlErrorReport(MessageChannel channel, DTO.Server server, SQLException e) {
     logger.error("SQL issue when updating option", e);
-    channel.sendMessage(LanguageManager.getText(server.serv_language, "errorSQLPleaseReport")).complete();
+    channel.sendMessage(LanguageManager.getText(server.getLanguage(), "errorSQLPleaseReport")).complete();
   }
   
   public static void shutdownDB() {

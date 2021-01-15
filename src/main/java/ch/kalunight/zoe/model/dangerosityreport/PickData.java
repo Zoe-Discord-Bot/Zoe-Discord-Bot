@@ -3,26 +3,24 @@ package ch.kalunight.zoe.model.dangerosityreport;
 import java.util.List;
 
 import ch.kalunight.zoe.model.dto.SavedSummoner;
+import ch.kalunight.zoe.model.dto.DTO.SummonerCache;
 import net.rithms.riot.constant.Platform;
 
 public class PickData implements Comparable<PickData> {
-
-  private String summonerId;
   
   private Platform platform;
   
-  private SavedSummoner savedSummoner;
+  private SummonerCache savedSummoner;
   
   private int championId;
   
   private List<DangerosityReport> reportsOfThePick;
 
-  public PickData(String summonerId, Platform platform, SavedSummoner savedSummoner, int championId, List<DangerosityReport> reports) {
-    this.summonerId = summonerId;
+  public PickData(Platform platform, SummonerCache savedSummoner, int championId, List<DangerosityReport> reports) {
     this.platform = platform;
-    this.savedSummoner = savedSummoner;
     this.championId = championId;
     this.reportsOfThePick = reports;
+    this.savedSummoner = savedSummoner;
   }
   
   public int getValueOfThePick() {
@@ -51,7 +49,7 @@ public class PickData implements Comparable<PickData> {
   }
   
   public String getSummonerId() {
-    return summonerId;
+    return savedSummoner.sumCache_summonerId;
   }
 
   public Platform getPlatform() {
@@ -59,7 +57,7 @@ public class PickData implements Comparable<PickData> {
   }
 
   public SavedSummoner getSavedSummoner() {
-    return savedSummoner;
+    return savedSummoner.getSumCacheData();
   }
 
   public int getChampionId() {
@@ -69,5 +67,4 @@ public class PickData implements Comparable<PickData> {
   public List<DangerosityReport> getReportsOfThePick() {
     return reportsOfThePick;
   }
-
 }

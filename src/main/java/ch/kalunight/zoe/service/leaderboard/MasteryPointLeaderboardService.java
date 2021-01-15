@@ -39,16 +39,16 @@ public class MasteryPointLeaderboardService extends LeaderboardBaseService {
     for(PlayerPoints playerPoints : playersPoints) {
       playersName.add(playerPoints.getPlayer().getUser().getName() + "#" + playerPoints.getPlayer().getUser().getDiscriminator());
       dataList.add(masteryPointsFormat.format(playerPoints.getPoints()) + " " 
-      + LanguageManager.getText(server.serv_language, "pointsShort"));
+      + LanguageManager.getText(server.getLanguage(), "pointsShort"));
     }
     
-    String playerTitle = LanguageManager.getText(server.serv_language, "leaderboardPlayersTitle");
-    String dataName = LanguageManager.getText(server.serv_language, "leaderboardObjectiveTotalMasterPoint");
+    String playerTitle = LanguageManager.getText(server.getLanguage(), "leaderboardPlayersTitle");
+    String dataName = LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveTotalMasterPoint");
     EmbedBuilder builder = buildBaseLeaderboardList(playerTitle, playersName, dataName, dataList);
     builder.setColor(Color.ORANGE);
-    builder.setTitle(LanguageManager.getText(server.serv_language, "leaderboardObjectiveMasterPointTitle"));
-    builder.setFooter(LanguageManager.getText(server.serv_language, "leaderboardRefreshMessage"));
-    message.editMessage(LanguageManager.getText(server.serv_language, "leaderboardObjectiveMasterPointTitle")).queue();
+    builder.setTitle(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveMasterPointTitle"));
+    builder.setFooter(LanguageManager.getText(server.getLanguage(), "leaderboardRefreshMessage"));
+    message.editMessage(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveMasterPointTitle")).queue();
     message.editMessage(builder.build()).queue();
   }
 

@@ -36,7 +36,7 @@ public class UndefineInfoChannelCommand extends ZoeCommand {
     DTO.InfoChannel infochannel = InfoChannelRepository.getInfoChannel(server.serv_guildId);
 
     if(infochannel == null) {
-      event.reply(LanguageManager.getText(server.serv_language, "undefineInfoChannelMissingChannel"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "undefineInfoChannelMissingChannel"));
     } else {
       TextChannel channel = Zoe.getJda().getGuildById(server.serv_guildId).getTextChannelById(infochannel.infochannel_channelid);
       
@@ -62,7 +62,7 @@ public class UndefineInfoChannelCommand extends ZoeCommand {
       }
 
       InfoChannelRepository.deleteInfoChannel(server);
-      event.reply(LanguageManager.getText(server.serv_language, "undefineInfoChannelDoneMessage"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "undefineInfoChannelDoneMessage"));
     }
   }
 

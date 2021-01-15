@@ -48,31 +48,31 @@ public class RemoveAccountCommand extends ZoeCommand {
 
     if(!config.getUserSelfAdding().isOptionActivated() &&
         !event.getMember().getPermissions().contains(Permission.MANAGE_CHANNEL)) {
-      event.reply(String.format(LanguageManager.getText(server.serv_language, "deletePlayerMissingPermission"),
+      event.reply(String.format(LanguageManager.getText(server.getLanguage(), "deletePlayerMissingPermission"),
           Permission.MANAGE_CHANNEL.getName()));
       return;
     }
 
     User user = CreatePlayerCommand.getMentionedUser(event.getMessage().getMentionedMembers());
     if(user == null) {
-      event.reply(String.format(LanguageManager.getText(server.serv_language, "removeAccountMissingMention"),
+      event.reply(String.format(LanguageManager.getText(server.getLanguage(), "removeAccountMissingMention"),
           event.getMember().getUser().getName()));
       return;
     } else if(!user.equals(event.getAuthor()) && !event.getMember().getPermissions().contains(Permission.MANAGE_CHANNEL)) {
-      event.reply(String.format(LanguageManager.getText(server.serv_language, "removeAccountMissingRight"),
+      event.reply(String.format(LanguageManager.getText(server.getLanguage(), "removeAccountMissingRight"),
           Permission.MANAGE_CHANNEL.getName()));
       return;
     }
 
     DTO.Player player = PlayerRepository.getPlayer(server.serv_guildId, user.getIdLong());
     if(player == null) {
-      event.reply(LanguageManager.getText(server.serv_language, "removeAccountUserNotRegistered"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "removeAccountUserNotRegistered"));
       return;
     }
 
     List<String> listArgs = CreatePlayerCommand.getParameterInParenteses(event.getArgs());
     if(listArgs.size() != 2) {
-      event.reply(LanguageManager.getText(server.serv_language, "removeAccountMalformed"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "removeAccountMalformed"));
       return;
     }
 
@@ -81,7 +81,7 @@ public class RemoveAccountCommand extends ZoeCommand {
 
     Platform region = CreatePlayerCommand.getPlatform(regionName);
     if(region == null) {
-      event.reply(LanguageManager.getText(server.serv_language, "regionTagInvalid"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "regionTagInvalid"));
       return;
     }
 
@@ -94,17 +94,17 @@ public class RemoveAccountCommand extends ZoeCommand {
       account = LeagueAccountRepository
           .getLeagueAccountWithSummonerId(server.serv_guildId, summoner.getId(), region);
     } catch(RiotApiException e) {
-      RiotApiUtil.handleRiotApi(event.getEvent(), e, server.serv_language);
+      RiotApiUtil.handleRiotApi(event.getEvent(), e, server.getLanguage());
       return;
     }
 
     if(account == null) {
-      event.reply(LanguageManager.getText(server.serv_language, "removeAccountNotLinkedToPlayer"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "removeAccountNotLinkedToPlayer"));
       return;
     }
     
     LeagueAccountRepository.deleteAccountWithId(account.leagueAccount_id);
-    event.reply(String.format(LanguageManager.getText(server.serv_language, "removeAccountDoneMessage"),
+    event.reply(String.format(LanguageManager.getText(server.getLanguage(), "removeAccountDoneMessage"),
         summonerName, user.getName()));
   }
 

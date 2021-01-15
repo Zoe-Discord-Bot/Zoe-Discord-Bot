@@ -48,9 +48,9 @@ public class RegionOption extends ConfigurationOption {
         
         String message;
         if(region == null) {
-          message = LanguageManager.getText(server.serv_language, "regionOptionAnyRegionSelected");
+          message = LanguageManager.getText(server.getLanguage(), "regionOptionAnyRegionSelected");
         }else {
-          message = String.format(LanguageManager.getText(server.serv_language, "regionOptionRegionSelected"),
+          message = String.format(LanguageManager.getText(server.getLanguage(), "regionOptionRegionSelected"),
               region.getName().toUpperCase());
         }
 
@@ -62,13 +62,13 @@ public class RegionOption extends ConfigurationOption {
             .useLooping(true)
             .setColor(Color.BLUE)
             .setSelectedEnds("**", "**")
-            .setCanceled(getSelectionCancelAction(server.serv_language))
+            .setCanceled(getSelectionCancelAction(server.getLanguage()))
             .setTimeout(2, TimeUnit.MINUTES);
 
         List<Platform> regionsList = new ArrayList<>();
         List<String> regionChoices = new ArrayList<>();
         for(Platform regionMember : Platform.values()) {
-          String actualChoice = String.format(LanguageManager.getText(server.serv_language, "regionOptionRegionChoice"),
+          String actualChoice = String.format(LanguageManager.getText(server.getLanguage(), "regionOptionRegionChoice"),
               regionMember.getName().toUpperCase());
           
           regionChoices.add(actualChoice);
@@ -76,12 +76,12 @@ public class RegionOption extends ConfigurationOption {
           regionsList.add(regionMember);
         }
         
-        String anyChoice = LanguageManager.getText(server.serv_language, "regionOptionDisableChoice");
+        String anyChoice = LanguageManager.getText(server.getLanguage(), "regionOptionDisableChoice");
         regionChoices.add(anyChoice);
         selectAccountBuilder.addChoices(anyChoice);
 
-        selectAccountBuilder.setText(getUpdateMessageAfterChangeSelectAction(server.serv_language, regionChoices));
-        selectAccountBuilder.setSelectionConsumer(getSelectionDoneAction(server.serv_language, regionsList, server));
+        selectAccountBuilder.setText(getUpdateMessageAfterChangeSelectAction(server.getLanguage(), regionChoices));
+        selectAccountBuilder.setSelectionConsumer(getSelectionDoneAction(server.getLanguage(), regionsList, server));
 
         SelectionDialog dialog = selectAccountBuilder.build();
         dialog.display(event.getChannel());

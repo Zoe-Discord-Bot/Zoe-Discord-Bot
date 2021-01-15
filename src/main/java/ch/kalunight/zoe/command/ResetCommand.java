@@ -37,7 +37,7 @@ public class ResetCommand extends ZoeCommand {
     
     DTO.Server server = getServer(event.getGuild().getIdLong());
     
-    event.reply(LanguageManager.getText(server.serv_language, "resetWarningMessage"));
+    event.reply(LanguageManager.getText(server.getLanguage(), "resetWarningMessage"));
     
     waiter.waitForEvent(MessageReceivedEvent.class,
         e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel())
@@ -52,7 +52,7 @@ public class ResetCommand extends ZoeCommand {
     DTO.Server server = getServer(messageReceivedEvent.getGuild().getIdLong());
     
     if(server != null) {
-      spellingLangage = server.serv_language;
+      spellingLangage = server.getLanguage();
     }
     
     if(messageReceivedEvent.getMessage().getContentRaw().equals("YES")) {
@@ -75,7 +75,7 @@ public class ResetCommand extends ZoeCommand {
   
   private void cancelReset(MessageReceivedEvent event) {
     DTO.Server server = getServer(event.getGuild().getIdLong());
-    event.getTextChannel().sendMessage(LanguageManager.getText(server.serv_language, "resetTimeoutMessage")).queue();
+    event.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "resetTimeoutMessage")).queue();
   }
 
   @Override

@@ -35,7 +35,7 @@ public class DeleteRankHistoryChannelCommand extends ZoeCommand {
     DTO.RankHistoryChannel rankChannel = RankHistoryChannelRepository.getRankHistoryChannel(server.serv_guildId);
 
     if(rankChannel == null) {
-      event.reply(LanguageManager.getText(server.serv_language, "deleteRankChannelNotSetted"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "deleteRankChannelNotSetted"));
     } else {
       try {
         TextChannel textChannel = event.getGuild().getTextChannelById(rankChannel.rhChannel_channelId);
@@ -44,12 +44,12 @@ public class DeleteRankHistoryChannelCommand extends ZoeCommand {
         }
       } catch(InsufficientPermissionException e) {
         RankHistoryChannelRepository.deleteRankHistoryChannel(rankChannel.rhChannel_id);
-        event.reply(LanguageManager.getText(server.serv_language, "deleteRankChannelDeletedMissingPermission"));
+        event.reply(LanguageManager.getText(server.getLanguage(), "deleteRankChannelDeletedMissingPermission"));
         return;
       }
 
       RankHistoryChannelRepository.deleteRankHistoryChannel(rankChannel.rhChannel_id);
-      event.reply(LanguageManager.getText(server.serv_language, "deleteRankChannelDoneMessage"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "deleteRankChannelDoneMessage"));
     }
   }
 

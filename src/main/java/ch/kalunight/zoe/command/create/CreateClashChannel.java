@@ -73,12 +73,12 @@ public class CreateClashChannel extends ZoeCommand {
     String nameChannel = event.getArgs();
 
     if(nameChannel == null || nameChannel.equals("")) {
-      event.reply(LanguageManager.getText(server.serv_language, "nameOfInfochannelNeeded"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "nameOfInfochannelNeeded"));
       return;
     }
 
     if(nameChannel.length() > 100) {
-      event.reply(LanguageManager.getText(server.serv_language, "nameOfTheInfoChannelNeedToBeLess100Characters"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "nameOfTheInfoChannelNeedToBeLess100Characters"));
       return;
     }
 
@@ -98,7 +98,7 @@ public class CreateClashChannel extends ZoeCommand {
 
     creationData.channelName = nameChannel;
 
-    event.reply(LanguageManager.getText(server.serv_language, "createClashChannelAskLeagueAccount"));
+    event.reply(LanguageManager.getText(server.getLanguage(), "createClashChannelAskLeagueAccount"));
 
     waitForALeagueAccount(event, server, creationData);
   }
@@ -120,7 +120,7 @@ public class CreateClashChannel extends ZoeCommand {
 
     List<String> listArgs = CreatePlayerCommand.getParameterInParenteses(message.getMessage().getContentRaw());
     if(listArgs.size() != 2) {
-      originalEvent.reply(LanguageManager.getText(server.serv_language, "createClashMalformedLeagueAccount"));
+      originalEvent.reply(LanguageManager.getText(server.getLanguage(), "createClashMalformedLeagueAccount"));
       waitForALeagueAccount(originalEvent, server, creationData);
       return;
     }
@@ -131,7 +131,7 @@ public class CreateClashChannel extends ZoeCommand {
 
     Platform region = CreatePlayerCommand.getPlatform(regionName);
     if(region == null) {
-      originalEvent.reply(LanguageManager.getText(server.serv_language, "createClashChannelRegionTagInvalid"));
+      originalEvent.reply(LanguageManager.getText(server.getLanguage(), "createClashChannelRegionTagInvalid"));
       waitForALeagueAccount(originalEvent, server, creationData);
       return;
     }
@@ -146,7 +146,7 @@ public class CreateClashChannel extends ZoeCommand {
         for(DTO.ClashChannel clashChannel : clashChannels) {
           if(clashChannel.clashChannel_data.getSelectedSummonerId().equals(summoner.getId())
               && clashChannel.clashChannel_data.getSelectedPlatform().equals(region)) {
-            originalEvent.reply(LanguageManager.getText(server.serv_language, "createClashChannelAlreadyCreatedForThisSummoner"));
+            originalEvent.reply(LanguageManager.getText(server.getLanguage(), "createClashChannelAlreadyCreatedForThisSummoner"));
             waitForALeagueAccount(originalEvent, server, creationData);
             return;
           }
@@ -155,7 +155,7 @@ public class CreateClashChannel extends ZoeCommand {
         BannedAccount bannedAccount = BannedAccountRepository.getBannedAccount(summoner.getId(), region);
         if(bannedAccount == null) {
 
-          originalEvent.reply(String.format(LanguageManager.getText(server.serv_language, "createClashChannelLeagueAccountSelected"), region.getName().toUpperCase(), summoner.getName()));
+          originalEvent.reply(String.format(LanguageManager.getText(server.getLanguage(), "createClashChannelLeagueAccountSelected"), region.getName().toUpperCase(), summoner.getName()));
 
           List<String> timeZoneIds = getTimeZoneIds();
 
@@ -166,16 +166,16 @@ public class CreateClashChannel extends ZoeCommand {
 
           waitForATimeZoneSelection(originalEvent, server, timeZoneIds, creationData);
         }else {
-          originalEvent.reply(LanguageManager.getText(server.serv_language, "accountCantBeAddedOwnerChoice"));
+          originalEvent.reply(LanguageManager.getText(server.getLanguage(), "accountCantBeAddedOwnerChoice"));
         }
       }else {
-        originalEvent.reply(String.format(LanguageManager.getText(server.serv_language, "createClashChannelSummonerNotFound"), summonerName, region.toString()));
+        originalEvent.reply(String.format(LanguageManager.getText(server.getLanguage(), "createClashChannelSummonerNotFound"), summonerName, region.toString()));
       }
     } catch (SQLException e) {
       logger.error("SQLException with league account selection in create Clash Command.", e);
-      originalEvent.reply(LanguageManager.getText(server.serv_language, "deleteLeaderboardErrorDatabase"));
+      originalEvent.reply(LanguageManager.getText(server.getLanguage(), "deleteLeaderboardErrorDatabase"));
     } catch (RiotApiException e) {
-      RiotApiUtil.handleRiotApi(message, e, server.serv_language);
+      RiotApiUtil.handleRiotApi(message, e, server.getLanguage());
 
       if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND || e.getErrorCode() == RiotApiException.SERVER_ERROR) {
         waitForALeagueAccount(originalEvent, server, creationData);
@@ -200,8 +200,8 @@ public class CreateClashChannel extends ZoeCommand {
         .setEventWaiter(waiter)
         .setUsers(originalEvent.getAuthor())
         .setColor(Color.GREEN)
-        .setText(PaginatorUtil.getPaginationTranslatedPage(server.serv_language))
-        .setText(LanguageManager.getText(server.serv_language, "paginationTimeZoneList"))
+        .setText(PaginatorUtil.getPaginationTranslatedPage(server.getLanguage()))
+        .setText(LanguageManager.getText(server.getLanguage(), "paginationTimeZoneList"))
         .setTimeout(3, TimeUnit.MINUTES);
 
     for(String timeZoneId : timeZoneIds) {
@@ -229,7 +229,7 @@ public class CreateClashChannel extends ZoeCommand {
 
         selectTimeZoneWithName(message, server, timeZoneIds, timeZoneSelected, originalEvent, creationData);
       }else {
-        message.getTextChannel().sendMessage(LanguageManager.getText(server.serv_language,
+        message.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(),
             "createClashChannelTournamentBadTimeZoneSelection")).queue();
         waitForATimeZoneSelection(originalEvent, server, timeZoneIds, creationData);
       }
@@ -257,7 +257,7 @@ public class CreateClashChannel extends ZoeCommand {
     }
 
     if(selectedTimeZone == null) {
-      message.getTextChannel().sendMessage(LanguageManager.getText(server.serv_language,
+      message.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(),
           "createClashChannelTournamentBadTimeZoneSelection")).queue();
       waitForATimeZoneSelection(originalEvent, server, timeZoneIds, creationData);
     }else {
@@ -265,7 +265,7 @@ public class CreateClashChannel extends ZoeCommand {
       try {
         TextChannel clashChannel = originalEvent.getGuild().createTextChannel(creationData.channelName).complete();
         List<Long> messageIds = new ArrayList<>();
-        Message loadingMessage = clashChannel.sendMessage(LanguageManager.getText(server.serv_language, "clashChannelLoadingMessage")).complete();
+        Message loadingMessage = clashChannel.sendMessage(LanguageManager.getText(server.getLanguage(), "clashChannelLoadingMessage")).complete();
         messageIds.add(loadingMessage.getIdLong());
 
         ClashChannelData data = new ClashChannelData(messageIds, new ArrayList<>(), null, creationData.platform, creationData.summoner.getId(), ClashStatus.WAIT_FOR_GAME_START);
@@ -278,13 +278,13 @@ public class CreateClashChannel extends ZoeCommand {
           CommandUtil.giveRolePermission(originalEvent.getGuild(), clashChannel, config);
         }
 
-        originalEvent.reply(LanguageManager.getText(server.serv_language, "createClashChannelTournamentTimeZoneSelected"));
+        originalEvent.reply(LanguageManager.getText(server.getLanguage(), "createClashChannelTournamentTimeZoneSelected"));
 
       } catch(InsufficientPermissionException e) {
-        originalEvent.reply(LanguageManager.getText(server.serv_language, "impossibleToCreateInfoChannelMissingPerms"));
+        originalEvent.reply(LanguageManager.getText(server.getLanguage(), "impossibleToCreateInfoChannelMissingPerms"));
       } catch (SQLException e) {
         logger.error("SQLException with the ClashChannel", e);
-        originalEvent.reply(LanguageManager.getText(server.serv_language, "errorSQLPleaseReport"));
+        originalEvent.reply(LanguageManager.getText(server.getLanguage(), "errorSQLPleaseReport"));
       }
     }
   }
@@ -298,7 +298,7 @@ public class CreateClashChannel extends ZoeCommand {
   }
 
   private void cancelCreationOfClashChannel(TextChannel textChannel, Server server) {
-    textChannel.sendMessage(LanguageManager.getText(server.serv_language, "createClashChannelCancelMessage")).queue();
+    textChannel.sendMessage(LanguageManager.getText(server.getLanguage(), "createClashChannelCancelMessage")).queue();
   }
 
   @Override

@@ -76,17 +76,17 @@ public class SavedMatch implements Serializable {
         blueSide = false;
       }
 
-      SavedMatchPlayer savedPlayer = new SavedMatchPlayer(blueSide, player.getAccountId(), participant.getChampionId(),
+      SavedMatchPlayer savedPlayer = new SavedMatchPlayer(blueSide, player.getSummonerId(), participant.getChampionId(),
           participant.getStats(), role, lane);
 
       players.add(savedPlayer);
     }
   }
 
-  public SavedMatchPlayer getSavedMatchPlayerByAccountId(String accountId) {
+  public SavedMatchPlayer getSavedMatchPlayerBySummonerId(String summonerId) {
 
     for(SavedMatchPlayer savedMatchPlayer : players) {
-      if(savedMatchPlayer.getAccountId().equals(accountId)) {
+      if(savedMatchPlayer.getSummonerId().equals(summonerId)) {
         return savedMatchPlayer;
       }
     }
@@ -103,10 +103,10 @@ public class SavedMatch implements Serializable {
     return null;
   }
 
-  public boolean isGivenAccountWinner(String accountId) {
+  public boolean isGivenAccountWinner(String summonerId) {
 
     for(SavedMatchPlayer player : players) {
-      if(player.getAccountId().equals(accountId)) {
+      if(player.getSummonerId().equals(summonerId)) {
         return (player.isBlueSide() && blueSideHasWin) || (!player.isBlueSide() && !blueSideHasWin);
       }
     }

@@ -80,11 +80,11 @@ public abstract class LeaderboardBaseService implements Runnable {
       
       if(messageAfterTheLeaderboard > NUMBER_OF_MESSAGE_CONSIDERED_VISIBLE
           && messageAfterTheLeaderboard < NUMBER_OF_MESSAGE_FOR_DELETION) {
-        message.editMessage(LanguageManager.getText(server.serv_language, "leaderboardNotRefreshedMessage")).queue();
+        message.editMessage(LanguageManager.getText(server.getLanguage(), "leaderboardNotRefreshedMessage")).queue();
         return;
         
       }else if (messageAfterTheLeaderboard > NUMBER_OF_MESSAGE_FOR_DELETION) {
-        message.editMessage(LanguageManager.getText(server.serv_language, "leaderboardDeletedMessage")).queue();
+        message.editMessage(LanguageManager.getText(server.getLanguage(), "leaderboardDeletedMessage")).queue();
         LeaderboardRepository.deleteLeaderboardWithId(leaderboardId);
         return;
       }

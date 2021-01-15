@@ -12,7 +12,7 @@ import com.jagrosh.jdautilities.menu.Paginator;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.model.dto.DTO;
-import ch.kalunight.zoe.model.dto.SavedSummoner;
+import ch.kalunight.zoe.model.dto.DTO.SummonerCache;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
@@ -68,7 +68,7 @@ public class ShowPlayerCommand extends ZoeCommand {
     List<DTO.Player> players = PlayerRepository.getPlayers(server.serv_guildId);
     
     if(players.isEmpty()) {
-      event.reply(LanguageManager.getText(server.serv_language, "showPlayerServerEmpty"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "showPlayerServerEmpty"));
       return;
     }
     
@@ -76,34 +76,34 @@ public class ShowPlayerCommand extends ZoeCommand {
     for(DTO.Player player : players) {
       StringBuilder playerInfo = new StringBuilder();
       User user = event.getGuild().retrieveMemberById(player.player_discordId).complete().getUser();
-      playerInfo.append(String.format(LanguageManager.getText(server.serv_language, "showPlayerName"),
+      playerInfo.append(String.format(LanguageManager.getText(server.getLanguage(), "showPlayerName"),
           user.getName()) + "\n");
 
       List<DTO.LeagueAccount> leagueAccounts = LeagueAccountRepository.getLeaguesAccounts(server.serv_guildId, user.getIdLong());
       
       if(leagueAccounts.isEmpty()) {
-        playerInfo.append(LanguageManager.getText(server.serv_language, "showPlayerNoAccount") + "\n");
+        playerInfo.append(LanguageManager.getText(server.getLanguage(), "showPlayerNoAccount") + "\n");
       }
       accountsNmb += leagueAccounts.size();
       for(DTO.LeagueAccount leagueAccount : leagueAccounts) {
-        SavedSummoner summoner;
+        SummonerCache summoner;
         try {
           summoner = Zoe.getRiotApi().getSummoner(leagueAccount.leagueAccount_server,
               leagueAccount.leagueAccount_summonerId, false);
         } catch(RiotApiException e) {
-          RiotApiUtil.handleRiotApi(event.getEvent(), e, server.serv_language);
+          RiotApiUtil.handleRiotApi(event.getEvent(), e, server.getLanguage());
           return;
         }
-        playerInfo.append(String.format(LanguageManager.getText(server.serv_language, "showPlayerAccount"),
-            summoner.getName(), leagueAccount.leagueAccount_server.getName().toUpperCase(),
+        playerInfo.append(String.format(LanguageManager.getText(server.getLanguage(), "showPlayerAccount"),
+            summoner.getSumCacheData().getName(), leagueAccount.leagueAccount_server.getName().toUpperCase(),
             RiotRequest.getSoloqRank(leagueAccount.leagueAccount_summonerId,
-                leagueAccount.leagueAccount_server).toString(server.serv_language)) + "\n");
+                leagueAccount.leagueAccount_server).toString(server.getLanguage())) + "\n");
       }
       pbuilder.addItems(playerInfo.toString().substring(0, playerInfo.toString().length() - 1));
     }
 
     Paginator p = pbuilder.setColor(Color.GREEN)
-        .setText(String.format(LanguageManager.getText(server.serv_language, "showPlayerEmbedTitle"), players.size(), accountsNmb))
+        .setText(String.format(LanguageManager.getText(server.getLanguage(), "showPlayerEmbedTitle"), players.size(), accountsNmb))
         .setUsers(event.getAuthor())
         .build();
     p.paginate(event.getChannel(), page);

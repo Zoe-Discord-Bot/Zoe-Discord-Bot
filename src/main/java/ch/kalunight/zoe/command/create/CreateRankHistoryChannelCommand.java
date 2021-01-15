@@ -37,12 +37,12 @@ public class CreateRankHistoryChannelCommand extends ZoeCommand {
     String nameChannel = event.getArgs();
 
     if(nameChannel == null || nameChannel.equals("")) {
-      event.reply(LanguageManager.getText(server.serv_language, "nameOfInfochannelNeeded"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "nameOfInfochannelNeeded"));
       return;
     }
 
     if(nameChannel.length() > 100) {
-      event.reply(LanguageManager.getText(server.serv_language, "nameOfTheInfoChannelNeedToBeLess100Characters"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "nameOfTheInfoChannelNeedToBeLess100Characters"));
       return;
     }
 
@@ -53,7 +53,7 @@ public class CreateRankHistoryChannelCommand extends ZoeCommand {
       if(rankChannel == null) {
         RankHistoryChannelRepository.deleteRankHistoryChannel(rankChannelDb.rhChannel_id);
       }else {
-        event.reply(String.format(LanguageManager.getText(server.serv_language, "rankChannelAlreadyExist"), rankChannel.getAsMention()));
+        event.reply(String.format(LanguageManager.getText(server.getLanguage(), "rankChannelAlreadyExist"), rankChannel.getAsMention()));
         return;
       }
     }
@@ -67,7 +67,7 @@ public class CreateRankHistoryChannelCommand extends ZoeCommand {
     }
     RankHistoryChannelRepository.createRankHistoryChannel(server.serv_id, rankChannel.getIdLong());
 
-    event.reply(LanguageManager.getText(server.serv_language, "rankChannelCorrectlyCreated"));
+    event.reply(LanguageManager.getText(server.getLanguage(), "rankChannelCorrectlyCreated"));
   }
 
   @Override

@@ -70,9 +70,9 @@ public class DataPerChampion implements Comparable<DataPerChampion> {
       for(SavedMatch match : matchs) {
         SavedMatchPlayer matchPlayer = match.getSavedMatchPlayerByChampionId(championId);
         if(matchPlayer != null) {
-          kills = matchPlayer.getKills();
-          deaths = matchPlayer.getDeaths();
-          assists = matchPlayer.getAssists();
+          kills += matchPlayer.getKills();
+          deaths += matchPlayer.getDeaths();
+          assists += matchPlayer.getAssists();
         }
       }
       if(deaths == 0) {

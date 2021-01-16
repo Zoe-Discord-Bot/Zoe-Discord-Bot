@@ -19,7 +19,7 @@ public class DangerosityReportLittleChampionPool extends DangerosityReport {
   private int championPoolSize;
   
   public DangerosityReportLittleChampionPool(int championPoolSize) {
-    super(DangerosityReportType.LITTLE_CHAMPION_POOL);
+    super(DangerosityReportType.LITTLE_CHAMPION_POOL, DangerosityReportSource.PLAYER);
     this.championPoolSize = championPoolSize;
   }
 

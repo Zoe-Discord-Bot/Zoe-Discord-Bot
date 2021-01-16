@@ -119,12 +119,6 @@ public class ServerChecker extends TimerTask {
               logger.error("Impossible to get the service correspondig to the objective id {} !", leaderboard.lead_type);
             }
           }
-          
-          List<ClashChannel> clashChannels = ClashChannelRepository.getClashChannels(serverAskedTreatment.serv_guildId);
-          
-          for(ClashChannel clashChannel : clashChannels) {
-            ServerThreadsManager.getClashChannelExecutor().execute(new TreatClashChannel(serverAskedTreatment, clashChannel, true));
-          }
         }
       }
 

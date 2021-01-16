@@ -40,6 +40,7 @@ public abstract class MatchReceiverWorker implements Runnable {
     this.gameLoadingConflict = gameLoadingConflict;
     this.server = server;
     this.matchReference = matchReference;
+    this.summoner = summoner;
     matchsInWork.add(matchReference);
   }
   

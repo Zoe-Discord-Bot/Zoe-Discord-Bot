@@ -28,7 +28,7 @@ public class MatchWinrateReceiverWorker extends MatchReceiverWorker {
       }
 
     }catch(Exception e) {
-      logger.info("Unexpected Exception Error : {}", e.getMessage());
+      logger.info("Unexpected Exception Error in MatchWinrateReceiver Worker: {}", e.getMessage());
     }
   }
 }

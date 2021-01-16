@@ -13,30 +13,22 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.jagrosh.jdautilities.command.CommandEvent;
-
 import ch.kalunight.zoe.Zoe;
-import ch.kalunight.zoe.model.dto.ClashStatus;
 import ch.kalunight.zoe.model.ComparableMessage;
-import ch.kalunight.zoe.model.clash.DataPerChampion;
+import ch.kalunight.zoe.model.clash.ClashTeamRegistration;
 import ch.kalunight.zoe.model.clash.TeamPlayerAnalysisDataCollector;
-import ch.kalunight.zoe.model.dangerosityreport.DangerosityReport;
-import ch.kalunight.zoe.model.dangerosityreport.DangerosityReportFlexPick;
-import ch.kalunight.zoe.model.dangerosityreport.DangerosityReportHighMastery;
-import ch.kalunight.zoe.model.dangerosityreport.DangerosityReportHighWinrate;
-import ch.kalunight.zoe.model.dangerosityreport.DangerosityReportType;
 import ch.kalunight.zoe.model.dangerosityreport.PickData;
 import ch.kalunight.zoe.model.dto.ClashChannelData;
+import ch.kalunight.zoe.model.dto.ClashStatus;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.ClashChannel;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.dto.DTO.SummonerCache;
-import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.repositories.ClashChannelRepository;
-import ch.kalunight.zoe.service.analysis.ChampionRole;
 import ch.kalunight.zoe.translation.LanguageManager;
-import ch.kalunight.zoe.util.LanguageUtil;
+import ch.kalunight.zoe.util.ClashUtil;
+import ch.kalunight.zoe.util.MessageManagerUtil;
 import ch.kalunight.zoe.util.Ressources;
 import ch.kalunight.zoe.util.TeamUtil;
 import net.dv8tion.jda.api.entities.Guild;
@@ -48,13 +40,14 @@ import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.clash.constant.TeamPosition;
 import net.rithms.riot.api.endpoints.clash.constant.TeamRole;
-import net.rithms.riot.api.endpoints.clash.dto.ClashTeam;
 import net.rithms.riot.api.endpoints.clash.dto.ClashTeamMember;
 import net.rithms.riot.api.endpoints.clash.dto.ClashTournament;
 import net.rithms.riot.api.endpoints.clash.dto.ClashTournamentPhase;
 import net.rithms.riot.constant.Platform;
 
 public class TreatClashChannel implements Runnable {
+
+  private static final String BOTTOM_MESSAGE_ID = "clashChannelBottomNotInClashTeamMesssage";
 
   private static final DateTimeFormatter CLASH_TOURNAMENT_DATE_TIME_PATTERN = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
@@ -76,16 +69,6 @@ public class TreatClashChannel implements Runnable {
     this.server = server;
     this.clashChannelDB = clashChannel;
     this.forceRefreshCache = forceRefreshCache;
-  }
-
-  private class ClashTeamRegistration {
-    public ClashTournament tournament;
-    public ClashTeam team;
-
-    public ClashTeamRegistration(ClashTournament tournament, ClashTeam team) {
-      this.tournament = tournament;
-      this.team = team;
-    }
   }
 
   @Override
@@ -112,12 +95,13 @@ public class TreatClashChannel implements Runnable {
       List<ClashTeamMember> clashPlayerRegistrations = Zoe.getRiotApi().getClashPlayerBySummonerIdWithRateLimit(clashMessageManager.getSelectedPlatform(),
           clashMessageManager.getSelectedSummonerId());
 
-      ClashTeamRegistration firstClashTeam = getFirstRegistration(clashMessageManager.getSelectedPlatform(), clashPlayerRegistrations);
+      ClashTeamRegistration firstClashTeam = ClashUtil.getFirstRegistration(clashMessageManager.getSelectedPlatform(), clashPlayerRegistrations, forceRefreshCache);
 
       updateClashStatus(clashMessageManager, firstClashTeam);
 
       switch (clashMessageManager.getClashStatus()) {
       case WAIT_FOR_GAME_END:
+        refreshWaitForGameEnd(clashMessageManager, firstClashTeam, summonerCache);
         break;
       case WAIT_FOR_TEAM_REGISTRATION:
         refreshWaitForTeamRegistration(clashMessageManager, summonerCache);
@@ -141,11 +125,17 @@ public class TreatClashChannel implements Runnable {
     }
   }
 
+  private void refreshWaitForGameEnd(ClashChannelData clashMessageManager, ClashTeamRegistration firstClashTeam,
+      SummonerCache summonerCache) {
+    // TODO Auto-generated method stub
+    
+  }
+
   private void refreshWaitForGameStart(ClashChannelData clashMessageManager, ClashTeamRegistration firstClashTeam,
       SummonerCache summonerCache) {
 
-    List<ClashTeamMember> teamMembers = firstClashTeam.team.getPlayers();
-    List<TeamPlayerAnalysisDataCollector> teamPlayersData = TeamUtil.getTeamPlayersData(clashMessageManager, teamMembers);
+    List<ClashTeamMember> teamMembers = firstClashTeam.getTeam().getPlayers();
+    List<TeamPlayerAnalysisDataCollector> teamPlayersData = TeamUtil.getTeamPlayersData(clashMessageManager.getSelectedPlatform(), teamMembers);
 
     StringBuilder messageBuilder = new StringBuilder();
 
@@ -154,23 +144,30 @@ public class TreatClashChannel implements Runnable {
 
     addRegisteredInfo(clashMessageManager, firstClashTeam, summonerCache, messageBuilder);
 
-    messageBuilder.append("**" + String.format(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentTeamNameStats"), firstClashTeam.team.getAbbreviation(),
-        firstClashTeam.team.getName(),
-        firstClashTeam.team.getTier().getTier()) + "**\n");
+    messageBuilder.append("**" + String.format(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentTeamNameStats"), firstClashTeam.getTeam().getAbbreviation(),
+        firstClashTeam.getTeam().getName(),
+        firstClashTeam.getTeam().getTier().getTier()) + "**\n");
 
     Collections.sort(teamPlayersData);
 
-    addPlayersStats(teamPlayersData, messageBuilder);
+    TeamUtil.addPlayersStats(server, teamPlayersData, messageBuilder);
+    
+    messageBuilder.append("\n\n"); 
+    
+    TeamUtil.addFlexStats(server, teamPlayersData, messageBuilder);
 
-    addFlexStats(teamPlayersData, messageBuilder);
-
+    messageBuilder.append("\n"); 
+    
     addProbablyBan(teamPlayersData, messageBuilder);
-
-    editOrCreateTheseMessages(clashMessageManager.getInfoMessagesId(), messageBuilder.toString());
+    
+    messageBuilder.append(String.format(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentBottomTextFullTeam"), summonerCache.sumCache_server.getName().toUpperCase()) + "\n");
+    messageBuilder.append(String.format(LanguageManager.getText(server.getLanguage(), BOTTOM_MESSAGE_ID)));
+    
+    MessageManagerUtil.editOrCreateTheseMessages(clashMessageManager.getInfoMessagesId(), clashChannel, messageBuilder.toString());
   }
 
   private void addProbablyBan(List<TeamPlayerAnalysisDataCollector> teamPlayersData, StringBuilder messageBuilder) {
-    List<PickData> dangerousPlayers = TeamUtil.getHeighestDangerosity(teamPlayersData, 5);
+    List<PickData> dangerousPlayers = TeamUtil.getHeighestDangerosityAllTeam(teamPlayersData, 5);
 
     StringBuilder dangerChampionsText = new StringBuilder();
 
@@ -190,119 +187,7 @@ public class TreatClashChannel implements Runnable {
       }
     }
 
-    messageBuilder.append(String.format(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentPotentialBamAgainstAlly"), dangerChampionsText.toString()) + "\n");
-  }
-
-  private void addFlexStats(List<TeamPlayerAnalysisDataCollector> teamPlayersData, StringBuilder messageBuilder) {
-    List<DataPerChampion> championsFlex = TeamUtil.getFlexPickMostPlayed(teamPlayersData, 3);
-
-    StringBuilder flexChampionsText = new StringBuilder();
-
-    int championToTreat;
-
-    if(championsFlex.size() < 3) {
-      championToTreat = championsFlex.size();
-    }else {
-      championToTreat = 3;
-    }
-    
-    if(championsFlex.isEmpty()) {
-      messageBuilder.append(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentPotentialFlexPickNotFound"));
-    }
-
-    for(DataPerChampion flexPick : championsFlex) {
-      Champion championData = Ressources.getChampionDataById(flexPick.getChampionId());
-
-      String championString = LanguageManager.getText(server.getLanguage(), "unknown");
-      if(championData != null) {
-        championString = championData.getEmoteUsable() + " " + championData.getName();
-      }
-
-      flexChampionsText.append(championString + " ("); 
-
-      DangerosityReportFlexPick flexReport = (DangerosityReportFlexPick) flexPick.getDangerosityReport(DangerosityReportType.FLEX_PICK);
-      int roleToTreat = flexReport.getRolesWherePlayed().size();
-      for(ChampionRole role : flexReport.getRolesWherePlayed()) {
-
-        flexChampionsText.append(LanguageManager.getText(server.getLanguage(), TeamUtil.getChampionRoleAbrID(role)));
-
-        roleToTreat--;
-        if(roleToTreat != 0) {
-          flexChampionsText.append(", ");
-        }else {
-          flexChampionsText.append(")");
-        }
-      }
-
-      championToTreat--;
-      if(championToTreat != 0) {
-        flexChampionsText.append(", ");
-      }else {
-        break;
-      }
-    }
-
-    messageBuilder.append(String.format(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentPotentialFlexPick"), flexChampionsText.toString()) + "\n");
-  }
-
-  private void addPlayersStats(List<TeamPlayerAnalysisDataCollector> teamPlayersData, StringBuilder messageBuilder) {
-    for(TeamPlayerAnalysisDataCollector playerToShow : teamPlayersData) {
-
-      String translationRole = LanguageManager.getText(server.getLanguage(), TeamUtil.getChampionRoleAbrID(playerToShow.getFinalDeterminedPosition()));
-
-      String elo = LanguageManager.getText(server.getLanguage(), "unranked");
-
-      FullTier rank = playerToShow.getHeighestRank();
-
-      if(rank != null) {
-        elo = playerToShow.getHeighestRankType(server.getLanguage()) + " : " + rank.toString(server.getLanguage());
-      }
-
-      messageBuilder.append("**" + String.format(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentPlayerData"), translationRole,
-          playerToShow.getSummoner().getSumCacheData().getName(), elo) + "**");
-
-      messageBuilder.append("\n");
-
-      List<DataPerChampion> champions = playerToShow.getMostPlayedChampions(3);
-
-      int championToLoad = champions.size();
-      for(DataPerChampion champion : champions) {
-        messageBuilder.append("  -> ");
-
-        Champion championData = Ressources.getChampionDataById(champion.getChampionId());
-
-        String championString = LanguageManager.getText(server.getLanguage(), "unknown");
-        if(championData != null) {
-          championString = championData.getEmoteUsable() + " " + championData.getName();
-        }
-
-        String winrate = LanguageManager.getText(server.getLanguage(), "unknown");
-        int nbrGames = 0;
-        String masteryPoint = "0";
-
-        for(DangerosityReport report : champion.getDangerosityReports()) {
-          if(report instanceof DangerosityReportHighWinrate) {
-            DangerosityReportHighWinrate winrateReport = (DangerosityReportHighWinrate) report;
-            winrate = DangerosityReport.POURCENTAGE_FORMAT.format(winrateReport.getWinrate());
-            nbrGames = winrateReport.getNbrGames();
-          }
-
-          if(report instanceof DangerosityReportHighMastery) {
-            DangerosityReportHighMastery masteryReport = (DangerosityReportHighMastery) report;
-            masteryPoint = LanguageUtil.convertMasteryToReadableText(masteryReport.getRawMastery());
-          } 
-        }
-
-        messageBuilder.append(String.format(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentPlayerDataChampion"),
-            championString, Integer.toString(nbrGames), winrate + "%", masteryPoint));
-        championToLoad--;
-        if(championToLoad != 0) {
-          messageBuilder.append("\n");
-        }
-      }
-
-      messageBuilder.append("\n\n"); 
-    }
+    messageBuilder.append(String.format(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentPotentialBanAgainstAlly"), dangerChampionsText.toString()) + "\n");
   }
 
   private void refreshWaitForFullTeam(ClashChannelData clashMessageManager, ClashTeamRegistration firstClashTeam,
@@ -316,27 +201,27 @@ public class TreatClashChannel implements Runnable {
     addRegisteredInfo(clashMessageManager, firstClashTeam, summonerCache, messageBuilder);
 
 
-    messageBuilder.append("**" + String.format(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentTeamName"), firstClashTeam.team.getAbbreviation(),
-        firstClashTeam.team.getName(),
-        firstClashTeam.team.getTier().getTier()) + "**\n");
+    messageBuilder.append("**" + String.format(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentTeamName"), firstClashTeam.getTeam().getAbbreviation(),
+        firstClashTeam.getTeam().getName(),
+        firstClashTeam.getTeam().getTier().getTier()) + "**\n");
 
     //Show players
     addAllTeamToBuilder(clashMessageManager, firstClashTeam, messageBuilder);
 
-    messageBuilder.append("\n\n" + LanguageManager.getText(server.getLanguage(), "clashChannelBottomNotInClashTeamMesssage"));
+    messageBuilder.append("\n\n" + LanguageManager.getText(server.getLanguage(), BOTTOM_MESSAGE_ID));
 
-    editOrCreateTheseMessages(clashMessageManager.getInfoMessagesId(), messageBuilder.toString());
+    MessageManagerUtil.editOrCreateTheseMessages(clashMessageManager.getInfoMessagesId(), clashChannel, messageBuilder.toString());
   }
 
   private void addRegisteredInfo(ClashChannelData clashMessageManager, ClashTeamRegistration firstClashTeam,
       SummonerCache summonerCache, StringBuilder messageBuilder) {
     String formatedSummonerName = summonerCache.getSumCacheData().getName() + " (" + clashMessageManager.getSelectedPlatform().getName().toUpperCase() + ")";
 
-    String dayNumber = TeamUtil.parseDayId(server.getLanguage(), firstClashTeam.tournament.getNameKeySecondary());
+    String dayNumber = TeamUtil.parseDayId(server.getLanguage(), firstClashTeam.getTournament().getNameKeySecondary());
 
     String tournamentBasicName = LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentBasicName");
 
-    String tournamentName = LanguageManager.getText(server.getLanguage(), firstClashTeam.tournament.getNameKey());
+    String tournamentName = LanguageManager.getText(server.getLanguage(), firstClashTeam.getTournament().getNameKey());
 
     if(tournamentName.startsWith("Translation error")) {
       tournamentName = tournamentBasicName + " " + dayNumber;
@@ -344,8 +229,8 @@ public class TreatClashChannel implements Runnable {
       tournamentName = tournamentName + " " + dayNumber;
     }
 
-    if(firstClashTeam.tournament.getSchedule().size() == 1) {
-      ClashTournamentPhase phase = firstClashTeam.tournament.getSchedule().get(0);
+    if(firstClashTeam.getTournament().getSchedule().size() == 1) {
+      ClashTournamentPhase phase = firstClashTeam.getTournament().getSchedule().get(0);
       messageBuilder.append(String.format(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentRegistered"), formatedSummonerName,
           tournamentName, getFormatedDateFromPhase(phase), clashChannelDB.clashChannel_timezone.getID()) + "\n\n");
     }else {
@@ -355,26 +240,26 @@ public class TreatClashChannel implements Runnable {
 
   private void addAllTeamToBuilder(ClashChannelData clashMessageManager, ClashTeamRegistration firstClashTeam,
       StringBuilder messageBuilder) throws RiotApiException {
-    addTeamMembersTextByPosition(TeamPosition.TOP, firstClashTeam.team.getPlayers(), messageBuilder, clashMessageManager.getSelectedPlatform());
+    addTeamMembersTextByPosition(TeamPosition.TOP, firstClashTeam.getTeam().getPlayers(), messageBuilder, clashMessageManager.getSelectedPlatform());
     messageBuilder.append("\n");
-    addTeamMembersTextByPosition(TeamPosition.JUNGLE, firstClashTeam.team.getPlayers(), messageBuilder, clashMessageManager.getSelectedPlatform());
+    addTeamMembersTextByPosition(TeamPosition.JUNGLE, firstClashTeam.getTeam().getPlayers(), messageBuilder, clashMessageManager.getSelectedPlatform());
     messageBuilder.append("\n");
-    addTeamMembersTextByPosition(TeamPosition.MIDDLE, firstClashTeam.team.getPlayers(), messageBuilder, clashMessageManager.getSelectedPlatform());
+    addTeamMembersTextByPosition(TeamPosition.MIDDLE, firstClashTeam.getTeam().getPlayers(), messageBuilder, clashMessageManager.getSelectedPlatform());
     messageBuilder.append("\n");
-    addTeamMembersTextByPosition(TeamPosition.BOTTOM, firstClashTeam.team.getPlayers(), messageBuilder, clashMessageManager.getSelectedPlatform());
+    addTeamMembersTextByPosition(TeamPosition.BOTTOM, firstClashTeam.getTeam().getPlayers(), messageBuilder, clashMessageManager.getSelectedPlatform());
     messageBuilder.append("\n");
-    addTeamMembersTextByPosition(TeamPosition.UTILITY, firstClashTeam.team.getPlayers(), messageBuilder, clashMessageManager.getSelectedPlatform());
+    addTeamMembersTextByPosition(TeamPosition.UTILITY, firstClashTeam.getTeam().getPlayers(), messageBuilder, clashMessageManager.getSelectedPlatform());
 
-    List<ClashTeamMember> membersFill = TeamUtil.getPlayerByPosition(TeamPosition.FILL, firstClashTeam.team.getPlayers());
+    List<ClashTeamMember> membersFill = TeamUtil.getPlayerByPosition(TeamPosition.FILL, firstClashTeam.getTeam().getPlayers());
     if(!membersFill.isEmpty()) {
       messageBuilder.append("\n");
-      addTeamMembersTextByPosition(TeamPosition.FILL, firstClashTeam.team.getPlayers(), messageBuilder, clashMessageManager.getSelectedPlatform());
+      addTeamMembersTextByPosition(TeamPosition.FILL, firstClashTeam.getTeam().getPlayers(), messageBuilder, clashMessageManager.getSelectedPlatform());
     }
 
-    List<ClashTeamMember> membersUnselected = TeamUtil.getPlayerByPosition(TeamPosition.UNSELECTED, firstClashTeam.team.getPlayers());
+    List<ClashTeamMember> membersUnselected = TeamUtil.getPlayerByPosition(TeamPosition.UNSELECTED, firstClashTeam.getTeam().getPlayers());
     if(!membersUnselected.isEmpty()) {
       messageBuilder.append("\n");
-      addTeamMembersTextByPosition(TeamPosition.UNSELECTED, firstClashTeam.team.getPlayers(), messageBuilder, clashMessageManager.getSelectedPlatform());
+      addTeamMembersTextByPosition(TeamPosition.UNSELECTED, firstClashTeam.getTeam().getPlayers(), messageBuilder, clashMessageManager.getSelectedPlatform());
     }
   }
 
@@ -456,9 +341,9 @@ public class TreatClashChannel implements Runnable {
       messageBuilder.append("\n" + LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentError") + "\n\n");
     }
 
-    messageBuilder.append("\n**" + LanguageManager.getText(server.getLanguage(), "clashChannelBottomNotInClashTeamMesssage") + "**");
+    messageBuilder.append("\n**" + LanguageManager.getText(server.getLanguage(), BOTTOM_MESSAGE_ID) + "**");
 
-    editOrCreateTheseMessages(clashMessageManager.getInfoMessagesId(), messageBuilder.toString());
+    MessageManagerUtil.editOrCreateTheseMessages(clashMessageManager.getInfoMessagesId(), clashChannel, messageBuilder.toString());
   }
 
   private void addClashTournamentMultplePhase(StringBuilder messageBuilder, String tournamentBasicName,
@@ -508,64 +393,6 @@ public class TreatClashChannel implements Runnable {
     ZonedDateTime dateTimeStartToShow = phase.getStartTime().withZoneSameInstant(ZoneId.of(clashChannelDB.clashChannel_timezone.getID()));
 
     return CLASH_TOURNAMENT_DATE_TIME_PATTERN.format(dateTimeRegistrationToShow) + "-" + CLASH_TOURNAMENT_TIME_ONLY_PATTERN.format(dateTimeStartToShow);
-  }
-
-  private void editOrCreateTheseMessages(List<Long> messageListToUpdate, String messageToSend) {
-
-    List<Message> messageToEditOrDelete = new ArrayList<>();
-    List<Long> messagesNotFound = new ArrayList<>();
-
-    for(Long messageId : messageListToUpdate) {
-      try {
-        messageToEditOrDelete.add(clashChannel.retrieveMessageById(messageId).complete());
-      }catch(ErrorResponseException e) {
-        if(!e.getErrorResponse().equals(ErrorResponse.UNKNOWN_MESSAGE)) {
-          logger.error("Unexpected error when getting a message", e);
-          throw e;
-        }else {
-          messagesNotFound.add(messageId);
-        }
-      }
-    }
-
-    messageListToUpdate.removeAll(messagesNotFound);
-
-    List<String> messagesToSendCutted = CommandEvent.splitMessage(messageToSend); 
-
-    if(messageToEditOrDelete.size() > messagesToSendCutted.size()) {
-      int messagesToTreat = messagesToSendCutted.size();
-      int messageToGet = 0;
-
-      for(Message messageToTreat : messageToEditOrDelete) {
-        if(messagesToTreat != 0) {
-          messageToTreat.editMessage(messagesToSendCutted.get(messageToGet)).queue();
-          messageToGet++;
-          messagesToTreat++;
-        }else {
-          messageListToUpdate.remove(messageToTreat.getIdLong());
-          messageToTreat.delete().queue();
-        }
-      }
-    }else if (messageToEditOrDelete.size() == messagesToSendCutted.size()) {
-      int messageToGet = 0;
-      for(Message messageToTreat : messageToEditOrDelete) {
-        messageToTreat.editMessage(messagesToSendCutted.get(messageToGet)).queue();
-        messageToGet++;
-      }
-    }else {
-      int messagesAlreadyCreated = messageToEditOrDelete.size();
-      int messagesAlreadyTreated = 0;
-
-      for(String messageToEditOrCreate : messagesToSendCutted) {
-        if(messagesAlreadyTreated < messagesAlreadyCreated) {
-          messageToEditOrDelete.get(messagesAlreadyTreated).editMessage(messageToEditOrCreate).queue();
-          messagesAlreadyTreated++;
-        }else {
-          messageListToUpdate.add(clashChannel.sendMessage(messageToEditOrCreate).complete().getIdLong());
-        }
-      }
-    }
-    // Implement the management of the message (maybe with time order management ?)
   }
 
   private void cleanClashChannel(ClashChannelData clashMessageManager) {
@@ -676,29 +503,12 @@ public class TreatClashChannel implements Runnable {
       clashMessageManager.setClashStatus(ClashStatus.WAIT_FOR_TEAM_REGISTRATION);
     }else if(clashMessageManager.getGameCardId() != null) {
       clashMessageManager.setClashStatus(ClashStatus.WAIT_FOR_GAME_END);
-    }else if(clashTeamRegistration.team.getPlayers().size() == 5) {
+    }else if(clashTeamRegistration.getTeam().getPlayers().size() == 5) {
       clashMessageManager.setClashStatus(ClashStatus.WAIT_FOR_GAME_START);
     }else {
       clashMessageManager.setClashStatus(ClashStatus.WAIT_FOR_FULL_TEAM);
     }
 
-  }
-
-  private ClashTeamRegistration getFirstRegistration(Platform platform, List<ClashTeamMember> clashPlayerRegistrations) throws RiotApiException, SQLException {
-
-    ClashTeamRegistration teamRegistration = null;
-
-    for(ClashTeamMember clashPlayer : clashPlayerRegistrations) {
-      ClashTeam team = Zoe.getRiotApi().getClashTeamByTeamIdWithRateLimit(platform, clashPlayer.getTeamId());
-
-      ClashTournament tournamentToCheck = Zoe.getRiotApi().getClashTournamentById(platform, team.getTournamentIdInt(), forceRefreshCache);
-
-      if(teamRegistration == null || teamRegistration.tournament.getSchedule().get(0).getStartTime().isAfter(tournamentToCheck.getSchedule().get(0).getStartTime())) {
-        teamRegistration = new ClashTeamRegistration(tournamentToCheck, team);
-      }
-
-    }
-    return teamRegistration;
   }
 
   private void checkMessageDisplaySync(List<Long> allClashMessages, TextChannel clashChannel) {

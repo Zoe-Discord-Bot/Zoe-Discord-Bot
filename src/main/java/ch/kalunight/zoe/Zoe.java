@@ -38,6 +38,7 @@ import ch.kalunight.zoe.command.SetupCommand;
 import ch.kalunight.zoe.command.ShutDownCommand;
 import ch.kalunight.zoe.command.add.AddCommand;
 import ch.kalunight.zoe.command.admin.AdminCommand;
+import ch.kalunight.zoe.command.clash.ClashCommand;
 import ch.kalunight.zoe.command.create.CreateCommand;
 import ch.kalunight.zoe.command.create.RegisterCommand;
 import ch.kalunight.zoe.command.define.DefineCommand;
@@ -229,6 +230,7 @@ public class Zoe {
     commands.add(new UndefineCommand());
     commands.add(new ResetCommand(eventWaiter));
     commands.add(new BanAccountCommand(eventWaiter));
+    commands.add(new ClashCommand());
     commands.add(new PatchNotesCommand());
 
     mainCommands = commands;

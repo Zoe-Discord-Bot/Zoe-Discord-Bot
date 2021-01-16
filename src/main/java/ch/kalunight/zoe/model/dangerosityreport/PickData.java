@@ -1,8 +1,10 @@
 package ch.kalunight.zoe.model.dangerosityreport;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import ch.kalunight.zoe.model.dto.SavedSummoner;
+import ch.kalunight.zoe.service.analysis.ChampionRole;
 import ch.kalunight.zoe.model.dto.DTO.SummonerCache;
 import net.rithms.riot.constant.Platform;
 
@@ -14,11 +16,14 @@ public class PickData implements Comparable<PickData> {
   
   private int championId;
   
+  private ChampionRole role;
+  
   private List<DangerosityReport> reportsOfThePick;
 
-  public PickData(Platform platform, SummonerCache savedSummoner, int championId, List<DangerosityReport> reports) {
+  public PickData(Platform platform, SummonerCache savedSummoner, int championId, ChampionRole role, List<DangerosityReport> reports) {
     this.platform = platform;
     this.championId = championId;
+    this.role = role;
     this.reportsOfThePick = reports;
     this.savedSummoner = savedSummoner;
   }
@@ -51,9 +56,24 @@ public class PickData implements Comparable<PickData> {
   public String getSummonerId() {
     return savedSummoner.sumCache_summonerId;
   }
+  
+  public List<DangerosityReport> getDangerosityReportBySource(DangerosityReportSource source){
+    List<DangerosityReport> reportsToReturn = new ArrayList<>();
+    
+    for(DangerosityReport report : reportsOfThePick) {
+      if(report.getReportSource() == source) {
+        reportsToReturn.add(report);
+      }
+    }
+    return reportsToReturn;
+  }
 
   public Platform getPlatform() {
     return platform;
+  }
+
+  public ChampionRole getRole() {
+    return role;
   }
 
   public SavedSummoner getSavedSummoner() {

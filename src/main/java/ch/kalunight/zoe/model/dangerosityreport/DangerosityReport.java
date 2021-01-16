@@ -12,8 +12,11 @@ public abstract class DangerosityReport {
   
   private DangerosityReportType reportType;
   
-  public DangerosityReport(DangerosityReportType reportType) {
+  private DangerosityReportSource reportSource;
+  
+  public DangerosityReport(DangerosityReportType reportType, DangerosityReportSource reportSource) {
     this.reportType = reportType;
+    this.reportSource = reportSource;
   }
   
   public abstract String getInfoToShow(String lang);
@@ -22,6 +25,10 @@ public abstract class DangerosityReport {
   
   public DangerosityReportType getReportType() {
     return reportType;
+  }
+  
+  public DangerosityReportSource getReportSource() {
+    return reportSource;
   }
   
 }

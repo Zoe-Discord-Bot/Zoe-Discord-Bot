@@ -27,7 +27,7 @@ public class DangerosityReportFlexPick extends DangerosityReport implements Comp
   private int cumuledGames;
   
   public DangerosityReportFlexPick(List<ChampionRole> flexRoles, int cumuledGames) {
-    super(DangerosityReportType.FLEX_PICK);
+    super(DangerosityReportType.FLEX_PICK, DangerosityReportSource.CHAMPION);
     this.rolesWherePlayed = flexRoles;
     this.cumuledGames = cumuledGames;
   }

@@ -238,7 +238,7 @@ public class DTO {
       }
       
       SummonerCache summonerDB = Zoe.getRiotApi().getSummonerWithRateLimit(leagueAccount_server, leagueAccount_summonerId, forceRefreshCache);
-      if(summoner != null) {
+      if(summonerDB != null) {
         summoner = summonerDB.sumCache_data;
       }
       return summoner;

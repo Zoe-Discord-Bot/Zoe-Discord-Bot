@@ -187,6 +187,7 @@ public class TeamBanAnalysisWorker implements Runnable {
         }
         
         messageBuilder.append(report.getInfoToShow(server.getLanguage()));
+        
         firstReportSend = true;
       }
       

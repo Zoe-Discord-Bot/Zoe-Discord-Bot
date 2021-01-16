@@ -35,7 +35,7 @@ public class DangerosityReportHighEloDiff extends DangerosityReport {
   private FullTier player;
   
   public DangerosityReportHighEloDiff(FullTier teamAverage, FullTier player) {
-    super(DangerosityReportType.HIGH_ELO_DIFF, DangerosityReportSource.PLAYER);
+    super(DangerosityReportType.ELO_DIFF, DangerosityReportSource.PLAYER);
     this.teamAverage = teamAverage;
     this.player = player;
   }

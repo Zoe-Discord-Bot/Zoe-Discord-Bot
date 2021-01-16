@@ -21,7 +21,7 @@ public class DangerosityReportHighMastery extends DangerosityReport {
   private SavedSimpleMastery mastery;
 
   public DangerosityReportHighMastery(SavedSimpleMastery mastery) {
-    super(DangerosityReportType.HIGH_MASTERIES, DangerosityReportSource.CHAMPION);
+    super(DangerosityReportType.MASTERIES, DangerosityReportSource.CHAMPION);
     this.mastery = mastery;
   }
 

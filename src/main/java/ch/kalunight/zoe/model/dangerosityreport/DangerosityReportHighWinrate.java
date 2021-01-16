@@ -22,21 +22,21 @@ public class DangerosityReportHighWinrate extends DangerosityReport {
   
   private int nbrGames;
   
-  public DangerosityReportHighWinrate(double winrate, int nbrGames) {
-    super(DangerosityReportType.HIGH_WINRATE, DangerosityReportSource.CHAMPION);
+  public DangerosityReportHighWinrate(double winrate, int numberOfGames) {
+    super(DangerosityReportType.WINRATE, DangerosityReportSource.CHAMPION);
     this.winrate = winrate;
-    this.nbrGames = nbrGames;
+    this.nbrGames = numberOfGames;
   }
 
   @Override
   public String getInfoToShow(String lang) {
-    return String.format(LanguageManager.getText(lang, "dangerosityReportHighWinrateInfo"), POURCENTAGE_FORMAT.format(winrate) + "%", nbrGames);
+    return String.format(LanguageManager.getText(lang, "dangerosityReportHighWinrateInfo"), POURCENTAGE_FORMAT.format(winrate) + "%");
   }
 
   public double getWinrate() {
     return winrate;
   }
-  
+
   public int getNbrGames() {
     return nbrGames;
   }

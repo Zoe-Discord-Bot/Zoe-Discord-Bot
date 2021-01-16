@@ -273,6 +273,7 @@ public class Zoe {
 
         if(championRole != null) {
           champion.setRoles(championRole.cra_roles);
+          champion.setAverageKDA(championRole.cra_average_kda);
         }else {
           champion.setRoles(allRoles);
           champion.setAverageKDA(DangerosityReportKDA.DEFAULT_AVERAGE_KDA);

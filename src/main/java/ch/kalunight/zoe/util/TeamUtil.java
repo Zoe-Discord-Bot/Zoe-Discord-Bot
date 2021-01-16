@@ -27,6 +27,7 @@ import ch.kalunight.zoe.model.dangerosityreport.DangerosityReportHighWinrate;
 import ch.kalunight.zoe.model.dangerosityreport.DangerosityReportKDA;
 import ch.kalunight.zoe.model.dangerosityreport.DangerosityReportLittleChampionPool;
 import ch.kalunight.zoe.model.dangerosityreport.DangerosityReportOTP;
+import ch.kalunight.zoe.model.dangerosityreport.DangerosityReportPlayedGames;
 import ch.kalunight.zoe.model.dangerosityreport.DangerosityReportType;
 import ch.kalunight.zoe.model.dangerosityreport.PickData;
 import ch.kalunight.zoe.model.dto.DTO.ChampionRoleAnalysis;
@@ -321,9 +322,10 @@ public class TeamUtil {
       
       List<DangerosityReport> dangerosityReportList = champion.getDangerosityReports();
 
-      dangerosityReportList.add(new DangerosityReportHighMastery(champion.getMastery()));
+      dangerosityReportList.add(new DangerosityReportPlayedGames(champion.getNumberOfGame()));
       dangerosityReportList.add(new DangerosityReportHighWinrate(champion.getWinrate(), champion.getNumberOfGame()));
       dangerosityReportList.add(new DangerosityReportKDA(champion.getAverageKDA(), championRessources.getAverageKDA(), champion.getNumberOfGame()));
+      dangerosityReportList.add(new DangerosityReportHighMastery(champion.getMastery()));
     }
 
     playerToLoad.getDangerosityReports().add(new DangerosityReportLittleChampionPool(playerToLoad.getDataPerChampions().size()));

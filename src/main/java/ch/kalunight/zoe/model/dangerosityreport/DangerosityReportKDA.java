@@ -27,7 +27,7 @@ public class DangerosityReportKDA extends DangerosityReport {
   private int numberOfGames;
   
   public DangerosityReportKDA(double personalAverageKDAForThisChamp, double averageKdaForTheChamp, int numberOfGames) {
-    super(DangerosityReportType.HIGH_KDA, DangerosityReportSource.CHAMPION);
+    super(DangerosityReportType.KDA, DangerosityReportSource.CHAMPION);
     this.personalAverageKDAForThisChamp = personalAverageKDAForThisChamp;
     this.averageKDAForThisChamp = averageKdaForTheChamp;
     this.numberOfGames = numberOfGames;

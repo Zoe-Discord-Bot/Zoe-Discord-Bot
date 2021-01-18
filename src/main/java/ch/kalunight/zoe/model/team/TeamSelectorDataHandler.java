@@ -51,7 +51,6 @@ public class TeamSelectorDataHandler {
   }
   
   public void askSelectionAccount() {
-    baseEvent.getTextChannel().sendTyping().queue();
     baseEvent.getTextChannel().sendMessage(String.format(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisAskAccount"), accountsSelected.size())
         + " " + LanguageManager.getText(server.getLanguage(), STATS_TEAM_ANALYSIS_CANCEL_MESSAGE_ID)).queue();
     
@@ -141,6 +140,7 @@ public class TeamSelectorDataHandler {
       
       @Override
       public void accept(Message baseMessage, Integer seletedAnswerId) {
+        baseEvent.getTextChannel().sendTyping().queue();
         TeamPosition selected = rolesOrder.get(seletedAnswerId);
         
         String summonerName = "*" + platform.getName().toUpperCase() + "* " + summoner.getName();

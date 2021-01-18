@@ -24,17 +24,17 @@ import net.rithms.riot.constant.Platform;
 public class LoadClashTeamAndStartBanAnalyseWorker implements Runnable {
 
   private static final Logger logger = LoggerFactory.getLogger(LoadClashTeamAndStartBanAnalyseWorker.class);
-  
+
   private Server server;
-  
+
   private String summonerId;
-  
+
   private Platform platform;
-  
+
   private ClashChannel clashChannel;
-  
+
   private TextChannel channelWhereToSend;
-  
+
   public LoadClashTeamAndStartBanAnalyseWorker(Server server, String summonerId, Platform platform, TextChannel channelWhereToSend, ClashChannel clashChannel) {
     this.server = server;
     this.summonerId = summonerId;
@@ -42,39 +42,39 @@ public class LoadClashTeamAndStartBanAnalyseWorker implements Runnable {
     this.clashChannel = clashChannel;
     this.channelWhereToSend = channelWhereToSend;
   }
-  
+
   @Override
   public void run() {
     try {
-      
+
       List<ClashTeamMember> clashPlayerRegistrations = Zoe.getRiotApi().getClashPlayerBySummonerIdWithRateLimit(platform, summonerId);
-      
+
       if(clashPlayerRegistrations.isEmpty()) {
         channelWhereToSend.sendMessage(LanguageManager.getText(server.getLanguage(), "clashAnalyzeLoadNotRegistered")).queue();
         return;
       }
-      
+
       ClashTeamRegistration clashTeamRegistration = ClashUtil.getFirstRegistration(platform, clashPlayerRegistrations, false);
-      
+
       if(clashTeamRegistration.getTeam().getPlayers().size() == 5) {
-        
-        List<TeamPlayerAnalysisDataCollector> playersData = TeamUtil.getTeamPlayersData(platform, clashTeamRegistration.getTeam().getPlayers());
-        
+
+        List<TeamPlayerAnalysisDataCollector> playersData = TeamUtil.getTeamPlayersDataWithAnalysisDoneWithClashData(platform, clashTeamRegistration.getTeam().getPlayers());
+
         TeamBanAnalysisWorker banAnalysisWorker = new TeamBanAnalysisWorker(server, clashChannel, clashTeamRegistration, channelWhereToSend, playersData);
-        
-       ServerThreadsManager.getClashChannelExecutor().execute(banAnalysisWorker);
-        
+
+        ServerThreadsManager.getClashChannelExecutor().execute(banAnalysisWorker);
+
       }else {
         channelWhereToSend.sendMessage(LanguageManager.getText(server.getLanguage(), "clashAnalyzeLoadNot5Players")).queue();
       }
-      
+
     } catch (RiotApiException e) {
       RiotApiUtil.handleRiotApi(channelWhereToSend, e, server.getLanguage());
     } catch (Exception e) {
       logger.error("Unexpected error while loading clash team.", e);
       channelWhereToSend.sendMessage(LanguageManager.getText(server.getLanguage(), "statsProfileUnexpectedError")).queue();
     }
-    
+
   }
 
 }

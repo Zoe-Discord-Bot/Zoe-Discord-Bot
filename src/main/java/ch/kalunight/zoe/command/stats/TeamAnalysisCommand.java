@@ -10,37 +10,42 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.team.TeamSelectorAnalysisDataManager;
 import ch.kalunight.zoe.model.team.TeamSelectorDataHandler;
-import ch.kalunight.zoe.model.team.TeamSelectorPredictRoleDataManager;
 import ch.kalunight.zoe.util.CommandUtil;
+import net.dv8tion.jda.api.Permission;
 
-public class PredictRoleCommand extends ZoeCommand {
+public class TeamAnalysisCommand extends ZoeCommand {
 
-  private EventWaiter waiter;
-
-  public PredictRoleCommand(EventWaiter waiter) {
-    this.name = "predictRole";
-    String[] aliases = {"role", "predictPosition", "predict"};
+  private final EventWaiter waiter;
+  
+  public TeamAnalysisCommand(EventWaiter eventWaiter) {
+    this.name = "teamAnalysis";
+    String[] aliases = {"team", "analysis", "t"};
     this.aliases = aliases;
     this.arguments = "";
-    this.help = "statsPredictRoleHelpMessage";
+    this.help = "statsTeamAnalysisHelpMessage";
     this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(StatsCommand.USAGE_NAME, name, arguments, help);
-    this.waiter = waiter;
-    this.cooldown = 60;
+    this.waiter = eventWaiter;
+    Permission[] botPermissionNeeded = {Permission.MANAGE_EMOTES, Permission.MESSAGE_EMBED_LINKS,
+        Permission.MESSAGE_ADD_REACTION};
+    this.botPermissions = botPermissionNeeded;
+    this.guildOnly = true;
   }
-
+  
   @Override
   protected void executeCommand(CommandEvent event) throws SQLException {
     DTO.Server server = getServer(event.getGuild().getIdLong());
     
-    TeamSelectorDataHandler teamDataHandler = new TeamSelectorDataHandler(waiter, server, event, new TeamSelectorPredictRoleDataManager(event, server), ServerThreadsManager.getClashChannelExecutor());
+    TeamSelectorDataHandler teamDataHandler = new TeamSelectorDataHandler(waiter, server, event, new TeamSelectorAnalysisDataManager(event, server), ServerThreadsManager.getClashChannelExecutor());
 
     teamDataHandler.askSelectionAccount();
   }
 
   @Override
   public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
-    return helpBiConsumer;
+    // TODO Auto-generated method stub
+    return null;
   }
 
 }

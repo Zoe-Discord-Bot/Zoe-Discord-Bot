@@ -34,6 +34,7 @@ import ch.kalunight.zoe.model.dto.DTO.ChampionRoleAnalysis;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.model.static_data.Champion;
+import ch.kalunight.zoe.model.team.AccountDataWithRole;
 import ch.kalunight.zoe.repositories.ChampionRoleAnalysisRepository;
 import ch.kalunight.zoe.service.analysis.ChampionRole;
 import ch.kalunight.zoe.translation.LanguageManager;
@@ -430,6 +431,27 @@ public class TeamUtil {
       return "Error";
     }
   }
+  
+  public static String getTeamPositionId(TeamPosition teamPosition) {
+    switch (teamPosition) {
+    case BOTTOM:
+      return "adc";
+    case FILL:
+      return "fillAbr";
+    case JUNGLE:
+      return "jungle";
+    case MIDDLE:
+      return "mid";
+    case TOP:
+      return "top";
+    case UNSELECTED:
+      return "unselected";
+    case UTILITY:
+      return "support";
+    default:
+      return "Error";
+    }
+  }
 
   public static String getChampionRoleAbrID(ChampionRole championRole) {
     switch (championRole) {
@@ -482,7 +504,14 @@ public class TeamUtil {
     }
   }
 
-  public static List<TeamPlayerAnalysisDataCollector> getTeamPlayersData(Platform platform, List<ClashTeamMember> teamMembers) {
+  public static List<TeamPlayerAnalysisDataCollector> getTeamPlayersDataWithAnalysisDoneWithClashData(Platform platform, List<ClashTeamMember> teamMembers) {
+    List<TeamPlayerAnalysisDataCollector> teamPlayersData = loadAllPlayersDataWithClashData(platform, teamMembers);
+
+    return executeTeamAnalysis(teamPlayersData);
+  }
+
+  public static List<TeamPlayerAnalysisDataCollector> loadAllPlayersDataWithClashData(Platform platform,
+      List<ClashTeamMember> teamMembers) {
     List<TeamPlayerAnalysisDataCollector> teamPlayersData = new ArrayList<>();
 
     for(ClashTeamMember teamMember : teamMembers) {
@@ -492,7 +521,30 @@ public class TeamUtil {
     }
 
     TeamPlayerAnalysisDataCollector.awaitAll(teamPlayersData);
+    return teamPlayersData;
+  }
+  
+  public static List<TeamPlayerAnalysisDataCollector> getTeamPlayersDataWithAnalysisDoneWithAccountData(List<AccountDataWithRole> teamMembers) {
+    List<TeamPlayerAnalysisDataCollector> teamPlayersData = loadAllPlayersDataWithAccountData(teamMembers);
 
+    return executeTeamAnalysis(teamPlayersData);
+  }
+
+  public static List<TeamPlayerAnalysisDataCollector> loadAllPlayersDataWithAccountData(List<AccountDataWithRole> teamMembers) {
+    List<TeamPlayerAnalysisDataCollector> teamPlayersData = new ArrayList<>();
+
+    for(AccountDataWithRole teamMember : teamMembers) {
+      TeamPlayerAnalysisDataCollector player = new TeamPlayerAnalysisDataCollector(teamMember.getSummoner().getId(), teamMember.getPlatform(), teamMember.getPosition());
+      teamPlayersData.add(player);
+      ServerThreadsManager.getDataAnalysisThread().execute(player);
+    }
+
+    TeamPlayerAnalysisDataCollector.awaitAll(teamPlayersData);
+    return teamPlayersData;
+  }
+
+  private static List<TeamPlayerAnalysisDataCollector> executeTeamAnalysis(
+      List<TeamPlayerAnalysisDataCollector> teamPlayersData) {
     determineRole(teamPlayersData);
 
     clearChampionNotInRole(teamPlayersData);

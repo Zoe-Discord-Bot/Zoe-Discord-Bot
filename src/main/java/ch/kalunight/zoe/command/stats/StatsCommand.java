@@ -19,7 +19,7 @@ public class StatsCommand extends ZoeCommand {
   public StatsCommand(EventWaiter waiter) {
     this.name = USAGE_NAME;
     this.aliases = new String[] {"s"};
-    Command[] commandsChildren = {new StatsProfileCommand(waiter), new PredictRoleCommand()};
+    Command[] commandsChildren = {new StatsProfileCommand(waiter), new PredictRoleCommand(waiter), new TeamAnalysisCommand(waiter)};
     this.children = commandsChildren;
     this.helpBiConsumer = CommandUtil.getHelpMethodHasChildren(USAGE_NAME, commandsChildren);
   }

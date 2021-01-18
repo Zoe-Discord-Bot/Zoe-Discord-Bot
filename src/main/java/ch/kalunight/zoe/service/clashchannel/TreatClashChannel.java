@@ -135,7 +135,7 @@ public class TreatClashChannel implements Runnable {
       SummonerCache summonerCache) {
 
     List<ClashTeamMember> teamMembers = firstClashTeam.getTeam().getPlayers();
-    List<TeamPlayerAnalysisDataCollector> teamPlayersData = TeamUtil.getTeamPlayersData(clashMessageManager.getSelectedPlatform(), teamMembers);
+    List<TeamPlayerAnalysisDataCollector> teamPlayersData = TeamUtil.getTeamPlayersDataWithAnalysisDoneWithClashData(clashMessageManager.getSelectedPlatform(), teamMembers);
 
     StringBuilder messageBuilder = new StringBuilder();
 

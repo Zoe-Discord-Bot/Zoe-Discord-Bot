@@ -18,10 +18,10 @@ import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.repositories.ClashChannelRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
-import ch.kalunight.zoe.util.CommandUtil;
 import ch.kalunight.zoe.util.MessageManagerUtil;
 import ch.kalunight.zoe.util.Ressources;
 import ch.kalunight.zoe.util.TeamUtil;
+import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.TextChannel;
 
 public class TeamBanAnalysisWorker implements Runnable {
@@ -64,9 +64,13 @@ public class TeamBanAnalysisWorker implements Runnable {
     try {
       StringBuilder messageBuilder = new StringBuilder();
 
+      if(clashTeam != null) {
       messageBuilder.append("**" + String.format(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentTeamNameStats"), clashTeam.getTeam().getAbbreviation(),
           clashTeam.getTeam().getName(),
           clashTeam.getTeam().getTier().getTier()) + "**\n");
+      }else {
+        messageBuilder.append("**" + LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisAccountCustomTeamTitle") + "**\n");
+      }
 
       TeamUtil.addPlayersStats(server, teamPlayersData, messageBuilder);
 
@@ -172,7 +176,7 @@ public class TeamBanAnalysisWorker implements Runnable {
 
   private void showOneChampion(StringBuilder messageBuilder, PickData pick, String championString, List<DangerosityReportSource> sourceToShow) {
     messageBuilder.append("  -> " + championString);
-
+    
     boolean firstReportSend = false;
     
     int numberOfReportToTreat = pick.getReportsOfThePick().size();
@@ -205,14 +209,19 @@ public class TeamBanAnalysisWorker implements Runnable {
 
       Champion championData = Ressources.getChampionDataById(pickData.getChampionId());
 
+      MessageBuilder championAndPlayerString = new MessageBuilder();
+      
+      messageBuilder.append(pickData.getSavedSummoner().getName() + " ");
+      
       String championString = LanguageManager.getText(server.getLanguage(), "unknown");
       if(championData != null) {
         championString = championData.getEmoteUsable() + " " + championData.getName();
       }
+      
+      championAndPlayerString.append(championString);
 
       messageBuilder.append("\n");
-      showOneChampion(messageBuilder, pickData, championString, ALL_SOURCES_LIST);
-      
+      showOneChampion(messageBuilder, pickData, championAndPlayerString.toString(), ALL_SOURCES_LIST);
     }
   }
 

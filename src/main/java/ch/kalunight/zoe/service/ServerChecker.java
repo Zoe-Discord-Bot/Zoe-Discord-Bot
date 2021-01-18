@@ -35,8 +35,10 @@ public class ServerChecker extends TimerTask {
   private static final int TIME_BETWEEN_EACH_STATUS_REFRESH_IN_HOURS = 1;
 
   private static final int TIME_BETWEEN_EACH_RAPI_CHANNEL_REFRESH_IN_MINUTES = 2;
-  
+
   private static final int NUMBER_OF_TASKS_IN_QUEUE_ENDED = 20;
+  
+  private static final int NUMBER_OF_TASK_MAX_DURING_EVALUATION = 50;
 
   private static final RefreshStatus lastStatus = new RefreshStatus();
 
@@ -49,18 +51,21 @@ public class ServerChecker extends TimerTask {
   private static final Logger logger = LoggerFactory.getLogger(ServerChecker.class);
 
   private List<DTO.Server> manageRefreshRate() throws SQLException {
-    
+
     int queueSize = ServerThreadsManager.getServerExecutor().getActiveCount() + ServerThreadsManager.getServerExecutor().getQueue().size();
     int numberOfManagerServer = PlayerRepository.getListDiscordIdOfRegisteredPlayers().size();
-    
+
     switch (lastStatus.getRefreshPhase()) {
     case NEED_TO_INIT:
       List<Server> allServers = ServerRepository.getAllGuildTreatable();
-      lastStatus.init(numberOfManagerServer);
-      return allServers;
+      lastStatus.init(numberOfManagerServer, allServers);
+      return new ArrayList<>();
     case IN_EVALUATION_PHASE:
-      boolean loadingEnded = queueSize < NUMBER_OF_TASKS_IN_QUEUE_ENDED;
+      boolean loadingEnded = lastStatus.getServersToEvaluate().isEmpty();
       lastStatus.manageEvaluationPhase(loadingEnded);
+      if(!loadingEnded) {
+        return lastStatus.getServersToLoadInEvaluation(NUMBER_OF_TASK_MAX_DURING_EVALUATION - queueSize);
+      }
       return new ArrayList<>();
     case IN_EVALUATION_PHASE_ON_ROAD:
       lastStatus.manageEvaluationPhaseOnRoad(numberOfManagerServer, queueSize);
@@ -69,15 +74,13 @@ public class ServerChecker extends TimerTask {
       lastStatus.manageClassicMod(numberOfManagerServer, queueSize);
       return ServerRepository.getGuildWhoNeedToBeRefresh(lastStatus.getRefresRatehInMinute().get());
     case SMART_MOD:
-      if(lastStatus.manageSmartMod(numberOfManagerServer)) {
-        return ServerRepository.getAllGuildTreatable();
-      }
+      lastStatus.manageSmartMod(numberOfManagerServer);
       return new ArrayList<>();
     default:
       return new ArrayList<>();
     }
   }
-  
+
   @Override
   public void run() {
 
@@ -92,8 +95,8 @@ public class ServerChecker extends TimerTask {
         ServerStatusRepository.updateInTreatment(status.servstatus_id, true);
         ServerRepository.updateTimeStamp(server.serv_guildId, LocalDateTime.now());
 
-          Runnable task = new InfoPanelRefresher(server, false);
-          ServerThreadsManager.getServerExecutor().execute(task);
+        Runnable task = new InfoPanelRefresher(server, false);
+        ServerThreadsManager.getServerExecutor().execute(task);
       }
 
       for(DTO.Server serverAskedTreatment : ServerThreadsManager.getServersAskedTreatment()) {
@@ -181,7 +184,7 @@ public class ServerChecker extends TimerTask {
       }
     }
   }
-  
+
   public static RefreshStatus getLastStatus() {
     return lastStatus;
   }

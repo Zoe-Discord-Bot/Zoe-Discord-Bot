@@ -481,7 +481,7 @@
 	"support" : "Support",
 	"unselected" : "Unselected",
 	"clashChannelClashTournamentShowTeamMemberByPosition" : "%s : %s",
-	"statsPredictRoleHelpMessage": "Predict the role of 5 given accounts if they play together.",
+	"statsPredictRoleHelpMessage": "Predict the role of 5 given accounts if they play together. This will open the players selection tool.",
 	"statsPredictRoleTitleDeterminedRole" : "Here's how i would put the team :",
 	"disclaimerAnalysis" : "Keep in mind that this analysis is not necessarily reliable",
 	"dangerosityReportHighWinrateInfo" : "High Winrate : %s",

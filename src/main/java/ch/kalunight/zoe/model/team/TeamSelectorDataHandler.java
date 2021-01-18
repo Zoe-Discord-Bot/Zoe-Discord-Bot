@@ -133,6 +133,8 @@ public class TeamSelectorDataHandler {
     }
     
     selectRoleBuilder.setSelectionConsumer(roleSelectedDoneAction(rolesOrder, platform, summoner));
+    
+    selectRoleBuilder.build().display(baseEvent.getTextChannel());;
   }
   
   private BiConsumer<Message, Integer> roleSelectedDoneAction(List<TeamPosition> rolesOrder, Platform platform, Summoner summoner) {

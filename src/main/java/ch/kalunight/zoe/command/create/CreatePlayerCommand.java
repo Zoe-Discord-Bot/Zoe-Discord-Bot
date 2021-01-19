@@ -29,6 +29,7 @@ import ch.kalunight.zoe.util.LastRankUtil;
 import ch.kalunight.zoe.util.RiotApiUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
@@ -108,13 +109,14 @@ public class CreatePlayerCommand extends ZoeCommand {
       return;
     }
 
+    Message loadingMessage = event.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "loadingSummoner")).complete();
     Summoner summoner;
     TFTSummoner tftSummoner;
     try {
-      summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);
-      tftSummoner = Zoe.getRiotApi().getTFTSummonerByName(region, summonerName);
+      summoner = Zoe.getRiotApi().getSummonerByNameWithRateLimit(region, summonerName);
+      tftSummoner = Zoe.getRiotApi().getTFTSummonerByNameWithRateLimit(region, summonerName);
     }catch(RiotApiException e) {
-      RiotApiUtil.handleRiotApi(event.getEvent(), e, server.getLanguage());
+      RiotApiUtil.handleRiotApi(loadingMessage, e, server.getLanguage());
       return;
     }
 
@@ -122,8 +124,8 @@ public class CreatePlayerCommand extends ZoeCommand {
         .getPlayerByLeagueAccountAndGuild(server.serv_guildId, summoner.getId(), region);
 
     if(playerAlreadyWithTheAccount != null) {
-      event.reply(String.format(LanguageManager.getText(server.getLanguage(), "accountAlreadyLinkedToAnotherPlayer"),
-          playerAlreadyWithTheAccount.getUser().getName()));
+      loadingMessage.editMessage(String.format(LanguageManager.getText(server.getLanguage(), "accountAlreadyLinkedToAnotherPlayer"),
+          playerAlreadyWithTheAccount.getUser().getName())).queue();
       return;
     }
 
@@ -146,10 +148,10 @@ public class CreatePlayerCommand extends ZoeCommand {
         }
       }
 
-      event.reply(String.format(LanguageManager.getText(server.getLanguage(), "createPlayerDoneMessage"),
-          user.getName(), summoner.getName()));
+      loadingMessage.editMessage(String.format(LanguageManager.getText(server.getLanguage(), "createPlayerDoneMessage"),
+          user.getName(), summoner.getName())).queue();
     }else {
-      event.reply(LanguageManager.getText(server.getLanguage(), "accountCantBeAddedOwnerChoice"));
+      loadingMessage.editMessage(LanguageManager.getText(server.getLanguage(), "accountCantBeAddedOwnerChoice")).queue();
     }
   }
 

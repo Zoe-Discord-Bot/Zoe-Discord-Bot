@@ -19,6 +19,7 @@ import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import ch.kalunight.zoe.util.RiotApiUtil;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
@@ -85,27 +86,27 @@ public class RemoveAccountCommand extends ZoeCommand {
       return;
     }
 
-    
+    Message loadingMessage = event.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "loadingSummoner")).complete();
     DTO.LeagueAccount account;
     try {
 
-      Summoner summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);
+      Summoner summoner = Zoe.getRiotApi().getSummonerByNameWithRateLimit(region, summonerName);
       
       account = LeagueAccountRepository
           .getLeagueAccountWithSummonerId(server.serv_guildId, summoner.getId(), region);
     } catch(RiotApiException e) {
-      RiotApiUtil.handleRiotApi(event.getEvent(), e, server.getLanguage());
+      RiotApiUtil.handleRiotApi(loadingMessage, e, server.getLanguage());
       return;
     }
 
     if(account == null) {
-      event.reply(LanguageManager.getText(server.getLanguage(), "removeAccountNotLinkedToPlayer"));
+      loadingMessage.editMessage(LanguageManager.getText(server.getLanguage(), "removeAccountNotLinkedToPlayer")).queue();
       return;
     }
     
     LeagueAccountRepository.deleteAccountWithId(account.leagueAccount_id);
-    event.reply(String.format(LanguageManager.getText(server.getLanguage(), "removeAccountDoneMessage"),
-        summonerName, user.getName()));
+    loadingMessage.editMessage(String.format(LanguageManager.getText(server.getLanguage(), "removeAccountDoneMessage"),
+        summonerName, user.getName())).queue();
   }
 
   @Override

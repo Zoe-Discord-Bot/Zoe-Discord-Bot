@@ -52,6 +52,7 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
+import net.rithms.riot.api.endpoints.tft_summoner.dto.TFTSummoner;
 import net.rithms.riot.constant.Platform;
 
 public class StatsProfileCommand extends ZoeCommand {
@@ -113,6 +114,8 @@ public class StatsProfileCommand extends ZoeCommand {
 
     DTO.Server server = getServer(event.getGuild().getIdLong());
 
+    Message messageLoading = event.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "loadingSummoner")).complete();
+    
     DTO.LeagueAccount leagueAccount = getLeagueAccountWithParam(event, server);
 
     if(leagueAccount != null) {
@@ -123,38 +126,30 @@ public class StatsProfileCommand extends ZoeCommand {
         return;
       }
 
-      generateStatsMessage(event, null, leagueAccount, server);
+      generateStatsMessage(event, null, leagueAccount, server, messageLoading);
       return;
     }
 
     List<User> userList = event.getMessage().getMentionedUsers();
     if(userList.size() != 1) {
-
-      event.reply(LanguageManager.getText(server.getLanguage(), "statsProfileMentionOnePlayer"));
+      messageLoading.editMessage(LanguageManager.getText(server.getLanguage(), "statsProfileMentionOnePlayer")).queue();
       return;
     }
 
     User user = userList.get(0);
     DTO.Player player = PlayerRepository.getPlayer(server.serv_guildId, user.getIdLong());
     if(player == null) {
-      event.reply(LanguageManager.getText(server.getLanguage(), "statsProfileNeedARegisteredPlayer"));
+      messageLoading.editMessage(LanguageManager.getText(server.getLanguage(), "statsProfileNeedARegisteredPlayer")).queue();
       return;
     }
 
     List<DTO.LeagueAccount> accounts = LeagueAccountRepository.getLeaguesAccounts(server.serv_guildId, user.getIdLong());
-
+    
     SummonerCache summoner;
     if(accounts.size() == 1) {
-      try {
-        summoner = Zoe.getRiotApi().getSummoner(accounts.get(0).leagueAccount_server,
-            accounts.get(0).leagueAccount_summonerId, false);
-      }catch(RiotApiException e) {
-        RiotApiUtil.handleRiotApi(event.getEvent(), e, server.getLanguage());
-        return;
-      }
-      generateStatsMessage(event, player, accounts.get(0), server);
+      generateStatsMessage(event, player, accounts.get(0), server, messageLoading);
     }else if(accounts.isEmpty()) {
-      event.reply(LanguageManager.getText(server.getLanguage(), "statsProfileNeedARegisteredAccount"));
+      messageLoading.editMessage(LanguageManager.getText(server.getLanguage(), "statsProfileNeedARegisteredAccount")).queue();
     }else {
 
       SelectionDialog.Builder selectAccountBuilder = new SelectionDialog.Builder()
@@ -167,7 +162,7 @@ public class StatsProfileCommand extends ZoeCommand {
 
       selectAccountBuilder
       .addUsers(event.getAuthor())
-      .setSelectionConsumer(getSelectionDoneAction(event, player, server, accounts));
+      .setSelectionConsumer(getSelectionDoneAction(event, player, server, accounts, messageLoading));
 
       List<String> accountsName = new ArrayList<>();
 
@@ -190,7 +185,7 @@ public class StatsProfileCommand extends ZoeCommand {
       selectAccountBuilder.setText(getUpdateMessageAfterChangeSelectAction(accountsName, server));
 
       SelectionDialog selectAccount = selectAccountBuilder.build();
-      selectAccount.display(event.getChannel());
+      selectAccount.display(messageLoading);
     }
   }
 
@@ -225,12 +220,14 @@ public class StatsProfileCommand extends ZoeCommand {
     }
 
     Summoner summoner;
+    TFTSummoner tftSummoner;
     try {
-      summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);
+      summoner = Zoe.getRiotApi().getSummonerByNameWithRateLimit(region, summonerName);
+      tftSummoner = Zoe.getRiotApi().getTFTSummonerByNameWithRateLimit(region, summonerName);
     }catch(RiotApiException e) {
       return null;
     }
-    return new LeagueAccount(summoner, region);
+    return new LeagueAccount(summoner, tftSummoner, region);
   }
 
   private Function<Integer, String> getUpdateMessageAfterChangeSelectAction(List<String> choices, DTO.Server server) {
@@ -243,7 +240,7 @@ public class StatsProfileCommand extends ZoeCommand {
   }
 
   private BiConsumer<Message, Integer> getSelectionDoneAction(CommandEvent event, DTO.Player player,
-      DTO.Server server, List<DTO.LeagueAccount> lolAccounts) {
+      DTO.Server server, List<DTO.LeagueAccount> lolAccounts, Message messageLoading) {
     return new BiConsumer<Message, Integer>() {
       @Override
       public void accept(Message selectionMessage, Integer selectionOfUser) {
@@ -261,7 +258,7 @@ public class StatsProfileCommand extends ZoeCommand {
           return;
         }
 
-        generateStatsMessage(event, player, account, server);
+        generateStatsMessage(event, player, account, server, messageLoading);
       }
 
     };
@@ -277,8 +274,7 @@ public class StatsProfileCommand extends ZoeCommand {
     };
   }
 
-  private void generateStatsMessage(CommandEvent event, DTO.Player player, DTO.LeagueAccount lolAccount, DTO.Server server) {
-    event.getTextChannel().sendTyping().queue();
+  private void generateStatsMessage(CommandEvent event, DTO.Player player, DTO.LeagueAccount lolAccount, DTO.Server server, Message messageLoading) {
 
     String url = Integer.toString(random.nextInt(100000));
 
@@ -288,11 +284,11 @@ public class StatsProfileCommand extends ZoeCommand {
           lolAccount.leagueAccount_summonerId, true);
     } catch(RiotApiException e) {
       if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
-        event.reply(LanguageManager.getText(server.getLanguage(), "statsProfileRateLimitError"));
+        messageLoading.editMessage(LanguageManager.getText(server.getLanguage(), "statsProfileRateLimitError")).queue();
         return;
       }
       logger.warn("Got a unexpected error : ", e);
-      event.reply(LanguageManager.getText(server.getLanguage(), "statsProfileUnexpectedError"));
+      messageLoading.editMessage(LanguageManager.getText(server.getLanguage(), "statsProfileUnexpectedError")).queue();
       return;
     }
 
@@ -302,8 +298,8 @@ public class StatsProfileCommand extends ZoeCommand {
         imageBytes = generateMasteriesChart(player, championsMasteries, server, lolAccount);
       }
     } catch(IOException | RiotApiException e) {
-      logger.info("Got a error in encoding bytesMap image : {}", e);
-      event.reply(LanguageManager.getText(server.getLanguage(), "statsProfileUnexpectedErrorGraph"));
+      logger.info("Got a error in encoding bytesMap image", e);
+      messageLoading.editMessage(LanguageManager.getText(server.getLanguage(), "statsProfileUnexpectedErrorGraph")).queue();
       return;
     }
 
@@ -312,12 +308,12 @@ public class StatsProfileCommand extends ZoeCommand {
       embed = MessageBuilderRequest.createProfileMessage(player, lolAccount, championsMasteries, server.getLanguage(), url);
     } catch(RiotApiException e) {
       if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
-        logger.debug("Get rate limited : {}", e);
-        event.reply(LanguageManager.getText(server.getLanguage(), "statsProfileRateLimitError"));
+        logger.debug("Get rate limited", e);
+        messageLoading.editMessage(LanguageManager.getText(server.getLanguage(), "statsProfileRateLimitError")).queue();
         return;
       }
-      logger.warn("Got a unexpected error : {}", e);
-      event.reply(LanguageManager.getText(server.getLanguage(), "statsProfileUnexpectedError"));
+      logger.warn("Got a unexpected error");
+      messageLoading.editMessage(LanguageManager.getText(server.getLanguage(), "statsProfileUnexpectedError")).queue();
       return;
     }
 
@@ -327,12 +323,12 @@ public class StatsProfileCommand extends ZoeCommand {
 
     if(imageBytes != null) {
       if(player != null) {
-        event.getTextChannel().sendMessage(messageBuilder.build()).addFile(imageBytes, player.getUser().getId() + ".png").queue();
+        messageLoading.getTextChannel().sendMessage(messageBuilder.build()).addFile(imageBytes, player.getUser().getId() + ".png").queue();
       }else {
-        event.getTextChannel().sendMessage(messageBuilder.build()).addFile(imageBytes, url + ".png").queue();
+        messageLoading.getTextChannel().sendMessage(messageBuilder.build()).addFile(imageBytes, url + ".png").queue();
       }
     }else {
-      event.getTextChannel().sendMessage(messageBuilder.build()).queue();
+      messageLoading.getTextChannel().sendMessage(messageBuilder.build()).queue();
     }
   }
 

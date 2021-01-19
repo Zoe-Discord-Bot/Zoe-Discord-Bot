@@ -345,10 +345,6 @@ public class CachedRiotApi {
     return null;
   }
 
-  public TFTSummoner getTFTSummonerByName(Platform platform, String name) throws RiotApiException {
-    return riotApi.getTFTSummonerByName(platform, name);
-  }
-
   public TFTSummoner getTFTSummonerByNameWithRateLimit(Platform platform, String name) throws RiotApiException {
     TFTSummoner summoner = null;
     boolean needToRetry;
@@ -382,34 +378,55 @@ public class CachedRiotApi {
     return summoner;
   }
 
-  public Summoner getSummonerByName(Platform platform, String summonerName) throws RiotApiException {
-    Summoner summoner = riotApi.getSummonerByName(platform, summonerName);
-
-    summonerRequestCount.incrementAndGet();
-    increaseCallCountForGivenRegion(platform);
-
-    SavedSummoner summonerToCache = new SavedSummoner(summoner);
-
-    SummonerCache summonerCache = null;
-    try {
-      summonerCache = SummonerCacheRepository.getSummonerWithSummonerId(summoner.getId(), platform);
-    } catch (SQLException e) {
-      logger.warn("Error while getting summoner cache !", e);
-    }
-
-    if(summonerCache == null) {
+  public Summoner getSummonerByNameWithRateLimit(Platform platform, String summonerName) throws RiotApiException {
+    Summoner summoner = null;
+    boolean needToRetry;
+    do {
+      needToRetry = true;
+      increaseCallCountForGivenRegion(platform);
+      summonerRequestCount.incrementAndGet();
+      
       try {
-        SummonerCacheRepository.createSummonerCache(summoner.getId(), platform, summonerToCache);
-      } catch (SQLException e) {
-        logger.warn("Error while saving a summoner, summoner returned anyway", e);
+        summoner = riotApi.getSummonerByName(platform, summonerName);
+
+        SavedSummoner summonerToCache = new SavedSummoner(summoner);
+        
+        SummonerCache currentSummonerCache = null;
+        try {
+          currentSummonerCache = SummonerCacheRepository.getSummonerWithSummonerId(summoner.getId(), platform);
+        } catch (SQLException e) {
+          logger.warn("Error while getting summoner cache !", e);
+        }
+
+        if(currentSummonerCache == null) {
+          try {
+            SummonerCacheRepository.createSummonerCache(summoner.getId(), platform, summonerToCache);
+          } catch (SQLException e) {
+            logger.warn("Error while saving a summoner, summoner returned anyway", e);
+          }
+        }else {
+          try {
+            SummonerCacheRepository.updateSummonerCache(summonerToCache, currentSummonerCache.sumCache_id);
+          } catch (SQLException e) {
+            logger.warn("Error while saving a summoner, summoner returned anyway", e);
+          }
+        }
+        
+        needToRetry = false;
+        
+      }catch(RateLimitException e) {
+        try {
+          if(e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10) {
+            return null;
+          }
+          logger.info("Waiting rate limit ({} sec) to retry in getTFTSummoner", e.getRetryAfter());
+          TimeUnit.SECONDS.sleep(e.getRetryAfter());
+        } catch (InterruptedException e1) {
+          logger.error("Thread Interupted when waiting the rate limit in getSummoner !", e1);
+          Thread.currentThread().interrupt();
+        }
       }
-    }else {
-      try {
-        SummonerCacheRepository.updateSummonerCache(summonerToCache, summonerCache.sumCache_id);
-      } catch (SQLException e) {
-        logger.warn("Error while saving a summoner, summoner returned anyway", e);
-      }
-    }
+    }while(needToRetry);
 
     return summoner;
   }

@@ -144,6 +144,10 @@ public class TeamUtil {
       List<DataPerChampion> champions = playerToShow.getMostPlayedChampions(3);
 
       int championToLoad = champions.size();
+      if(championToLoad == 0) {
+        messageBuilder.append("  -> *" + LanguageManager.getText(server.getLanguage(), "empty") + "*\n\n");
+      }
+      
       for(DataPerChampion champion : champions) {
         messageBuilder.append("  -> ");
 

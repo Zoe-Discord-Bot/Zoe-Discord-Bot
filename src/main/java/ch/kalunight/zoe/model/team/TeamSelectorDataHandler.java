@@ -66,8 +66,12 @@ public class TeamSelectorDataHandler {
   }
 
   private void threatAccountSelection(MessageReceivedEvent messageReceivedEvent) {
-    baseEvent.getTextChannel().sendTyping().queue();
     String messageReceived = messageReceivedEvent.getMessage().getContentRaw();
+    
+    if(messageReceived.equalsIgnoreCase("Stop")) {
+      baseEvent.reply(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisRoleSelectionCancel"));
+      return;
+    }
     
     List<String> listArgs = CreatePlayerCommand.getParameterInParenteses(messageReceived);
     
@@ -89,26 +93,32 @@ public class TeamSelectorDataHandler {
       return;
     }
 
+    Message messageLoading = baseEvent.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "loadingSummoner")).complete();
     Summoner summoner;
     try {
-      summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);
+      summoner = Zoe.getRiotApi().getSummonerByNameWithRateLimit(region, summonerName);
     }catch(RiotApiException e) {
       if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
-        baseEvent.reply(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisSummonerNotFound") 
-            + " " + LanguageManager.getText(server.getLanguage(), STATS_TEAM_ANALYSIS_CANCEL_MESSAGE_ID));
+        messageLoading.editMessage(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisSummonerNotFound") 
+            + " " + LanguageManager.getText(server.getLanguage(), STATS_TEAM_ANALYSIS_CANCEL_MESSAGE_ID)).queue();
       }else {
-        baseEvent.reply(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisRiotApi") 
-            + " " + LanguageManager.getText(server.getLanguage(), STATS_TEAM_ANALYSIS_CANCEL_MESSAGE_ID));
+        messageLoading.editMessage(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisRiotApi") 
+            + " " + LanguageManager.getText(server.getLanguage(), STATS_TEAM_ANALYSIS_CANCEL_MESSAGE_ID)).queue();
       }
       defineAccountSelectionWaiter();
       return;
     }
     
+    if(isSummonerAlreadySelected(summoner, region)) {
+      messageLoading.editMessage(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisAlreadySelectedAccount")).queue();
+      defineAccountSelectionWaiter();
+      return;
+    }
     
-    defineRoleSelectionWaiter(region, summoner);
+    defineRoleSelectionWaiter(region, summoner, messageLoading);
   }
   
-  private void defineRoleSelectionWaiter(Platform platform, Summoner summoner) {
+  private void defineRoleSelectionWaiter(Platform platform, Summoner summoner, Message messageLoading) {
     
     SelectionDialog.Builder selectRoleBuilder = new SelectionDialog.Builder()
         .addUsers(baseEvent.getAuthor())
@@ -116,7 +126,8 @@ public class TeamSelectorDataHandler {
         .useLooping(true)
         .setColor(Color.GREEN)
         .setSelectedEnds("**", "**")
-        .setCanceled(getSelectionCancelAction(server.getLanguage()))
+        .setCanceled(getSelectionCancelAction(server.getLanguage(), accountsSelected.size()))
+        .setText(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisAskRole"))
         .setTimeout(2, TimeUnit.MINUTES);
     
     List<TeamPosition> rolesOrder = new ArrayList<>();
@@ -126,7 +137,7 @@ public class TeamSelectorDataHandler {
     rolesOrder.add(TeamPosition.FILL);
     
     for(TeamPosition roleToSelect : TeamPosition.values()) {
-      if(roleToSelect != TeamPosition.UNSELECTED && roleToSelect != TeamPosition.FILL) {
+      if(roleToSelect != TeamPosition.UNSELECTED && roleToSelect != TeamPosition.FILL && !isRoleAlreadySelected(roleToSelect)) {
         selectRoleBuilder.addChoices(LanguageManager.getText(server.getLanguage(), TeamUtil.getTeamPositionId(roleToSelect)));
         rolesOrder.add(roleToSelect);
       }
@@ -134,7 +145,7 @@ public class TeamSelectorDataHandler {
     
     selectRoleBuilder.setSelectionConsumer(roleSelectedDoneAction(rolesOrder, platform, summoner));
     
-    selectRoleBuilder.build().display(baseEvent.getTextChannel());;
+    selectRoleBuilder.build().display(messageLoading);
   }
   
   private BiConsumer<Message, Integer> roleSelectedDoneAction(List<TeamPosition> rolesOrder, Platform platform, Summoner summoner) {
@@ -143,11 +154,12 @@ public class TeamSelectorDataHandler {
       @Override
       public void accept(Message baseMessage, Integer seletedAnswerId) {
         baseEvent.getTextChannel().sendTyping().queue();
-        TeamPosition selected = rolesOrder.get(seletedAnswerId);
+        baseMessage.clearReactions().queue();
+        TeamPosition selected = rolesOrder.get(seletedAnswerId - 1);
         
         String summonerName = "*" + platform.getName().toUpperCase() + "* " + summoner.getName();
         
-        baseMessage.reply(String.format(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisAccountCorrectlySelected"), summonerName,
+        baseEvent.reply(String.format(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisAccountCorrectlySelected"), summonerName,
             LanguageManager.getText(server.getLanguage(), TeamUtil.getTeamPositionId(selected))));
         
         accountsSelected.add(new AccountDataWithRole(summoner, platform, selected));
@@ -166,14 +178,34 @@ public class TeamSelectorDataHandler {
     }
   }
 
-  private Consumer<Message> getSelectionCancelAction(String language){
+  private Consumer<Message> getSelectionCancelAction(String language, int accountSelected){
     return new Consumer<Message>() {
       @Override
       public void accept(Message message) {
-        message.clearReactions().queue();
-        message.editMessage(LanguageManager.getText(language, "statsTeamAnalysisRoleSelectionCancel")).queue();
+        if(accountSelected == accountsSelected.size()) {
+          message.clearReactions().queue();
+          message.editMessage(LanguageManager.getText(language, "statsTeamAnalysisRoleSelectionCancel")).queue();
+        }
       }
     };
+  }
+  
+  private boolean isSummonerAlreadySelected(Summoner summoner, Platform platform) {
+    for(AccountDataWithRole toCheck : accountsSelected) {
+      if(toCheck.getSummoner().getId().equals(summoner.getId()) && platform == toCheck.getPlatform()) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  private boolean isRoleAlreadySelected(TeamPosition positionToCheck) {
+    for(AccountDataWithRole toCheck : accountsSelected) {
+      if(toCheck.getPosition() == positionToCheck) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private void cancelSelectionOfAnAccount() {

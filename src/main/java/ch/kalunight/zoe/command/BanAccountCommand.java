@@ -29,6 +29,7 @@ import ch.kalunight.zoe.util.PaginatorUtil;
 import ch.kalunight.zoe.util.RiotApiUtil;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
@@ -119,13 +120,15 @@ public class BanAccountCommand extends ZoeCommand {
 
     String summonerName = listArgs.get(1);
 
+    Message message = event.getTextChannel().sendMessage(LanguageManager.getText(language, "loadingSummoner")).complete();
+    
     Summoner summoner;
     String code = "";
 
     try {
-      summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);
+      summoner = Zoe.getRiotApi().getSummonerByNameWithRateLimit(region, summonerName);
     } catch (RiotApiException error) {
-      RiotApiUtil.handleRiotApi(event, error, language);
+      RiotApiUtil.handleRiotApi(message, error, language);
 
       waiter.waitForEvent(MessageReceivedEvent.class,
           e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel())
@@ -140,9 +143,9 @@ public class BanAccountCommand extends ZoeCommand {
       code = Zoe.getRiotApi().getValidationCode(region, summoner.getId());
     }catch (RiotApiException error) {
       if(error.getErrorCode() == 404) {
-        event.getChannel().sendMessage(String.format(LanguageManager.getText(language, "banAccountCommandInvalidVerificationTag"), codeExpected, event.getMessage().getContentRaw())).queue();
+        message.editMessage(String.format(LanguageManager.getText(language, "banAccountCommandInvalidVerificationTag"), codeExpected, event.getMessage().getContentRaw())).queue();
       }else {
-        RiotApiUtil.handleRiotApi(event, error, language);
+        RiotApiUtil.handleRiotApi(message, error, language);
       }
 
       waiter.waitForEvent(MessageReceivedEvent.class,
@@ -156,9 +159,9 @@ public class BanAccountCommand extends ZoeCommand {
 
     if(codeExpected.equals(code)) {
       //Owner OK !
-      startAccountManagementPanel(summoner, region, event, language);
+      startAccountManagementPanel(summoner, region, event, language, message);
     }else {
-      event.getChannel().sendMessage(String.format(LanguageManager.getText(language, "banAccountCommandInvalidVerificationTag"), codeExpected, event.getMessage().getContentRaw())).queue();
+      message.editMessage(String.format(LanguageManager.getText(language, "banAccountCommandInvalidVerificationTag"), codeExpected, event.getMessage().getContentRaw())).queue();
 
       waiter.waitForEvent(MessageReceivedEvent.class,
           e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel())
@@ -174,7 +177,7 @@ public class BanAccountCommand extends ZoeCommand {
   }
 
   private void startAccountManagementPanel(Summoner summoner, Platform region, MessageReceivedEvent event,
-      String language) {
+      String language, Message messageToEdit) {
 
     List<Server> serversWithTheAccount = null;
     BannedAccount accountInTheBanList;
@@ -183,7 +186,7 @@ public class BanAccountCommand extends ZoeCommand {
       serversWithTheAccount = ServerRepository.getServersWithLeagueAccountIdAndRegion(summoner.getId(), region);
       accountInTheBanList = BannedAccountRepository.getBannedAccount(summoner.getId(), region);
     } catch (SQLException e) {
-      event.getChannel().sendMessage(LanguageManager.getText(language, "errorSQLPleaseReport")).queue();
+      messageToEdit.editMessage(LanguageManager.getText(language, "errorSQLPleaseReport")).queue();
       logger.error("SQL error while starting ban account panel", e);
       return;
     }
@@ -226,9 +229,9 @@ public class BanAccountCommand extends ZoeCommand {
       }
 
       Paginator listOfGuilds = pbuilder.build();
-      listOfGuilds.display(event.getChannel());
+      listOfGuilds.display(messageToEdit);
     }else {
-      event.getChannel().sendMessage(LanguageManager.getText(language, "banAccountCommandAccountIn0Server")).queue();
+      messageToEdit.editMessage(LanguageManager.getText(language, "banAccountCommandAccountIn0Server")).queue();
     }
 
     String statusOfLeagueAccount;

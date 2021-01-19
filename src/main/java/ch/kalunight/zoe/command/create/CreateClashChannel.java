@@ -136,8 +136,9 @@ public class CreateClashChannel extends ZoeCommand {
       return;
     }
 
+    Message loadingMessage = originalEvent.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "loadingSummoner")).complete();
     try {
-      Summoner summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);
+      Summoner summoner = Zoe.getRiotApi().getSummonerByNameWithRateLimit(region, summonerName);
 
       if(summoner != null) {
 
@@ -146,7 +147,7 @@ public class CreateClashChannel extends ZoeCommand {
         for(DTO.ClashChannel clashChannel : clashChannels) {
           if(clashChannel.clashChannel_data.getSelectedSummonerId().equals(summoner.getId())
               && clashChannel.clashChannel_data.getSelectedPlatform().equals(region)) {
-            originalEvent.reply(LanguageManager.getText(server.getLanguage(), "createClashChannelAlreadyCreatedForThisSummoner"));
+            loadingMessage.editMessage(LanguageManager.getText(server.getLanguage(), "createClashChannelAlreadyCreatedForThisSummoner")).queue();
             waitForALeagueAccount(originalEvent, server, creationData);
             return;
           }
@@ -155,7 +156,7 @@ public class CreateClashChannel extends ZoeCommand {
         BannedAccount bannedAccount = BannedAccountRepository.getBannedAccount(summoner.getId(), region);
         if(bannedAccount == null) {
 
-          originalEvent.reply(String.format(LanguageManager.getText(server.getLanguage(), "createClashChannelLeagueAccountSelected"), region.getName().toUpperCase(), summoner.getName()));
+          loadingMessage.editMessage(String.format(LanguageManager.getText(server.getLanguage(), "createClashChannelLeagueAccountSelected"), region.getName().toUpperCase(), summoner.getName())).queue();
 
           List<String> timeZoneIds = getTimeZoneIds();
 
@@ -166,16 +167,16 @@ public class CreateClashChannel extends ZoeCommand {
 
           waitForATimeZoneSelection(originalEvent, server, timeZoneIds, creationData);
         }else {
-          originalEvent.reply(LanguageManager.getText(server.getLanguage(), "accountCantBeAddedOwnerChoice"));
+          loadingMessage.editMessage(LanguageManager.getText(server.getLanguage(), "accountCantBeAddedOwnerChoice")).queue();
         }
       }else {
-        originalEvent.reply(String.format(LanguageManager.getText(server.getLanguage(), "createClashChannelSummonerNotFound"), summonerName, region.toString()));
+        loadingMessage.editMessage(String.format(LanguageManager.getText(server.getLanguage(), "createClashChannelSummonerNotFound"), summonerName, region.toString())).queue();
       }
     } catch (SQLException e) {
       logger.error("SQLException with league account selection in create Clash Command.", e);
-      originalEvent.reply(LanguageManager.getText(server.getLanguage(), "deleteLeaderboardErrorDatabase"));
+      loadingMessage.editMessage(LanguageManager.getText(server.getLanguage(), "deleteLeaderboardErrorDatabase")).queue();
     } catch (RiotApiException e) {
-      RiotApiUtil.handleRiotApi(message, e, server.getLanguage());
+      RiotApiUtil.handleRiotApi(loadingMessage, e, server.getLanguage());
 
       if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND || e.getErrorCode() == RiotApiException.SERVER_ERROR) {
         waitForALeagueAccount(originalEvent, server, creationData);

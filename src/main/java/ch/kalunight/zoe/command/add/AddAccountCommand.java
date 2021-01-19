@@ -22,6 +22,7 @@ import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import ch.kalunight.zoe.util.RiotApiUtil;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
@@ -100,13 +101,14 @@ public class AddAccountCommand extends ZoeCommand {
       return;
     }
 
+    Message message = event.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "loadingSummoner")).complete();
     Summoner summoner;
     TFTSummoner tftSummoner;
     try {
-      summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);
-      tftSummoner = Zoe.getRiotApi().getTFTSummonerByName(region, summonerName);
+      summoner = Zoe.getRiotApi().getSummonerByNameWithRateLimit(region, summonerName);
+      tftSummoner = Zoe.getRiotApi().getTFTSummonerByNameWithRateLimit(region, summonerName);
     }catch(RiotApiException e) {
-      RiotApiUtil.handleRiotApi(event.getEvent(), e, server.getLanguage());
+      RiotApiUtil.handleRiotApi(message, e, server.getLanguage());
       return;
     }
 
@@ -117,8 +119,8 @@ public class AddAccountCommand extends ZoeCommand {
 
     if(playerAlreadyWithTheAccount != null) {
       User userAlreadyWithTheAccount = Zoe.getJda().retrieveUserById(playerAlreadyWithTheAccount.player_discordId).complete();
-      event.reply(String.format(LanguageManager.getText(server.getLanguage(), "accountAlreadyLinkedToAnotherPlayer"), 
-          userAlreadyWithTheAccount.getName()));
+      message.editMessage(String.format(LanguageManager.getText(server.getLanguage(), "accountAlreadyLinkedToAnotherPlayer"), 
+          userAlreadyWithTheAccount.getName())).queue();
       return;
     }
 
@@ -130,10 +132,10 @@ public class AddAccountCommand extends ZoeCommand {
       
       CreatePlayerCommand.updateLastRank(leagueAccount);
       
-      event.reply(String.format(LanguageManager.getText(server.getLanguage(), "accountAddedToPlayer"),
-          newAccount.getSummoner().getName(), user.getName()));
+      message.editMessage(String.format(LanguageManager.getText(server.getLanguage(), "accountAddedToPlayer"),
+          newAccount.getSummoner().getName(), user.getName())).queue();
     }else {
-      event.reply(LanguageManager.getText(server.getLanguage(), "accountCantBeAddedOwnerChoice"));
+      message.editMessage(LanguageManager.getText(server.getLanguage(), "accountCantBeAddedOwnerChoice")).queue();
     }
   }
 

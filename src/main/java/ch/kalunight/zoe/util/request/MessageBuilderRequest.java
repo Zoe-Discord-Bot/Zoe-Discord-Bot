@@ -73,7 +73,7 @@ public class MessageBuilderRequest {
       CurrentGameInfo gameOfTheChange, LeagueAccount leagueAccount, String lang, RankedChangeType changeType) {
 
     SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
-    
+
     String accountTitle = null;
     String changeStats = null;
     String statsGame = null;
@@ -82,18 +82,18 @@ public class MessageBuilderRequest {
     FullTier newFullTier = new FullTier(newEntry);
 
     String summonerName = LanguageManager.getText(lang, "unknown");
-    
+
     try {
       summonerName = leagueAccount.getSummoner().getName();
     } catch (RiotApiException e) {
       logger.warn("Error while getting summoner !", e);
     }
-    
+
     switch(changeType) {
     case BO_CHANGE:
       MiniSeries oldBo = oldEntry.getMiniSeries();
       MiniSeries newBo = newEntry.getMiniSeries();
-      
+
       if(match.isGivenAccountWinner(leagueAccount.leagueAccount_summonerId)) {
         accountTitle = String.format(LanguageManager.getText(lang, "rankChannelChangeBOProgressWinTitleWithoutGameType"),
             summonerName, oldBo.getProgress().length(),
@@ -220,7 +220,7 @@ public class MessageBuilderRequest {
       CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang) throws RiotApiException {
 
     SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
-    
+
     EmbedBuilder message = new EmbedBuilder();
 
     String gameType = getGameType(gameOfTheChange, lang);
@@ -256,7 +256,7 @@ public class MessageBuilderRequest {
       CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang) throws RiotApiException {
 
     SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
-    
+
     EmbedBuilder message = new EmbedBuilder();
 
     MiniSeries oldBo = oldEntry.getMiniSeries();
@@ -420,7 +420,7 @@ public class MessageBuilderRequest {
       CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang) throws RiotApiException {
 
     SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
-    
+
     EmbedBuilder message = new EmbedBuilder();
 
     String gameType = getGameType(gameOfTheChange, lang);
@@ -460,7 +460,7 @@ public class MessageBuilderRequest {
 
   public static MessageEmbed createRankChannelCardLeaguePointChangeOnlyTFT(LeagueEntry oldEntry, LeagueEntry newEntry, 
       TFTMatch match, Player player, LeagueAccount leagueAccount, String lang) throws NoValueRankException, RiotApiException {
-    
+
     EmbedBuilder message = new EmbedBuilder();
 
     String gameType = LanguageManager.getText(lang, GameQueueConfigId.RANKED_TFT.getNameId());
@@ -601,7 +601,7 @@ public class MessageBuilderRequest {
 
   public static MessageEmbed createProfileMessage(DTO.Player player, DTO.LeagueAccount leagueAccount,
       SavedChampionsMastery masteries, String language, String url) throws RiotApiException {    
-    
+
     String latestGameTranslated = LanguageManager.getText(language, "statsProfileLatestGames");
 
     EmbedBuilder message = new EmbedBuilder();
@@ -786,8 +786,8 @@ public class MessageBuilderRequest {
 
     Set<TFTLeagueEntry> tftRankPosition = null;
     try {
-      tftRankPosition = Zoe.getRiotApi().getTFTLeagueEntries(leagueAccount.leagueAccount_server,
-          leagueAccount.leagueAccount_tftSummonerId);
+        tftRankPosition = Zoe.getRiotApi().getTFTLeagueEntries(leagueAccount.leagueAccount_server,
+            leagueAccount.leagueAccount_tftSummonerId);
     }catch (RiotApiException e) {
       if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
         throw e;

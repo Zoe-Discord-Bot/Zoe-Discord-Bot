@@ -36,7 +36,7 @@ public abstract class TeamSelectorDataManager implements Runnable {
         baseEvent.reply(LanguageManager.getText(server.getLanguage(), "statsProfileUnexpectedError"));
       }
     }catch (Exception e) {
-      logger.error("Unexpected error !", e);
+      logger.error("Unexpected error in TeamSelectorDataManager !", e);
     }
   }
   

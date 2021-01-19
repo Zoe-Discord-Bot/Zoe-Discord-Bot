@@ -21,6 +21,7 @@ import net.rithms.riot.api.endpoints.clash.dto.ClashTournament;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.api.endpoints.tft_league.dto.TFTLeagueEntry;
+import net.rithms.riot.api.endpoints.tft_summoner.dto.TFTSummoner;
 import net.rithms.riot.constant.Platform;
 
 public class DTO {
@@ -211,15 +212,15 @@ public class DTO {
       leagueAccount_server = Platform.getPlatformByName(baseData.getString("leagueAccount_server"));
     }
     
-    public LeagueAccount(Summoner summoner, Platform platform) {
+    public LeagueAccount(Summoner summoner, TFTSummoner tftSummoner, Platform platform) {
       leagueAccount_name = summoner.getName();
       leagueAccount_summonerId = summoner.getId();
       leagueAccount_accoundId = summoner.getAccountId();
       leagueAccount_puuid = summoner.getPuuid();
       leagueAccount_server = platform;
-      leagueAccount_tftSummonerId = null;
-      leagueAccount_tftAccountId = null;
-      leagueAccount_tftPuuid = null;
+      leagueAccount_tftSummonerId = tftSummoner.getId();
+      leagueAccount_tftAccountId = tftSummoner.getAccountId();
+      leagueAccount_tftPuuid = tftSummoner.getPuuid();
       leagueAccount_id = null;
       leagueAccount_fk_player = null;
       leagueAccount_fk_gamecard = null;

@@ -14,6 +14,7 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.Paginator;
 
+import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
@@ -21,10 +22,12 @@ import ch.kalunight.zoe.model.dto.ClashChannelData;
 import ch.kalunight.zoe.model.dto.ClashStatus;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.BannedAccount;
+import ch.kalunight.zoe.model.dto.DTO.ClashChannel;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.repositories.BannedAccountRepository;
 import ch.kalunight.zoe.repositories.ClashChannelRepository;
 import ch.kalunight.zoe.repositories.ConfigRepository;
+import ch.kalunight.zoe.service.clashchannel.TreatClashChannel;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import ch.kalunight.zoe.util.PaginatorUtil;
@@ -271,7 +274,7 @@ public class CreateClashChannel extends ZoeCommand {
 
         ClashChannelData data = new ClashChannelData(messageIds, new ArrayList<>(), null, creationData.platform, creationData.summoner.getId(), ClashStatus.WAIT_FOR_GAME_START);
 
-        ClashChannelRepository.createClashChannel(server, clashChannel.getIdLong(), selectedTimeZone, data);
+        long clashChannelDbId = ClashChannelRepository.createClashChannel(server, clashChannel.getIdLong(), selectedTimeZone, data);
 
         ServerConfiguration config = ConfigRepository.getServerConfiguration(originalEvent.getGuild().getIdLong());
 
@@ -280,6 +283,12 @@ public class CreateClashChannel extends ZoeCommand {
         }
 
         originalEvent.reply(LanguageManager.getText(server.getLanguage(), "createClashChannelTournamentTimeZoneSelected"));
+        
+        ClashChannel clashChannelDb = ClashChannelRepository.getClashChannelWithId(clashChannelDbId);
+
+        TreatClashChannel clashChannelWorker = new TreatClashChannel(server, clashChannelDb, false);
+        
+        ServerThreadsManager.getClashChannelExecutor().execute(clashChannelWorker);
 
       } catch(InsufficientPermissionException e) {
         originalEvent.reply(LanguageManager.getText(server.getLanguage(), "impossibleToCreateInfoChannelMissingPerms"));

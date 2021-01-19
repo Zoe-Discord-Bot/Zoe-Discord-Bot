@@ -21,7 +21,7 @@ public class DeleteCommand extends ZoeCommand {
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
     Command[] commandsChildren = {new DeletePlayerCommand(), new DeleteInfoChannelCommand(), new DeleteTeamCommand(),
-        new DeleteRankHistoryChannelCommand(), new DeleteLeaderboardCommand(waiter)};
+        new DeleteRankHistoryChannelCommand(), new DeleteLeaderboardCommand(waiter), new DeleteClashChannelCommand(waiter)};
     this.children = commandsChildren;
     this.helpBiConsumer = CommandUtil.getHelpMethodHasChildren(USAGE_NAME, commandsChildren);
   }

@@ -145,6 +145,7 @@ public class DTO {
     public final long clashChannel_channelId;
     public final ClashChannelData clashChannel_data;
     public final TimeZone clashChannel_timezone;
+    public final LocalDateTime clashChannel_lastRefresh;
     
     public ClashChannel(ResultSet baseData) throws SQLException {
       clashChannel_id = baseData.getLong("clashChannel_id");
@@ -152,6 +153,7 @@ public class DTO {
       clashChannel_channelId = baseData.getLong("clashChannel_channelId");
       clashChannel_data = gson.fromJson(baseData.getString("clashChannel_data"), ClashChannelData.class);
       clashChannel_timezone = TimeZone.getTimeZone(baseData.getString("clashChannel_timezone"));
+      clashChannel_lastRefresh = LocalDateTime.parse(baseData.getString("clashChannel_lastRefresh"), DB_TIME_PATTERN);
     }
   }
 

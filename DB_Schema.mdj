@@ -4218,20 +4218,35 @@
 											"top": 489,
 											"width": 300.33154296875,
 											"height": 13
+										},
+										{
+											"_type": "ERDColumnView",
+											"_id": "AAAAAAF3Gz+wIYERakM=",
+											"_parent": {
+												"$ref": "AAAAAAF1Sug9ZUBF6p4="
+											},
+											"model": {
+												"$ref": "AAAAAAF3Gz+wB4EOmTI="
+											},
+											"font": "Arial;13;0",
+											"left": 949,
+											"top": 504,
+											"width": 300.33154296875,
+											"height": 13
 										}
 									],
 									"font": "Arial;13;0",
 									"left": 944,
 									"top": 439,
 									"width": 310.33154296875,
-									"height": 68
+									"height": 83
 								}
 							],
 							"font": "Arial;13;0",
 							"left": 944,
 							"top": 416,
 							"width": 310.33154296875,
-							"height": 91,
+							"height": 106,
 							"nameLabel": {
 								"$ref": "AAAAAAF1Sug9ZUBEc80="
 							},
@@ -6855,6 +6870,16 @@
 							},
 							"name": "clashChannel_timezone",
 							"type": "varchar",
+							"length": 0
+						},
+						{
+							"_type": "ERDColumn",
+							"_id": "AAAAAAF3Gz+wB4EOmTI=",
+							"_parent": {
+								"$ref": "AAAAAAF1Sug9ZEBB13A="
+							},
+							"name": "clashChannel_lastRefresh",
+							"type": "timestamp",
 							"length": 0
 						}
 					]

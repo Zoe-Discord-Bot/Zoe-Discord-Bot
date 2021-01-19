@@ -323,7 +323,7 @@ public class TreatClashChannel implements Runnable {
         messageBuilder.append(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentUpcoming") + "\n");
 
         String tournamentBasicName = LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentBasicName");
-
+        
         for(ClashTournament clashTournament : nextTournaments) {
           List<ClashTournamentPhase> phases = clashTournament.getSchedule();
 
@@ -492,9 +492,6 @@ public class TreatClashChannel implements Runnable {
     }
 
     clashMessageManager.setGameCardId(null);
-
-
-
   }
 
   private void updateClashStatus(ClashChannelData clashMessageManager, ClashTeamRegistration clashTeamRegistration) {

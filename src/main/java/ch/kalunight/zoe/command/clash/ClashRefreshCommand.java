@@ -45,7 +45,7 @@ public class ClashRefreshCommand extends ZoeCommand {
     }
     
     if(channelToRefresh != null) {
-      event.reply(LanguageManager.getText(server.getLanguage(), "clashRefreshStarted"));
+      event.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "clashRefreshStarted")).complete(); //Complete here, avoid bad cleaning in clashChannel
       ServerThreadsManager.getClashChannelExecutor().execute(new TreatClashChannel(server, channelToRefresh, true));
     }else {
       event.reply(LanguageManager.getText(server.getLanguage(), "clashRefreshNeedToBeSendedInClashChannel"));

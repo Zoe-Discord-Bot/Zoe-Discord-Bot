@@ -26,7 +26,8 @@ CREATE TABLE clash_channel (
 	clashChannel_fk_server						BIGINT				NOT NULL,
 	clashChannel_channelId						BIGINT				NOT NULL,
 	clashChannel_data							jsonb				NOT NULL,
-	clashChannel_timezone						VARCHAR				NOT NULL
+	clashChannel_timezone						VARCHAR				NOT NULL,
+	clashChannel_lastRefresh 					TIMESTAMP			WITHOUT TIME ZONE
 );
 
 ALTER TABLE ONLY clash_channel

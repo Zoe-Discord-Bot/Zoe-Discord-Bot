@@ -13,13 +13,16 @@ import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.RefreshStatus;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.DTO.ClashChannel;
 import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.leaderboard.dataholder.Objective;
+import ch.kalunight.zoe.repositories.ClashChannelRepository;
 import ch.kalunight.zoe.repositories.LeaderboardRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.repositories.ServerStatusRepository;
+import ch.kalunight.zoe.service.clashchannel.TreatClashChannel;
 import ch.kalunight.zoe.service.infochannel.InfoPanelRefresher;
 import ch.kalunight.zoe.service.leaderboard.LeaderboardBaseService;
 import net.dv8tion.jda.api.OnlineStatus;
@@ -123,6 +126,8 @@ public class ServerChecker extends TimerTask {
       ServerThreadsManager.getServersAskedTreatment().clear();
 
       refreshLeaderboard();
+      
+      refreshClashChannel();
 
       if(nextRAPIChannelRefresh.isBeforeNow() && RiotApiUsageChannelRefresh.getRapiInfoChannel() != null) {
         ServerThreadsManager.getServerExecutor().execute(new RiotApiUsageChannelRefresh());
@@ -157,6 +162,20 @@ public class ServerChecker extends TimerTask {
       logger.debug("Zoe Server-Executor Queue : {}", ServerThreadsManager.getServerExecutor().getQueue().size());
       logger.debug("Zoe InfoCards-Generator Queue : {}", ServerThreadsManager.getInfocardsGenerator().getQueue().size());
       logger.debug("Zoe number of User cached : {}", Zoe.getJda().getUserCache().size());
+    }
+  }
+
+  private void refreshClashChannel() throws SQLException {
+    List<ClashChannel> clashChannelsToRefresh = ClashChannelRepository.getClashChannelWhoNeedToBeRefreshed();
+   
+    for(ClashChannel clashChannelToRefresh : clashChannelsToRefresh) {
+      Server server = ServerRepository.getServerWithServId(clashChannelToRefresh.clashChannel_fk_server);
+
+      ClashChannelRepository.updateClashChannelRefresh(LocalDateTime.now(), clashChannelToRefresh.clashChannel_id);
+
+      TreatClashChannel clashChannelWorker = new TreatClashChannel(server, clashChannelToRefresh, false);
+      
+      ServerThreadsManager.getClashChannelExecutor().execute(clashChannelWorker);
     }
   }
 

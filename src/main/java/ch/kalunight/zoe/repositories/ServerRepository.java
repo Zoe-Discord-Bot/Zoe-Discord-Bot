@@ -258,7 +258,7 @@ public class ServerRepository {
       
       List<DTO.ClashChannel> clashChannels = ClashChannelRepository.getClashChannels(guildId);
       for(ClashChannel clashChannel : clashChannels) {
-        LeaderboardRepository.deleteLeaderboardWithId(clashChannel.clashChannel_id);
+        ClashChannelRepository.deleteClashChannel(clashChannel.clashChannel_id);
       }
 
       String finalQuery = String.format(DELETE_SERVER_WITH_SERV_GUILDID, guildId);

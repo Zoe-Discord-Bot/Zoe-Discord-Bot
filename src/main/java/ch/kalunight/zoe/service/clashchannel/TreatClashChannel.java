@@ -31,8 +31,10 @@ import ch.kalunight.zoe.util.ClashUtil;
 import ch.kalunight.zoe.util.MessageManagerUtil;
 import ch.kalunight.zoe.util.Ressources;
 import ch.kalunight.zoe.util.TeamUtil;
+import ch.kalunight.zoe.util.request.MessageBuilderRequest;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.MessageReaction;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
@@ -43,6 +45,7 @@ import net.rithms.riot.api.endpoints.clash.constant.TeamRole;
 import net.rithms.riot.api.endpoints.clash.dto.ClashTeamMember;
 import net.rithms.riot.api.endpoints.clash.dto.ClashTournament;
 import net.rithms.riot.api.endpoints.clash.dto.ClashTournamentPhase;
+import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.constant.Platform;
 
 public class TreatClashChannel implements Runnable {
@@ -119,7 +122,7 @@ public class TreatClashChannel implements Runnable {
       ClashChannelRepository.updateClashChannel(clashMessageManager, clashChannelDB.clashChannel_id);
 
       clearLoadingEmote(clashMessageManager);
-      
+
     }catch(Exception e) {
       logger.error("Error while loading the clash channel", e);
     }
@@ -127,7 +130,15 @@ public class TreatClashChannel implements Runnable {
 
   private void refreshWaitForGameEnd(ClashChannelData clashMessageManager, ClashTeamRegistration firstClashTeam,
       SummonerCache summonerCache) {
-    // TODO Auto-generated method stub
+    
+    boolean needToDeleteEnnemyStats = refreshInfoGameCard(clashMessageManager);
+    
+    if(needToDeleteEnnemyStats) {
+      for(Long messageIdToDelete : clashMessageManager.getEnemyTeamMessages()) {
+        Message message = clashChannel.retrieveMessageById(messageIdToDelete).complete();
+        message.delete().queue();
+      }
+    }
     
   }
 
@@ -151,19 +162,78 @@ public class TreatClashChannel implements Runnable {
     Collections.sort(teamPlayersData);
 
     TeamUtil.addPlayersStats(server, teamPlayersData, messageBuilder);
-    
+
     messageBuilder.append("\n\n"); 
-    
+
     TeamUtil.addFlexStats(server, teamPlayersData, messageBuilder);
 
     messageBuilder.append("\n"); 
-    
+
     addProbablyBan(teamPlayersData, messageBuilder);
-    
+
     messageBuilder.append(String.format(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentBottomTextFullTeam"), summonerCache.sumCache_server.getName().toUpperCase()) + "\n");
     messageBuilder.append(String.format(LanguageManager.getText(server.getLanguage(), BOTTOM_MESSAGE_ID)));
-    
+
     MessageManagerUtil.editOrCreateTheseMessages(clashMessageManager.getInfoMessagesId(), clashChannel, messageBuilder.toString());
+
+    refreshInfoGameCard(clashMessageManager);
+  }
+
+  /**
+   * Refresh info game card inside the clash channel. Return true if the current game card has been deleted.
+   * @return Return true if the current game card has been deleted.
+   */
+  private boolean refreshInfoGameCard(ClashChannelData clashMessageManager) {
+
+    CurrentGameInfo currentGameInfo;
+    try {
+      currentGameInfo = Zoe.getRiotApi().getActiveGameBySummonerWithRateLimit(clashChannelDB.clashChannel_data.getSelectedPlatform(),
+          clashChannelDB.clashChannel_data.getSelectedSummonerId());
+    } catch (RiotApiException e) {
+      logger.warn("Error while getting active game by summoner");
+      return false;
+    }
+    
+    if(currentGameInfo == null && clashMessageManager.getGameCardId() != null) {
+      Message message = clashChannel.retrieveMessageById(clashMessageManager.getGameCardId()).complete();
+      message.delete().queue();
+      clashMessageManager.setGameCardId(null);
+      clashMessageManager.setGameId(null);
+      return true;
+    }
+    
+    if(currentGameInfo == null) {
+      return false;
+    }
+    
+    if(clashMessageManager.getGameId() != null) {
+      if(!clashMessageManager.getGameId().equals(currentGameInfo.getGameId())) {
+        Message message = clashChannel.retrieveMessageById(clashMessageManager.getGameCardId()).complete();
+        message.delete().queue();
+        clashMessageManager.setGameCardId(null);
+        clashMessageManager.setGameId(null);
+        return true;
+      }else {
+        return false;
+      }
+    }
+
+    MessageEmbed messageCard;
+    try {
+      messageCard =
+          MessageBuilderRequest.createInfoCard(new ArrayList<>(), currentGameInfo,
+              clashChannelDB.clashChannel_data.getSelectedPlatform(), server);
+    } catch (SQLException e) {
+      logger.warn("Error with sql request. Should not happens since there's no sql request");
+      return false;
+    }
+    
+    Message message = clashChannel.sendMessage(messageCard).complete();
+    
+    clashMessageManager.setGameCardId(message.getIdLong());
+    clashMessageManager.setGameId(currentGameInfo.getGameId());
+    
+    return false;
   }
 
   private void addProbablyBan(List<TeamPlayerAnalysisDataCollector> teamPlayersData, StringBuilder messageBuilder) {
@@ -323,7 +393,7 @@ public class TreatClashChannel implements Runnable {
         messageBuilder.append(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentUpcoming") + "\n");
 
         String tournamentBasicName = LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentBasicName");
-        
+
         for(ClashTournament clashTournament : nextTournaments) {
           List<ClashTournamentPhase> phases = clashTournament.getSchedule();
 

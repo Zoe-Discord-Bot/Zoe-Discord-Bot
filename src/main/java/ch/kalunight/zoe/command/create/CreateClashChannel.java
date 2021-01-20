@@ -272,7 +272,7 @@ public class CreateClashChannel extends ZoeCommand {
         Message loadingMessage = clashChannel.sendMessage(LanguageManager.getText(server.getLanguage(), "clashChannelLoadingMessage")).complete();
         messageIds.add(loadingMessage.getIdLong());
 
-        ClashChannelData data = new ClashChannelData(messageIds, new ArrayList<>(), null, creationData.platform, creationData.summoner.getId(), ClashStatus.WAIT_FOR_GAME_START);
+        ClashChannelData data = new ClashChannelData(messageIds, new ArrayList<>(), null, creationData.platform, creationData.summoner.getId(), ClashStatus.WAIT_FOR_TEAM_REGISTRATION);
 
         long clashChannelDbId = ClashChannelRepository.createClashChannel(server, clashChannel.getIdLong(), selectedTimeZone, data);
 

@@ -15,14 +15,14 @@ public class ClashChannelData {
   private String selectedSummonerId;
   private ClashStatus clashStatus;
 
-  public ClashChannelData(List<Long> infoMessagesId, List<Long> teamsSpecificInfo, Long gameCardId, Platform selectedPlatform, String selectedSummonerId, ClashStatus clashStatus, Long gameId) {
+  public ClashChannelData(List<Long> infoMessagesId, List<Long> teamsSpecificInfo, Long gameCardId, Platform selectedPlatform, String selectedSummonerId, ClashStatus clashStatus) {
     this.infoMessagesId = infoMessagesId;
     this.enemyTeamMessages = teamsSpecificInfo;
     this.gameCardId = gameCardId;
     this.selectedPlatform = selectedPlatform;
     this.selectedSummonerId = selectedSummonerId;
     this.clashStatus = clashStatus;
-    this.gameId = gameId;
+    this.gameId = null;
   }
 
   public List<Long> getAllClashChannel() {

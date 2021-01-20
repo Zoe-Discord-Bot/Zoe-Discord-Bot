@@ -7,6 +7,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -16,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.ComparableMessage;
 import ch.kalunight.zoe.model.clash.ClashTeamRegistration;
+import ch.kalunight.zoe.model.clash.ClashTournamentComparator;
 import ch.kalunight.zoe.model.clash.TeamPlayerAnalysisDataCollector;
 import ch.kalunight.zoe.model.dangerosityreport.PickData;
 import ch.kalunight.zoe.model.dto.ClashChannelData;
@@ -58,6 +60,8 @@ public class TreatClashChannel implements Runnable {
 
   private static final Logger logger = LoggerFactory.getLogger(TreatClashChannel.class);
 
+  private static final Comparator<ClashTournament> clashTournamentComparator = new ClashTournamentComparator();
+  
   private DTO.Server server;
 
   private DTO.ClashChannel clashChannelDB;
@@ -394,6 +398,8 @@ public class TreatClashChannel implements Runnable {
 
         String tournamentBasicName = LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentBasicName");
 
+        nextTournaments.sort(clashTournamentComparator);
+        
         for(ClashTournament clashTournament : nextTournaments) {
           List<ClashTournamentPhase> phases = clashTournament.getSchedule();
 

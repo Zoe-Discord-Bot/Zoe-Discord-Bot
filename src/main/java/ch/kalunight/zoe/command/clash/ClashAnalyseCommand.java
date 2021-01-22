@@ -26,7 +26,7 @@ import net.rithms.riot.constant.Platform;
 
 public class ClashAnalyseCommand extends ZoeCommand {
   
-  public static final String USAGE_NAME = "analyse";
+  public static final String USAGE_NAME = "analysis";
   
   public ClashAnalyseCommand() {
     this.name = USAGE_NAME;

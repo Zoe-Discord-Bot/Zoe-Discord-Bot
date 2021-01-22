@@ -34,6 +34,7 @@ import ch.kalunight.zoe.model.dto.DTO.ChampionRoleAnalysis;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.model.static_data.Champion;
+import ch.kalunight.zoe.model.static_data.CustomEmote;
 import ch.kalunight.zoe.model.team.AccountDataWithRole;
 import ch.kalunight.zoe.repositories.ChampionRoleAnalysisRepository;
 import ch.kalunight.zoe.service.analysis.ChampionRole;
@@ -133,7 +134,15 @@ public class TeamUtil {
       FullTier rank = playerToShow.getHeighestRank();
 
       if(rank != null) {
-        elo = playerToShow.getHeighestRankType(server.getLanguage()) + " : " + rank.toString(server.getLanguage());
+        String usableEmoteRank = "";
+        
+        if(rank != null) {
+          CustomEmote emoteRank = Ressources.getTierEmote().get(rank.getTier());
+          if(emoteRank != null && emoteRank.getEmote() != null) {
+            usableEmoteRank = emoteRank.getEmote().getAsMention() + " ";
+          }
+        }
+        elo = playerToShow.getHeighestRankType(server.getLanguage()) + " : " + usableEmoteRank + rank.toString(server.getLanguage());
       }
 
       messageBuilder.append("**" + String.format(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentPlayerData"), translationRole,

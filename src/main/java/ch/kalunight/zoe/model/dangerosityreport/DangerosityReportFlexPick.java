@@ -33,7 +33,7 @@ public class DangerosityReportFlexPick extends DangerosityReport implements Comp
   }
 
   @Override
-  public String getInfoToShow(String lang) {
+  protected String getInfoToShow(String lang) {
     StringBuilder builder = new StringBuilder();
     
     int treated = 0;

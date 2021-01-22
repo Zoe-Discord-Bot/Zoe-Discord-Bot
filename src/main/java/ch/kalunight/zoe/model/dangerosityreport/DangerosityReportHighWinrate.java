@@ -28,7 +28,7 @@ public class DangerosityReportHighWinrate extends DangerosityReport {
 
   private static final double BAD_WINRATE_HIGH_WINRATE_NEEDED = 30d;
 
-  private static final int HIGH_WINRATE_MINIMAL_NUMBER_OF_GAME_NEEDED = 20;
+  private static final int HIGH_WINRATE_MINIMAL_NUMBER_OF_GAME_NEEDED = 15;
 
   private double winrate;
 
@@ -41,7 +41,7 @@ public class DangerosityReportHighWinrate extends DangerosityReport {
   }
 
   @Override
-  public String getInfoToShow(String lang) {
+  protected String getInfoToShow(String lang) {
     if(getReportValue() > BASE_SCORE) {
       return String.format(LanguageManager.getText(lang, "dangerosityReportHighWinrateInfo"), POURCENTAGE_FORMAT.format(winrate) + "%"); 
     }else {

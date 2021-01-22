@@ -26,7 +26,7 @@ public class DangerosityReportHighMastery extends DangerosityReport {
   }
 
   @Override
-  public String getInfoToShow(String lang) {
+  protected String getInfoToShow(String lang) {
     return String.format(LanguageManager.getText(lang, "dangerosityReportHighMasteryInfo"), LanguageUtil.convertMasteryToReadableText(mastery));
   }
 

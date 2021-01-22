@@ -2,7 +2,9 @@ package ch.kalunight.zoe.model.dangerosityreport;
 
 import ch.kalunight.zoe.exception.NoValueRankException;
 import ch.kalunight.zoe.model.player_data.FullTier;
+import ch.kalunight.zoe.model.static_data.CustomEmote;
 import ch.kalunight.zoe.translation.LanguageManager;
+import ch.kalunight.zoe.util.Ressources;
 
 public class DangerosityReportHighEloDiff extends DangerosityReport {
 
@@ -42,10 +44,20 @@ public class DangerosityReportHighEloDiff extends DangerosityReport {
 
   @Override
   public String getInfoToShow(String lang) {
+    
+    String usableEmoteRank = "";
+    
+    if(player != null && player.getTier() != null) {
+      CustomEmote emoteRank = Ressources.getTierEmote().get(player.getTier());
+      if(emoteRank != null && emoteRank.getEmote() != null) {
+        usableEmoteRank = emoteRank.getEmote().getAsMention() + " ";
+      }
+    }
+    
     if(getReportValue() > BASE_SCORE) {
-      return String.format(LanguageManager.getText(lang, "dangerosityReportHighEloDiffInfo"), player.toStringWithoutLp(lang));
+      return String.format(LanguageManager.getText(lang, "dangerosityReportHighEloDiffInfo"), usableEmoteRank + player.toStringWithoutLp(lang));
     }else {
-      return String.format(LanguageManager.getText(lang, "dangerosityReportLowEloDiffInfo"), player.toStringWithoutLp(lang));
+      return String.format(LanguageManager.getText(lang, "dangerosityReportLowEloDiffInfo"), usableEmoteRank + player.toStringWithoutLp(lang));
     }
   }
 

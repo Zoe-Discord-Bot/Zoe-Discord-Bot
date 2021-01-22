@@ -21,7 +21,7 @@ public class DangerosityReportOTP extends DangerosityReport {
   }
 
   @Override
-  public String getInfoToShow(String lang) {
+  protected String getInfoToShow(String lang) {
     return String.format(LanguageManager.getText(lang, "dangerosityReportOTPInfo"), POURCENTAGE_FORMAT.format(playRatio) + "%");
   }
 

@@ -139,7 +139,7 @@ public class TeamBanAnalysisWorker implements Runnable {
               messageBuilder.append(" (");
             }
 
-            messageBuilder.append(report.getInfoToShow(server.getLanguage()));
+            messageBuilder.append(report.getInfoToShowFormatted(server.getLanguage()));
             firstReportSend = true;
           }
 
@@ -185,7 +185,7 @@ public class TeamBanAnalysisWorker implements Runnable {
           messageBuilder.append(" (");
         }
 
-        messageBuilder.append(report.getInfoToShow(server.getLanguage()));
+        messageBuilder.append(report.getInfoToShowFormatted(server.getLanguage()));
 
         firstReportSend = true;
       }

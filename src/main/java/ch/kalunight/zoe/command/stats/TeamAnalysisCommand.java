@@ -12,6 +12,7 @@ import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.team.TeamSelectorAnalysisDataManager;
 import ch.kalunight.zoe.model.team.TeamSelectorDataHandler;
+import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
 
@@ -39,6 +40,8 @@ public class TeamAnalysisCommand extends ZoeCommand {
     
     TeamSelectorDataHandler teamDataHandler = new TeamSelectorDataHandler(waiter, server, event, new TeamSelectorAnalysisDataManager(event, server), ServerThreadsManager.getClashChannelExecutor());
 
+    event.reply(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisStart"));
+    
     teamDataHandler.askSelectionAccount();
   }
 

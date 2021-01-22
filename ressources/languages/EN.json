@@ -482,9 +482,11 @@
 	"unselected" : "Unselected",
 	"clashChannelClashTournamentShowTeamMemberByPosition" : "%s : %s",
 	"statsPredictRoleHelpMessage": "Predict the role of 5 given accounts if they play together. This will open the players selection tool.",
+	"statsPredictRoleAnalysisStart" : "Okay, let's start the prediction! For that, i need 5 accounts."
 	"statsPredictRoleTitleDeterminedRole" : "Here's how i would put the team :",
 	"disclaimerAnalysis" : "Keep in mind that this analysis is not necessarily reliable",
 	"dangerosityReportHighWinrateInfo" : "High Winrate : %s",
+	"dangerosityReportBadWinrateInfo" : "Low Winrate : %s",
 	"dangerosityReportPlayRate" : "Games Played : %d",
 	"dangerosityReportHighMasteryInfo" : "High Masteries : %s",
 	"dangerosityReportHighKDAInfo" : "High KDA : %s",
@@ -527,6 +529,7 @@
 	"statsTeamAnalysisSelectionTimeOut": "You took too long to choose an account. I cancel the process.",
 	"statsTeamAnalysisCancelMessage" : "If you want to cancel the process send : ``Stop``",
 	"statsTeamAnalysisAlreadySelectedAccount" : "This account has been already selected, please select another one.",
+	"statsTeamAnalysisStart" : "Okay, let's start a team analysis! For that, i need 5 accounts."
 	"loadingSummoner" : "*Loading summoner ...*",
 	"loadingData" : "*Loading data ...*",
 	"deleteClashChannelCommandHelpMessage": "Command to delete an existing Clash Channel. Manage Channel permission needed.",

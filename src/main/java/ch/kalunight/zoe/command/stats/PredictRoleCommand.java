@@ -12,6 +12,7 @@ import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.team.TeamSelectorDataHandler;
 import ch.kalunight.zoe.model.team.TeamSelectorPredictRoleDataManager;
+import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 
 public class PredictRoleCommand extends ZoeCommand {
@@ -35,6 +36,8 @@ public class PredictRoleCommand extends ZoeCommand {
     
     TeamSelectorDataHandler teamDataHandler = new TeamSelectorDataHandler(waiter, server, event, new TeamSelectorPredictRoleDataManager(event, server), ServerThreadsManager.getClashChannelExecutor());
 
+    event.reply(LanguageManager.getText(server.getLanguage(), "statsPredictRoleAnalysisStart"));
+    
     teamDataHandler.askSelectionAccount();
   }
 

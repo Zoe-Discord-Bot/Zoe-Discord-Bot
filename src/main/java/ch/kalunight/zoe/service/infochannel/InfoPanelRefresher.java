@@ -19,8 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.jagrosh.jdautilities.command.CommandEvent;
-
-import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.exception.NoValueRankException;
 import ch.kalunight.zoe.model.ComparableMessage;
@@ -76,9 +75,12 @@ public class InfoPanelRefresher implements Runnable {
   private RankHistoryChannel rankChannel;
 
   private Guild guild;
+  
+  private boolean forceRefreshCache;
 
-  public InfoPanelRefresher(DTO.Server server) {
+  public InfoPanelRefresher(DTO.Server server, boolean forceRefreshCache) {
     this.server = server;
+    this.forceRefreshCache = forceRefreshCache; 
     guild = Zoe.getJda().getGuildById(server.serv_guildId);
   }
 
@@ -120,14 +122,14 @@ public class InfoPanelRefresher implements Runnable {
         for(Player player : playersDTO) {
           List<LeagueAccount> leaguesAccounts = LeagueAccountRepository.getLeaguesAccountsWithPlayerID(server.serv_guildId, player.player_id);
 
-          TreatPlayerWorker playerWorker = new TreatPlayerWorker(server, player, leaguesAccounts, rankChannel, configuration);
+          TreatPlayerWorker playerWorker = new TreatPlayerWorker(server, player, leaguesAccounts, rankChannel, configuration, forceRefreshCache);
 
           playersToTreat.add(playerWorker);
           if(!leaguesAccounts.isEmpty()) {
-            ServerData.getInfochannelHelperThread(leaguesAccounts.get(0).leagueAccount_server).execute(playerWorker);
+            ServerThreadsManager.getInfochannelHelperThread(leaguesAccounts.get(0).leagueAccount_server).execute(playerWorker);
           }else {
             // When there's no accounts, we go in a not really used threadpool
-            ServerData.getInfochannelHelperThread(Platform.OCE).execute(playerWorker);
+            ServerThreadsManager.getInfochannelHelperThread(Platform.OCE).execute(playerWorker);
           }
         }
 
@@ -190,7 +192,7 @@ public class InfoPanelRefresher implements Runnable {
     for(TreatPlayerWorker playerWorker : playersToTreat) {
       if(playerWorker.getTreatedPlayer() != null) {
         for(RankedChannelLoLRefresher rankChannelRefresher : playerWorker.getTreatedPlayer().getRankChannelsToProcess()) {
-          ServerData.getRankedMessageGenerator().execute(rankChannelRefresher);
+          ServerThreadsManager.getRankedMessageGenerator().execute(rankChannelRefresher);
         }
       }
     }
@@ -340,7 +342,7 @@ public class InfoPanelRefresher implements Runnable {
     List<DTO.GameInfoCard> gameInfoCards = GameInfoCardRepository.getGameInfoCards(server.serv_guildId);
 
     for(DTO.GameInfoCard gameInfoCard : gameInfoCards) {
-      switch(gameInfoCard.gamecard_status) {
+      switch(gameInfoCard.getGamecardStatus()) {
       case IN_CREATION:
         GameInfoCardRepository.updateGameInfoCardStatusWithId(gameInfoCard.gamecard_id, GameInfoCardStatus.IN_TREATMENT);
 
@@ -351,8 +353,8 @@ public class InfoPanelRefresher implements Runnable {
 
         DTO.CurrentGameInfo currentGame = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(account.leagueAccount_id);
 
-        ServerData.getInfocardsGenerator().execute(
-            new InfoCardsWorker(server, infochannel, accountsLinked.get(0), currentGame, gameInfoCard));
+        ServerThreadsManager.getInfocardsGenerator().execute(
+            new InfoCardsWorker(server, infochannel, accountsLinked.get(0), currentGame, gameInfoCard, forceRefreshCache));
         break;
       case IN_WAIT_OF_DELETING:
         GameInfoCardRepository.deleteGameInfoCardsWithId(gameInfoCard.gamecard_id);
@@ -388,7 +390,7 @@ public class InfoPanelRefresher implements Runnable {
     } else {
       int nbrMessageToAdd = infoPanels.size() - infoPanelMessages.size();
       for(int i = 0; i < nbrMessageToAdd; i++) {
-        Message message = infochannel.sendMessage(LanguageManager.getText(server.serv_language, "loading")).complete();
+        Message message = infochannel.sendMessage(LanguageManager.getText(server.getLanguage(), "loading")).complete();
         InfoChannelRepository.createInfoPanelMessage(infoChannelDTO.infoChannel_id, message.getIdLong());
       }
     }
@@ -459,7 +461,7 @@ public class InfoPanelRefresher implements Runnable {
       }
 
       for(int i = 0; i < messageNeeded; i++) {
-        Message message = infochannel.sendMessage("**" + LanguageManager.getText(server.serv_language, "infopanelMessageReSendMessage") + "**").complete();
+        Message message = infochannel.sendMessage("**" + LanguageManager.getText(server.getLanguage(), "infopanelMessageReSendMessage") + "**").complete();
         try {
           InfoChannelRepository.createInfoPanelMessage(infochannelDTO.infoChannel_id, message.getIdLong());
         } catch (SQLException e) {
@@ -517,11 +519,11 @@ public class InfoPanelRefresher implements Runnable {
     List<DTO.GameInfoCard> gameInfoCards = GameInfoCardRepository.getGameInfoCards(server.serv_guildId);
 
     for(DTO.GameInfoCard gameInfoCard : gameInfoCards) {
-      if(gameInfoCard.gamecard_status == GameInfoCardStatus.IN_WAIT_OF_MATCH_ENDING) {
+      if(gameInfoCard.getGamecardStatus() == GameInfoCardStatus.IN_WAIT_OF_MATCH_ENDING) {
         if(gameInfoCard.gamecard_fk_currentgame == 0) {
           GameInfoCardRepository.updateGameInfoCardStatusWithId(
               gameInfoCard.gamecard_id, GameInfoCardStatus.IN_WAIT_OF_DELETING);
-          gameInfoCard.gamecard_status = GameInfoCardStatus.IN_WAIT_OF_DELETING;
+          gameInfoCard.setGameCardStatus(GameInfoCardStatus.IN_WAIT_OF_DELETING);
         }
       }
     }
@@ -700,7 +702,7 @@ public class InfoPanelRefresher implements Runnable {
     final List<DTO.Team> teamList = TeamRepository.getTeamsByGuild(server.serv_guildId);
     final StringBuilder stringMessage = new StringBuilder();
 
-    stringMessage.append("__**" + LanguageManager.getText(server.serv_language, "informationPanelTitle") + "**__\n \n");
+    stringMessage.append("__**" + LanguageManager.getText(server.getLanguage(), "informationPanelTitle") + "**__\n \n");
 
     List<TreatedPlayer> playersNotInTeam = new ArrayList<>();
     playersNotInTeam.addAll(treatedPlayers);
@@ -718,17 +720,17 @@ public class InfoPanelRefresher implements Runnable {
         stringMessage.append("\n");
       }else {
         generateATeam(playersNotInTeam, stringMessage, null, 
-            new DTO.Team(0, 0, LanguageManager.getText(server.serv_language, "teamNameOfPlayerWithoutTeam")), configuration);
+            new DTO.Team(0, 0, LanguageManager.getText(server.getLanguage(), "teamNameOfPlayerWithoutTeam")), configuration);
       }
     }
 
     if(ServerChecker.getLastStatus().getRefreshPhase().equals(RefreshPhase.SMART_MOD)) {
-      stringMessage.append(LanguageManager.getText(server.serv_language, "informationPanelSmartModEnable"));
+      stringMessage.append(LanguageManager.getText(server.getLanguage(), "informationPanelSmartModEnable"));
     } else if (ServerChecker.getLastStatus().getRefreshPhase().equals(RefreshPhase.IN_EVALUATION_PHASE) 
         || ServerChecker.getLastStatus().getRefreshPhase().equals(RefreshPhase.IN_EVALUATION_PHASE_ON_ROAD) ) {
-      stringMessage.append(LanguageManager.getText(server.serv_language, "informationPanelEvaluationMod"));
+      stringMessage.append(LanguageManager.getText(server.getLanguage(), "informationPanelEvaluationMod"));
     }else {
-      stringMessage.append(String.format(LanguageManager.getText(server.serv_language, "informationPanelRefreshedTime"), ServerChecker.getLastStatus().getRefresRatehInMinute().get()));
+      stringMessage.append(String.format(LanguageManager.getText(server.getLanguage(), "informationPanelRefreshedTime"), ServerChecker.getLastStatus().getRefresRatehInMinute().get()));
     }
 
     return stringMessage.toString();
@@ -760,8 +762,8 @@ public class InfoPanelRefresher implements Runnable {
       stringMessage.append("**" + team.team_name + "**\n \n");
     }else {
       FullTier fulltier = new FullTier(totRankValue / numberOfAccountRanked);
-      stringMessage.append("**" + team.team_name + "** (" + LanguageManager.getText(server.serv_language, "rankedAvg") + " : " 
-          + fulltier.toStringWithoutLp(server.serv_language) + ")\n \n");
+      stringMessage.append("**" + team.team_name + "** (" + LanguageManager.getText(server.getLanguage(), "rankedAvg") + " : " 
+          + fulltier.toStringWithoutLp(server.getLanguage()) + ")\n \n");
     }
 
 

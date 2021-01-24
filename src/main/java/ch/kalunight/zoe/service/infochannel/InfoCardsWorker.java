@@ -36,27 +36,24 @@ public class InfoCardsWorker implements Runnable {
   private DTO.CurrentGameInfo currentGameInfo;
   
   private DTO.GameInfoCard gameInfoCard;
+  
+  private boolean forceRefreshCache;
 
   public InfoCardsWorker(DTO.Server server, TextChannel controlPanel, DTO.LeagueAccount account, DTO.CurrentGameInfo currentGameInfo,
-      DTO.GameInfoCard gameInfoCard) {
+      DTO.GameInfoCard gameInfoCard, boolean forceRefreshCache) {
     this.server = server;
     this.controlPanel = controlPanel;
     this.account = account;
     this.currentGameInfo = currentGameInfo;
     this.gameInfoCard = gameInfoCard;
+    this.forceRefreshCache = forceRefreshCache;
   }
 
   @Override
   public void run() {
     try {
       if(controlPanel.canTalk()) {
-        if(account.summoner == null) {
-          account.summoner = Zoe.getRiotApi()
-              .getSummonerWithRateLimit(account.leagueAccount_server, account.leagueAccount_summonerId);
-        }
-        
-        logger.info("Start generate infocards for the account " + account.summoner.getName() 
-        + " (" + account.leagueAccount_server.getName() + ")");
+        logger.info("Start generate infocards for the account {} ({})", account.getSummoner(forceRefreshCache).getName(),  account.leagueAccount_server.getName());
 
         Stopwatch stopWatch = Stopwatch.createStarted();
         generateInfoCard(account, currentGameInfo);
@@ -105,7 +102,7 @@ public class InfoCardsWorker implements Runnable {
       List<DTO.Player> players = card.getPlayers();
 
       StringBuilder title = new StringBuilder();
-      MessageBuilderRequestUtil.createTitle(players, currentGameInfo.currentgame_currentgame, title, server.serv_language, false);
+      MessageBuilderRequestUtil.createTitle(players, currentGameInfo.currentgame_currentgame, title, server.getLanguage(), false);
 
       DTO.InfoChannel infochannel = InfoChannelRepository.getInfoChannel(server.serv_guildId);
       TextChannel infoChannel = Zoe.getJda().getGuildById(server.serv_guildId).getTextChannelById(infochannel.infochannel_channelid);

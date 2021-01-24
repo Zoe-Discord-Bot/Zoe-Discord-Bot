@@ -24,13 +24,13 @@ public class SpecificChampionObjectiveDataHandler extends LeaderboardExtraDataHa
   private static final String LEADERBOARD_CHAMPION_SELECTED_THEN_SEND_CHANNEL = "leaderboardChampionSelectedThenSendChannel";
   private static final String LEADERBOARD_BAD_CHAMPION_NUMBER_SELECTION = "leaderboardBadChampionNumberSelection";
 
-  public SpecificChampionObjectiveDataHandler(Objective objective, EventWaiter waiter, CommandEvent event, Server server) {
-    super(objective, waiter, event, server);
+  public SpecificChampionObjectiveDataHandler(Objective objective, EventWaiter waiter, CommandEvent event, Server server, boolean forceRefreshCache) {
+    super(objective, waiter, event, server, forceRefreshCache);
   }
 
   @Override
   public void handleSecondCreationPart() {
-    event.reply(LanguageManager.getText(server.serv_language, "leaderboardDataNeededSpecificChamp"));
+    event.reply(LanguageManager.getText(server.getLanguage(), "leaderboardDataNeededSpecificChamp"));
     
     List<String> championsName = new ArrayList<>();
     for(Champion champion : Ressources.getChampions()) {
@@ -55,8 +55,8 @@ public class SpecificChampionObjectiveDataHandler extends LeaderboardExtraDataHa
         .setEventWaiter(waiter)
         .setUsers(event.getAuthor())
         .setColor(Color.GREEN)
-        .setText(PaginatorUtil.getPaginationTranslatedPage(server.serv_language))
-        .setText(LanguageManager.getText(server.serv_language, "paginationChampionSelection"))
+        .setText(PaginatorUtil.getPaginationTranslatedPage(server.getLanguage()))
+        .setText(LanguageManager.getText(server.getLanguage(), "paginationChampionSelection"))
         .setTimeout(1, TimeUnit.MINUTES);
     
     for(String championName : championsName) {
@@ -79,7 +79,7 @@ public class SpecificChampionObjectiveDataHandler extends LeaderboardExtraDataHa
   }
 
   private void cancelSelectionOfAChampion(TextChannel textChannel, Server server) {
-    textChannel.sendMessage(LanguageManager.getText(server.serv_language, "createLeaderboardCancelMessage")).queue();
+    textChannel.sendMessage(LanguageManager.getText(server.getLanguage(), "createLeaderboardCancelMessage")).queue();
   }
 
   private void threatChampionSelection(MessageReceivedEvent message, Server server, Objective objective,
@@ -92,12 +92,12 @@ public class SpecificChampionObjectiveDataHandler extends LeaderboardExtraDataHa
     
     try {
       int championNumber = Integer.parseInt(message.getMessage().getContentRaw());
-      if(championNumber > 1 || championNumber < championsNameOrdered.size()) {
+      if(championNumber >= 1 && championNumber < championsNameOrdered.size()) {
         String championNameSelected = championsNameOrdered.get(championNumber - 1);
         
         selectChampionWithName(message, server, objective, championsNameOrdered, championNameSelected);
       }else {
-        message.getTextChannel().sendMessage(LanguageManager.getText(server.serv_language,
+        message.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(),
             LEADERBOARD_BAD_CHAMPION_NUMBER_SELECTION)).queue();
         waitForAChampionSelection(server, objective, championsNameOrdered);
       }
@@ -116,11 +116,11 @@ public class SpecificChampionObjectiveDataHandler extends LeaderboardExtraDataHa
     }
     
     if(selectedChampion == null) {
-      message.getTextChannel().sendMessage(LanguageManager.getText(server.serv_language,
+      message.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(),
           LEADERBOARD_BAD_CHAMPION_NUMBER_SELECTION)).queue();
       waitForAChampionSelection(server, objective, championsNameOrdered);
     }else {
-      message.getTextChannel().sendMessage(String.format(LanguageManager.getText(server.serv_language,
+      message.getTextChannel().sendMessage(String.format(LanguageManager.getText(server.getLanguage(),
           LEADERBOARD_CHAMPION_SELECTED_THEN_SEND_CHANNEL), selectedChampion.getName())).queue();
       SpecificChamp dataObject = new SpecificChamp(selectedChampion);
       String dataStringJson = gson.toJson(dataObject);

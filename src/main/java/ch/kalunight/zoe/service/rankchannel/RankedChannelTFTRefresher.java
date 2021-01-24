@@ -9,6 +9,7 @@ import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.util.request.MessageBuilderRequest;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 import net.rithms.riot.api.endpoints.tft_match.dto.TFTMatch;
 
@@ -37,8 +38,8 @@ public class RankedChannelTFTRefresher extends RankedChannelBaseRefresher {
     MessageEmbed message;
     try {
       message = MessageBuilderRequest.createRankChannelCardLeaguePointChangeOnlyTFT
-      (oldEntry, newEntry, match, player, leagueAccount, server.serv_language);
-    } catch (NoValueRankException e) {
+      (oldEntry, newEntry, match, player, leagueAccount, server.getLanguage());
+    } catch (NoValueRankException | RiotApiException e) {
       logger.warn("Error while generating a TFT rank message!", e);
       return;
     }

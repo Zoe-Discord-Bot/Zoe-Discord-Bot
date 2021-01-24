@@ -21,19 +21,25 @@ import ch.kalunight.zoe.repositories.ServerStatusRepository;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.rithms.riot.constant.Platform;
 
-public class ServerData {
+public class ServerThreadsManager {
 
-  private static final Logger logger = LoggerFactory.getLogger(ServerData.class);
+  private static final Logger logger = LoggerFactory.getLogger(ServerThreadsManager.class);
 
   private static final List<DTO.Server> serversAskedTreatment = Collections.synchronizedList(new ArrayList<DTO.Server>()); 
 
   private static final ConcurrentHashMap<String, Boolean> serversIsInTreatment = new ConcurrentHashMap<>();
 
-  private static final Timer serverCheckerThreadTimer = new Timer("Zoe ServerChecker-Timer-Executor");
+  private static final Timer serverCheckerThreadTimer = new Timer("ServerChecker-Timer-Executor");
+    
+  private static final Timer DISCORD_DETECTION_DELAYED_TASK = new Timer("Zoe Discord-Status-Delayed-Refresh-Timer");
   
   public static final int NBR_PROC = Runtime.getRuntime().availableProcessors();
 
-  private static final Timer DISCORD_DETECTION_DELAYED_TASK = new Timer("Zoe Discord-Status-Delayed-Refresh-Timer");
+  private static final ThreadPoolExecutor DATA_ANALYSIS_MANAGER =
+      new ThreadPoolExecutor(1, 1, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
+  
+  private static final ThreadPoolExecutor DATA_ANALYSIS_THREAD =
+      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
   
   private static final ThreadPoolExecutor MONITORING_DATA_EXECUTOR =
       new ThreadPoolExecutor(1, 1, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
@@ -59,6 +65,9 @@ public class ServerData {
   private static final ThreadPoolExecutor LEADERBOARD_EXECUTOR =
       new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
   
+  private static final ThreadPoolExecutor CLASH_CHANNEL_EXECUTOR =
+      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
+  
   private static final ThreadPoolExecutor COMMANDS_EXECUTOR =
       new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
 
@@ -69,32 +78,35 @@ public class ServerData {
   
   private static boolean rebootAsked = false;
 
-  private ServerData() {
+  private ServerThreadsManager() {
     // Hide public default constructor
   }
 
   static {
     logger.info("ThreadPools has been started with {} threads", NBR_PROC);
+    DATA_ANALYSIS_MANAGER.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Analysis-Thread Manager").build());
+    DATA_ANALYSIS_THREAD.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Analysis-Thread %d").build());
     SERVER_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Server-Executor-Thread %d").build());
     INFOCARDS_GENERATOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe InfoCards-Generator-Thread %d").build());
     RANKED_MESSAGE_GENERATOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Ranked-Message-Generator-Thread %d").build());
     RESPONSE_WAITER.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Response-Waiter-Thread %d").build());
     LEADERBOARD_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Leaderboard-Refresher-Thread %d").build());
+    CLASH_CHANNEL_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Clash-Channel-Executor-Thread %d").build());
     COMMANDS_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Command-Executor-Thread %d").build());
     MONITORING_DATA_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Data-Monitoring-Thread %d").build());
     
     for(Platform platform : Platform.values()) {
-      ThreadPoolExecutor executor = new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+      ThreadPoolExecutor executor = new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
       String nameOfThread = String.format("Zoe Infochannel-Helper-%s-Worker", platform.getName().toUpperCase());
       executor.setThreadFactory(new ThreadFactoryBuilder().setNameFormat(nameOfThread + " %d").build());
       INFOCHANNEL_HELPER_THREAD.put(platform, executor);
       
-      executor = new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+      executor = new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
       nameOfThread = String.format("Zoe Match-%s-Worker", platform.getName().toUpperCase());
       executor.setThreadFactory(new ThreadFactoryBuilder().setNameFormat(nameOfThread + " %d").build());
       MATCH_THREAD_EXECUTORS.put(platform, executor);
       
-      executor = new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+      executor = new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
       nameOfThread = String.format("Zoe Player-Data-%s-Worker", platform.getName().toUpperCase());
       executor.setThreadFactory(new ThreadFactoryBuilder().setNameFormat(nameOfThread + " %d").build());
       PLAYERS_DATA_EXECUTORS.put(platform, executor);
@@ -147,6 +159,23 @@ public class ServerData {
   }
 
   public static void shutDownTaskExecutor(TextChannel channel) throws InterruptedException {
+    
+    logger.info("Start to shutdown Data Analysis Thread, this can take 1 minutes max...");
+    channel.sendMessage("Start to shutdown Data Analysis Thread, this can take 1 minutes max...").complete();
+    DATA_ANALYSIS_THREAD.shutdown();
+    DATA_ANALYSIS_MANAGER.shutdown();
+
+    DATA_ANALYSIS_THREAD.awaitTermination(1, TimeUnit.MINUTES);
+    if(!DATA_ANALYSIS_THREAD.isTerminated()) {
+      DATA_ANALYSIS_THREAD.shutdownNow();
+    }
+    
+    if(!DATA_ANALYSIS_MANAGER.isTerminated()) {
+      DATA_ANALYSIS_MANAGER.shutdown();
+    }
+    
+    logger.info("Shutdown of Data Analysis Thread has been completed !");
+    channel.sendMessage("Shutdown of Data Analysis Thread has been completed !").complete();
 
     logger.info("Start to shutdown Data Monitoring Executor, this can take 1 minutes max...");
     channel.sendMessage("Start to shutdown Data Monitoring Executor, this can take 1 minutes max...").complete();
@@ -169,7 +198,7 @@ public class ServerData {
     }
     logger.info("Shutdown of Response Waiter has been completed !");
     channel.sendMessage("Shutdown of Response Waiter has been completed !").complete();
-    
+
     logger.info("Start to shutdown Servers Executor, this can take 1 minutes max...");
     channel.sendMessage("Start to shutdown Servers Executor, this can take 1 minutes max...").complete();
     SERVER_EXECUTOR.shutdown();
@@ -299,6 +328,14 @@ public class ServerData {
     return queueTotal;
   }
 
+  public static ThreadPoolExecutor getDataAnalysisManager() {
+    return DATA_ANALYSIS_MANAGER;
+  }
+
+  public static ThreadPoolExecutor getDataAnalysisThread() {
+    return DATA_ANALYSIS_THREAD;
+  }
+
   public static ConcurrentMap<String, Boolean> getServersIsInTreatment() {
     return serversIsInTreatment;
   }
@@ -355,11 +392,17 @@ public class ServerData {
     return DISCORD_DETECTION_DELAYED_TASK;
   }
 
+  public static ThreadPoolExecutor getClashChannelExecutor() {
+    return CLASH_CHANNEL_EXECUTOR;
+  }
+
   public static boolean isRebootAsked() {
     return rebootAsked;
   }
 
   public static void setRebootAsked(boolean rebootAsked) {
-    ServerData.rebootAsked = rebootAsked;
+    ServerThreadsManager.rebootAsked = rebootAsked;
   }
+ 
+
 }

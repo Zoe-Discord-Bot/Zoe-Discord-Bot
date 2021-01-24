@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -13,13 +14,14 @@ import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.GameAccessDataServerSpecific;
 import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.config.option.RankChannelFilterOption.RankChannelFilter;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.model.dto.DTO.LastRank;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Player;
@@ -78,6 +80,8 @@ public class TreatPlayerWorker implements Runnable {
   private List<RankedChannelLoLRefresher> rankChannelsToProcess = Collections.synchronizedList(new ArrayList<>());
 
   private TreatedPlayer treatedPlayer = null;
+  
+  private boolean forceRefreshCache;
 
   private class LastRankQueue {
     public LeagueEntry leagueEntry;
@@ -94,13 +98,14 @@ public class TreatPlayerWorker implements Runnable {
   }
 
   public TreatPlayerWorker(Server server, Player player, List<LeagueAccount> leaguesAccounts,
-      RankHistoryChannel rankChannel,  ServerConfiguration configuration) {
+      RankHistoryChannel rankChannel,  ServerConfiguration configuration, boolean forceRefreshCache) {
     this.player = player;
     this.leaguesAccounts = leaguesAccounts;
     this.server = server;
     this.rankChannel = rankChannel;
     this.infochannelMessage = new StringBuilder();
     this.serverConfig = configuration;
+    this.forceRefreshCache = forceRefreshCache;
     playersInWork.add(this);
   }
 
@@ -110,6 +115,8 @@ public class TreatPlayerWorker implements Runnable {
     try {
       Map<LeagueAccount, CurrentGameInfo> accountsInGame = Collections.synchronizedMap(new HashMap<>());
       List<LeagueAccount> accountNotInGame = new ArrayList<>();
+
+      cleanUnreachableSummoner();
 
       refreshPlayer(accountsInGame, accountNotInGame);
       generateText(accountsInGame, accountNotInGame);
@@ -123,6 +130,26 @@ public class TreatPlayerWorker implements Runnable {
     }
   }
 
+
+  private void cleanUnreachableSummoner() {
+
+    Iterator<LeagueAccount> leagueAccountsIterator = leaguesAccounts.iterator();
+
+    while(leagueAccountsIterator.hasNext()) {
+      LeagueAccount leagueAccount = leagueAccountsIterator.next();
+
+      SavedSummoner summoner;
+      try {
+        summoner = leagueAccount.getSummoner(forceRefreshCache);
+        if(summoner == null) {
+          leagueAccountsIterator.remove();
+        }
+      }catch(RiotApiException e) {
+        logger.warn("Error while the getting summoner, will not be showed on the infopannel this time. Error Code : {}", e.getErrorCode(), e);
+        leagueAccountsIterator.remove();
+      }
+    }
+  }
 
   private void createOutputObject() {
     treatedPlayer = new TreatedPlayer(player, team, infochannelMessage.toString(), soloqRank, gamesToDelete, gamesToCreate, rankChannelsToProcess);
@@ -170,8 +197,8 @@ public class TreatPlayerWorker implements Runnable {
         }
 
         RankedChannelTFTRefresher tftRankedChannelRefresher = new RankedChannelTFTRefresher(rankChannel,
-            lastRank.lastRank_tftSecond, lastRank.lastRank_tft, player, leagueAccount, server, matchs.get(0));
-        ServerData.getRankedMessageGenerator().execute(tftRankedChannelRefresher);
+            lastRank.getLastRankTftSecond(), lastRank.getLastRankTft(), player, leagueAccount, server, matchs.get(0));
+        ServerThreadsManager.getRankedMessageGenerator().execute(tftRankedChannelRefresher);
       }
     }
   }
@@ -207,8 +234,8 @@ public class TreatPlayerWorker implements Runnable {
       manageDeleteGame(leagueAccount, currentGameDb, lastRank);
     }
 
-    if(lastRank.lastRank_soloq != null) {
-      soloqRank.add(new FullTier(lastRank.lastRank_soloq));
+    if(lastRank.getLastRankSoloq() != null) {
+      soloqRank.add(new FullTier(lastRank.getLastRankSoloq()));
     }
   }
 
@@ -288,7 +315,7 @@ public class TreatPlayerWorker implements Runnable {
     if(gameOfTheChange.getGameQueueConfigId() == GameQueueConfigId.SOLOQ.getId()) {
 
       RankedChannelLoLRefresher rankedRefresher = 
-          new RankedChannelLoLRefresher(rankChannel, lastRank.lastRank_soloqSecond, lastRank.lastRank_soloq,
+          new RankedChannelLoLRefresher(rankChannel, lastRank.getLastRankSoloqSecond(), lastRank.getLastRankSoloq(),
               gameOfTheChange, player, leagueAccount, server);
 
       GameAccessDataServerSpecific gameAccessData = new GameAccessDataServerSpecific(currentGameDb.currentgame_gameid, currentGameDb.currentgame_server, server.serv_guildId);
@@ -299,7 +326,7 @@ public class TreatPlayerWorker implements Runnable {
     }else if(gameOfTheChange.getGameQueueConfigId() == GameQueueConfigId.FLEX.getId()) {
 
       RankedChannelLoLRefresher rankedRefresher = 
-          new RankedChannelLoLRefresher(rankChannel, lastRank.lastRank_flexSecond, lastRank.lastRank_flex,
+          new RankedChannelLoLRefresher(rankChannel, lastRank.getLastRankFlexSecond(), lastRank.getLastRankFlex(),
               gameOfTheChange, player, leagueAccount, server);
 
       GameAccessDataServerSpecific gameAccessData = new GameAccessDataServerSpecific(currentGameDb.currentgame_gameid, currentGameDb.currentgame_server, server.serv_guildId);
@@ -310,7 +337,7 @@ public class TreatPlayerWorker implements Runnable {
 
   }
 
-  private void generateText(Map<DTO.LeagueAccount, CurrentGameInfo> accountsWithGame, List<DTO.LeagueAccount> accountNotInGame) throws SQLException {
+  private void generateText(Map<DTO.LeagueAccount, CurrentGameInfo> accountsWithGame, List<DTO.LeagueAccount> accountNotInGame) throws SQLException, RiotApiException {
 
     if(accountsWithGame.isEmpty()) {
 
@@ -323,7 +350,7 @@ public class TreatPlayerWorker implements Runnable {
           getTextInformationPanelRankOption(infochannelMessage, player, leagueAccount, false);
         }else if (accountNotInGame.size() > 1){
 
-          infochannelMessage.append(String.format(LanguageManager.getText(server.serv_language, "infoPanelRankedTitleMultipleAccount"), player.getUser().getAsMention()) + "\n");
+          infochannelMessage.append(String.format(LanguageManager.getText(server.getLanguage(), "infoPanelRankedTitleMultipleAccount"), player.getUser().getAsMention()) + "\n");
 
           for(DTO.LeagueAccount leagueAccount : accountNotInGame) {
 
@@ -337,21 +364,21 @@ public class TreatPlayerWorker implements Runnable {
     }else if (accountsWithGame.size() == 1) {
       Entry<DTO.LeagueAccount, CurrentGameInfo> entry = accountsWithGame.entrySet().iterator().next();
       infochannelMessage.append(player.getUser().getAsMention() + " : " 
-          + InfoPanelRefresherUtil.getCurrentGameInfoStringForOneAccount(entry.getKey(), entry.getValue(), server.serv_language) + "\n");
+          + InfoPanelRefresherUtil.getCurrentGameInfoStringForOneAccount(entry.getKey(), entry.getValue(), server.getLanguage()) + "\n");
     }else {
       infochannelMessage.append(player.getUser().getAsMention() + " : " 
-          + LanguageManager.getText(server.serv_language, "informationPanelMultipleAccountInGame") + "\n"
-          + InfoPanelRefresherUtil.getCurrentGameInfoStringForMultipleAccounts(accountsWithGame, server.serv_language));
+          + LanguageManager.getText(server.getLanguage(), "informationPanelMultipleAccountInGame") + "\n"
+          + InfoPanelRefresherUtil.getCurrentGameInfoStringForMultipleAccounts(accountsWithGame, server.getLanguage()));
     }
   }
 
   private void getTextInformationPanelRankOption(final StringBuilder stringMessage, DTO.Player player,
-      DTO.LeagueAccount leagueAccount, boolean mutlipleAccount) throws SQLException {
+      DTO.LeagueAccount leagueAccount, boolean mutlipleAccount) throws SQLException, RiotApiException {
     LastRank lastRank = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
 
-    LeagueEntry soloq = lastRank.lastRank_soloq;
-    LeagueEntry flex = lastRank.lastRank_flex;
-    TFTLeagueEntry tft = lastRank.lastRank_tft;
+    LeagueEntry soloq = lastRank.getLastRankSoloq();
+    LeagueEntry flex = lastRank.getLastRankFlex();
+    TFTLeagueEntry tft = lastRank.getLastRankTft();
 
     if(soloq == null && flex == null && tft == null) {
       if(mutlipleAccount) {
@@ -366,7 +393,7 @@ public class TreatPlayerWorker implements Runnable {
     String baseText;
     if(mutlipleAccount) {
       baseText = "infoPanelRankedTextMultipleAccount";
-      accountString = leagueAccount.leagueAccount_name;
+      accountString = leagueAccount.getSummoner().getName();
     }else {
       baseText = "infoPanelRankedTextOneAccount";
       accountString = player.getUser().getAsMention();
@@ -375,17 +402,17 @@ public class TreatPlayerWorker implements Runnable {
     List<LastRankQueue> lastRanksByQueue = new ArrayList<>();
 
     if(lastRank.lastRank_soloqLastRefresh != null) {
-      lastRanksByQueue.add(new LastRankQueue(lastRank.lastRank_soloq, lastRank.lastRank_soloqSecond,
+      lastRanksByQueue.add(new LastRankQueue(lastRank.getLastRankSoloq(), lastRank.getLastRankSoloqSecond(),
           lastRank.lastRank_soloqLastRefresh, GameQueueConfigId.SOLOQ));
     }
 
     if(lastRank.lastRank_flexLastRefresh != null) {
-      lastRanksByQueue.add(new LastRankQueue(lastRank.lastRank_flex, lastRank.lastRank_flexSecond,
+      lastRanksByQueue.add(new LastRankQueue(lastRank.getLastRankFlex(), lastRank.getLastRankFlexSecond(),
           lastRank.lastRank_flexLastRefresh, GameQueueConfigId.FLEX));
     }
 
     if(lastRank.lastRank_tftLastRefresh != null) {
-      lastRanksByQueue.add(new LastRankQueue(lastRank.lastRank_tft, lastRank.lastRank_tftSecond,
+      lastRanksByQueue.add(new LastRankQueue(lastRank.getLastRankTft(), lastRank.getLastRankTftSecond(),
           lastRank.lastRank_tftLastRefresh, GameQueueConfigId.RANKED_TFT));
     }
 
@@ -414,20 +441,20 @@ public class TreatPlayerWorker implements Runnable {
   }
 
   private String getDetailledRank(LeagueEntry leagueEntryFirst, LeagueEntry leagueEntrySecond, FullTier tier, String accountString, String baseText, GameQueueConfigId rankedQueue) {
-    return String.format(LanguageManager.getText(server.serv_language, baseText), accountString, 
-        Ressources.getTierEmote().get(tier.getTier()).getUsableEmote() + " " + tier.toString(server.serv_language),
-        FullTierUtil.getTierRankTextDifference(leagueEntrySecond, leagueEntryFirst, server.serv_language, rankedQueue)
-        + " / " + LanguageManager.getText(server.serv_language, rankedQueue.getNameId())) + "\n";
+    return String.format(LanguageManager.getText(server.getLanguage(), baseText), accountString, 
+        Ressources.getTierEmote().get(tier.getTier()).getUsableEmote() + " " + tier.toString(server.getLanguage()),
+        FullTierUtil.getTierRankTextDifference(leagueEntrySecond, leagueEntryFirst, server.getLanguage(), rankedQueue)
+        + " / " + LanguageManager.getText(server.getLanguage(), rankedQueue.getNameId())) + "\n";
   }
 
   private void notInGameWithoutRankInfo(final StringBuilder stringMessage, DTO.Player player) {
     stringMessage.append(player.getUser().getAsMention() + " : " 
-        + LanguageManager.getText(server.serv_language, "informationPanelNotInGame") + " \n");
+        + LanguageManager.getText(server.getLanguage(), "informationPanelNotInGame") + " \n");
   }
 
-  private void notInGameUnranked(final StringBuilder stringMessage, DTO.LeagueAccount leagueAccount) {
-    stringMessage.append("- " + leagueAccount.leagueAccount_name + " : " 
-        + LanguageManager.getText(server.serv_language, "unranked") + " \n");
+  private void notInGameUnranked(final StringBuilder stringMessage, DTO.LeagueAccount leagueAccount) throws RiotApiException {
+    stringMessage.append("- " + leagueAccount.getSummoner().getName() + " : " 
+        + LanguageManager.getText(server.getLanguage(), "unranked") + " \n");
   }
 
   public String getInfochannelMessage() {

@@ -31,10 +31,10 @@ public class UndefineRankChannelCommand extends ZoeCommand {
     DTO.RankHistoryChannel rankChannel = RankHistoryChannelRepository.getRankHistoryChannel(server.serv_guildId);
 
     if(rankChannel == null) {
-      event.reply(LanguageManager.getText(server.serv_language, "undefineRankChannelMissingChannel"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "undefineRankChannelMissingChannel"));
     } else {
       RankHistoryChannelRepository.deleteRankHistoryChannel(rankChannel.rhChannel_id);
-      event.reply(LanguageManager.getText(server.serv_language, "undefineRankChannelDoneMessage"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "undefineRankChannelDoneMessage"));
     }
   }
 

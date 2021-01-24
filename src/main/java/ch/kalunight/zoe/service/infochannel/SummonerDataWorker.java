@@ -36,15 +36,18 @@ public class SummonerDataWorker implements Runnable {
   private InfocardPlayerData playerData;
   
   private int gameQueueConfigId;
+  
+  private boolean forceRefreshCache;
 
   public SummonerDataWorker(CurrentGameParticipant participant, List<String> listIdPlayers, Platform platform, String language,
-      InfocardPlayerData playerData, int gameQueueConfigId) {
+      InfocardPlayerData playerData, int gameQueueConfigId, boolean forceRefreshCache) {
     this.listIdPlayers = listIdPlayers;
     this.platform = platform;
     this.language = language;
     this.participant = participant;
     this.playerData = playerData;
     this.gameQueueConfigId = gameQueueConfigId;
+    this.forceRefreshCache = forceRefreshCache;
     playersDataInWork.add(playerData);
   }
 
@@ -85,8 +88,8 @@ public class SummonerDataWorker implements Runnable {
       playerData.setRankData(rank);
 
       logger.debug("Start loading Winrate Summoner data worker for {} {}", platform.getName(), participant.getSummonerName());
-      playerData.setWinRateData(RiotRequest.getMasterysScore(participant.getSummonerId(), participant.getChampionId(), platform) + " | "
-          + RiotRequest.getWinrateLastMonthWithGivenChampion(participant.getSummonerId(), platform, participant.getChampionId(), language));
+      playerData.setWinRateData(RiotRequest.getMasterysScore(participant.getSummonerId(), participant.getChampionId(), platform, forceRefreshCache) + " | "
+          + RiotRequest.getWinrateLastMonthWithGivenChampion(participant.getSummonerId(), platform, participant.getChampionId(), language, forceRefreshCache));
       logger.debug("End loading Summoner data worker for {} {}", platform.getName(), participant.getSummonerName());
     } catch (Exception e) {
       logger.error("Unexpected error in SummonerDataWorker !", e);

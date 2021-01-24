@@ -112,18 +112,18 @@ public class EventListenerUtil {
         }catch (IllegalStateException | InsufficientPermissionException e){
           //Exception Ok, appear in private message or when missing permissions.
         }
-        server.serv_language = languageList.get(selectionOfLanguage - 1);
+        server.setLanguage(languageList.get(selectionOfLanguage - 1));
         
         try {
-          ServerRepository.updateLanguage(server.serv_guildId, server.serv_language);
+          ServerRepository.updateLanguage(server.serv_guildId, server.getLanguage());
         } catch(SQLException e) {
           logger.error("SQL error when updating the language in guild joining setup");
           channel.sendMessage("Issue when updating the language."
               + " Please try with the command `>language`. I will now continue to talk in your language.").queue();
         }
 
-        selectionMessage.getChannel().sendMessage(String.format(LanguageManager.getText(server.serv_language, "addingSystemLanguageSelected"),
-            LanguageManager.getText(server.serv_language, LanguageCommand.NATIVE_LANGUAGE_TRANSLATION_ID))).queue();
+        selectionMessage.getChannel().sendMessage(String.format(LanguageManager.getText(server.getLanguage(), "addingSystemLanguageSelected"),
+            LanguageManager.getText(server.getLanguage(), LanguageCommand.NATIVE_LANGUAGE_TRANSLATION_ID))).queue();
 
 
         SelectionDialog.Builder selectAccountBuilder = new SelectionDialog.Builder()
@@ -137,7 +137,7 @@ public class EventListenerUtil {
         List<Platform> regionsList = new ArrayList<>();
         List<String> regionChoices = new ArrayList<>();
         for(Platform regionMember : Platform.values()) {
-          String actualChoice = String.format(LanguageManager.getText(server.serv_language, "regionOptionRegionChoice"),
+          String actualChoice = String.format(LanguageManager.getText(server.getLanguage(), "regionOptionRegionChoice"),
               regionMember.getName().toUpperCase());
 
           regionChoices.add(actualChoice);
@@ -145,11 +145,11 @@ public class EventListenerUtil {
           regionsList.add(regionMember);
         }
 
-        String anyChoice = LanguageManager.getText(server.serv_language, "regionOptionDisableChoice");
+        String anyChoice = LanguageManager.getText(server.getLanguage(), "regionOptionDisableChoice");
         regionChoices.add(anyChoice);
         selectAccountBuilder.addChoices(anyChoice);
 
-        selectAccountBuilder.setText(getUpdateMessageRegionAfterChangeSelectAction(server.serv_language, regionChoices));
+        selectAccountBuilder.setText(getUpdateMessageRegionAfterChangeSelectAction(server.getLanguage(), regionChoices));
         selectAccountBuilder.setSelectionConsumer(getSelectionDoneActionRegionSelection(regionsList, server));
 
         SelectionDialog dialog = selectAccountBuilder.build();
@@ -186,7 +186,7 @@ public class EventListenerUtil {
 
           String strRegion;
           if(regionsList.size() == selectionOfRegion - 1) {
-            strRegion = LanguageManager.getText(server.serv_language, "regionOptionAnyRegion");
+            strRegion = LanguageManager.getText(server.getLanguage(), "regionOptionAnyRegion");
             ConfigRepository.updateRegionOption(server.serv_guildId, null);
           } else {
             strRegion = regionsList.get(selectionOfRegion - 1).getName().toUpperCase();
@@ -194,9 +194,9 @@ public class EventListenerUtil {
           }
 
           selectionMessage.getChannel().sendMessage(String.format(
-              LanguageManager.getText(server.serv_language, "addingSystemRegionSelected")
-              + "\n\n" + LanguageManager.getText(server.serv_language, "setupMessage")
-              + "\n\n" + LanguageManager.getText(server.serv_language, "addingSystemEndMessage"),
+              LanguageManager.getText(server.getLanguage(), "addingSystemRegionSelected")
+              + "\n\n" + LanguageManager.getText(server.getLanguage(), "setupMessage")
+              + "\n\n" + LanguageManager.getText(server.getLanguage(), "addingSystemEndMessage"),
               strRegion)).queue();
         }catch(SQLException e) {
           logger.error("SQL error when updating region when joining guild !", e);

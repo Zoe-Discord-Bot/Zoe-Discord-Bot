@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 
-import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.repositories.ServerStatusRepository;
@@ -25,14 +25,14 @@ public abstract class ZoeCommand extends Command {
   private static final AtomicInteger commandFinishedCorrectly = new AtomicInteger(0);
   private static final AtomicInteger commandFinishedWithError = new AtomicInteger(0);
 
-  private static final Logger logger = LoggerFactory.getLogger(ZoeCommand.class);
+  protected static final Logger logger = LoggerFactory.getLogger(ZoeCommand.class);
 
   private static final ConcurrentHashMap<Long, DTO.Server> servers = new ConcurrentHashMap<>();
 
   @Override
   protected void execute(CommandEvent event) {
       Runnable commandRunnable = getCommandRunnable(event);
-      ServerData.getCommandsExecutor().execute(commandRunnable);
+      ServerThreadsManager.getCommandsExecutor().execute(commandRunnable);
   }
 
   private Runnable getCommandRunnable(CommandEvent event) {
@@ -88,7 +88,7 @@ public abstract class ZoeCommand extends Command {
           executeCommand(event);
         } catch (InsufficientPermissionException e) {
           logger.info("Unexpected exception in {} commands. Error : {}", this.getClass().getName(), e.getMessage(), e);
-          event.reply(String.format(LanguageManager.getText(getServer(event.getGuild().getIdLong()).serv_language, "deletePlayerMissingPermission"), 
+          event.reply(String.format(LanguageManager.getText(getServer(event.getGuild().getIdLong()).getLanguage(), "deletePlayerMissingPermission"), 
               e.getPermission().getName()));
           commandFinishedCorrectly.incrementAndGet();
           return;

@@ -32,7 +32,7 @@ public class DeleteInfoChannelCommand extends ZoeCommand {
     DTO.InfoChannel infochannel = InfoChannelRepository.getInfoChannel(server.serv_guildId);
 
     if(infochannel == null) {
-      event.reply(LanguageManager.getText(server.serv_language, "deleteInfoChannelChannelNotSetted"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "deleteInfoChannelChannelNotSetted"));
     } else {
       try {
         TextChannel textChannel = event.getGuild().getTextChannelById(infochannel.infochannel_channelid);
@@ -41,12 +41,12 @@ public class DeleteInfoChannelCommand extends ZoeCommand {
         }
       } catch(InsufficientPermissionException e) {
         InfoChannelRepository.deleteInfoChannel(server);
-        event.reply(LanguageManager.getText(server.serv_language, "deleteInfoChannelDeletedMissingPermission"));
+        event.reply(LanguageManager.getText(server.getLanguage(), "deleteInfoChannelDeletedMissingPermission"));
         return;
       }
 
       InfoChannelRepository.deleteInfoChannel(server);
-      event.reply(LanguageManager.getText(server.serv_language, "deleteInfoChannelDoneMessage"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "deleteInfoChannelDoneMessage"));
     }
   }
 

@@ -22,6 +22,7 @@ import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import ch.kalunight.zoe.util.RiotApiUtil;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
@@ -51,24 +52,24 @@ public class AddAccountCommand extends ZoeCommand {
     ServerConfiguration config = ConfigRepository.getServerConfiguration(server.serv_guildId);
 
     if(!config.getUserSelfAdding().isOptionActivated() && !event.getMember().getPermissions().contains(Permission.MANAGE_CHANNEL)) {
-      event.reply(String.format(LanguageManager.getText(server.serv_language, "permissionNeededMessage"),
+      event.reply(String.format(LanguageManager.getText(server.getLanguage(), "permissionNeededMessage"),
           Permission.MANAGE_CHANNEL.getName()));
       return;
     }
 
     User user = CreatePlayerCommand.getMentionedUser(event.getMessage().getMentionedMembers());
     if(user == null) {
-      event.reply(String.format(LanguageManager.getText(server.serv_language, "mentionNeededMessageWithUser"),
+      event.reply(String.format(LanguageManager.getText(server.getLanguage(), "mentionNeededMessageWithUser"),
           event.getMember().getUser().getName()));
       return;
     }else if(!user.equals(event.getAuthor()) && !event.getMember().getPermissions().contains(Permission.MANAGE_CHANNEL)) {
-      event.reply(LanguageManager.getText(server.serv_language, "permissionNeededUpdateOtherPlayer"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "permissionNeededUpdateOtherPlayer"));
       return;
     }
 
     DTO.Player player = PlayerRepository.getPlayer(server.serv_guildId, user.getIdLong());
     if(player == null) {
-      event.reply(LanguageManager.getText(server.serv_language, "mentionnedUserNotRegistered"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "mentionnedUserNotRegistered"));
       return;
     }
 
@@ -76,10 +77,10 @@ public class AddAccountCommand extends ZoeCommand {
 
     List<String> listArgs = CreatePlayerCommand.getParameterInParenteses(event.getArgs());
     if(listArgs.size() != 2 && regionOption.getRegion() == null) {
-      event.reply(String.format(LanguageManager.getText(server.serv_language, "addCommandMalformedWithoutRegionOption"), name));
+      event.reply(String.format(LanguageManager.getText(server.getLanguage(), "addCommandMalformedWithoutRegionOption"), name));
       return;
     }else if((listArgs.isEmpty() || listArgs.size() > 2) && regionOption.getRegion() != null) {
-      event.reply(String.format(LanguageManager.getText(server.serv_language, "addCommandMalformedWithRegionOption"),
+      event.reply(String.format(LanguageManager.getText(server.getLanguage(), "addCommandMalformedWithRegionOption"),
           name, regionOption.getRegion().getName().toUpperCase()));
       return;
     }
@@ -96,17 +97,18 @@ public class AddAccountCommand extends ZoeCommand {
 
     Platform region = CreatePlayerCommand.getPlatform(regionName);
     if(region == null) {
-      event.reply(LanguageManager.getText(server.serv_language, "regionTagInvalid"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "regionTagInvalid"));
       return;
     }
 
+    Message message = event.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "loadingSummoner")).complete();
     Summoner summoner;
     TFTSummoner tftSummoner;
     try {
-      summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);
-      tftSummoner = Zoe.getRiotApi().getTFTSummonerByName(region, summonerName);
+      summoner = Zoe.getRiotApi().getSummonerByNameWithRateLimit(region, summonerName);
+      tftSummoner = Zoe.getRiotApi().getTFTSummonerByNameWithRateLimit(region, summonerName);
     }catch(RiotApiException e) {
-      RiotApiUtil.handleRiotApi(event.getEvent(), e, server.serv_language);
+      RiotApiUtil.handleRiotApi(message, e, server.getLanguage());
       return;
     }
 
@@ -117,8 +119,8 @@ public class AddAccountCommand extends ZoeCommand {
 
     if(playerAlreadyWithTheAccount != null) {
       User userAlreadyWithTheAccount = Zoe.getJda().retrieveUserById(playerAlreadyWithTheAccount.player_discordId).complete();
-      event.reply(String.format(LanguageManager.getText(server.serv_language, "accountAlreadyLinkedToAnotherPlayer"), 
-          userAlreadyWithTheAccount.getName()));
+      message.editMessage(String.format(LanguageManager.getText(server.getLanguage(), "accountAlreadyLinkedToAnotherPlayer"), 
+          userAlreadyWithTheAccount.getName())).queue();
       return;
     }
 
@@ -130,10 +132,10 @@ public class AddAccountCommand extends ZoeCommand {
       
       CreatePlayerCommand.updateLastRank(leagueAccount);
       
-      event.reply(String.format(LanguageManager.getText(server.serv_language, "accountAddedToPlayer"),
-          newAccount.getSummoner().getName(), user.getName()));
+      message.editMessage(String.format(LanguageManager.getText(server.getLanguage(), "accountAddedToPlayer"),
+          newAccount.getSummoner().getName(), user.getName())).queue();
     }else {
-      event.reply(LanguageManager.getText(server.serv_language, "accountCantBeAddedOwnerChoice"));
+      message.editMessage(LanguageManager.getText(server.getLanguage(), "accountCantBeAddedOwnerChoice")).queue();
     }
   }
 

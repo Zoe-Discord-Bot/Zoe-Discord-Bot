@@ -65,7 +65,7 @@ public class EventListener extends ListenerAdapter {
           askingConfig(event.getGuild(), owner.getUser());
         }else {
           CommandUtil.getFullSpeakableChannel(
-              event.getGuild()).sendMessage(LanguageManager.getText(server.serv_language, "guildJoinHiAgain")).queue();
+              event.getGuild()).sendMessage(LanguageManager.getText(server.getLanguage(), "guildJoinHiAgain")).queue();
         }
       }
     }catch(SQLException e) {
@@ -180,7 +180,7 @@ public class EventListener extends ListenerAdapter {
           DTO.InfoChannel infochannel = InfoChannelRepository.getInfoChannel(event.getGuild().getIdLong());
           DTO.RankHistoryChannel rankchannel = RankHistoryChannelRepository.getRankHistoryChannel(event.getGuild().getIdLong());
 
-          if((infochannel != null || rankchannel != null) && registedPlayer != null && !ServerData.isServerWillBeTreated(server)
+          if((infochannel != null || rankchannel != null) && registedPlayer != null && !ServerThreadsManager.isServerWillBeTreated(server)
               && server.serv_lastRefresh.isBefore(LocalDateTime.now().minusSeconds(20))) {
             
             Map<Long, AtomicInteger> countForThisServer = DelayedInfochannelRefresh.getGameChangeDetectedByServer();
@@ -194,7 +194,7 @@ public class EventListener extends ListenerAdapter {
               }
               
               DelayedInfochannelRefresh delayedRefresh = new DelayedInfochannelRefresh(server, refreshAskedForThisServer.incrementAndGet());
-              ServerData.getDiscordDetectionDelayedTask().schedule(delayedRefresh, 5000);
+              ServerThreadsManager.getDiscordDetectionDelayedTask().schedule(delayedRefresh, 5000);
             }
           }
         }

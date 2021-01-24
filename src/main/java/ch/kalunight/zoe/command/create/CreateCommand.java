@@ -21,7 +21,7 @@ public class CreateCommand extends ZoeCommand {
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
     Command[] commandsChildren = {new CreateInfoChannelCommand(), new CreatePlayerCommand(), new CreateTeamCommand(),
-        new CreateRankHistoryChannelCommand(), new CreateLeaderboardCommand(waiter)};
+        new CreateRankHistoryChannelCommand(), new CreateLeaderboardCommand(waiter), new CreateClashChannel(waiter)};
     this.children = commandsChildren;
     this.helpBiConsumer = CommandUtil.getHelpMethodHasChildren(USAGE_NAME, commandsChildren);
   }
@@ -29,7 +29,7 @@ public class CreateCommand extends ZoeCommand {
   @Override
   protected void executeCommand(CommandEvent event) {
     DTO.Server server = getServer(event.getGuild().getIdLong());
-    event.reply(LanguageManager.getText(server.serv_language, "mainCreateCommandHelpMessage"));
+    event.reply(LanguageManager.getText(server.getLanguage(), "mainCreateCommandHelpMessage"));
   }
 
   @Override

@@ -6,7 +6,7 @@ import java.util.function.BiConsumer;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 
-import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.ServerThreadsManager;
 
 public class RebootCommand extends ZoeCommand {
 
@@ -20,7 +20,7 @@ public class RebootCommand extends ZoeCommand {
   
   @Override
   protected void executeCommand(CommandEvent event) throws SQLException {
-    ServerData.setRebootAsked(true);
+    ServerThreadsManager.setRebootAsked(true);
     event.reply("Reboot asked, will be done in next seconds ...");
   }
 

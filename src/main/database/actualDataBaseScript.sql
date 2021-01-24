@@ -67,6 +67,12 @@ CREATE TABLE role_option (
   roleOption_roleId								BIGINT
 );
 
+CREATE TABLE rank_channel_filter_option (
+  rankchannelFilterOption_id					SERIAL,
+  rankchannelFilterOption_fk_serverConfig		BIGINT				NOT NULL,
+  rankchannelFilterOption_option				VARCHAR
+);
+
 CREATE TABLE info_panel_ranked_option (
   infoPanelRanked_id 							SERIAL,
   infoPanelRanked_fk_serverConfig 				BIGINT 				NOT NULL,
@@ -105,9 +111,9 @@ CREATE TABLE league_account (
   leagueAccount_accountId						VARCHAR				NOT NULL,
   leagueAccount_puuid							VARCHAR				NOT NULL,
   leagueAccount_server							VARCHAR				NOT NULL,
-  leagueAccount_tftSummonerId					VARCHAR				NOT NULL,
+  leagueAccount_tftSummonerId 					VARCHAR				NOT NULL,
   leagueAccount_tftAccountId					VARCHAR				NOT NULL,
-  leagueAccount_tftPuuid						VARCHAR				NOT NULL
+  leagueAccount_tftPuuid 						VARCHAR				NOT NULL
 );
 
 CREATE TABLE current_game_info (
@@ -132,18 +138,18 @@ CREATE TABLE rank_history_channel(
 );
 
 CREATE TABLE last_rank(
-  lastRank_id									SERIAL,
-  lastRank_fk_leagueAccount						BIGINT				NOT NULL,
-  lastRank_soloq								json,
-  lastRank_flex									json,
-  lastRank_tft									json,
-  lastRank_soloqSecond 							json,
-  lastRank_soloqLastRefresh						TIMESTAMP			WITHOUT TIME ZONE,
-  lastRank_flexSecond 							json,
-  lastRank_flexLastRefresh						TIMESTAMP			WITHOUT TIME ZONE,
-  lastRank_tftSecond 							json,
-  lastRank_tftLastRefresh						TIMESTAMP			WITHOUT TIME ZONE,
-  lastRank_tftLastTreatedMatchId				VARCHAR
+  lastRank_id										SERIAL,
+  lastRank_fk_leagueAccount							BIGINT				NOT NULL,
+  lastRank_soloq									json,
+  lastRank_flex										json,
+  lastRank_tft										json,
+  lastRank_soloqSecond 								json,
+  lastRank_soloqLastRefresh							TIMESTAMP			WITHOUT TIME ZONE,
+  lastRank_flexSecond 								json,
+  lastRank_flexLastRefresh							TIMESTAMP			WITHOUT TIME ZONE,
+  lastRank_tftSecond 								json,
+  lastRank_tftLastRefresh							TIMESTAMP			WITHOUT TIME ZONE,
+  lastRank_tftLastTreatedMatchId 					VARCHAR
 );
 
 CREATE TABLE leaderboard (
@@ -205,7 +211,10 @@ ALTER TABLE ONLY info_panel_message
   
 ALTER TABLE ONLY game_info_card
   ADD CONSTRAINT game_info_card_pkey PRIMARY KEY (gameCard_id);
-  
+
+ALTER TABLE ONLY rank_channel_filter_option
+  ADD CONSTRAINT rank_channel_filter_option_pkey PRIMARY KEY (rankchannelFilterOption_id);  
+
 ALTER TABLE ONLY league_account
   ADD CONSTRAINT league_account_pkey PRIMARY KEY (leagueAccount_id);
   
@@ -296,6 +305,11 @@ ALTER TABLE league_account
 ALTER TABLE league_account
   ADD CONSTRAINT league_account_fk_currentGame_const 
   FOREIGN KEY (leagueAccount_fk_currentGame) REFERENCES current_game_info (currentGame_id);
+  
+ALTER TABLE rank_channel_filter_option
+  ADD CONSTRAINT rank_channel_filter_option_fk_serverConfig_const 
+  FOREIGN KEY (rankchannelFilterOption_fk_serverConfig) REFERENCES server_configuration (servConfig_id)
+  ON DELETE CASCADE;
   
 ALTER TABLE game_info_card
   ADD CONSTRAINT game_info_card_fk_currentGame_const 

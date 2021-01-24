@@ -45,8 +45,8 @@ public class GameInfoCardOption extends ConfigurationOption {
         
         if(!optionActivated) {
 
-          choiceBuilder.setText(String.format(LanguageManager.getText(server.serv_language,
-              "infocardsOptionLongDescEnable"), LanguageManager.getText(server.serv_language, INFOCARDS_DESC_ID)));
+          choiceBuilder.setText(String.format(LanguageManager.getText(server.getLanguage(),
+              "infocardsOptionLongDescEnable"), LanguageManager.getText(server.getLanguage(), INFOCARDS_DESC_ID)));
           
           choiceBuilder.setAction(activateTheOption(event.getChannel(), server));
           
@@ -56,8 +56,8 @@ public class GameInfoCardOption extends ConfigurationOption {
           
         }else {
           
-          choiceBuilder.setText(String.format(LanguageManager.getText(server.serv_language, "infocardsOptionLongDescDisable"),
-              LanguageManager.getText(server.serv_language, INFOCARDS_DESC_ID)));
+          choiceBuilder.setText(String.format(LanguageManager.getText(server.getLanguage(), "infocardsOptionLongDescDisable"),
+              LanguageManager.getText(server.getLanguage(), INFOCARDS_DESC_ID)));
           
           choiceBuilder.setAction(disableTheOption(event.getChannel(), server));
           
@@ -85,9 +85,9 @@ public class GameInfoCardOption extends ConfigurationOption {
             RepoRessources.sqlErrorReport(messageChannel, server, e);
             return;
           }
-          messageChannel.sendMessage(LanguageManager.getText(server.serv_language, "cleanChannelOptionBeenDisable")).queue();
+          messageChannel.sendMessage(LanguageManager.getText(server.getLanguage(), "cleanChannelOptionBeenDisable")).queue();
         }else {
-          messageChannel.sendMessage(LanguageManager.getText(server.serv_language, "cleanChannelOptionStillEnable")).queue();
+          messageChannel.sendMessage(LanguageManager.getText(server.getLanguage(), "cleanChannelOptionStillEnable")).queue();
         }
     }};
   }
@@ -107,9 +107,9 @@ public class GameInfoCardOption extends ConfigurationOption {
             RepoRessources.sqlErrorReport(messageChannel, server, e);
             return;
           }
-          messageChannel.sendMessage(LanguageManager.getText(server.serv_language, "cleanChannelOptionBeenActivated")).queue();
+          messageChannel.sendMessage(LanguageManager.getText(server.getLanguage(), "cleanChannelOptionBeenActivated")).queue();
         }else {
-          messageChannel.sendMessage(LanguageManager.getText(server.serv_language, "cleanChannelOptionStillDisable")).queue();
+          messageChannel.sendMessage(LanguageManager.getText(server.getLanguage(), "cleanChannelOptionStillDisable")).queue();
         }
       }};
   }

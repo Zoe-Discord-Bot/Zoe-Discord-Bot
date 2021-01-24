@@ -105,7 +105,7 @@ public class SetupEventListener extends ListenerAdapter {
     logger.info("Setup of main thread finished !");
     
     logger.info("Setup of commands ...");
-    EventWaiter eventWaiter = new EventWaiter(ServerData.getResponseWaiter(), false);
+    EventWaiter eventWaiter = new EventWaiter(ServerThreadsManager.getResponseWaiter(), false);
 
     for(Command command : Zoe.getMainCommands(eventWaiter)) {
       Zoe.getCommandClient().addCommand(command);
@@ -142,7 +142,7 @@ public class SetupEventListener extends ListenerAdapter {
 
   private void setupContinousRefreshThread() {
     TimerTask mainThread = new ServerChecker();
-    ServerData.getServerCheckerThreadTimer().schedule(mainThread, 10000);
+    ServerThreadsManager.getServerCheckerThreadTimer().schedule(mainThread, 10000);
   }
 
   private void initRAPIStatusChannel() {

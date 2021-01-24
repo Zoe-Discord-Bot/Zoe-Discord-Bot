@@ -27,7 +27,7 @@ public class SetupCommand extends ZoeCommand {
       return;
     }
     DTO.Server server = getServer(event.getGuild().getIdLong());
-    event.reply(LanguageManager.getText(server.serv_language, "setupMessage"));
+    event.reply(LanguageManager.getText(server.getLanguage(), "setupMessage"));
   }
 
   @Override

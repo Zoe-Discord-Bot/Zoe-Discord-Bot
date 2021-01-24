@@ -35,7 +35,7 @@ public class AboutCommand extends ZoeCommand {
     String langage = LanguageManager.DEFAULT_LANGUAGE;
     if(event.getChannelType() == ChannelType.TEXT) {
       DTO.Server server = getServer(event.getGuild().getIdLong());
-      langage = server.serv_language;
+      langage = server.getLanguage();
     }
     EmbedBuilder builder = new EmbedBuilder();
 

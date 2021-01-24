@@ -3,11 +3,15 @@ package ch.kalunight.zoe.model;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import ch.kalunight.zoe.model.dto.DTO.Server;
 
 public class RefreshStatus {
 
@@ -38,6 +42,8 @@ public class RefreshStatus {
   private AtomicInteger numberOfServerManaged;
 
   private EvalutationOnRoadResultFailed lastEvaluationFailed;
+  
+  private Queue<Server> serversToEvaluate;
 
   private List<RefreshLoadStatus> refreshLoadsHistory;
 
@@ -47,15 +53,17 @@ public class RefreshStatus {
     this.refreshPhase = RefreshPhase.NEED_TO_INIT;
     this.smartModEnd = LocalDateTime.now();
     this.refreshLoadsHistory = Collections.synchronizedList(new ArrayList<RefreshLoadStatus>());
+    this.serversToEvaluate = new LinkedList<>();
   }
 
-  public void init(int numberOfServerCurrentlyManaged) {
+  public void init(int numberOfServerCurrentlyManaged, List<Server> serversToEvaluate) {
     synchronized (this) {
       if(refreshPhase == RefreshPhase.NEED_TO_INIT) {
         refreshRateInMinute.set(START_DELAY_BETWEEN_EACH_REFRESH_IN_MINUTES);
         evaluationEnd = LocalDateTime.now().plusMinutes(refreshRateInMinute.get());
         numberOfServerManaged = new AtomicInteger(numberOfServerCurrentlyManaged);
         refreshPhase = RefreshPhase.IN_EVALUATION_PHASE;
+        this.serversToEvaluate.addAll(serversToEvaluate);
         logger.info("Refresh status initiated! Evaluation started.");
       }else {
         logger.warn("Refresh status already initiated!");
@@ -222,6 +230,16 @@ public class RefreshStatus {
       }
     }
   }
+  
+  public List<Server> getServersToLoadInEvaluation(int serversLoadable) {
+    List<Server> serversToRefresh = new ArrayList<>();
+    
+    while(serversToRefresh.size() <= serversLoadable && !serversToEvaluate.isEmpty()) {
+      serversToRefresh.add(serversToEvaluate.poll());
+    }
+    
+    return serversToRefresh;
+  }
 
   /**
    * Manage Smart Mod. If smart mod end, return true.
@@ -235,8 +253,8 @@ public class RefreshStatus {
           refreshRateInMinute.set(START_DELAY_BETWEEN_EACH_REFRESH_IN_MINUTES);
           evaluationEnd = LocalDateTime.now().plusMinutes(refreshRateInMinute.get());
           numberOfServerManaged.set(numberOfServerCurrentlyManaged);
-          refreshPhase = RefreshPhase.IN_EVALUATION_PHASE;
-          logger.info("Smart mod ended! Evaluation of performance started.");
+          refreshPhase = RefreshPhase.NEED_TO_INIT;
+          logger.info("Smart mod ended! Evaluation of performance started. An init will first happens.");
           return true;
         }
       } else {
@@ -324,6 +342,10 @@ public class RefreshStatus {
 
   public List<RefreshLoadStatus> getRefreshLoadsHistory() {
     return refreshLoadsHistory;
+  }
+  
+  public Queue<Server> getServersToEvaluate() {
+    return serversToEvaluate;
   }
 
   public AtomicInteger getNumberOfServerManaged() {

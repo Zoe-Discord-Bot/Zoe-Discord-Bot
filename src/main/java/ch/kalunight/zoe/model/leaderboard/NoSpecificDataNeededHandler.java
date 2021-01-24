@@ -8,13 +8,13 @@ import ch.kalunight.zoe.translation.LanguageManager;
 
 public class NoSpecificDataNeededHandler extends LeaderboardExtraDataHandler {
 
-  public NoSpecificDataNeededHandler(Objective objective, EventWaiter waiter, CommandEvent event, Server server) {
-    super(objective, waiter, event, server);
+  public NoSpecificDataNeededHandler(Objective objective, EventWaiter waiter, CommandEvent event, Server server, boolean forceRefreshCheck) {
+    super(objective, waiter, event, server, forceRefreshCheck);
   }
 
   @Override
   public void handleSecondCreationPart() {
-    event.getTextChannel().sendMessage(LanguageManager.getText(server.serv_language, "leaderboardSelectChannelLeaderboard")).queue();
+    event.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "leaderboardSelectChannelLeaderboard")).queue();
     handleEndOfCreation("");
   }
 

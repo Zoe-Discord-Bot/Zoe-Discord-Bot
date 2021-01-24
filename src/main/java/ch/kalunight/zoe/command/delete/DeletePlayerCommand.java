@@ -39,7 +39,7 @@ public class DeletePlayerCommand extends ZoeCommand {
     if(!config.getUserSelfAdding().isOptionActivated() && 
         !event.getMember().getPermissions().contains(Permission.MANAGE_CHANNEL)) {
       
-        event.reply(String.format(LanguageManager.getText(server.serv_language, "deletePlayerMissingPermission"),
+        event.reply(String.format(LanguageManager.getText(server.getLanguage(), "deletePlayerMissingPermission"),
             Permission.MANAGE_CHANNEL.getName()));
         return;
     }
@@ -47,11 +47,11 @@ public class DeletePlayerCommand extends ZoeCommand {
     List<Member> members = event.getMessage().getMentionedMembers();
 
     if(members.size() != 1) {
-      event.reply(LanguageManager.getText(server.serv_language, "deletePlayerMissingMentionPlayer"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "deletePlayerMissingMentionPlayer"));
     } else {
       User user = members.get(0).getUser();
       if(!user.equals(event.getAuthor()) && !event.getMember().getPermissions().contains(Permission.MANAGE_CHANNEL)) {
-        event.reply(String.format(LanguageManager.getText(server.serv_language, "deletePlayerOtherPlayerMissingPermission"), 
+        event.reply(String.format(LanguageManager.getText(server.getLanguage(), "deletePlayerOtherPlayerMissingPermission"), 
             Permission.MANAGE_CHANNEL.getName()));
         return;
       }
@@ -59,7 +59,7 @@ public class DeletePlayerCommand extends ZoeCommand {
       DTO.Player player = PlayerRepository.getPlayer(server.serv_guildId, user.getIdLong());
       
       if(player == null) {
-        event.reply(String.format(LanguageManager.getText(server.serv_language, "deletePlayerUserNotRegistered"), user.getName()));
+        event.reply(String.format(LanguageManager.getText(server.getLanguage(), "deletePlayerUserNotRegistered"), user.getName()));
       } else {
         if(config.getZoeRoleOption().getRole() != null) {
           Member member = event.getGuild().retrieveMemberById(user.getId()).complete();
@@ -68,7 +68,7 @@ public class DeletePlayerCommand extends ZoeCommand {
           }
         }
         PlayerRepository.deletePlayer(player, server.serv_guildId);
-        event.reply(String.format(LanguageManager.getText(server.serv_language, "deletePlayerDoneMessage"),
+        event.reply(String.format(LanguageManager.getText(server.getLanguage(), "deletePlayerDoneMessage"),
             player.getUser().getName()));
       }
     }

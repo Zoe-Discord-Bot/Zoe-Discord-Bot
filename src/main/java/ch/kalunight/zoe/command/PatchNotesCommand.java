@@ -43,7 +43,7 @@ public class PatchNotesCommand extends ZoeCommand {
       event.reply(builder.toString());
     } catch(IOException e) {
       DTO.Server server = getServer(event.getGuild().getIdLong());
-      event.reply(LanguageManager.getText(server.serv_language, "patchNoteUnavailable"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "patchNoteUnavailable"));
     }
   }
 

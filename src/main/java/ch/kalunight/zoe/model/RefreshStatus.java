@@ -110,6 +110,7 @@ public class RefreshStatus {
                 refreshRateInMinute.get() - EVALUTATION_INCREASE_DELAY_VALUE_IN_MINUTES, refreshRateInMinute.get());
           }else {
             refreshPhase = RefreshPhase.CLASSIC_MOD;
+            refreshLoadsHistory.clear();
             logger.info("Evaluation on road ended correctly ! The refresh rate is {} minutes.", refreshRateInMinute.get());
           }
         }

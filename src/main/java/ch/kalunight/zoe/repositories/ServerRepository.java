@@ -49,23 +49,25 @@ public class ServerRepository {
   
   private static final String UPDATE_TIMESTAMP_WITH_GUILD_ID = "UPDATE server SET serv_lastrefresh = '%s' WHERE serv_guildId = %d";
   
-  private static final String SELECT_SERVER_WITH_TIMESTAMP_AFTER = "SELECT " + 
+  private static final String SELECT_SERVER_WITH_TIMESTAMP_AFTER = "SELECT DISTINCT " + 
       "server.serv_id,server.serv_guildid,server.serv_language,server.serv_lastrefresh " + 
       "FROM info_channel " + 
       "RIGHT JOIN server ON info_channel.infochannel_fk_server = server.serv_id " + 
-      "LEFT JOIN rank_history_channel ON server.serv_id = rank_history_channel.rhchannel_fk_server " + 
+      "LEFT JOIN rank_history_channel ON server.serv_id = rank_history_channel.rhchannel_fk_server " +
+      "LEFT JOIN leaderboard ON server.serv_id = leaderboard.lead_fk_server " + 
       "INNER JOIN server_status ON server.serv_id = server_status.servstatus_fk_server " + 
       "WHERE server.serv_lastrefresh < '%s' " +
-      "AND (rank_history_channel.rhchannel_channelid IS NOT NULL OR info_channel.infochannel_channelid IS NOT NULL) " +
+      "AND (rank_history_channel.rhchannel_channelid IS NOT NULL OR info_channel.infochannel_channelid IS NOT NULL OR leaderboard.lead_id IS NOT NULL) " +
       "AND server_status.servstatus_intreatment = %s";
   
-  private static final String SELECT_ALL_SERVERS_WITH_RANK_CHANNEL_OR_INFO_CHANNEL = "SELECT " + 
+  private static final String SELECT_ALL_SERVERS_WITH_RANK_CHANNEL_OR_INFO_CHANNEL_OR_LEADERBOARD = "SELECT DISTINCT " + 
       "server.serv_id,server.serv_guildid,server.serv_language,server.serv_lastrefresh " + 
       "FROM info_channel " + 
       "RIGHT JOIN server ON info_channel.infochannel_fk_server = server.serv_id " + 
-      "LEFT JOIN rank_history_channel ON server.serv_id = rank_history_channel.rhchannel_fk_server " + 
+      "LEFT JOIN rank_history_channel ON server.serv_id = rank_history_channel.rhchannel_fk_server " +
+      "LEFT JOIN leaderboard ON server.serv_id = leaderboard.lead_fk_server " + 
       "INNER JOIN server_status ON server.serv_id = server_status.servstatus_fk_server " + 
-      "WHERE (rank_history_channel.rhchannel_channelid IS NOT NULL OR info_channel.infochannel_channelid IS NOT NULL) " +
+      "WHERE (rank_history_channel.rhchannel_channelid IS NOT NULL OR info_channel.infochannel_channelid IS NOT NULL OR leaderboard.lead_id IS NOT NULL) " +
       "AND server_status.servstatus_intreatment = %s";
   
   private static final String SELECT_SERVERS_WITH_LEAGUE_ACCOUNT = "SELECT " + 
@@ -281,7 +283,7 @@ public class ServerRepository {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
       
-      String finalQuery = String.format(SELECT_ALL_SERVERS_WITH_RANK_CHANNEL_OR_INFO_CHANNEL,
+      String finalQuery = String.format(SELECT_ALL_SERVERS_WITH_RANK_CHANNEL_OR_INFO_CHANNEL_OR_LEADERBOARD,
           false);
       result = query.executeQuery(finalQuery);
       

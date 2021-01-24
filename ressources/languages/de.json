@@ -515,7 +515,7 @@
     "phaseNumber": "Phase %s",
     "dayNumber": "Tag %s",
     "impossibleToCreateClashChannelMissingPerms": "Unmöglich, den Clash Channel zu erstellen! Ich habe nicht die Erlaubnis, das zu tun.",
-    "clashChannelLoadingMessage": "Der Clash Channel wird geladen...",
+    "clashChannelLoadingMessage": "Der Clash Channel wird geladen…",
     "createClashChannelTournamentTimeZoneSelected": "Perfekt! Der Clash-Kanal wurde korrekt angelegt.",
     "paginationTimeZoneList": "Liste der verfügbaren Zeitzonen :",
     "createClashChannelAlreadyCreatedForThisSummoner": "Dieser Beschwörer hat bereits einen Clash-Channel. Bitte wählen Sie einen anderen. Senden Sie \"Stop\", wenn Sie die Erstellung abbrechen möchten.",

@@ -403,7 +403,7 @@
     "rankChannelChangePointOnlyLooseTitleWithoutGameType": "%s perdió %s LP",
     "rankChannelChangePointOnlyWinTitleWithoutGameType": "%s ganó %s LP",
     "statsProfileQueueTFT": "TFT : **%s**",
-    "createClashMalformedLeagueAccount": "El comando está mal formado. Por favor, utiliza : `>create player @DiscordPlayerMention (Region) (SummonerName)`",
+    "createClashMalformedLeagueAccount": "El comando está mal formado. Por favor, utiliza : `(Region) (SummonerName)`",
     "createClashChannelLeagueAccountSelected": "¡Perfecto! Has seleccionado la cuenta *%s* %s correctamente.\nAhora, tienes que añadir una zona horaria. Por favor, elige una de la liste de arriba. Puedes copiar y pegar una o directamente enviar su número.",
     "deleteClashChannelDoneCorrectly": "El canal de Clash seleccionado ha sido eliminado correctamente. Ya puedes borrar el canal de texto si quieres.",
     "deleteClashChannelCommandListProposal": "Aquí están los canales de Clash de este servidor, por favor, selecciona el que quieras eliminar. Eliminaré todos los mensajes relacionados pero no el canal.",

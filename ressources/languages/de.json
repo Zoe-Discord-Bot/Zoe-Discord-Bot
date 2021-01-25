@@ -523,7 +523,7 @@
     "createClashChannelLeagueAccountSelected": "Perfekt! Sie haben das Konto *%s* %s korrekt ausgewählt.\nNun müssen Sie eine Zeitzone auswählen. Bitte wählen Sie eine aus der Liste oben. Sie können eine direkt kopieren und einfügen oder direkt seine Nummer senden.",
     "createClashChannelErrorDatabase": "Es ist ein Datenbankfehler aufgetreten ! Bitte melden Sie dieses Problem hier : https://discord.gg/AyAYWGM",
     "createClashChannelRegionTagInvalid": "Der Region-Tag ist ungültig. Bitte versuchen Sie es erneut. (Gültiges Tag : EUW, EUNE, NA, BR, JP, KR, LAN, LAS, OCE, RU, TR)",
-    "createClashMalformedLeagueAccount": "Der Befehl ist fehlerhaft formatiert. Bitte beachten Sie dieses Muster: `>create player @DiscordPing (Region) (Beschwörername)`",
+    "createClashMalformedLeagueAccount": "Der Befehl ist fehlerhaft formatiert. Bitte beachten Sie dieses Muster: `(Region) (Beschwörername)`",
     "createClashChannelCancelMessage": "Erstellung des Clash-Kanals wird abgebrochen.",
     "createClashChannelAskLeagueAccount": "Perfekt, jetzt brauche ich einen League-Account. Bitte senden Sie einen Account in diesem Format ``(Region) (Beschwörername)``. Sie können den Befehl abbrechen, indem Sie ``Stop`` senden.",
     "createClashChannelHelpMessage": "Erstellen Sie einen neuen Clash-Channel, in dem ich Informationen über den aktuellen Clash und den bevorstehenden Clash über ein bestimmtes League-Konto senden kann. Berechtigung zum Verwalten des Channels erforderlich.",

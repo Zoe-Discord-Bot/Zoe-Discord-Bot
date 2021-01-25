@@ -36,8 +36,10 @@ public class ServerChecker extends TimerTask {
 
   private static final int TIME_BETWEEN_EACH_RAPI_CHANNEL_REFRESH_IN_MINUTES = 2;
   
-  private static final int NUMBER_OF_TASK_MAX_DURING_EVALUATION = 50;
+  private static final int NUMBER_OF_TASK_MAX_DURING_EVALUATION = 100;
 
+  private static final int NUMBER_OF_TASK_TO_END = 50;
+  
   private static final RefreshStatus lastStatus = new RefreshStatus();
 
   private static DateTime nextDiscordBotListRefresh = DateTime.now().plusSeconds(TIME_BETWEEN_EACH_DISCORD_BOT_LIST_REFRESH);
@@ -59,7 +61,7 @@ public class ServerChecker extends TimerTask {
       lastStatus.init(numberOfManagerServer, allServers);
       return new ArrayList<>();
     case IN_EVALUATION_PHASE:
-      boolean loadingEnded = lastStatus.getServersToEvaluate().isEmpty();
+      boolean loadingEnded = lastStatus.getServersToEvaluate().size() < NUMBER_OF_TASK_TO_END;
       lastStatus.manageEvaluationPhase(loadingEnded);
       if(!loadingEnded) {
         return lastStatus.getServersToLoadInEvaluation(NUMBER_OF_TASK_MAX_DURING_EVALUATION - queueSize);

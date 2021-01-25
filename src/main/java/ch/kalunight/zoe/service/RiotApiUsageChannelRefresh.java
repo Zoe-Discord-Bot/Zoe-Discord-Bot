@@ -72,7 +72,10 @@ public class RiotApiUsageChannelRefresh implements Runnable {
             + "\nTask in InfoCards Generator Queue : " + ServerThreadsManager.getInfocardsGenerator().getQueue().size()
             + "\nTask in Players Data Worker Queue : " + ServerThreadsManager.getPlayersDataQueue()
             + "\nInfocards Generated last 2 minutes : " + getInfocardCreatedCount()
-            + "\nTask in Leaderboard Executor : " + ServerThreadsManager.getLeaderboardExecutor().getQueue().size()).queue();
+            + "\nTask in Leaderboard Executor : " + ServerThreadsManager.getLeaderboardExecutor().getQueue().size()
+            + "\nTask in Clash Channel Executor : " + ServerThreadsManager.getClashChannelExecutor().getQueue().size()
+            + "\nTask in Analysis Manager : " + ServerThreadsManager.getDataAnalysisManager().getQueue().size()
+            + "\nTask in Analysis Thread : " + ServerThreadsManager.getDataAnalysisThread().getQueue().size()).queue();
 
         StringBuilder refreshStatusText = new StringBuilder();
 
@@ -88,6 +91,9 @@ public class RiotApiUsageChannelRefresh implements Runnable {
           }else if (refreshStatus.getRefreshPhase().equals(RefreshPhase.IN_EVALUATION_PHASE) || refreshStatus.getRefreshPhase().equals(RefreshPhase.IN_EVALUATION_PHASE_ON_ROAD)) {
             refreshStatusText.append("\nCurrent Tested Refresh Rate : " + refreshStatus.getRefresRatehInMinute().get()
                 + "\nRefresh rate evaluation period end date (UTC) : " + refreshStatus.getEvaluationEnd().toString());
+            if(refreshStatus.getRefreshPhase().equals(RefreshPhase.IN_EVALUATION_PHASE)) {
+              refreshStatusText.append("\nServers To Still evaluate : " + refreshStatus.getServersToEvaluate().size());
+            }
           }else if(refreshStatus.getRefreshPhase().equals(RefreshPhase.SMART_MOD)) {
             refreshStatusText.append("\nSmart mod end date (UTC) : " + refreshStatus.getSmartModEnd().toString());
           }

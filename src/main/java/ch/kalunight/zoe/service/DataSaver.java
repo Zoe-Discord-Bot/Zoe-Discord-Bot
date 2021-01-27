@@ -15,7 +15,7 @@ public class DataSaver extends TimerTask {
 
   private static final int WAIT_TIME_BETWEEN_EACH_REFRESH_IN_MS = 10000;
 
-  private static final int TIME_BETWEEN_EACH_CHAMPION_ROLE_REFRESH_IN_HOURS = 12;
+  private static final int TIME_BETWEEN_EACH_CHAMPION_ROLE_REFRESH_IN_HOURS = 72;
   
   private static final int TIME_BETWEEN_CLEAN_CACHE_IN_HOURS = 48;
 
@@ -23,7 +23,7 @@ public class DataSaver extends TimerTask {
   
   private static LocalDateTime nextCleanCacheTime = LocalDateTime.now().plusHours(1);
   
-  private static LocalDateTime nextRefreshChampionsRole = LocalDateTime.now().plusHours(1);
+  private static LocalDateTime nextRefreshChampionsRole = LocalDateTime.now().plusHours(12);
 
   @Override
   public void run() {

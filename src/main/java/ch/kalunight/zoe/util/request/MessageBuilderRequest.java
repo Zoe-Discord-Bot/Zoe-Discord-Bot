@@ -172,8 +172,13 @@ public class MessageBuilderRequest {
       }
 
       if(goodChange) {
+        if(divisionJump) {
         accountTitle = String.format(LanguageManager.getText(lang, "rankChannelChangeRankChangeWinDivisionSkippedTitleWithoutGameType"),
             summonerName);
+        }else {
+          accountTitle = String.format(LanguageManager.getText(lang, "rankChannelChangeWonDivisionWithoutGameType"),
+              summonerName, newFullTier.toString(lang));
+        }
       }else {
         if(divisionJump) {
           accountTitle = String.format(LanguageManager.getText(lang, "rankChannelChangeLooseDivisionDecayTitleWithoutGameType"),
@@ -387,9 +392,15 @@ public class MessageBuilderRequest {
     }
 
     if(goodChange) {
+      if(divisionJump) {
       message.setColor(Color.YELLOW);
       message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeRankChangeWinDivisionSkippedTitle"),
           leagueAccount.getSummoner().getName(), gameType));
+      }else {
+        message.setColor(Color.GREEN);
+        message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeWonDivision"),
+            leagueAccount.getSummoner().getName(), gameType));
+      }
     }else {
       if(divisionJump) {
         message.setColor(Color.BLACK);

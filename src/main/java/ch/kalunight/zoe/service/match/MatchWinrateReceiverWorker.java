@@ -21,7 +21,7 @@ public class MatchWinrateReceiverWorker extends MatchReceiverWorker {
   @Override
   public void runMatchReceveirWorker(SavedMatch match) {
     try {
-      if(!match.isGivenAccountWinner(summoner.sumCache_summonerId)) {
+      if(match.isGivenAccountWinner(summoner.sumCache_summonerId)) {
         winRateReceiver.win.incrementAndGet();
       }else {
         winRateReceiver.loose.incrementAndGet();

@@ -37,7 +37,7 @@ public class SavedMatch implements Serializable {
     gameVersion = match.getGameVersion();
     gameDurations = match.getGameDuration();
     gameCreation = match.getGameCreation();
-
+    
     players = new ArrayList<>();
 
     for(Participant participant : match.getParticipants()) {

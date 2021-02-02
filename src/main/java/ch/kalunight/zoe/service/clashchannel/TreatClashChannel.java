@@ -147,7 +147,7 @@ public class TreatClashChannel implements Runnable {
 
     TeamUtil.addPlayersStats(server, teamPlayersData, messageBuilder);
 
-    messageBuilder.append("\n\n");
+    messageBuilder.append("\n");
 
     TeamUtil.addFlexStats(server, teamPlayersData, messageBuilder);
 
@@ -427,7 +427,7 @@ public class TreatClashChannel implements Runnable {
           try {
             messageReaction.removeReaction(Zoe.getJda().getSelfUser()).queue();
           } catch (ErrorResponseException e) {
-            if(e.getErrorResponse() != ErrorResponse.MISSING_PERMISSIONS) {
+            if(e.getErrorResponse() != ErrorResponse.MISSING_PERMISSIONS && e.getErrorResponse() != ErrorResponse.UNKNOWN_MESSAGE) {
               logger.warn("Error when removing reaction : {}", e.getMessage(), e);
             }
           }
@@ -442,7 +442,7 @@ public class TreatClashChannel implements Runnable {
         Message message = clashChannel.retrieveMessageById(clashChannelId).complete();
         message.addReaction("U+23F3").complete();
       }catch(ErrorResponseException e) {
-        if(e.getErrorResponse() != ErrorResponse.MISSING_PERMISSIONS) {
+        if(e.getErrorResponse() != ErrorResponse.MISSING_PERMISSIONS && e.getErrorResponse() != ErrorResponse.UNKNOWN_MESSAGE) {
           throw e;
         }
       }

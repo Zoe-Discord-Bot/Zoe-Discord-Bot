@@ -44,23 +44,21 @@ public class MessageManagerUtil {
     List<String> messagesToSendCutted = CommandEvent.splitMessage(messageToSend); 
 
     if(messageToEditOrDelete.size() > messagesToSendCutted.size()) {
-      int messagesToTreat = messagesToSendCutted.size();
       int messageToGet = 0;
 
       for(Message messageToTreat : messageToEditOrDelete) {
-        if(messagesToTreat != 0) {
-          messageToTreat.editMessage(messagesToSendCutted.get(messageToGet)).queue();
+        if(messageToGet < messagesToSendCutted.size()) {
+          messageToTreat.editMessage(messagesToSendCutted.get(messageToGet)).complete();
           messageToGet++;
-          messagesToTreat++;
         }else {
           messageListToUpdate.remove(messageToTreat.getIdLong());
-          messageToTreat.delete().queue();
+          messageToTreat.delete().complete();
         }
       }
     }else if (messageToEditOrDelete.size() == messagesToSendCutted.size()) {
       int messageToGet = 0;
       for(Message messageToTreat : messageToEditOrDelete) {
-        messageToTreat.editMessage(messagesToSendCutted.get(messageToGet)).queue();
+        messageToTreat.editMessage(messagesToSendCutted.get(messageToGet)).complete();
         messageToGet++;
       }
     }else {
@@ -69,7 +67,7 @@ public class MessageManagerUtil {
 
       for(String messageToEditOrCreate : messagesToSendCutted) {
         if(messagesAlreadyTreated < messagesAlreadyCreated) {
-          messageToEditOrDelete.get(messagesAlreadyTreated).editMessage(messageToEditOrCreate).queue();
+          messageToEditOrDelete.get(messagesAlreadyTreated).editMessage(messageToEditOrCreate).complete();
           messagesAlreadyTreated++;
         }else {
           messageListToUpdate.add(channel.sendMessage(messageToEditOrCreate).complete().getIdLong());

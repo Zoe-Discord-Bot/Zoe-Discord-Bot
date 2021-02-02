@@ -267,7 +267,8 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
         return determinedPosition;
       }
     }
-    return null;
+    logger.debug("No game detected with the role {} for the player {}", role, summoner.getSumCacheData().getName());
+    return new TeamPositionRated(role, 0);
   }
 
   public int getTotalNumberOfGames() {

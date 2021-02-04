@@ -534,5 +534,6 @@
     "clashChannelClashTournamentTeamName": "%s - %s | Tier %d",
     "statsPredictRoleHelpMessage": "Determine a posição de 5 contas, se elas jogarem junto. Isso abrirá a ferramenta de seleção de jogadores.",
     "statsPredictRoleAnalysisStart": "Okay, vamos começar! Para isso, eu precisarei de 5 contas.",
-    "statsTeamAnalysisRoleSelectionCancel": "Okay, o assistente de seleção de contas foi cancelado. Reenvie o comando ``>stats analysis`` se você quiser reiniciar."
+    "statsTeamAnalysisRoleSelectionCancel": "Okay, o assistente de seleção de contas foi cancelado. Reenvie o comando ``>stats analysis`` se você quiser reiniciar.",
+    "infoPanelRankedUpdateDivisionSkip": "Promovido"
 }

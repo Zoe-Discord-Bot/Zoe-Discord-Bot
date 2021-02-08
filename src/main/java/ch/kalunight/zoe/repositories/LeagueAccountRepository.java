@@ -1,15 +1,14 @@
 package ch.kalunight.zoe.repositories;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.DTO;
-import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.api.endpoints.tft_summoner.dto.TFTSummoner;
 import net.rithms.riot.constant.Platform;
@@ -19,7 +18,7 @@ public class LeagueAccountRepository {
   private static final String INSERT_LEAGUE_ACCOUNT = "INSERT INTO league_account " +
       "(leagueaccount_fk_player, leagueaccount_name, " +
       "leagueaccount_summonerid, leagueaccount_accountid, leagueaccount_puuid, leagueaccount_server, leagueAccount_tftSummonerId, leagueAccount_tftAccountId, leagueAccount_tftPuuid) " +
-      "VALUES (%d, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')";
+      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
   private static final String SELECT_LEAGUES_ACCOUNTS_WITH_GUILDID_AND_PLAYER_DISCORD_ID =
       "SELECT " + 
@@ -58,6 +57,23 @@ public class LeagueAccountRepository {
           "FROM game_info_card " + 
           "INNER JOIN league_account ON game_info_card.gamecard_id = league_account.leagueaccount_fk_gamecard " + 
           "WHERE game_info_card.gamecard_id = %d";
+  
+  private static final String SELECT_LEAGUE_ACCOUNT_WITH_LEAGUEACCOUNT_ID =
+      "SELECT " + 
+          "league_account.leagueaccount_id, " + 
+          "league_account.leagueaccount_fk_player, " + 
+          "league_account.leagueaccount_fk_gamecard, " +
+          "league_account.leagueaccount_fk_currentgame, " +
+          "league_account.leagueaccount_name, " + 
+          "league_account.leagueaccount_summonerid, " + 
+          "league_account.leagueaccount_accountid, " + 
+          "league_account.leagueaccount_puuid, " + 
+          "league_account.leagueAccount_tftSummonerId, " +
+          "league_account.leagueAccount_tftAccountId, " +
+          "league_account.leagueAccount_tftPuuid, " +
+          "league_account.leagueaccount_server " + 
+          "FROM game_info_card " + 
+          "WHERE league_account.leagueaccount_id = %d";
 
   private static final String SELECT_ALL_LEAGUES_ACCOUNTS_WITH_GUILD_ID =
       "SELECT " + 
@@ -274,11 +290,19 @@ public class LeagueAccountRepository {
 
   public static void createLeagueAccount(long playerId, Summoner summoner, TFTSummoner tftSummoner, String server) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement();) {
+        PreparedStatement createQuery = conn.prepareStatement(INSERT_LEAGUE_ACCOUNT)) {
 
-      String finalQuery = String.format(INSERT_LEAGUE_ACCOUNT, playerId, summoner.getName(), summoner.getId(),
-          summoner.getAccountId(), summoner.getPuuid(), server, tftSummoner.getId(), tftSummoner.getAccountId(), tftSummoner.getPuuid());
-      query.execute(finalQuery);
+      createQuery.setLong(1, playerId);
+      createQuery.setString(2, summoner.getName());
+      createQuery.setString(3, summoner.getId());
+      createQuery.setString(4, summoner.getAccountId());
+      createQuery.setString(5, summoner.getPuuid());
+      createQuery.setString(6, server);
+      createQuery.setString(7, tftSummoner.getId());
+      createQuery.setString(8, tftSummoner.getAccountId());
+      createQuery.setString(9, tftSummoner.getPuuid());
+      
+      createQuery.executeUpdate();
     }
   }
 
@@ -357,25 +381,6 @@ public class LeagueAccountRepository {
       RepoRessources.closeResultSet(result);
     }
   }
-  
-  public static DTO.LeagueAccount getLeagueAccountByName(long guildId, long discordPlayerId,
-      String summonerName, Platform region) throws SQLException, RiotApiException {
-    ResultSet result = null;
-    try (Connection conn = RepoRessources.getConnection();) {
-
-      for(DTO.LeagueAccount account : getLeaguesAccounts(guildId, discordPlayerId)) {
-        if(account.leagueAccount_server.equals(region)) {
-          Summoner summoner = Zoe.getRiotApi().getSummoner(region, account.leagueAccount_summonerId);
-          if(summoner.getName().equals(summonerName)) {
-            return account;
-          }
-        }
-      }
-      return null;
-    }finally {
-      RepoRessources.closeResultSet(result);
-    }
-  }  
 
   public static DTO.LeagueAccount getLeagueAccountWithSummonerId(long guildId, String summonerId, Platform region) throws SQLException {
     ResultSet result = null;
@@ -384,6 +389,23 @@ public class LeagueAccountRepository {
       
       String finalQuery = String.format(SELECT_LEAGUE_ACCOUNT_WITH_GUILD_ID_AND_SUMMONER_ID_AND_SERVER,
           guildId, summonerId, region.getName());
+      result = query.executeQuery(finalQuery);
+      int rowCount = result.last() ? result.getRow() : 0;
+      if(rowCount == 0) {
+        return null;
+      }
+      return new DTO.LeagueAccount(result);
+    }finally {
+      RepoRessources.closeResultSet(result);
+    }
+  }
+  
+  public static DTO.LeagueAccount getLeagueAccountWithLeagueAccountId(long leagueAccountId) throws SQLException {
+    ResultSet result = null;
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+      
+      String finalQuery = String.format(SELECT_LEAGUE_ACCOUNT_WITH_LEAGUEACCOUNT_ID, leagueAccountId);
       result = query.executeQuery(finalQuery);
       int rowCount = result.last() ? result.getRow() : 0;
       if(rowCount == 0) {
@@ -409,6 +431,10 @@ public class LeagueAccountRepository {
     }
   }
 
+  /**
+   * We don't use this field anymore, please now use {@link SummonerCacheRepository}
+   */
+  @Deprecated
   public static void updateAccountNameWithAccountId(long leagueAccountId, String name) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {

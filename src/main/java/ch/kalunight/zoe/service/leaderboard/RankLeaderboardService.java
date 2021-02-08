@@ -30,13 +30,13 @@ import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 
 public class RankLeaderboardService extends LeaderboardBaseService {
 
-  public RankLeaderboardService(long guildId, long channelId, long leaderboardId) {
-    super(guildId, channelId, leaderboardId);
+  public RankLeaderboardService(long guildId, long channelId, long leaderboardId, boolean forceRefreshCache) {
+    super(guildId, channelId, leaderboardId, forceRefreshCache);
   }
 
   @Override
   protected void runLeaderboardRefresh(Server server, Guild guild, TextChannel channel, Leaderboard leaderboard,
-      Message message, List<Player> players) throws SQLException, RiotApiException {
+      Message message, List<Player> players, boolean forceRefreshCache) throws SQLException, RiotApiException {
 
     Objective objective = Objective.getObjectiveWithId(leaderboard.lead_type);
     QueueSelected queueSelected = null;
@@ -44,7 +44,7 @@ public class RankLeaderboardService extends LeaderboardBaseService {
       queueSelected = gson.fromJson(leaderboard.lead_data, QueueSelected.class);
     }
 
-    List<PlayerRank> playersRank = orderAndGetPlayers(guild, objective, queueSelected, players);
+    List<PlayerRank> playersRank = orderAndGetPlayers(guild, objective, queueSelected, players, forceRefreshCache);
 
     List<String> playersName = new ArrayList<>();
     List<String> dataList = new ArrayList<>();
@@ -53,39 +53,39 @@ public class RankLeaderboardService extends LeaderboardBaseService {
       playersName.add(playerRank.getPlayer().getUser().getName() + "#" + playerRank.getPlayer().getUser().getDiscriminator());
       FullTier fullTier = playerRank.getFullTier();
       if(queueSelected == null) {
-        dataList.add(Ressources.getTierEmote().get(fullTier.getTier()).getUsableEmote() + " " + fullTier.toString(server.serv_language) 
-        + " (" + LanguageManager.getText(server.serv_language, playerRank.getQueue().getNameId()) + ")");
+        dataList.add(Ressources.getTierEmote().get(fullTier.getTier()).getUsableEmote() + " " + fullTier.toString(server.getLanguage()) 
+        + " (" + LanguageManager.getText(server.getLanguage(), playerRank.getQueue().getNameId()) + ")");
       }else {
-        dataList.add(Ressources.getTierEmote().get(fullTier.getTier()).getUsableEmote() + " " + fullTier.toString(server.serv_language));
+        dataList.add(Ressources.getTierEmote().get(fullTier.getTier()).getUsableEmote() + " " + fullTier.toString(server.getLanguage()));
       }
     }
 
-    String playerTitle = LanguageManager.getText(server.serv_language, "leaderboardPlayersTitle");
+    String playerTitle = LanguageManager.getText(server.getLanguage(), "leaderboardPlayersTitle");
     String dataName;
     if(queueSelected == null) {
-      dataName = LanguageManager.getText(server.serv_language, "leaderboardRankTitle");
+      dataName = LanguageManager.getText(server.getLanguage(), "leaderboardRankTitle");
     }else {
-      dataName = String.format(LanguageManager.getText(server.serv_language, "leaderboardRankSpecificQueueTitle"), LanguageManager.getText(server.serv_language, queueSelected.getGameQueue().getNameId()));
+      dataName = String.format(LanguageManager.getText(server.getLanguage(), "leaderboardRankSpecificQueueTitle"), LanguageManager.getText(server.getLanguage(), queueSelected.getGameQueue().getNameId()));
     }
 
     EmbedBuilder builder = buildBaseLeaderboardList(playerTitle, playersName, dataName, dataList);
     builder.setColor(Color.ORANGE);
     if(queueSelected == null) {
-      builder.setTitle(LanguageManager.getText(server.serv_language, "leaderboardObjectiveRankAllTitle"));
-      message.editMessage(LanguageManager.getText(server.serv_language, "leaderboardObjectiveRankAllTitle")).queue();
+      builder.setTitle(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveRankAllTitle"));
+      message.editMessage(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveRankAllTitle")).queue();
     }else {
-      builder.setTitle(String.format(LanguageManager.getText(server.serv_language, "leaderboardObjectiveRankSpecificTitle"), 
-          LanguageManager.getText(server.serv_language, queueSelected.getGameQueue().getNameId())));
-      message.editMessage(String.format(LanguageManager.getText(server.serv_language, "leaderboardObjectiveRankSpecificTitle"), 
-          LanguageManager.getText(server.serv_language, queueSelected.getGameQueue().getNameId()))).queue();
+      builder.setTitle(String.format(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveRankSpecificTitle"), 
+          LanguageManager.getText(server.getLanguage(), queueSelected.getGameQueue().getNameId())));
+      message.editMessage(String.format(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveRankSpecificTitle"), 
+          LanguageManager.getText(server.getLanguage(), queueSelected.getGameQueue().getNameId()))).queue();
     }
 
-    builder.setFooter(LanguageManager.getText(server.serv_language, "leaderboardRefreshMessage"));
+    builder.setFooter(LanguageManager.getText(server.getLanguage(), "leaderboardRefreshMessage"));
     message.editMessage(builder.build()).queue();
 
   }
 
-  private List<PlayerRank> orderAndGetPlayers(Guild guild, Objective objective, QueueSelected queueSelected, List<Player> players) throws SQLException, RiotApiException {
+  private List<PlayerRank> orderAndGetPlayers(Guild guild, Objective objective, QueueSelected queueSelected, List<Player> players, boolean forceRefreshCache) throws SQLException, RiotApiException {
     List<PlayerRank> playersPoints = new ArrayList<>();
 
     for(DTO.Player player : players) {
@@ -100,16 +100,16 @@ public class RankLeaderboardService extends LeaderboardBaseService {
         LastRank lastRank = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
 
         if(lastRank != null) {
-          if(lastRank.lastRank_soloq != null) {
-            leaguesEntries.add(lastRank.lastRank_soloq);
+          if(lastRank.getLastRankSoloq() != null) {
+            leaguesEntries.add(lastRank.getLastRankSoloq());
           }
           
-          if(lastRank.lastRank_flex != null) {
-            leaguesEntries.add(lastRank.lastRank_flex);
+          if(lastRank.getLastRankFlex() != null) {
+            leaguesEntries.add(lastRank.getLastRankFlex());
           }
           
-          if(lastRank.lastRank_tft != null) {
-            leaguesEntries.add(lastRank.lastRank_tft);
+          if(lastRank.getLastRankTft() != null) {
+            leaguesEntries.add(lastRank.getLastRankTft());
           }
         }
 

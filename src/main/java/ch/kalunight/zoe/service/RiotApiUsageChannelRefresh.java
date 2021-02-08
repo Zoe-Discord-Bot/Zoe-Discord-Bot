@@ -17,7 +17,7 @@ import org.knowm.xchart.style.Styler.ChartTheme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.model.RefreshLoadStatus;
@@ -67,12 +67,15 @@ public class RiotApiUsageChannelRefresh implements Runnable {
 
         rapiInfoChannel.sendMessage("**Generic Stats**"
             + "\nTotal number of Servers : " + Zoe.getJda().getGuilds().size()
-            + "\nTask in Server Executor Queue : " +  (ServerData.getServerExecutor().getActiveCount() + ServerData.getServerExecutor().getQueue().size())
+            + "\nTask in Server Executor Queue : " + (ServerThreadsManager.getServerExecutor().getActiveCount() + ServerThreadsManager.getServerExecutor().getQueue().size())
             + "\nInfoPannel refresh done last two minutes : " + InfoPanelRefresher.getNbrServerSefreshedLast2Minutes()
-            + "\nTask in InfoCards Generator Queue : " + ServerData.getInfocardsGenerator().getQueue().size()
-            + "\nTask in Players Data Worker Queue : " + ServerData.getPlayersDataQueue()
+            + "\nTask in InfoCards Generator Queue : " + ServerThreadsManager.getInfocardsGenerator().getQueue().size()
+            + "\nTask in Players Data Worker Queue : " + ServerThreadsManager.getPlayersDataQueue()
             + "\nInfocards Generated last 2 minutes : " + getInfocardCreatedCount()
-            + "\nTask in Leaderboard Executor : " + ServerData.getLeaderboardExecutor().getQueue().size()).queue();
+            + "\nTask in Leaderboard Executor : " + ServerThreadsManager.getLeaderboardExecutor().getQueue().size()
+            + "\nTask in Clash Channel Executor : " + ServerThreadsManager.getClashChannelExecutor().getQueue().size()
+            + "\nTask in Analysis Manager : " + ServerThreadsManager.getDataAnalysisManager().getQueue().size()
+            + "\nTask in Analysis Thread : " + ServerThreadsManager.getDataAnalysisThread().getQueue().size()).queue();
 
         StringBuilder refreshStatusText = new StringBuilder();
 
@@ -88,6 +91,9 @@ public class RiotApiUsageChannelRefresh implements Runnable {
           }else if (refreshStatus.getRefreshPhase().equals(RefreshPhase.IN_EVALUATION_PHASE) || refreshStatus.getRefreshPhase().equals(RefreshPhase.IN_EVALUATION_PHASE_ON_ROAD)) {
             refreshStatusText.append("\nCurrent Tested Refresh Rate : " + refreshStatus.getRefresRatehInMinute().get()
                 + "\nRefresh rate evaluation period end date (UTC) : " + refreshStatus.getEvaluationEnd().toString());
+            if(refreshStatus.getRefreshPhase().equals(RefreshPhase.IN_EVALUATION_PHASE)) {
+              refreshStatusText.append("\nServers To Still evaluate : " + refreshStatus.getServersToEvaluate().size());
+            }
           }else if(refreshStatus.getRefreshPhase().equals(RefreshPhase.SMART_MOD)) {
             refreshStatusText.append("\nSmart mod end date (UTC) : " + refreshStatus.getSmartModEnd().toString());
           }
@@ -105,7 +111,7 @@ public class RiotApiUsageChannelRefresh implements Runnable {
         serverHelperStats.append("**Server Helper Threads Stats**\n");
 
         for(Platform platform : Platform.values()) {
-          ThreadPoolExecutor threadsPool = ServerData.getInfochannelHelperThread(platform);
+          ThreadPoolExecutor threadsPool = ServerThreadsManager.getInfochannelHelperThread(platform);
 
           serverHelperStats.append(platform.getName().toUpperCase() + " queue : " + threadsPool.getQueue().size() + "\n");
         }

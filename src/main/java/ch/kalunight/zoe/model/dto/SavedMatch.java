@@ -4,101 +4,138 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import ch.kalunight.zoe.exception.PlayerNotFoundException;
 import net.rithms.riot.api.endpoints.match.dto.Match;
 import net.rithms.riot.api.endpoints.match.dto.Participant;
 import net.rithms.riot.api.endpoints.match.dto.ParticipantIdentity;
+import net.rithms.riot.api.endpoints.match.dto.ParticipantTimeline;
 import net.rithms.riot.api.endpoints.match.dto.Player;
 
 public class SavedMatch implements Serializable {
 
+  private static final int BLUE_TEAM_ID = 100;
+
   private static final long serialVersionUID = -3423117740284389063L;
+
+  private List<SavedMatchPlayer> players;
+
+  private int queueId;
+
+  private String gameVersion;
+
+  private long gameCreation;
   
-  private List<SavedMatchPlayer> accountsIdBlueSide;
-  private List<SavedMatchPlayer> accountsIdRedSide;
+  /**
+   * Match duration in seconds.
+   */
+  private long gameDurations;
 
   private boolean blueSideHasWin;
-  
+
   public SavedMatch(Match match) {
-    accountsIdBlueSide = new ArrayList<>();
-    accountsIdRedSide = new ArrayList<>();
+    queueId = match.getQueueId();
+    gameVersion = match.getGameVersion();
+    gameDurations = match.getGameDuration();
+    gameCreation = match.getGameCreation();
     
+    players = new ArrayList<>();
+
     for(Participant participant : match.getParticipants()) {
-
-      Player player = null;
-
-      for(ParticipantIdentity participantIdentity : match.getParticipantIdentities()) {
-        if(participant.getParticipantId() == participantIdentity.getParticipantId()) {
-          player = participantIdentity.getPlayer();
-        }
-      }
-
-      if(player != null) {
-        SavedMatchPlayer savedPlayer = new SavedMatchPlayer(player.getAccountId(), participant.getChampionId(), participant.getStats());
-
-        if(participant.getTeamId() == 100) {
-          accountsIdBlueSide.add(savedPlayer);
-        }else {
-          accountsIdRedSide.add(savedPlayer);
-        }
-      }
+      buildPlayer(match, participant);
     }
-    
+
     if(match.getTeamByTeamId(100).getWin().equals("Win")) {
       blueSideHasWin = true;
     }else {
       blueSideHasWin = false;
     }
   }
-  
-  public SavedMatchPlayer getSavedMatchPlayerByAccountId(String accountId) {
-    List<SavedMatchPlayer> savedMatchPlayers = new ArrayList<>();
-    
-    savedMatchPlayers.addAll(accountsIdBlueSide);
-    savedMatchPlayers.addAll(accountsIdRedSide);
-    
-    for(SavedMatchPlayer savedMatchPlayer : savedMatchPlayers) {
-      if(savedMatchPlayer.getAccountId().equals(accountId)) {
+
+  private void buildPlayer(Match match, Participant participant) {
+    Player player = null;
+
+    for(ParticipantIdentity participantIdentity : match.getParticipantIdentities()) {
+      if(participant.getParticipantId() == participantIdentity.getParticipantId()) {
+        player = participantIdentity.getPlayer();
+      }
+    }
+
+    if(player != null) {
+      ParticipantTimeline timeline = participant.getTimeline();
+      String role = null;
+      String lane = null;
+      if(timeline != null) {
+        role = timeline.getRole();
+        lane = timeline.getLane();
+      }
+
+      boolean blueSide;
+      if(participant.getTeamId() == BLUE_TEAM_ID) {
+        blueSide = true;
+      }else {
+        blueSide = false;
+      }
+
+      SavedMatchPlayer savedPlayer = new SavedMatchPlayer(blueSide, player.getSummonerId(), participant.getChampionId(),
+          participant.getStats(), role, lane);
+
+      players.add(savedPlayer);
+    }
+  }
+
+  public SavedMatchPlayer getSavedMatchPlayerBySummonerId(String summonerId) {
+
+    for(SavedMatchPlayer savedMatchPlayer : players) {
+      if(savedMatchPlayer.getSummonerId().equals(summonerId)) {
         return savedMatchPlayer;
       }
     }
     return null;
   }
-  
-  public boolean isGivenAccountWinner(String accountId) {
-    boolean playerBlueSide = false;
-    
-    for(SavedMatchPlayer player : accountsIdBlueSide) {
-      if(player.getAccountId().equals(accountId)) {
-        playerBlueSide = true;
-        break;
+
+  public SavedMatchPlayer getSavedMatchPlayerByChampionId(int championId) {
+
+    for(SavedMatchPlayer savedMatchPlayer : players) {
+      if(savedMatchPlayer.getChampionId() == championId) {
+        return savedMatchPlayer;
       }
     }
-    
-    return (playerBlueSide && blueSideHasWin) || (!playerBlueSide && !blueSideHasWin);
+    return null;
+  }
+
+  public boolean isGivenAccountWinner(String summonerId) {
+
+    for(SavedMatchPlayer player : players) {
+      if(player.getSummonerId().equals(summonerId)) {
+        return (player.isBlueSide() && blueSideHasWin) || (!player.isBlueSide() && !blueSideHasWin);
+      }
+    }
+
+    throw new PlayerNotFoundException("Impossible to give a winner in the game since the player is not in the game");
+  }
+
+  public long getGameCreation() {
+    return gameCreation;
+  }
+
+  public long getGameDurations() {
+    return gameDurations;
   }
   
-  public List<SavedMatchPlayer> getAccountsIdBlueSide() {
-    return accountsIdBlueSide;
-  }
-
-  public void setAccountsIdBlueSide(List<SavedMatchPlayer> accountsIdBlueSide) {
-    this.accountsIdBlueSide = accountsIdBlueSide;
-  }
-
-  public List<SavedMatchPlayer> getAccountsIdRedSide() {
-    return accountsIdRedSide;
-  }
-
-  public void setAccountsIdRedSide(List<SavedMatchPlayer> accountsIdRedSide) {
-    this.accountsIdRedSide = accountsIdRedSide;
+  public List<SavedMatchPlayer> getPlayers() {
+    return players;
   }
 
   public boolean isBlueSideHasWin() {
     return blueSideHasWin;
   }
 
-  public void setBlueSideHasWin(boolean blueSideAsWin) {
-    this.blueSideHasWin = blueSideAsWin;
+  public int getQueueId() {
+    return queueId;
+  }
+
+  public String getGameVersion() {
+    return gameVersion;
   }
 
 }

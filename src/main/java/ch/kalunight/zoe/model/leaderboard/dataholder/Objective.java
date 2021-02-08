@@ -53,17 +53,17 @@ public enum Objective {
   }
 
   public static LeaderboardExtraDataHandler getDataNeeded(Objective objective, EventWaiter waiter,
-      Server server, CommandEvent event) {
+      Server server, CommandEvent event, boolean forceRefreshCheck) {
     switch(objective) {
       case MASTERY_POINT_SPECIFIC_CHAMP:
       case AVERAGE_KDA_SPECIFIC_CHAMP:
       /*case WINRATE_SPECIFIC_CHAMP:*/
-        return new SpecificChampionObjectiveDataHandler(objective, waiter, event, server);
+        return new SpecificChampionObjectiveDataHandler(objective, waiter, event, server, forceRefreshCheck);
       /*case WINRATE_SPECIFIC_QUEUE:*/
       case SPECIFIC_QUEUE_RANK:
-        return new SpecificQueueDataHandler(objective, waiter, event, server);
+        return new SpecificQueueDataHandler(objective, waiter, event, server, forceRefreshCheck);
       default:
-        return new NoSpecificDataNeededHandler(objective, waiter, event, server);
+        return new NoSpecificDataNeededHandler(objective, waiter, event, server, forceRefreshCheck);
     }
   }
 

@@ -82,17 +82,17 @@ public class RankChannelFilterOption extends ConfigurationOption {
         choiceBuilder.setTimeout(2, TimeUnit.MINUTES);
 
         choiceBuilder.setText(
-            String.format(LanguageManager.getText(server.serv_language, "rankChannelFilterOptionLongDesc"),
-                LanguageManager.getText(server.serv_language, description))
+            String.format(LanguageManager.getText(server.getLanguage(), "rankChannelFilterOptionLongDesc"),
+                LanguageManager.getText(server.getLanguage(), description))
             + "\n" + RankChannelFilter.ALL.emoji 
-            + " -> " + LanguageManager.getText(server.serv_language, RankChannelFilter.ALL.optionName)
-            + " : " + LanguageManager.getText(server.serv_language, RankChannelFilter.ALL.description) + "\n"
+            + " -> " + LanguageManager.getText(server.getLanguage(), RankChannelFilter.ALL.optionName)
+            + " : " + LanguageManager.getText(server.getLanguage(), RankChannelFilter.ALL.description) + "\n"
             + RankChannelFilter.LOL_ONLY.emoji
-            + " -> " + LanguageManager.getText(server.serv_language, RankChannelFilter.LOL_ONLY.optionName)
-            + " : " + LanguageManager.getText(server.serv_language, RankChannelFilter.LOL_ONLY.description) + "\n"
+            + " -> " + LanguageManager.getText(server.getLanguage(), RankChannelFilter.LOL_ONLY.optionName)
+            + " : " + LanguageManager.getText(server.getLanguage(), RankChannelFilter.LOL_ONLY.description) + "\n"
             + RankChannelFilter.TFT_ONLY.emoji
-            + " -> " + LanguageManager.getText(server.serv_language, RankChannelFilter.TFT_ONLY.optionName)
-            + " : " + LanguageManager.getText(server.serv_language, RankChannelFilter.TFT_ONLY.description) + "\n");
+            + " -> " + LanguageManager.getText(server.getLanguage(), RankChannelFilter.TFT_ONLY.optionName)
+            + " : " + LanguageManager.getText(server.getLanguage(), RankChannelFilter.TFT_ONLY.description) + "\n");
 
         choiceBuilder.setAction(updateOption(event.getChannel(), waiter, event.getAuthor(), server));
 
@@ -117,7 +117,7 @@ public class RankChannelFilterOption extends ConfigurationOption {
         }else if(emoteUsed.getName().equals(RankChannelFilter.TFT_ONLY.unicode)){
           tmpRankChannelFilter = RankChannelFilter.TFT_ONLY;
         }else {
-          channel.sendMessage(LanguageManager.getText(server.serv_language, "cleanChannelOptionCanceled")).queue();
+          channel.sendMessage(LanguageManager.getText(server.getLanguage(), "cleanChannelOptionCanceled")).queue();
           return;
         }
 
@@ -129,10 +129,10 @@ public class RankChannelFilterOption extends ConfigurationOption {
         }
 
         if(tmpRankChannelFilter.equals(rankchannelFilter)) {
-          channel.sendMessage(LanguageManager.getText(server.serv_language, "rankChannelFilterOptionNotChanged")).queue();
+          channel.sendMessage(LanguageManager.getText(server.getLanguage(), "rankChannelFilterOptionNotChanged")).queue();
         }else {
           rankchannelFilter = tmpRankChannelFilter;
-          channel.sendMessage(LanguageManager.getText(server.serv_language, "rankChannelFilterOptionChanged")).queue();
+          channel.sendMessage(LanguageManager.getText(server.getLanguage(), "rankChannelFilterOptionChanged")).queue();
         }
 
       }};

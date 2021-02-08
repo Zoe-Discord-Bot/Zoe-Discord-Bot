@@ -38,7 +38,7 @@ public class DeleteTeamCommand extends ZoeCommand {
     
     DTO.Team team = TeamRepository.getTeam(server.serv_guildId, teamName);
     if(team == null) {
-      event.reply(String.format(LanguageManager.getText(server.serv_language, "deleteTeamNotFound"), teamName));
+      event.reply(String.format(LanguageManager.getText(server.getLanguage(), "deleteTeamNotFound"), teamName));
     } else {
       List<DTO.Player> players = PlayerRepository.getPlayers(server.serv_guildId);
       List<Long> playersIdInTheTeam = new ArrayList<>();
@@ -49,7 +49,7 @@ public class DeleteTeamCommand extends ZoeCommand {
       }
       
       TeamRepository.deleteTeam(team.team_id, playersIdInTheTeam);
-      event.reply(String.format(LanguageManager.getText(server.serv_language, "deleteTeamDoneMessage"), teamName));
+      event.reply(String.format(LanguageManager.getText(server.getLanguage(), "deleteTeamDoneMessage"), teamName));
     }
   }
 

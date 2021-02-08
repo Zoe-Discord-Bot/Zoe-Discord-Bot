@@ -4,7 +4,7 @@ import java.util.function.BiConsumer;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.service.AdminSendMessageService;
 import ch.kalunight.zoe.util.CommandUtil;
@@ -28,7 +28,7 @@ public class AdminSendAnnonceMessageCommand extends ZoeCommand {
       return;
     }
 
-    ServerData.getServerExecutor().execute(new AdminSendMessageService(event));
+    ServerThreadsManager.getServerExecutor().execute(new AdminSendMessageService(event));
   }
 
   @Override

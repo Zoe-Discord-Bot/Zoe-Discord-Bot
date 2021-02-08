@@ -48,7 +48,7 @@ public class RoleOption extends ConfigurationOption {
       public void accept(CommandEvent event) {
 
         if(!event.getGuild().getSelfMember().getPermissions().contains(Permission.MANAGE_ROLES)) {
-          event.reply(LanguageManager.getText(server.serv_language, "roleOptionPermissionNeeded"));
+          event.reply(LanguageManager.getText(server.getLanguage(), "roleOptionPermissionNeeded"));
           return;
         }
 
@@ -63,8 +63,8 @@ public class RoleOption extends ConfigurationOption {
         choiceBuilder.setTimeout(2, TimeUnit.MINUTES);
 
         if(role == null) {
-          choiceBuilder.setText(String.format(LanguageManager.getText(server.serv_language, "roleOptionLongDesc"), 
-              LanguageManager.getText(server.serv_language, description)));
+          choiceBuilder.setText(String.format(LanguageManager.getText(server.getLanguage(), "roleOptionLongDesc"), 
+              LanguageManager.getText(server.getLanguage(), description)));
 
           choiceBuilder.setAction(receiveValidationAndCreateOption(event.getChannel(), event.getGuild(), server));
 
@@ -73,7 +73,7 @@ public class RoleOption extends ConfigurationOption {
           menu.display(event.getChannel());
 
         }else {
-          choiceBuilder.setText(String.format(LanguageManager.getText(server.serv_language, "roleOptionLongDescDisable"), description));
+          choiceBuilder.setText(String.format(LanguageManager.getText(server.getLanguage(), "roleOptionLongDescDisable"), description));
 
           choiceBuilder.setAction(receiveValidationAndDisableOption(event.getChannel(), event.getGuild(), server));
 
@@ -92,7 +92,7 @@ public class RoleOption extends ConfigurationOption {
         channel.sendTyping().complete();
         try {
           if(emoteUsed.getName().equals("✅")) {
-            channel.sendMessage(LanguageManager.getText(server.serv_language, "roleOptionActivateWaitMessage")).complete();
+            channel.sendMessage(LanguageManager.getText(server.getLanguage(), "roleOptionActivateWaitMessage")).complete();
             channel.sendTyping().complete();
             RoleAction action = guild.createRole();
             action.setName("Zoe-Player");
@@ -140,13 +140,13 @@ public class RoleOption extends ConfigurationOption {
               everyone.getManager().deny(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).complete();
             }
             
-            channel.sendMessage(LanguageManager.getText(server.serv_language, "roleOptionDoneMessage")).complete();
+            channel.sendMessage(LanguageManager.getText(server.getLanguage(), "roleOptionDoneMessage")).complete();
           }else {
-            channel.sendMessage(LanguageManager.getText(server.serv_language, "roleOptionCancelMessage")).queue();
+            channel.sendMessage(LanguageManager.getText(server.getLanguage(), "roleOptionCancelMessage")).queue();
           }
         }catch(SQLException e) {
           logger.error("SQL Error when configure role option !", e);
-          channel.sendMessage(LanguageManager.getText(server.serv_language, "errorSQLPleaseReport")).queue();
+          channel.sendMessage(LanguageManager.getText(server.getLanguage(), "errorSQLPleaseReport")).queue();
         }
       }};
 
@@ -159,7 +159,7 @@ public class RoleOption extends ConfigurationOption {
       public void accept(ReactionEmote emoteUsed) {
         channel.sendTyping().complete();
         if(emoteUsed.getName().equals("✅")) {
-          channel.sendMessage(LanguageManager.getText(server.serv_language, "roleOptionDisableWaitMessage")).complete();
+          channel.sendMessage(LanguageManager.getText(server.getLanguage(), "roleOptionDisableWaitMessage")).complete();
           channel.sendTyping().complete();
           role.delete().complete();
           try {
@@ -174,7 +174,7 @@ public class RoleOption extends ConfigurationOption {
             infoChannelDb = InfoChannelRepository.getInfoChannel(server.serv_guildId);
           } catch(SQLException e) {
             logger.error("SQL Error when configure role option !", e);
-            channel.sendMessage(LanguageManager.getText(server.serv_language, "errorSQLPleaseReport")).queue();
+            channel.sendMessage(LanguageManager.getText(server.getLanguage(), "errorSQLPleaseReport")).queue();
             return;
           }
           
@@ -185,9 +185,9 @@ public class RoleOption extends ConfigurationOption {
           }
 
           role = null;
-          channel.sendMessage(LanguageManager.getText(server.serv_language, "roleOptionDoneMessageDisable")).queue();
+          channel.sendMessage(LanguageManager.getText(server.getLanguage(), "roleOptionDoneMessageDisable")).queue();
         }else {
-          channel.sendMessage(LanguageManager.getText(server.serv_language, "roleOptionDoneMessageStillActivate")).queue();
+          channel.sendMessage(LanguageManager.getText(server.getLanguage(), "roleOptionDoneMessageStillActivate")).queue();
         }
       }};
   }

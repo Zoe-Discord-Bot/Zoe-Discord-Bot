@@ -7,7 +7,7 @@ import java.util.function.BiConsumer;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 
-import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.dto.DTO;
@@ -41,24 +41,24 @@ public class DefineInfoChannelCommand extends ZoeCommand {
 
     if(infochannel != null) {
       TextChannel textChannel = event.getGuild().getTextChannelById(infochannel.infochannel_channelid);
-      event.reply(String.format(LanguageManager.getText(server.serv_language, "defineInfoChannelAlreadySet"), 
+      event.reply(String.format(LanguageManager.getText(server.getLanguage(), "defineInfoChannelAlreadySet"), 
           textChannel.getAsMention()));
     } else {
       if(event.getMessage().getMentionedChannels().size() != 1) {
-        event.reply(LanguageManager.getText(server.serv_language, "defineInfoChannelMentionOfAChannelNeeded"));
+        event.reply(LanguageManager.getText(server.getLanguage(), "defineInfoChannelMentionOfAChannelNeeded"));
       } else {
         TextChannel textChannel = event.getMessage().getMentionedChannels().get(0);
 
         if(textChannel.getGuild().getIdLong() != server.serv_guildId) {
-          event.reply(LanguageManager.getText(server.serv_language, "defineInfoChannelMentionOfAChannel"));
+          event.reply(LanguageManager.getText(server.getLanguage(), "defineInfoChannelMentionOfAChannel"));
 
         } else {
           if(!event.getMessage().getMentionedChannels().get(0).canTalk()) {
-            event.reply(LanguageManager.getText(server.serv_language, "defineInfoChannelMissingSpeakPermission"));
+            event.reply(LanguageManager.getText(server.getLanguage(), "defineInfoChannelMissingSpeakPermission"));
           } else {
             ServerConfiguration config = ConfigRepository.getServerConfiguration(server.serv_guildId);
             if(textChannel.equals(config.getCleanChannelOption().getCleanChannel())) {
-              event.reply(LanguageManager.getText(server.serv_language, "defineInfoChannelImpossibleToDefineCleanChannel"));
+              event.reply(LanguageManager.getText(server.getLanguage(), "defineInfoChannelImpossibleToDefineCleanChannel"));
             }else {
               InfoChannelRepository.createInfoChannel(server.serv_id, textChannel.getIdLong());
               
@@ -66,18 +66,18 @@ public class DefineInfoChannelCommand extends ZoeCommand {
                 CommandUtil.giveRolePermission(event.getGuild(), textChannel, config);
               }
               
-              event.reply(LanguageManager.getText(server.serv_language, "defineInfoChannelDoneMessage"));
+              event.reply(LanguageManager.getText(server.getLanguage(), "defineInfoChannelDoneMessage"));
               
-              Message message = textChannel.sendMessage(LanguageManager.getText(server.serv_language, "defineInfoChannelLoadingMessage"))
+              Message message = textChannel.sendMessage(LanguageManager.getText(server.getLanguage(), "defineInfoChannelLoadingMessage"))
                   .complete();
 
               infochannel = InfoChannelRepository.getInfoChannel(server.serv_guildId);
               InfoChannelRepository.createInfoPanelMessage(infochannel.infoChannel_id, message.getIdLong());
               
-              if(!ServerData.isServerWillBeTreated(server)) {
-                ServerData.getServersIsInTreatment().put(event.getGuild().getId(), true);
+              if(!ServerThreadsManager.isServerWillBeTreated(server)) {
+                ServerThreadsManager.getServersIsInTreatment().put(event.getGuild().getId(), true);
                 ServerRepository.updateTimeStamp(server.serv_guildId, LocalDateTime.now());
-                ServerData.getServerExecutor().execute(new InfoPanelRefresher(server));
+                ServerThreadsManager.getServerExecutor().execute(new InfoPanelRefresher(server, false));
               }
             }
           }

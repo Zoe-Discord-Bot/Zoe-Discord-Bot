@@ -68,7 +68,7 @@ public abstract class RankedChannelBaseRefresher implements Runnable {
           if(oldFullTier.getRank().equals(newFullTier.getRank()) 
               && oldFullTier.getTier().equals(newFullTier.getTier())) { //Only LP change
             sendLeaguePointChangeOnly();
-          }else { //Decay OR division skip OR TFT Massive change
+          }else { //Decay OR division WON OR TFT Massive change
             sendRankChangedWithoutBO();
           }
         }

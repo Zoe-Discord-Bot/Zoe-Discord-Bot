@@ -17,6 +17,7 @@ import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.requests.ErrorResponse;
+import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
 
@@ -27,12 +28,12 @@ public class InfoPanelRefresherUtil {
   }
 
   public static String getCurrentGameInfoStringForOneAccount(DTO.LeagueAccount account,
-      CurrentGameInfo currentGameInfo, String language) {
+      CurrentGameInfo currentGameInfo, String language) throws RiotApiException {
     Preconditions.checkNotNull(account);
-
+    
     String gameStatus = LanguageManager.getText(language, 
         NameConversion.convertGameQueueIdToString(currentGameInfo.getGameQueueConfigId())) 
-        + " " + LanguageManager.getText(language, "withTheAccount") + " **" + account.leagueAccount_name + "**";
+        + " " + LanguageManager.getText(language, "withTheAccount") + " **" + account.getSummoner().getName() + "**";
 
     double minutesOfGames = 0.0;
 
@@ -51,15 +52,15 @@ public class InfoPanelRefresherUtil {
   }
 
   public static String getCurrentGameInfoStringForMultipleAccounts(Map<DTO.LeagueAccount, 
-      CurrentGameInfo> accountsWithCurrentGame, String language) {
+      CurrentGameInfo> accountsWithCurrentGame, String language) throws RiotApiException {
     Preconditions.checkNotNull(accountsWithCurrentGame);
 
     StringBuilder stringBuilder = new StringBuilder();
 
     for(Entry<LeagueAccount, CurrentGameInfo> currentGamePerLeagueAccount : accountsWithCurrentGame.entrySet()) {
-
+      
       stringBuilder.append("-" + LanguageManager.getText(language, "account") 
-      + " **" + currentGamePerLeagueAccount.getKey().leagueAccount_name + "** : ");
+      + " **" + currentGamePerLeagueAccount.getKey().getSummoner().getName() + "** : ");
 
       stringBuilder.append(LanguageManager.getText(language,
           NameConversion.convertGameQueueIdToString(currentGamePerLeagueAccount.getValue().getGameQueueConfigId())));

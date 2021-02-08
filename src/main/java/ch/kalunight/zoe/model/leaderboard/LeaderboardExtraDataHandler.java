@@ -8,7 +8,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
-import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.leaderboard.dataholder.Objective;
@@ -29,12 +29,14 @@ public abstract class LeaderboardExtraDataHandler {
   protected EventWaiter waiter;
   protected CommandEvent event;
   protected Server server;
+  protected boolean forceRefreshCache;
 
-  public LeaderboardExtraDataHandler(Objective objective, EventWaiter waiter, CommandEvent event, Server server) {
+  public LeaderboardExtraDataHandler(Objective objective, EventWaiter waiter, CommandEvent event, Server server, boolean forceRefreshCache) {
     this.objective = objective;
     this.waiter = waiter;
     this.event = event;
     this.server = server;
+    this.forceRefreshCache = forceRefreshCache;
   }
 
   public abstract void handleSecondCreationPart();
@@ -55,12 +57,12 @@ public abstract class LeaderboardExtraDataHandler {
     TextChannel leaderboardChannel;
 
     if(event.getMessage().getContentRaw().equalsIgnoreCase("Stop")) {
-      event.getTextChannel().sendMessage(LanguageManager.getText(server.serv_language, "leaderboardCancelSelectionOfChannel")).queue();
+      event.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "leaderboardCancelSelectionOfChannel")).queue();
       return;
     }
     
     if(event.getMessage().getMentionedChannels().size() != 1) {
-      message.getChannel().sendMessage(LanguageManager.getText(server.serv_language, "createLeaderboardNeedOneMentionnedChannel")).queue();
+      message.getChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "createLeaderboardNeedOneMentionnedChannel")).queue();
       waiter.waitForEvent(MessageReceivedEvent.class,
           e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel())
           && !e.getMessage().getId().equals(event.getMessage().getId()),
@@ -72,7 +74,7 @@ public abstract class LeaderboardExtraDataHandler {
     leaderboardChannel = message.getMentionedChannels().get(0);
 
     try {
-      Message leaderboardMessage = leaderboardChannel.sendMessage(LanguageManager.getText(server.serv_language,
+      Message leaderboardMessage = leaderboardChannel.sendMessage(LanguageManager.getText(server.getLanguage(),
           "leaderboardObjectiveBaseMessage")).complete();
 
       Leaderboard leaderboard = LeaderboardRepository.createLeaderboard(server.serv_id, leaderboardChannel.getIdLong(),
@@ -83,25 +85,25 @@ public abstract class LeaderboardExtraDataHandler {
       }
 
       LeaderboardBaseService baseLeaderboardService = LeaderboardBaseService.getServiceWithObjective(objective,
-          server.serv_guildId, leaderboardChannel.getIdLong(), leaderboard.lead_id);
+          server.serv_guildId, leaderboardChannel.getIdLong(), leaderboard.lead_id, forceRefreshCache);
 
-      ServerData.getLeaderboardExecutor().execute(baseLeaderboardService);
+      ServerThreadsManager.getLeaderboardExecutor().execute(baseLeaderboardService);
 
-      event.getTextChannel().sendMessage(LanguageManager.getText(server.serv_language, "leaderboardSuccessfullyCreated")).queue();
+      event.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "leaderboardSuccessfullyCreated")).queue();
     }catch(ErrorResponseException error) {
-      message.getChannel().sendMessage(LanguageManager.getText(server.serv_language, "leaderboardMissingPermission")).queue();
+      message.getChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "leaderboardMissingPermission")).queue();
       waiter.waitForEvent(MessageReceivedEvent.class,
           e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel())
           && !e.getMessage().getId().equals(event.getMessage().getId()),
           e -> threatChannelSelection(dataOfLeaderboard, e), 2, TimeUnit.MINUTES,
           () -> cancelProcedure(event.getTextChannel(), server));
     } catch (SQLException e) {
-      event.getTextChannel().sendMessage(LanguageManager.getText(server.serv_language, "errorSQLPleaseReport")).queue();
+      event.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "errorSQLPleaseReport")).queue();
       logger.warn("SQL Error when creating leaderboard", e);
     }
   }
 
   private void cancelProcedure(TextChannel channel, Server server) {
-    channel.sendMessage(LanguageManager.getText(server.serv_language, "leaderboardObjectiveChannelSelectionTimeOut")).queue();
+    channel.sendMessage(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveChannelSelectionTimeOut")).queue();
   }
 }

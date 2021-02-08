@@ -10,8 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.collections4.map.HashedMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import ch.kalunight.zoe.ServerData;
+import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.repositories.ServerRepository;
 
@@ -45,9 +44,9 @@ public class DelayedInfochannelRefresh extends TimerTask {
       }
       
       if(needToBeTreated) {
-        ServerData.getServersIsInTreatment().put(Long.toString(server.serv_guildId), true);
+        ServerThreadsManager.getServersIsInTreatment().put(Long.toString(server.serv_guildId), true);
         ServerRepository.updateTimeStamp(server.serv_guildId, LocalDateTime.now());
-        ServerData.getServerExecutor().execute(new InfoPanelRefresher(server));
+        ServerThreadsManager.getServerExecutor().execute(new InfoPanelRefresher(server, true));
       }
     }catch (SQLException e) {
       logger.error("SQL Expception in delayed Infochannel Refresh", e);

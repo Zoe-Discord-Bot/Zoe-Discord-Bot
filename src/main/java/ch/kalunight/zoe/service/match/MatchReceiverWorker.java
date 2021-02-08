@@ -1,6 +1,5 @@
 package ch.kalunight.zoe.service.match;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -12,14 +11,16 @@ import org.slf4j.LoggerFactory;
 
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.DTO;
-import ch.kalunight.zoe.model.dto.DTO.MatchCache;
+import ch.kalunight.zoe.model.dto.SavedMatch;
+import ch.kalunight.zoe.model.dto.DTO.SummonerCache;
 import ch.kalunight.zoe.riotapi.CachedRiotApi;
 import net.rithms.riot.api.endpoints.match.dto.MatchReference;
-import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.constant.Platform;
 
 public abstract class MatchReceiverWorker implements Runnable {
 
+  private static final int CANCEL_GAME_DURATION = 500;
+  
   protected static final List<MatchReference> matchsInWork = Collections.synchronizedList(new ArrayList<>());
   
   protected static final Logger logger = LoggerFactory.getLogger(MatchReceiverWorker.class);
@@ -32,10 +33,10 @@ public abstract class MatchReceiverWorker implements Runnable {
   
   protected MatchReference matchReference;
   
-  protected Summoner summoner;
+  protected SummonerCache summoner;
   
   public MatchReceiverWorker(AtomicBoolean gameLoadingConflict,
-      MatchReference matchReference, Platform server, Summoner summoner) {
+      MatchReference matchReference, Platform server, DTO.SummonerCache summoner) {
     this.gameLoadingConflict = gameLoadingConflict;
     this.server = server;
     this.matchReference = matchReference;
@@ -46,11 +47,11 @@ public abstract class MatchReceiverWorker implements Runnable {
   @Override
   public void run() {
     logger.debug("Start to load game {} server {}", matchReference.getGameId(), server.getName());
-    DTO.MatchCache matchCache = null;
+    SavedMatch matchCache = null;
     try {
-      matchCache = Zoe.getRiotApi().getCachedMatch(server, matchReference.getGameId());
-    } catch (SQLException e) {
-      logger.warn("Unexpected Database error while getting match cache !", e);
+      matchCache = Zoe.getRiotApi().getMatchWithRateLimit(server, matchReference.getGameId());
+    } catch (Exception e) {
+      logger.warn("Unexpected error while getting match !", e);
     }
     
     if(matchCache != null) {
@@ -59,7 +60,9 @@ public abstract class MatchReceiverWorker implements Runnable {
     }
     
     try {
-      runMatchReceveirWorker(matchCache);
+      if(matchCache != null && matchCache.getGameDurations() > CANCEL_GAME_DURATION) { // Check if the game has been canceled
+        runMatchReceveirWorker(matchCache);
+      }
     }catch(Exception e){
       logger.error("Unexpected error in match receiver worker", e);
     }finally {
@@ -67,7 +70,7 @@ public abstract class MatchReceiverWorker implements Runnable {
     }
   }
   
-  protected abstract void runMatchReceveirWorker(MatchCache matchCache);
+  protected abstract void runMatchReceveirWorker(SavedMatch matchCache);
   
   public static void awaitAll(List<MatchReference> matchsToWait) {
     

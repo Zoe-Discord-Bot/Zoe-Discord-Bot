@@ -112,7 +112,7 @@ public class CommandUtil {
         
         if(event.getChannelType() == ChannelType.TEXT) {
           try {
-            language = ServerRepository.getServerWithGuildId(event.getGuild().getIdLong()).serv_language;
+            language = ServerRepository.getServerWithGuildId(event.getGuild().getIdLong()).getLanguage();
           } catch(SQLException e) {
             logger.error("SQL when getting a server in help command!", e);
           }
@@ -137,7 +137,7 @@ public class CommandUtil {
         
         if(event.getChannelType() == ChannelType.TEXT) {
           try {
-            language = ServerRepository.getServerWithGuildId(event.getGuild().getIdLong()).serv_language;
+            language = ServerRepository.getServerWithGuildId(event.getGuild().getIdLong()).getLanguage();
           } catch(SQLException e) {
             logger.error("SQL when getting a server in help command!", e);
           }
@@ -168,7 +168,7 @@ public class CommandUtil {
         
         if(event.getChannelType() == ChannelType.TEXT) {
           try {
-            language = ServerRepository.getServerWithGuildId(event.getGuild().getIdLong()).serv_language;
+            language = ServerRepository.getServerWithGuildId(event.getGuild().getIdLong()).getLanguage();
           } catch(SQLException e) {
             logger.error("SQL when getting a server in help command!", e);
           }
@@ -226,7 +226,7 @@ public class CommandUtil {
   
         if(event.getChannelType() == ChannelType.TEXT) {
           try {
-            language = ServerRepository.getServerWithGuildId(event.getGuild().getIdLong()).serv_language;
+            language = ServerRepository.getServerWithGuildId(event.getGuild().getIdLong()).getLanguage();
           } catch(SQLException e) {
             Zoe.logger.error("Error when doing help command message !", e);
             language = LanguageManager.DEFAULT_LANGUAGE;

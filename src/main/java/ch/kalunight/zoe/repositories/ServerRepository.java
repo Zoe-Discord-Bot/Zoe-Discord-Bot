@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.DTO.ClashChannel;
 import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
 import net.rithms.riot.constant.Platform;
 
@@ -253,6 +254,11 @@ public class ServerRepository {
       List<DTO.Leaderboard> leaderboards = LeaderboardRepository.getLeaderboardsWithGuildId(guildId);
       for(Leaderboard leaderboard : leaderboards) {
         LeaderboardRepository.deleteLeaderboardWithId(leaderboard.lead_id);
+      }
+      
+      List<DTO.ClashChannel> clashChannels = ClashChannelRepository.getClashChannels(guildId);
+      for(ClashChannel clashChannel : clashChannels) {
+        ClashChannelRepository.deleteClashChannel(clashChannel.clashChannel_id);
       }
 
       String finalQuery = String.format(DELETE_SERVER_WITH_SERV_GUILDID, guildId);

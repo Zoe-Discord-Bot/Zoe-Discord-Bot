@@ -49,8 +49,8 @@ public class LanguageCommand extends ZoeCommand{
     
     DTO.Server server = getServer(event.getGuild().getIdLong());
     
-    event.getTextChannel().sendMessage(String.format(LanguageManager.getText(server.serv_language,
-        "languageCommandStartMessage"), LanguageManager.getText(server.serv_language, NATIVE_LANGUAGE_TRANSLATION_ID), "<https://discord.gg/AyAYWGM>")).complete();
+    event.getTextChannel().sendMessage(String.format(LanguageManager.getText(server.getLanguage(),
+        "languageCommandStartMessage"), LanguageManager.getText(server.getLanguage(), NATIVE_LANGUAGE_TRANSLATION_ID), "<https://discord.gg/AyAYWGM>")).complete();
     
     SelectionDialog.Builder builder = new SelectionDialog.Builder()
         .addUsers(event.getAuthor())
@@ -69,7 +69,7 @@ public class LanguageCommand extends ZoeCommand{
       langagesList.add(langage);
     }
     
-    builder.setText(LanguageUtil.getUpdateMessageAfterChangeSelectAction(server.serv_language, languageListTranslate));
+    builder.setText(LanguageUtil.getUpdateMessageAfterChangeSelectAction(server.getLanguage(), languageListTranslate));
     builder.setSelectionConsumer(getSelectionDoneAction(langagesList, server));
     builder.setCanceled(LanguageUtil.getCancelActionSelection());
     
@@ -85,14 +85,14 @@ public class LanguageCommand extends ZoeCommand{
 
         try {
           ServerRepository.updateLanguage(server.serv_guildId, languageList.get(selectionOfLanguage - 1));
-          server.serv_language = languageList.get(selectionOfLanguage - 1);
+          server.setLanguage(languageList.get(selectionOfLanguage - 1));
         } catch (SQLException e) {
           RepoRessources.sqlErrorReport(selectionMessage.getChannel(), server, e);
           return;
         }
         
-        selectionMessage.getTextChannel().sendMessage(String.format(LanguageManager.getText(server.serv_language, "languageCommandSelected"),
-            LanguageManager.getText(server.serv_language, NATIVE_LANGUAGE_TRANSLATION_ID))).queue();
+        selectionMessage.getTextChannel().sendMessage(String.format(LanguageManager.getText(server.getLanguage(), "languageCommandSelected"),
+            LanguageManager.getText(server.getLanguage(), NATIVE_LANGUAGE_TRANSLATION_ID))).queue();
       }
     };
   }

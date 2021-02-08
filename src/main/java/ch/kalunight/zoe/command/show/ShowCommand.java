@@ -27,7 +27,7 @@ public class ShowCommand extends ZoeCommand {
   @Override
   protected void executeCommand(CommandEvent event) {
     DTO.Server server = getServer(event.getGuild().getIdLong());
-    event.reply(LanguageManager.getText(server.serv_language, "mainShowCommandHelpMessage"));
+    event.reply(LanguageManager.getText(server.getLanguage(), "mainShowCommandHelpMessage"));
   }
 
   @Override

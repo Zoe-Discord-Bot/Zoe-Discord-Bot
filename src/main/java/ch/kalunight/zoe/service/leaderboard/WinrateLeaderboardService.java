@@ -13,12 +13,12 @@ import net.rithms.riot.api.RiotApiException;
 
 public class WinrateLeaderboardService extends LeaderboardBaseService {
 
-  public WinrateLeaderboardService(long guildId, long channelId, long leaderboardId) {
-    super(guildId, channelId, leaderboardId);
+  public WinrateLeaderboardService(long guildId, long channelId, long leaderboardId, boolean forceRefreshCache) {
+    super(guildId, channelId, leaderboardId, forceRefreshCache);
   }
 
   @Override
-  protected void runLeaderboardRefresh(Server server, Guild guild, TextChannel channel, Leaderboard leaderboard, Message message, List<Player> players)
+  protected void runLeaderboardRefresh(Server server, Guild guild, TextChannel channel, Leaderboard leaderboard, Message message, List<Player> players, boolean forceRefreshCache)
       throws SQLException, RiotApiException {
     
     /*Objective objective = Objective.getObjectiveWithId(leaderboard.lead_type);

@@ -5,7 +5,7 @@
 
 	<groupId>ch.kalunight</groupId>
 	<artifactId>zoe</artifactId>
-	<version>1.9.4</version>
+	<version>1.10.0</version>
 	<packaging>jar</packaging>
 
 	<name>zoe</name>
@@ -53,7 +53,7 @@
 		<dependency>
 			<groupId>com.github.KaluNight</groupId>
 			<artifactId>riot-api-java</artifactId>
-			<version>4.5.5-alpha1</version>
+			<version>4.5.5</version>
 		</dependency>
 
 		<dependency>

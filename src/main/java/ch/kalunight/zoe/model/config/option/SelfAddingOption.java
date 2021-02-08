@@ -43,8 +43,8 @@ public class SelfAddingOption extends ConfigurationOption {
         
         if(!optionActivated) {
 
-          choiceBuilder.setText(String.format(LanguageManager.getText(server.serv_language, "selfAddingOptionDescLong"), 
-              LanguageManager.getText(server.serv_language, description)));
+          choiceBuilder.setText(String.format(LanguageManager.getText(server.getLanguage(), "selfAddingOptionDescLong"), 
+              LanguageManager.getText(server.getLanguage(), description)));
           
           choiceBuilder.setAction(activateTheOption(server, event.getChannel()));
           
@@ -54,8 +54,8 @@ public class SelfAddingOption extends ConfigurationOption {
           
         }else {
           
-          choiceBuilder.setText(String.format(LanguageManager.getText(server.serv_language, "selfAddingOptionDescLongDisable"),
-              LanguageManager.getText(server.serv_language, description)));
+          choiceBuilder.setText(String.format(LanguageManager.getText(server.getLanguage(), "selfAddingOptionDescLongDisable"),
+              LanguageManager.getText(server.getLanguage(), description)));
           
           choiceBuilder.setAction(disableTheOption(server, event.getChannel()));
           
@@ -83,9 +83,9 @@ public class SelfAddingOption extends ConfigurationOption {
             RepoRessources.sqlErrorReport(messageChannel, server, e);
             return;
           }
-          messageChannel.sendMessage(LanguageManager.getText(server.serv_language, "selfAddingOptionBeenDisable")).queue();
+          messageChannel.sendMessage(LanguageManager.getText(server.getLanguage(), "selfAddingOptionBeenDisable")).queue();
         }else {
-          messageChannel.sendMessage(LanguageManager.getText(server.serv_language, "selfAddingOptionStillEnable")).queue();
+          messageChannel.sendMessage(LanguageManager.getText(server.getLanguage(), "selfAddingOptionStillEnable")).queue();
         }
     }};
   }
@@ -107,9 +107,9 @@ public class SelfAddingOption extends ConfigurationOption {
             return;
           }
           
-          messageChannel.sendMessage(LanguageManager.getText(server.serv_language, "selfAddingOptionBeenActivated")).queue();
+          messageChannel.sendMessage(LanguageManager.getText(server.getLanguage(), "selfAddingOptionBeenActivated")).queue();
         }else {
-          messageChannel.sendMessage(LanguageManager.getText(server.serv_language, "selfAddingOptionStillDisable")).queue();
+          messageChannel.sendMessage(LanguageManager.getText(server.getLanguage(), "selfAddingOptionStillDisable")).queue();
         }
       }};
   }

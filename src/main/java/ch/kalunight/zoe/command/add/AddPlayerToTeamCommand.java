@@ -35,19 +35,19 @@ public class AddPlayerToTeamCommand extends ZoeCommand {
     DTO.Server server = getServer(event.getGuild().getIdLong());
     
     if(event.getMessage().getMentionedMembers().size() != 1) {
-      event.reply(LanguageManager.getText(server.serv_language, "mentionOfPlayerNeeded"));
+      event.reply(LanguageManager.getText(server.getLanguage(), "mentionOfPlayerNeeded"));
     } else {
       
       DTO.Player player = PlayerRepository.getPlayer(server.serv_guildId,
           event.getMessage().getMentionedMembers().get(0).getUser().getIdLong());
       
       if(player == null) {
-        event.reply(LanguageManager.getText(server.serv_language, "mentionOfUserNeedToBeAPlayer"));
+        event.reply(LanguageManager.getText(server.getLanguage(), "mentionOfUserNeedToBeAPlayer"));
       } else {
 
         DTO.Team team = TeamRepository.getTeamByPlayerAndGuild(server.serv_guildId, player.player_discordId);
         if(team != null) {
-          event.reply(String.format(LanguageManager.getText(server.serv_language, "mentionnedPlayerIsAlreadyInATeam"), team.team_name));
+          event.reply(String.format(LanguageManager.getText(server.getLanguage(), "mentionnedPlayerIsAlreadyInATeam"), team.team_name));
         } else {
           Matcher matcher = PARENTHESES_PATTERN.matcher(event.getArgs());
           String teamName = "";
@@ -57,10 +57,10 @@ public class AddPlayerToTeamCommand extends ZoeCommand {
 
           DTO.Team teamToAdd = TeamRepository.getTeam(server.serv_guildId, teamName);
           if(teamToAdd == null) {
-            event.reply(LanguageManager.getText(server.serv_language, "givenTeamNotExist"));
+            event.reply(LanguageManager.getText(server.getLanguage(), "givenTeamNotExist"));
           } else {
             PlayerRepository.updateTeamOfPlayer(player.player_id, teamToAdd.team_id);
-            event.reply(LanguageManager.getText(server.serv_language, "playerAddedInTheTeam"));
+            event.reply(LanguageManager.getText(server.getLanguage(), "playerAddedInTheTeam"));
           }
         }
       }

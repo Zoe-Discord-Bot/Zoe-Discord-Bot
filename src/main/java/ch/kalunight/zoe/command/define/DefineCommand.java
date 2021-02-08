@@ -27,7 +27,7 @@ public class DefineCommand extends ZoeCommand {
   @Override
   protected void executeCommand(CommandEvent event) {
     DTO.Server server = getServer(event.getGuild().getIdLong());
-    event.reply(LanguageManager.getText(server.serv_language, "mainDefineCommandHelpMessage"));
+    event.reply(LanguageManager.getText(server.getLanguage(), "mainDefineCommandHelpMessage"));
   }
 
   @Override

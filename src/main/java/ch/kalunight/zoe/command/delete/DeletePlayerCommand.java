@@ -34,7 +34,7 @@ public class DeletePlayerCommand extends ZoeCommand {
     
     DTO.Server server = getServer(event.getGuild().getIdLong());
     
-    ServerConfiguration config = ConfigRepository.getServerConfiguration(server.serv_guildId);
+    ServerConfiguration config = ConfigRepository.getServerConfiguration(server.serv_guildId, event.getJDA());
     
     if(!config.getUserSelfAdding().isOptionActivated() && 
         !event.getMember().getPermissions().contains(Permission.MANAGE_CHANNEL)) {
@@ -69,7 +69,7 @@ public class DeletePlayerCommand extends ZoeCommand {
         }
         PlayerRepository.deletePlayer(player, server.serv_guildId);
         event.reply(String.format(LanguageManager.getText(server.getLanguage(), "deletePlayerDoneMessage"),
-            player.getUser().getName()));
+            player.getUser(event.getJDA()).getName()));
       }
     }
   }

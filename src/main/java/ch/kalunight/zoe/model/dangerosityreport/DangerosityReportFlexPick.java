@@ -5,6 +5,7 @@ import java.util.List;
 import ch.kalunight.zoe.service.analysis.ChampionRole;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.TeamUtil;
+import net.dv8tion.jda.api.JDA;
 
 public class DangerosityReportFlexPick extends DangerosityReport implements Comparable<DangerosityReportFlexPick> {
 
@@ -33,7 +34,7 @@ public class DangerosityReportFlexPick extends DangerosityReport implements Comp
   }
 
   @Override
-  protected String getInfoToShow(String lang) {
+  protected String getInfoToShow(String lang, JDA jda) {
     StringBuilder builder = new StringBuilder();
     
     int treated = 0;

@@ -60,7 +60,7 @@ public class CreateRankHistoryChannelCommand extends ZoeCommand {
 
     TextChannel rankChannel = event.getGuild().createTextChannel(nameChannel).complete();
 
-    ServerConfiguration serverConfiguration = ConfigRepository.getServerConfiguration(event.getGuild().getIdLong());
+    ServerConfiguration serverConfiguration = ConfigRepository.getServerConfiguration(event.getGuild().getIdLong(), event.getJDA());
 
     if(serverConfiguration.getZoeRoleOption().getRole() != null) {
       CommandUtil.giveRolePermission(event.getGuild(), rankChannel, serverConfiguration);

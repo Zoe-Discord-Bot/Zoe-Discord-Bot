@@ -57,12 +57,17 @@ import ch.kalunight.zoe.repositories.RepoRessources;
 import ch.kalunight.zoe.riotapi.CachedRiotApi;
 import ch.kalunight.zoe.service.analysis.ChampionRole;
 import ch.kalunight.zoe.service.analysis.ChampionRoleAnalysisMainWorker;
+import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import ch.kalunight.zoe.util.Ressources;
 import ch.kalunight.zoe.util.ZoeMemberCachePolicy;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
+import net.dv8tion.jda.api.entities.Emote;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
@@ -95,7 +100,7 @@ public class Zoe {
 
   private static CachedRiotApi riotApi;
 
-  private static JDA jda;
+  private static List<JDA> clientsLoaded;
 
   private static String discordTocken;
 
@@ -164,14 +169,31 @@ public class Zoe {
     client.setHelpConsumer(helpCommand);
 
     CommandClient commandClient = client.build();
+    
+    EventWaiter eventWaiter = new EventWaiter(ServerThreadsManager.getResponseWaiter(), false);
 
-    SetupEventListener setupEventListener = new SetupEventListener();
+    for(Command command : Zoe.getMainCommands(eventWaiter)) {
+      commandClient.addCommand(command);
+    }
+    
+    Zoe.setEventWaiter(eventWaiter);
+    
+    logger.info("Loading of translations ...");
+    try {
+      LanguageManager.loadTranslations();
+    } catch(IOException e) {
+      logger.error("Critical error with the loading of translations (File issue) !", e);
+      System.exit(1);
+    }
+    logger.info("Loading of translation finished !");
+
+    SetupEventListener setupEventListener = new SetupEventListener(eventWaiter);
 
     eventListenerList.add(commandClient);
     eventListenerList.add(setupEventListener);
 
     try {
-      jda = getNewJDAInstance(discordTocken, commandClient, setupEventListener);//
+      clientsLoaded = getNewJDAInstance(discordTocken, commandClient, setupEventListener);
     } catch(IndexOutOfBoundsException e) {
       logger.error("You must provide a token.");
       System.exit(1);
@@ -181,7 +203,7 @@ public class Zoe {
     }
   }
 
-  public static JDA getNewJDAInstance(String riotTocken, CommandClient newCommandClient, SetupEventListener setupEventListener) throws LoginException {
+  public static List<JDA> getNewJDAInstance(String riotTocken, CommandClient newCommandClient, SetupEventListener setupEventListener) throws LoginException {
 
     commandClient = newCommandClient;
 
@@ -191,8 +213,14 @@ public class Zoe {
         .setMemberCachePolicy(new ZoeMemberCachePolicy())
         .setChunkingFilter(ChunkingFilter.NONE)
         .addEventListeners(commandClient, setupEventListener);
+    
+    List<JDA> clientsLoaded = Collections.synchronizedList(new ArrayList<>());
+    
+    for(int i = 0; i < 10; i++) {
+      clientsLoaded.add(builder.useSharding(i, 1).build());
+    }
 
-    return builder.build();
+    return clientsLoaded;
   }
 
   public static void initRiotApi(String riotTocken, String tftTocken) {
@@ -202,7 +230,7 @@ public class Zoe {
     riotApi = new CachedRiotApi(new RiotApi(config));
   }
 
-  public static List<Command> getMainCommands(EventWaiter eventWaiter) {
+  public static synchronized List<Command> getMainCommands(EventWaiter eventWaiter) {
     if(mainCommands != null) {
       return mainCommands;
     }
@@ -290,8 +318,91 @@ public class Zoe {
     return riotApi;
   }
 
-  public static JDA getJda() {
-    return jda;
+  public static JDA getJdaByGuildId(long guildId) {
+    for(JDA client : clientsLoaded) {
+      if(client.getGuildById(guildId) != null) {
+        return client;
+      }
+    }
+    
+    return null;
+  }
+  
+  public static Guild getGuildById(long guildId) {
+    for(JDA client : clientsLoaded) {
+      Guild guild = client.getGuildById(guildId);
+      if(guild != null) {
+        return guild;
+      }
+    }
+    
+    return null;
+  }
+  
+  public static Guild getGuildById(String guildId) {
+    for(JDA client : clientsLoaded) {
+      Guild guild = client.getGuildById(guildId);
+      if(guild != null) {
+        return guild;
+      }
+    }
+    
+    return null;
+  }
+  
+  public static User getUserById(long userId) {
+    for(JDA client : clientsLoaded) {
+      User user = client.retrieveUserById(userId).complete();
+      if(user != null) {
+        return user;
+      }
+    }
+    
+    return null;
+  }
+  
+  public static long getNumberOfGuilds() {
+    long numberOfGuilds = 0;
+    
+    for(JDA client : clientsLoaded) {
+      numberOfGuilds += client.getGuildCache().size();
+    }
+    
+    return numberOfGuilds;
+  }
+  
+  public static long getNumberOfUsers() {
+    long numberOfUsers = 0;
+    
+    for(JDA client : clientsLoaded) {
+      numberOfUsers += client.getUserCache().size();
+    }
+    
+    return numberOfUsers;
+  }
+  
+  public static Emote getEmoteById(long emoteId) {
+    for(JDA jda : clientsLoaded) {
+      Emote emote = jda.getShardManager().getEmoteById(emoteId);
+      if(emote != null) {
+        return emote;
+      }
+    }
+    return null;
+  }
+  
+  public static TextChannel getTextChannelById(long textChannelId) {
+    for(JDA jda : clientsLoaded) {
+      TextChannel channel = jda.getTextChannelById(textChannelId);
+      if(channel != null) {
+        return channel;
+      }
+    }
+    return null;
+  }
+  
+  public static List<JDA> getJDAs(){
+    return clientsLoaded;
   }
 
   public static ConcurrentLinkedQueue<List<CustomEmote>> getEmotesNeedToBeUploaded() {
@@ -328,10 +439,6 @@ public class Zoe {
 
   public static void setEventWaiter(EventWaiter eventWaiter) {
     Zoe.eventWaiter = eventWaiter;
-  }
-
-  public static void setJda(JDA jda) {
-    Zoe.jda = jda;
   }
 
   public static String getDiscordTocken() {

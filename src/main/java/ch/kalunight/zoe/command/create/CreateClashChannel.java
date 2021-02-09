@@ -276,7 +276,7 @@ public class CreateClashChannel extends ZoeCommand {
 
         long clashChannelDbId = ClashChannelRepository.createClashChannel(server, clashChannel.getIdLong(), selectedTimeZone, data);
 
-        ServerConfiguration config = ConfigRepository.getServerConfiguration(originalEvent.getGuild().getIdLong());
+        ServerConfiguration config = ConfigRepository.getServerConfiguration(originalEvent.getGuild().getIdLong(), clashChannel.getJDA());
 
         if(config.getZoeRoleOption().getRole() != null) {
           CommandUtil.giveRolePermission(originalEvent.getGuild(), clashChannel, config);

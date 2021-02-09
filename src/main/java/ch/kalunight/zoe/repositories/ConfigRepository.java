@@ -6,7 +6,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.config.option.CleanChannelOption;
 import ch.kalunight.zoe.model.config.option.CleanChannelOption.CleanChannelOptionInfo;
@@ -14,6 +13,7 @@ import ch.kalunight.zoe.model.config.option.GameInfoCardOption;
 import ch.kalunight.zoe.model.config.option.InfoPanelRankedOption;
 import ch.kalunight.zoe.model.config.option.RankChannelFilterOption;
 import ch.kalunight.zoe.model.config.option.RankChannelFilterOption.RankChannelFilter;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -226,7 +226,7 @@ public class ConfigRepository {
     }
   }
 
-  public static ServerConfiguration getServerConfiguration(long guildId) throws SQLException {
+  public static ServerConfiguration getServerConfiguration(long guildId, JDA jda) throws SQLException {
     ResultSet result = null;
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
@@ -245,12 +245,12 @@ public class ConfigRepository {
         regionOption.setRegion(Platform.valueOf(region));
       }
 
-      CleanChannelOption cleanChannelOption = getCleanChannelOption(guildId, result);
+      CleanChannelOption cleanChannelOption = getCleanChannelOption(guildId, result, jda);
 
       GameInfoCardOption infoCardOption = new GameInfoCardOption(guildId);
       infoCardOption.setOptionActivated(result.getBoolean("gameCardOption_activate"));
 
-      RoleOption roleOption = getRoleOption(result, guildId);
+      RoleOption roleOption = getRoleOption(result, guildId, jda);
 
       Boolean infopanelRankedOptionActivate = getInfoPanelRankedState(guildId);
       InfoPanelRankedOption infopanelRankedOption = new InfoPanelRankedOption(guildId);
@@ -327,7 +327,7 @@ public class ConfigRepository {
     statement.execute(finalQuery);
   }
   
-  private static RoleOption getRoleOption(ResultSet result, long guildId) throws SQLException {
+  private static RoleOption getRoleOption(ResultSet result, long guildId, JDA jda) throws SQLException {
     RoleOption roleOption = new RoleOption(guildId);
     long roleId = result.getLong("roleOption_roleId");
 
@@ -336,14 +336,14 @@ public class ConfigRepository {
     }
     
     try {
-      Role role = Zoe.getJda().getGuildById(guildId).getRoleById(roleId);
+      Role role = jda.getGuildById(guildId).getRoleById(roleId);
       roleOption.setRole(role);
       if(role == null) {
         logger.info("Zoe role has been deleted. We update the db.");
         updateRoleOption(guildId, 0);
         
         DTO.InfoChannel infoChannelDb = InfoChannelRepository.getInfoChannel(guildId);
-        TextChannel infoChannel = Zoe.getJda().getTextChannelById(infoChannelDb.infochannel_channelid);
+        TextChannel infoChannel = jda.getTextChannelById(infoChannelDb.infochannel_channelid);
         
         if(infoChannel != null) {
           Role everyone = infoChannel.getGuild().getPublicRole();
@@ -351,7 +351,7 @@ public class ConfigRepository {
         }
         
         DTO.RankHistoryChannel rankChannelDb = RankHistoryChannelRepository.getRankHistoryChannel(guildId);
-        TextChannel rankChannel = Zoe.getJda().getTextChannelById(rankChannelDb.rhChannel_channelId);
+        TextChannel rankChannel = jda.getTextChannelById(rankChannelDb.rhChannel_channelId);
         
         if(rankChannel != null) {
           Role everyone = rankChannel.getGuild().getPublicRole();
@@ -365,14 +365,14 @@ public class ConfigRepository {
     return roleOption;
   }
 
-  private static CleanChannelOption getCleanChannelOption(long guildId, ResultSet result) throws SQLException {
+  private static CleanChannelOption getCleanChannelOption(long guildId, ResultSet result, JDA jda) throws SQLException {
     CleanChannelOption cleanChannelOption = new CleanChannelOption(guildId);
     cleanChannelOption.setCleanChannelOption(CleanChannelOptionInfo.valueOf(result.getString("cleanOption_option")));
 
     if(!cleanChannelOption.getCleanChannelOption().equals(CleanChannelOptionInfo.DISABLE)) {
       long cleanChannelId = result.getLong("cleanOption_channelId");
       try {
-        TextChannel cleanChannel = Zoe.getJda().getGuildById(guildId).getTextChannelById(cleanChannelId);
+        TextChannel cleanChannel = jda.getGuildById(guildId).getTextChannelById(cleanChannelId);
         if(cleanChannel == null) {
           logger.info("clean channel has been deleted. We update the db.");
           updateCleanChannelOption(guildId, 0, CleanChannelOptionInfo.DISABLE.toString());

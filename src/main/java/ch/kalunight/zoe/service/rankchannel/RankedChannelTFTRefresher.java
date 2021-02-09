@@ -44,7 +44,7 @@ public class RankedChannelTFTRefresher extends RankedChannelBaseRefresher {
       return;
     }
 
-    TextChannel textChannelWhereSend = Zoe.getJda().getTextChannelById(rankChannel.rhChannel_channelId);
+    TextChannel textChannelWhereSend = Zoe.getTextChannelById(rankChannel.rhChannel_channelId);
     if(textChannelWhereSend != null) {
       textChannelWhereSend.sendMessage(message).queue();
     }

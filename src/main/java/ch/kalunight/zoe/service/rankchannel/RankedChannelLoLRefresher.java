@@ -107,7 +107,7 @@ public class RankedChannelLoLRefresher extends RankedChannelBaseRefresher {
       }
     }
 
-    TextChannel textChannelWhereSend = Zoe.getJda().getTextChannelById(rankChannel.rhChannel_channelId);
+    TextChannel textChannelWhereSend = Zoe.getTextChannelById(rankChannel.rhChannel_channelId);
     if(textChannelWhereSend != null) {
       textChannelWhereSend.sendMessage(message).queue();
     }
@@ -134,7 +134,7 @@ public class RankedChannelLoLRefresher extends RankedChannelBaseRefresher {
       }
     }
 
-    TextChannel textChannelWhereSend = Zoe.getJda().getTextChannelById(rankChannel.rhChannel_channelId);
+    TextChannel textChannelWhereSend = Zoe.getTextChannelById(rankChannel.rhChannel_channelId);
     if(textChannelWhereSend != null) {
       textChannelWhereSend.sendMessage(message).queue();
     }
@@ -161,7 +161,7 @@ public class RankedChannelLoLRefresher extends RankedChannelBaseRefresher {
       }
     }
 
-    TextChannel textChannelWhereSend = Zoe.getJda().getTextChannelById(rankChannel.rhChannel_channelId);
+    TextChannel textChannelWhereSend = Zoe.getTextChannelById(rankChannel.rhChannel_channelId);
     if(textChannelWhereSend != null) {
       textChannelWhereSend.sendMessage(message).queue();
     }
@@ -188,7 +188,7 @@ public class RankedChannelLoLRefresher extends RankedChannelBaseRefresher {
       }
     }
 
-    TextChannel textChannelWhereSend = Zoe.getJda().getTextChannelById(rankChannel.rhChannel_channelId);
+    TextChannel textChannelWhereSend = Zoe.getTextChannelById(rankChannel.rhChannel_channelId);
     if(textChannelWhereSend != null) {
       textChannelWhereSend.sendMessage(message).queue();
     }
@@ -216,7 +216,7 @@ public class RankedChannelLoLRefresher extends RankedChannelBaseRefresher {
       }
     }
 
-    TextChannel textChannelWhereSend = Zoe.getJda().getTextChannelById(rankChannel.rhChannel_channelId);
+    TextChannel textChannelWhereSend = Zoe.getTextChannelById(rankChannel.rhChannel_channelId);
     if(textChannelWhereSend != null) {
       textChannelWhereSend.sendMessage(message).queue();
     }

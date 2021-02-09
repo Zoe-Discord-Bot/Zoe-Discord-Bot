@@ -33,6 +33,7 @@ import ch.kalunight.zoe.util.ClashUtil;
 import ch.kalunight.zoe.util.MessageManagerUtil;
 import ch.kalunight.zoe.util.Ressources;
 import ch.kalunight.zoe.util.TeamUtil;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageReaction;
@@ -79,7 +80,9 @@ public class TreatClashChannel implements Runnable {
   public void run() {
     try {
 
-      boolean loadNeedToBeCanceled = loadDiscordEntities();
+      JDA jda = Zoe.getJdaByGuildId(guild.getIdLong());
+      
+      boolean loadNeedToBeCanceled = loadDiscordEntities(jda);
       if(loadNeedToBeCanceled) {
         return;
       }
@@ -119,7 +122,7 @@ public class TreatClashChannel implements Runnable {
 
       ClashChannelRepository.updateClashChannel(clashMessageManager, clashChannelDB.clashChannel_id);
 
-      clearLoadingEmote(clashMessageManager);
+      clearLoadingEmote(clashMessageManager, jda);
 
     }catch(Exception e) {
       logger.error("Error while loading the clash channel", e);
@@ -411,7 +414,7 @@ public class TreatClashChannel implements Runnable {
     addLoadingEmote(clashMessageManager);
   }
 
-  private void clearLoadingEmote(ClashChannelData clashMessageManager) {
+  private void clearLoadingEmote(ClashChannelData clashMessageManager, JDA jda) {
     for(Long messageToClear : clashMessageManager.getInfoMessagesId()) {
 
       Message retrievedMessage;
@@ -425,7 +428,7 @@ public class TreatClashChannel implements Runnable {
       if(retrievedMessage != null) {
         for(MessageReaction messageReaction : retrievedMessage.getReactions()) {
           try {
-            messageReaction.removeReaction(Zoe.getJda().getSelfUser()).queue();
+            messageReaction.removeReaction(jda.getSelfUser()).queue();
           } catch (ErrorResponseException e) {
             if(e.getErrorResponse() != ErrorResponse.MISSING_PERMISSIONS && e.getErrorResponse() != ErrorResponse.UNKNOWN_MESSAGE) {
               logger.warn("Error when removing reaction : {}", e.getMessage(), e);
@@ -449,8 +452,8 @@ public class TreatClashChannel implements Runnable {
     }
   }
 
-  private boolean loadDiscordEntities() throws SQLException {
-    guild = Zoe.getJda().getGuildById(server.serv_guildId);
+  private boolean loadDiscordEntities(JDA jda) throws SQLException {
+    guild = jda.getGuildById(server.serv_guildId);
 
     if(guild == null) {
       return true;

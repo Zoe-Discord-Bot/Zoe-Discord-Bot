@@ -81,7 +81,7 @@ public class InfoPanelRefresher implements Runnable {
   public InfoPanelRefresher(DTO.Server server, boolean forceRefreshCache) {
     this.server = server;
     this.forceRefreshCache = forceRefreshCache; 
-    guild = Zoe.getJda().getGuildById(server.serv_guildId);
+    guild = Zoe.getGuildById(server.serv_guildId);
   }
 
   @Override
@@ -99,7 +99,7 @@ public class InfoPanelRefresher implements Runnable {
         infochannel = guild.getTextChannelById(infoChannelDTO.infochannel_channelid);
       }
 
-      ServerConfiguration configuration = ConfigRepository.getServerConfiguration(guild.getIdLong());
+      ServerConfiguration configuration = ConfigRepository.getServerConfiguration(guild.getIdLong(), infochannel.getJDA());
 
       List<DTO.Player> playersDTO = PlayerRepository.getPlayers(server.serv_guildId);
 
@@ -154,7 +154,7 @@ public class InfoPanelRefresher implements Runnable {
 
         refreshInfoPanel(infoChannelDTO, configuration, treatedPlayers);
 
-        if(ConfigRepository.getServerConfiguration(server.serv_guildId).getInfoCardsOption().isOptionActivated()) {
+        if(ConfigRepository.getServerConfiguration(server.serv_guildId, guild.getJDA()).getInfoCardsOption().isOptionActivated()) {
           createMissingInfoCard();
           treathGameCardWithStatus();
         }
@@ -170,7 +170,7 @@ public class InfoPanelRefresher implements Runnable {
             e.getPermission().getName(), guild.getName());
 
         PermissionOverride permissionOverride = infochannel
-            .putPermissionOverride(guild.retrieveMember(Zoe.getJda().getSelfUser()).complete()).complete();
+            .putPermissionOverride(guild.retrieveMember(guild.getJDA().getSelfUser()).complete()).complete();
 
         permissionOverride.getManager().grant(e.getPermission()).complete();
         logger.info("Autofix complete !");
@@ -232,7 +232,7 @@ public class InfoPanelRefresher implements Runnable {
 
         loadGameToDelete(leaguesAccountsPerGameWaitingDeletion, treatedPlayer);
       }else {
-        logger.error("Error while loading a player! Player id {} | Guild discord id {}", treatPlayerWorker.getPlayer().getUser().getId(), treatPlayerWorker.getServer().serv_guildId);
+        logger.error("Error while loading a player! Player id {} | Guild discord id {}", treatPlayerWorker.getPlayer().getUser(guild.getJDA()).getId(), treatPlayerWorker.getServer().serv_guildId);
       }
     }
   }
@@ -631,7 +631,7 @@ public class InfoPanelRefresher implements Runnable {
       if(retrievedMessage != null) {
         for(MessageReaction messageReaction : retrievedMessage.getReactions()) {
           try {
-            messageReaction.removeReaction(Zoe.getJda().getSelfUser()).queue();
+            messageReaction.removeReaction(guild.getJDA().getSelfUser()).queue();
           } catch (ErrorResponseException e) {
             logger.warn("Error when removing reaction : {}", e.getMessage(), e);
           }
@@ -644,7 +644,7 @@ public class InfoPanelRefresher implements Runnable {
 
     List<Message> messagesToCheck = infochannel.getIterableHistory().stream()
         .limit(1000)
-        .filter(m-> m.getAuthor().getId().equals(Zoe.getJda().getSelfUser().getId()))
+        .filter(m-> m.getAuthor().getId().equals(guild.getJDA().getSelfUser().getId()))
         .collect(Collectors.toList());
 
     List<Message> messagesToDelete = new ArrayList<>();

@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.ButtonMenu;
-import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.InfoChannelRepository;
@@ -265,7 +264,7 @@ public class CleanChannelOption extends ConfigurationOption {
   }
 
   private void endCreateChannelTime(MessageChannel channel) {
-    TextChannel textChannel = Zoe.getJda().getTextChannelById(channel.getId());
+    TextChannel textChannel = channel.getJDA().getTextChannelById(channel.getId());
 
     String langage = LanguageManager.DEFAULT_LANGUAGE;
     if(textChannel != null) {
@@ -294,7 +293,7 @@ public class CleanChannelOption extends ConfigurationOption {
   @Override
   public String getChoiceText(String langage) throws SQLException {
 
-    if(cleanChannel != null && Zoe.getJda().getTextChannelById(cleanChannel.getId()) == null) {
+    if(cleanChannel != null && cleanChannel.getJDA().getTextChannelById(cleanChannel.getId()) == null) {
       cleanChannel = null;
       cleanChannelOption = CleanChannelOptionInfo.DISABLE;
       ConfigRepository.updateCleanChannelOption(guildId, 0, cleanChannelOption.toString());

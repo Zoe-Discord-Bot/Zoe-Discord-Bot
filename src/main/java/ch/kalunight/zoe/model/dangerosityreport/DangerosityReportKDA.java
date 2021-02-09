@@ -1,6 +1,7 @@
 package ch.kalunight.zoe.model.dangerosityreport;
 
 import ch.kalunight.zoe.translation.LanguageManager;
+import net.dv8tion.jda.api.JDA;
 
 public class DangerosityReportKDA extends DangerosityReport {
 
@@ -34,7 +35,7 @@ public class DangerosityReportKDA extends DangerosityReport {
   }
 
   @Override
-  protected String getInfoToShow(String lang) {
+  protected String getInfoToShow(String lang, JDA jda) {
     return String.format(LanguageManager.getText(lang, "dangerosityReportHighKDAInfo"), SMALL_NUMBER_FORMAT.format(personalAverageKDAForThisChamp));
   }
 

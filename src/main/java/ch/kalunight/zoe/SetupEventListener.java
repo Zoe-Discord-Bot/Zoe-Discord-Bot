@@ -24,6 +24,7 @@ import ch.kalunight.zoe.service.RiotApiUsageChannelRefresh;
 import ch.kalunight.zoe.service.ServerChecker;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.EventListenerUtil;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
@@ -37,23 +38,20 @@ public class SetupEventListener extends ListenerAdapter {
   
   private static boolean zoeIsBooted = false;
   
+  private EventWaiter waiter;
+  
+  public SetupEventListener(EventWaiter waiter) {
+    this.waiter = waiter;
+  }
+  
   @Override
   public void onReady(ReadyEvent event) {
-    Zoe.getJda().getPresence().setStatus(OnlineStatus.DO_NOT_DISTURB);
-    Zoe.getJda().getPresence().setActivity(Activity.playing("Booting ..."));
-    
-    logger.info("Loading of translations ...");
-    try {
-      LanguageManager.loadTranslations();
-    } catch(IOException e) {
-      logger.error("Critical error with the loading of translations (File issue) !", e);
-      System.exit(1);
-    }
-    logger.info("Loading of translation finished !");
+    event.getJDA().getPresence().setStatus(OnlineStatus.DO_NOT_DISTURB);
+    event.getJDA().getPresence().setActivity(Activity.playing("Booting ..."));
 
     logger.info("Setup non initialized Guild ...");
     try {
-      setupNonInitializedGuild();
+      setupNonInitializedGuild(event.getJDA());
     } catch(SQLException e) {
       logger.error("Issue when setup non initialized Guild !", e);
       System.exit(1);
@@ -91,7 +89,7 @@ public class SetupEventListener extends ListenerAdapter {
     logger.info("Loading of DiscordBotList API ...");
 
     try {
-      Zoe.setBotListApi(new DiscordBotListAPI.Builder().botId(Zoe.getJda().getSelfUser().getId()).token(Zoe.getDiscordBotListTocken()) // SET
+      Zoe.setBotListApi(new DiscordBotListAPI.Builder().botId(event.getJDA().getSelfUser().getId()).token(Zoe.getDiscordBotListTocken()) // SET
           .build());                                                                                                                   // TOCKEN
 
       logger.info("Loading of DiscordBotList API finished !");
@@ -105,24 +103,16 @@ public class SetupEventListener extends ListenerAdapter {
     logger.info("Setup of main thread finished !");
     
     logger.info("Setup of commands ...");
-    EventWaiter eventWaiter = new EventWaiter(ServerThreadsManager.getResponseWaiter(), false);
-
-    for(Command command : Zoe.getMainCommands(eventWaiter)) {
-      Zoe.getCommandClient().addCommand(command);
-    }
-    Zoe.getEventlistenerlist().add(eventWaiter);
-    Zoe.getJda().addEventListener(eventWaiter);
-    Zoe.setEventWaiter(eventWaiter);
+    event.getJDA().addEventListener(waiter);
     logger.info("Setup of commands done !");
     
     logger.info("Setup of EventListener ...");
     EventListener eventListener = new EventListener();
-    Zoe.getEventlistenerlist().add(eventListener);
-    Zoe.getJda().addEventListener(eventListener);
+    event.getJDA().addEventListener(eventListener);
     logger.info("Setup of EventListener done !");
     
-    Zoe.getJda().getPresence().setStatus(OnlineStatus.ONLINE);
-    Zoe.getJda().getPresence().setActivity(Activity.playing("type \">help\""));
+    event.getJDA().getPresence().setStatus(OnlineStatus.ONLINE);
+    event.getJDA().getPresence().setActivity(Activity.playing("type \">help\""));
 
     PlayerRepository.getLoadedGuild().clear();
     
@@ -131,9 +121,9 @@ public class SetupEventListener extends ListenerAdapter {
     logger.info("Booting finished !");
   }
   
-  private void setupNonInitializedGuild() throws SQLException {
-    for(Guild guild : Zoe.getJda().getGuilds()) {
-      if(!guild.getOwnerId().equals(Zoe.getJda().getSelfUser().getId()) && !ServerRepository.checkServerExist(guild.getIdLong())) {
+  private void setupNonInitializedGuild(JDA jda) throws SQLException {
+    for(Guild guild : jda.getGuilds()) {
+      if(!guild.getOwnerId().equals(jda.getSelfUser().getId()) && !ServerRepository.checkServerExist(guild.getIdLong())) {
         ServerRepository.createNewServer(guild.getIdLong(), LanguageManager.DEFAULT_LANGUAGE);
       }
     }
@@ -156,7 +146,7 @@ public class SetupEventListener extends ListenerAdapter {
       }
 
       if(args.size() == 2) {
-        Guild guild = Zoe.getJda().getGuildById(args.get(0));
+        Guild guild = Zoe.getGuildById(args.get(0));
         if(guild != null) {
           TextChannel rapiStatusChannel = guild.getTextChannelById(args.get(1));
           if(rapiStatusChannel != null) {

@@ -45,6 +45,7 @@ import ch.kalunight.zoe.util.Ressources;
 import ch.kalunight.zoe.util.RiotApiUtil;
 import ch.kalunight.zoe.util.request.MessageBuilderRequest;
 import ch.kalunight.zoe.util.request.RiotRequest;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Message;
@@ -200,7 +201,7 @@ public class StatsProfileCommand extends ZoeCommand {
     }else if(listArgs.size() == 1) {
       ServerConfiguration config;
       try {
-        config = ConfigRepository.getServerConfiguration(server.serv_guildId);
+        config = ConfigRepository.getServerConfiguration(server.serv_guildId, event.getJDA());
       } catch(SQLException e1) {
         return null;
       }
@@ -251,7 +252,7 @@ public class StatsProfileCommand extends ZoeCommand {
         try {
           selectionMessage.getTextChannel().sendMessage(String.format(
               LanguageManager.getText(server.getLanguage(), "statsProfileSelectionDoneMessage"),
-              account.getSummoner().getName(), Zoe.getJda().retrieveUserById(player.player_discordId).complete()
+              account.getSummoner().getName(), event.getJDA().retrieveUserById(player.player_discordId).complete()
               .getName())).queue();
         } catch (RiotApiException e) {
           RiotApiUtil.handleRiotApi(event.getEvent(), e, server.getLanguage());
@@ -295,7 +296,7 @@ public class StatsProfileCommand extends ZoeCommand {
     byte[] imageBytes = null;
     try {
       if(championsMasteries != null && !championsMasteries.getChampionMasteries().isEmpty()) {
-        imageBytes = generateMasteriesChart(player, championsMasteries, server, lolAccount);
+        imageBytes = generateMasteriesChart(player, championsMasteries, server, lolAccount, event.getJDA());
       }
     } catch(IOException | RiotApiException e) {
       logger.info("Got a error in encoding bytesMap image", e);
@@ -323,7 +324,7 @@ public class StatsProfileCommand extends ZoeCommand {
 
     if(imageBytes != null) {
       if(player != null) {
-        messageLoading.getTextChannel().sendMessage(messageBuilder.build()).addFile(imageBytes, player.getUser().getId() + ".png").queue();
+        messageLoading.getTextChannel().sendMessage(messageBuilder.build()).addFile(imageBytes, player.getUser(event.getJDA()).getId() + ".png").queue();
       }else {
         messageLoading.getTextChannel().sendMessage(messageBuilder.build()).addFile(imageBytes, url + ".png").queue();
       }
@@ -333,7 +334,7 @@ public class StatsProfileCommand extends ZoeCommand {
   }
 
   private byte[] generateMasteriesChart(DTO.Player player, SavedChampionsMastery championsMasteries,
-      DTO.Server server, LeagueAccount leagueAccount) throws IOException, RiotApiException {
+      DTO.Server server, LeagueAccount leagueAccount, JDA jda) throws IOException, RiotApiException {
     List<SavedSimpleMastery> listHeigherChampion = getBestMasteries(championsMasteries, NUMBER_OF_CHAMPIONS_IN_GRAPH);
     CategoryChartBuilder masteriesGraphBuilder = new CategoryChartBuilder();
 
@@ -341,7 +342,7 @@ public class StatsProfileCommand extends ZoeCommand {
 
     if(player != null) {
       masteriesGraphBuilder.title(String.format(LanguageManager.getText(server.getLanguage(), "statsProfileGraphTitle"),
-          player.getUser().getName()));
+          player.getUser(jda).getName()));
     }else {
       masteriesGraphBuilder.title(String.format(LanguageManager.getText(server.getLanguage(), "statsProfileGraphTitle"),
           leagueAccount.getSummoner().getName()));

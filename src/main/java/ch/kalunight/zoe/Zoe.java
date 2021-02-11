@@ -1,6 +1,8 @@
 package ch.kalunight.zoe;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -11,6 +13,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
 
@@ -54,11 +57,15 @@ import ch.kalunight.zoe.model.static_data.CustomEmote;
 import ch.kalunight.zoe.repositories.ChampionRoleAnalysisRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.repositories.RepoRessources;
+import ch.kalunight.zoe.riotapi.CacheManager;
 import ch.kalunight.zoe.riotapi.CachedRiotApi;
+import ch.kalunight.zoe.service.RiotApiUsageChannelRefresh;
+import ch.kalunight.zoe.service.ServerChecker;
 import ch.kalunight.zoe.service.analysis.ChampionRole;
 import ch.kalunight.zoe.service.analysis.ChampionRoleAnalysisMainWorker;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
+import ch.kalunight.zoe.util.EventListenerUtil;
 import ch.kalunight.zoe.util.Ressources;
 import ch.kalunight.zoe.util.ZoeMemberCachePolicy;
 import net.dv8tion.jda.api.JDA;
@@ -83,6 +90,10 @@ public class Zoe {
   public static final File RAPI_SAVE_TXT_FILE = new File("ressources/apiInfos.txt");
 
   public static final File SAVE_CONFIG_FOLDER = new File("ressources/serversconfigs");
+
+  public static final int NUMBER_OF_SHARDS = 10;
+  
+  private static boolean zoeIsBooted = false;
 
   private static final ConcurrentLinkedQueue<List<CustomEmote>> emotesNeedToBeUploaded = new ConcurrentLinkedQueue<>();
 
@@ -169,27 +180,14 @@ public class Zoe {
     client.setHelpConsumer(helpCommand);
 
     CommandClient commandClient = client.build();
-    
+
     EventWaiter eventWaiter = new EventWaiter(ServerThreadsManager.getResponseWaiter(), false);
 
-    for(Command command : Zoe.getMainCommands(eventWaiter)) {
-      commandClient.addCommand(command);
-    }
-    
     Zoe.setEventWaiter(eventWaiter);
-    
-    logger.info("Loading of translations ...");
-    try {
-      LanguageManager.loadTranslations();
-    } catch(IOException e) {
-      logger.error("Critical error with the loading of translations (File issue) !", e);
-      System.exit(1);
-    }
-    logger.info("Loading of translation finished !");
 
-    SetupEventListener setupEventListener = new SetupEventListener(eventWaiter);
+    SetupEventListener setupEventListener = new SetupEventListener();
 
-    eventListenerList.add(commandClient);
+    eventListenerList.add(commandClient); //commands set in loadZoeRessources
     eventListenerList.add(setupEventListener);
 
     try {
@@ -201,6 +199,99 @@ public class Zoe {
       logger.error(e.getMessage());
       System.exit(1);
     }
+
+    logger.info("Wait load of all shards...");
+
+    waitLoadingOfAllShards();
+    
+    logger.info("Shards all loaded ! Now loading Zoe ressources...");
+    
+    loadZoeRessources();
+    
+    logger.info("Ressources loaded ! Zoe has booted correctly !");
+    zoeIsBooted = true;
+  }
+
+  private static void waitLoadingOfAllShards() {
+    for(JDA clientToWait : clientsLoaded) {
+      try {
+        clientToWait.awaitReady();
+      } catch (InterruptedException e) {
+        logger.error("Error while waiting a shard to load", e);
+        System.exit(1);
+        Thread.currentThread().interrupt();
+      }
+    }
+  }
+
+  private static void loadZoeRessources() {
+    logger.info("Loading of translations ...");
+    try {
+      LanguageManager.loadTranslations();
+    } catch(IOException e) {
+      logger.error("Critical error with the loading of translations (File issue) !", e);
+      System.exit(1);
+    }
+    logger.info("Loading of translation finished !");
+
+    logger.info("Loading of champions ...");
+    try {
+      Zoe.loadChampions();
+    } catch(IOException e) {
+      logger.error("Critical error with the loading of champions !", e);
+      System.exit(1);
+    }
+
+    logger.info("Loading of champions finished !");
+    
+    logger.info("Loading of emotes ...");
+    try {
+      EventListenerUtil.loadCustomEmotes();
+      logger.info("Loading of emotes finished !");
+    } catch(IOException e) {
+      logger.warn("Error with the loading of emotes : {}", e.getMessage());
+    }
+    
+    logger.info("Setup cache ...");
+    CacheManager.setupCache();
+    logger.info("Setup cache finished !");
+    
+    logger.info("Loading of RAPI Status Channel ...");
+
+    initRAPIStatusChannel();
+
+    logger.info("Loading of RAPI Status Channel finished !");
+    
+    logger.info("Loading of DiscordBotList API ...");
+
+    try {
+      Zoe.setBotListApi(new DiscordBotListAPI.Builder().botId(getSelfUserId()).token(Zoe.getDiscordBotListTocken()) // SET
+          .build());                                                                                                                   // TOCKEN
+
+      logger.info("Loading of DiscordBotList API finished !");
+    } catch(Exception e) {
+      logger.info("Discord bot list api not loaded normally ! Working of the bot not affected");
+      Zoe.setBotListApi(null);
+    }
+    
+    logger.info("Setup of main thread  ...");
+    setupContinousRefreshThread();
+    logger.info("Setup of main thread finished !");
+    
+    logger.info("Setup of commands ...");
+    for(Command command : Zoe.getMainCommands(eventWaiter)) {
+      commandClient.addCommand(command);
+    }
+    logger.info("Setup of commands done !");
+    
+    logger.info("Setup of EventListener ...");
+    EventListener eventListener = new EventListener();
+    for(JDA clientToUpdate : clientsLoaded) {
+      clientToUpdate.addEventListener(eventListener);
+    }
+    logger.info("Setup of EventListener done !");
+    
+    PlayerRepository.getLoadedGuild().clear();
   }
 
   public static List<JDA> getNewJDAInstance(String riotTocken, CommandClient newCommandClient, SetupEventListener setupEventListener) throws LoginException {
@@ -213,11 +304,12 @@ public class Zoe {
         .setMemberCachePolicy(new ZoeMemberCachePolicy())
         .setChunkingFilter(ChunkingFilter.NONE)
         .addEventListeners(commandClient, setupEventListener);
-    
+
     List<JDA> clientsLoaded = Collections.synchronizedList(new ArrayList<>());
-    
-    for(int i = 0; i < 10; i++) {
-      clientsLoaded.add(builder.useSharding(i, 1).build());
+
+    logger.info("Start the loading of {} discord shards.", NUMBER_OF_SHARDS);
+    for(int i = 0; i < NUMBER_OF_SHARDS; i++) {
+      clientsLoaded.add(builder.useSharding(i, NUMBER_OF_SHARDS).build());
     }
 
     return clientsLoaded;
@@ -228,6 +320,11 @@ public class Zoe {
 
     config.setMaxAsyncThreads(ServerThreadsManager.NBR_PROC);
     riotApi = new CachedRiotApi(new RiotApi(config));
+  }
+  
+  private static void setupContinousRefreshThread() {
+    TimerTask mainThread = new ServerChecker();
+    ServerThreadsManager.getServerCheckerThreadTimer().schedule(mainThread, 10000);
   }
 
   public static synchronized List<Command> getMainCommands(EventWaiter eventWaiter) {
@@ -314,6 +411,34 @@ public class Zoe {
     }
   }
 
+  private static void initRAPIStatusChannel() {
+    try(final BufferedReader reader = new BufferedReader(new FileReader(Zoe.RAPI_SAVE_TXT_FILE));) {
+      String line;
+
+      List<String> args = new ArrayList<>();
+
+      while((line = reader.readLine()) != null) {
+        args.add(line);
+      }
+
+      if(args.size() == 2) {
+        Guild guild = Zoe.getGuildById(args.get(0));
+        if(guild != null) {
+          TextChannel rapiStatusChannel = guild.getTextChannelById(args.get(1));
+          if(rapiStatusChannel != null) {
+            RiotApiUsageChannelRefresh.setTextChannelId(rapiStatusChannel.getIdLong());
+            RiotApiUsageChannelRefresh.setGuildId(guild.getIdLong());
+            logger.info("RAPI Status channel correctly loaded.");
+          }
+        }
+      }      
+    } catch(FileNotFoundException e1) {
+      logger.info("Needed file doesn't exist. Will be created if needed.");
+    } catch(IOException e1) {
+      logger.warn("Error when loading the file of RAPI Status Channel. The older channel will be unused ! (You can re-create it)");
+    }
+  }
+  
   public static CachedRiotApi getRiotApi() {
     return riotApi;
   }
@@ -324,10 +449,10 @@ public class Zoe {
         return client;
       }
     }
-    
+
     return null;
   }
-  
+
   public static Guild getGuildById(long guildId) {
     for(JDA client : clientsLoaded) {
       Guild guild = client.getGuildById(guildId);
@@ -335,10 +460,10 @@ public class Zoe {
         return guild;
       }
     }
-    
+
     return null;
   }
-  
+
   public static Guild getGuildById(String guildId) {
     for(JDA client : clientsLoaded) {
       Guild guild = client.getGuildById(guildId);
@@ -346,10 +471,10 @@ public class Zoe {
         return guild;
       }
     }
-    
+
     return null;
   }
-  
+
   public static User getUserById(long userId) {
     for(JDA client : clientsLoaded) {
       User user = client.retrieveUserById(userId).complete();
@@ -357,30 +482,39 @@ public class Zoe {
         return user;
       }
     }
-    
+
     return null;
   }
   
+  public static String getSelfUserId() {
+    for(JDA clientsToGet : clientsLoaded) {
+      if(clientsToGet != null) {
+        return clientsToGet.getSelfUser().getId();
+      }
+    }
+    return null;
+  }
+
   public static long getNumberOfGuilds() {
     long numberOfGuilds = 0;
-    
+
     for(JDA client : clientsLoaded) {
       numberOfGuilds += client.getGuildCache().size();
     }
-    
+
     return numberOfGuilds;
   }
-  
+
   public static long getNumberOfUsers() {
     long numberOfUsers = 0;
-    
+
     for(JDA client : clientsLoaded) {
       numberOfUsers += client.getUserCache().size();
     }
-    
+
     return numberOfUsers;
   }
-  
+
   public static Emote getEmoteById(long emoteId) {
     for(JDA jda : clientsLoaded) {
       Emote emote = jda.getShardManager().getEmoteById(emoteId);
@@ -390,7 +524,7 @@ public class Zoe {
     }
     return null;
   }
-  
+
   public static TextChannel getTextChannelById(long textChannelId) {
     for(JDA jda : clientsLoaded) {
       TextChannel channel = jda.getTextChannelById(textChannelId);
@@ -400,7 +534,7 @@ public class Zoe {
     }
     return null;
   }
-  
+
   public static List<JDA> getJDAs(){
     return clientsLoaded;
   }
@@ -455,5 +589,9 @@ public class Zoe {
 
   public static List<GatewayIntent> getListOfGatway() {
     return listOfGatway;
+  }
+
+  public static boolean isZoeIsBooted() {
+    return zoeIsBooted;
   }
 }

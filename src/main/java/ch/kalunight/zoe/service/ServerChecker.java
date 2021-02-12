@@ -143,7 +143,7 @@ public class ServerChecker extends TimerTask {
         for(JDA client : Zoe.getJDAs()) {
           if(Zoe.getBotListApi() != null) {
             // Discord bot list status
-            Zoe.getBotListApi().setStats(client.getShardInfo().getShardId(), client.getShardManager().getShardsTotal(), (int) client.getUserCache().size());
+            Zoe.getBotListApi().setStats(client.getShardInfo().getShardId(), client.getShardInfo().getShardTotal(), (int) client.getGuildCache().size());
           }
         }
 

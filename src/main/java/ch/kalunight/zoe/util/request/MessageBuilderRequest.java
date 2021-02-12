@@ -399,7 +399,7 @@ public class MessageBuilderRequest {
       }else {
         message.setColor(Color.GREEN);
         message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeWonDivision"),
-            leagueAccount.getSummoner().getName(), gameType));
+            leagueAccount.getSummoner().getName(), newFullTier.toString(lang), gameType));
       }
     }else {
       if(divisionJump) {

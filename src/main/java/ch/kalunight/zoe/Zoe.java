@@ -152,7 +152,7 @@ public class Zoe {
     initRiotApi(riotTocken, tftTocken);
 
     try {
-      discordBotListTocken = args[5];
+      discordBotListTocken = args[6];
     } catch(Exception e) {
       logger.info("Discord api list tocken not implement");
     }

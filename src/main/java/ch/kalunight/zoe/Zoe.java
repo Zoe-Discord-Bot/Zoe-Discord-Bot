@@ -91,8 +91,8 @@ public class Zoe {
 
   public static final File SAVE_CONFIG_FOLDER = new File("ressources/serversconfigs");
 
-  public static final int NUMBER_OF_SHARDS = 10;
-  
+  public static final int NUMBER_OF_SHARDS = 4;
+
   private static boolean zoeIsBooted = false;
 
   private static final ConcurrentLinkedQueue<List<CustomEmote>> emotesNeedToBeUploaded = new ConcurrentLinkedQueue<>();
@@ -111,11 +111,11 @@ public class Zoe {
 
   private static CachedRiotApi riotApi;
 
-  private static List<JDA> clientsLoaded;
+  private static List<JDA> clientsLoaded = new ArrayList<>();
 
   private static String discordTocken;
 
-  private static String discordBotListTocken = "";
+  private static String discordBotListTocken = null;
 
   private static String clientOwnerID;
 
@@ -168,7 +168,7 @@ public class Zoe {
     initRiotApi(riotTocken, tftTocken);
 
     try {
-      discordBotListTocken = args[5];
+      discordBotListTocken = args[6];
     } catch(Exception e) {
       logger.info("Discord api list tocken not implement");
     }
@@ -203,11 +203,11 @@ public class Zoe {
     logger.info("Wait load of all shards...");
 
     waitLoadingOfAllShards();
-    
+
     logger.info("Shards all loaded ! Now loading Zoe ressources...");
-    
+
     loadZoeRessources();
-    
+
     logger.info("Ressources loaded ! Zoe has booted correctly !");
     zoeIsBooted = true;
   }
@@ -243,7 +243,7 @@ public class Zoe {
     }
 
     logger.info("Loading of champions finished !");
-    
+
     logger.info("Loading of emotes ...");
     try {
       EventListenerUtil.loadCustomEmotes();
@@ -251,46 +251,45 @@ public class Zoe {
     } catch(IOException e) {
       logger.warn("Error with the loading of emotes : {}", e.getMessage());
     }
-    
+
     logger.info("Setup cache ...");
     CacheManager.setupCache();
     logger.info("Setup cache finished !");
-    
+
     logger.info("Loading of RAPI Status Channel ...");
 
     initRAPIStatusChannel();
 
     logger.info("Loading of RAPI Status Channel finished !");
-    
+
     logger.info("Loading of DiscordBotList API ...");
 
     try {
       Zoe.setBotListApi(new DiscordBotListAPI.Builder().botId(getSelfUserId()).token(Zoe.getDiscordBotListTocken()) // SET
-          .build());                                                                                                                   // TOCKEN
-
+          .build());                                                                                                // TOCKEN
       logger.info("Loading of DiscordBotList API finished !");
     } catch(Exception e) {
       logger.info("Discord bot list api not loaded normally ! Working of the bot not affected");
       Zoe.setBotListApi(null);
     }
-    
+
     logger.info("Setup of main thread  ...");
     setupContinousRefreshThread();
     logger.info("Setup of main thread finished !");
-    
+
     logger.info("Setup of commands ...");
     for(Command command : Zoe.getMainCommands(eventWaiter)) {
       commandClient.addCommand(command);
     }
     logger.info("Setup of commands done !");
-    
-    logger.info("Setup of EventListener ...");
+
+    logger.info("Setup of EventListener and add EventWaiter...");
     EventListener eventListener = new EventListener();
     for(JDA clientToUpdate : clientsLoaded) {
-      clientToUpdate.addEventListener(eventListener);
+      clientToUpdate.addEventListener(eventListener, eventWaiter);
     }
-    logger.info("Setup of EventListener done !");
-    
+    logger.info("Setup of EventListener and addition EventWaiter done !");
+
     PlayerRepository.getLoadedGuild().clear();
   }
 
@@ -321,7 +320,7 @@ public class Zoe {
     config.setMaxAsyncThreads(ServerThreadsManager.NBR_PROC);
     riotApi = new CachedRiotApi(new RiotApi(config));
   }
-  
+
   private static void setupContinousRefreshThread() {
     TimerTask mainThread = new ServerChecker();
     ServerThreadsManager.getServerCheckerThreadTimer().schedule(mainThread, 10000);
@@ -438,7 +437,7 @@ public class Zoe {
       logger.warn("Error when loading the file of RAPI Status Channel. The older channel will be unused ! (You can re-create it)");
     }
   }
-  
+
   public static CachedRiotApi getRiotApi() {
     return riotApi;
   }
@@ -485,7 +484,7 @@ public class Zoe {
 
     return null;
   }
-  
+
   public static String getSelfUserId() {
     for(JDA clientsToGet : clientsLoaded) {
       if(clientsToGet != null) {
@@ -517,7 +516,7 @@ public class Zoe {
 
   public static Emote getEmoteById(long emoteId) {
     for(JDA jda : clientsLoaded) {
-      Emote emote = jda.getShardManager().getEmoteById(emoteId);
+      Emote emote = jda.getEmoteById(emoteId);
       if(emote != null) {
         return emote;
       }

@@ -79,8 +79,8 @@ public class TreatClashChannel implements Runnable {
   @Override
   public void run() {
     try {
-
-      JDA jda = Zoe.getJdaByGuildId(guild.getIdLong());
+      
+      JDA jda = Zoe.getJdaByGuildId(server.serv_guildId);
       
       boolean loadNeedToBeCanceled = loadDiscordEntities(jda);
       if(loadNeedToBeCanceled) {

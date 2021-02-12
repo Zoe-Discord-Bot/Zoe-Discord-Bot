@@ -74,7 +74,7 @@ public class ShutDownCommand extends ZoeCommand {
     for(JDA clientToUnload : Zoe.getJDAs()) {
       clientToUnload.shutdown();
       
-      while(clientToUnload.getStatus().equals(Status.SHUTDOWN)) {
+      while(!clientToUnload.getStatus().equals(Status.SHUTDOWN)) {
         try {
           Thread.sleep(100);
         } catch(InterruptedException e) {

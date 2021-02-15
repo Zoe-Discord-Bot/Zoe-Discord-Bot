@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Stopwatch;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.Zoe;
@@ -93,6 +94,9 @@ public class InfoPanelRefresher implements Runnable {
       if(guild == null) {
         return;
       }
+      
+      Stopwatch stopWatch = Stopwatch.createStarted();
+      logger.debug("Start refresh of the guild id {}", guild.getIdLong());
 
       DTO.InfoChannel infoChannelDTO = InfoChannelRepository.getInfoChannel(server.serv_guildId);
       if(infoChannelDTO != null) {
@@ -102,7 +106,7 @@ public class InfoPanelRefresher implements Runnable {
       ServerConfiguration configuration = ConfigRepository.getServerConfiguration(guild.getIdLong(), infochannel.getJDA());
 
       List<DTO.Player> playersDTO = PlayerRepository.getPlayers(server.serv_guildId);
-
+      
       InfoPanelRefresherUtil.cleanRegisteredPlayerNoLongerInGuild(guild, playersDTO);
 
       if(infochannel != null) {
@@ -161,6 +165,8 @@ public class InfoPanelRefresher implements Runnable {
 
         cleanInfoChannel();
         clearLoadingEmote();
+        stopWatch.stop();
+        logger.info("Infochannel refresh done in {} secs for the guild id {}", stopWatch.elapsed(TimeUnit.SECONDS), guild.getIdLong());
       }else if(infoChannelDTO != null && infochannel == null) {
         InfoChannelRepository.deleteInfoChannel(server);
       }

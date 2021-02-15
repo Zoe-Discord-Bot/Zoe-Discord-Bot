@@ -93,8 +93,6 @@ public class Zoe {
 
   public static final int NUMBER_OF_SHARDS = 4;
 
-  private static boolean zoeIsBooted = false;
-
   private static final ConcurrentLinkedQueue<List<CustomEmote>> emotesNeedToBeUploaded = new ConcurrentLinkedQueue<>();
 
   private static final List<Object> eventListenerList = Collections.synchronizedList(new ArrayList<>());
@@ -189,7 +187,7 @@ public class Zoe {
 
     eventListenerList.add(commandClient); //commands set in loadZoeRessources
     eventListenerList.add(setupEventListener);
-
+    
     try {
       clientsLoaded = getNewJDAInstance(discordTocken, commandClient, setupEventListener);
     } catch(IndexOutOfBoundsException e) {
@@ -209,7 +207,6 @@ public class Zoe {
     loadZoeRessources();
 
     logger.info("Ressources loaded ! Zoe has booted correctly !");
-    zoeIsBooted = true;
   }
 
   private static void waitLoadingOfAllShards() {
@@ -588,9 +585,5 @@ public class Zoe {
 
   public static List<GatewayIntent> getListOfGatway() {
     return listOfGatway;
-  }
-
-  public static boolean isZoeIsBooted() {
-    return zoeIsBooted;
   }
 }

@@ -82,14 +82,6 @@ public class InfoPanelRefresherUtil {
   }
 
   public static void cleanRegisteredPlayerNoLongerInGuild(Guild guild, List<DTO.Player> listPlayers) throws SQLException {
-    if(!PlayerRepository.getLoadedGuild().contains(guild.getIdLong())) {
-      List<Long> idPlayers = PlayerRepository.getListDiscordIdOfRegisteredPlayers().get(guild.getIdLong());
-      if(idPlayers != null) {
-        PlayerRepository.getLoadedGuild().add(guild.getIdLong());
-        guild.findMembers(e -> idPlayers.contains(e.getIdLong()));
-      }
-    }
-
     Iterator<DTO.Player> iter = listPlayers.iterator();
 
     while (iter.hasNext()) {

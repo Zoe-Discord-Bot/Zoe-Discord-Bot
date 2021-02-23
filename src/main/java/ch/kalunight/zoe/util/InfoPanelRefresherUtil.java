@@ -89,7 +89,7 @@ public class InfoPanelRefresherUtil {
 
       try {
 
-        if(guild.retrieveMemberById(player.getUser().getId()).complete() == null) {
+        if(guild.retrieveMemberById(player.getUser().getId(), false).complete() == null) {
           iter.remove();
           PlayerRepository.updateTeamOfPlayerDefineNull(player.player_id);
           PlayerRepository.deletePlayer(player, guild.getIdLong());

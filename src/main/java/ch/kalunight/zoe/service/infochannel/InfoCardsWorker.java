@@ -91,7 +91,7 @@ public class InfoCardsWorker implements Runnable {
     if(!listOfPlayerInTheGame.isEmpty()) {
       MessageEmbed messageCard =
           MessageBuilderRequest.createInfoCard(listOfPlayerInTheGame, currentGameInfo.currentgame_currentgame,
-              account.leagueAccount_server, server);
+              account.leagueAccount_server, server, jda);
 
       if(messageCard != null) {
         card = new InfoCard(listOfPlayerInTheGame, messageCard, currentGameInfo.currentgame_currentgame);
@@ -102,7 +102,7 @@ public class InfoCardsWorker implements Runnable {
       List<DTO.Player> players = card.getPlayers();
 
       StringBuilder title = new StringBuilder();
-      MessageBuilderRequestUtil.createTitle(players, currentGameInfo.currentgame_currentgame, title, server.getLanguage(), false);
+      MessageBuilderRequestUtil.createTitle(players, currentGameInfo.currentgame_currentgame, title, server.getLanguage(), false, jda);
 
       DTO.InfoChannel infochannel = InfoChannelRepository.getInfoChannel(server.serv_guildId);
       TextChannel infoChannel = jda.getGuildById(server.serv_guildId).getTextChannelById(infochannel.infochannel_channelid);

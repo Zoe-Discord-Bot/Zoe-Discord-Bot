@@ -174,10 +174,6 @@ public class DTO {
       player_mentionnable = baseData.getBoolean("player_mentionnable");
     }
 
-    public User getUser() {
-      return Zoe.getUserById(player_discordId);
-    }
-
     public User getUser(JDA jda) {
       User user = jda.retrieveUserById(player_discordId, false).complete();
       if(user != null) {

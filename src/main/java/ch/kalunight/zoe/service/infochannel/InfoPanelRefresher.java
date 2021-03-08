@@ -126,7 +126,7 @@ public class InfoPanelRefresher implements Runnable {
         for(Player player : playersDTO) {
           List<LeagueAccount> leaguesAccounts = LeagueAccountRepository.getLeaguesAccountsWithPlayerID(server.serv_guildId, player.player_id);
 
-          TreatPlayerWorker playerWorker = new TreatPlayerWorker(server, player, leaguesAccounts, rankChannel, configuration, forceRefreshCache);
+          TreatPlayerWorker playerWorker = new TreatPlayerWorker(server, player, leaguesAccounts, rankChannel, configuration, forceRefreshCache, guild.getJDA());
 
           playersToTreat.add(playerWorker);
           if(!leaguesAccounts.isEmpty()) {

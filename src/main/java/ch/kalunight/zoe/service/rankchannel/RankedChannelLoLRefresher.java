@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections4.map.HashedMap;
-
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.GameAccessDataServerSpecific;
 import ch.kalunight.zoe.model.PlayerRankedResult;
@@ -16,6 +15,7 @@ import ch.kalunight.zoe.model.dto.DTO.Player;
 import ch.kalunight.zoe.model.dto.DTO.RankHistoryChannel;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.util.request.MessageBuilderRequest;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.rithms.riot.api.RiotApiException;
@@ -31,8 +31,8 @@ public class RankedChannelLoLRefresher extends RankedChannelBaseRefresher {
   private CurrentGameInfo gameOfTheChange;
 
   public RankedChannelLoLRefresher(RankHistoryChannel rankChannel, LeagueEntry oldEntry, LeagueEntry newEntry,
-      CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, Server server) {
-    super(rankChannel, oldEntry, newEntry, player, leagueAccount, server);
+      CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, Server server, JDA jda) {
+    super(rankChannel, oldEntry, newEntry, player, leagueAccount, server, jda);
     this.gameOfTheChange = gameOfTheChange;
   }
 
@@ -100,7 +100,7 @@ public class RankedChannelLoLRefresher extends RankedChannelBaseRefresher {
     if(message == null) {
       try {
         message = MessageBuilderRequest.createRankChannelCardLeagueChange
-            (oldEntry, newEntry, gameOfTheChange, player, leagueAccount, server.getLanguage());
+            (oldEntry, newEntry, gameOfTheChange, player, leagueAccount, server.getLanguage(), jda);
       } catch (RiotApiException e) {
         logger.warn("RiotApiException while creating Rankchannel Message", e);
         return;
@@ -127,7 +127,7 @@ public class RankedChannelLoLRefresher extends RankedChannelBaseRefresher {
     if(message == null) {
       try {
         message = MessageBuilderRequest.createRankChannelCardBoEnded(oldEntry, newEntry, gameOfTheChange,
-            player, leagueAccount, server.getLanguage());
+            player, leagueAccount, server.getLanguage(), jda);
       } catch (RiotApiException e) {
         logger.warn("RiotApiException while creating Rankchannel Message", e);
         return;
@@ -154,7 +154,7 @@ public class RankedChannelLoLRefresher extends RankedChannelBaseRefresher {
     if(message == null) {
       try {
         message = MessageBuilderRequest.createRankChannelCardBoStarted(newEntry, gameOfTheChange, player, leagueAccount, 
-            server.getLanguage());
+            server.getLanguage(), jda);
       } catch (RiotApiException e) {
         logger.warn("RiotApiException while creating Rankchannel Message", e);
         return;
@@ -181,7 +181,7 @@ public class RankedChannelLoLRefresher extends RankedChannelBaseRefresher {
     if(message == null) {
       try {
         message = MessageBuilderRequest.createRankChannelBoInProgress(oldEntry, newEntry,
-            gameOfTheChange, player,leagueAccount, server.getLanguage());
+            gameOfTheChange, player,leagueAccount, server.getLanguage(), jda);
       } catch (RiotApiException e) {
         logger.warn("RiotApiException while creating Rankchannel Message", e);
         return;
@@ -209,7 +209,7 @@ public class RankedChannelLoLRefresher extends RankedChannelBaseRefresher {
     if(message == null) {
       try {
         message = MessageBuilderRequest.createRankChannelCardLeaguePointChangeOnly
-            (oldEntry, newEntry, gameOfTheChange, player, leagueAccount, server.getLanguage());
+            (oldEntry, newEntry, gameOfTheChange, player, leagueAccount, server.getLanguage(), jda);
       } catch (RiotApiException e) {
         logger.warn("RiotApiException while creating Rankchannel Message", e);
         return;

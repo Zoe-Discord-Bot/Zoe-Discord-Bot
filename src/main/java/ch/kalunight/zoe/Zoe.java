@@ -74,7 +74,6 @@ import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Emote;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
@@ -465,17 +464,6 @@ public class Zoe {
       Guild guild = client.getGuildById(guildId);
       if(guild != null) {
         return guild;
-      }
-    }
-
-    return null;
-  }
-
-  public static User getUserById(long userId) {
-    for(JDA client : clientsLoaded) {
-      User user = client.retrieveUserById(userId).complete();
-      if(user != null) {
-        return user;
       }
     }
 

@@ -125,7 +125,7 @@ public class CreatePlayerCommand extends ZoeCommand {
 
     if(playerAlreadyWithTheAccount != null) {
       loadingMessage.editMessage(String.format(LanguageManager.getText(server.getLanguage(), "accountAlreadyLinkedToAnotherPlayer"),
-          playerAlreadyWithTheAccount.getUser().getName())).queue();
+          playerAlreadyWithTheAccount.getUser(event.getJDA()).getName())).queue();
       return;
     }
 

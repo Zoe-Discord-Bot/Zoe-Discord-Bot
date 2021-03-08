@@ -6,8 +6,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Stopwatch;
 
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
@@ -22,6 +27,8 @@ import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
 
 public class InfoPanelRefresherUtil {
+
+  private static final Logger logger = LoggerFactory.getLogger(InfoPanelRefresherUtil.class);
   
   private InfoPanelRefresherUtil() {
     //Hide default public constructor
@@ -87,8 +94,9 @@ public class InfoPanelRefresherUtil {
     while (iter.hasNext()) {
       DTO.Player player = iter.next();
 
+      Stopwatch stopWatch = Stopwatch.createStarted();
       try {
-
+        logger.info("Load user discordID {}", player.player_discordId);
         if(player.getUser(guild.getJDA()) == null) {
           iter.remove();
           PlayerRepository.updateTeamOfPlayerDefineNull(player.player_id);
@@ -107,6 +115,8 @@ public class InfoPanelRefresherUtil {
           PlayerRepository.deletePlayer(player, guild.getIdLong());
         }
       }
+      stopWatch.stop();
+      logger.info("Loading done for {} in {} sec", player.player_discordId, stopWatch.elapsed(TimeUnit.SECONDS));
     }
   }
 

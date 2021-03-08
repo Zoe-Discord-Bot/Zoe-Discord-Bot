@@ -228,7 +228,7 @@ public class EventListener extends ListenerAdapter {
       return;
     }
 
-    Member member = event.getGuild().retrieveMemberById(event.getAuthor().getIdLong()).complete();
+    Member member = event.getMember();
 
     if(member.getUser() != event.getJDA().getSelfUser() && member.getPermissions().contains(Permission.MANAGE_CHANNEL)) {
       return;

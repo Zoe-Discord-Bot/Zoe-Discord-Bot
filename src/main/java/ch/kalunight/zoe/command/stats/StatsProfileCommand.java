@@ -306,7 +306,7 @@ public class StatsProfileCommand extends ZoeCommand {
 
     MessageEmbed embed;
     try {
-      embed = MessageBuilderRequest.createProfileMessage(player, lolAccount, championsMasteries, server.getLanguage(), url);
+      embed = MessageBuilderRequest.createProfileMessage(player, lolAccount, championsMasteries, server.getLanguage(), url, event.getJDA());
     } catch(RiotApiException e) {
       if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
         logger.debug("Get rate limited", e);

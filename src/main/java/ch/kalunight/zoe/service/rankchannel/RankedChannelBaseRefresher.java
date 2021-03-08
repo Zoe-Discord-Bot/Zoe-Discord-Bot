@@ -7,6 +7,7 @@ import ch.kalunight.zoe.model.dto.DTO.Player;
 import ch.kalunight.zoe.model.dto.DTO.RankHistoryChannel;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.player_data.FullTier;
+import net.dv8tion.jda.api.JDA;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 
 public abstract class RankedChannelBaseRefresher implements Runnable {
@@ -25,14 +26,17 @@ public abstract class RankedChannelBaseRefresher implements Runnable {
 
   protected LeagueAccount leagueAccount;
   
+  protected JDA jda;
+  
   public RankedChannelBaseRefresher(RankHistoryChannel rankChannel, LeagueEntry oldEntry, LeagueEntry newEntry,
-      Player player, LeagueAccount leagueAccount, Server server) {
+      Player player, LeagueAccount leagueAccount, Server server, JDA jda) {
     this.rankChannel = rankChannel;
     this.oldEntry = oldEntry;
     this.newEntry = newEntry;
     this.player = player;
     this.leagueAccount = leagueAccount;
     this.server = server;
+    this.jda = jda;
   }
   
   @Override

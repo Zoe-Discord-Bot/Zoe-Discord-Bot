@@ -179,7 +179,7 @@ public class DTO {
     }
 
     public User getUser(JDA jda) {
-      User user = jda.retrieveUserById(player_discordId).complete();
+      User user = jda.retrieveUserById(player_discordId, false).complete();
       if(user != null) {
         return user;
       }

@@ -140,10 +140,17 @@ public class ServerChecker extends TimerTask {
 
       if(nextDiscordBotListRefresh.isBeforeNow()) {
 
-        for(JDA client : Zoe.getJDAs()) {
-          if(Zoe.getBotListApi() != null) {
+        if(Zoe.getBotListApi() != null) {
+          int guildTotal = 0;
+          JDA clientSelected = null;
+          for(JDA client : Zoe.getJDAs()) {
+            guildTotal += client.getGuildCache().size();
+            clientSelected = client;
+          }
+
+          if(clientSelected != null) {
             // Discord bot list status
-            Zoe.getBotListApi().setStats(client.getShardInfo().getShardId(), client.getShardInfo().getShardTotal(), (int) client.getGuildCache().size());
+            Zoe.getBotListApi().setStats(clientSelected.getShardInfo().getShardId(), clientSelected.getShardInfo().getShardTotal(), guildTotal);
           }
         }
 
@@ -156,7 +163,7 @@ public class ServerChecker extends TimerTask {
           client.getPresence().setStatus(OnlineStatus.ONLINE);
           client.getPresence().setActivity(Activity.playing("type \">help\""));
         }
-        
+
         setNextStatusRefresh(nextStatusRefresh.plusHours(TIME_BETWEEN_EACH_STATUS_REFRESH_IN_HOURS));
       }
     }catch(SQLException e) {

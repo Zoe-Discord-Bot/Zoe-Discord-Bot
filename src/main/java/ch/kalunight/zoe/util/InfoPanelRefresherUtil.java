@@ -22,7 +22,7 @@ import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
 
 public class InfoPanelRefresherUtil {
-
+  
   private InfoPanelRefresherUtil() {
     //Hide default public constructor
   }
@@ -89,7 +89,7 @@ public class InfoPanelRefresherUtil {
 
       try {
 
-        if(guild.retrieveMemberById(player.getUser().getId(), false).complete() == null) {
+        if(player.getUser(guild.getJDA()) == null) {
           iter.remove();
           PlayerRepository.updateTeamOfPlayerDefineNull(player.player_id);
           PlayerRepository.deletePlayer(player, guild.getIdLong());

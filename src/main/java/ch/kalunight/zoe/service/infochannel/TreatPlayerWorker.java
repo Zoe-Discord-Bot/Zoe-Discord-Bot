@@ -168,10 +168,32 @@ public class TreatPlayerWorker implements Runnable {
       if(lastRank != null) {
         refreshLoL(leagueAccount, lastRank, accountsInGame, accountNotInGame);
         refreshTFT(leagueAccount, lastRank);
+        
+        if(forceRefreshCache) {
+          forceRefreshAllRank(leagueAccount, lastRank);
+        }
+        
       }else {
         logger.warn("Error while refreshing a player ! last rank == null. Guild Id {}", server.serv_guildId);
       }
     }
+  }
+
+
+  private void forceRefreshAllRank(LeagueAccount leagueAccount, LastRank lastRank) throws SQLException {
+    Set<LeagueEntry> leagueEntries;
+    try {
+      leagueEntries = Zoe.getRiotApi().
+          getLeagueEntriesBySummonerIdWithRateLimit(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
+      LastRankUtil.updateLoLLastRank(lastRank, leagueEntries);
+    } catch(RiotApiException e) {
+      logger.info("Error while refreshing rank in updateLoLLastRank.");
+    }
+    
+    Set<TFTLeagueEntry> tftLeagueEntries = Zoe.getRiotApi().
+        getTFTLeagueEntriesWithRateLimit(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_tftSummonerId);
+
+    LastRankUtil.updateTFTLastRank(lastRank, tftLeagueEntries);
   }
 
 

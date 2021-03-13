@@ -140,18 +140,15 @@ public class ServerChecker extends TimerTask {
 
       if(nextDiscordBotListRefresh.isBeforeNow()) {
 
-        if(Zoe.getBotListApi() != null) {
-          int guildTotal = 0;
-          JDA clientSelected = null;
-          for(JDA client : Zoe.getJDAs()) {
+        int guildTotal = 0;
+        for(JDA client : Zoe.getJDAs()) {
+          if(Zoe.getBotListApi() != null && client != null) {
             guildTotal += client.getGuildCache().size();
-            clientSelected = client;
           }
+        }
 
-          if(clientSelected != null) {
-            // Discord bot list status
-            Zoe.getBotListApi().setStats(clientSelected.getShardInfo().getShardId(), clientSelected.getShardInfo().getShardTotal(), guildTotal);
-          }
+        for(JDA client : Zoe.getJDAs()) {
+          Zoe.getBotListApi().setStats(client.getShardInfo().getShardId(), client.getShardInfo().getShardTotal(), guildTotal);
         }
 
         setNextDiscordBotListRefresh(DateTime.now().plusMinutes(TIME_BETWEEN_EACH_DISCORD_BOT_LIST_REFRESH));

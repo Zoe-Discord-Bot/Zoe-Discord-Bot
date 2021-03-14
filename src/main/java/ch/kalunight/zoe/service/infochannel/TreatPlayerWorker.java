@@ -126,9 +126,9 @@ public class TreatPlayerWorker implements Runnable {
       generateText(accountsInGame, accountNotInGame);
       createOutputObject();
     }catch(SQLException e) {
-      logger.error("Unexpected SQLException when threathing text", e);
+      logger.error("Unexpected SQLException when threathing text. Server ID : {}", server.serv_guildId, e);
     }catch(Exception e) {
-      logger.error("Unexpected exception when threathing text", e);
+      logger.error("Unexpected exception when threathing text. Server ID : {}", server.serv_guildId, e);
     }finally {
       playersInWork.remove(this);
     }
@@ -188,7 +188,7 @@ public class TreatPlayerWorker implements Runnable {
       
       LastRankUtil.updateLoLLastRankIfRankDifference(lastRank, leagueEntries);
     } catch(RiotApiException e) {
-      logger.info("Error while refreshing rank in updateLoLLastRank.");
+      logger.info("Error while refreshing rank in updateLoLLastRank. Server Id : {}", server.serv_guildId, e);
     }
     
     Set<TFTLeagueEntry> tftLeagueEntries = Zoe.getRiotApi().

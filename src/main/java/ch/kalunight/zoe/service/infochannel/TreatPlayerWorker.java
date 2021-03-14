@@ -185,7 +185,8 @@ public class TreatPlayerWorker implements Runnable {
     try {
       leagueEntries = Zoe.getRiotApi().
           getLeagueEntriesBySummonerIdWithRateLimit(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
-      LastRankUtil.updateLoLLastRank(lastRank, leagueEntries);
+      
+      LastRankUtil.updateLoLLastRankIfRankDifference(lastRank, leagueEntries);
     } catch(RiotApiException e) {
       logger.info("Error while refreshing rank in updateLoLLastRank.");
     }

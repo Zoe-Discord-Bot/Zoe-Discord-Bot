@@ -103,7 +103,7 @@ public class InfoPanelRefresher implements Runnable {
         infochannel = guild.getTextChannelById(infoChannelDTO.infochannel_channelid);
       }
 
-      ServerConfiguration configuration = ConfigRepository.getServerConfiguration(guild.getIdLong(), infochannel.getJDA());
+      ServerConfiguration configuration = ConfigRepository.getServerConfiguration(guild.getIdLong(), guild.getJDA());
 
       List<DTO.Player> playersDTO = PlayerRepository.getPlayers(server.serv_guildId);
       

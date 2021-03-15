@@ -2,7 +2,7 @@
     "startHelpMessage": "Hier sind meine Befehle:",
     "command": "Befehl",
     "commandPlural": "Befehle",
-    "endHelpMessage": "Für zusätzliche Hilfe, tritt unserem offiziellen Server bei:",
+    "endHelpMessage": "Für zusätzliche Hilfe kannst du unserem offiziellen Server beitreten:",
     "helpMessageSendConfirmation": "Ich habe dir alle Befehle als Privatnachricht gesendet.",
     "missingPermissionOwnerMessage": "Hi! Ich bin ein Bot deines Servers  %s. \nIch brauche die  \"%s\"  Berechtigung im Infokanal um richtig zu funktionieren. Wenn du Hilfe brauchst kannst du dem Hilfeserver hier beitreten: %s\nDiese Nachricht wird jedes Mal gesendet wenn ich neustarte. Danke im Voraus !",
     "aboutCommandHelp": "Gibt die Infos über den Bot.",

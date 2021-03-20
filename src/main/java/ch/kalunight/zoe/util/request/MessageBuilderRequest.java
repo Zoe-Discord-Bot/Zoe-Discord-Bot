@@ -231,7 +231,7 @@ public class MessageBuilderRequest {
 
     String gameType = getGameType(gameOfTheChange, lang);
 
-    User user = player.getUser(jda);
+    User user = player.retrieveUser(jda);
     message.setAuthor(user.getName(), null, user.getAvatarUrl());
 
     MiniSeries bo = newEntry.getMiniSeries();
@@ -270,7 +270,7 @@ public class MessageBuilderRequest {
 
     String gameType = getGameType(gameOfTheChange, lang);
 
-    User user = player.getUser(jda);
+    User user = player.retrieveUser(jda);
     message.setAuthor(user.getName(), null, user.getAvatarUrl());
 
     FullTier oldFullTier = new FullTier(oldEntry);
@@ -328,7 +328,7 @@ public class MessageBuilderRequest {
     MiniSeries bo = oldEntry.getMiniSeries();
     String gameType = getGameType(gameOfTheChange, lang);
 
-    User user = player.getUser(jda);
+    User user = player.retrieveUser(jda);
     message.setAuthor(user.getName(), null, user.getAvatarUrl());
 
     if(!boWin) {
@@ -365,7 +365,7 @@ public class MessageBuilderRequest {
 
     String gameType = getGameType(gameOfTheChange, lang);
 
-    User user = player.getUser(jda);
+    User user = player.retrieveUser(jda);
     message.setAuthor(user.getName(), null, user.getAvatarUrl());
 
     boolean divisionJump = false;
@@ -437,7 +437,7 @@ public class MessageBuilderRequest {
 
     String gameType = getGameType(gameOfTheChange, lang);
 
-    User user = player.getUser(jda);
+    User user = player.retrieveUser(jda);
     message.setAuthor(user.getName(), null, user.getAvatarUrl());
 
     int lpReceived = newEntry.getLeaguePoints() - oldEntry.getLeaguePoints();
@@ -477,7 +477,7 @@ public class MessageBuilderRequest {
 
     String gameType = LanguageManager.getText(lang, GameQueueConfigId.RANKED_TFT.getNameId());
 
-    User user = player.getUser(jda);
+    User user = player.retrieveUser(jda);
     message.setAuthor(user.getName(), null, user.getAvatarUrl());
 
     FullTier oldFullTier = new FullTier(oldEntry);
@@ -620,7 +620,7 @@ public class MessageBuilderRequest {
 
     if(player != null) {
       message.setTitle(String.format(LanguageManager.getText(language, "statsProfileTitle"),
-          player.getUser(jda).getName(), leagueAccount.getSummoner().getName(),
+          player.retrieveUser(jda).getName(), leagueAccount.getSummoner().getName(),
           leagueAccount.getSummoner().getLevel()));
     }else {
       message.setTitle(String.format(LanguageManager.getText(language, "statsProfileTitle"),
@@ -852,8 +852,8 @@ public class MessageBuilderRequest {
 
     if(player != null) {
       message.setFooter(String.format(LanguageManager.getText(language, "statsProfileFooterProfileOfPlayer"),
-          player.getUser(jda).getName()), 
-          player.getUser(jda).getAvatarUrl());
+          player.retrieveUser(jda).getName()), 
+          player.retrieveUser(jda).getAvatarUrl());
     }else {
       message.setFooter(String.format(LanguageManager.getText(language, "statsProfileFooterProfileOfPlayer"),
           leagueAccount.getSummoner().getName(), leagueAccount.getSummoner().getName()));

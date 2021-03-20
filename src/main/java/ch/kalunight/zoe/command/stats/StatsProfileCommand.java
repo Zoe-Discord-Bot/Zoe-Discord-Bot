@@ -324,7 +324,7 @@ public class StatsProfileCommand extends ZoeCommand {
 
     if(imageBytes != null) {
       if(player != null) {
-        messageLoading.getTextChannel().sendMessage(messageBuilder.build()).addFile(imageBytes, player.getUser(event.getJDA()).getId() + ".png").queue();
+        messageLoading.getTextChannel().sendMessage(messageBuilder.build()).addFile(imageBytes, player.retrieveUser(event.getJDA()).getId() + ".png").queue();
       }else {
         messageLoading.getTextChannel().sendMessage(messageBuilder.build()).addFile(imageBytes, url + ".png").queue();
       }
@@ -342,7 +342,7 @@ public class StatsProfileCommand extends ZoeCommand {
 
     if(player != null) {
       masteriesGraphBuilder.title(String.format(LanguageManager.getText(server.getLanguage(), "statsProfileGraphTitle"),
-          player.getUser(jda).getName()));
+          player.retrieveUser(jda).getName()));
     }else {
       masteriesGraphBuilder.title(String.format(LanguageManager.getText(server.getLanguage(), "statsProfileGraphTitle"),
           leagueAccount.getSummoner().getName()));

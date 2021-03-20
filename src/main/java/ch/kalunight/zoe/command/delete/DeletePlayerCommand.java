@@ -69,7 +69,7 @@ public class DeletePlayerCommand extends ZoeCommand {
         }
         PlayerRepository.deletePlayer(player, server.serv_guildId);
         event.reply(String.format(LanguageManager.getText(server.getLanguage(), "deletePlayerDoneMessage"),
-            player.getUser(event.getJDA()).getName()));
+            player.retrieveUser(event.getJDA()).getName()));
       }
     }
   }

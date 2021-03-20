@@ -107,7 +107,7 @@ public class RoleOption extends ConfigurationOption {
 
 
             for(Player player : PlayerRepository.getPlayers(guildId)) {
-              Member member = guild.retrieveMember(player.getUser(guild.getJDA())).complete();
+              Member member = guild.retrieveMember(player.retrieveUser(guild.getJDA())).complete();
               guild.addRoleToMember(member, role).queue();
             }
 

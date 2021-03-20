@@ -238,7 +238,7 @@ public class InfoPanelRefresher implements Runnable {
 
         loadGameToDelete(leaguesAccountsPerGameWaitingDeletion, treatedPlayer);
       }else {
-        logger.error("Error while loading a player! Player id {} | Guild discord id {}", treatPlayerWorker.getPlayer().getUser(guild.getJDA()).getId(), treatPlayerWorker.getServer().serv_guildId);
+        logger.error("Error while loading a player! Player id {} | Guild discord id {}", treatPlayerWorker.getPlayer().retrieveUser(guild.getJDA()).getId(), treatPlayerWorker.getServer().serv_guildId);
       }
     }
   }

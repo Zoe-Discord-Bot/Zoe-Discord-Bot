@@ -93,13 +93,13 @@ public class MessageBuilderRequestUtil {
 
     for(int i = 0; i < playersNotTwice.size(); i++) {
       if(i == 0) {
-        title.append(" " + playersNotTwice.get(i).getUser(jda).getName());
+        title.append(" " + playersNotTwice.get(i).retrieveUser(jda).getName());
       } else if(i + 1 == playersNotTwice.size()) {
-        title.append(" " + andOfTranslated + " " + playersNotTwice.get(i).getUser(jda).getName());
+        title.append(" " + andOfTranslated + " " + playersNotTwice.get(i).retrieveUser(jda).getName());
       } else if(i + 2 == playersNotTwice.size()) {
-        title.append(" " + playersNotTwice.get(i).getUser(jda).getName());
+        title.append(" " + playersNotTwice.get(i).retrieveUser(jda).getName());
       } else {
-        title.append(" " + playersNotTwice.get(i).getUser(jda).getName() + ",");
+        title.append(" " + playersNotTwice.get(i).retrieveUser(jda).getName() + ",");
       }
     }
 

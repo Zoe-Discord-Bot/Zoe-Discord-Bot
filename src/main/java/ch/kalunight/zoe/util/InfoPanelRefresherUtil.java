@@ -86,7 +86,7 @@ public class InfoPanelRefresherUtil {
       DTO.Player player = iter.next();
 
       try {
-        if(player.getUser(guild.getJDA()) == null) {
+        if(player.retrieveMember(guild) == null) {
           iter.remove();
           PlayerRepository.updateTeamOfPlayerDefineNull(player.player_id);
           PlayerRepository.deletePlayer(player, guild.getIdLong());

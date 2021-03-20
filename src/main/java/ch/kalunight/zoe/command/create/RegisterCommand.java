@@ -105,7 +105,7 @@ public class RegisterCommand extends ZoeCommand {
 
     if(playerAlreadyWithTheAccount != null) {
       loadingMessage.editMessage(String.format(LanguageManager.getText(server.getLanguage(), "accountAlreadyLinkedToAnotherPlayer"),
-          playerAlreadyWithTheAccount.getUser(event.getJDA()).getName())).queue();
+          playerAlreadyWithTheAccount.retrieveUser(event.getJDA()).getName())).queue();
       return;
     }
 

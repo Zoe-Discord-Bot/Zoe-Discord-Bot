@@ -377,7 +377,7 @@ public class TreatPlayerWorker implements Runnable {
           getTextInformationPanelRankOption(infochannelMessage, player, leagueAccount, false);
         }else if (accountNotInGame.size() > 1){
 
-          infochannelMessage.append(String.format(LanguageManager.getText(server.getLanguage(), "infoPanelRankedTitleMultipleAccount"), player.getUser(jda).getAsMention()) + "\n");
+          infochannelMessage.append(String.format(LanguageManager.getText(server.getLanguage(), "infoPanelRankedTitleMultipleAccount"), player.retrieveUser(jda).getAsMention()) + "\n");
 
           for(DTO.LeagueAccount leagueAccount : accountNotInGame) {
 
@@ -390,10 +390,10 @@ public class TreatPlayerWorker implements Runnable {
       }
     }else if (accountsWithGame.size() == 1) {
       Entry<DTO.LeagueAccount, CurrentGameInfo> entry = accountsWithGame.entrySet().iterator().next();
-      infochannelMessage.append(player.getUser(jda).getAsMention() + " : " 
+      infochannelMessage.append(player.retrieveUser(jda).getAsMention() + " : " 
           + InfoPanelRefresherUtil.getCurrentGameInfoStringForOneAccount(entry.getKey(), entry.getValue(), server.getLanguage()) + "\n");
     }else {
-      infochannelMessage.append(player.getUser(jda).getAsMention() + " : " 
+      infochannelMessage.append(player.retrieveUser(jda).getAsMention() + " : " 
           + LanguageManager.getText(server.getLanguage(), "informationPanelMultipleAccountInGame") + "\n"
           + InfoPanelRefresherUtil.getCurrentGameInfoStringForMultipleAccounts(accountsWithGame, server.getLanguage()));
     }
@@ -423,7 +423,7 @@ public class TreatPlayerWorker implements Runnable {
       accountString = leagueAccount.getSummoner().getName();
     }else {
       baseText = "infoPanelRankedTextOneAccount";
-      accountString = player.getUser(jda).getAsMention();
+      accountString = player.retrieveUser(jda).getAsMention();
     }
 
     List<LastRankQueue> lastRanksByQueue = new ArrayList<>();
@@ -475,7 +475,7 @@ public class TreatPlayerWorker implements Runnable {
   }
 
   private void notInGameWithoutRankInfo(final StringBuilder stringMessage, DTO.Player player) {
-    stringMessage.append(player.getUser(jda).getAsMention() + " : " 
+    stringMessage.append(player.retrieveUser(jda).getAsMention() + " : " 
         + LanguageManager.getText(server.getLanguage(), "informationPanelNotInGame") + " \n");
   }
 

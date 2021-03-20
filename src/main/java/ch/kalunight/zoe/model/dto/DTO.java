@@ -16,6 +16,8 @@ import com.google.gson.reflect.TypeToken;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.service.analysis.ChampionRole;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.clash.dto.ClashTournament;
@@ -174,10 +176,19 @@ public class DTO {
       player_mentionnable = baseData.getBoolean("player_mentionnable");
     }
 
-    public User getUser(JDA jda) {
+    public User retrieveUser(JDA jda) {
       User user = jda.retrieveUserById(player_discordId, false).complete();
       if(user != null) {
         return user;
+      }
+
+      return null;
+    }
+    
+    public Member retrieveMember(Guild guild) {
+      Member member = guild.retrieveMemberById(player_discordId, false).complete();
+      if(member != null) {
+        return member;
       }
 
       return null;

@@ -41,6 +41,7 @@ import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.MessageBuilderRequestUtil;
 import ch.kalunight.zoe.util.Ressources;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.MessageEmbed.Field;
 import net.dv8tion.jda.api.entities.User;
@@ -222,7 +223,7 @@ public class MessageBuilderRequest {
   }
 
   public static MessageEmbed createRankChannelCardBoStarted(LeagueEntry newEntry, 
-      CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang) throws RiotApiException {
+      CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang, JDA jda) throws RiotApiException {
 
     SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
 
@@ -230,7 +231,7 @@ public class MessageBuilderRequest {
 
     String gameType = getGameType(gameOfTheChange, lang);
 
-    User user = player.getUser();
+    User user = player.retrieveUser(jda);
     message.setAuthor(user.getName(), null, user.getAvatarUrl());
 
     MiniSeries bo = newEntry.getMiniSeries();
@@ -258,7 +259,7 @@ public class MessageBuilderRequest {
   }
 
   public static MessageEmbed createRankChannelBoInProgress(LeagueEntry oldEntry, LeagueEntry newEntry, 
-      CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang) throws RiotApiException {
+      CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang, JDA jda) throws RiotApiException {
 
     SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
 
@@ -269,7 +270,7 @@ public class MessageBuilderRequest {
 
     String gameType = getGameType(gameOfTheChange, lang);
 
-    User user = player.getUser();
+    User user = player.retrieveUser(jda);
     message.setAuthor(user.getName(), null, user.getAvatarUrl());
 
     FullTier oldFullTier = new FullTier(oldEntry);
@@ -307,7 +308,7 @@ public class MessageBuilderRequest {
   }
 
   public static MessageEmbed createRankChannelCardBoEnded(LeagueEntry oldEntry, LeagueEntry newEntry, 
-      CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang) throws RiotApiException {
+      CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang, JDA jda) throws RiotApiException {
 
     SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
 
@@ -327,7 +328,7 @@ public class MessageBuilderRequest {
     MiniSeries bo = oldEntry.getMiniSeries();
     String gameType = getGameType(gameOfTheChange, lang);
 
-    User user = player.getUser();
+    User user = player.retrieveUser(jda);
     message.setAuthor(user.getName(), null, user.getAvatarUrl());
 
     if(!boWin) {
@@ -356,7 +357,7 @@ public class MessageBuilderRequest {
   }
 
   public static MessageEmbed createRankChannelCardLeagueChange(LeagueEntry oldEntry, LeagueEntry newEntry, 
-      CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang) throws RiotApiException {
+      CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang, JDA jda) throws RiotApiException {
 
     SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
 
@@ -364,7 +365,7 @@ public class MessageBuilderRequest {
 
     String gameType = getGameType(gameOfTheChange, lang);
 
-    User user = player.getUser();
+    User user = player.retrieveUser(jda);
     message.setAuthor(user.getName(), null, user.getAvatarUrl());
 
     boolean divisionJump = false;
@@ -428,7 +429,7 @@ public class MessageBuilderRequest {
   }
 
   public static MessageEmbed createRankChannelCardLeaguePointChangeOnly(LeagueEntry oldEntry, LeagueEntry newEntry, 
-      CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang) throws RiotApiException {
+      CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang, JDA jda) throws RiotApiException {
 
     SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
 
@@ -436,7 +437,7 @@ public class MessageBuilderRequest {
 
     String gameType = getGameType(gameOfTheChange, lang);
 
-    User user = player.getUser();
+    User user = player.retrieveUser(jda);
     message.setAuthor(user.getName(), null, user.getAvatarUrl());
 
     int lpReceived = newEntry.getLeaguePoints() - oldEntry.getLeaguePoints();
@@ -470,13 +471,13 @@ public class MessageBuilderRequest {
   }
 
   public static MessageEmbed createRankChannelCardLeaguePointChangeOnlyTFT(LeagueEntry oldEntry, LeagueEntry newEntry, 
-      TFTMatch match, Player player, LeagueAccount leagueAccount, String lang) throws NoValueRankException, RiotApiException {
+      TFTMatch match, Player player, LeagueAccount leagueAccount, String lang, JDA jda) throws NoValueRankException, RiotApiException {
 
     EmbedBuilder message = new EmbedBuilder();
 
     String gameType = LanguageManager.getText(lang, GameQueueConfigId.RANKED_TFT.getNameId());
 
-    User user = player.getUser();
+    User user = player.retrieveUser(jda);
     message.setAuthor(user.getName(), null, user.getAvatarUrl());
 
     FullTier oldFullTier = new FullTier(oldEntry);
@@ -528,7 +529,7 @@ public class MessageBuilderRequest {
   }
 
   public static MessageEmbed createInfoCard(List<DTO.Player> players, CurrentGameInfo currentGameInfo,
-      Platform region, DTO.Server server) throws SQLException {
+      Platform region, DTO.Server server, JDA jda) throws SQLException {
 
     String blueTeamTranslated = LanguageManager.getText(server.getLanguage(), BLUE_TEAM_STRING);
     String redTeamTranslated = LanguageManager.getText(server.getLanguage(), RED_TEAM_STRING);
@@ -550,7 +551,7 @@ public class MessageBuilderRequest {
 
     StringBuilder title = new StringBuilder();
 
-    MessageBuilderRequestUtil.createTitle(players, currentGameInfo, title, server.getLanguage(), true);
+    MessageBuilderRequestUtil.createTitle(players, currentGameInfo, title, server.getLanguage(), true, jda);
 
     message.setTitle(title.toString());
 
@@ -611,7 +612,7 @@ public class MessageBuilderRequest {
   }
 
   public static MessageEmbed createProfileMessage(DTO.Player player, DTO.LeagueAccount leagueAccount,
-      SavedChampionsMastery masteries, String language, String url) throws RiotApiException {    
+      SavedChampionsMastery masteries, String language, String url, JDA jda) throws RiotApiException {    
 
     String latestGameTranslated = LanguageManager.getText(language, "statsProfileLatestGames");
 
@@ -619,7 +620,7 @@ public class MessageBuilderRequest {
 
     if(player != null) {
       message.setTitle(String.format(LanguageManager.getText(language, "statsProfileTitle"),
-          player.getUser().getName(), leagueAccount.getSummoner().getName(),
+          player.retrieveUser(jda).getName(), leagueAccount.getSummoner().getName(),
           leagueAccount.getSummoner().getLevel()));
     }else {
       message.setTitle(String.format(LanguageManager.getText(language, "statsProfileTitle"),
@@ -851,8 +852,8 @@ public class MessageBuilderRequest {
 
     if(player != null) {
       message.setFooter(String.format(LanguageManager.getText(language, "statsProfileFooterProfileOfPlayer"),
-          player.getUser().getName()), 
-          player.getUser().getAvatarUrl());
+          player.retrieveUser(jda).getName()), 
+          player.retrieveUser(jda).getAvatarUrl());
     }else {
       message.setFooter(String.format(LanguageManager.getText(language, "statsProfileFooterProfileOfPlayer"),
           leagueAccount.getSummoner().getName(), leagueAccount.getSummoner().getName()));

@@ -54,7 +54,7 @@ public class ConfigCommand extends ZoeCommand {
         .useCancelButton(true)
         .setEventWaiter(waiter);
     
-    ServerConfiguration serverConfiguration = ConfigRepository.getServerConfiguration(event.getGuild().getIdLong());
+    ServerConfiguration serverConfiguration = ConfigRepository.getServerConfiguration(event.getGuild().getIdLong(), event.getJDA());
     
     List<ConfigurationOption> options = serverConfiguration.getAllConfigurationOption();
     for(ConfigurationOption option : options) {

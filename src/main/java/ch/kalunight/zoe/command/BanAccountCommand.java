@@ -215,7 +215,7 @@ public class BanAccountCommand extends ZoeCommand {
 
       for(Server server : serversWithTheAccount) {
         serversInOrder.add(server);
-        Guild guild = Zoe.getJda().getGuildById(server.serv_guildId);
+        Guild guild = event.getJDA().getGuildById(server.serv_guildId);
         if(guild != null) {
           try {
             guild.retrieveMember(event.getAuthor()).complete();

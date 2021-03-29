@@ -1,6 +1,7 @@
 package ch.kalunight.zoe.model.dangerosityreport;
 
 import ch.kalunight.zoe.translation.LanguageManager;
+import net.dv8tion.jda.api.JDA;
 
 public class DangerosityReportHighWinrate extends DangerosityReport {
 
@@ -41,7 +42,7 @@ public class DangerosityReportHighWinrate extends DangerosityReport {
   }
 
   @Override
-  protected String getInfoToShow(String lang) {
+  protected String getInfoToShow(String lang, JDA jda) {
     if(getReportValue() > BASE_SCORE) {
       return String.format(LanguageManager.getText(lang, "dangerosityReportHighWinrateInfo"), POURCENTAGE_FORMAT.format(winrate) + "%"); 
     }else {

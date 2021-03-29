@@ -1,6 +1,7 @@
 package ch.kalunight.zoe.model.dangerosityreport;
 
 import ch.kalunight.zoe.translation.LanguageManager;
+import net.dv8tion.jda.api.JDA;
 
 public class DangerosityReportPlayedGames extends DangerosityReport {
 
@@ -14,7 +15,7 @@ public class DangerosityReportPlayedGames extends DangerosityReport {
   }
 
   @Override
-  protected String getInfoToShow(String lang) {
+  protected String getInfoToShow(String lang, JDA jda) {
     return String.format(LanguageManager.getText(lang, "dangerosityReportPlayRate"), nbrGames);
   }
 

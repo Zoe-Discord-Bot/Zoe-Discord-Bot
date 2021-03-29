@@ -56,7 +56,7 @@ public class DefineInfoChannelCommand extends ZoeCommand {
           if(!event.getMessage().getMentionedChannels().get(0).canTalk()) {
             event.reply(LanguageManager.getText(server.getLanguage(), "defineInfoChannelMissingSpeakPermission"));
           } else {
-            ServerConfiguration config = ConfigRepository.getServerConfiguration(server.serv_guildId);
+            ServerConfiguration config = ConfigRepository.getServerConfiguration(server.serv_guildId, event.getJDA());
             if(textChannel.equals(config.getCleanChannelOption().getCleanChannel())) {
               event.reply(LanguageManager.getText(server.getLanguage(), "defineInfoChannelImpossibleToDefineCleanChannel"));
             }else {

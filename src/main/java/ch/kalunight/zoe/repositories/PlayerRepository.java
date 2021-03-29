@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.Player;
+import net.dv8tion.jda.api.entities.Guild;
 import net.rithms.riot.constant.Platform;
 
 public class PlayerRepository {
@@ -125,8 +126,10 @@ public class PlayerRepository {
       listOfRegisterdPlayersForThisGuild.add(playerDiscordId);
     }
     
-    if(Zoe.getJda() != null) {
-      Zoe.getJda().getGuildById(serverGuildId).retrieveMemberById(playerDiscordId).queue();
+    Guild guild = Zoe.getGuildById(serverGuildId);
+    
+    if(guild != null) {
+      guild.retrieveMemberById(playerDiscordId).queue();
     }
   }
   
@@ -190,7 +193,11 @@ public class PlayerRepository {
         playersOfTheDiscord.remove(player.player_discordId);
       }
       
-      Zoe.getJda().getGuildById(guildId).unloadMember(player.player_discordId);
+      Guild guild = Zoe.getGuildById(guildId);
+      
+      if(guild != null) {
+        guild.unloadMember(player.player_discordId);
+      }
     }
   }
 

@@ -82,7 +82,7 @@ public class EventListenerUtil {
     try(final BufferedReader reader = new BufferedReader(new FileReader(Ressources.GUILD_EMOTES_FILE));) {
       String line;
       while((line = reader.readLine()) != null) {
-        listGuild.add(Zoe.getJda().getGuildById(line));
+        listGuild.add(Zoe.getGuildById(line));
       }
     }
 

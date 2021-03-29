@@ -6,7 +6,6 @@ import java.util.function.BiConsumer;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.repositories.GameInfoCardRepository;
@@ -38,7 +37,7 @@ public class UndefineInfoChannelCommand extends ZoeCommand {
     if(infochannel == null) {
       event.reply(LanguageManager.getText(server.getLanguage(), "undefineInfoChannelMissingChannel"));
     } else {
-      TextChannel channel = Zoe.getJda().getGuildById(server.serv_guildId).getTextChannelById(infochannel.infochannel_channelid);
+      TextChannel channel = event.getJDA().getGuildById(server.serv_guildId).getTextChannelById(infochannel.infochannel_channelid);
       
       List<DTO.GameInfoCard> gameCards = GameInfoCardRepository.getGameInfoCards(server.serv_guildId);
       

@@ -49,7 +49,7 @@ public class AddAccountCommand extends ZoeCommand {
 
     DTO.Server server = getServer(event.getGuild().getIdLong());
 
-    ServerConfiguration config = ConfigRepository.getServerConfiguration(server.serv_guildId);
+    ServerConfiguration config = ConfigRepository.getServerConfiguration(server.serv_guildId, event.getJDA());
 
     if(!config.getUserSelfAdding().isOptionActivated() && !event.getMember().getPermissions().contains(Permission.MANAGE_CHANNEL)) {
       event.reply(String.format(LanguageManager.getText(server.getLanguage(), "permissionNeededMessage"),
@@ -118,7 +118,7 @@ public class AddAccountCommand extends ZoeCommand {
         .getPlayerByLeagueAccountAndGuild(server.serv_guildId, summoner.getId(), region);
 
     if(playerAlreadyWithTheAccount != null) {
-      User userAlreadyWithTheAccount = Zoe.getJda().retrieveUserById(playerAlreadyWithTheAccount.player_discordId).complete();
+      User userAlreadyWithTheAccount = event.getJDA().retrieveUserById(playerAlreadyWithTheAccount.player_discordId).complete();
       message.editMessage(String.format(LanguageManager.getText(server.getLanguage(), "accountAlreadyLinkedToAnotherPlayer"), 
           userAlreadyWithTheAccount.getName())).queue();
       return;

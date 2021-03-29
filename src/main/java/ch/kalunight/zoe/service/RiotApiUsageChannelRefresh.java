@@ -58,7 +58,7 @@ public class RiotApiUsageChannelRefresh implements Runnable {
         return;
       }
 
-      Guild guild = Zoe.getJda().getGuildById(guildId);
+      Guild guild = Zoe.getGuildById(guildId);
       TextChannel rapiInfoChannel = guild.getJDA().getTextChannelById(textChannelId);
 
       if(rapiInfoChannel != null) {
@@ -66,7 +66,7 @@ public class RiotApiUsageChannelRefresh implements Runnable {
         cleanChannel(rapiInfoChannel);
 
         rapiInfoChannel.sendMessage("**Generic Stats**"
-            + "\nTotal number of Servers : " + Zoe.getJda().getGuilds().size()
+            + "\nTotal number of Servers : " + Zoe.getNumberOfGuilds()
             + "\nTask in Server Executor Queue : " + (ServerThreadsManager.getServerExecutor().getActiveCount() + ServerThreadsManager.getServerExecutor().getQueue().size())
             + "\nInfoPannel refresh done last two minutes : " + InfoPanelRefresher.getNbrServerSefreshedLast2Minutes()
             + "\nTask in InfoCards Generator Queue : " + ServerThreadsManager.getInfocardsGenerator().getQueue().size()
@@ -231,15 +231,17 @@ public class RiotApiUsageChannelRefresh implements Runnable {
     }catch(InsufficientPermissionException e) {
       rapiInfoChannel.sendMessage("I cannot clean all the channel, please give me the right to delete messages of all peoples").queue();
       List<Message> onlyMyMessagesToDelete = rapiInfoChannel.getIterableHistory().stream()
-          .filter(m -> m.getAuthor().equals(Zoe.getJda().getSelfUser()))
+          .filter(m -> m.getAuthor().equals(rapiInfoChannel.getJDA().getSelfUser()))
           .collect(Collectors.toList());
       rapiInfoChannel.purgeMessages(onlyMyMessagesToDelete);
     }
   }
 
   public static TextChannel getRapiInfoChannel() {
-    if(Zoe.getJda().getGuildById(guildId) != null) {
-      return Zoe.getJda().getGuildById(guildId).getTextChannelById(textChannelId);
+    Guild guild = Zoe.getGuildById(guildId);
+    
+    if(guild != null) {
+      return guild.getTextChannelById(textChannelId);
     }
     return null;
   }

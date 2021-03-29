@@ -74,7 +74,7 @@ public class CreateInfoChannelCommand extends ZoeCommand {
       dbInfochannel = InfoChannelRepository.getInfoChannel(server.serv_guildId);
       InfoChannelRepository.createInfoPanelMessage(dbInfochannel.infoChannel_id, message.getIdLong());
 
-      ServerConfiguration config = ConfigRepository.getServerConfiguration(event.getGuild().getIdLong());
+      ServerConfiguration config = ConfigRepository.getServerConfiguration(event.getGuild().getIdLong(), event.getJDA());
       
       if(config.getZoeRoleOption().getRole() != null) {
         CommandUtil.giveRolePermission(event.getGuild(), infoChannel, config);

@@ -25,6 +25,7 @@ import ch.kalunight.zoe.repositories.ServerStatusRepository;
 import ch.kalunight.zoe.service.clashchannel.TreatClashChannel;
 import ch.kalunight.zoe.service.infochannel.InfoPanelRefresher;
 import ch.kalunight.zoe.service.leaderboard.LeaderboardBaseService;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
 
@@ -35,11 +36,11 @@ public class ServerChecker extends TimerTask {
   private static final int TIME_BETWEEN_EACH_STATUS_REFRESH_IN_HOURS = 1;
 
   private static final int TIME_BETWEEN_EACH_RAPI_CHANNEL_REFRESH_IN_MINUTES = 2;
-  
+
   private static final int NUMBER_OF_TASK_MAX_DURING_EVALUATION = 100;
 
   private static final int NUMBER_OF_TASK_TO_END = 50;
-  
+
   private static final RefreshStatus lastStatus = new RefreshStatus();
 
   private static DateTime nextDiscordBotListRefresh = DateTime.now().plusSeconds(TIME_BETWEEN_EACH_DISCORD_BOT_LIST_REFRESH);
@@ -128,7 +129,7 @@ public class ServerChecker extends TimerTask {
       ServerThreadsManager.getServersAskedTreatment().clear();
 
       refreshLeaderboard();
-      
+
       refreshClashChannel();
 
       if(nextRAPIChannelRefresh.isBeforeNow() && RiotApiUsageChannelRefresh.getRapiInfoChannel() != null) {
@@ -139,9 +140,17 @@ public class ServerChecker extends TimerTask {
 
       if(nextDiscordBotListRefresh.isBeforeNow()) {
 
+        int guildTotal = 0;
         if(Zoe.getBotListApi() != null) {
-          // Discord bot list status
-          Zoe.getBotListApi().setStats(Zoe.getJda().getGuilds().size());
+          for(JDA client : Zoe.getJDAs()) {
+            if(client != null) {
+              guildTotal += client.getGuildCache().size();
+            }
+          }
+
+          for(JDA client : Zoe.getJDAs()) {
+            Zoe.getBotListApi().setStats(client.getShardInfo().getShardId(), client.getShardInfo().getShardTotal(), guildTotal);
+          }
         }
 
         setNextDiscordBotListRefresh(DateTime.now().plusMinutes(TIME_BETWEEN_EACH_DISCORD_BOT_LIST_REFRESH));
@@ -149,8 +158,10 @@ public class ServerChecker extends TimerTask {
 
       if(nextStatusRefresh.isBeforeNow()) {
         // Discord status
-        Zoe.getJda().getPresence().setStatus(OnlineStatus.ONLINE);
-        Zoe.getJda().getPresence().setActivity(Activity.playing("type \">help\""));
+        for(JDA client : Zoe.getJDAs()) {
+          client.getPresence().setStatus(OnlineStatus.ONLINE);
+          client.getPresence().setActivity(Activity.playing("type \">help\""));
+        }
 
         setNextStatusRefresh(nextStatusRefresh.plusHours(TIME_BETWEEN_EACH_STATUS_REFRESH_IN_HOURS));
       }
@@ -163,20 +174,20 @@ public class ServerChecker extends TimerTask {
       ServerThreadsManager.getServerCheckerThreadTimer().schedule(new DataSaver(), 0);
       logger.debug("Zoe Server-Executor Queue : {}", ServerThreadsManager.getServerExecutor().getQueue().size());
       logger.debug("Zoe InfoCards-Generator Queue : {}", ServerThreadsManager.getInfocardsGenerator().getQueue().size());
-      logger.debug("Zoe number of User cached : {}", Zoe.getJda().getUserCache().size());
+      logger.debug("Zoe number of User cached : {}", Zoe.getNumberOfUsers());
     }
   }
 
   private void refreshClashChannel() throws SQLException {
     List<ClashChannel> clashChannelsToRefresh = ClashChannelRepository.getClashChannelWhoNeedToBeRefreshed();
-   
+
     for(ClashChannel clashChannelToRefresh : clashChannelsToRefresh) {
       Server server = ServerRepository.getServerWithServId(clashChannelToRefresh.clashChannel_fk_server);
 
       ClashChannelRepository.updateClashChannelRefresh(LocalDateTime.now(), clashChannelToRefresh.clashChannel_id);
 
       TreatClashChannel clashChannelWorker = new TreatClashChannel(server, clashChannelToRefresh, false);
-      
+
       ServerThreadsManager.getClashChannelExecutor().execute(clashChannelWorker);
     }
   }

@@ -3,6 +3,7 @@ package ch.kalunight.zoe.model.dangerosityreport;
 import java.text.DecimalFormat;
 
 import ch.kalunight.zoe.util.Ressources;
+import net.dv8tion.jda.api.JDA;
 
 public abstract class DangerosityReport {
 
@@ -21,9 +22,9 @@ public abstract class DangerosityReport {
     this.reportSource = reportSource;
   }
 
-  public String getInfoToShowFormatted(String lang) {
+  public String getInfoToShowFormatted(String lang, JDA jda) {
 
-    String rawInfoString = getInfoToShow(lang);
+    String rawInfoString = getInfoToShow(lang, jda);
     
     if(this instanceof DangerosityReportHighWinrate || this instanceof DangerosityReportHighEloDiff) {
 
@@ -42,7 +43,7 @@ public abstract class DangerosityReport {
     }
   }
 
-  protected abstract String getInfoToShow(String lang);
+  protected abstract String getInfoToShow(String lang, JDA jda);
 
   public abstract int getReportValue();
 

@@ -58,7 +58,7 @@ public class EventListener extends ListenerAdapter {
     try {
       Member owner = event.getGuild().retrieveOwner().complete();
 
-      if(!owner.getUser().getId().equals(Zoe.getJda().getSelfUser().getId())) {
+      if(!owner.getUser().getId().equals(event.getJDA().getSelfUser().getId())) {
         DTO.Server server = ServerRepository.getServerWithGuildId(event.getGuild().getIdLong());
         if(server == null) {
           ServerRepository.createNewServer(event.getGuild().getIdLong(), LanguageManager.DEFAULT_LANGUAGE);
@@ -134,7 +134,7 @@ public class EventListener extends ListenerAdapter {
   @Override
   public void onRoleDelete(RoleDeleteEvent event) {
     try {
-      ConfigRepository.getServerConfiguration(event.getGuild().getIdLong());
+      ConfigRepository.getServerConfiguration(event.getGuild().getIdLong(), event.getJDA());
     } catch(SQLException e) {
       logger.error("Issue with db when reacting to the RoleDeleteEvent event.", e);
     }
@@ -161,7 +161,7 @@ public class EventListener extends ListenerAdapter {
 
   @Override
   public void onUserActivityStart(UserActivityStartEvent event) {
-    if(Zoe.getJda().getPresence().getStatus() != OnlineStatus.DO_NOT_DISTURB) {
+    if(event.getJDA().getPresence().getStatus() != OnlineStatus.DO_NOT_DISTURB) {
       try {
         if(event == null || event.getNewActivity() == null) {
           return;
@@ -214,7 +214,7 @@ public class EventListener extends ListenerAdapter {
 
     ServerConfiguration config;
     try {
-      config = ConfigRepository.getServerConfiguration(event.getGuild().getIdLong());
+      config = ConfigRepository.getServerConfiguration(event.getGuild().getIdLong(), event.getJDA());
     } catch(SQLException e) {
       logger.error("SQL Error when treating message receive !", e);
       return;
@@ -224,20 +224,20 @@ public class EventListener extends ListenerAdapter {
       return;
     }
 
-    if(event.getAuthor().equals(Zoe.getJda().getSelfUser()) && event.getMessage().getContentRaw().startsWith("Info : From now on,")) {
+    if(event.getAuthor().equals(event.getJDA().getSelfUser()) && event.getMessage().getContentRaw().startsWith("Info : From now on,")) {
       return;
     }
 
-    Member member = event.getGuild().retrieveMemberById(event.getAuthor().getIdLong()).complete();
+    Member member = event.getMember();
 
-    if(member.getUser() != Zoe.getJda().getSelfUser() && member.getPermissions().contains(Permission.MANAGE_CHANNEL)) {
+    if(member.getUser() != event.getJDA().getSelfUser() && member.getPermissions().contains(Permission.MANAGE_CHANNEL)) {
       return;
     }
 
     if(config.getCleanChannelOption().getCleanChannelOption().equals(CleanChannelOptionInfo.ONLY_ZOE_COMMANDS)
         && event.getChannel().equals(config.getCleanChannelOption().getCleanChannel())) {
 
-      if(event.getMessage().getContentRaw().startsWith(Zoe.BOT_PREFIX) || member.getUser().equals(Zoe.getJda().getSelfUser())) {
+      if(event.getMessage().getContentRaw().startsWith(Zoe.BOT_PREFIX) || member.getUser().equals(event.getJDA().getSelfUser())) {
         event.getMessage().delete().queueAfter(3, TimeUnit.SECONDS);
       }
 

@@ -45,7 +45,7 @@ public class RegisterCommand extends ZoeCommand {
 
     DTO.Server server = getServer(event.getGuild().getIdLong());
 
-    ServerConfiguration config = ConfigRepository.getServerConfiguration(server.serv_guildId);
+    ServerConfiguration config = ConfigRepository.getServerConfiguration(server.serv_guildId, event.getJDA());
 
     if(!config.getUserSelfAdding().isOptionActivated()) {
       event.reply(String.format(LanguageManager.getText(server.getLanguage(), "registerCommandOptionRequired"),
@@ -105,7 +105,7 @@ public class RegisterCommand extends ZoeCommand {
 
     if(playerAlreadyWithTheAccount != null) {
       loadingMessage.editMessage(String.format(LanguageManager.getText(server.getLanguage(), "accountAlreadyLinkedToAnotherPlayer"),
-          playerAlreadyWithTheAccount.getUser().getName())).queue();
+          playerAlreadyWithTheAccount.retrieveUser(event.getJDA()).getName())).queue();
       return;
     }
 

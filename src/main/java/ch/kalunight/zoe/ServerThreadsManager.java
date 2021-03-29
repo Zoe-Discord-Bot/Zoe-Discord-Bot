@@ -198,6 +198,17 @@ public class ServerThreadsManager {
     }
     logger.info("Shutdown of Response Waiter has been completed !");
     channel.sendMessage("Shutdown of Response Waiter has been completed !").complete();
+    
+    logger.info("Start to shutdown Clash Executor, this can take 1 minutes max...");
+    channel.sendMessage("Start to shutdown Clash Executor, this can take 1 minutes max...").complete();
+    CLASH_CHANNEL_EXECUTOR.shutdown();
+
+    CLASH_CHANNEL_EXECUTOR.awaitTermination(1, TimeUnit.MINUTES);
+    if(!CLASH_CHANNEL_EXECUTOR.isTerminated()) {
+      CLASH_CHANNEL_EXECUTOR.shutdownNow();
+    }
+    logger.info("Shutdown of Clash Executor has been completed !");
+    channel.sendMessage("Shutdown of Clash Executor has been completed !").complete();
 
     logger.info("Start to shutdown Servers Executor, this can take 1 minutes max...");
     channel.sendMessage("Start to shutdown Servers Executor, this can take 1 minutes max...").complete();

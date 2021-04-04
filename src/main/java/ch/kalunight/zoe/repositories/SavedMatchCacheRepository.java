@@ -40,7 +40,7 @@ public class SavedMatchCacheRepository {
       "AND match_cache.mCatch_savedMatch ->> 'gameVersion' = '%s' " + 
       "ORDER BY match_cache.mcatch_creationtime DESC LIMIT 10000;";
   
-  private static final String DELETE_MATCH_CACHE_OLD_OF_1_MONTHS = "DELETE FROM match_cache WHERE mcatch_creationtime < '%s'";
+  private static final String DELETE_MATCH_CACHE_OLD_OF_1_MONTHS = "TRUNCATE match_cache WHERE mcatch_creationtime < '%s'";
   
   private static final String GET_CURRENT_LOL_VERSION = "SELECT match_cache.mCatch_savedMatch ->> 'gameVersion' AS gameversion FROM match_cache "
       + "WHERE match_cache.mcatch_platform = '%s' "

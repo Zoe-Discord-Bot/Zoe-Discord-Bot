@@ -6,14 +6,19 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Stopwatch;
+
 import ch.kalunight.zoe.model.dto.DTO.Server;
 
 public class RefreshStatus {
+
+  private static final int DURATION_OF_EVALUATION_PHASE = 3;
 
   private static final int NUMBER_OF_CYCLE_NEEDED_FOR_ACTION = 18; // 1 cycle happens every 10 seconds
 
@@ -28,8 +33,12 @@ public class RefreshStatus {
   private static final int SMART_MOD_TIME_IN_MINUTES = 60;
 
   private static final int FAILED_HEIGHER_RATE_PUNISHEMENT_IN_HOURS = 6;
+  
+  private static final int NOT_INIT_REFRESH_SERVER_RATE = -1;
+  
+  private static final int ONE_MINUTE_CYCLE = 60;
 
-  private static final Logger logger = LoggerFactory.getLogger(RefreshStatus.class);
+  private static final Logger logger = LoggerFactory.getLogger(RefreshStatus.class); 
 
   private AtomicInteger refreshRateInMinute;
 
@@ -44,6 +53,12 @@ public class RefreshStatus {
   private EvalutationOnRoadResultFailed lastEvaluationFailed;
   
   private Queue<Server> serversToEvaluate;
+  
+  private Stopwatch analysisClock;
+  
+  private AtomicInteger currentServerRefreshPerMin;
+  
+  private AtomicInteger serverRefreshedLastCycle;
 
   private List<RefreshLoadStatus> refreshLoadsHistory;
 
@@ -54,15 +69,37 @@ public class RefreshStatus {
     this.smartModEnd = LocalDateTime.now();
     this.refreshLoadsHistory = Collections.synchronizedList(new ArrayList<RefreshLoadStatus>());
     this.serversToEvaluate = new LinkedList<>();
+    this.currentServerRefreshPerMin = new AtomicInteger(NOT_INIT_REFRESH_SERVER_RATE);
+  }
+  
+  private void refreshServerRate(int serverRefreshed) {
+    if(analysisClock == null) {
+      analysisClock = Stopwatch.createStarted();
+      serverRefreshedLastCycle = new AtomicInteger();
+      return;
+    }
+    
+    final int numberTotalOfServerRefreshed = serverRefreshedLastCycle.addAndGet(serverRefreshed);
+    final int currentCycleTime = (int) analysisClock.elapsed(TimeUnit.SECONDS);
+    
+    if(currentCycleTime >= ONE_MINUTE_CYCLE) {
+      analysisClock.stop();
+      int adaptedServerRate = (numberTotalOfServerRefreshed / currentCycleTime) * ONE_MINUTE_CYCLE;
+      currentServerRefreshPerMin.set(adaptedServerRate);
+      serverRefreshedLastCycle.set(0);
+      analysisClock = Stopwatch.createStarted();
+    }
+    
   }
 
   public void init(int numberOfServerCurrentlyManaged, List<Server> serversToEvaluate) {
     synchronized (this) {
       if(refreshPhase == RefreshPhase.NEED_TO_INIT) {
         refreshRateInMinute.set(START_DELAY_BETWEEN_EACH_REFRESH_IN_MINUTES);
-        evaluationEnd = LocalDateTime.now().plusMinutes(refreshRateInMinute.get());
+        evaluationEnd = LocalDateTime.now().plusMinutes(DURATION_OF_EVALUATION_PHASE);
         numberOfServerManaged = new AtomicInteger(numberOfServerCurrentlyManaged);
         refreshPhase = RefreshPhase.IN_EVALUATION_PHASE;
+        this.serversToEvaluate.clear();
         this.serversToEvaluate.addAll(serversToEvaluate);
         logger.info("Refresh status initiated! Evaluation started.");
       }else {
@@ -71,33 +108,36 @@ public class RefreshStatus {
     }
   }
 
-  public void manageEvaluationPhase(boolean loadingEnded) {
+  public void manageEvaluationPhase(int serversRefreshed) {
     synchronized (this) {
+      refreshServerRate(serversRefreshed);
       if(refreshPhase == RefreshPhase.IN_EVALUATION_PHASE) {
-        if(loadingEnded) {
-          refreshPhase = RefreshPhase.CLASSIC_MOD;
-          logger.info("Evaluation period ended ! A refresh rate of {} as been defined.", refreshRateInMinute.get());
-        }else if (evaluationEnd.isBefore(LocalDateTime.now())) {
-          evaluationEnd = evaluationEnd.plusMinutes(EVALUTATION_INCREASE_DELAY_VALUE_IN_MINUTES);
-          refreshRateInMinute.set(refreshRateInMinute.get() + EVALUTATION_INCREASE_DELAY_VALUE_IN_MINUTES);
-
-          if(refreshRateInMinute.get() < MAX_REFRESH_RATE_IN_MINUTES) {
-            logger.info("Evaluation objective not achieved ! {} minutes as been added to the refresh rate. We wait to see if we can achieve the new target ({} minutes)",
-                EVALUTATION_INCREASE_DELAY_VALUE_IN_MINUTES, refreshRateInMinute.get());
+        final int serversRefreshRate = currentServerRefreshPerMin.get() + 1; //Add 1 to avoid the case where 0
+        if(evaluationEnd.isBefore(LocalDateTime.now())) {
+          
+          int minuteToRefreshAll = numberOfServerManaged.get() / serversRefreshRate + 3; //The 3 minutes added is for security
+          
+          if(minuteToRefreshAll < 60 && minuteToRefreshAll > 0) {
+            refreshPhase = RefreshPhase.CLASSIC_MOD;
+            refreshRateInMinute.set(minuteToRefreshAll);
+            serversToEvaluate.clear();
+            logger.info("Evaluation period ended ! A refresh rate of {} as been defined.", refreshRateInMinute.get());
           }else {
             refreshPhase = RefreshPhase.SMART_MOD;
+            serversToEvaluate.clear();
             smartModEnd = LocalDateTime.now().plusMinutes(SMART_MOD_TIME_IN_MINUTES);
             logger.info("Evaluation objective not achieved and max value reached! Smart mod is now enabled.");
-          } 
+          }
         }
       }else {
         logger.warn("Refresh status not in evaluation phase!");
       }
     }
   }
-
-  public void manageEvaluationPhaseOnRoad(int numberOfManagerServer, int queueSize) {
+  
+  public void manageEvaluationPhaseOnRoad(int numberOfManagerServer, int queueSize, int serversRefreshed) {
     synchronized (this) {
+      refreshServerRate(serversRefreshed);
       if(refreshPhase == RefreshPhase.IN_EVALUATION_PHASE_ON_ROAD) {
         numberOfServerManaged.set(numberOfManagerServer);
 
@@ -128,8 +168,9 @@ public class RefreshStatus {
     }
   }
 
-  public void manageClassicMod(int numberServersManaged, long queueSize) {
+  public void manageClassicMod(int numberServersManaged, long queueSize, int serversRefreshed) {
     synchronized (this) {
+      refreshServerRate(serversRefreshed);
       if(refreshPhase == RefreshPhase.CLASSIC_MOD) {
         numberOfServerManaged.set(numberServersManaged);
 
@@ -246,12 +287,13 @@ public class RefreshStatus {
    * @param numberOfServerCurrentlyManaged
    * @return True if smart mod has ended.
    */
-  public boolean manageSmartMod(int numberOfServerCurrentlyManaged) {
+  public boolean manageSmartMod(int numberOfServerCurrentlyManaged, int serversRefreshed) {
     synchronized (this) {
+      refreshServerRate(serversRefreshed);
       if(refreshPhase == RefreshPhase.SMART_MOD) {
         if(smartModEnd.isBefore(LocalDateTime.now())) {
           refreshRateInMinute.set(START_DELAY_BETWEEN_EACH_REFRESH_IN_MINUTES);
-          evaluationEnd = LocalDateTime.now().plusMinutes(refreshRateInMinute.get());
+          evaluationEnd = LocalDateTime.now().plusMinutes(DURATION_OF_EVALUATION_PHASE);
           numberOfServerManaged.set(numberOfServerCurrentlyManaged);
           refreshPhase = RefreshPhase.NEED_TO_INIT;
           logger.info("Smart mod ended! Evaluation of performance started. An init will first happens.");

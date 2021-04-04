@@ -5,12 +5,15 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.Zoe;
+import ch.kalunight.zoe.model.RefreshPhase;
 import ch.kalunight.zoe.model.RefreshStatus;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.ClashChannel;
@@ -39,8 +42,6 @@ public class ServerChecker extends TimerTask {
 
   private static final int NUMBER_OF_TASK_MAX_DURING_EVALUATION = 100;
 
-  private static final int NUMBER_OF_TASK_TO_END = 50;
-
   private static final RefreshStatus lastStatus = new RefreshStatus();
 
   private static DateTime nextDiscordBotListRefresh = DateTime.now().plusSeconds(TIME_BETWEEN_EACH_DISCORD_BOT_LIST_REFRESH);
@@ -49,37 +50,52 @@ public class ServerChecker extends TimerTask {
 
   private static DateTime nextRAPIChannelRefresh = DateTime.now().plusMinutes(TIME_BETWEEN_EACH_RAPI_CHANNEL_REFRESH_IN_MINUTES);
 
+  private static AtomicInteger sizeOfTheQueueAtStartOfLastCycle = new AtomicInteger();
+  
   private static final Logger logger = LoggerFactory.getLogger(ServerChecker.class);
 
   private List<DTO.Server> manageRefreshRate() throws SQLException {
-
+    
     int queueSize = ServerThreadsManager.getServerExecutor().getActiveCount() + ServerThreadsManager.getServerExecutor().getQueue().size();
     int numberOfManagerServer = PlayerRepository.getListDiscordIdOfRegisteredPlayers().size();
-
+    int serverTreated = sizeOfTheQueueAtStartOfLastCycle.get() - queueSize;
+    
+    List<Server> serversToRefresh;
+    
     switch (lastStatus.getRefreshPhase()) {
     case NEED_TO_INIT:
       List<Server> allServers = ServerRepository.getAllGuildTreatable();
       lastStatus.init(numberOfManagerServer, allServers);
-      return new ArrayList<>();
+      serversToRefresh = new ArrayList<>();
+      break;
     case IN_EVALUATION_PHASE:
-      boolean loadingEnded = lastStatus.getServersToEvaluate().size() < NUMBER_OF_TASK_TO_END;
-      lastStatus.manageEvaluationPhase(loadingEnded);
-      if(!loadingEnded) {
-        return lastStatus.getServersToLoadInEvaluation(NUMBER_OF_TASK_MAX_DURING_EVALUATION - queueSize);
+      lastStatus.manageEvaluationPhase(serverTreated);
+      if(lastStatus.getRefreshPhase() == RefreshPhase.IN_EVALUATION_PHASE) {
+        serversToRefresh = lastStatus.getServersToLoadInEvaluation(NUMBER_OF_TASK_MAX_DURING_EVALUATION - queueSize);
+        break;
       }
-      return new ArrayList<>();
+      serversToRefresh = new ArrayList<>();
+      break;
     case IN_EVALUATION_PHASE_ON_ROAD:
-      lastStatus.manageEvaluationPhaseOnRoad(numberOfManagerServer, queueSize);
-      return ServerRepository.getGuildWhoNeedToBeRefresh(lastStatus.getRefresRatehInMinute().get());
+      lastStatus.manageEvaluationPhaseOnRoad(numberOfManagerServer, queueSize, serverTreated);
+      serversToRefresh = ServerRepository.getGuildWhoNeedToBeRefresh(lastStatus.getRefresRatehInMinute().get());
+      break;
     case CLASSIC_MOD:
-      lastStatus.manageClassicMod(numberOfManagerServer, queueSize);
-      return ServerRepository.getGuildWhoNeedToBeRefresh(lastStatus.getRefresRatehInMinute().get());
+      lastStatus.manageClassicMod(numberOfManagerServer, queueSize, serverTreated);
+      serversToRefresh = ServerRepository.getGuildWhoNeedToBeRefresh(lastStatus.getRefresRatehInMinute().get());
+      break;
     case SMART_MOD:
-      lastStatus.manageSmartMod(numberOfManagerServer);
-      return new ArrayList<>();
+      lastStatus.manageSmartMod(numberOfManagerServer, serverTreated);
+      serversToRefresh = new ArrayList<>();
+      break;
     default:
-      return new ArrayList<>();
+      serversToRefresh = new ArrayList<>();
+      break;
     }
+    
+    sizeOfTheQueueAtStartOfLastCycle.set(queueSize + serversToRefresh.size());
+    
+    return serversToRefresh;
   }
 
   @Override

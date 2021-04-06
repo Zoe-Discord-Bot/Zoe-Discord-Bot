@@ -84,7 +84,8 @@ public class RiotApiUsageChannelRefresh implements Runnable {
         synchronized (refreshStatus) {
           refreshStatusText.append("**Refresh Status**"
               + "\nNumber Of Server Managed : " + refreshStatus.getNumberOfServerManaged()
-              + "\nCurrent Status : " + refreshStatus.getRefreshPhase().toString());
+              + "\nCurrent Status : " + refreshStatus.getRefreshPhase().toString()
+              + "\nServer Refresh Rate : " + refreshStatus.getCurrentServerRefreshPerMin().get());
 
           if(refreshStatus.getRefreshPhase().equals(RefreshPhase.CLASSIC_MOD)) {
             refreshStatusText.append("\nRefresh Rate : " + refreshStatus.getRefresRatehInMinute().get());

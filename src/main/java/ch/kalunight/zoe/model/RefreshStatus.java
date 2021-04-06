@@ -358,6 +358,10 @@ public class RefreshStatus {
     return getNumberOfTaskHandledEvery10Seconds() * 500 / 100; //500% of handled usage
   }
 
+  public AtomicInteger getCurrentServerRefreshPerMin() {
+    return currentServerRefreshPerMin;
+  }
+
   public RefreshPhase getRefreshPhase() {
     return refreshPhase;
   }

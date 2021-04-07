@@ -6,11 +6,9 @@ import java.sql.SQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.SavedMatch;
 import ch.kalunight.zoe.repositories.SavedMatchCacheRepository;
-import ch.kalunight.zoe.service.CleanCacheService;
 import net.rithms.riot.constant.Platform;
 
 public class CacheManager {
@@ -29,9 +27,7 @@ public class CacheManager {
   public static void setupCache() {
     if(!CachedRiotApi.CACHE_ENABLE) {
       logger.info("The cache is disable, no file will be cached.");
-      return;
     }
-    ServerThreadsManager.getServerExecutor().execute(new CleanCacheService());
   }
 
   public static void cleanMatchCache() throws SQLException {

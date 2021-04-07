@@ -13,8 +13,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Stopwatch;
+import com.google.common.util.concurrent.AtomicDouble;
 
 import ch.kalunight.zoe.model.dto.DTO.Server;
+import ch.kalunight.zoe.model.dto.ServerPerLastRefreshComparator;
 
 public class RefreshStatus {
 
@@ -34,12 +36,14 @@ public class RefreshStatus {
 
   private static final int FAILED_HEIGHER_RATE_PUNISHEMENT_IN_HOURS = 6;
   
-  private static final int NOT_INIT_REFRESH_SERVER_RATE = -1;
+  private static final double NOT_INIT_REFRESH_SERVER_RATE = -1;
   
   private static final int ONE_MINUTE_CYCLE = 60;
 
   private static final Logger logger = LoggerFactory.getLogger(RefreshStatus.class); 
 
+  private static final ServerPerLastRefreshComparator serverComparator = new ServerPerLastRefreshComparator();
+  
   private AtomicInteger refreshRateInMinute;
 
   private LocalDateTime evaluationEnd;
@@ -56,7 +60,7 @@ public class RefreshStatus {
   
   private Stopwatch analysisClock;
   
-  private AtomicInteger currentServerRefreshPerMin;
+  private AtomicDouble currentServerRefreshPerMin;
   
   private AtomicInteger serverRefreshedLastCycle;
 
@@ -69,7 +73,7 @@ public class RefreshStatus {
     this.smartModEnd = LocalDateTime.now();
     this.refreshLoadsHistory = Collections.synchronizedList(new ArrayList<RefreshLoadStatus>());
     this.serversToEvaluate = new LinkedList<>();
-    this.currentServerRefreshPerMin = new AtomicInteger(NOT_INIT_REFRESH_SERVER_RATE);
+    this.currentServerRefreshPerMin = new AtomicDouble(NOT_INIT_REFRESH_SERVER_RATE);
   }
   
   private void refreshServerRate(int serverRefreshed) {
@@ -84,9 +88,10 @@ public class RefreshStatus {
     
     if(currentCycleTime >= ONE_MINUTE_CYCLE) {
       analysisClock.stop();
-      int adaptedServerRate = (numberTotalOfServerRefreshed / currentCycleTime) * ONE_MINUTE_CYCLE;
+      double adaptedServerRate = (numberTotalOfServerRefreshed / (double) currentCycleTime) * ONE_MINUTE_CYCLE;
       currentServerRefreshPerMin.set(adaptedServerRate);
       serverRefreshedLastCycle.set(0);
+      logger.info("Cycle refresh time : {}s | Current Refresh server rate : {}", currentCycleTime, adaptedServerRate);
       analysisClock = Stopwatch.createStarted();
     }
     
@@ -99,6 +104,7 @@ public class RefreshStatus {
         evaluationEnd = LocalDateTime.now().plusMinutes(DURATION_OF_EVALUATION_PHASE);
         numberOfServerManaged = new AtomicInteger(numberOfServerCurrentlyManaged);
         refreshPhase = RefreshPhase.IN_EVALUATION_PHASE;
+        Collections.sort(serversToEvaluate, serverComparator);
         this.serversToEvaluate.clear();
         this.serversToEvaluate.addAll(serversToEvaluate);
         logger.info("Refresh status initiated! Evaluation started.");
@@ -112,14 +118,15 @@ public class RefreshStatus {
     synchronized (this) {
       refreshServerRate(serversRefreshed);
       if(refreshPhase == RefreshPhase.IN_EVALUATION_PHASE) {
-        final int serversRefreshRate = currentServerRefreshPerMin.get() + 1; //Add 1 to avoid the case where 0
+        final double serversRefreshRate = currentServerRefreshPerMin.get() + 1; //Add 1 to avoid the case where 0
         if(evaluationEnd.isBefore(LocalDateTime.now())) {
           
-          int minuteToRefreshAll = numberOfServerManaged.get() / serversRefreshRate + 3; //The 3 minutes added is for security
+          double minuteToRefreshAll = numberOfServerManaged.get() / serversRefreshRate + 3; //The 3 minutes added is for security
+          int adaptedMinuteToRefreshAll = (int) minuteToRefreshAll;
           
-          if(minuteToRefreshAll < 60 && minuteToRefreshAll > 0) {
+          if(adaptedMinuteToRefreshAll < 60 && adaptedMinuteToRefreshAll > 0) {
             refreshPhase = RefreshPhase.CLASSIC_MOD;
-            refreshRateInMinute.set(minuteToRefreshAll);
+            refreshRateInMinute.set(adaptedMinuteToRefreshAll);
             serversToEvaluate.clear();
             logger.info("Evaluation period ended ! A refresh rate of {} as been defined.", refreshRateInMinute.get());
           }else {
@@ -358,7 +365,7 @@ public class RefreshStatus {
     return getNumberOfTaskHandledEvery10Seconds() * 500 / 100; //500% of handled usage
   }
 
-  public AtomicInteger getCurrentServerRefreshPerMin() {
+  public AtomicDouble getCurrentServerRefreshPerMin() {
     return currentServerRefreshPerMin;
   }
 

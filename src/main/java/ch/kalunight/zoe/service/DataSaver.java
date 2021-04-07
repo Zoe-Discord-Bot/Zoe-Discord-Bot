@@ -48,6 +48,7 @@ public class DataSaver extends TimerTask {
     } finally {
       TimerTask mainThread = new ServerChecker();
       ServerThreadsManager.getServerCheckerThreadTimer().schedule(mainThread, WAIT_TIME_BETWEEN_EACH_REFRESH_IN_MS);
+      logger.info("Data saver thread done !");
     }
   }
   

@@ -57,6 +57,31 @@ public class DTO {
     public void setLanguage(String serv_language) {
       this.serv_language = serv_language;
     }
+
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+      result = prime * result + (int) (serv_guildId ^ (serv_guildId >>> 32));
+      result = prime * result + (int) (serv_id ^ (serv_id >>> 32));
+      return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj)
+        return true;
+      if (obj == null)
+        return false;
+      if (getClass() != obj.getClass())
+        return false;
+      Server other = (Server) obj;
+      if (serv_guildId != other.serv_guildId)
+        return false;
+      if (serv_id != other.serv_id)
+        return false;
+      return true;
+    }
   }
 
   public static class ServerConfig {

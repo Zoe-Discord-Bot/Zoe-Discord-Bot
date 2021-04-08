@@ -24,7 +24,6 @@ import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.exception.NoValueRankException;
 import ch.kalunight.zoe.model.ComparableMessage;
-import ch.kalunight.zoe.model.RefreshPhase;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.InfoChannel;
@@ -190,6 +189,7 @@ public class InfoPanelRefresher implements Runnable {
       logger.error("The thread got a unexpected error in the guild id {} (The channel got probably deleted when the refresh append)", guild.getIdLong(), e);
     } finally {
       updateServerStatus();
+      ServerChecker.getServerRefreshService().taskEnded(server);
     }
   }
 
@@ -730,13 +730,12 @@ public class InfoPanelRefresher implements Runnable {
       }
     }
 
-    if(ServerChecker.getLastStatus().getRefreshPhase().equals(RefreshPhase.SMART_MOD)) {
+    int refreshRate = ServerChecker.getServerRefreshService().getEstimateTimeToFullRefreshInMinutes();
+    
+    if(refreshRate > 60) {
       stringMessage.append(LanguageManager.getText(server.getLanguage(), "informationPanelSmartModEnable"));
-    } else if (ServerChecker.getLastStatus().getRefreshPhase().equals(RefreshPhase.IN_EVALUATION_PHASE) 
-        || ServerChecker.getLastStatus().getRefreshPhase().equals(RefreshPhase.IN_EVALUATION_PHASE_ON_ROAD) ) {
-      stringMessage.append(LanguageManager.getText(server.getLanguage(), "informationPanelEvaluationMod"));
     }else {
-      stringMessage.append(String.format(LanguageManager.getText(server.getLanguage(), "informationPanelRefreshedTime"), ServerChecker.getLastStatus().getRefresRatehInMinute().get()));
+      stringMessage.append(String.format(LanguageManager.getText(server.getLanguage(), "informationPanelRefreshedTime"), refreshRate));
     }
 
     return stringMessage.toString();

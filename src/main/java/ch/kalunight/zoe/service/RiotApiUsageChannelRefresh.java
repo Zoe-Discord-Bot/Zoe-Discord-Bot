@@ -20,9 +20,6 @@ import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
-import ch.kalunight.zoe.model.RefreshLoadStatus;
-import ch.kalunight.zoe.model.RefreshPhase;
-import ch.kalunight.zoe.model.RefreshStatus;
 import ch.kalunight.zoe.repositories.LeaderboardRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
@@ -79,33 +76,20 @@ public class RiotApiUsageChannelRefresh implements Runnable {
 
         StringBuilder refreshStatusText = new StringBuilder();
 
-        RefreshStatus refreshStatus = ServerChecker.getLastStatus();
-        
-        synchronized (refreshStatus) {
-          refreshStatusText.append("**Refresh Status**"
-              + "\nNumber Of Server Managed : " + refreshStatus.getNumberOfServerManaged()
-              + "\nCurrent Status : " + refreshStatus.getRefreshPhase().toString()
-              + "\nServer Refresh Rate : " + refreshStatus.getCurrentServerRefreshPerMin().get());
+        TreatServerService treatServerService = ServerChecker.getServerRefreshService();
 
-          if(refreshStatus.getRefreshPhase().equals(RefreshPhase.CLASSIC_MOD)) {
-            refreshStatusText.append("\nRefresh Rate : " + refreshStatus.getRefresRatehInMinute().get());
-          }else if (refreshStatus.getRefreshPhase().equals(RefreshPhase.IN_EVALUATION_PHASE) || refreshStatus.getRefreshPhase().equals(RefreshPhase.IN_EVALUATION_PHASE_ON_ROAD)) {
-            refreshStatusText.append("\nCurrent Tested Refresh Rate : " + refreshStatus.getRefresRatehInMinute().get()
-                + "\nRefresh rate evaluation period end date (UTC) : " + refreshStatus.getEvaluationEnd().toString());
-            if(refreshStatus.getRefreshPhase().equals(RefreshPhase.IN_EVALUATION_PHASE)) {
-              refreshStatusText.append("\nServers To Still evaluate : " + refreshStatus.getServersToEvaluate().size());
-            }
-          }else if(refreshStatus.getRefreshPhase().equals(RefreshPhase.SMART_MOD)) {
-            refreshStatusText.append("\nSmart mod end date (UTC) : " + refreshStatus.getSmartModEnd().toString());
-          }
-          
-          refreshStatusText.append("\nHistory of load status : ");
-          
-          for(RefreshLoadStatus loadStatus : refreshStatus.getRefreshLoadsHistory()) {
-            refreshStatusText.append(loadStatus.toString() + "|");
-          }
+        if(treatServerService != null) {
+        refreshStatusText.append("**Refresh Status**"
+            + "\nNumber Of Server Managed : " + treatServerService.getNumberOfServerManaged()
+            + "\nServer Approximate Refresh Rate : " + treatServerService.getEstimateTimeToFullRefreshInMinutes()
+            + "\nServer Refreshed Per Min : " + treatServerService.getServerRefreshedEachMinute()
+            + "\n**Queue Health**"
+            + "\nQueue Size Discord Status : " + treatServerService.getQueueSizeDiscordStatus()
+            + "\nQueue Size Asked Refresh : " + treatServerService.getQueueSizeAskedToRefresh()
+            + "\nQueue Size Passive refresh : " + treatServerService.getQueueSizePassiveRefresh()
+            + "\nCycle started the at (UTC) : " + treatServerService.getCycleStart().toString());
         }
-
+        
         rapiInfoChannel.sendMessage(refreshStatusText.toString()).queue();
 
         StringBuilder serverHelperStats = new StringBuilder();
@@ -240,7 +224,7 @@ public class RiotApiUsageChannelRefresh implements Runnable {
 
   public static TextChannel getRapiInfoChannel() {
     Guild guild = Zoe.getGuildById(guildId);
-    
+
     if(guild != null) {
       return guild.getTextChannelById(textChannelId);
     }

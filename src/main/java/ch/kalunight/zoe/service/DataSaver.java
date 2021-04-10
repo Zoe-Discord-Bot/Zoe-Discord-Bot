@@ -21,6 +21,8 @@ public class DataSaver extends TimerTask {
 
   private static final Logger logger = LoggerFactory.getLogger(DataSaver.class);
   
+  private static final boolean CHAMPION_ANALYSIS_ALLOWED = false;
+  
   private static LocalDateTime nextCleanCacheTime = LocalDateTime.now().plusHours(1);
   
   private static LocalDateTime nextRefreshChampionsRole = LocalDateTime.now().plusHours(12);
@@ -34,7 +36,7 @@ public class DataSaver extends TimerTask {
         ServerThreadsManager.getServerExecutor().execute(cleanCacheThread);
       }
 
-      if(nextRefreshChampionsRole.isBefore(LocalDateTime.now())) {
+      if(nextRefreshChampionsRole.isBefore(LocalDateTime.now()) && CHAMPION_ANALYSIS_ALLOWED) {
         logger.info("Refresh champion roles started !");
         setNextRefreshChampionRole(LocalDateTime.now().plusHours(TIME_BETWEEN_EACH_CHAMPION_ROLE_REFRESH_IN_HOURS));
         

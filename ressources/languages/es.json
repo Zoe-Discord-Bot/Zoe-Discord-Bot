@@ -482,7 +482,7 @@
     "informationPanelEvaluationMod": "*Fase de Evaluación: Evalúa el rendimiento actual.*",
     "informationPanelSmartModEnable": "*Modo inteligente activado: Se actualiza solo con detección de estado de Discord y el comando refresh.*",
     "impossibleToCreateClashChannelMissingPerms": "¡No se pudo crear el Canal de Clash! No tengo permisos para hacerlo.",
-    "clashChannelLoadingMessage": "El Canal de Clash está cargando...",
+    "clashChannelLoadingMessage": "El Canal de Clash está cargando…",
     "createClashChannelTournamentTimeZoneSelected": "¡Perfecto! El canal de Clash ha sido creado correctamente.",
     "createClashChannelTournamentBadTimeZoneSelection": "Por favor, seleciona una zona horaria con un número válido o directamente con el nombre (Copiar y Pegar).",
     "paginationTimeZoneList": "Lista de zonas horarias disponibles:",

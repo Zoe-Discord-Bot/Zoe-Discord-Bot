@@ -87,9 +87,9 @@ public class TreatServerService {
     serverToRefreshPassively.addAll(allServers);
 
     cycleStart = LocalDateTime.now();
-    
+
     logger.info("Start the process with {} threads. (Less if a small size amount of servers is detected)", serverExecutor.getCorePoolSize());
-    
+
     for(int i = 0; i < serverExecutor.getCorePoolSize(); i++) {
       Server server = serverToRefreshPassively.poll();
       if(server != null) {
@@ -102,16 +102,23 @@ public class TreatServerService {
 
   public synchronized void taskEnded(Server serverTreatmentEnded) {
 
-    serverCurrentlyInTreatment.remove(serverTreatmentEnded);
+    if(serverTreatmentEnded != null) {
+      serverCurrentlyInTreatment.remove(serverTreatmentEnded);
 
-    lastServerRefreshed.add(new DatedServer(serverTreatmentEnded, LocalDateTime.now()));
+      lastServerRefreshed.add(new DatedServer(serverTreatmentEnded, LocalDateTime.now()));
+    }
 
     synchronized (serversStatusDetected) {
       if(!serversStatusDetected.isEmpty()) {
         Server server = serversStatusDetected.poll();
         serverToRefreshPassively.remove(server);
 
-        serverExecutor.execute(new InfoPanelRefresher(server, false));
+        if(!serverCurrentlyInTreatment.contains(server)) {
+          serverCurrentlyInTreatment.add(server);
+          serverExecutor.execute(new InfoPanelRefresher(server, false));
+        }else {
+          taskEnded(null);
+        }
         return;
       } 
     }
@@ -121,20 +128,30 @@ public class TreatServerService {
         Server server = serversAskedToRefresh.poll();
         serverToRefreshPassively.remove(server);
 
-        serverExecutor.execute(new InfoPanelRefresher(server, true));
+        if(!serverCurrentlyInTreatment.contains(server)) {
+          serverCurrentlyInTreatment.add(server);
+          serverExecutor.execute(new InfoPanelRefresher(server, true));
+        }else {
+          taskEnded(null);
+        }
         return;
       } 
     }
-    
+
     synchronized (serverToRefreshPassively) {
       if(!serverToRefreshPassively.isEmpty()) {
         Server server = serverToRefreshPassively.poll();
         server = refreshServer(server);
 
-        serverExecutor.execute(new InfoPanelRefresher(server, true));
+        if(!serverCurrentlyInTreatment.contains(server)) {
+          serverCurrentlyInTreatment.add(server);
+          serverExecutor.execute(new InfoPanelRefresher(server, true));
+        }else {
+          taskEnded(null);
+        }
         return;
       }
-      
+
       logger.info("All servers Refresh Passive Task Done !");
       if(!cycleStart.isBefore(LocalDateTime.now().minusMinutes(1))) {
         long secondsToWait = LocalDateTime.now().until(cycleStart.plusMinutes(1), ChronoUnit.SECONDS);
@@ -151,10 +168,11 @@ public class TreatServerService {
       reloadPassiveRefreshQueue();
       Server server = serverToRefreshPassively.poll();
 
+      serverCurrentlyInTreatment.add(server);
       serverExecutor.execute(new InfoPanelRefresher(server, false));
     }
   }
-  
+
   public synchronized void reloadPassiveRefreshQueue() {
     List<Server> allServers = null;
 
@@ -176,9 +194,9 @@ public class TreatServerService {
     Collections.sort(allServers, serverOrder);
 
     serverToRefreshPassively.addAll(allServers);
-    
+
     logger.info("Server Refresh Passive Queue feeded with {} servers", numberOfServerManaged);
-    
+
     cycleStart = LocalDateTime.now();
   }
 

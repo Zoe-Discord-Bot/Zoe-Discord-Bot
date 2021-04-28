@@ -1,0 +1,38 @@
+version: 2
+updates:
+- package-ecosystem: maven
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "04:00"
+  open-pull-requests-limit: 10
+  target-branch: dev
+  ignore:
+  - dependency-name: net.dv8tion:JDA
+    versions:
+    - 4.2.0_227
+    - 4.2.0_228
+    - 4.2.0_229
+    - 4.2.0_230
+    - 4.2.0_231
+    - 4.2.0_236
+    - 4.2.0_239
+    - 4.2.0_240
+    - 4.2.0_241
+    - 4.2.0_242
+    - 4.2.0_245
+    - 4.2.0_247
+    - 4.2.1_256
+    - 4.2.1_259
+    - 4.2.1_260
+    - 4.2.1_261
+  - dependency-name: org.postgresql:postgresql
+    versions:
+    - 42.2.19
+  - dependency-name: com.zaxxer:HikariCP
+    versions:
+    - 4.0.1
+    - 4.0.2
+  - dependency-name: joda-time:joda-time
+    versions:
+    - 2.10.9

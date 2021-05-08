@@ -193,7 +193,7 @@
     "selfAddingOptionStillDisable": "Right, the option is still disable.",
     "configCommandMenuText": "Here are my options:",
     "configCommandMenuDescription": "**Configuration Choices:**",
-    "languageCommandStartMessage": "I actually speak \"%s\". All my translations were done by the community. If you notice an error, please report it here (%s). Here my languages :",
+    "languageCommandStartMessage": "Currently I speak \"%s\". All my translations were done by the community. If you notice an error, please report it here (%s). Here my languages :",
     "languageCommandMenuDescription": "**Languages Choices:**",
     "languageCommandSelected": "Okay, i will now speak in %s. Hello :D",
     "languageCommandSelectionEnded": "Selection of language ended",

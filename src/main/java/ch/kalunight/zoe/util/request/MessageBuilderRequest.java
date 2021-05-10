@@ -174,8 +174,8 @@ public class MessageBuilderRequest {
 
       if(goodChange) {
         if(divisionJump) {
-        accountTitle = String.format(LanguageManager.getText(lang, "rankChannelChangeRankChangeWinDivisionSkippedTitleWithoutGameType"),
-            summonerName);
+          accountTitle = String.format(LanguageManager.getText(lang, "rankChannelChangeRankChangeWinDivisionSkippedTitleWithoutGameType"),
+              summonerName);
         }else {
           accountTitle = String.format(LanguageManager.getText(lang, "rankChannelChangeWonDivisionWithoutGameType"),
               summonerName, newFullTier.toString(lang));
@@ -394,9 +394,9 @@ public class MessageBuilderRequest {
 
     if(goodChange) {
       if(divisionJump) {
-      message.setColor(Color.YELLOW);
-      message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeRankChangeWinDivisionSkippedTitle"),
-          leagueAccount.getSummoner().getName(), gameType));
+        message.setColor(Color.YELLOW);
+        message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeRankChangeWinDivisionSkippedTitle"),
+            leagueAccount.getSummoner().getName(), gameType));
       }else {
         message.setColor(Color.GREEN);
         message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeWonDivision"),
@@ -798,8 +798,8 @@ public class MessageBuilderRequest {
 
     Set<TFTLeagueEntry> tftRankPosition = null;
     try {
-        tftRankPosition = Zoe.getRiotApi().getTFTLeagueEntries(leagueAccount.leagueAccount_server,
-            leagueAccount.leagueAccount_tftSummonerId);
+      tftRankPosition = Zoe.getRiotApi().getTFTLeagueEntries(leagueAccount.leagueAccount_server,
+          leagueAccount.leagueAccount_tftSummonerId);
     }catch (RiotApiException e) {
       if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
         throw e;
@@ -815,9 +815,16 @@ public class MessageBuilderRequest {
 
       while(iteratorPosition.hasNext()) {
         LeagueEntry leaguePosition = iteratorPosition.next();
-        Tier tier = Tier.valueOf(leaguePosition.getTier());
-        Rank rank = Rank.valueOf(leaguePosition.getRank());
+        Tier tier;
+        Rank rank;
 
+        if(leaguePosition.getTier() == null || leaguePosition.getRank() == null) {
+          tier = Tier.UNRANKED;
+          rank = Rank.UNRANKED;
+        }else {
+          tier = Tier.valueOf(leaguePosition.getTier());
+          rank = Rank.valueOf(leaguePosition.getRank());
+        }
         FullTier fullTier = new FullTier(tier, rank, leaguePosition.getLeaguePoints());
 
         if(leaguePosition.getQueueType().equals(GameQueueConfigId.RANKED_TFT.getQueueType())) {

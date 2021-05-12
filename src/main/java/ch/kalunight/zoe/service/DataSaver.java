@@ -21,7 +21,7 @@ public class DataSaver extends TimerTask {
 
   private static final Logger logger = LoggerFactory.getLogger(DataSaver.class);
   
-  private static final boolean CHAMPION_ANALYSIS_ALLOWED = false;
+  private static final boolean CHAMPION_ANALYSIS_ALLOWED = true;
   
   private static LocalDateTime nextCleanCacheTime = LocalDateTime.now().plusHours(1);
   

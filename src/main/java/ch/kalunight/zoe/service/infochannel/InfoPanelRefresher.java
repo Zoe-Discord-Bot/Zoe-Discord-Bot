@@ -359,7 +359,7 @@ public class InfoPanelRefresher implements Runnable {
 
         DTO.CurrentGameInfo currentGame = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(account.leagueAccount_id);
 
-        ServerThreadsManager.getInfocardsGenerator().execute(
+        ServerChecker.getServerRefreshService().getInfocardsToRefresh().add(
             new InfoCardsWorker(server, infochannel, accountsLinked.get(0), currentGame, gameInfoCard, forceRefreshCache));
         break;
       case IN_WAIT_OF_DELETING:

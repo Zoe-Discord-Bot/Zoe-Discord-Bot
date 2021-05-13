@@ -14,6 +14,7 @@ import ch.kalunight.zoe.repositories.GameInfoCardRepository;
 import ch.kalunight.zoe.repositories.InfoChannelRepository;
 import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.service.RiotApiUsageChannelRefresh;
+import ch.kalunight.zoe.service.ServerChecker;
 import ch.kalunight.zoe.util.InfoPanelRefresherUtil;
 import ch.kalunight.zoe.util.MessageBuilderRequestUtil;
 import ch.kalunight.zoe.util.request.MessageBuilderRequest;
@@ -78,6 +79,7 @@ public class InfoCardsWorker implements Runnable {
       } catch(SQLException e) {
         logger.error("SQL error when updating the timestamp of the server !", e);
       }
+      ServerChecker.getServerRefreshService().taskEnded(null);
     }
   }
 

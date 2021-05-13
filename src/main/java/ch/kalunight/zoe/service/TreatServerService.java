@@ -270,6 +270,10 @@ public class TreatServerService {
   public BlockingQueue<Server> getServersAskedToRefresh() {
     return serversAskedToRefresh;
   }
+  
+  public BlockingQueue<InfoCardsWorker> getInfocardsToRefresh() {
+    return infocardsToRefresh;
+  }
 
   public BlockingQueue<Server> getServerToRefreshPassively() {
     return serverToRefreshPassively;
@@ -297,14 +301,6 @@ public class TreatServerService {
 
   public LocalDateTime getCycleStart() {
     return cycleStart;
-  }
-
-  public BlockingQueue<InfoCardsWorker> getInfocardsToRefresh() {
-    return infocardsToRefresh;
-  }
-
-  public void setInfocardsToRefresh(BlockingQueue<InfoCardsWorker> infocardsToRefresh) {
-    this.infocardsToRefresh = infocardsToRefresh;
   }
 
 }

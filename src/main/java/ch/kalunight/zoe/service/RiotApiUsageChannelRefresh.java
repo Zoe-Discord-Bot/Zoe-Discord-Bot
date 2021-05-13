@@ -85,7 +85,7 @@ public class RiotApiUsageChannelRefresh implements Runnable {
             + "\n**Queue Health**"
             + "\nQueue Size Discord Status : " + treatServerService.getQueueSizeDiscordStatus()
             + "\nQueue Size Asked Refresh : " + treatServerService.getQueueSizeAskedToRefresh()
-            + "\nQueue Size InfoGame Card : " + treatServerService.getInfocardsToRefresh()
+            + "\nQueue Size InfoGame Card : " + treatServerService.getQueueSizeInfoCardsToRefresh()
             + "\nQueue Size Passive refresh : " + treatServerService.getQueueSizePassiveRefresh()
             + "\nCycle started the at (UTC) : " + treatServerService.getCycleStart().toString());
         }

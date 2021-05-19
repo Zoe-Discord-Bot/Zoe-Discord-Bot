@@ -130,6 +130,7 @@ public class InfoCardsWorker implements Runnable {
 
       if(currentGameRefreshed != null && currentGameRefreshed.getGameId() == currentGameInfo.currentgame_gameid 
           && currentGameRefreshed.getGameLength() < GAME_LENGTH_AFTER_WE_NOT_GENERATE_IN_SEC) {
+        currentGameInfo.currentgame_currentgame = currentGameRefreshed;
         return true;
       }else {
         return false;

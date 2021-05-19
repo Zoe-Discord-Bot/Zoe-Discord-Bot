@@ -41,6 +41,8 @@ public class RiotApiUsageChannelRefresh implements Runnable {
   private static DateTime lastRapiCountReset = DateTime.now();
 
   private static Integer infocardCreatedCount = 0;
+  
+  private static Integer infocardCanceledCount = 0;
 
   private static long guildId;
 
@@ -68,6 +70,7 @@ public class RiotApiUsageChannelRefresh implements Runnable {
             + "\nInfoPannel refresh done last two minutes : " + InfoPanelRefresher.getNbrServerSefreshedLast2Minutes()
             + "\nTask in Players Data Worker Queue : " + ServerThreadsManager.getPlayersDataQueue()
             + "\nInfocards Generated last 2 minutes : " + getInfocardCreatedCount()
+            + "\nInfocards Canceled last 2 minutes : " + getInfocardCanceledCount()
             + "\nTask in Leaderboard Executor : " + ServerThreadsManager.getLeaderboardExecutor().getQueue().size()
             + "\nTask in Clash Channel Executor : " + ServerThreadsManager.getClashChannelExecutor().getQueue().size()
             + "\nTask in Analysis Manager : " + ServerThreadsManager.getDataAnalysisManager().getQueue().size()
@@ -126,6 +129,7 @@ public class RiotApiUsageChannelRefresh implements Runnable {
         }
 
         setInfocardCreatedCount(0);
+        setInfocardCanceledCount(0);
 
         ArrayList<byte[]> graphs = new ArrayList<>();
         List<Platform> platformOrder = new ArrayList<>();
@@ -242,9 +246,21 @@ public class RiotApiUsageChannelRefresh implements Runnable {
   public static synchronized void incrementInfocardCount() {
     infocardCreatedCount++;
   }
+  
+  public static synchronized void incrementInfocardCancelCount() {
+    infocardCanceledCount++;
+  }
 
   public static long getTextChannelId() {
     return textChannelId;
+  }
+
+  public static Integer getInfocardCanceledCount() {
+    return infocardCanceledCount;
+  }
+
+  public static void setInfocardCanceledCount(Integer infocardCanceledCount) {
+    RiotApiUsageChannelRefresh.infocardCanceledCount = infocardCanceledCount;
   }
 
   public static void setTextChannelId(long textChannelId) {

@@ -535,5 +535,6 @@
     "clashChannelBottomNotInClashTeamMesssage": "Wird jede Stunde aufgefrischt. Sie können ihn mit dem Befehl ``>clash refresh`` aktualisieren. Alle externen Nachrichten, die in diesem Kanal gesendet werden, werden gelöscht.",
     "clashChannelLeagueAccountNotInGame": "Das ausgewählte League-Konto befindet sich nicht in einem Clash-Team.",
     "clashChannelTitle": "Clash-Kanal für das Konto %s (%s)",
-    "clashChannelDeletionBecauseOfSummonerAccountUnreachable": "Der mit diesem Kanal verknüpfte Beschwörer-Account ist unerreichbar (Serverwechsel ?). Ich werde diesen Clash-Channel ab jetzt nicht mehr aktualisieren."
+    "clashChannelDeletionBecauseOfSummonerAccountUnreachable": "Der mit diesem Kanal verknüpfte Beschwörer-Account ist unerreichbar (Serverwechsel ?). Ich werde diesen Clash-Channel ab jetzt nicht mehr aktualisieren.",
+    "couldNotSendInfoCardsOverloaded": "Die Infokarte zum Spiel von %s konnte aufgrund einer Überlastung nicht generiert werden. Entschuldigung dafür :c"
 }

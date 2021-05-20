@@ -536,5 +536,5 @@
     "deleteClashChannelCommandNoClashChannelToDelete": "There's no Clash Channel to delete.",
     "deleteClashChannelCommandListProposal": "Here are the clash channels of this server, please select the one you want to delete. I will delete all related messages but not the channel itself.",
     "deleteClashChannelDoneCorrectly": "The selected Clash Channel has been deleted correctly ! You can now delete the text channel if you want.",
-	"couldNotSendInfoCardsOverloaded": "The infocard about the game of %s could not be generated due to the current overload. Sorry for that. :c"
+    "couldNotSendInfoCardsOverloaded": "The infocard about the game of %s could not be generated due to the current overload. Sorry for that :c"
 }

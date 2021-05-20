@@ -294,7 +294,7 @@ public class DTO {
 
   public static class CurrentGameInfo {
     public final long currentgame_id;
-    public final net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo currentgame_currentgame;
+    public net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo currentgame_currentgame;
     public final Platform currentgame_server;
     public final Long currentgame_gameid;
 

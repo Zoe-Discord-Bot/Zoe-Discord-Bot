@@ -21,6 +21,7 @@ import ch.kalunight.zoe.model.dto.DatedServer;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.dto.ServerPerLastRefreshComparator;
 import ch.kalunight.zoe.repositories.ServerRepository;
+import ch.kalunight.zoe.service.infochannel.InfoCardsWorker;
 import ch.kalunight.zoe.service.infochannel.InfoPanelRefresher;
 
 public class TreatServerService {
@@ -32,11 +33,13 @@ public class TreatServerService {
   private BlockingQueue<Server> serversStatusDetected;
 
   private BlockingQueue<Server> serversAskedToRefresh;
+  
+  private BlockingQueue<InfoCardsWorker> infocardsToRefresh;
 
   private BlockingQueue<Server> serverToRefreshPassively;
 
   private Set<Server> serverCurrentlyInTreatment;
-
+  
   private LocalDateTime cycleStart;
 
   private ThreadPoolExecutor serverExecutor;
@@ -56,6 +59,7 @@ public class TreatServerService {
   public TreatServerService(ThreadPoolExecutor serverExecutor) {
     serversStatusDetected = new LinkedBlockingQueue<>();
     serversAskedToRefresh = new LinkedBlockingQueue<>();
+    infocardsToRefresh = new LinkedBlockingQueue<>();
     serverToRefreshPassively = new LinkedBlockingQueue<>();
     serverCurrentlyInTreatment = Collections.synchronizedSet(new HashSet<DTO.Server>());
     lastServerRefreshed = Collections.synchronizedList(new ArrayList<DatedServer>());
@@ -135,7 +139,16 @@ public class TreatServerService {
           taskEnded(null);
         }
         return;
-      } 
+      }
+    }
+    
+    synchronized (infocardsToRefresh) {
+      if (!infocardsToRefresh.isEmpty()) {
+        InfoCardsWorker infoCardWorker = infocardsToRefresh.poll();
+
+        serverExecutor.execute(infoCardWorker);
+        return;
+      }
     }
 
     synchronized (serverToRefreshPassively) {
@@ -257,6 +270,10 @@ public class TreatServerService {
   public BlockingQueue<Server> getServersAskedToRefresh() {
     return serversAskedToRefresh;
   }
+  
+  public BlockingQueue<InfoCardsWorker> getInfocardsToRefresh() {
+    return infocardsToRefresh;
+  }
 
   public BlockingQueue<Server> getServerToRefreshPassively() {
     return serverToRefreshPassively;
@@ -272,6 +289,10 @@ public class TreatServerService {
 
   public int getQueueSizeAskedToRefresh() {
     return serversAskedToRefresh.size();
+  }
+  
+  public int getQueueSizeInfoCardsToRefresh() {
+    return infocardsToRefresh.size();
   }
 
   public int getQueueSizePassiveRefresh() {

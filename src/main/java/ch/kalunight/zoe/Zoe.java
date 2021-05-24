@@ -314,6 +314,7 @@ public class Zoe {
     ApiConfig config = new ApiConfig().setKey(riotTocken).setTFTKey(tftTocken);
 
     config.setMaxAsyncThreads(ServerThreadsManager.NBR_PROC);
+    config.setRequestTimeout(1000);
     riotApi = new CachedRiotApi(new RiotApi(config));
   }
 

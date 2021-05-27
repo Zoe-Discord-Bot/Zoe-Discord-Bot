@@ -386,7 +386,7 @@
     "banAccountCommandGuildItemOnlyId": "Serveur ID %d",
     "banAccountCommandStatusImpossibleToAdd": "Impossible de l'ajouter",
     "banAccountCommandStatusPossibleToAdd": "Ajout possible",
-    "banAccountCommandAccountDeleteOfTheBanList": "Bien, le compte a bien été supprimé de la liste des comptes bannis. Vous pouvez désormais de nouveau l'ajouter. Si vous voulez stopper la gestion du compte, envoyez ``Stop``.",
+    "banAccountCommandAccountDeleteOfTheBanList": "Bien, le compte a bien été supprimé de la liste des comptes bannis. Vous pouvez désormais de nouveau l'ajouter. Si vous voulez stopper la gestion du compte, \n envoyez ``Stop``.",
     "banAccountCommandStopManageProcess": "Très bien, on arrête la gestion de votre compte ici.",
     "banAccountCommandInvalidCommand": "Je ne reconnais pas la commande que vous avez envoyé. Commandes possibles ``kick numéroDuServeur``, ``ban`` et ``stop``. Merci de réessayer.",
     "banAccountCommandDeleteAccountFromAllServer": "Très bien, j'ai supprimé votre compte de tous les serveurs où il était ajouté. Vous pouvez envoyer une autre commande si vous le souhaiter. Si vous voulez stopper la gestion du compte, envoyez ``Stop``.",

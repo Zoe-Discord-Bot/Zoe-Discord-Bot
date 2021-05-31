@@ -93,9 +93,9 @@ public class TreatClashChannel implements Runnable {
 
       SummonerCache summonerCache = Zoe.getRiotApi().getSummoner(clashMessageManager.getSelectedPlatform(), clashMessageManager.getSelectedSummonerId(), forceRefreshCache);
 
-      if(summonerCache == null) {
-        clashChannel.sendMessage(LanguageManager.getText(server.getLanguage(), "clashChannelDeletionBecauseOfSummonerAccountUnreachable")).queue();
-        ClashChannelRepository.deleteClashChannel(clashChannelDB.clashChannel_id);
+      if(summonerCache == null) { //TODO handle timeout case -> don't delete clash channel
+        //clashChannel.sendMessage(LanguageManager.getText(server.getLanguage(), "clashChannelDeletionBecauseOfSummonerAccountUnreachable")).queue();
+        //ClashChannelRepository.deleteClashChannel(clashChannelDB.clashChannel_id);
         return;
       }
 

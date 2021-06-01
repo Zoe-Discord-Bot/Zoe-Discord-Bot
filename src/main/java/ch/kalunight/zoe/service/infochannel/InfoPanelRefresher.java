@@ -68,6 +68,8 @@ public class InfoPanelRefresher implements Runnable {
 
   private static final AtomicLong nbrServerRefreshedLast2Minutes = new AtomicLong(0);
 
+  private static final List<Long> serversWherePlayersAlreadyChecked = Collections.synchronizedList(new ArrayList<>());
+  
   private DTO.Server server;
 
   private TextChannel infochannel;
@@ -106,7 +108,9 @@ public class InfoPanelRefresher implements Runnable {
 
       List<DTO.Player> playersDTO = PlayerRepository.getPlayers(server.serv_guildId);
       
-      InfoPanelRefresherUtil.cleanRegisteredPlayerNoLongerInGuild(guild, playersDTO);
+      if(isServerNeedToBeRefreshed()) {
+        InfoPanelRefresherUtil.cleanRegisteredPlayerNoLongerInGuild(guild, playersDTO);
+      }
 
       if(infochannel != null) {
         cleanOldInfoChannelMessage();
@@ -191,6 +195,17 @@ public class InfoPanelRefresher implements Runnable {
       updateServerStatus();
       ServerChecker.getServerRefreshService().taskEnded(server);
     }
+  }
+
+  private boolean isServerNeedToBeRefreshed() {
+    
+    if(serversWherePlayersAlreadyChecked.contains(guild.getIdLong())) {
+      return false;
+    }
+    
+    serversWherePlayersAlreadyChecked.add(guild.getIdLong());
+    
+    return true;
   }
 
   private void executeRankChannel(List<TreatPlayerWorker> playersToTreat) {
@@ -781,6 +796,10 @@ public class InfoPanelRefresher implements Runnable {
 
   public static AtomicLong getNbrServerSefreshedLast2Minutes() {
     return nbrServerRefreshedLast2Minutes;
+  }
+  
+  public static List<Long> getServerswhereplayersalreadychecked() {
+    return serversWherePlayersAlreadyChecked;
   }
 
 }

@@ -69,7 +69,7 @@ public class InfoPanelRefresher implements Runnable {
   private static final AtomicLong nbrServerRefreshedLast2Minutes = new AtomicLong(0);
 
   private static final List<Long> serversWherePlayersAlreadyChecked = Collections.synchronizedList(new ArrayList<>());
-  
+
   private DTO.Server server;
 
   private TextChannel infochannel;
@@ -77,7 +77,7 @@ public class InfoPanelRefresher implements Runnable {
   private RankHistoryChannel rankChannel;
 
   private Guild guild;
-  
+
   private boolean forceRefreshCache;
 
   public InfoPanelRefresher(DTO.Server server, boolean forceRefreshCache) {
@@ -95,7 +95,7 @@ public class InfoPanelRefresher implements Runnable {
       if(guild == null) {
         return;
       }
-      
+
       Stopwatch stopWatch = Stopwatch.createStarted();
       logger.debug("Start refresh of the guild id {}", guild.getIdLong());
 
@@ -107,7 +107,7 @@ public class InfoPanelRefresher implements Runnable {
       ServerConfiguration configuration = ConfigRepository.getServerConfiguration(guild.getIdLong(), guild.getJDA());
 
       List<DTO.Player> playersDTO = PlayerRepository.getPlayers(server.serv_guildId);
-      
+
       if(isServerNeedToBeRefreshed()) {
         InfoPanelRefresherUtil.cleanRegisteredPlayerNoLongerInGuild(guild, playersDTO);
       }
@@ -123,7 +123,7 @@ public class InfoPanelRefresher implements Runnable {
       List<TreatedPlayer> treatedPlayers = new ArrayList<>();
 
       List<Leaderboard> leaderboardsOfTheServer = LeaderboardRepository.getLeaderboardsWithGuildId(guild.getIdLong());
-      
+
       if(infochannel != null || rankChannel != null || !leaderboardsOfTheServer.isEmpty()) {
 
         for(Player player : playersDTO) {
@@ -198,13 +198,13 @@ public class InfoPanelRefresher implements Runnable {
   }
 
   private boolean isServerNeedToBeRefreshed() {
-    
+
     if(serversWherePlayersAlreadyChecked.contains(guild.getIdLong())) {
       return false;
     }
-    
+
     serversWherePlayersAlreadyChecked.add(guild.getIdLong());
-    
+
     return true;
   }
 
@@ -745,13 +745,7 @@ public class InfoPanelRefresher implements Runnable {
       }
     }
 
-    int refreshRate = ServerChecker.getServerRefreshService().getEstimateTimeToFullRefreshInMinutes();
-    
-    if(refreshRate > 60) {
-      stringMessage.append(LanguageManager.getText(server.getLanguage(), "informationPanelSmartModEnable"));
-    }else {
-      stringMessage.append(String.format(LanguageManager.getText(server.getLanguage(), "informationPanelRefreshedTime"), refreshRate));
-    }
+    stringMessage.append(LanguageManager.getText(server.getLanguage(), "informationPanelSmartModEnable"));
 
     return stringMessage.toString();
   }
@@ -797,7 +791,7 @@ public class InfoPanelRefresher implements Runnable {
   public static AtomicLong getNbrServerSefreshedLast2Minutes() {
     return nbrServerRefreshedLast2Minutes;
   }
-  
+
   public static List<Long> getServerswhereplayersalreadychecked() {
     return serversWherePlayersAlreadyChecked;
   }

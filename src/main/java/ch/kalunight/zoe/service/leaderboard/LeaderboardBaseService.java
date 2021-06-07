@@ -89,7 +89,7 @@ public abstract class LeaderboardBaseService implements Runnable {
         return;
       }
 
-      message.addReaction("U+23F3").complete();
+      message.addReaction("U+23F3").queue();
       
       List<Player> players = PlayerRepository.getPlayers(guildId);
       InfoPanelRefresherUtil.cleanRegisteredPlayerNoLongerInGuild(guild, players);

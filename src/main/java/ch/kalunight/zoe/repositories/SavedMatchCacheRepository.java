@@ -32,39 +32,52 @@ public class SavedMatchCacheRepository {
   private static final String INSERT_MATCH_CATCH = "INSERT INTO match_cache "
       + "(mCatch_gameId, mCatch_platform, mCatch_savedMatch, mCatch_creationTime) VALUES (%d, '%s', '%s', '%s')";
   
-  private static final String SELECT_MATCHS_BY_CHAMPION = "SELECT match_cache.mCatch_savedMatch AS mCatch_savedMatch " + 
-      "FROM match_cache " + 
-      "JOIN LATERAL jsonb_array_elements(match_cache.mCatch_savedMatch -> 'players') obj(val) ON obj.val->>'championId' = '%d' " + 
-      "WHERE match_cache.mCatch_savedMatch -> 'players' @> '[{\"championId\":%d}]' " + 
-      "AND (match_cache.mCatch_savedMatch ->> 'queueId' = '%d' OR match_cache.mCatch_savedMatch ->> 'queueId' = '%d') " + 
-      "AND match_cache.mCatch_savedMatch ->> 'gameVersion' = '%s' " + 
-      "ORDER BY match_cache.mcatch_creationtime DESC LIMIT 10000;";
+  private static final String SELECT_MATCHS_BY_CHAMPION = "SELECT match_cache.mCatch_savedMatch " + 
+      "AS mCatch_savedMatch FROM match_cache " + 
+      "WHERE match_cache.mCatch_savedMatch @> '{\"players\":[{\"championId\":%d}]}' " + 
+      "AND (match_cache.mCatch_savedMatch @> '{\"queueId\":%d}' OR match_cache.mCatch_savedMatch @> '{\"queueId\":%d}') " + 
+      "AND match_cache.mCatch_savedMatch @> '{\"gameVersion\":\"%s\"}' " + 
+      "ORDER BY match_cache.mcatch_creationtime DESC LIMIT 10000";
   
   private static final String DELETE_MATCH_CACHE_OLD_OF_1_MONTHS = "DELETE FROM match_cache WHERE mcatch_creationtime < '%s'";
   
-  private static final String GET_CURRENT_LOL_VERSION = "SELECT match_cache.mCatch_savedMatch ->> 'gameVersion' AS gameversion FROM match_cache "
-      + "WHERE match_cache.mcatch_platform = '%s' "
-      + "ORDER BY match_cache.mcatch_creationtime DESC "      
-      + "LIMIT 1";
+  private static final String GET_CURRENT_LOL_VERSION = "SELECT match_cache.mCatch_savedMatch ->> 'gameVersion' AS gameversion "
+      + "FROM match_cache WHERE match_cache.mCatch_creationTime > '%s' "
+      + "ORDER BY match_cache.mcatch_creationtime DESC LIMIT 1;";
   
   private static final Gson gson = new GsonBuilder().create();
+  
+  private static LocalDateTime lastRefreshCacheVersion = null;
+  
+  private static String lastLeagueVersionCache = null;
   
   private SavedMatchCacheRepository() {
     //hide Repo Ressources
   }
   
-  public static String getCurrentLoLVersion(Platform platform) throws SQLException {
+  public static synchronized String getCurrentLoLVersion() throws SQLException {
+    
+    if(lastLeagueVersionCache != null && lastRefreshCacheVersion != null && lastRefreshCacheVersion.isAfter(LocalDateTime.now().minusHours(4))) {
+      return lastLeagueVersionCache;
+    }
+    
     ResultSet result = null;
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
 
-      String finalQuery = String.format(GET_CURRENT_LOL_VERSION, platform.getName());
+      String finalQuery = String.format(GET_CURRENT_LOL_VERSION, LocalDateTime.now().minusHours(1));
       result = query.executeQuery(finalQuery);
       int rowCount = result.last() ? result.getRow() : 0;
       if(rowCount == 0) {
         return null;
       }
-      return result.getString("gameversion");
+      
+      String lastLeagueVersion = result.getString("gameversion");
+      
+      lastLeagueVersionCache = lastLeagueVersion;
+      lastRefreshCacheVersion = LocalDateTime.now();
+      
+      return lastLeagueVersion;
     }finally {
       RepoRessources.closeResultSet(result);
     }
@@ -75,7 +88,7 @@ public class SavedMatchCacheRepository {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
 
-      String finalQuery = String.format(SELECT_MATCHS_BY_CHAMPION, championId, championId, queueId, secondQueueId, gameVersion);
+      String finalQuery = String.format(SELECT_MATCHS_BY_CHAMPION, championId, queueId, secondQueueId, gameVersion);
       result = query.executeQuery(finalQuery);
 
       List<SavedMatch> matchs = Collections.synchronizedList(new ArrayList<>());

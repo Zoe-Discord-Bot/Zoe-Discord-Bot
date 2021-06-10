@@ -115,6 +115,8 @@ public class Zoe {
   private static String discordBotListTocken = null;
 
   private static String clientOwnerID;
+  
+  private static boolean shutdownStarted = false;
 
   private static DiscordBotListAPI botListApi;
 
@@ -314,6 +316,7 @@ public class Zoe {
     ApiConfig config = new ApiConfig().setKey(riotTocken).setTFTKey(tftTocken);
 
     config.setMaxAsyncThreads(ServerThreadsManager.NBR_PROC);
+    config.setRequestTimeout(1000);
     riotApi = new CachedRiotApi(new RiotApi(config));
   }
 
@@ -573,5 +576,13 @@ public class Zoe {
 
   public static List<GatewayIntent> getListOfGatway() {
     return listOfGatway;
+  }
+
+  public static boolean isShutdownStarted() {
+    return shutdownStarted;
+  }
+
+  public static void setShutdownStarted(boolean shutdownStarted) {
+    Zoe.shutdownStarted = shutdownStarted;
   }
 }

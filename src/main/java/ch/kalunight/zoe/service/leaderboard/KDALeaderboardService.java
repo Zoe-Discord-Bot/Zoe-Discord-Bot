@@ -65,20 +65,20 @@ public class KDALeaderboardService extends LeaderboardBaseService {
 
     EmbedBuilder builder = buildBaseLeaderboardList(playerTitle, playersName, dataName, dataList);
     builder.setColor(Color.ORANGE);
+    
+    String leaderboardTitle;
 
     if(specificChamp != null) {
-      String leaderboardTitle = String.format(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveKDAWithSpecificChampionTitle"), 
+      leaderboardTitle = String.format(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveKDAWithSpecificChampionTitle"), 
           specificChamp.getChampion().getName());
       builder.setTitle(leaderboardTitle);
-      message.editMessage(leaderboardTitle).queue();
     }else {
-      String leaderboardTitle = LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveKDATitle");
+      leaderboardTitle = LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveKDATitle");
       builder.setTitle(leaderboardTitle);
-      message.editMessage(leaderboardTitle).queue();
     }
 
     builder.setFooter(LanguageManager.getText(server.getLanguage(), "leaderboardRefreshMessage"));
-    message.editMessage(builder.build()).queue();
+    message.editMessage(leaderboardTitle).setEmbeds(builder.build()).queue();
   }
 
   private List<PlayerKDA> orderAndGetPlayers(Guild guild, SpecificChamp champ, List<Player> players, boolean forceRefreshCache) throws SQLException {

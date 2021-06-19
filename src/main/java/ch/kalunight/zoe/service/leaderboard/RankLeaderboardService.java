@@ -70,19 +70,22 @@ public class RankLeaderboardService extends LeaderboardBaseService {
 
     EmbedBuilder builder = buildBaseLeaderboardList(playerTitle, playersName, dataName, dataList);
     builder.setColor(Color.ORANGE);
+    
+    String leaderboardMessageTitle;
+    
     if(queueSelected == null) {
       builder.setTitle(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveRankAllTitle"));
-      message.editMessage(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveRankAllTitle")).queue();
+      leaderboardMessageTitle = LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveRankAllTitle");
     }else {
       builder.setTitle(String.format(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveRankSpecificTitle"), 
           LanguageManager.getText(server.getLanguage(), queueSelected.getGameQueue().getNameId())));
-      message.editMessage(String.format(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveRankSpecificTitle"), 
-          LanguageManager.getText(server.getLanguage(), queueSelected.getGameQueue().getNameId()))).queue();
+      leaderboardMessageTitle = String.format(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveRankSpecificTitle"), 
+          LanguageManager.getText(server.getLanguage(), queueSelected.getGameQueue().getNameId()));
     }
 
     builder.setFooter(LanguageManager.getText(server.getLanguage(), "leaderboardRefreshMessage"));
-    message.editMessage(builder.build()).queue();
-
+    
+    message.editMessage(leaderboardMessageTitle).setEmbeds(builder.build()).queue();
   }
 
   private List<PlayerRank> orderAndGetPlayers(Guild guild, Objective objective, QueueSelected queueSelected, List<Player> players, boolean forceRefreshCache) throws SQLException, RiotApiException {

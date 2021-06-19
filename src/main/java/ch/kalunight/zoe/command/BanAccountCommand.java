@@ -212,7 +212,7 @@ public class BanAccountCommand extends ZoeCommand {
           .setText(PaginatorUtil.getPaginationTranslatedPage(language))
           .setText(LanguageManager.getText(language, "banAccountCommandListOfGuild"))
           .setTimeout(3, TimeUnit.MINUTES);
-
+      
       for(Server server : serversWithTheAccount) {
         serversInOrder.add(server);
         Guild guild = event.getJDA().getGuildById(server.serv_guildId);
@@ -228,6 +228,8 @@ public class BanAccountCommand extends ZoeCommand {
         }
       }
 
+      
+      
       Paginator listOfGuilds = pbuilder.build();
       listOfGuilds.display(messageToEdit);
     }else {

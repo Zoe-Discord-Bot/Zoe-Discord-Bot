@@ -37,9 +37,8 @@ import net.rithms.riot.api.endpoints.clash.dto.ClashTeam;
 import net.rithms.riot.api.endpoints.clash.dto.ClashTeamMember;
 import net.rithms.riot.api.endpoints.clash.dto.ClashTournament;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
-import net.rithms.riot.api.endpoints.match.dto.Match;
-import net.rithms.riot.api.endpoints.match.dto.MatchList;
-import net.rithms.riot.api.endpoints.match.dto.MatchTimeline;
+import net.rithms.riot.api.endpoints.match.v5.dto.MatchV5;
+import net.rithms.riot.api.endpoints.match.v5.dto.MatchV5Timeline;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.api.endpoints.tft_league.dto.TFTLeagueEntry;
@@ -98,24 +97,24 @@ public class CachedRiotApi {
     CacheManager.cleanMatchCache();
   }
 
-  public MatchTimeline getMatchTimeLine(Platform platform, long matchId) throws RiotApiException {
+  public MatchV5Timeline getMatchTimeLine(Platform platform, String matchId) throws RiotApiException {
 
-    MatchTimeline match = riotApi.getTimelineByMatchId(platform, matchId);
+    MatchV5Timeline timeline = riotApi.getTimelineV5ByMatchId(platform, matchId);
 
     increaseCallCountForGivenRegion(platform);
 
-    return match;
+    return timeline;
   }
 
-  public MatchTimeline getMatchTimelineWithRateLimit(Platform server, long gameId) {
-    MatchTimeline match = null;
+  public MatchV5Timeline getMatchTimelineWithRateLimit(Platform server, String gameId) {
+    MatchV5Timeline timeline = null;
     boolean needToRetry;
     do {
 
       needToRetry = true;
       try {
         increaseCallCountForGivenRegion(server);
-        match = riotApi.getTimelineByMatchId(server, gameId);
+        timeline = riotApi.getTimelineV5ByMatchId(server, gameId);
         needToRetry = false;
       }catch(RateLimitException e) {
         try {
@@ -138,10 +137,10 @@ public class CachedRiotApi {
       }
     }while(needToRetry);
 
-    return match;
+    return timeline;
   }
 
-  public SavedMatch getMatch(Platform platform, long matchId) throws RiotApiException {
+  public SavedMatch getMatch(Platform platform, String matchId) throws RiotApiException {
 
     try {
       MatchCache matchCache = getCachedMatch(platform, matchId);
@@ -153,7 +152,7 @@ public class CachedRiotApi {
       logger.warn("Error while getting cached match", e);
     }
 
-    Match match = riotApi.getMatch(platform, matchId);
+    MatchV5 match = riotApi.getMatchV5(platform, matchId);
 
     apiMatchRequestCount.incrementAndGet();
 
@@ -171,13 +170,12 @@ public class CachedRiotApi {
     return cachedMatch;
   }
 
-  public DTO.MatchCache getCachedMatch(Platform platform, long gameID) throws SQLException {
+  public DTO.MatchCache getCachedMatch(Platform platform, String gameID) throws SQLException {
     return CacheManager.getMatch(platform, gameID);
   }
 
-  public MatchList getMatchListByAccountId(Platform platform, String accountId, Set<Integer> champion, Set<Integer> queue,
-      Set<Integer> season, long beginTime, long endTime, int beginIndex, int endIndex) throws RiotApiException {
-    MatchList matchList = riotApi.getMatchListByAccountId(platform, accountId, champion, queue, season, beginTime, endTime, beginIndex, endIndex);
+  public List<String> getMatchListByAccountId(Platform platform, String puuid, Integer startIndex, Integer count) throws RiotApiException {
+    List<String> matchList = riotApi.getMatchListByPuuid(platform, puuid, startIndex, count);
 
     matchListRequestCount.incrementAndGet();
     increaseCallCountForGivenRegion(platform);
@@ -185,10 +183,9 @@ public class CachedRiotApi {
     return matchList;
   }
 
-  public MatchList getMatchListByAccountIdWithRateLimit(Platform platform, String accountId, Set<Integer> champion, Set<Integer> queue,
-      Set<Integer> season, long beginTime, long endTime, int beginIndex, int endIndex) throws RiotApiException {
+  public List<String> getMatchListByPuuidWithRateLimit(Platform platform, String puuid, Integer startIndex, Integer count) throws RiotApiException {
 
-    MatchList matchList = null;
+    List<String> matchList = null;
     boolean needToRetry;
     do {
       matchListRequestCount.incrementAndGet();
@@ -196,12 +193,12 @@ public class CachedRiotApi {
 
       needToRetry = true;
       try {
-        matchList = riotApi.getMatchListByAccountId(platform, accountId, champion, queue, season, beginTime, endTime, beginIndex, endIndex);
+        matchList = riotApi.getMatchListByPuuid(platform, puuid, startIndex, count);
         needToRetry = false;
       }catch(RateLimitException e) {
         try {
           if(e.getRateLimitType() == null || (e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10)) {
-            return null;
+            return new ArrayList<>();
           }
           logger.info("Waiting rate limit ({} sec) to retry in getMatchList", e.getRetryAfter());
           TimeUnit.SECONDS.sleep(e.getRetryAfter());
@@ -211,10 +208,10 @@ public class CachedRiotApi {
         }
       } catch (RiotApiException e) {
         if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
-          return null;
+          return new ArrayList<>();
         }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
           logger.warn("Bad request received from Riot Api!", e);
-          return null;
+          return new ArrayList<>();
         }
       }
     }while(needToRetry);
@@ -1037,7 +1034,7 @@ public class CachedRiotApi {
     return masteries;
   }
 
-  public SavedMatch getMatchWithRateLimit(Platform server, long gameId) {
+  public SavedMatch getMatchWithRateLimit(Platform server, String gameId) {
     SavedMatch match = null;
 
     try {
@@ -1058,7 +1055,7 @@ public class CachedRiotApi {
       needToRetry = true;
       try {
         increaseCallCountForGivenRegion(server);
-        Match completeMatch = riotApi.getMatch(server, gameId);
+        MatchV5 completeMatch = riotApi.getMatchV5(server, gameId);
         if(completeMatch == null) {
           return null;
         }

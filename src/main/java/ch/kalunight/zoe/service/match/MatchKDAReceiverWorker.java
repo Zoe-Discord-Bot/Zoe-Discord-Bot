@@ -1,21 +1,20 @@
 package ch.kalunight.zoe.service.match;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import ch.kalunight.zoe.model.KDAReceiver;
+import ch.kalunight.zoe.model.MatchReceiverCondition;
+import ch.kalunight.zoe.model.OldestGameChecker;
 import ch.kalunight.zoe.model.dto.SavedMatch;
 import ch.kalunight.zoe.model.dto.SavedMatchPlayer;
 import ch.kalunight.zoe.model.dto.DTO.SummonerCache;
-import net.rithms.riot.api.endpoints.match.dto.MatchReference;
 import net.rithms.riot.constant.Platform;
 
 public class MatchKDAReceiverWorker extends MatchReceiverWorker {
 
   private KDAReceiver kdaReceiver;
 
-  public MatchKDAReceiverWorker(KDAReceiver kdaReceiver, AtomicBoolean gameLoadingConflict, MatchReference matchReference, Platform server,
-      SummonerCache summoner) {
-    super(gameLoadingConflict, matchReference, server, summoner);
+  public MatchKDAReceiverWorker(KDAReceiver kdaReceiver, String gameId, Platform server,
+      SummonerCache summoner, MatchReceiverCondition matchCondition, OldestGameChecker gameChecker) {
+    super(gameId, server, summoner, gameChecker, matchCondition);
     this.kdaReceiver = kdaReceiver;
   }
 

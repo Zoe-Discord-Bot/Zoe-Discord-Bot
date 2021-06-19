@@ -6369,7 +6369,7 @@
 								"$ref": "AAAAAAFv+1eS2DtT5lU="
 							},
 							"name": "mCache_gameId",
-							"type": "number",
+							"type": "varchar",
 							"length": 0
 						},
 						{

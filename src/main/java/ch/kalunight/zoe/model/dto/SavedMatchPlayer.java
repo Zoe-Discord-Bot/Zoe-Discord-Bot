@@ -2,7 +2,7 @@ package ch.kalunight.zoe.model.dto;
 
 import java.io.Serializable;
 
-import net.rithms.riot.api.endpoints.match.dto.ParticipantStats;
+import net.rithms.riot.api.endpoints.match.v5.dto.MatchParticipant;
 
 public class SavedMatchPlayer implements Serializable {
 
@@ -19,15 +19,15 @@ public class SavedMatchPlayer implements Serializable {
   private String role;
   private String lane;
   
-  public SavedMatchPlayer(boolean blueSide, String summonerId, int championId, ParticipantStats participantStats, String role, String lane) {
+  public SavedMatchPlayer(boolean blueSide, String summonerId, int championId, MatchParticipant participant, String role, String lane) {
     this.blueSide = blueSide;
     this.summonerId = summonerId;
     this.championId = championId;
-    this.kills = participantStats.getKills();
-    this.deaths = participantStats.getDeaths();
-    this.assists = participantStats.getAssists();
-    this.creepScores = participantStats.getTotalMinionsKilled() + participantStats.getNeutralMinionsKilled();
-    this.level = participantStats.getChampLevel();
+    this.kills = participant.getKills();
+    this.deaths = participant.getDeaths();
+    this.assists = participant.getAssists();
+    this.creepScores = participant.getTotalMinionsKilled() + participant.getNeutralMinionsKilled();
+    this.level = participant.getChampLevel();
     this.role = role;
     this.lane = lane;
   }

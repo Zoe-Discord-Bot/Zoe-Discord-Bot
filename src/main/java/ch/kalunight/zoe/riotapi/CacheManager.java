@@ -16,6 +16,7 @@ public class CacheManager {
   /**
    * @deprecated the cache is now in DB
    */
+  @Deprecated
   public static final File CACHE_FOLDER = new File("ressources/cache");
 
   private static final Logger logger = LoggerFactory.getLogger(CacheManager.class);
@@ -39,7 +40,7 @@ public class CacheManager {
     SavedMatchCacheRepository.cleanOldMatchCatch();
   }
 
-  public static DTO.MatchCache getMatch(Platform platform, long gameid) throws SQLException {
+  public static DTO.MatchCache getMatch(Platform platform, String gameid) throws SQLException {
     if(!CachedRiotApi.CACHE_ENABLE) {
       return null;
     }
@@ -47,7 +48,7 @@ public class CacheManager {
    return SavedMatchCacheRepository.getMatch(gameid, platform);
   }
   
-  public static void createCacheMatch(Platform platform, long gameId, SavedMatch match) throws SQLException {
+  public static void createCacheMatch(Platform platform, String gameId, SavedMatch match) throws SQLException {
     if(!CachedRiotApi.CACHE_ENABLE) {
       return;
     }

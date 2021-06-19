@@ -1,8 +1,6 @@
-CREATE INDEX idx_match_cache_creationTime
-  ON match_cache(mCatch_creationTime);
-  
-DROP INDEX index_matchcache_championId;
-DROP INDEX index_matchcache_queueId;
-DROP INDEX index_matchcache_gameVersion;
+TRUNCATE TABLE match_cache;
 
-CREATE INDEX index_matchcache_All ON match_cache USING gin (mCatch_savedMatch jsonb_path_ops);
+ALTER TABLE match_cache 
+ALTER COLUMN mCatch_gameId TYPE VARCHAR;
+
+TRUNCATE TABLE summoner_cache; --! we save some new data

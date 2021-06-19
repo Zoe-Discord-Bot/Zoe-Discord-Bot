@@ -5,11 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ch.kalunight.zoe.exception.PlayerNotFoundException;
-import net.rithms.riot.api.endpoints.match.dto.Match;
-import net.rithms.riot.api.endpoints.match.dto.Participant;
-import net.rithms.riot.api.endpoints.match.dto.ParticipantIdentity;
-import net.rithms.riot.api.endpoints.match.dto.ParticipantTimeline;
-import net.rithms.riot.api.endpoints.match.dto.Player;
+import net.rithms.riot.api.endpoints.match.v5.dto.MatchParticipant;
+import net.rithms.riot.api.endpoints.match.v5.dto.MatchV5;
 
 public class SavedMatch implements Serializable {
 
@@ -32,42 +29,30 @@ public class SavedMatch implements Serializable {
 
   private boolean blueSideHasWin;
 
-  public SavedMatch(Match match) {
-    queueId = match.getQueueId();
-    gameVersion = match.getGameVersion();
-    gameDurations = match.getGameDuration();
-    gameCreation = match.getGameCreation();
+  public SavedMatch(MatchV5 match) {
+    queueId = match.getInfo().getQueueId();
+    gameVersion = match.getInfo().getGameVersion();
+    gameDurations = match.getInfo().getGameDuration();
+    gameCreation = match.getInfo().getGameCreation();
     
     players = new ArrayList<>();
 
-    for(Participant participant : match.getParticipants()) {
+    for(MatchParticipant participant : match.getInfo().getParticipants()) {
       buildPlayer(match, participant);
     }
 
-    if(match.getTeamByTeamId(100).getWin().equals("Win")) {
+    if(match.getInfo().getTeamByTeamId(100).isWin()) {
       blueSideHasWin = true;
     }else {
       blueSideHasWin = false;
     }
   }
 
-  private void buildPlayer(Match match, Participant participant) {
-    Player player = null;
+  private void buildPlayer(MatchV5 match, MatchParticipant participant) {
 
-    for(ParticipantIdentity participantIdentity : match.getParticipantIdentities()) {
-      if(participant.getParticipantId() == participantIdentity.getParticipantId()) {
-        player = participantIdentity.getPlayer();
-      }
-    }
-
-    if(player != null) {
-      ParticipantTimeline timeline = participant.getTimeline();
-      String role = null;
-      String lane = null;
-      if(timeline != null) {
-        role = timeline.getRole();
-        lane = timeline.getLane();
-      }
+    if(participant != null) {
+      String role = participant.getRole();
+      String lane = participant.getLane();
 
       boolean blueSide;
       if(participant.getTeamId() == BLUE_TEAM_ID) {
@@ -76,8 +61,8 @@ public class SavedMatch implements Serializable {
         blueSide = false;
       }
 
-      SavedMatchPlayer savedPlayer = new SavedMatchPlayer(blueSide, player.getSummonerId(), participant.getChampionId(),
-          participant.getStats(), role, lane);
+      SavedMatchPlayer savedPlayer = new SavedMatchPlayer(blueSide, participant.getSummonerId(), participant.getChampionId(),
+          participant, role, lane);
 
       players.add(savedPlayer);
     }

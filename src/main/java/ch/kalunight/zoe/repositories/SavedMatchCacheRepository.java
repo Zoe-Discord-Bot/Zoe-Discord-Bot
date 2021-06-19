@@ -26,11 +26,11 @@ public class SavedMatchCacheRepository {
       "match_cache.mcatch_savedmatch, " + 
       "match_cache.mcatch_creationtime " + 
       "FROM match_cache " + 
-      "WHERE match_cache.mcatch_gameid = %d " + 
+      "WHERE match_cache.mcatch_gameid = '%s' " + 
       "AND match_cache.mcatch_platform = '%s'";
   
   private static final String INSERT_MATCH_CATCH = "INSERT INTO match_cache "
-      + "(mCatch_gameId, mCatch_platform, mCatch_savedMatch, mCatch_creationTime) VALUES (%d, '%s', '%s', '%s')";
+      + "(mCatch_gameId, mCatch_platform, mCatch_savedMatch, mCatch_creationTime) VALUES ('%s', '%s', '%s', '%s')";
   
   private static final String SELECT_MATCHS_BY_CHAMPION = "SELECT match_cache.mCatch_savedMatch " + 
       "AS mCatch_savedMatch FROM match_cache " + 
@@ -108,7 +108,7 @@ public class SavedMatchCacheRepository {
     }
   }
   
-  public static void createMatchCache(long gameId, Platform server, SavedMatch match) throws SQLException {
+  public static void createMatchCache(String gameId, Platform server, SavedMatch match) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
       
@@ -128,7 +128,7 @@ public class SavedMatchCacheRepository {
     }
   }
   
-  public static DTO.MatchCache getMatch(long gameId, Platform platform) throws SQLException {
+  public static DTO.MatchCache getMatch(String gameId, Platform platform) throws SQLException {
     ResultSet result = null;
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {

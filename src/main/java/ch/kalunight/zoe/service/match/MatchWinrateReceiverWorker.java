@@ -1,20 +1,19 @@
 package ch.kalunight.zoe.service.match;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
+import ch.kalunight.zoe.model.MatchReceiverCondition;
+import ch.kalunight.zoe.model.OldestGameChecker;
 import ch.kalunight.zoe.model.WinRateReceiver;
 import ch.kalunight.zoe.model.dto.SavedMatch;
 import ch.kalunight.zoe.model.dto.DTO.SummonerCache;
-import net.rithms.riot.api.endpoints.match.dto.MatchReference;
 import net.rithms.riot.constant.Platform;
 
 public class MatchWinrateReceiverWorker extends MatchReceiverWorker {
 
   private WinRateReceiver winRateReceiver;
 
-  public MatchWinrateReceiverWorker(WinRateReceiver winRateReceiver, AtomicBoolean gameLoadingConflict,
-      MatchReference matchReference, Platform server, SummonerCache summoner) {
-    super(gameLoadingConflict, matchReference, server, summoner);
+  public MatchWinrateReceiverWorker(WinRateReceiver winRateReceiver,
+      String gameId, Platform server, SummonerCache summoner, MatchReceiverCondition matchCondition, OldestGameChecker gameChecker) {
+    super(gameId, server, summoner, gameChecker, matchCondition);
     this.winRateReceiver = winRateReceiver;
   }
 

@@ -421,9 +421,8 @@ CREATE INDEX idx_champion_mastery_cache_summonerId
 CREATE INDEX idx_champion_mastery_cache_server
   ON champion_mastery_cache(champMasCache_server);  
   
-CREATE INDEX index_matchcache_championId ON match_cache USING gin ((mCatch_savedMatch -> 'championId'));
-CREATE INDEX index_matchcache_queueId ON match_cache USING gin ((mCatch_savedMatch -> 'queueId'));
-CREATE INDEX index_matchcache_gameVersion ON match_cache USING gin ((mCatch_savedMatch -> 'gameVersion'));
-  
 ALTER TABLE ONLY banned_account
   ADD CONSTRAINT banned_account_pkey PRIMARY KEY (banAcc_id);
+  
+  
+  

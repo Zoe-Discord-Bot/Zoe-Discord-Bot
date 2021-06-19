@@ -12,7 +12,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +37,7 @@ import ch.kalunight.zoe.model.static_data.CustomEmote;
 import ch.kalunight.zoe.model.static_data.Mastery;
 import ch.kalunight.zoe.service.infochannel.SummonerDataWorker;
 import ch.kalunight.zoe.translation.LanguageManager;
+import ch.kalunight.zoe.util.MatchUtil;
 import ch.kalunight.zoe.util.MessageBuilderRequestUtil;
 import ch.kalunight.zoe.util.Ressources;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -48,8 +48,6 @@ import net.dv8tion.jda.api.entities.User;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
 import net.rithms.riot.api.endpoints.league.dto.MiniSeries;
-import net.rithms.riot.api.endpoints.match.dto.MatchList;
-import net.rithms.riot.api.endpoints.match.dto.MatchReference;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
 import net.rithms.riot.api.endpoints.tft_league.dto.TFTLeagueEntry;
@@ -73,7 +71,8 @@ public class MessageBuilderRequest {
   public static PlayerRankedResult getMatchDataMutiplePlayers(LeagueEntry oldEntry, LeagueEntry newEntry, 
       CurrentGameInfo gameOfTheChange, LeagueAccount leagueAccount, String lang, RankedChangeType changeType) {
 
-    SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
+    SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, 
+        MatchUtil.convertV4GameIdIntoV5Id(gameOfTheChange.getGameId(), leagueAccount.leagueAccount_server));
 
     String accountTitle = null;
     String changeStats = null;
@@ -225,7 +224,7 @@ public class MessageBuilderRequest {
   public static MessageEmbed createRankChannelCardBoStarted(LeagueEntry newEntry, 
       CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang, JDA jda) throws RiotApiException {
 
-    SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
+    SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, MatchUtil.convertV4GameIdIntoV5Id(gameOfTheChange.getGameId(), leagueAccount.leagueAccount_server));
 
     EmbedBuilder message = new EmbedBuilder();
 
@@ -261,7 +260,7 @@ public class MessageBuilderRequest {
   public static MessageEmbed createRankChannelBoInProgress(LeagueEntry oldEntry, LeagueEntry newEntry, 
       CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang, JDA jda) throws RiotApiException {
 
-    SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
+    SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, MatchUtil.convertV4GameIdIntoV5Id(gameOfTheChange.getGameId(), leagueAccount.leagueAccount_server));
 
     EmbedBuilder message = new EmbedBuilder();
 
@@ -310,7 +309,7 @@ public class MessageBuilderRequest {
   public static MessageEmbed createRankChannelCardBoEnded(LeagueEntry oldEntry, LeagueEntry newEntry, 
       CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang, JDA jda) throws RiotApiException {
 
-    SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
+    SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, MatchUtil.convertV4GameIdIntoV5Id(gameOfTheChange.getGameId(), leagueAccount.leagueAccount_server));
 
     EmbedBuilder message = new EmbedBuilder();
 
@@ -359,7 +358,7 @@ public class MessageBuilderRequest {
   public static MessageEmbed createRankChannelCardLeagueChange(LeagueEntry oldEntry, LeagueEntry newEntry, 
       CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang, JDA jda) throws RiotApiException {
 
-    SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
+    SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, MatchUtil.convertV4GameIdIntoV5Id(gameOfTheChange.getGameId(), leagueAccount.leagueAccount_server));
 
     EmbedBuilder message = new EmbedBuilder();
 
@@ -431,7 +430,7 @@ public class MessageBuilderRequest {
   public static MessageEmbed createRankChannelCardLeaguePointChangeOnly(LeagueEntry oldEntry, LeagueEntry newEntry, 
       CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang, JDA jda) throws RiotApiException {
 
-    SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
+    SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, MatchUtil.convertV4GameIdIntoV5Id(gameOfTheChange.getGameId(), leagueAccount.leagueAccount_server));
 
     EmbedBuilder message = new EmbedBuilder();
 
@@ -679,11 +678,10 @@ public class MessageBuilderRequest {
     message.addField(field);
 
     boolean isRiotApiError = false;
-    MatchList matchList = null;
+    List<String> recentGames = null;
 
     try {
-      matchList = Zoe.getRiotApi().getMatchListByAccountId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_accoundId, 
-          null, null, null, DateTime.now().minusWeeks(1).plusSeconds(10).getMillis(), DateTime.now().getMillis(), -1, -1);
+      recentGames = Zoe.getRiotApi().getMatchListByPuuidWithRateLimit(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_puuid, null, 3);
     } catch(RiotApiException e) {
       if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
         throw e;
@@ -693,16 +691,15 @@ public class MessageBuilderRequest {
       logger.info("Impossible to get match history : {}", e.getMessage());
     }
 
-    if(matchList != null) {
-      List<MatchReference> matchsReference = matchList.getMatches();
+    if(recentGames != null) {
 
       List<SavedMatch> threeMostRecentMatch = new ArrayList<>();
 
-      if(matchsReference.size() < 3) {
-        for(MatchReference matchReference : matchsReference) {
+      if(recentGames.size() < 3) {
+        for(String gameId : recentGames) {
           try {
             threeMostRecentMatch.add(Zoe.getRiotApi().getMatch(leagueAccount.leagueAccount_server,
-                matchReference.getGameId()));
+                gameId));
           } catch(RiotApiException e) {
             if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
               throw e;
@@ -712,10 +709,10 @@ public class MessageBuilderRequest {
         }
       }else {
         for(int i = 0; i < 3; i++) {
-          MatchReference matchReference = matchsReference.get(i);
+          String gameId = recentGames.get(i);
 
           try {
-            threeMostRecentMatch.add(Zoe.getRiotApi().getMatch(leagueAccount.leagueAccount_server, matchReference.getGameId()));
+            threeMostRecentMatch.add(Zoe.getRiotApi().getMatch(leagueAccount.leagueAccount_server, gameId));
           } catch(RiotApiException e) {
             if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
               throw e;

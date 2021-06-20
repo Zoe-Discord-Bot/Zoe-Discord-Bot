@@ -6,6 +6,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import ch.kalunight.zoe.EventListener;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.config.option.CleanChannelOption;
 import ch.kalunight.zoe.model.config.option.CleanChannelOption.CleanChannelOptionInfo;
@@ -340,7 +342,7 @@ public class ConfigRepository {
       roleOption.setRole(role);
       if(role == null) {
         logger.info("Zoe role has been deleted. We update the db.");
-        updateRoleOption(guildId, 0);
+        updateRoleOption(guildId, 0, jda);
         
         DTO.InfoChannel infoChannelDb = InfoChannelRepository.getInfoChannel(guildId);
         TextChannel infoChannel = jda.getTextChannelById(infoChannelDb.infochannel_channelid);
@@ -375,7 +377,7 @@ public class ConfigRepository {
         TextChannel cleanChannel = jda.getGuildById(guildId).getTextChannelById(cleanChannelId);
         if(cleanChannel == null) {
           logger.info("clean channel has been deleted. We update the db.");
-          updateCleanChannelOption(guildId, 0, CleanChannelOptionInfo.DISABLE.toString());
+          updateCleanChannelOption(guildId, 0, CleanChannelOptionInfo.DISABLE.toString(), jda);
           cleanChannelOption.setCleanChannelOption(CleanChannelOptionInfo.DISABLE);
         }
         cleanChannelOption.setCleanChannel(cleanChannel);
@@ -423,16 +425,18 @@ public class ConfigRepository {
     }
 }
   
-  public static void updateInfoPanelRanked(long guildID, boolean activate) throws SQLException {
+  public static void updateInfoPanelRanked(long guildID, boolean activate, JDA jda) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
 
       String finalQuery = String.format(UPDATE_INFOPANEL_RANKED_OPTION_WITH_GUILD_ID, activate, guildID);
       query.executeUpdate(finalQuery);
+      
+      EventListener.getServersConfig().put(guildID, ConfigRepository.getServerConfiguration(guildID, jda));
     }
   }
 
-  public static void updateCleanChannelOption(long guildId, long cleanOptionChannelId, String cleanChannelOptionMode)
+  public static void updateCleanChannelOption(long guildId, long cleanOptionChannelId, String cleanChannelOptionMode, JDA jda)
       throws SQLException {
 
     try (Connection conn = RepoRessources.getConnection();
@@ -441,11 +445,13 @@ public class ConfigRepository {
       String finalQuery = String.format(UPDATE_CLEAN_CHANNEL_OPTION_WITH_GUILD_ID, 
           cleanChannelOptionMode, cleanOptionChannelId, guildId);
       query.executeUpdate(finalQuery);
+      
+      EventListener.getServersConfig().put(guildId, ConfigRepository.getServerConfiguration(guildId, jda));
     }
   }
  
   
-  public static void updateGameInfoCardOption(long guildId, boolean activate)
+  public static void updateGameInfoCardOption(long guildId, boolean activate, JDA jda)
       throws SQLException {
 
     try (Connection conn = RepoRessources.getConnection();
@@ -454,10 +460,12 @@ public class ConfigRepository {
       String finalQuery = String.format(UPDATE_GAME_INFO_CARD_OPTION_WITH_GUILD_ID, 
           activate, guildId);
       query.executeUpdate(finalQuery);
+      
+      EventListener.getServersConfig().put(guildId, ConfigRepository.getServerConfiguration(guildId, jda));
     }
   }
   
-  public static void updateRankchannelFilter(long guildId, RankChannelFilter rankchannelFilter)
+  public static void updateRankchannelFilter(long guildId, RankChannelFilter rankchannelFilter, JDA jda)
       throws SQLException {
 
     try (Connection conn = RepoRessources.getConnection();
@@ -466,10 +474,12 @@ public class ConfigRepository {
       String finalQuery = String.format(UPDATE_RANK_CHANNEL_FILTER_OPTION_WITH_GUILD_ID, 
           rankchannelFilter.toString(), guildId);
       query.executeUpdate(finalQuery);
+      
+      EventListener.getServersConfig().put(guildId, ConfigRepository.getServerConfiguration(guildId, jda));
     }
   }
   
-  public static void updateRegionOption(long guildId, Platform platform)
+  public static void updateRegionOption(long guildId, Platform platform, JDA jda)
       throws SQLException {
 
     try (Connection conn = RepoRessources.getConnection();
@@ -484,27 +494,33 @@ public class ConfigRepository {
       String finalQuery = String.format(UPDATE_REGION_OPTION_WITH_GUILD_ID, 
           platformString, guildId);
       query.executeUpdate(finalQuery);
+      
+      EventListener.getServersConfig().put(guildId, ConfigRepository.getServerConfiguration(guildId, jda));
     }
   }
   
 
-  public static void updateRoleOption(long guildId, long roleId) throws SQLException {
+  public static void updateRoleOption(long guildId, long roleId, JDA jda) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
 
       String finalQuery = String.format(UPDATE_ROLE_OPTION_WITH_GUILD_ID, 
           roleId, guildId);
       query.executeUpdate(finalQuery);
+      
+      EventListener.getServersConfig().put(guildId, ConfigRepository.getServerConfiguration(guildId, jda));
     }
   }
 
-  public static void updateSelfAddingOption(long guildId, boolean activate) throws SQLException {
+  public static void updateSelfAddingOption(long guildId, boolean activate, JDA jda) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
 
       String finalQuery = String.format(UPDATE_SELF_ADDING_OPTION_WITH_GUILD_ID, 
           activate, guildId);
       query.executeUpdate(finalQuery);
+      
+      EventListener.getServersConfig().put(guildId, ConfigRepository.getServerConfiguration(guildId, jda));
     }
   }
 

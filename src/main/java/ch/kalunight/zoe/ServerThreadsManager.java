@@ -68,6 +68,9 @@ public class ServerThreadsManager {
   private static final ThreadPoolExecutor COMMANDS_EXECUTOR =
       new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
 
+  private static final ThreadPoolExecutor EVENTS_EXECUTOR =
+      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
+  
   /**
    * Used by event waiter, define in {@link Zoe#main(String[])}
    */
@@ -90,6 +93,7 @@ public class ServerThreadsManager {
     CLASH_CHANNEL_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Clash-Channel-Executor-Thread %d").build());
     COMMANDS_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Command-Executor-Thread %d").build());
     MONITORING_DATA_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Data-Monitoring-Thread %d").build());
+    EVENTS_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Event-Executor-Thread %d").build());
     
     for(Platform platform : Platform.values()) {
       ThreadPoolExecutor executor = new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
@@ -152,7 +156,7 @@ public class ServerThreadsManager {
     }
     logger.info("All queue cleared !");
   }
-
+  
   public static void shutDownTaskExecutor(TextChannel channel) throws InterruptedException {
     
     logger.info("Start to shutdown Data Analysis Thread, this can take 1 minutes max...");
@@ -286,6 +290,17 @@ public class ServerThreadsManager {
     logger.info("Shutdown of Leaderboard Executor has been completed !");
     channel.sendMessage("Shutdown of Leaderboard Executor has been completed !").complete();
     
+    logger.info("Start to shutdown Events Executor, this can take 1 minutes max...");
+    channel.sendMessage("Start to shutdown Events Executor, this can take 1 minutes max...").complete();
+    EVENTS_EXECUTOR.shutdown();
+
+    EVENTS_EXECUTOR.awaitTermination(1, TimeUnit.MINUTES);
+    if(!EVENTS_EXECUTOR.isTerminated()) {
+      EVENTS_EXECUTOR.shutdownNow();
+    }
+    logger.info("Shutdown of Events Executor has been completed !");
+    channel.sendMessage("Shutdown of Events Executor has been completed !").complete();
+    
     Runnable commandsShutDownRunnable = new Runnable() {
       
       @Override
@@ -393,6 +408,10 @@ public class ServerThreadsManager {
 
   public static void setRebootAsked(boolean rebootAsked) {
     ServerThreadsManager.rebootAsked = rebootAsked;
+  }
+
+  public static ThreadPoolExecutor getEventsExecutor() {
+    return EVENTS_EXECUTOR;
   }
  
 

@@ -99,7 +99,7 @@ public class RoleOption extends ConfigurationOption {
             action.setColor(Color.PINK);
             role = action.complete();
             try {
-              ConfigRepository.updateRoleOption(guildId, role.getIdLong());
+              ConfigRepository.updateRoleOption(guildId, role.getIdLong(), guild.getJDA());
             } catch (SQLException e) {
               RepoRessources.sqlErrorReport(channel, server, e);
               return;
@@ -162,7 +162,7 @@ public class RoleOption extends ConfigurationOption {
           channel.sendTyping().complete();
           role.delete().complete();
           try {
-            ConfigRepository.updateRoleOption(guildId, 0);
+            ConfigRepository.updateRoleOption(guildId, 0, guild.getJDA());
           } catch (SQLException e) {
             RepoRessources.sqlErrorReport(channel, server, e);
             return;

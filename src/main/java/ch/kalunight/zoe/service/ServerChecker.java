@@ -46,7 +46,7 @@ public class ServerChecker extends TimerTask {
   @Override
   public void run() {
 
-    logger.info("ServerChecker thread started !");
+    logger.debug("ServerChecker thread started !");
 
     try {
       
@@ -54,7 +54,7 @@ public class ServerChecker extends TimerTask {
         setServerRefreshService(new TreatServerService(ServerThreadsManager.getServerExecutor()));
       }
 
-      logger.info("Start to queue asked treatment server !");
+      logger.debug("Start to queue asked treatment server !");
       for(DTO.Server serverAskedTreatment : ServerThreadsManager.getServersAskedTreatment()) {
         DTO.ServerStatus status = ServerStatusRepository.getServerStatus(serverAskedTreatment.serv_guildId);
         if(!status.servstatus_inTreatment) {
@@ -82,10 +82,10 @@ public class ServerChecker extends TimerTask {
 
       ServerThreadsManager.getServersAskedTreatment().clear();
 
-      logger.info("Start to refresh leaderboards !");
+      logger.debug("Start to refresh leaderboards !");
       refreshLeaderboard();
 
-      logger.info("Start to refresh clash channel !");
+      logger.debug("Start to refresh clash channel !");
       refreshClashChannel();
 
       
@@ -97,7 +97,7 @@ public class ServerChecker extends TimerTask {
       }
 
       if(nextDiscordBotListRefresh.isBeforeNow()) {
-        logger.info("Start to refresh discord bot stats !");
+        logger.debug("Start to refresh discord bot stats !");
         if(Zoe.getBotListApi() != null) {
           for(JDA client : Zoe.getJDAs()) {
             Zoe.getBotListApi().setStats(client.getShardInfo().getShardId(), client.getShardInfo().getShardTotal(), (int) client.getGuildCache().size());
@@ -108,7 +108,7 @@ public class ServerChecker extends TimerTask {
       }
 
       if(nextStatusRefresh.isBeforeNow()) {
-        logger.info("Start to refresh discord status !");
+        logger.debug("Start to refresh discord status !");
         // Discord status
         for(JDA client : Zoe.getJDAs()) {
           client.getPresence().setStatus(OnlineStatus.ONLINE);
@@ -122,10 +122,10 @@ public class ServerChecker extends TimerTask {
     }catch(Exception e){
       logger.error("Unexpected error in ServerChecker", e);
     }finally {
-      logger.info("ServerChecker thread ended !");
+      logger.debug("ServerChecker thread ended !");
       ServerThreadsManager.getServerCheckerThreadTimer().schedule(new DataSaver(), 0);
-      logger.info("Zoe Server-Executor Queue : {}", ServerThreadsManager.getServerExecutor().getQueue().size());
-      logger.info("Zoe number of User cached : {}", Zoe.getNumberOfUsers());
+      logger.debug("Zoe Server-Executor Queue : {}", ServerThreadsManager.getServerExecutor().getQueue().size());
+      logger.debug("Zoe number of User cached : {}", Zoe.getNumberOfUsers());
     }
   }
 

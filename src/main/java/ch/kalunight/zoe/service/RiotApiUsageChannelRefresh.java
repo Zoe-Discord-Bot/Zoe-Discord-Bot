@@ -74,7 +74,8 @@ public class RiotApiUsageChannelRefresh implements Runnable {
             + "\nTask in Leaderboard Executor : " + ServerThreadsManager.getLeaderboardExecutor().getQueue().size()
             + "\nTask in Clash Channel Executor : " + ServerThreadsManager.getClashChannelExecutor().getQueue().size()
             + "\nTask in Analysis Manager : " + ServerThreadsManager.getDataAnalysisManager().getQueue().size()
-            + "\nTask in Analysis Thread : " + ServerThreadsManager.getDataAnalysisThread().getQueue().size()).queue();
+            + "\nTask in Analysis Thread : " + ServerThreadsManager.getDataAnalysisThread().getQueue().size()
+            + "\nTask in Events Executor : " + ServerThreadsManager.getServerExecutor().getQueue().size()).queue();
 
         StringBuilder refreshStatusText = new StringBuilder();
 

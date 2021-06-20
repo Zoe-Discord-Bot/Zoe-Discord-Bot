@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -52,6 +53,8 @@ public class EventListener extends ListenerAdapter {
       + "First, please choose your language. (Will be defined for the server, i only speak in english in private message)";
 
   private static final Logger logger = LoggerFactory.getLogger(EventListener.class);
+  
+  private static final ConcurrentHashMap<Long, ServerConfiguration> serversConfig = new ConcurrentHashMap<>();
 
   @Override
   public void onGuildJoin(GuildJoinEvent event) {
@@ -272,7 +275,10 @@ public class EventListener extends ListenerAdapter {
 
         ServerConfiguration config;
         try {
-          config = ConfigRepository.getServerConfiguration(event.getGuild().getIdLong(), event.getJDA());
+          config = serversConfig.get(event.getGuild().getIdLong());
+          if(config == null) {
+            config = ConfigRepository.getServerConfiguration(event.getGuild().getIdLong(), event.getJDA());
+          }
         } catch(SQLException e) {
           logger.error("SQL Error when treating message receive !", e);
           return;
@@ -305,5 +311,9 @@ public class EventListener extends ListenerAdapter {
         }
       }
     };
+  }
+
+  public static Map<Long, ServerConfiguration> getServersConfig() {
+    return serversConfig;
   }
 }

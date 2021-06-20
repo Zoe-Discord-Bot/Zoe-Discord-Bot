@@ -82,7 +82,7 @@ public class InfoPanelRankedOption extends ConfigurationOption {
 
         if(emote.getName().equals("✅")) {
           try {
-            ConfigRepository.updateInfoPanelRanked(guildId, false);
+            ConfigRepository.updateInfoPanelRanked(guildId, false, messageChannel.getJDA());
             optionActivated = false;
           } catch (SQLException e) {
             RepoRessources.sqlErrorReport(messageChannel, server, e);
@@ -104,7 +104,7 @@ public class InfoPanelRankedOption extends ConfigurationOption {
 
         if(emoteUsed.getName().equals("✅")) {
           try {
-            ConfigRepository.updateInfoPanelRanked(guildId, true);
+            ConfigRepository.updateInfoPanelRanked(guildId, true, messageChannel.getJDA());
             optionActivated = true;
           } catch (SQLException e) {
             RepoRessources.sqlErrorReport(messageChannel, server, e);

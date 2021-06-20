@@ -79,7 +79,7 @@ public class GameInfoCardOption extends ConfigurationOption {
         
         if(emote.getName().equals("✅")) {
           try {
-            ConfigRepository.updateGameInfoCardOption(guildId, false);
+            ConfigRepository.updateGameInfoCardOption(guildId, false, messageChannel.getJDA());
             optionActivated = false;
           } catch (SQLException e) {
             RepoRessources.sqlErrorReport(messageChannel, server, e);
@@ -101,7 +101,7 @@ public class GameInfoCardOption extends ConfigurationOption {
         
         if(emoteUsed.getName().equals("✅")) {
           try {
-            ConfigRepository.updateGameInfoCardOption(guildId, true);
+            ConfigRepository.updateGameInfoCardOption(guildId, true, messageChannel.getJDA());
             optionActivated = true;
           } catch (SQLException e) {
             RepoRessources.sqlErrorReport(messageChannel, server, e);

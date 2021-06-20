@@ -122,7 +122,7 @@ public class RankChannelFilterOption extends ConfigurationOption {
         }
 
         try {
-          ConfigRepository.updateRankchannelFilter(guildId, tmpRankChannelFilter);
+          ConfigRepository.updateRankchannelFilter(guildId, tmpRankChannelFilter, channel.getJDA());
         } catch(SQLException e) {
           RepoRessources.sqlErrorReport(channel, server, e);
           return;

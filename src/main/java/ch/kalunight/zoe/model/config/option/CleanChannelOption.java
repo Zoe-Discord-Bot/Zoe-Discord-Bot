@@ -164,7 +164,7 @@ public class CleanChannelOption extends ConfigurationOption {
           cleanChannel = null;
 
           try {
-            ConfigRepository.updateCleanChannelOption(guildId, 0, tmpCleanChannelOption.toString());
+            ConfigRepository.updateCleanChannelOption(guildId, 0, tmpCleanChannelOption.toString(), guild.getJDA());
           } catch(SQLException e) {
             RepoRessources.sqlErrorReport(channel, server, e);
             return;
@@ -212,7 +212,7 @@ public class CleanChannelOption extends ConfigurationOption {
           cleanChannelOption = tmpCleanChannelOption;
 
           try {
-            ConfigRepository.updateCleanChannelOption(guildId, cleanChannel.getIdLong(), cleanChannelOption.toString());
+            ConfigRepository.updateCleanChannelOption(guildId, cleanChannel.getIdLong(), cleanChannelOption.toString(), guild.getJDA());
           } catch(SQLException e) {
             RepoRessources.sqlErrorReport(cleanChannel, server, e);
             return;
@@ -245,7 +245,7 @@ public class CleanChannelOption extends ConfigurationOption {
         cleanChannel = textChannel;
         cleanChannelOption = tmpCleanChannelOption;
 
-        ConfigRepository.updateCleanChannelOption(guildId, cleanChannel.getIdLong(), cleanChannelOption.toString());
+        ConfigRepository.updateCleanChannelOption(guildId, cleanChannel.getIdLong(), cleanChannelOption.toString(), textChannel.getJDA());
 
         if(cleanChannelOption.equals(CleanChannelOptionInfo.ONLY_ZOE_COMMANDS)) {
           textChannel.sendMessage(LanguageManager.getText(server.getLanguage(), "cleanChannelOptionInfoMessageZoeCommands")).complete();
@@ -296,7 +296,7 @@ public class CleanChannelOption extends ConfigurationOption {
     if(cleanChannel != null && cleanChannel.getJDA().getTextChannelById(cleanChannel.getId()) == null) {
       cleanChannel = null;
       cleanChannelOption = CleanChannelOptionInfo.DISABLE;
-      ConfigRepository.updateCleanChannelOption(guildId, 0, cleanChannelOption.toString());
+      ConfigRepository.updateCleanChannelOption(guildId, 0, cleanChannelOption.toString(), cleanChannel.getJDA());
     }
 
     String status = LanguageManager.getText(langage, "optionDisable");

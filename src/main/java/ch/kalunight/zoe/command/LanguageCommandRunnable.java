@@ -13,6 +13,7 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.SelectionDialog;
 
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.repositories.RepoRessources;
 import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
@@ -20,40 +21,20 @@ import ch.kalunight.zoe.util.CommandUtil;
 import ch.kalunight.zoe.util.LanguageUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.User;
 
-public class LanguageCommand extends ZoeCommand{
-
+public class LanguageCommandRunnable {  
+  
   public static final String NATIVE_LANGUAGE_TRANSLATION_ID = "nativeActualLanguage";
   
-  private EventWaiter waiter;
-  
-  public LanguageCommand(EventWaiter waiter) {
-    this.name = "language";
-    String[] aliasesTable = {"lang", "l", "languages"};
-    this.aliases = aliasesTable;
-    this.help = "languageCommandHelp";
-    this.hidden = false;
-    this.ownerCommand = false;
-    Permission[] permissionRequired = {Permission.MANAGE_CHANNEL, Permission.MESSAGE_ADD_REACTION};
-    this.userPermissions = permissionRequired;
-    Permission[] permissionBot = {Permission.MESSAGE_ADD_REACTION, Permission.MANAGE_EMOTES, Permission.MESSAGE_EMBED_LINKS};
-    this.botPermissions = permissionBot;
-    this.guildOnly = true;
-    this.waiter = waiter;
-    this.helpBiConsumer = CommandUtil.getHelpMethod(name, help);
+  private LanguageCommandRunnable() {
+    //Hide default public constructor
   }
   
-  @Override
-  protected void executeCommand(CommandEvent event) {
-    CommandUtil.sendTypingInFonctionOfChannelType(event);
-    
-    DTO.Server server = getServer(event.getGuild().getIdLong());
-    
-    event.getTextChannel().sendMessage(String.format(LanguageManager.getText(server.getLanguage(),
-        "languageCommandStartMessage"), LanguageManager.getText(server.getLanguage(), NATIVE_LANGUAGE_TRANSLATION_ID), "<https://discord.gg/AyAYWGM>")).complete();
+  public static SelectionDialog executeCommand(Server server, EventWaiter waiter, User author) {
     
     SelectionDialog.Builder builder = new SelectionDialog.Builder()
-        .addUsers(event.getAuthor())
+        .addUsers(author)
         .setTimeout(2, TimeUnit.MINUTES)
         .setColor(Color.GREEN)
         .useLooping(true)
@@ -69,14 +50,14 @@ public class LanguageCommand extends ZoeCommand{
       langagesList.add(langage);
     }
     
-    builder.setText(LanguageUtil.getUpdateMessageAfterChangeSelectAction(server.getLanguage(), languageListTranslate));
+    builder.setText(LanguageUtil.getUpdateMessageAfterChangeSelectAction(server.getLanguage(), languageListTranslate, server));
     builder.setSelectionConsumer(getSelectionDoneAction(langagesList, server));
     builder.setCanceled(LanguageUtil.getCancelActionSelection());
     
-    builder.build().display(event.getChannel());
+    return builder.build();
   }
   
-  private BiConsumer<Message, Integer> getSelectionDoneAction(List<String> languageList, DTO.Server server) {
+  private static BiConsumer<Message, Integer> getSelectionDoneAction(List<String> languageList, DTO.Server server) {
     return new BiConsumer<Message, Integer>() {
       @Override
       public void accept(Message selectionMessage, Integer selectionOfLanguage) {
@@ -97,8 +78,5 @@ public class LanguageCommand extends ZoeCommand{
     };
   }
 
-  @Override
-  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
-    return helpBiConsumer;
-  }
+
 }

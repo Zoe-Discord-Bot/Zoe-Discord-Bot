@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -18,9 +19,11 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
 
 import javax.security.auth.login.LoginException;
+
 import org.discordbots.api.client.DiscordBotListAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -28,11 +31,11 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import com.jagrosh.jdautilities.command.CommandEvent;
+import com.jagrosh.jdautilities.command.SlashCommand;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
-import ch.kalunight.zoe.command.AboutCommand;
+
 import ch.kalunight.zoe.command.BanAccountCommand;
 import ch.kalunight.zoe.command.ConfigCommand;
-import ch.kalunight.zoe.command.LanguageCommand;
 import ch.kalunight.zoe.command.PatchNotesCommand;
 import ch.kalunight.zoe.command.RebootCommand;
 import ch.kalunight.zoe.command.RefreshCommand;
@@ -46,6 +49,10 @@ import ch.kalunight.zoe.command.create.CreateCommand;
 import ch.kalunight.zoe.command.create.RegisterCommand;
 import ch.kalunight.zoe.command.define.DefineCommand;
 import ch.kalunight.zoe.command.define.UndefineCommand;
+import ch.kalunight.zoe.command.definition.AboutCommandClassicDefinition;
+import ch.kalunight.zoe.command.definition.AboutCommandSlashDefinition;
+import ch.kalunight.zoe.command.definition.LanguageCommandClassicDefinition;
+import ch.kalunight.zoe.command.definition.LanguageCommandSlashDefinition;
 import ch.kalunight.zoe.command.delete.DeleteCommand;
 import ch.kalunight.zoe.command.remove.RemoveCommand;
 import ch.kalunight.zoe.command.show.ShowCommand;
@@ -92,6 +99,8 @@ public class Zoe {
 
   public static final int NUMBER_OF_SHARDS = 4;
 
+  public static final LocalDateTime BOOT_TIME = LocalDateTime.now();
+
   private static final ConcurrentLinkedQueue<List<CustomEmote>> emotesNeedToBeUploaded = new ConcurrentLinkedQueue<>();
 
   private static final List<Object> eventListenerList = Collections.synchronizedList(new ArrayList<>());
@@ -105,6 +114,8 @@ public class Zoe {
   private static final List<GatewayIntent> listOfGatway = Collections.synchronizedList(new ArrayList<>());
 
   private static List<Command> mainCommands;
+  
+  private static List<SlashCommand> slashCommands;
 
   private static CachedRiotApi riotApi;
 
@@ -177,12 +188,27 @@ public class Zoe {
     Consumer<CommandEvent> helpCommand = CommandUtil.getHelpCommand();
 
     client.setHelpConsumer(helpCommand);
-
-    CommandClient commandClient = client.build();
-
+    
+    logger.info("Loading of translations ...");
+    try {
+      LanguageManager.loadTranslations();
+    } catch(IOException e) {
+      logger.error("Critical error with the loading of translations (File issue) !", e);
+      System.exit(1);
+    }
+    logger.info("Loading of translation finished !");
+    
     EventWaiter eventWaiter = new EventWaiter(ServerThreadsManager.getResponseWaiter(), false);
 
     Zoe.setEventWaiter(eventWaiter);
+    
+    logger.info("Setup of slash commands ...");
+    for(SlashCommand command : Zoe.getSlashCommands(eventWaiter)) {
+      client.addSlashCommand(command);
+    }
+    logger.info("Setup of slash commands done !");
+
+    CommandClient commandClient = client.build();
 
     SetupEventListener setupEventListener = new SetupEventListener();
 
@@ -223,14 +249,6 @@ public class Zoe {
   }
 
   private static void loadZoeRessources() {
-    logger.info("Loading of translations ...");
-    try {
-      LanguageManager.loadTranslations();
-    } catch(IOException e) {
-      logger.error("Critical error with the loading of translations (File issue) !", e);
-      System.exit(1);
-    }
-    logger.info("Loading of translation finished !");
 
     logger.info("Loading of champions ...");
     try {
@@ -337,9 +355,9 @@ public class Zoe {
     commands.add(new RebootCommand());
 
     // Basic commands
-    commands.add(new AboutCommand());
+    commands.add(new AboutCommandClassicDefinition());
     commands.add(new SetupCommand());
-    commands.add(new LanguageCommand(eventWaiter));
+    commands.add(new LanguageCommandClassicDefinition(eventWaiter));
     commands.add(new ConfigCommand(eventWaiter));
     commands.add(new CreateCommand(eventWaiter));
     commands.add(new DeleteCommand(eventWaiter));
@@ -357,6 +375,24 @@ public class Zoe {
     commands.add(new PatchNotesCommand());
 
     mainCommands = commands;
+
+    return commands;
+  }
+  
+  public static synchronized List<SlashCommand> getSlashCommands(EventWaiter eventWaiter) {
+    if(slashCommands != null) {
+      return slashCommands;
+    }
+    
+    String testServer = "565812029538041856"; //set to null for global command
+    
+    List<SlashCommand> commands = new ArrayList<>();
+    
+    //basic
+    commands.add(new AboutCommandSlashDefinition(testServer));
+    commands.add(new LanguageCommandSlashDefinition(testServer));
+    
+    slashCommands = commands;
 
     return commands;
   }

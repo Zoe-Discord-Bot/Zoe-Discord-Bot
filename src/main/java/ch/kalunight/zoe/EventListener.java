@@ -14,7 +14,8 @@ import org.slf4j.LoggerFactory;
 
 import com.jagrosh.jdautilities.menu.SelectionDialog;
 
-import ch.kalunight.zoe.command.LanguageCommand;
+import ch.kalunight.zoe.command.LanguageCommandRunnable;
+import ch.kalunight.zoe.command.definition.LanguageCommandClassicDefinition;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.config.option.CleanChannelOption.CleanChannelOptionInfo;
 import ch.kalunight.zoe.model.dto.DTO;
@@ -101,13 +102,13 @@ public class EventListener extends ListenerAdapter {
     List<String> langagesList = new ArrayList<>();
     List<String> translatedLanguageList = new ArrayList<>();
     for(String langage : LanguageManager.getListlanguages()) {
-      builder.addChoices(LanguageManager.getText(langage, LanguageCommand.NATIVE_LANGUAGE_TRANSLATION_ID) 
+      builder.addChoices(LanguageManager.getText(langage, LanguageCommandRunnable.NATIVE_LANGUAGE_TRANSLATION_ID) 
           + " " + LanguageManager.getPourcentageTranslated(langage));
-      translatedLanguageList.add(LanguageManager.getText(langage, LanguageCommand.NATIVE_LANGUAGE_TRANSLATION_ID));
+      translatedLanguageList.add(LanguageManager.getText(langage, LanguageCommandRunnable.NATIVE_LANGUAGE_TRANSLATION_ID));
       langagesList.add(langage);
     }
 
-    builder.setText(LanguageUtil.getUpdateMessageAfterChangeSelectAction(LanguageManager.DEFAULT_LANGUAGE, translatedLanguageList));
+    builder.setText(LanguageUtil.getUpdateMessageAfterChangeSelectAction(LanguageManager.DEFAULT_LANGUAGE, translatedLanguageList, server));
     builder.setSelectionConsumer(EventListenerUtil.getSelectionDoneActionLangueSelection(langagesList, server, channel));
     builder.setCanceled(LanguageUtil.getCancelActionSelection());
 

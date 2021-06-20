@@ -37,6 +37,7 @@ public class RepoRessources {
     HikariConfig config = new HikariConfig();
     config.setDataSource(source);
     config.setAutoCommit(true);
+    config.setLeakDetectionThreshold(20000);
     
     dataSource = new HikariDataSource(config);
   }

@@ -187,10 +187,10 @@ public class EventListenerUtil {
           String strRegion;
           if(regionsList.size() == selectionOfRegion - 1) {
             strRegion = LanguageManager.getText(server.getLanguage(), "regionOptionAnyRegion");
-            ConfigRepository.updateRegionOption(server.serv_guildId, null);
+            ConfigRepository.updateRegionOption(server.serv_guildId, null, selectionMessage.getJDA());
           } else {
             strRegion = regionsList.get(selectionOfRegion - 1).getName().toUpperCase();
-            ConfigRepository.updateRegionOption(server.serv_guildId, regionsList.get(selectionOfRegion - 1));
+            ConfigRepository.updateRegionOption(server.serv_guildId, regionsList.get(selectionOfRegion - 1), selectionMessage.getJDA());
           }
 
           selectionMessage.getChannel().sendMessage(String.format(

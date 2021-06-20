@@ -118,7 +118,7 @@ public class RegionOption extends ConfigurationOption {
         }
         
         try {
-          ConfigRepository.updateRegionOption(guildId, region);
+          ConfigRepository.updateRegionOption(guildId, region, selectionMessage.getJDA());
         } catch (SQLException e) {
           RepoRessources.sqlErrorReport(selectionMessage.getChannel(), server, e);
           return;

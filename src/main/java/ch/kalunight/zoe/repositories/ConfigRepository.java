@@ -4,6 +4,9 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+
+import javax.annotation.Nullable;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +28,7 @@ import ch.kalunight.zoe.model.config.option.RoleOption;
 import ch.kalunight.zoe.model.config.option.SelfAddingOption;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.Server;
+import ch.kalunight.zoe.model.dto.DTO.ServerRawSettings;
 
 public class ConfigRepository {
 
@@ -229,30 +233,29 @@ public class ConfigRepository {
   }
 
   public static ServerConfiguration getServerConfiguration(long guildId, JDA jda) throws SQLException {
-    ResultSet result = null;
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement();) {
+    try (Connection conn = RepoRessources.getConnection();) {
 
-      //Get All Options
-      String finalQuery = String.format(SELECT_ALL_OPTIONS_SETTINGS, guildId);
-      result = query.executeQuery(finalQuery);
-      result.next();
-
+      DTO.ServerRawSettings settings = getAllSettingsDTO(guildId, conn);
+      
+      if(settings == null) {
+        logger.warn("Server id {} has missed configuration!", guildId);
+        return null;
+      }
+      
       SelfAddingOption selfAddingOption = new SelfAddingOption(guildId);
-      selfAddingOption.setOptionActivated(result.getBoolean("selfOption_activate"));
+      selfAddingOption.setOptionActivated(settings.selfoption_activate);
 
       RegionOption regionOption = new RegionOption(guildId);
-      String region = result.getString("regionOption_region");
-      if(region != null && !region.equals("")) {
-        regionOption.setRegion(Platform.valueOf(region));
+      if(settings.regionoption_region != null) {
+        regionOption.setRegion(settings.regionoption_region);
       }
 
-      CleanChannelOption cleanChannelOption = getCleanChannelOption(guildId, result, jda, conn);
+      CleanChannelOption cleanChannelOption = getCleanChannelOption(guildId, settings, jda, conn);
 
       GameInfoCardOption infoCardOption = new GameInfoCardOption(guildId);
-      infoCardOption.setOptionActivated(result.getBoolean("gameCardOption_activate"));
+      infoCardOption.setOptionActivated(settings.gamecardoption_activate);
 
-      RoleOption roleOption = getRoleOption(result, guildId, jda, conn);
+      RoleOption roleOption = getRoleOption(settings, guildId, jda, conn);
 
       Boolean infopanelRankedOptionActivate = getInfoPanelRankedState(guildId, conn);
       InfoPanelRankedOption infopanelRankedOption = new InfoPanelRankedOption(guildId);
@@ -284,9 +287,25 @@ public class ConfigRepository {
       serverConfig.setRankchannelFilterOption(rankchannelFilterOption);
       
       return serverConfig;
+    }
+  }
+  
+  @Nullable
+  private static DTO.ServerRawSettings getAllSettingsDTO(long guildId, Connection conn) throws SQLException {
+    ResultSet result = null;
+    try (Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);){
+      //Get All Options
+      String finalQuery = String.format(SELECT_ALL_OPTIONS_SETTINGS, guildId);
+      result = query.executeQuery(finalQuery);
+      int rowCount = result.last() ? result.getRow() : 0;
+      if(rowCount == 0) {
+        return null;
+      }
+      return new DTO.ServerRawSettings(result);
     }finally {
       RepoRessources.closeResultSet(result);
     }
+
   }
 
   private static void createInfoPanelRankedOptionTable(Statement statement, long guildId, Connection conn) throws SQLException {
@@ -329,9 +348,9 @@ public class ConfigRepository {
     statement.execute(finalQuery);
   }
   
-  private static RoleOption getRoleOption(ResultSet result, long guildId, JDA jda, Connection conn) throws SQLException {
+  private static RoleOption getRoleOption(ServerRawSettings settings, long guildId, JDA jda, Connection conn) throws SQLException {
     RoleOption roleOption = new RoleOption(guildId);
-    long roleId = result.getLong("roleOption_roleId");
+    long roleId = settings.roleoption_roleid;
 
     if(roleId == 0) {
       return roleOption;
@@ -367,12 +386,12 @@ public class ConfigRepository {
     return roleOption;
   }
 
-  private static CleanChannelOption getCleanChannelOption(long guildId, ResultSet result, JDA jda, Connection conn) throws SQLException {
+  private static CleanChannelOption getCleanChannelOption(long guildId, ServerRawSettings settings, JDA jda, Connection conn) throws SQLException {
     CleanChannelOption cleanChannelOption = new CleanChannelOption(guildId);
-    cleanChannelOption.setCleanChannelOption(CleanChannelOptionInfo.valueOf(result.getString("cleanOption_option")));
+    cleanChannelOption.setCleanChannelOption(settings.cleanoption_option);
 
     if(!cleanChannelOption.getCleanChannelOption().equals(CleanChannelOptionInfo.DISABLE)) {
-      long cleanChannelId = result.getLong("cleanOption_channelId");
+      long cleanChannelId = settings.cleanoption_channelid;
       try {
         TextChannel cleanChannel = jda.getGuildById(guildId).getTextChannelById(cleanChannelId);
         if(cleanChannel == null) {

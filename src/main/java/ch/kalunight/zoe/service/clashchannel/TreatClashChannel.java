@@ -64,8 +64,6 @@ public class TreatClashChannel implements Runnable {
 
   private DTO.ClashChannel clashChannelDB;
 
-  private Guild guild;
-
   private TextChannel clashChannel;
 
   private boolean forceRefreshCache;
@@ -453,7 +451,7 @@ public class TreatClashChannel implements Runnable {
   }
 
   private boolean loadDiscordEntities(JDA jda) throws SQLException {
-    guild = jda.getGuildById(server.serv_guildId);
+    Guild guild = jda.getGuildById(server.serv_guildId);
 
     if(guild == null) {
       return true;

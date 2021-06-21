@@ -57,7 +57,6 @@ public class DataSaver extends TimerTask {
         InfoPanelRefresher.getServerswhereplayersalreadychecked().clear();
       }
       
-      
     } catch(Exception e) {
       logger.error("Error in dataSaver : {}", e.getMessage(), e);
     } finally {

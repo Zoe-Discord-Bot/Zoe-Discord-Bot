@@ -113,7 +113,8 @@ public class TreatServerService {
         return;
       }
     }
-
+    
+    
     try {
       TimeUnit.MILLISECONDS.sleep(500);
       serverExecutor.execute(new WaitTaskRefresh(this));

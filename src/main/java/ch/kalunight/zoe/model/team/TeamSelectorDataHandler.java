@@ -78,7 +78,7 @@ public class TeamSelectorDataHandler {
     if(listArgs.size() != 2) {
       baseEvent.reply(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisMalformedAccount") 
           + " " + LanguageManager.getText(server.getLanguage(), STATS_TEAM_ANALYSIS_CANCEL_MESSAGE_ID));
-      
+      defineAccountSelectionWaiter();
       return;
     }
 

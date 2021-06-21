@@ -29,17 +29,17 @@ public class CurrentGameInfoRepository {
 
   private static final String SELECT_CURRENT_GAME_INFO_WITH_SERVER_AND_GAME_ID = 
       "SELECT " + 
-      "current_game_info.currentgame_id, " + 
-      "current_game_info.currentgame_currentgame, " + 
-      "current_game_info.currentgame_server, " + 
-      "current_game_info.currentgame_gameid " + 
-      "FROM server " + 
-      "INNER JOIN player ON server.serv_id = player.player_fk_server " + 
-      "INNER JOIN league_account ON player.player_id = league_account.leagueaccount_fk_player " + 
-      "INNER JOIN current_game_info ON league_account.leagueaccount_fk_currentgame = current_game_info.currentgame_id " + 
-      "WHERE current_game_info.currentgame_server = '%s' " + 
-      "AND current_game_info.currentgame_gameid = '%s' " + 
-      "AND server.serv_guildid = %d";
+          "current_game_info.currentgame_id, " + 
+          "current_game_info.currentgame_currentgame, " + 
+          "current_game_info.currentgame_server, " + 
+          "current_game_info.currentgame_gameid " + 
+          "FROM server " + 
+          "INNER JOIN player ON server.serv_id = player.player_fk_server " + 
+          "INNER JOIN league_account ON player.player_id = league_account.leagueaccount_fk_player " + 
+          "INNER JOIN current_game_info ON league_account.leagueaccount_fk_currentgame = current_game_info.currentgame_id " + 
+          "WHERE current_game_info.currentgame_server = '%s' " + 
+          "AND current_game_info.currentgame_gameid = '%s' " + 
+          "AND server.serv_guildid = %d";
 
   private static final String SELECT_ALL_CURRENT_GAME =
       "SELECT " + 
@@ -48,7 +48,7 @@ public class CurrentGameInfoRepository {
           "current_game_info.currentgame_server, " + 
           "current_game_info.currentgame_gameid " + 
           "FROM current_game_info";
-  
+
   private static final String SELECT_CURRENT_GAME_WITHOUT_GAME_INFO_CARD_WITH_GUILD_ID =
       "SELECT " + 
           "current_game_info.currentgame_id, " + 
@@ -83,19 +83,19 @@ public class CurrentGameInfoRepository {
 
   private static final String UPDATE_CURRENT_GAME_WITH_ID = 
       "UPDATE current_game_info SET currentgame_currentgame = '%s', currentgame_server = '%s', "
-      + "currentgame_gameid = '%s' WHERE currentgame_id = %d";
-  
+          + "currentgame_gameid = '%s' WHERE currentgame_id = %d";
+
   private static final String SELECT_CURRENT_GAME_WITHOUT_ANY_LINK =
       "SELECT " + 
-      "current_game_info.currentgame_id, " + 
-      "current_game_info.currentgame_currentgame, " + 
-      "current_game_info.currentgame_server, " + 
-      "current_game_info.currentgame_gameid " + 
-      "FROM game_info_card " + 
-      "RIGHT JOIN current_game_info ON game_info_card.gamecard_fk_currentgame = current_game_info.currentgame_id " + 
-      "LEFT JOIN league_account ON current_game_info.currentgame_id = league_account.leagueaccount_fk_currentgame " + 
-      "WHERE league_account.leagueaccount_id IS NULL " + 
-      "AND game_info_card.gamecard_id IS NULL";
+          "current_game_info.currentgame_id, " + 
+          "current_game_info.currentgame_currentgame, " + 
+          "current_game_info.currentgame_server, " + 
+          "current_game_info.currentgame_gameid " + 
+          "FROM game_info_card " + 
+          "RIGHT JOIN current_game_info ON game_info_card.gamecard_fk_currentgame = current_game_info.currentgame_id " + 
+          "LEFT JOIN league_account ON current_game_info.currentgame_id = league_account.leagueaccount_fk_currentgame " + 
+          "WHERE league_account.leagueaccount_id IS NULL " + 
+          "AND game_info_card.gamecard_id IS NULL";
 
   private static final String DELETE_CURRENT_GAME_WITH_ID = "DELETE FROM current_game_info WHERE currentgame_id = %d";
 
@@ -104,7 +104,7 @@ public class CurrentGameInfoRepository {
   private CurrentGameInfoRepository() {
     //hide default public constructor
   }
-  
+
   public static List<DTO.CurrentGameInfo> getAllCurrentGameInfo() throws SQLException {
     ResultSet result = null;
     try (Connection conn = RepoRessources.getConnection();
@@ -150,7 +150,7 @@ public class CurrentGameInfoRepository {
       RepoRessources.closeResultSet(result);
     }
   }
-  
+
   public static List<DTO.CurrentGameInfo> getCurrentGameUnreachable() throws SQLException {
     ResultSet result = null;
     try (Connection conn = RepoRessources.getConnection();
@@ -175,9 +175,15 @@ public class CurrentGameInfoRepository {
 
   @Nullable
   public static DTO.CurrentGameInfo getCurrentGameWithLeagueAccountID(long leagueAccountId) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();) {
+      return getCurrentGameWithLeagueAccountID(leagueAccountId, conn);
+    }
+  }
+
+  @Nullable
+  public static DTO.CurrentGameInfo getCurrentGameWithLeagueAccountID(long leagueAccountId, Connection conn) throws SQLException {
     ResultSet result = null;
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+    try (Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
 
       String finalQuery = String.format(SELECT_CURRENT_GAME_INFO_WITH_LEAGUE_ACCOUNT_ID, leagueAccountId);
       result = query.executeQuery(finalQuery);
@@ -222,7 +228,7 @@ public class CurrentGameInfoRepository {
       result.next();
 
       long currentGameId = result.getLong("currentgame_id");
-      
+
       LeagueAccountRepository.updateAccountCurrentGameWithAccountId(leagueAccount.leagueAccount_id, currentGameId);
       return currentGameId;
     } finally {
@@ -245,27 +251,32 @@ public class CurrentGameInfoRepository {
       }
     }
   }
-  
-  public static void deleteCurrentGame(DTO.CurrentGameInfo currentGameDb, DTO.Server server) throws SQLException {
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement();) {
 
-      List<DTO.LeagueAccount> leaguesAccounts = LeagueAccountRepository.getLeaguesAccountsWithCurrentGameId(currentGameDb.currentgame_id);
+  public static void deleteCurrentGame(DTO.CurrentGameInfo currentGameDb, DTO.Server server) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();) {
+      deleteCurrentGame(currentGameDb, server, conn);
+    }
+  }
+  
+  public static void deleteCurrentGame(DTO.CurrentGameInfo currentGameDb, DTO.Server server, Connection conn) throws SQLException {
+    try (Statement query = conn.createStatement();) {
+
+      List<DTO.LeagueAccount> leaguesAccounts = LeagueAccountRepository.getLeaguesAccountsWithCurrentGameId(currentGameDb.currentgame_id, conn);
 
       for(DTO.LeagueAccount leagueAccount: leaguesAccounts) {
-        LeagueAccountRepository.updateAccountCurrentGameWithAccountId(leagueAccount.leagueAccount_id, 0);
+        LeagueAccountRepository.updateAccountCurrentGameWithAccountId(leagueAccount.leagueAccount_id, 0, conn);
       }
 
-      DTO.GameInfoCard gameInfoCard = GameInfoCardRepository.getGameInfoCardsWithCurrentGameId(server.serv_guildId, currentGameDb.currentgame_id);
+      DTO.GameInfoCard gameInfoCard = GameInfoCardRepository.getGameInfoCardsWithCurrentGameId(server.serv_guildId, currentGameDb.currentgame_id, conn);
 
       if(gameInfoCard != null) {
-        GameInfoCardRepository.updateGameInfoCardsCurrentGamesWithId(0, gameInfoCard.gamecard_id);
+        GameInfoCardRepository.updateGameInfoCardsCurrentGamesWithId(0, gameInfoCard.gamecard_id, conn);
       }
       String finalQuery = String.format(DELETE_CURRENT_GAME_WITH_ID, currentGameDb.currentgame_id);
       query.execute(finalQuery);
     }
   }
-  
+
   /**
    * Use it only when current game is unreachable, otherwise a {@link SQLException} will be thrown
    * @param currentGameDb
@@ -280,11 +291,15 @@ public class CurrentGameInfoRepository {
     }
   }
 
-
   public static List<DTO.CurrentGameInfo> getCurrentGamesWithoutLinkAccounts(long guildId) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();) {
+      return getCurrentGamesWithoutLinkAccounts(guildId, conn);
+    }
+  }
+
+  public static List<DTO.CurrentGameInfo> getCurrentGamesWithoutLinkAccounts(long guildId, Connection conn) throws SQLException {
     ResultSet result = null;
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+    try (Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
 
       String finalQuery = String.format(SELECT_CURRENT_GAME_WITHOUT_ACCOUNT_LINKED, guildId);
       result = query.executeQuery(finalQuery);

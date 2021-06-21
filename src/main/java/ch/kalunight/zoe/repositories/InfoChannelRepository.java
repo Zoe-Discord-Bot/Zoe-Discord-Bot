@@ -61,9 +61,15 @@ public class InfoChannelRepository {
 
   @Nullable
   public static DTO.InfoChannel getInfoChannel(long guildId) throws SQLException{
+    try (Connection conn = RepoRessources.getConnection();) {
+      return getInfoChannel(guildId, conn);
+    }
+  }
+  
+  @Nullable
+  public static DTO.InfoChannel getInfoChannel(long guildId, Connection conn) throws SQLException{
     ResultSet result = null;
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+    try (Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
 
       String finalQuery = String.format(SELECT_INFOCHANNEL_WITH_GUILD_ID, guildId);
       result = query.executeQuery(finalQuery);

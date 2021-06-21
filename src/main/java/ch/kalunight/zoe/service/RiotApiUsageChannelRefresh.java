@@ -20,9 +20,6 @@ import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
-import ch.kalunight.zoe.model.RefreshLoadStatus;
-import ch.kalunight.zoe.model.RefreshPhase;
-import ch.kalunight.zoe.model.RefreshStatus;
 import ch.kalunight.zoe.repositories.LeaderboardRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
@@ -44,6 +41,8 @@ public class RiotApiUsageChannelRefresh implements Runnable {
   private static DateTime lastRapiCountReset = DateTime.now();
 
   private static Integer infocardCreatedCount = 0;
+  
+  private static Integer infocardCanceledCount = 0;
 
   private static long guildId;
 
@@ -58,7 +57,7 @@ public class RiotApiUsageChannelRefresh implements Runnable {
         return;
       }
 
-      Guild guild = Zoe.getJda().getGuildById(guildId);
+      Guild guild = Zoe.getGuildById(guildId);
       TextChannel rapiInfoChannel = guild.getJDA().getTextChannelById(textChannelId);
 
       if(rapiInfoChannel != null) {
@@ -66,45 +65,33 @@ public class RiotApiUsageChannelRefresh implements Runnable {
         cleanChannel(rapiInfoChannel);
 
         rapiInfoChannel.sendMessage("**Generic Stats**"
-            + "\nTotal number of Servers : " + Zoe.getJda().getGuilds().size()
+            + "\nTotal number of Servers : " + Zoe.getNumberOfGuilds()
             + "\nTask in Server Executor Queue : " + (ServerThreadsManager.getServerExecutor().getActiveCount() + ServerThreadsManager.getServerExecutor().getQueue().size())
             + "\nInfoPannel refresh done last two minutes : " + InfoPanelRefresher.getNbrServerSefreshedLast2Minutes()
-            + "\nTask in InfoCards Generator Queue : " + ServerThreadsManager.getInfocardsGenerator().getQueue().size()
             + "\nTask in Players Data Worker Queue : " + ServerThreadsManager.getPlayersDataQueue()
             + "\nInfocards Generated last 2 minutes : " + getInfocardCreatedCount()
+            + "\nInfocards Canceled last 2 minutes : " + getInfocardCanceledCount()
             + "\nTask in Leaderboard Executor : " + ServerThreadsManager.getLeaderboardExecutor().getQueue().size()
             + "\nTask in Clash Channel Executor : " + ServerThreadsManager.getClashChannelExecutor().getQueue().size()
             + "\nTask in Analysis Manager : " + ServerThreadsManager.getDataAnalysisManager().getQueue().size()
-            + "\nTask in Analysis Thread : " + ServerThreadsManager.getDataAnalysisThread().getQueue().size()).queue();
+            + "\nTask in Analysis Thread : " + ServerThreadsManager.getDataAnalysisThread().getQueue().size()
+            + "\nTask in Events Executor : " + ServerThreadsManager.getServerExecutor().getQueue().size()).queue();
 
         StringBuilder refreshStatusText = new StringBuilder();
 
-        RefreshStatus refreshStatus = ServerChecker.getLastStatus();
-        
-        synchronized (refreshStatus) {
-          refreshStatusText.append("**Refresh Status**"
-              + "\nNumber Of Server Managed : " + refreshStatus.getNumberOfServerManaged()
-              + "\nCurrent Status : " + refreshStatus.getRefreshPhase().toString());
+        TreatServerService treatServerService = ServerChecker.getServerRefreshService();
 
-          if(refreshStatus.getRefreshPhase().equals(RefreshPhase.CLASSIC_MOD)) {
-            refreshStatusText.append("\nRefresh Rate : " + refreshStatus.getRefresRatehInMinute().get());
-          }else if (refreshStatus.getRefreshPhase().equals(RefreshPhase.IN_EVALUATION_PHASE) || refreshStatus.getRefreshPhase().equals(RefreshPhase.IN_EVALUATION_PHASE_ON_ROAD)) {
-            refreshStatusText.append("\nCurrent Tested Refresh Rate : " + refreshStatus.getRefresRatehInMinute().get()
-                + "\nRefresh rate evaluation period end date (UTC) : " + refreshStatus.getEvaluationEnd().toString());
-            if(refreshStatus.getRefreshPhase().equals(RefreshPhase.IN_EVALUATION_PHASE)) {
-              refreshStatusText.append("\nServers To Still evaluate : " + refreshStatus.getServersToEvaluate().size());
-            }
-          }else if(refreshStatus.getRefreshPhase().equals(RefreshPhase.SMART_MOD)) {
-            refreshStatusText.append("\nSmart mod end date (UTC) : " + refreshStatus.getSmartModEnd().toString());
-          }
-          
-          refreshStatusText.append("\nHistory of load status : ");
-          
-          for(RefreshLoadStatus loadStatus : refreshStatus.getRefreshLoadsHistory()) {
-            refreshStatusText.append(loadStatus.toString() + "|");
-          }
+        if(treatServerService != null) {
+        refreshStatusText.append("**Refresh Status**"
+            + "\nNumber Of Server Managed : " + treatServerService.getNumberOfServerManaged()
+            + "\nServer Approximate Refresh Rate : " + treatServerService.getEstimateTimeToFullRefreshInMinutes()
+            + "\nServer Refreshed Per Min : " + treatServerService.getServerRefreshedEachMinute()
+            + "\n**Queue Health**"
+            + "\nQueue Size Discord Status : " + treatServerService.getQueueSizeDiscordStatus()
+            + "\nQueue Size Asked Refresh : " + treatServerService.getQueueSizeAskedToRefresh()
+            + "\nQueue Size InfoGame Card : " + treatServerService.getQueueSizeInfoCardsToRefresh());
         }
-
+        
         rapiInfoChannel.sendMessage(refreshStatusText.toString()).queue();
 
         StringBuilder serverHelperStats = new StringBuilder();
@@ -141,6 +128,7 @@ public class RiotApiUsageChannelRefresh implements Runnable {
         }
 
         setInfocardCreatedCount(0);
+        setInfocardCanceledCount(0);
 
         ArrayList<byte[]> graphs = new ArrayList<>();
         List<Platform> platformOrder = new ArrayList<>();
@@ -231,15 +219,17 @@ public class RiotApiUsageChannelRefresh implements Runnable {
     }catch(InsufficientPermissionException e) {
       rapiInfoChannel.sendMessage("I cannot clean all the channel, please give me the right to delete messages of all peoples").queue();
       List<Message> onlyMyMessagesToDelete = rapiInfoChannel.getIterableHistory().stream()
-          .filter(m -> m.getAuthor().equals(Zoe.getJda().getSelfUser()))
+          .filter(m -> m.getAuthor().equals(rapiInfoChannel.getJDA().getSelfUser()))
           .collect(Collectors.toList());
       rapiInfoChannel.purgeMessages(onlyMyMessagesToDelete);
     }
   }
 
   public static TextChannel getRapiInfoChannel() {
-    if(Zoe.getJda().getGuildById(guildId) != null) {
-      return Zoe.getJda().getGuildById(guildId).getTextChannelById(textChannelId);
+    Guild guild = Zoe.getGuildById(guildId);
+
+    if(guild != null) {
+      return guild.getTextChannelById(textChannelId);
     }
     return null;
   }
@@ -255,9 +245,21 @@ public class RiotApiUsageChannelRefresh implements Runnable {
   public static synchronized void incrementInfocardCount() {
     infocardCreatedCount++;
   }
+  
+  public static synchronized void incrementInfocardCancelCount() {
+    infocardCanceledCount++;
+  }
 
   public static long getTextChannelId() {
     return textChannelId;
+  }
+
+  public static Integer getInfocardCanceledCount() {
+    return infocardCanceledCount;
+  }
+
+  public static void setInfocardCanceledCount(Integer infocardCanceledCount) {
+    RiotApiUsageChannelRefresh.infocardCanceledCount = infocardCanceledCount;
   }
 
   public static void setTextChannelId(long textChannelId) {

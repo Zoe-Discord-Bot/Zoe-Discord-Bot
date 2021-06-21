@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.ButtonMenu;
-import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.Player;
 import ch.kalunight.zoe.repositories.ConfigRepository;
@@ -100,7 +99,7 @@ public class RoleOption extends ConfigurationOption {
             action.setColor(Color.PINK);
             role = action.complete();
             try {
-              ConfigRepository.updateRoleOption(guildId, role.getIdLong());
+              ConfigRepository.updateRoleOption(guildId, role.getIdLong(), guild.getJDA());
             } catch (SQLException e) {
               RepoRessources.sqlErrorReport(channel, server, e);
               return;
@@ -108,7 +107,7 @@ public class RoleOption extends ConfigurationOption {
 
 
             for(Player player : PlayerRepository.getPlayers(guildId)) {
-              Member member = guild.retrieveMember(player.getUser()).complete();
+              Member member = guild.retrieveMember(player.retrieveUser(guild.getJDA())).complete();
               guild.addRoleToMember(member, role).queue();
             }
 
@@ -119,7 +118,7 @@ public class RoleOption extends ConfigurationOption {
               permissionZoePlayer.getManager().grant(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).complete();
 
               PermissionOverride permissionZoe = infochannel
-                  .putPermissionOverride(guild.retrieveMember(Zoe.getJda().getSelfUser()).complete()).complete();
+                  .putPermissionOverride(guild.retrieveMember(guild.getJDA().getSelfUser()).complete()).complete();
               permissionZoe.getManager().grant(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).complete();
 
               PermissionOverride everyone = infochannel.putPermissionOverride(guild.getPublicRole()).complete();
@@ -133,7 +132,7 @@ public class RoleOption extends ConfigurationOption {
               permissionZoePlayer.getManager().grant(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).complete();
 
               PermissionOverride permissionZoe = rankChannel
-                  .putPermissionOverride(guild.getMember(Zoe.getJda().getSelfUser())).complete();
+                  .putPermissionOverride(guild.getMember(guild.getJDA().getSelfUser())).complete();
               permissionZoe.getManager().grant(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY).complete();
 
               PermissionOverride everyone = rankChannel.putPermissionOverride(guild.getPublicRole()).complete();
@@ -163,7 +162,7 @@ public class RoleOption extends ConfigurationOption {
           channel.sendTyping().complete();
           role.delete().complete();
           try {
-            ConfigRepository.updateRoleOption(guildId, 0);
+            ConfigRepository.updateRoleOption(guildId, 0, guild.getJDA());
           } catch (SQLException e) {
             RepoRessources.sqlErrorReport(channel, server, e);
             return;

@@ -18,12 +18,12 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Stopwatch;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.exception.NoValueRankException;
 import ch.kalunight.zoe.model.ComparableMessage;
-import ch.kalunight.zoe.model.RefreshPhase;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.InfoChannel;
@@ -68,6 +68,8 @@ public class InfoPanelRefresher implements Runnable {
 
   private static final AtomicLong nbrServerRefreshedLast2Minutes = new AtomicLong(0);
 
+  private static final List<Long> serversWherePlayersAlreadyChecked = Collections.synchronizedList(new ArrayList<>());
+
   private DTO.Server server;
 
   private TextChannel infochannel;
@@ -75,13 +77,13 @@ public class InfoPanelRefresher implements Runnable {
   private RankHistoryChannel rankChannel;
 
   private Guild guild;
-  
+
   private boolean forceRefreshCache;
 
   public InfoPanelRefresher(DTO.Server server, boolean forceRefreshCache) {
     this.server = server;
     this.forceRefreshCache = forceRefreshCache; 
-    guild = Zoe.getJda().getGuildById(server.serv_guildId);
+    guild = Zoe.getGuildById(server.serv_guildId);
   }
 
   @Override
@@ -94,16 +96,21 @@ public class InfoPanelRefresher implements Runnable {
         return;
       }
 
+      Stopwatch stopWatch = Stopwatch.createStarted();
+      logger.debug("Start refresh of the guild id {}", guild.getIdLong());
+
       DTO.InfoChannel infoChannelDTO = InfoChannelRepository.getInfoChannel(server.serv_guildId);
       if(infoChannelDTO != null) {
         infochannel = guild.getTextChannelById(infoChannelDTO.infochannel_channelid);
       }
 
-      ServerConfiguration configuration = ConfigRepository.getServerConfiguration(guild.getIdLong());
+      ServerConfiguration configuration = ConfigRepository.getServerConfiguration(guild.getIdLong(), guild.getJDA());
 
       List<DTO.Player> playersDTO = PlayerRepository.getPlayers(server.serv_guildId);
 
-      InfoPanelRefresherUtil.cleanRegisteredPlayerNoLongerInGuild(guild, playersDTO);
+      if(isServerNeedToBeRefreshed()) {
+        InfoPanelRefresherUtil.cleanRegisteredPlayerNoLongerInGuild(guild, playersDTO);
+      }
 
       if(infochannel != null) {
         cleanOldInfoChannelMessage();
@@ -116,13 +123,13 @@ public class InfoPanelRefresher implements Runnable {
       List<TreatedPlayer> treatedPlayers = new ArrayList<>();
 
       List<Leaderboard> leaderboardsOfTheServer = LeaderboardRepository.getLeaderboardsWithGuildId(guild.getIdLong());
-      
+
       if(infochannel != null || rankChannel != null || !leaderboardsOfTheServer.isEmpty()) {
 
         for(Player player : playersDTO) {
           List<LeagueAccount> leaguesAccounts = LeagueAccountRepository.getLeaguesAccountsWithPlayerID(server.serv_guildId, player.player_id);
 
-          TreatPlayerWorker playerWorker = new TreatPlayerWorker(server, player, leaguesAccounts, rankChannel, configuration, forceRefreshCache);
+          TreatPlayerWorker playerWorker = new TreatPlayerWorker(server, player, leaguesAccounts, rankChannel, configuration, forceRefreshCache, guild.getJDA());
 
           playersToTreat.add(playerWorker);
           if(!leaguesAccounts.isEmpty()) {
@@ -154,13 +161,15 @@ public class InfoPanelRefresher implements Runnable {
 
         refreshInfoPanel(infoChannelDTO, configuration, treatedPlayers);
 
-        if(ConfigRepository.getServerConfiguration(server.serv_guildId).getInfoCardsOption().isOptionActivated()) {
+        if(ConfigRepository.getServerConfiguration(server.serv_guildId, guild.getJDA()).getInfoCardsOption().isOptionActivated()) {
           createMissingInfoCard();
           treathGameCardWithStatus();
         }
 
         cleanInfoChannel();
         clearLoadingEmote();
+        stopWatch.stop();
+        logger.info("Infochannel refresh done in {} secs for the guild id {}", stopWatch.elapsed(TimeUnit.SECONDS), guild.getIdLong());
       }else if(infoChannelDTO != null && infochannel == null) {
         InfoChannelRepository.deleteInfoChannel(server);
       }
@@ -170,7 +179,7 @@ public class InfoPanelRefresher implements Runnable {
             e.getPermission().getName(), guild.getName());
 
         PermissionOverride permissionOverride = infochannel
-            .putPermissionOverride(guild.retrieveMember(Zoe.getJda().getSelfUser()).complete()).complete();
+            .putPermissionOverride(guild.retrieveMember(guild.getJDA().getSelfUser()).complete()).complete();
 
         permissionOverride.getManager().grant(e.getPermission()).complete();
         logger.info("Autofix complete !");
@@ -184,7 +193,19 @@ public class InfoPanelRefresher implements Runnable {
       logger.error("The thread got a unexpected error in the guild id {} (The channel got probably deleted when the refresh append)", guild.getIdLong(), e);
     } finally {
       updateServerStatus();
+      ServerChecker.getServerRefreshService().taskEnded(server);
     }
+  }
+
+  private boolean isServerNeedToBeRefreshed() {
+
+    if(serversWherePlayersAlreadyChecked.contains(guild.getIdLong())) {
+      return false;
+    }
+
+    serversWherePlayersAlreadyChecked.add(guild.getIdLong());
+
+    return true;
   }
 
   private void executeRankChannel(List<TreatPlayerWorker> playersToTreat) {
@@ -232,7 +253,7 @@ public class InfoPanelRefresher implements Runnable {
 
         loadGameToDelete(leaguesAccountsPerGameWaitingDeletion, treatedPlayer);
       }else {
-        logger.error("Error while loading a player! Player id {} | Guild discord id {}", treatPlayerWorker.getPlayer().getUser().getId(), treatPlayerWorker.getServer().serv_guildId);
+        logger.error("Error while loading a player! Player id {} | Guild discord id {}", treatPlayerWorker.getPlayer().retrieveUser(guild.getJDA()).getId(), treatPlayerWorker.getServer().serv_guildId);
       }
     }
   }
@@ -353,7 +374,7 @@ public class InfoPanelRefresher implements Runnable {
 
         DTO.CurrentGameInfo currentGame = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(account.leagueAccount_id);
 
-        ServerThreadsManager.getInfocardsGenerator().execute(
+        ServerChecker.getServerRefreshService().getInfocardsToRefresh().add(
             new InfoCardsWorker(server, infochannel, accountsLinked.get(0), currentGame, gameInfoCard, forceRefreshCache));
         break;
       case IN_WAIT_OF_DELETING:
@@ -631,7 +652,7 @@ public class InfoPanelRefresher implements Runnable {
       if(retrievedMessage != null) {
         for(MessageReaction messageReaction : retrievedMessage.getReactions()) {
           try {
-            messageReaction.removeReaction(Zoe.getJda().getSelfUser()).queue();
+            messageReaction.removeReaction(guild.getJDA().getSelfUser()).queue();
           } catch (ErrorResponseException e) {
             logger.warn("Error when removing reaction : {}", e.getMessage(), e);
           }
@@ -644,7 +665,7 @@ public class InfoPanelRefresher implements Runnable {
 
     List<Message> messagesToCheck = infochannel.getIterableHistory().stream()
         .limit(1000)
-        .filter(m-> m.getAuthor().getId().equals(Zoe.getJda().getSelfUser().getId()))
+        .filter(m-> m.getAuthor().getId().equals(guild.getJDA().getSelfUser().getId()))
         .collect(Collectors.toList());
 
     List<Message> messagesToDelete = new ArrayList<>();
@@ -724,14 +745,7 @@ public class InfoPanelRefresher implements Runnable {
       }
     }
 
-    if(ServerChecker.getLastStatus().getRefreshPhase().equals(RefreshPhase.SMART_MOD)) {
-      stringMessage.append(LanguageManager.getText(server.getLanguage(), "informationPanelSmartModEnable"));
-    } else if (ServerChecker.getLastStatus().getRefreshPhase().equals(RefreshPhase.IN_EVALUATION_PHASE) 
-        || ServerChecker.getLastStatus().getRefreshPhase().equals(RefreshPhase.IN_EVALUATION_PHASE_ON_ROAD) ) {
-      stringMessage.append(LanguageManager.getText(server.getLanguage(), "informationPanelEvaluationMod"));
-    }else {
-      stringMessage.append(String.format(LanguageManager.getText(server.getLanguage(), "informationPanelRefreshedTime"), ServerChecker.getLastStatus().getRefresRatehInMinute().get()));
-    }
+    stringMessage.append(LanguageManager.getText(server.getLanguage(), "informationPanelSmartModEnable"));
 
     return stringMessage.toString();
   }
@@ -776,6 +790,10 @@ public class InfoPanelRefresher implements Runnable {
 
   public static AtomicLong getNbrServerSefreshedLast2Minutes() {
     return nbrServerRefreshedLast2Minutes;
+  }
+
+  public static List<Long> getServerswhereplayersalreadychecked() {
+    return serversWherePlayersAlreadyChecked;
   }
 
 }

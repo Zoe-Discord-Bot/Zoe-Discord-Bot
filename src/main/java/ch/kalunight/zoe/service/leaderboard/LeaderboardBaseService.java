@@ -61,7 +61,7 @@ public abstract class LeaderboardBaseService implements Runnable {
 
       Server server = ServerRepository.getServerWithGuildId(guildId);
 
-      Guild guild = Zoe.getJda().getGuildById(guildId);
+      Guild guild = Zoe.getGuildById(guildId);
       if(guild == null) {
         return;
       }
@@ -89,14 +89,14 @@ public abstract class LeaderboardBaseService implements Runnable {
         return;
       }
 
-      message.addReaction("U+23F3").complete();
+      message.addReaction("U+23F3").queue();
       
       List<Player> players = PlayerRepository.getPlayers(guildId);
       InfoPanelRefresherUtil.cleanRegisteredPlayerNoLongerInGuild(guild, players);
 
       runLeaderboardRefresh(server, guild, channel, leaderboard, message, players, forceRefreshCache);
       
-      message.removeReaction("U+23F3", Zoe.getJda().getSelfUser()).queue();
+      message.removeReaction("U+23F3", guild.getJDA().getSelfUser()).queue();
 
     }catch(ErrorResponseException e) {
       if(e.getErrorResponse().equals(ErrorResponse.UNKNOWN_MESSAGE)) {

@@ -1,6 +1,7 @@
 package ch.kalunight.zoe.model.static_data;
 
 import java.io.File;
+
 import ch.kalunight.zoe.Zoe;
 import net.dv8tion.jda.api.entities.Emote;
 
@@ -16,7 +17,7 @@ public class CustomEmote {
   }
   
   public String getUsableEmote() {
-    final Emote emote = Zoe.getJda().getEmoteById(emoteId);
+    final Emote emote = Zoe.getEmoteById(emoteId);
     
     if(emote != null) {
       return emote.getAsMention();
@@ -42,7 +43,7 @@ public class CustomEmote {
   }
 
   public Emote getEmote() {
-    return Zoe.getJda().getEmoteById(emoteId);
+    return Zoe.getEmoteById(emoteId);
   }
 
   public void setEmote(Emote emote) {

@@ -57,7 +57,7 @@ public class CreatePlayerCommand extends ZoeCommand {
 
     DTO.Server server = getServer(event.getGuild().getIdLong());
 
-    ServerConfiguration config = ConfigRepository.getServerConfiguration(server.serv_guildId);
+    ServerConfiguration config = ConfigRepository.getServerConfiguration(server.serv_guildId, event.getJDA());
 
     if(!config.getUserSelfAdding().isOptionActivated() && !event.getMember().getPermissions().contains(Permission.MANAGE_CHANNEL)) {
       event.reply(String.format(LanguageManager.getText(server.getLanguage(), "permissionNeededMessage"),
@@ -125,7 +125,7 @@ public class CreatePlayerCommand extends ZoeCommand {
 
     if(playerAlreadyWithTheAccount != null) {
       loadingMessage.editMessage(String.format(LanguageManager.getText(server.getLanguage(), "accountAlreadyLinkedToAnotherPlayer"),
-          playerAlreadyWithTheAccount.getUser().getName())).queue();
+          playerAlreadyWithTheAccount.retrieveUser(event.getJDA()).getName())).queue();
       return;
     }
 

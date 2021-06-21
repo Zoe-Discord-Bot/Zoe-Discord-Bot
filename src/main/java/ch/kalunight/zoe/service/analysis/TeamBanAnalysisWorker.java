@@ -21,6 +21,7 @@ import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.MessageManagerUtil;
 import ch.kalunight.zoe.util.Ressources;
 import ch.kalunight.zoe.util.TeamUtil;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.TextChannel;
 
 public class TeamBanAnalysisWorker implements Runnable {
@@ -81,7 +82,7 @@ public class TeamBanAnalysisWorker implements Runnable {
 
       messageBuilder.append(LanguageManager.getText(server.getLanguage(), "teamAnalysisBanRecomendationTitle") + "\n\n");
 
-      addFirstBanPhase(messageBuilder, firstBans);
+      addFirstBanPhase(messageBuilder, firstBans, whereToSend.getJDA());
 
       messageBuilder.append("\n");
 
@@ -89,7 +90,7 @@ public class TeamBanAnalysisWorker implements Runnable {
 
       messageBuilder.append("\n");
 
-      addSecondBanPhase(messageBuilder, firstBans);
+      addSecondBanPhase(messageBuilder, firstBans, whereToSend.getJDA());
 
       List<Long> messagesId = new ArrayList<>();
       if(clashChannel != null) {
@@ -111,7 +112,7 @@ public class TeamBanAnalysisWorker implements Runnable {
 
   }
 
-  private void addSecondBanPhase(StringBuilder messageBuilder, List<PickData> firstBans) {
+  private void addSecondBanPhase(StringBuilder messageBuilder, List<PickData> firstBans, JDA jda) {
     messageBuilder.append("**" + LanguageManager.getText(server.getLanguage(), "teamAnalysisBanRecomendationSecondBanTitle") + "**\n");
 
     for(TeamPlayerAnalysisDataCollector player : teamPlayersData) {
@@ -139,7 +140,7 @@ public class TeamBanAnalysisWorker implements Runnable {
               messageBuilder.append(" (");
             }
 
-            messageBuilder.append(report.getInfoToShowFormatted(server.getLanguage()));
+            messageBuilder.append(report.getInfoToShowFormatted(server.getLanguage(), jda));
             firstReportSend = true;
           }
 
@@ -162,14 +163,14 @@ public class TeamBanAnalysisWorker implements Runnable {
           championString = championData.getEmoteUsable() + " " + championData.getName();
         }
 
-        showOneChampion(messageBuilder, pick, championString, ONLY_CHAMPION_SOURCE_LIST);
+        showOneChampion(messageBuilder, pick, championString, ONLY_CHAMPION_SOURCE_LIST, jda);
         messageBuilder.append("\n");
       }
       messageBuilder.append("\n");
     }
   }
 
-  private void showOneChampion(StringBuilder messageBuilder, PickData pick, String championString, List<DangerosityReportSource> sourceToShow) {
+  private void showOneChampion(StringBuilder messageBuilder, PickData pick, String championString, List<DangerosityReportSource> sourceToShow, JDA jda) {
     messageBuilder.append("  -> " + championString);
 
     boolean firstReportSend = false;
@@ -185,7 +186,7 @@ public class TeamBanAnalysisWorker implements Runnable {
           messageBuilder.append(" (");
         }
 
-        messageBuilder.append(report.getInfoToShowFormatted(server.getLanguage()));
+        messageBuilder.append(report.getInfoToShowFormatted(server.getLanguage(), jda));
 
         firstReportSend = true;
       }
@@ -197,7 +198,7 @@ public class TeamBanAnalysisWorker implements Runnable {
     }
   }
 
-  private void addFirstBanPhase(StringBuilder messageBuilder, List<PickData> firstBans) {
+  private void addFirstBanPhase(StringBuilder messageBuilder, List<PickData> firstBans, JDA jda) {
     messageBuilder.append("**" + LanguageManager.getText(server.getLanguage(), "teamAnalysisBanRecomendationFirstBanTitle") + "**");
 
     if(firstBans.isEmpty()) {
@@ -219,7 +220,7 @@ public class TeamBanAnalysisWorker implements Runnable {
       championAndPlayerString.append(" " + LanguageManager.getText(server.getLanguage(), TeamUtil.getChampionRoleID(pickData.getRole())));
 
       messageBuilder.append("\n");
-      showOneChampion(messageBuilder, pickData, championAndPlayerString.toString(), ALL_SOURCES_LIST);
+      showOneChampion(messageBuilder, pickData, championAndPlayerString.toString(), ALL_SOURCES_LIST, jda);
     }
   }
 

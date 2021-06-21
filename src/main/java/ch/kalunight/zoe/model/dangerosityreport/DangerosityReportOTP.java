@@ -1,6 +1,7 @@
 package ch.kalunight.zoe.model.dangerosityreport;
 
 import ch.kalunight.zoe.translation.LanguageManager;
+import net.dv8tion.jda.api.JDA;
 
 public class DangerosityReportOTP extends DangerosityReport {
 
@@ -21,7 +22,7 @@ public class DangerosityReportOTP extends DangerosityReport {
   }
 
   @Override
-  protected String getInfoToShow(String lang) {
+  protected String getInfoToShow(String lang, JDA jda) {
     return String.format(LanguageManager.getText(lang, "dangerosityReportOTPInfo"), POURCENTAGE_FORMAT.format(playRatio) + "%");
   }
 

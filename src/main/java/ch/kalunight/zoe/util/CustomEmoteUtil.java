@@ -9,6 +9,7 @@ import ch.kalunight.zoe.model.player_data.Tier;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.model.static_data.CustomEmote;
 import ch.kalunight.zoe.model.static_data.Mastery;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Emote;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Icon;
@@ -37,25 +38,25 @@ public class CustomEmoteUtil {
     return emotes;
   }
 
-  public static List<CustomEmote> prepareUploadOfEmotes(List<CustomEmote> customEmotes) throws IOException {
+  public static List<CustomEmote> prepareUploadOfEmotes(List<CustomEmote> customEmotes, JDA jda) throws IOException {
 
-    List<Guild> emoteGuilds = getEmoteGuilds();
+    List<Guild> emoteGuilds = getEmoteGuilds(jda);
 
     List<CustomEmote> uploadedEmote = uploadEmoteInGuildAlreadyExist(customEmotes, emoteGuilds);
     if(!uploadedEmote.isEmpty()) {
       Ressources.getCustomEmotes().addAll(uploadedEmote);
     }
 
-    createNewGuildsWithAssignedEmotes(customEmotes, emoteGuilds);
+    createNewGuildsWithAssignedEmotes(customEmotes, emoteGuilds, jda);
 
     return customEmotes;
   }
 
-  private static void createNewGuildsWithAssignedEmotes(List<CustomEmote> customEmotes, List<Guild> emoteGuilds) {
+  private static void createNewGuildsWithAssignedEmotes(List<CustomEmote> customEmotes, List<Guild> emoteGuilds, JDA jda) {
     int j = 0;
 
     while(!customEmotes.isEmpty()) {
-      Zoe.getJda().createGuild("Zoe Emotes Guild " + (emoteGuilds.size() + j)).complete();
+      jda.createGuild("Zoe Emotes Guild " + (emoteGuilds.size() + j)).complete();
       j++;
 
       List<CustomEmote> listEmoteForCreatedGuild = new ArrayList<>();
@@ -108,11 +109,11 @@ public class CustomEmoteUtil {
     return emotes;
   }
 
-  private static List<Guild> getEmoteGuilds() throws IOException {
+  private static List<Guild> getEmoteGuilds(JDA jda) throws IOException {
     List<Guild> emoteGuild = new ArrayList<>();
 
-    for(Guild guild : Zoe.getJda().getGuilds()) {
-      if(guild.getOwnerId().equals(Zoe.getJda().getSelfUser().getId())) {
+    for(Guild guild : jda.getGuilds()) {
+      if(guild.getOwnerId().equals(jda.getSelfUser().getId())) {
         emoteGuild.add(guild);
       }
     }

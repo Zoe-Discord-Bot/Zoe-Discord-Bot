@@ -127,7 +127,7 @@ CREATE TABLE match_cache (
   mCatch_id										SERIAL,
   mCatch_gameId									BIGINT				NOT NULL,
   mCatch_platform								VARCHAR				NOT NULL,
-  mCatch_savedMatch								json				NOT NULL,
+  mCatch_savedMatch								jsonb				NOT NULL,
   mCatch_creationTime							timestamp			NOT NULL
 );
 
@@ -135,6 +135,15 @@ CREATE TABLE rank_history_channel(
   rhChannel_id									SERIAL,
   rhChannel_fk_server							BIGINT				NOT NULL,
   rhChannel_channelId							BIGINT	
+);
+
+CREATE TABLE clash_channel (
+	clashChannel_id								SERIAL,
+	clashChannel_fk_server						BIGINT				NOT NULL,
+	clashChannel_channelId						BIGINT				NOT NULL,
+	clashChannel_data							jsonb				NOT NULL,
+	clashChannel_timezone						VARCHAR				NOT NULL,
+	clashChannel_lastRefresh 					TIMESTAMP			WITHOUT TIME ZONE
 );
 
 CREATE TABLE last_rank(
@@ -166,6 +175,38 @@ CREATE TABLE banned_account (
   banAcc_id										SERIAL,
   banAcc_summonerId								VARCHAR				NOT NULL,
   banAcc_server									VARCHAR				NOT NULL
+);
+
+CREATE TABLE champion_role_analysis (
+  cra_id 										SERIAL,
+  cra_keyChampion								BIGINT 				NOT NULL UNIQUE,
+  cra_lastRefresh 								TIMESTAMP			WITHOUT TIME ZONE,
+  cra_roles										VARCHAR 			NOT NULL,
+  cra_roles_stats								VARCHAR				NOT NULL,
+  cra_average_kda								double precision	NOT NULL
+);
+
+CREATE TABLE summoner_cache (
+  sumCache_id									SERIAL,
+  sumCache_summonerId							VARCHAR				NOT NULL,
+  sumCache_server								VARCHAR				NOT NULL,
+  sumCache_data									jsonb				NOT NULL,
+  sumCache_lastRefresh 							TIMESTAMP			WITHOUT TIME ZONE
+);
+
+CREATE TABLE champion_mastery_cache (
+  champMasCache_id								SERIAL,
+  champMasCache_summonerId						VARCHAR				NOT NULL,
+  champMasCache_server							VARCHAR				NOT NULL,
+  champMasCache_data							jsonb				NOT NULL,
+  champMasCache_lastRefresh 					TIMESTAMP			WITHOUT TIME ZONE
+);
+
+CREATE TABLE clash_tournament_cache (
+  clashTourCache_id								SERIAL,
+  clashTourCache_server							VARCHAR				NOT NULL,
+  clashTourCache_data							jsonb				NOT NULL,
+  clashTourCache_lastRefresh 					TIMESTAMP			WITHOUT TIME ZONE
 );
 
 
@@ -229,6 +270,28 @@ ALTER TABLE ONLY rank_history_channel
   
 ALTER TABLE ONLY leaderboard
   ADD CONSTRAINT leaderboard_pkey PRIMARY KEY (lead_id);
+
+ALTER TABLE ONLY champion_role_analysis
+  ADD CONSTRAINT champion_role_analysis_pkey PRIMARY KEY (cra_id);
+  
+ALTER TABLE ONLY clash_channel
+  ADD CONSTRAINT clash_channel_pkey PRIMARY KEY (clashChannel_id);  
+  
+ALTER TABLE ONLY summoner_cache
+  ADD CONSTRAINT sumCache_id_pkey PRIMARY KEY (sumCache_id);
+  
+ALTER TABLE summoner_cache
+  ADD UNIQUE (sumCache_summonerId, sumCache_server);
+
+ALTER TABLE ONLY champion_mastery_cache
+  ADD CONSTRAINT champMasCache_id_pkey PRIMARY KEY (champMasCache_id);
+  
+ALTER TABLE champion_mastery_cache
+  ADD UNIQUE (champMasCache_summonerId, champMasCache_server);
+
+ALTER TABLE ONLY clash_tournament_cache
+  ADD CONSTRAINT clash_tournament_cache_id_pkey PRIMARY KEY (clashTourCache_id);
+  
   
 ALTER TABLE player 
   ADD CONSTRAINT player_fk_server_const 
@@ -281,6 +344,10 @@ ALTER TABLE info_panel_ranked_option
   ADD CONSTRAINT info_panel_ranked_option_fk_serverConfig_const
   FOREIGN KEY (infoPanelRanked_fk_serverConfig) REFERENCES server_configuration (servConfig_id)
   ON DELETE CASCADE;
+  
+ALTER TABLE clash_channel
+  ADD CONSTRAINT clash_channel_fk_server_const
+  FOREIGN KEY (clashChannel_fk_server) REFERENCES server (serv_id);
   
 ALTER TABLE info_channel
   ADD CONSTRAINT info_channel_fk_server_const 
@@ -341,6 +408,22 @@ CREATE INDEX idx_match_cache_gameId
 
 CREATE INDEX idx_match_cache_platform 
   ON match_cache(mCatch_platform);
+  
+CREATE INDEX idx_summoner_cache_summonerId
+  ON summoner_cache(sumCache_summonerId);
+  
+CREATE INDEX idx_summoner_cache_server
+  ON summoner_cache(sumCache_server);
+  
+CREATE INDEX idx_champion_mastery_cache_summonerId
+  ON champion_mastery_cache(champMasCache_summonerId);
+  
+CREATE INDEX idx_champion_mastery_cache_server
+  ON champion_mastery_cache(champMasCache_server);  
+  
+CREATE INDEX index_matchcache_championId ON match_cache USING gin ((mCatch_savedMatch -> 'championId'));
+CREATE INDEX index_matchcache_queueId ON match_cache USING gin ((mCatch_savedMatch -> 'queueId'));
+CREATE INDEX index_matchcache_gameVersion ON match_cache USING gin ((mCatch_savedMatch -> 'gameVersion'));
   
 ALTER TABLE ONLY banned_account
   ADD CONSTRAINT banned_account_pkey PRIMARY KEY (banAcc_id);

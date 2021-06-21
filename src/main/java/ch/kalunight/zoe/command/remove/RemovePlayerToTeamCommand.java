@@ -5,7 +5,6 @@ import java.util.function.BiConsumer;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.repositories.PlayerRepository;
@@ -55,7 +54,7 @@ public class RemovePlayerToTeamCommand extends ZoeCommand {
 
     PlayerRepository.updateTeamOfPlayerDefineNull(player.player_id);
     event.reply(String.format(LanguageManager.getText(server.getLanguage(), "removePlayerToTeamDoneMessage"),
-        Zoe.getJda().retrieveUserById(player.player_discordId).complete().getName(), teamWhereRemove.team_name));
+        event.getJDA().retrieveUserById(player.player_discordId).complete().getName(), teamWhereRemove.team_name));
   }
 
   @Override

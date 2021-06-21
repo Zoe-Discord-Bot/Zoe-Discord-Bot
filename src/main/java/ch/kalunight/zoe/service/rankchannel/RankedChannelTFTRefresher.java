@@ -7,6 +7,7 @@ import ch.kalunight.zoe.model.dto.DTO.Player;
 import ch.kalunight.zoe.model.dto.DTO.RankHistoryChannel;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.util.request.MessageBuilderRequest;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.rithms.riot.api.RiotApiException;
@@ -18,8 +19,8 @@ public class RankedChannelTFTRefresher extends RankedChannelBaseRefresher {
   private TFTMatch match;
   
   public RankedChannelTFTRefresher(RankHistoryChannel rankChannel, LeagueEntry oldEntry, LeagueEntry newEntry, Player player,
-      LeagueAccount leagueAccount, Server server, TFTMatch match) {
-    super(rankChannel, oldEntry, newEntry, player, leagueAccount, server);
+      LeagueAccount leagueAccount, Server server, TFTMatch match, JDA jda) {
+    super(rankChannel, oldEntry, newEntry, player, leagueAccount, server, jda);
     this.match = match;
   }
 
@@ -38,13 +39,13 @@ public class RankedChannelTFTRefresher extends RankedChannelBaseRefresher {
     MessageEmbed message;
     try {
       message = MessageBuilderRequest.createRankChannelCardLeaguePointChangeOnlyTFT
-      (oldEntry, newEntry, match, player, leagueAccount, server.getLanguage());
+      (oldEntry, newEntry, match, player, leagueAccount, server.getLanguage(), jda);
     } catch (NoValueRankException | RiotApiException e) {
       logger.warn("Error while generating a TFT rank message!", e);
       return;
     }
 
-    TextChannel textChannelWhereSend = Zoe.getJda().getTextChannelById(rankChannel.rhChannel_channelId);
+    TextChannel textChannelWhereSend = Zoe.getTextChannelById(rankChannel.rhChannel_channelId);
     if(textChannelWhereSend != null) {
       textChannelWhereSend.sendMessage(message).queue();
     }

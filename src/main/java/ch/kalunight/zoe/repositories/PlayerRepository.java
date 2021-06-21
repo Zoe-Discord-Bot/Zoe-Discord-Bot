@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.Player;
+import net.dv8tion.jda.api.entities.Guild;
 import net.rithms.riot.constant.Platform;
 
 public class PlayerRepository {
@@ -125,8 +126,10 @@ public class PlayerRepository {
       listOfRegisterdPlayersForThisGuild.add(playerDiscordId);
     }
     
-    if(Zoe.getJda() != null) {
-      Zoe.getJda().getGuildById(serverGuildId).retrieveMemberById(playerDiscordId).queue();
+    Guild guild = Zoe.getGuildById(serverGuildId);
+    
+    if(guild != null) {
+      guild.retrieveMemberById(playerDiscordId).queue();
     }
   }
   
@@ -165,8 +168,13 @@ public class PlayerRepository {
   }
 
   public static void updateTeamOfPlayerDefineNull(long playerId) throws SQLException {
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement();) {
+    try (Connection conn = RepoRessources.getConnection();) {
+      updateTeamOfPlayerDefineNull(playerId, conn);
+    }
+  }
+  
+  public static void updateTeamOfPlayerDefineNull(long playerId, Connection conn) throws SQLException {
+    try (Statement query = conn.createStatement();) {
 
       String finalQuery = String.format(UPDATE_TEAM_OF_PLAYER_DEFINE_NULL, "NULL", playerId);
       query.executeUpdate(finalQuery);
@@ -174,8 +182,13 @@ public class PlayerRepository {
   }
 
   public static void deletePlayer(Player player, long guildId) throws SQLException {
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement();) {
+    try (Connection conn = RepoRessources.getConnection();) {
+      deletePlayer(player, guildId, conn);
+    }
+  }
+  
+  public static void deletePlayer(Player player, long guildId, Connection conn) throws SQLException {
+    try (Statement query = conn.createStatement();) {
 
       List<DTO.LeagueAccount> leaguesAccounts = LeagueAccountRepository.getLeaguesAccountsWithPlayerID(guildId, player.player_id);
       
@@ -190,14 +203,23 @@ public class PlayerRepository {
         playersOfTheDiscord.remove(player.player_discordId);
       }
       
-      Zoe.getJda().getGuildById(guildId).unloadMember(player.player_discordId);
+      Guild guild = Zoe.getGuildById(guildId);
+      
+      if(guild != null) {
+        guild.unloadMember(player.player_discordId);
+      }
     }
   }
 
   public static List<DTO.Player> getPlayers(long guildId) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();) {
+      return getPlayers(guildId, conn);
+    }
+  }
+  
+  public static List<DTO.Player> getPlayers(long guildId, Connection conn) throws SQLException {
     ResultSet result = null;
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+    try (Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
 
       String finalQuery = String.format(SELECT_PLAYERS_WITH_GUILD_ID, guildId);
       result = query.executeQuery(finalQuery);
@@ -210,7 +232,6 @@ public class PlayerRepository {
           result.next();
         }
       }
-
       return accounts;
     }finally {
       RepoRessources.closeResultSet(result);

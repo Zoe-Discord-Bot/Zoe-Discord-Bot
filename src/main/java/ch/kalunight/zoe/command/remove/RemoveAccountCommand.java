@@ -45,7 +45,7 @@ public class RemoveAccountCommand extends ZoeCommand {
 
     DTO.Server server = getServer(event.getGuild().getIdLong());
 
-    ServerConfiguration config = ConfigRepository.getServerConfiguration(server.serv_guildId);
+    ServerConfiguration config = ConfigRepository.getServerConfiguration(server.serv_guildId, event.getJDA());
 
     if(!config.getUserSelfAdding().isOptionActivated() &&
         !event.getMember().getPermissions().contains(Permission.MANAGE_CHANNEL)) {

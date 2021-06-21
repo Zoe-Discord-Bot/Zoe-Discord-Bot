@@ -100,8 +100,13 @@ public class ClashChannelRepository {
   }
   
   public static void deleteClashChannel(long clashChannelId) throws SQLException {
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement();) {
+    try (Connection conn = RepoRessources.getConnection();) {
+      deleteClashChannel(clashChannelId, conn);
+    }
+  }
+  
+  public static void deleteClashChannel(long clashChannelId, Connection conn) throws SQLException {
+    try (Statement query = conn.createStatement();) {
 
       String finalQuery = String.format(DELETE_CLASH_CHANNEL_WITH_ID, clashChannelId);
       query.execute(finalQuery);
@@ -196,9 +201,14 @@ public class ClashChannelRepository {
   }
   
   public static List<DTO.ClashChannel> getClashChannels(long guildId) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();) {
+      return getClashChannels(guildId, conn);
+    }
+  }
+  
+  public static List<DTO.ClashChannel> getClashChannels(long guildId, Connection conn) throws SQLException {
     ResultSet result = null;
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+    try (Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
 
       String finalQuery = String.format(SELECT_ALL_CLASH_CHANNEL_WITH_GUILD_ID, guildId);
       result = query.executeQuery(finalQuery);

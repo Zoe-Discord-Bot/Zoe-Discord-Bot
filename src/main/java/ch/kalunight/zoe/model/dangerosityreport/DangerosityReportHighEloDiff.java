@@ -5,6 +5,7 @@ import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.model.static_data.CustomEmote;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.Ressources;
+import net.dv8tion.jda.api.JDA;
 
 public class DangerosityReportHighEloDiff extends DangerosityReport {
 
@@ -43,7 +44,7 @@ public class DangerosityReportHighEloDiff extends DangerosityReport {
   }
 
   @Override
-  public String getInfoToShow(String lang) {
+  public String getInfoToShow(String lang, JDA jda) {
     
     String usableEmoteRank = "";
     

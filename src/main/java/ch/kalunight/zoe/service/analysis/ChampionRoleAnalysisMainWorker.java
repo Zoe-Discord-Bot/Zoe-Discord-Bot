@@ -19,7 +19,6 @@ import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.repositories.ChampionRoleAnalysisRepository;
 import ch.kalunight.zoe.repositories.SavedMatchCacheRepository;
 import ch.kalunight.zoe.util.Ressources;
-import net.rithms.riot.constant.Platform;
 
 public class ChampionRoleAnalysisMainWorker implements Runnable {
 
@@ -61,7 +60,7 @@ public class ChampionRoleAnalysisMainWorker implements Runnable {
     try {
       champion = Ressources.getChampionDataById(championId);
 
-      String version = SavedMatchCacheRepository.getCurrentLoLVersion(Platform.EUW); //Select EUW region for patch version, usually the last region to be patched.
+      String version = SavedMatchCacheRepository.getCurrentLoLVersion();
 
       if(version == null) {
         return;

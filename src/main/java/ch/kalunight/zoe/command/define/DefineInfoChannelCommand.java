@@ -14,7 +14,7 @@ import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.InfoChannelRepository;
 import ch.kalunight.zoe.repositories.ServerRepository;
-import ch.kalunight.zoe.service.infochannel.InfoPanelRefresher;
+import ch.kalunight.zoe.service.ServerChecker;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
@@ -56,7 +56,7 @@ public class DefineInfoChannelCommand extends ZoeCommand {
           if(!event.getMessage().getMentionedChannels().get(0).canTalk()) {
             event.reply(LanguageManager.getText(server.getLanguage(), "defineInfoChannelMissingSpeakPermission"));
           } else {
-            ServerConfiguration config = ConfigRepository.getServerConfiguration(server.serv_guildId);
+            ServerConfiguration config = ConfigRepository.getServerConfiguration(server.serv_guildId, event.getJDA());
             if(textChannel.equals(config.getCleanChannelOption().getCleanChannel())) {
               event.reply(LanguageManager.getText(server.getLanguage(), "defineInfoChannelImpossibleToDefineCleanChannel"));
             }else {
@@ -77,7 +77,7 @@ public class DefineInfoChannelCommand extends ZoeCommand {
               if(!ServerThreadsManager.isServerWillBeTreated(server)) {
                 ServerThreadsManager.getServersIsInTreatment().put(event.getGuild().getId(), true);
                 ServerRepository.updateTimeStamp(server.serv_guildId, LocalDateTime.now());
-                ServerThreadsManager.getServerExecutor().execute(new InfoPanelRefresher(server, false));
+                ServerChecker.getServerRefreshService().getServersAskedToRefresh().add(server);
               }
             }
           }

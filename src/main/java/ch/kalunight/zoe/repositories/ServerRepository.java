@@ -118,9 +118,14 @@ public class ServerRepository {
   }
   
   public static DTO.Server getServerWithGuildId(long guildId) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();) {
+      return getServerWithGuildId(guildId, conn);
+    }
+  }
+  
+  public static DTO.Server getServerWithGuildId(long guildId, Connection conn) throws SQLException {
     ResultSet result = null;
-    try (Connection conn = RepoRessources.getConnection();
-        PreparedStatement stmt = conn.prepareStatement(SELECT_SERVER_WITH_GUILDID, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+    try (PreparedStatement stmt = conn.prepareStatement(SELECT_SERVER_WITH_GUILDID, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
       
       stmt.setLong(1, guildId);
       result = stmt.executeQuery();
@@ -229,36 +234,36 @@ public class ServerRepository {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
       
-      DTO.Server server = ServerRepository.getServerWithGuildId(guildId);
+      DTO.Server server = ServerRepository.getServerWithGuildId(guildId, conn);
       logger.warn("Deleting server id {}", guildId);
       
-      List<DTO.Player> players = PlayerRepository.getPlayers(guildId);
+      List<DTO.Player> players = PlayerRepository.getPlayers(guildId, conn);
       
       for(DTO.Player player : players) {
-        PlayerRepository.deletePlayer(player, guildId);
+        PlayerRepository.deletePlayer(player, guildId, conn);
       }
       
-      InfoChannelRepository.deleteInfoChannel(server);
+      InfoChannelRepository.deleteInfoChannel(server, conn);
       
-      DTO.RankHistoryChannel rankHistoryChannel = RankHistoryChannelRepository.getRankHistoryChannel(guildId);
+      DTO.RankHistoryChannel rankHistoryChannel = RankHistoryChannelRepository.getRankHistoryChannel(guildId, conn);
       
       if(rankHistoryChannel != null) {
-        RankHistoryChannelRepository.deleteRankHistoryChannel(rankHistoryChannel.rhChannel_id);
+        RankHistoryChannelRepository.deleteRankHistoryChannel(rankHistoryChannel.rhChannel_id, conn);
       }
       
-      List<DTO.Team> teams = TeamRepository.getTeamsByGuild(guildId);
+      List<DTO.Team> teams = TeamRepository.getTeamsByGuild(guildId, conn);
       for(DTO.Team team : teams) {
-        TeamRepository.deleteTeam(team.team_id, new ArrayList<>());
+        TeamRepository.deleteTeam(team.team_id, new ArrayList<>(), conn);
       }
       
-      List<DTO.Leaderboard> leaderboards = LeaderboardRepository.getLeaderboardsWithGuildId(guildId);
+      List<DTO.Leaderboard> leaderboards = LeaderboardRepository.getLeaderboardsWithGuildId(guildId, conn);
       for(Leaderboard leaderboard : leaderboards) {
-        LeaderboardRepository.deleteLeaderboardWithId(leaderboard.lead_id);
+        LeaderboardRepository.deleteLeaderboardWithId(leaderboard.lead_id, conn);
       }
       
-      List<DTO.ClashChannel> clashChannels = ClashChannelRepository.getClashChannels(guildId);
+      List<DTO.ClashChannel> clashChannels = ClashChannelRepository.getClashChannels(guildId, conn);
       for(ClashChannel clashChannel : clashChannels) {
-        ClashChannelRepository.deleteClashChannel(clashChannel.clashChannel_id);
+        ClashChannelRepository.deleteClashChannel(clashChannel.clashChannel_id, conn);
       }
 
       String finalQuery = String.format(DELETE_SERVER_WITH_SERV_GUILDID, guildId);

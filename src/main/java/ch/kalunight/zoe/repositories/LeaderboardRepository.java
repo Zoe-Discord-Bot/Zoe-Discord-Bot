@@ -123,8 +123,13 @@ public class LeaderboardRepository {
   }
 
   public static void deleteLeaderboardWithId(long leadId) throws SQLException {
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement();) {
+    try (Connection conn = RepoRessources.getConnection();) {
+      deleteLeaderboardWithId(leadId, conn);
+    }
+  }
+  
+  public static void deleteLeaderboardWithId(long leadId, Connection conn) throws SQLException {
+    try (Statement query = conn.createStatement();) {
       
       String finalQuery = String.format(DELETE_LEADERBOARD_WITH_ID, leadId);
       query.executeUpdate(finalQuery);
@@ -172,9 +177,14 @@ public class LeaderboardRepository {
   }
   
   public static List<DTO.Leaderboard> getLeaderboardsWithGuildId(long guildId) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();) {
+      return getLeaderboardsWithGuildId(guildId, conn);
+    }
+  }
+  
+  public static List<DTO.Leaderboard> getLeaderboardsWithGuildId(long guildId, Connection conn) throws SQLException {
     ResultSet result = null;
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+    try (Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
 
       String finalQuery = String.format(SELECT_LEADERBOARD_WITH_GUILD_ID, guildId);
       result = query.executeQuery(finalQuery);

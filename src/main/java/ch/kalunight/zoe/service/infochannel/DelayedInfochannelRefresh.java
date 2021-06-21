@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.repositories.ServerRepository;
+import ch.kalunight.zoe.service.ServerChecker;
 
 public class DelayedInfochannelRefresh extends TimerTask {
 
@@ -33,7 +34,7 @@ public class DelayedInfochannelRefresh extends TimerTask {
   public void run() {
     try {
       boolean needToBeTreated = false;
-      
+
       synchronized (gameChangeDetectedByServer) {
         AtomicInteger askedRefresh = gameChangeDetectedByServer.get(server.serv_guildId);
         if(askedRefresh.get() == knownDelayedTime) {
@@ -42,11 +43,13 @@ public class DelayedInfochannelRefresh extends TimerTask {
           needToBeTreated = true;
         }
       }
-      
+
       if(needToBeTreated) {
         ServerThreadsManager.getServersIsInTreatment().put(Long.toString(server.serv_guildId), true);
         ServerRepository.updateTimeStamp(server.serv_guildId, LocalDateTime.now());
-        ServerThreadsManager.getServerExecutor().execute(new InfoPanelRefresher(server, true));
+        if(ServerChecker.getServerRefreshService() != null) {
+          ServerChecker.getServerRefreshService().getServersStatusDetected().add(server);
+        }
       }
     }catch (SQLException e) {
       logger.error("SQL Expception in delayed Infochannel Refresh", e);

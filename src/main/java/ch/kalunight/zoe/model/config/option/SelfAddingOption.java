@@ -78,7 +78,7 @@ public class SelfAddingOption extends ConfigurationOption {
         if(emote.getName().equals("✅")) {
           optionActivated = false;
           try {
-            ConfigRepository.updateSelfAddingOption(guildId, optionActivated);
+            ConfigRepository.updateSelfAddingOption(guildId, optionActivated, messageChannel.getJDA());
           } catch (SQLException e) {
             RepoRessources.sqlErrorReport(messageChannel, server, e);
             return;
@@ -101,7 +101,7 @@ public class SelfAddingOption extends ConfigurationOption {
         if(emoteUsed.getName().equals("✅")) {
           optionActivated = true;
           try {
-            ConfigRepository.updateSelfAddingOption(guildId, optionActivated);
+            ConfigRepository.updateSelfAddingOption(guildId, optionActivated, messageChannel.getJDA());
           } catch (SQLException e) {
             RepoRessources.sqlErrorReport(messageChannel, server, e);
             return;

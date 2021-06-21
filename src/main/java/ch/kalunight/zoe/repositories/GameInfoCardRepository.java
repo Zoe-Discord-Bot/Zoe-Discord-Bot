@@ -93,9 +93,14 @@ public class GameInfoCardRepository {
   }
   
   public static DTO.GameInfoCard getGameInfoCardsWithCurrentGameId(long guildId, long currentGameId) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();) {
+      return getGameInfoCardsWithCurrentGameId(guildId, currentGameId, conn);
+    }
+  }
+  
+  public static DTO.GameInfoCard getGameInfoCardsWithCurrentGameId(long guildId, long currentGameId, Connection conn) throws SQLException {
     ResultSet result = null;
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+    try (Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
 
       String finalQuery = String.format(SELECT_GAME_INFO_CARD_WITH_CURRENT_GAME_ID_AND_GUILDID,
           guildId, currentGameId);
@@ -153,9 +158,14 @@ public class GameInfoCardRepository {
   }
 
   public static List<DTO.GameInfoCard> getGameInfoCards(long guildId) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();) {
+      return getGameInfoCards(guildId, conn);
+    }
+  }
+  
+  public static List<DTO.GameInfoCard> getGameInfoCards(long guildId, Connection conn) throws SQLException {
     ResultSet result = null;
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+    try (Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
 
       String finalQuery = String.format(SELECT_GAME_INFO_CARD_WITH_GUILD_ID, guildId);
       result = query.executeQuery(finalQuery);
@@ -174,15 +184,20 @@ public class GameInfoCardRepository {
       RepoRessources.closeResultSet(result);
     }
   }
-
+  
   public static void deleteGameInfoCardsWithId(long gameCardId) throws SQLException {
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement();) {
+    try (Connection conn = RepoRessources.getConnection();) {
+      deleteGameInfoCardsWithId(gameCardId, conn);
+    }
+  }
 
-      List<DTO.LeagueAccount> leaguesAccounts = LeagueAccountRepository.getLeaguesAccountsWithGameCardsId(gameCardId);
+  public static void deleteGameInfoCardsWithId(long gameCardId, Connection conn) throws SQLException {
+    try (Statement query = conn.createStatement();) {
+
+      List<DTO.LeagueAccount> leaguesAccounts = LeagueAccountRepository.getLeaguesAccountsWithGameCardsId(gameCardId, conn);
 
       for(DTO.LeagueAccount leagueAccount : leaguesAccounts) {
-        LeagueAccountRepository.updateAccountGameCardWithAccountId(leagueAccount.leagueAccount_id, 0);
+        LeagueAccountRepository.updateAccountGameCardWithAccountId(leagueAccount.leagueAccount_id, 0, conn);
       }
 
       String finalQuery = String.format(DELETE_GAME_INFO_CARDS_WITH_ID, gameCardId);
@@ -191,8 +206,13 @@ public class GameInfoCardRepository {
   }
 
   public static void updateGameInfoCardsCurrentGamesWithId(long currentGameInfoId, long gameCardId) throws SQLException {
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement();) {
+    try (Connection conn = RepoRessources.getConnection();) {
+      updateGameInfoCardsCurrentGamesWithId(currentGameInfoId, gameCardId, conn);
+    }
+  }
+  
+  public static void updateGameInfoCardsCurrentGamesWithId(long currentGameInfoId, long gameCardId, Connection conn) throws SQLException {
+    try (Statement query = conn.createStatement();) {
 
       String finalQuery;
       

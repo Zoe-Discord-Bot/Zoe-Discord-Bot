@@ -19,6 +19,7 @@ import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.service.infochannel.SummonerDataWorker;
 import ch.kalunight.zoe.translation.LanguageManager;
+import net.dv8tion.jda.api.JDA;
 import net.rithms.riot.api.endpoints.league.dto.MiniSeries;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
@@ -77,7 +78,7 @@ public class MessageBuilderRequestUtil {
   }
 
   public static void createTitle(List<DTO.Player> players, CurrentGameInfo currentGameInfo, StringBuilder title,
-      String language, boolean gameInfo) {
+      String language, boolean gameInfo, JDA jda) {
     ArrayList<DTO.Player> playersNotTwice = new ArrayList<>();
 
     for(DTO.Player player : players) {
@@ -86,24 +87,49 @@ public class MessageBuilderRequestUtil {
       }
     }
 
-    title.append(LanguageManager.getText(language, "infoCardsGameInfoOnTheGameOf"));
-
-    String andOfTranslated = LanguageManager.getText(language, "infoCardsGameInfoAndOf");
-
-    for(int i = 0; i < playersNotTwice.size(); i++) {
-      if(i == 0) {
-        title.append(" " + playersNotTwice.get(i).getUser().getName());
-      } else if(i + 1 == playersNotTwice.size()) {
-        title.append(" " + andOfTranslated + " " + playersNotTwice.get(i).getUser().getName());
-      } else if(i + 2 == playersNotTwice.size()) {
-        title.append(" " + playersNotTwice.get(i).getUser().getName());
-      } else {
-        title.append(" " + playersNotTwice.get(i).getUser().getName() + ",");
-      }
-    }
-
+    addListOfPlayersInGivenString(title, language, jda, playersNotTwice);
+    
     if(gameInfo) {
       title.append(" : " + LanguageManager.getText(language, NameConversion.convertGameQueueIdToString(currentGameInfo.getGameQueueConfigId())));
+    }
+  }
+
+  private static void addListOfPlayersInGivenString(StringBuilder title, String language, JDA jda,
+      ArrayList<DTO.Player> playersNotTwice) {
+    title.append(LanguageManager.getText(language, "infoCardsGameInfoOnTheGameOf") + " ");
+
+    String andOfTranslated = LanguageManager.getText(language, "infoCardsGameInfoAndOf");
+    
+    getReadableListOfPlayers(title, jda, playersNotTwice, andOfTranslated);
+  }
+
+  public static void getReadableListOfPlayers(StringBuilder baseString, JDA jda, ArrayList<DTO.Player> playersNotTwice,
+      String andOfTranslated) {
+    switch (playersNotTwice.size()) {
+    case 1:
+      baseString.append(playersNotTwice.get(0).retrieveUser(jda).getName());
+      break;
+
+    case 2:
+      baseString.append(playersNotTwice.get(0).retrieveUser(jda).getName() + " "
+          + andOfTranslated + " " + playersNotTwice.get(1).retrieveUser(jda).getName());
+      break;
+    default:
+      
+      for(int i = 0; i < playersNotTwice.size(); i++) {
+        if(i + 1 == playersNotTwice.size()) {
+          baseString.append(" " + andOfTranslated + " " + playersNotTwice.get(i).retrieveUser(jda).getName());
+        } else if(i + 2 == playersNotTwice.size()) {
+          baseString.append(" " + playersNotTwice.get(i).retrieveUser(jda).getName());
+        } else {
+          if(i == 0) {
+            baseString.append(playersNotTwice.get(i).retrieveUser(jda).getName() + ",");
+          }else {
+            baseString.append(" " + playersNotTwice.get(i).retrieveUser(jda).getName() + ",");
+          }
+        }
+      }
+      break;
     }
   }
 

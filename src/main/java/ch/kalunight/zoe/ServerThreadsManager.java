@@ -50,9 +50,6 @@ public class ServerThreadsManager {
   private static final Map<Platform, ThreadPoolExecutor> INFOCHANNEL_HELPER_THREAD =
       Collections.synchronizedMap(new EnumMap<Platform, ThreadPoolExecutor>(Platform.class));
   
-  private static final ThreadPoolExecutor INFOCARDS_GENERATOR =
-      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
-  
   private static final ThreadPoolExecutor RANKED_MESSAGE_GENERATOR =
       new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
 
@@ -71,6 +68,9 @@ public class ServerThreadsManager {
   private static final ThreadPoolExecutor COMMANDS_EXECUTOR =
       new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
 
+  private static final ThreadPoolExecutor EVENTS_EXECUTOR =
+      new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
+  
   /**
    * Used by event waiter, define in {@link Zoe#main(String[])}
    */
@@ -87,13 +87,13 @@ public class ServerThreadsManager {
     DATA_ANALYSIS_MANAGER.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Analysis-Thread Manager").build());
     DATA_ANALYSIS_THREAD.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Analysis-Thread %d").build());
     SERVER_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Server-Executor-Thread %d").build());
-    INFOCARDS_GENERATOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe InfoCards-Generator-Thread %d").build());
     RANKED_MESSAGE_GENERATOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Ranked-Message-Generator-Thread %d").build());
     RESPONSE_WAITER.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Response-Waiter-Thread %d").build());
     LEADERBOARD_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Leaderboard-Refresher-Thread %d").build());
     CLASH_CHANNEL_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Clash-Channel-Executor-Thread %d").build());
     COMMANDS_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Command-Executor-Thread %d").build());
     MONITORING_DATA_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Data-Monitoring-Thread %d").build());
+    EVENTS_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Event-Executor-Thread %d").build());
     
     for(Platform platform : Platform.values()) {
       ThreadPoolExecutor executor = new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
@@ -136,7 +136,6 @@ public class ServerThreadsManager {
   public static void clearAllTask() {
     RESPONSE_WAITER.getQueue().clear();
     SERVER_EXECUTOR.getQueue().clear();
-    INFOCARDS_GENERATOR.getQueue().clear();
     RANKED_MESSAGE_GENERATOR.getQueue().clear();
     LEADERBOARD_EXECUTOR.getQueue().clear();
     COMMANDS_EXECUTOR.getQueue().clear();
@@ -157,7 +156,7 @@ public class ServerThreadsManager {
     }
     logger.info("All queue cleared !");
   }
-
+  
   public static void shutDownTaskExecutor(TextChannel channel) throws InterruptedException {
     
     logger.info("Start to shutdown Data Analysis Thread, this can take 1 minutes max...");
@@ -198,6 +197,17 @@ public class ServerThreadsManager {
     }
     logger.info("Shutdown of Response Waiter has been completed !");
     channel.sendMessage("Shutdown of Response Waiter has been completed !").complete();
+    
+    logger.info("Start to shutdown Clash Executor, this can take 1 minutes max...");
+    channel.sendMessage("Start to shutdown Clash Executor, this can take 1 minutes max...").complete();
+    CLASH_CHANNEL_EXECUTOR.shutdown();
+
+    CLASH_CHANNEL_EXECUTOR.awaitTermination(1, TimeUnit.MINUTES);
+    if(!CLASH_CHANNEL_EXECUTOR.isTerminated()) {
+      CLASH_CHANNEL_EXECUTOR.shutdownNow();
+    }
+    logger.info("Shutdown of Clash Executor has been completed !");
+    channel.sendMessage("Shutdown of Clash Executor has been completed !").complete();
 
     logger.info("Start to shutdown Servers Executor, this can take 1 minutes max...");
     channel.sendMessage("Start to shutdown Servers Executor, this can take 1 minutes max...").complete();
@@ -225,17 +235,6 @@ public class ServerThreadsManager {
       logger.info("Shutdown of Infochannel Helper Threads has been completed !");
     }
     channel.sendMessage("Shutdown of Infochannel Helper Threads has been completed !").complete();
-
-    logger.info("Start to shutdown InfoCards Generator, this can take 1 minutes max...");
-    channel.sendMessage("Start to shutdown InfoCards Generator, this can take 1 minutes max...").complete();
-    INFOCARDS_GENERATOR.shutdown();
-
-    INFOCARDS_GENERATOR.awaitTermination(1, TimeUnit.MINUTES);
-    if(!INFOCARDS_GENERATOR.isTerminated()) {
-      INFOCARDS_GENERATOR.shutdownNow();
-    }
-    logger.info("Shutdown of InfoCards Generator has been completed !");
-    channel.sendMessage("Shutdown of InfoCards Generator has been completed !").complete();
     
     logger.info("Start to shutdown Ranked Message Generator, this can take 1 minutes max...");
     channel.sendMessage("Start to shutdown Ranked Message Generator, this can take 1 minutes max...").complete();
@@ -290,6 +289,17 @@ public class ServerThreadsManager {
     }
     logger.info("Shutdown of Leaderboard Executor has been completed !");
     channel.sendMessage("Shutdown of Leaderboard Executor has been completed !").complete();
+    
+    logger.info("Start to shutdown Events Executor, this can take 1 minutes max...");
+    channel.sendMessage("Start to shutdown Events Executor, this can take 1 minutes max...").complete();
+    EVENTS_EXECUTOR.shutdown();
+
+    EVENTS_EXECUTOR.awaitTermination(1, TimeUnit.MINUTES);
+    if(!EVENTS_EXECUTOR.isTerminated()) {
+      EVENTS_EXECUTOR.shutdownNow();
+    }
+    logger.info("Shutdown of Events Executor has been completed !");
+    channel.sendMessage("Shutdown of Events Executor has been completed !").complete();
     
     Runnable commandsShutDownRunnable = new Runnable() {
       
@@ -352,10 +362,6 @@ public class ServerThreadsManager {
     return INFOCHANNEL_HELPER_THREAD.get(platform);
   }
 
-  public static ThreadPoolExecutor getInfocardsGenerator() {
-    return INFOCARDS_GENERATOR;
-  }
-
   public static ThreadPoolExecutor getPlayersDataWorker(Platform platform) {
     return PLAYERS_DATA_EXECUTORS.get(platform);
   }
@@ -402,6 +408,10 @@ public class ServerThreadsManager {
 
   public static void setRebootAsked(boolean rebootAsked) {
     ServerThreadsManager.rebootAsked = rebootAsked;
+  }
+
+  public static ThreadPoolExecutor getEventsExecutor() {
+    return EVENTS_EXECUTOR;
   }
  
 

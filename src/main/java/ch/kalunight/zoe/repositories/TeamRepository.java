@@ -57,11 +57,16 @@ public class TeamRepository {
   }
   
   public static void deleteTeam(long teamId, List<Long> playersId) throws SQLException {
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement();) {
+    try (Connection conn = RepoRessources.getConnection();) {
+      deleteTeam(teamId, playersId, conn);
+    }
+  }
+  
+  public static void deleteTeam(long teamId, List<Long> playersId, Connection conn) throws SQLException {
+    try (Statement query = conn.createStatement();) {
       
       for(Long playerId : playersId) {
-        PlayerRepository.updateTeamOfPlayerDefineNull(playerId);
+        PlayerRepository.updateTeamOfPlayerDefineNull(playerId, conn);
       }
       String finalQuery = String.format(DELETE_TEAM_WITH_TEAMID, teamId);
       query.execute(finalQuery);
@@ -123,9 +128,14 @@ public class TeamRepository {
   }
   
   public static List<DTO.Team> getTeamsByGuild(long guildId) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();) {
+      return getTeamsByGuild(guildId, conn);
+    }
+  }
+  
+  public static List<DTO.Team> getTeamsByGuild(long guildId, Connection conn) throws SQLException {
     ResultSet result = null;
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+    try (Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
       
       String finalQuery = String.format(SELECT_TEAMS_BY_GUILD_ID, guildId);
       result = query.executeQuery(finalQuery);

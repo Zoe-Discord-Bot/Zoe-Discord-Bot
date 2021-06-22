@@ -10,7 +10,6 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.command.create.CreateClashChannel;
 import ch.kalunight.zoe.command.create.CreateCommandRunnable;
-import ch.kalunight.zoe.command.create.CreateInfoChannelCommand;
 import ch.kalunight.zoe.command.create.CreateLeaderboardCommand;
 import ch.kalunight.zoe.command.create.CreateRankHistoryChannelCommand;
 import ch.kalunight.zoe.command.create.CreateTeamCommand;
@@ -26,7 +25,7 @@ public class CreateCommandClassicDefinition extends ZoeCommand {
     this.aliases = new String[] {"c"};
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
-    Command[] commandsChildren = {new CreateInfoChannelCommand(), new CreatePlayerCommandClassicDefinition(), new CreateTeamCommand(),
+    Command[] commandsChildren = {new CreateInfochannelClassicDefinition(), new CreatePlayerCommandClassicDefinition(), new CreateTeamCommand(),
         new CreateRankHistoryChannelCommand(), new CreateLeaderboardCommand(waiter), new CreateClashChannel(waiter)};
     this.children = commandsChildren;
     this.guildOnly = true;

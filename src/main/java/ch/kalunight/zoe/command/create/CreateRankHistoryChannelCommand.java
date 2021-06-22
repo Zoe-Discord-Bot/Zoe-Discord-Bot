@@ -7,6 +7,7 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 
 import ch.kalunight.zoe.command.ZoeCommand;
+import ch.kalunight.zoe.command.create.definition.CreateCommandClassicDefinition;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.repositories.ConfigRepository;
@@ -25,7 +26,7 @@ public class CreateRankHistoryChannelCommand extends ZoeCommand {
     this.userPermissions = permissionRequired;
     this.guildOnly = true;
     this.help = "createRankChannelHelpMessage";
-    this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(CreateCommand.USAGE_NAME, name, arguments, help);
+    this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(CreateCommandClassicDefinition.USAGE_NAME, name, arguments, help);
   }
 
 

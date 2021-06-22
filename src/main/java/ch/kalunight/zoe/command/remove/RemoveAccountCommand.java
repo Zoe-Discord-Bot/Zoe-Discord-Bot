@@ -9,7 +9,7 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
-import ch.kalunight.zoe.command.create.CreatePlayerCommand;
+import ch.kalunight.zoe.command.create.CreatePlayerCommandRunnable;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.repositories.ConfigRepository;
@@ -54,7 +54,7 @@ public class RemoveAccountCommand extends ZoeCommand {
       return;
     }
 
-    User user = CreatePlayerCommand.getMentionedUser(event.getMessage().getMentionedMembers());
+    User user = CreatePlayerCommandRunnable.getMentionedUser(event.getMessage().getMentionedMembers());
     if(user == null) {
       event.reply(String.format(LanguageManager.getText(server.getLanguage(), "removeAccountMissingMention"),
           event.getMember().getUser().getName()));
@@ -71,7 +71,7 @@ public class RemoveAccountCommand extends ZoeCommand {
       return;
     }
 
-    List<String> listArgs = CreatePlayerCommand.getParameterInParenteses(event.getArgs());
+    List<String> listArgs = CreatePlayerCommandRunnable.getParameterInParenteses(event.getArgs());
     if(listArgs.size() != 2) {
       event.reply(LanguageManager.getText(server.getLanguage(), "removeAccountMalformed"));
       return;
@@ -80,7 +80,7 @@ public class RemoveAccountCommand extends ZoeCommand {
     String regionName = listArgs.get(0);
     String summonerName = listArgs.get(1);
 
-    Platform region = CreatePlayerCommand.getPlatform(regionName);
+    Platform region = CreatePlayerCommandRunnable.getPlatform(regionName);
     if(region == null) {
       event.reply(LanguageManager.getText(server.getLanguage(), "regionTagInvalid"));
       return;

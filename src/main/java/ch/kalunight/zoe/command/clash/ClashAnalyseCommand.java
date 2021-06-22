@@ -10,7 +10,7 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
-import ch.kalunight.zoe.command.create.CreatePlayerCommand;
+import ch.kalunight.zoe.command.create.CreatePlayerCommandRunnable;
 import ch.kalunight.zoe.command.show.ShowCommand;
 import ch.kalunight.zoe.model.dto.DTO.ClashChannel;
 import ch.kalunight.zoe.model.dto.DTO.Server;
@@ -51,7 +51,7 @@ public class ClashAnalyseCommand extends ZoeCommand {
       }
     }
     
-    List<String> listArgs = CreatePlayerCommand.getParameterInParenteses(event.getArgs());
+    List<String> listArgs = CreatePlayerCommandRunnable.getParameterInParenteses(event.getArgs());
     String regionName;
     String summonerName;
     
@@ -81,7 +81,7 @@ public class ClashAnalyseCommand extends ZoeCommand {
     }
     
     Message loadingMessage = event.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "loadingSummoner")).complete();
-    Platform platorm = CreatePlayerCommand.getPlatform(regionName);
+    Platform platorm = CreatePlayerCommandRunnable.getPlatform(regionName);
     Summoner summoner;
     try {
       summoner = Zoe.getRiotApi().getSummonerByNameWithRateLimit(platorm, summonerName);

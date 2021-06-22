@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.Zoe;
+import ch.kalunight.zoe.command.ZoeSlashCommand;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
@@ -25,6 +26,9 @@ import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import net.rithms.riot.constant.Platform;
 
 public class CommandUtil {
 
@@ -34,6 +38,17 @@ public class CommandUtil {
     // Hide public constructor
   }
 
+  public static OptionData getRegionSelection(boolean required) {
+    OptionData regionOption = new OptionData(OptionType.STRING, ZoeSlashCommand.REGION_OPTION_ID, "The region of the account");
+    regionOption.setRequired(required);
+    
+    for(Platform platform : Platform.values()) {
+      regionOption.addChoice(platform.getName().toUpperCase(), platform.getName().toUpperCase());
+    }
+
+    return regionOption;
+  }
+  
   public static void sendTypingInFonctionOfChannelType(CommandEvent event) {
     switch(event.getChannelType()) {
     case PRIVATE:

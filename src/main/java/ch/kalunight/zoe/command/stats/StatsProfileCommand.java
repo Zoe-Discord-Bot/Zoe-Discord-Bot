@@ -26,7 +26,7 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.SelectionDialog;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
-import ch.kalunight.zoe.command.create.CreatePlayerCommand;
+import ch.kalunight.zoe.command.create.CreatePlayerCommandRunnable;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.config.option.RegionOption;
 import ch.kalunight.zoe.model.dto.DTO;
@@ -192,7 +192,7 @@ public class StatsProfileCommand extends ZoeCommand {
 
   private LeagueAccount getLeagueAccountWithParam(CommandEvent event, Server server) {
 
-    List<String> listArgs = CreatePlayerCommand.getParameterInParenteses(event.getArgs());
+    List<String> listArgs = CreatePlayerCommandRunnable.getParameterInParenteses(event.getArgs());
     String regionName = "";
     String summonerName;
     if(listArgs.size() == 2) {
@@ -215,7 +215,7 @@ public class StatsProfileCommand extends ZoeCommand {
       return null;
     }
 
-    Platform region = CreatePlayerCommand.getPlatform(regionName);
+    Platform region = CreatePlayerCommandRunnable.getPlatform(regionName);
     if(region == null) {
       return null;
     }

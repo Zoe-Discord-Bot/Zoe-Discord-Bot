@@ -8,7 +8,7 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
-import ch.kalunight.zoe.command.create.CreatePlayerCommand;
+import ch.kalunight.zoe.command.create.CreatePlayerCommandRunnable;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.config.option.RegionOption;
 import ch.kalunight.zoe.model.dto.DTO;
@@ -57,7 +57,7 @@ public class AddAccountCommand extends ZoeCommand {
       return;
     }
 
-    User user = CreatePlayerCommand.getMentionedUser(event.getMessage().getMentionedMembers());
+    User user = CreatePlayerCommandRunnable.getMentionedUser(event.getMessage().getMentionedMembers());
     if(user == null) {
       event.reply(String.format(LanguageManager.getText(server.getLanguage(), "mentionNeededMessageWithUser"),
           event.getMember().getUser().getName()));
@@ -75,7 +75,7 @@ public class AddAccountCommand extends ZoeCommand {
 
     RegionOption regionOption = config.getDefaultRegion();
 
-    List<String> listArgs = CreatePlayerCommand.getParameterInParenteses(event.getArgs());
+    List<String> listArgs = CreatePlayerCommandRunnable.getParameterInParenteses(event.getArgs());
     if(listArgs.size() != 2 && regionOption.getRegion() == null) {
       event.reply(String.format(LanguageManager.getText(server.getLanguage(), "addCommandMalformedWithoutRegionOption"), name));
       return;
@@ -95,7 +95,7 @@ public class AddAccountCommand extends ZoeCommand {
       summonerName = listArgs.get(0);
     }
 
-    Platform region = CreatePlayerCommand.getPlatform(regionName);
+    Platform region = CreatePlayerCommandRunnable.getPlatform(regionName);
     if(region == null) {
       event.reply(LanguageManager.getText(server.getLanguage(), "regionTagInvalid"));
       return;
@@ -130,7 +130,7 @@ public class AddAccountCommand extends ZoeCommand {
       LeagueAccountRepository.createLeagueAccount(player.player_id, summoner, tftSummoner, region.getName());
       DTO.LeagueAccount leagueAccount = LeagueAccountRepository.getLeagueAccountWithSummonerId(server.serv_guildId, summoner.getId(), region);
       
-      CreatePlayerCommand.updateLastRank(leagueAccount);
+      CreatePlayerCommandRunnable.updateLastRank(leagueAccount);
       
       message.editMessage(String.format(LanguageManager.getText(server.getLanguage(), "accountAddedToPlayer"),
           newAccount.getSummoner().getName(), user.getName())).queue();

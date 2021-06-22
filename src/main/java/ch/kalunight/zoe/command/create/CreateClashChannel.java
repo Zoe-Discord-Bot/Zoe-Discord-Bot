@@ -17,6 +17,7 @@ import com.jagrosh.jdautilities.menu.Paginator;
 import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
+import ch.kalunight.zoe.command.create.definition.CreateCommandClassicDefinition;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.dto.ClashChannelData;
 import ch.kalunight.zoe.model.dto.ClashStatus;
@@ -58,7 +59,7 @@ public class CreateClashChannel extends ZoeCommand {
     this.botPermissions = botPermissionRequiered;
     this.guildOnly = true;
     this.help = "createClashChannelHelpMessage";
-    this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(CreateCommand.USAGE_NAME, name, arguments, help);
+    this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(CreateCommandClassicDefinition.USAGE_NAME, name, arguments, help);
     this.waiter = event;
   }
 
@@ -121,7 +122,7 @@ public class CreateClashChannel extends ZoeCommand {
       return;
     }
 
-    List<String> listArgs = CreatePlayerCommand.getParameterInParenteses(message.getMessage().getContentRaw());
+    List<String> listArgs = CreatePlayerCommandRunnable.getParameterInParenteses(message.getMessage().getContentRaw());
     if(listArgs.size() != 2) {
       originalEvent.reply(LanguageManager.getText(server.getLanguage(), "createClashMalformedLeagueAccount"));
       waitForALeagueAccount(originalEvent, server, creationData);
@@ -132,7 +133,7 @@ public class CreateClashChannel extends ZoeCommand {
     String summonerName = listArgs.get(1);
 
 
-    Platform region = CreatePlayerCommand.getPlatform(regionName);
+    Platform region = CreatePlayerCommandRunnable.getPlatform(regionName);
     if(region == null) {
       originalEvent.reply(LanguageManager.getText(server.getLanguage(), "createClashChannelRegionTagInvalid"));
       waitForALeagueAccount(originalEvent, server, creationData);

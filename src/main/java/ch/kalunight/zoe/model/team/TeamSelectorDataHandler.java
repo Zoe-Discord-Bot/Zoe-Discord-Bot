@@ -14,7 +14,7 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.SelectionDialog;
 
 import ch.kalunight.zoe.Zoe;
-import ch.kalunight.zoe.command.create.CreatePlayerCommand;
+import ch.kalunight.zoe.command.create.CreatePlayerCommandRunnable;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.TeamUtil;
@@ -73,7 +73,7 @@ public class TeamSelectorDataHandler {
       return;
     }
     
-    List<String> listArgs = CreatePlayerCommand.getParameterInParenteses(messageReceived);
+    List<String> listArgs = CreatePlayerCommandRunnable.getParameterInParenteses(messageReceived);
     
     if(listArgs.size() != 2) {
       baseEvent.reply(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisMalformedAccount") 
@@ -85,7 +85,7 @@ public class TeamSelectorDataHandler {
     String regionName = listArgs.get(0);
     String summonerName = listArgs.get(1);
 
-    Platform region = CreatePlayerCommand.getPlatform(regionName);
+    Platform region = CreatePlayerCommandRunnable.getPlatform(regionName);
     if(region == null) {
       baseEvent.reply(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisRegionTagInvalid") 
           + " " + LanguageManager.getText(server.getLanguage(), STATS_TEAM_ANALYSIS_CANCEL_MESSAGE_ID));

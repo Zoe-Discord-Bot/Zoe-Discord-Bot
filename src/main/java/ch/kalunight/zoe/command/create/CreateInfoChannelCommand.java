@@ -9,6 +9,7 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 
 import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.command.ZoeCommand;
+import ch.kalunight.zoe.command.create.definition.CreateCommandClassicDefinition;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.repositories.ConfigRepository;
@@ -31,7 +32,7 @@ public class CreateInfoChannelCommand extends ZoeCommand {
     this.userPermissions = permissionRequired;
     this.guildOnly = true;
     this.help = "createInfoChannelHelpMessage";
-    this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(CreateCommand.USAGE_NAME, name, arguments, help);
+    this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(CreateCommandClassicDefinition.USAGE_NAME, name, arguments, help);
   }
 
   @Override

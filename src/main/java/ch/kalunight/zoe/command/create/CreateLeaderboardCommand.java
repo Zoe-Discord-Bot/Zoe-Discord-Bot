@@ -15,6 +15,7 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.SelectionDialog;
 
 import ch.kalunight.zoe.command.ZoeCommand;
+import ch.kalunight.zoe.command.create.definition.CreateCommandClassicDefinition;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.leaderboard.LeaderboardExtraDataHandler;
@@ -38,7 +39,7 @@ public class CreateLeaderboardCommand extends ZoeCommand {
     this.guildOnly = true;
     this.help = "createLeaderboardHelpMessage";
     this.waiter = waiter;
-    this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(CreateCommand.USAGE_NAME, name, arguments, help);
+    this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(CreateCommandClassicDefinition.USAGE_NAME, name, arguments, help);
   }
 
   @Override

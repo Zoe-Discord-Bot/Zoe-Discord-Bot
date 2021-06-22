@@ -16,7 +16,7 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.Paginator;
 
 import ch.kalunight.zoe.Zoe;
-import ch.kalunight.zoe.command.create.CreatePlayerCommand;
+import ch.kalunight.zoe.command.create.CreatePlayerCommandRunnable;
 import ch.kalunight.zoe.model.dto.DTO.BannedAccount;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Server;
@@ -87,7 +87,7 @@ public class BanAccountCommand extends ZoeCommand {
   }
 
   private void accountReceived(MessageReceivedEvent event, String language, String codeExpected) {
-    List<String> listArgs = CreatePlayerCommand.getParameterInParenteses(event.getMessage().getContentRaw());
+    List<String> listArgs = CreatePlayerCommandRunnable.getParameterInParenteses(event.getMessage().getContentRaw());
 
     if(event.getMessage().getContentRaw().equalsIgnoreCase("STOP")) {
       event.getChannel().sendMessage(LanguageManager.getText(language, "banAccountCommandStopManageProcess")).queue();
@@ -105,7 +105,7 @@ public class BanAccountCommand extends ZoeCommand {
       return;
     }
 
-    Platform region = CreatePlayerCommand.getPlatform(listArgs.get(0));
+    Platform region = CreatePlayerCommandRunnable.getPlatform(listArgs.get(0));
     if(region == null) {
       event.getChannel().sendMessage(LanguageManager.getText(language, "banAccountCommandInvalidRegionTag")).queue();
 

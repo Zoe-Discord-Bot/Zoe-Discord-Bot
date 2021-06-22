@@ -55,14 +55,14 @@ public class RegisterCommand extends ZoeCommand {
 
     User user = event.getAuthor();
 
-    if(CreatePlayerCommand.isTheGivenUserAlreadyRegister(user, server)) {
+    if(CreatePlayerCommandRunnable.isTheGivenUserAlreadyRegister(user, server)) {
       event.reply(LanguageManager.getText(server.getLanguage(), "registerCommandAlreadyInZoe"));
       return;
     }
 
     RegionOption regionOption = config.getDefaultRegion();
 
-    List<String> listArgs = CreatePlayerCommand.getParameterInParenteses(event.getArgs());
+    List<String> listArgs = CreatePlayerCommandRunnable.getParameterInParenteses(event.getArgs());
     if(listArgs.size() != 2 && regionOption.getRegion() == null) {
       event.reply(LanguageManager.getText(server.getLanguage(), "registerCommandMalformedWithoutRegionOption"));
       return;
@@ -83,7 +83,7 @@ public class RegisterCommand extends ZoeCommand {
     }
 
 
-    Platform region = CreatePlayerCommand.getPlatform(regionName);
+    Platform region = CreatePlayerCommandRunnable.getPlatform(regionName);
     if(region == null) {
       event.reply(LanguageManager.getText(server.getLanguage(), "regionTagInvalid"));
       return;
@@ -119,7 +119,7 @@ public class RegisterCommand extends ZoeCommand {
       LeagueAccount leagueAccount = 
           LeagueAccountRepository.getLeagueAccountWithSummonerId(server.serv_guildId, summoner.getId(), region);
       
-      CreatePlayerCommand.updateLastRank(leagueAccount);
+      CreatePlayerCommandRunnable.updateLastRank(leagueAccount);
       
       if(config.getZoeRoleOption().getRole() != null) {
         Member member = event.getGuild().retrieveMember(user).complete();

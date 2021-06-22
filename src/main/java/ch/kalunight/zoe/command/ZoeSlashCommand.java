@@ -18,6 +18,10 @@ import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 
 public abstract class ZoeSlashCommand extends SlashCommand {
 
+  public static final String USER_OPTION_ID = "user";
+  public static final String SUMMONER_OPTION_ID = "summoner-name";
+  public static final String REGION_OPTION_ID = "region";
+  
   private static final AtomicInteger commandExecuted = new AtomicInteger(0);
   private static final AtomicInteger commandFinishedCorrectly = new AtomicInteger(0);
   private static final AtomicInteger commandFinishedWithError = new AtomicInteger(0);

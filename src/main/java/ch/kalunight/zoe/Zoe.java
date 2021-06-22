@@ -38,7 +38,6 @@ import ch.kalunight.zoe.command.BanAccountCommand;
 import ch.kalunight.zoe.command.ConfigCommand;
 import ch.kalunight.zoe.command.PatchNotesCommand;
 import ch.kalunight.zoe.command.RebootCommand;
-import ch.kalunight.zoe.command.RefreshCommand;
 import ch.kalunight.zoe.command.ResetCommand;
 import ch.kalunight.zoe.command.SetupCommand;
 import ch.kalunight.zoe.command.ShutDownCommand;
@@ -53,6 +52,8 @@ import ch.kalunight.zoe.command.definition.AboutCommandClassicDefinition;
 import ch.kalunight.zoe.command.definition.AboutCommandSlashDefinition;
 import ch.kalunight.zoe.command.definition.LanguageCommandClassicDefinition;
 import ch.kalunight.zoe.command.definition.LanguageCommandSlashDefinition;
+import ch.kalunight.zoe.command.definition.RefreshCommandClassicDefinition;
+import ch.kalunight.zoe.command.definition.RefreshCommandSlashDefinition;
 import ch.kalunight.zoe.command.delete.DeleteCommand;
 import ch.kalunight.zoe.command.remove.RemoveCommand;
 import ch.kalunight.zoe.command.show.ShowCommand;
@@ -365,7 +366,7 @@ public class Zoe {
     commands.add(new RemoveCommand());
     commands.add(new StatsCommand(eventWaiter));
     commands.add(new ShowCommand(eventWaiter));
-    commands.add(new RefreshCommand());
+    commands.add(new RefreshCommandClassicDefinition());
     commands.add(new RegisterCommand());
     commands.add(new DefineCommand());
     commands.add(new UndefineCommand());
@@ -391,6 +392,7 @@ public class Zoe {
     //basic
     commands.add(new AboutCommandSlashDefinition(testServer));
     commands.add(new LanguageCommandSlashDefinition(testServer));
+    commands.add(new RefreshCommandSlashDefinition(testServer));
     
     slashCommands = commands;
 

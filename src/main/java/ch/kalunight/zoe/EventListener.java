@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.menu.SelectionDialog;
 
 import ch.kalunight.zoe.command.LanguageCommandRunnable;
-import ch.kalunight.zoe.command.definition.LanguageCommandClassicDefinition;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.config.option.CleanChannelOption.CleanChannelOptionInfo;
 import ch.kalunight.zoe.model.dto.DTO;

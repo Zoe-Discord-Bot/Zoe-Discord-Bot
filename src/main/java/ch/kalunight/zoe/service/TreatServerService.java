@@ -116,7 +116,7 @@ public class TreatServerService {
     
     
     try {
-      TimeUnit.MILLISECONDS.sleep(500);
+      TimeUnit.MILLISECONDS.sleep(100);
       serverExecutor.execute(new WaitTaskRefresh(this));
     } catch (InterruptedException e) {
       logger.error("InterruptedException while waiting for a task.");

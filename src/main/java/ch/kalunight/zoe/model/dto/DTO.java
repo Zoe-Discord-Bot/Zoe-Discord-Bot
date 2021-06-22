@@ -14,6 +14,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
 import ch.kalunight.zoe.Zoe;
+import ch.kalunight.zoe.model.config.option.CleanChannelOption.CleanChannelOptionInfo;
 import ch.kalunight.zoe.service.analysis.ChampionRole;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
@@ -209,7 +210,7 @@ public class DTO {
 
       return null;
     }
-    
+
     public Member retrieveMember(Guild guild) {
       Member member = guild.retrieveMemberById(player_discordId, false).complete();
       if(member != null) {
@@ -386,6 +387,31 @@ public class DTO {
       mCatch_platform = Platform.getPlatformByName(baseData.getString("mCatch_platform"));
       mCatch_savedMatch = gson.fromJson(baseData.getString("mCatch_savedMatch"), SavedMatch.class);
       mCatch_creationTime = LocalDateTime.parse(baseData.getString("mCatch_creationTime"), DB_TIME_PATTERN);
+    }
+  }
+
+  public static class ServerRawSettings {
+    public final Boolean selfoption_activate;
+    public final Long roleoption_roleid;
+    public final Platform regionoption_region;
+    public final Boolean gamecardoption_activate;
+    public final Long cleanoption_channelid;
+    public final CleanChannelOptionInfo cleanoption_option;
+
+    public ServerRawSettings(ResultSet baseData) throws SQLException {
+      selfoption_activate = baseData.getBoolean("selfoption_activate");
+      roleoption_roleid = baseData.getLong("roleoption_roleid");
+      
+      String platformName = baseData.getString("regionoption_region");
+      if(platformName != null && !platformName.equals("")) {
+        regionoption_region = Platform.getPlatformByName(platformName);
+      }else {
+        regionoption_region = null;
+      }
+      
+      gamecardoption_activate = baseData.getBoolean("gamecardoption_activate");
+      cleanoption_channelid = baseData.getLong("cleanoption_channelid");
+      cleanoption_option = CleanChannelOptionInfo.valueOf(baseData.getString("cleanOption_option"));
     }
   }
 

@@ -61,9 +61,15 @@ public class InfoChannelRepository {
 
   @Nullable
   public static DTO.InfoChannel getInfoChannel(long guildId) throws SQLException{
+    try (Connection conn = RepoRessources.getConnection();) {
+      return getInfoChannel(guildId, conn);
+    }
+  }
+  
+  @Nullable
+  public static DTO.InfoChannel getInfoChannel(long guildId, Connection conn) throws SQLException{
     ResultSet result = null;
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+    try (Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
 
       String finalQuery = String.format(SELECT_INFOCHANNEL_WITH_GUILD_ID, guildId);
       result = query.executeQuery(finalQuery);
@@ -78,9 +84,14 @@ public class InfoChannelRepository {
   }
 
   public static List<DTO.InfoPanelMessage> getInfoPanelMessages(long guildId) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();) {
+      return getInfoPanelMessages(guildId, conn);
+    }
+  }
+  
+  public static List<DTO.InfoPanelMessage> getInfoPanelMessages(long guildId, Connection conn) throws SQLException {
     ResultSet result = null;
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+    try (Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
 
       String finalQuery = String.format(SELECT_INFO_PANEL_WITH_GUILDID, guildId);
       result = query.executeQuery(finalQuery);
@@ -130,40 +141,45 @@ public class InfoChannelRepository {
   }
 
   public static void deleteInfoChannel(DTO.Server server) throws SQLException {
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement();) {
+    try (Connection conn = RepoRessources.getConnection();) {
+      deleteInfoChannel(server, conn);
+    }
+  }
 
-      List<DTO.LeagueAccount> leaguesAccounts = LeagueAccountRepository.getAllLeaguesAccounts(server.serv_guildId);
+  public static void deleteInfoChannel(DTO.Server server, Connection conn) throws SQLException {
+    try (Statement query = conn.createStatement();) {
+
+      List<DTO.LeagueAccount> leaguesAccounts = LeagueAccountRepository.getAllLeaguesAccounts(server.serv_guildId, conn);
       List<DTO.CurrentGameInfo> currentGamesLinked = new ArrayList<>();
 
       for(DTO.LeagueAccount leagueAccount : leaguesAccounts) {
-        currentGamesLinked.add(CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(leagueAccount.leagueAccount_id));
-        LeagueAccountRepository.updateAccountCurrentGameWithAccountId(leagueAccount.leagueAccount_id, 0);
-        LeagueAccountRepository.updateAccountGameCardWithAccountId(leagueAccount.leagueAccount_id, 0);
+        currentGamesLinked.add(CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(leagueAccount.leagueAccount_id, conn));
+        LeagueAccountRepository.updateAccountCurrentGameWithAccountId(leagueAccount.leagueAccount_id, 0, conn);
+        LeagueAccountRepository.updateAccountGameCardWithAccountId(leagueAccount.leagueAccount_id, 0, conn);
       }
 
-      currentGamesLinked.addAll(CurrentGameInfoRepository.getCurrentGamesWithoutLinkAccounts(server.serv_guildId));
+      currentGamesLinked.addAll(CurrentGameInfoRepository.getCurrentGamesWithoutLinkAccounts(server.serv_guildId, conn));
 
-      List<DTO.GameInfoCard> gameInfoCards = GameInfoCardRepository.getGameInfoCards(server.serv_guildId);
+      List<DTO.GameInfoCard> gameInfoCards = GameInfoCardRepository.getGameInfoCards(server.serv_guildId, conn);
 
       for(DTO.GameInfoCard gameInfoCard : gameInfoCards) {
-        GameInfoCardRepository.deleteGameInfoCardsWithId(gameInfoCard.gamecard_id);
+        GameInfoCardRepository.deleteGameInfoCardsWithId(gameInfoCard.gamecard_id, conn);
       }
 
       for(DTO.CurrentGameInfo currentGame : currentGamesLinked) {
         if(currentGame != null) {
           try {
-            CurrentGameInfoRepository.deleteCurrentGame(currentGame, server);
+            CurrentGameInfoRepository.deleteCurrentGame(currentGame, server, conn);
           }catch(SQLException e) {
             logger.error("Issue when deleting a game !", e);
           }
         }
       }
 
-      List<DTO.InfoPanelMessage> infoPanelMessages = InfoChannelRepository.getInfoPanelMessages(server.serv_guildId);
+      List<DTO.InfoPanelMessage> infoPanelMessages = InfoChannelRepository.getInfoPanelMessages(server.serv_guildId, conn);
 
       for(DTO.InfoPanelMessage infoPanelMessage : infoPanelMessages) {
-        InfoChannelRepository.deleteInfoPanelMessage(infoPanelMessage.infopanel_id);
+        InfoChannelRepository.deleteInfoPanelMessage(infoPanelMessage.infopanel_id, conn);
       }
 
       String finalQuery = String.format(DELETE_INFOCHANNEL_WITH_GUILD_ID, server.serv_guildId);
@@ -172,8 +188,13 @@ public class InfoChannelRepository {
   }
 
   public static void deleteInfoPanelMessage(long infoPanelId) throws SQLException {
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement();) {
+    try (Connection conn = RepoRessources.getConnection();) {
+      deleteInfoPanelMessage(infoPanelId, conn);
+    }
+  }
+  
+  public static void deleteInfoPanelMessage(long infoPanelId, Connection conn) throws SQLException {
+    try (Statement query = conn.createStatement();) {
 
       String finalQuery = String.format(DELETE_INFO_PANEL_MESSAGE_ID, infoPanelId);
       query.execute(finalQuery);

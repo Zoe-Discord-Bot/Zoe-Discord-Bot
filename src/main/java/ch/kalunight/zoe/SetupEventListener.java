@@ -41,7 +41,7 @@ public class SetupEventListener extends ListenerAdapter {
   
   private void setupNonInitializedGuild(JDA jda) throws SQLException {
     for(Guild guild : jda.getGuilds()) {
-      if(!guild.getOwnerId().equals(jda.getSelfUser().getId()) && !ServerRepository.checkServerExist(guild.getIdLong())) {
+      if(!ServerRepository.checkServerExist(guild.getIdLong())) {
         ServerRepository.createNewServer(guild.getIdLong(), LanguageManager.DEFAULT_LANGUAGE);
       }
       

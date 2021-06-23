@@ -2,74 +2,58 @@ package ch.kalunight.zoe.command.create;
 
 import java.sql.SQLException;
 import java.util.List;
-import java.util.function.BiConsumer;
-
-import com.jagrosh.jdautilities.command.Command;
-import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.Zoe;
-import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.config.option.RegionOption;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.BannedAccount;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
+import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.repositories.BannedAccountRepository;
 import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
-import ch.kalunight.zoe.util.CommandUtil;
 import ch.kalunight.zoe.util.RiotApiUtil;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.api.endpoints.tft_summoner.dto.TFTSummoner;
 import net.rithms.riot.constant.Platform;
 
-public class RegisterCommand extends ZoeCommand {
+public class RegisterCommandRunnable {
 
   public static final String USAGE_NAME = "register";
 
-  public RegisterCommand() {
-    this.name = USAGE_NAME;
-    this.arguments = "(Region) (SummonerName)";
-    this.help = "registerCommandHelpMessage";
-    this.helpBiConsumer = CommandUtil.getHelpMethod(USAGE_NAME, help);
+  private RegisterCommandRunnable() {
+    // hide default 
   }
+  
+  public static String executeCommand(Server server, Guild guild, Member author, String args) throws SQLException {
 
-  @Override
-  protected void executeCommand(CommandEvent event) throws SQLException {
-    event.getTextChannel().sendTyping().complete();
-
-    DTO.Server server = getServer(event.getGuild().getIdLong());
-
-    ServerConfiguration config = ConfigRepository.getServerConfiguration(server.serv_guildId, event.getJDA());
+    ServerConfiguration config = ConfigRepository.getServerConfiguration(server.serv_guildId, guild.getJDA());
 
     if(!config.getUserSelfAdding().isOptionActivated()) {
-      event.reply(String.format(LanguageManager.getText(server.getLanguage(), "registerCommandOptionRequired"),
-          LanguageManager.getText(server.getLanguage(), config.getUserSelfAdding().getDescription())));
-      return;
+      return String.format(LanguageManager.getText(server.getLanguage(), "registerCommandOptionRequired"),
+          LanguageManager.getText(server.getLanguage(), config.getUserSelfAdding().getDescription()));
     }
 
-    User user = event.getAuthor();
+    User user = author.getUser();
 
     if(CreatePlayerCommandRunnable.isTheGivenUserAlreadyRegister(user, server)) {
-      event.reply(LanguageManager.getText(server.getLanguage(), "registerCommandAlreadyInZoe"));
-      return;
+      return LanguageManager.getText(server.getLanguage(), "registerCommandAlreadyInZoe");
     }
 
     RegionOption regionOption = config.getDefaultRegion();
 
-    List<String> listArgs = CreatePlayerCommandRunnable.getParameterInParenteses(event.getArgs());
+    List<String> listArgs = CreatePlayerCommandRunnable.getParameterInParenteses(args);
     if(listArgs.size() != 2 && regionOption.getRegion() == null) {
-      event.reply(LanguageManager.getText(server.getLanguage(), "registerCommandMalformedWithoutRegionOption"));
-      return;
+      return LanguageManager.getText(server.getLanguage(), "registerCommandMalformedWithoutRegionOption");
     }else if((listArgs.isEmpty() || listArgs.size() > 2) && regionOption.getRegion() != null) {
-      event.reply(String.format(LanguageManager.getText(server.getLanguage(), "registerCommandMalformedWithRegionOption"), 
-          regionOption.getRegion().getName().toUpperCase()));
-      return;
+      return String.format(LanguageManager.getText(server.getLanguage(), "registerCommandMalformedWithRegionOption"), 
+          regionOption.getRegion().getName().toUpperCase());
     }
 
     String regionName;
@@ -85,34 +69,31 @@ public class RegisterCommand extends ZoeCommand {
 
     Platform region = CreatePlayerCommandRunnable.getPlatform(regionName);
     if(region == null) {
-      event.reply(LanguageManager.getText(server.getLanguage(), "regionTagInvalid"));
-      return;
+      return LanguageManager.getText(server.getLanguage(), "regionTagInvalid");
     }
-
-    Message loadingMessage = event.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "loadingSummoner")).complete();
+    
+    
     Summoner summoner;
     TFTSummoner tftSummoner;
     try {
       summoner = Zoe.getRiotApi().getSummonerByNameWithRateLimit(region, summonerName);
       tftSummoner = Zoe.getRiotApi().getTFTSummonerByNameWithRateLimit(region, summonerName);
     }catch(RiotApiException e) {
-      RiotApiUtil.handleRiotApi(loadingMessage, e, server.getLanguage());
-      return;
+      return RiotApiUtil.getTextHandlerRiotApiError(e, server.getLanguage());
     }
 
     DTO.Player playerAlreadyWithTheAccount = PlayerRepository
         .getPlayerByLeagueAccountAndGuild(server.serv_guildId, summoner.getId(), region);
 
     if(playerAlreadyWithTheAccount != null) {
-      loadingMessage.editMessage(String.format(LanguageManager.getText(server.getLanguage(), "accountAlreadyLinkedToAnotherPlayer"),
-          playerAlreadyWithTheAccount.retrieveUser(event.getJDA()).getName())).queue();
-      return;
+      return String.format(LanguageManager.getText(server.getLanguage(), "accountAlreadyLinkedToAnotherPlayer"),
+          playerAlreadyWithTheAccount.retrieveUser(guild.getJDA()).getName());
     }
 
     BannedAccount bannedAccount = BannedAccountRepository.getBannedAccount(summoner.getId(), region);
     if(bannedAccount == null) {
 
-      PlayerRepository.createPlayer(server.serv_id, event.getGuild().getIdLong(), user.getIdLong(), false);
+      PlayerRepository.createPlayer(server.serv_id, guild.getIdLong(), user.getIdLong(), false);
       DTO.Player player = PlayerRepository.getPlayer(server.serv_guildId, user.getIdLong());
       LeagueAccountRepository.createLeagueAccount(player.player_id, summoner, tftSummoner, region.getName());
 
@@ -122,20 +103,15 @@ public class RegisterCommand extends ZoeCommand {
       CreatePlayerCommandRunnable.updateLastRank(leagueAccount);
       
       if(config.getZoeRoleOption().getRole() != null) {
-        Member member = event.getGuild().retrieveMember(user).complete();
+        Member member = guild.retrieveMember(user).complete();
         if(member != null) {
-          event.getGuild().addRoleToMember(member, config.getZoeRoleOption().getRole()).queue();
+          guild.addRoleToMember(member, config.getZoeRoleOption().getRole()).queue();
         }
       }
-      loadingMessage.editMessage(String.format(LanguageManager.getText(server.getLanguage(), "registerCommandDoneMessage"), summoner.getName())).queue();
+      return String.format(LanguageManager.getText(server.getLanguage(), "registerCommandDoneMessage"), summoner.getName());
 
     }else {
-      loadingMessage.editMessage(LanguageManager.getText(server.getLanguage(), "accountCantBeAddedOwnerChoice")).queue();
+      return LanguageManager.getText(server.getLanguage(), "accountCantBeAddedOwnerChoice");
     }
-  }
-
-  @Override
-  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
-    return helpBiConsumer;
   }
 }

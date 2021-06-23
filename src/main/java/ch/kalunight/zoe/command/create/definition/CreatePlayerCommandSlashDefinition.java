@@ -29,12 +29,9 @@ public class CreatePlayerCommandSlashDefinition extends ZoeSlashCommand {
     OptionData discordAccountToLink = new OptionData(OptionType.USER, ZoeSlashCommand.USER_OPTION_ID, "The discord account you want to link");
     discordAccountToLink.setRequired(true);
     
-    OptionData summoner = new OptionData(OptionType.STRING, ZoeSlashCommand.SUMMONER_OPTION_ID, "The summoner name of the wanted league account");
-    summoner.setRequired(true);
-    
     data.add(discordAccountToLink);
     data.add(CommandUtil.getRegionSelection(true));
-    data.add(summoner);
+    data.add(CommandUtil.getSummonerSelection(true));
     this.options = data;
     
     if(serverId == null) {

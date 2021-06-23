@@ -49,6 +49,13 @@ public class CommandUtil {
     return regionOption;
   }
   
+  public static OptionData getSummonerSelection(boolean required) {
+    OptionData summoner = new OptionData(OptionType.STRING, ZoeSlashCommand.SUMMONER_OPTION_ID, "The summoner name of the wanted league account");
+    summoner.setRequired(true);
+    
+    return summoner;
+  }
+  
   public static void sendTypingInFonctionOfChannelType(CommandEvent event) {
     switch(event.getChannelType()) {
     case PRIVATE:

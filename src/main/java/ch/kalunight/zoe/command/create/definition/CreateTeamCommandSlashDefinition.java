@@ -20,7 +20,7 @@ public class CreateTeamCommandSlashDefinition extends ZoeSlashCommand {
     this.arguments = "nameOfTheTeam";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
-    this.help = LanguageManager.getText(LanguageManager.DEFAULT_LANGUAGE, "createTeamHelpMessage");
+    this.help = LanguageManager.getText(LanguageManager.DEFAULT_LANGUAGE, "createTeamHelpMessageSlashCommand");
     
     List<OptionData> data = new ArrayList<>();
     OptionData teamName = new OptionData(OptionType.STRING, "team-name", "Name of the team");

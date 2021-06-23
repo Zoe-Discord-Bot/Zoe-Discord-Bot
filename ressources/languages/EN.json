@@ -538,6 +538,7 @@
     "deleteClashChannelDoneCorrectly": "The selected Clash Channel has been deleted correctly ! You can now delete the text channel if you want.",
 	"couldNotSendInfoCardsOverloaded": "The infocard about the game of %s could not be generated due to the current overload. Sorry for that. :c",
 	"languageSlashCommandOptionNotValid": "The given language doesn't exist. Please select a correct one. (You can try to use the non-slash command ``>language``)",
-	"registerCommandHelpMessageSlashCommand": "Register the writer as a player with the given information"
+	"registerCommandHelpMessageSlashCommand": "Register the writer as a player with the given information",
+	"createTeamHelpMessageSlashCommand" : "Create a new team. Allows you to group players together on the Info Panel."
 
 }

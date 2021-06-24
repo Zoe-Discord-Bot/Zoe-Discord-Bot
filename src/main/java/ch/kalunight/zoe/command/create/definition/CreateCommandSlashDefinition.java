@@ -17,7 +17,8 @@ public class CreateCommandSlashDefinition extends ZoeSlashCommand {
     this.name = CreateCommandClassicDefinition.USAGE_NAME;
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
-    SlashCommand[] commandsChildren = {new CreatePlayerCommandSlashDefinition(serverId), new CreateInfochannelCommandSlashDefinition(serverId), new CreateTeamCommandSlashDefinition(serverId)};
+    SlashCommand[] commandsChildren = {new CreatePlayerCommandSlashDefinition(serverId), new CreateInfochannelCommandSlashDefinition(serverId), new CreateTeamCommandSlashDefinition(serverId),
+        new CreateRankHistoryChannelCommandSlashDefinition(serverId), new CreateLeaderboardCommandSlashDefinition(waiter, serverId)};
     this.children = commandsChildren;
     
     if(serverId == null) {

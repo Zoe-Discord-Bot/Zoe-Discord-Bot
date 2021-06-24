@@ -1,7 +1,6 @@
 package ch.kalunight.zoe.command.create;
 
 import java.awt.Color;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -9,58 +8,46 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import com.jagrosh.jdautilities.command.Command;
-import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.SelectionDialog;
 
-import ch.kalunight.zoe.command.ZoeCommand;
-import ch.kalunight.zoe.command.create.definition.CreateCommandClassicDefinition;
-import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.leaderboard.LeaderboardExtraDataHandler;
 import ch.kalunight.zoe.model.leaderboard.dataholder.Objective;
 import ch.kalunight.zoe.translation.LanguageManager;
-import ch.kalunight.zoe.util.CommandUtil;
-import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 
-public class CreateLeaderboardCommand extends ZoeCommand {
-
-  private EventWaiter waiter;
-
-  public CreateLeaderboardCommand(EventWaiter waiter) {
-    this.name = "leaderboard";
-    String[] aliases = {"leader", "lb", "lead", "board"};
-    this.aliases = aliases;
-    this.arguments = "";
-    Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
-    this.userPermissions = permissionRequired;
-    this.guildOnly = true;
-    this.help = "createLeaderboardHelpMessage";
-    this.waiter = waiter;
-    this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(CreateCommandClassicDefinition.USAGE_NAME, name, arguments, help);
+public class CreateLeaderboardCommandRunnable {
+  
+  private CreateLeaderboardCommandRunnable() {
+    //hide default public constructor
   }
+  
+  public static void executeCommand(Server server, Member author, TextChannel channel, Message messageToEdit, EventWaiter waiter, InteractionHook hook) {
 
-  @Override
-  protected void executeCommand(CommandEvent event) throws SQLException {
-
-    DTO.Server server = getServer(event.getGuild().getIdLong());
-
-    event.reply(LanguageManager.getText(server.getLanguage(), "createLeaderboardExplainMessage"));
-
+    String messageToSend = LanguageManager.getText(server.getLanguage(), "createLeaderboardExplainMessage");
+    
+    if(hook == null) {
+      messageToEdit.editMessage(messageToSend).queue();
+    }else {
+      hook.editOriginal(messageToSend).queue();
+    }
+    
     List<Objective> objectiveList = new ArrayList<>();
     List<String> objectiveChoices = new ArrayList<>();
     AtomicBoolean actionDone = new AtomicBoolean(false);
 
     SelectionDialog.Builder selectAccountBuilder = new SelectionDialog.Builder()
-        .addUsers(event.getAuthor())
+        .addUsers(author.getUser())
         .setEventWaiter(waiter)
         .useLooping(true)
         .setColor(Color.GREEN)
         .setSelectedEnds("**", "**")
         .setCanceled(getSelectionCancelAction(server.getLanguage(), actionDone))
-        .setSelectionConsumer(getSelectionConsumer(server, event, objectiveList, actionDone))
+        .setSelectionConsumer(getSelectionConsumer(server, objectiveList, actionDone, waiter, author, channel))
         .setTimeout(2, TimeUnit.MINUTES);
 
     for(Objective objective : Objective.values()) {
@@ -74,10 +61,10 @@ public class CreateLeaderboardCommand extends ZoeCommand {
     selectAccountBuilder.setText(LanguageManager.getText(server.getLanguage(), "createLeaderboardTitleListeObjective"));
 
     SelectionDialog choiceLeaderBoard = selectAccountBuilder.build();
-    choiceLeaderBoard.display(event.getChannel());
+    choiceLeaderBoard.display(channel);
   }
 
-  private Consumer<Message> getSelectionCancelAction(String language, AtomicBoolean selectionDone){
+  private static Consumer<Message> getSelectionCancelAction(String language, AtomicBoolean selectionDone){
     return new Consumer<Message>() {
       @Override
       public void accept(Message message) {
@@ -89,7 +76,7 @@ public class CreateLeaderboardCommand extends ZoeCommand {
     };
   }
 
-  private BiConsumer<Message, Integer> getSelectionConsumer(Server server, CommandEvent event, List<Objective> objectiveList, AtomicBoolean selectionDone) {
+  private static BiConsumer<Message, Integer> getSelectionConsumer(Server server, List<Objective> objectiveList, AtomicBoolean selectionDone, EventWaiter waiter, Member author, TextChannel channel) {
     return new BiConsumer<Message, Integer>() {
       @Override
       public void accept(Message selectionMessage, Integer objectiveSelection) {
@@ -98,19 +85,14 @@ public class CreateLeaderboardCommand extends ZoeCommand {
 
         Objective objective = objectiveList.get(objectiveSelection - 1);
 
-        event.reply(String.format(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveSelected"),
-            LanguageManager.getText(server.getLanguage(), objective.getTranslationId())));
+        channel.sendMessage(String.format(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveSelected"),
+            LanguageManager.getText(server.getLanguage(), objective.getTranslationId()))).queue();
 
-        LeaderboardExtraDataHandler dataNeeded = Objective.getDataNeeded(objective, waiter, server, event, true);
+        LeaderboardExtraDataHandler dataNeeded = Objective.getDataNeeded(objective, waiter, server, author, channel, true);
 
         dataNeeded.handleSecondCreationPart();
       }
     };
-  }
-
-  @Override
-  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
-    return helpBiConsumer;
   }
 
 }

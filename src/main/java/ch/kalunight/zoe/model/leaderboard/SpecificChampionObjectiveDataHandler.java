@@ -5,9 +5,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import com.jagrosh.jdautilities.command.CommandEvent;
+
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.Paginator;
+
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.leaderboard.dataholder.Objective;
 import ch.kalunight.zoe.model.leaderboard.dataholder.SpecificChamp;
@@ -15,6 +16,7 @@ import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.PaginatorUtil;
 import ch.kalunight.zoe.util.Ressources;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.exceptions.PermissionException;
@@ -24,13 +26,13 @@ public class SpecificChampionObjectiveDataHandler extends LeaderboardExtraDataHa
   private static final String LEADERBOARD_CHAMPION_SELECTED_THEN_SEND_CHANNEL = "leaderboardChampionSelectedThenSendChannel";
   private static final String LEADERBOARD_BAD_CHAMPION_NUMBER_SELECTION = "leaderboardBadChampionNumberSelection";
 
-  public SpecificChampionObjectiveDataHandler(Objective objective, EventWaiter waiter, CommandEvent event, Server server, boolean forceRefreshCache) {
-    super(objective, waiter, event, server, forceRefreshCache);
+  public SpecificChampionObjectiveDataHandler(Objective objective, EventWaiter waiter, Server server, boolean forceRefreshCache, Member author, TextChannel channel) {
+    super(objective, waiter, server, forceRefreshCache, author, channel);
   }
 
   @Override
   public void handleSecondCreationPart() {
-    event.reply(LanguageManager.getText(server.getLanguage(), "leaderboardDataNeededSpecificChamp"));
+    channel.sendMessage(LanguageManager.getText(server.getLanguage(), "leaderboardDataNeededSpecificChamp")).queue();
     
     List<String> championsName = new ArrayList<>();
     for(Champion champion : Ressources.getChampions()) {
@@ -53,7 +55,7 @@ public class SpecificChampionObjectiveDataHandler extends LeaderboardExtraDataHa
           }
         })
         .setEventWaiter(waiter)
-        .setUsers(event.getAuthor())
+        .setUsers(author.getUser())
         .setColor(Color.GREEN)
         .setText(PaginatorUtil.getPaginationTranslatedPage(server.getLanguage()))
         .setText(LanguageManager.getText(server.getLanguage(), "paginationChampionSelection"))
@@ -73,7 +75,7 @@ public class SpecificChampionObjectiveDataHandler extends LeaderboardExtraDataHa
     
     Paginator listChampions = pbuilder.build();
     
-    listChampions.display(event.getChannel());
+    listChampions.display(channel);
     
     waitForAChampionSelection(server, objective, championsName);
   }
@@ -130,10 +132,9 @@ public class SpecificChampionObjectiveDataHandler extends LeaderboardExtraDataHa
 
   private void waitForAChampionSelection(Server server, Objective objective, List<String> championsNameOrdered) {
     waiter.waitForEvent(MessageReceivedEvent.class,
-        e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel())
-        && !e.getMessage().getId().equals(event.getMessage().getId()),
+        e -> e.getAuthor().equals(author.getUser()) && e.getChannel().getId().equals(channel.getId()),
         e -> threatChampionSelection(e, server, objective, championsNameOrdered), 3, TimeUnit.MINUTES,
-        () -> cancelSelectionOfAChampion(event.getTextChannel(), server));
+        () -> cancelSelectionOfAChampion(channel, server));
   }
 
 }

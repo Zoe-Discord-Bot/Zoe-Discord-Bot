@@ -7,7 +7,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.SelectionDialog;
 
@@ -16,21 +15,23 @@ import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.leaderboard.dataholder.Objective;
 import ch.kalunight.zoe.model.leaderboard.dataholder.QueueSelected;
 import ch.kalunight.zoe.translation.LanguageManager;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.TextChannel;
 
 public class SpecificQueueDataHandler extends LeaderboardExtraDataHandler {
 
-  public SpecificQueueDataHandler(Objective objective, EventWaiter waiter, CommandEvent event, Server server, boolean forceRefreshCache) {
-    super(objective, waiter, event, server, forceRefreshCache);
+  public SpecificQueueDataHandler(Objective objective, EventWaiter waiter, Server server, boolean forceRefreshCache, Member author, TextChannel channel) {
+    super(objective, waiter, server, forceRefreshCache, author, channel);
   }
 
   @Override
   public void handleSecondCreationPart() {
     
-    event.reply(LanguageManager.getText(server.getLanguage(), "leaderboardSelectQueue"));
+    channel.sendMessage(LanguageManager.getText(server.getLanguage(), "leaderboardSelectQueue")).queue();
     
     SelectionDialog.Builder selectQueueBuilder = new SelectionDialog.Builder()
-        .addUsers(event.getAuthor())
+        .addUsers(author.getUser())
         .setEventWaiter(waiter)
         .useLooping(true)
         .setColor(Color.GREEN)
@@ -48,7 +49,7 @@ public class SpecificQueueDataHandler extends LeaderboardExtraDataHandler {
     selectQueueBuilder.setSelectionConsumer(getSelectionDoneAction(server.getLanguage(), queueOrder));
     
     SelectionDialog queueChoiceMenu = selectQueueBuilder.build();
-    queueChoiceMenu.display(event.getTextChannel());
+    queueChoiceMenu.display(channel);
   }
   
   private BiConsumer<Message, Integer> getSelectionDoneAction(String language, List<GameQueueConfigId> queueList) {

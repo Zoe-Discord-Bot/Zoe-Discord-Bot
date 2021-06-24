@@ -2,7 +2,6 @@ package ch.kalunight.zoe.model.leaderboard.dataholder;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
 import ch.kalunight.zoe.model.dto.DTO.Server;
@@ -11,6 +10,7 @@ import ch.kalunight.zoe.model.leaderboard.NoSpecificDataNeededHandler;
 import ch.kalunight.zoe.model.leaderboard.SpecificChampionObjectiveDataHandler;
 import ch.kalunight.zoe.model.leaderboard.SpecificQueueDataHandler;
 import ch.kalunight.zoe.translation.LanguageManager;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.TextChannel;
 
 public enum Objective {
@@ -53,17 +53,17 @@ public enum Objective {
   }
 
   public static LeaderboardExtraDataHandler getDataNeeded(Objective objective, EventWaiter waiter,
-      Server server, CommandEvent event, boolean forceRefreshCheck) {
+      Server server, Member author, TextChannel channel, boolean forceRefreshCheck) {
     switch(objective) {
       case MASTERY_POINT_SPECIFIC_CHAMP:
       case AVERAGE_KDA_SPECIFIC_CHAMP:
       /*case WINRATE_SPECIFIC_CHAMP:*/
-        return new SpecificChampionObjectiveDataHandler(objective, waiter, event, server, forceRefreshCheck);
+        return new SpecificChampionObjectiveDataHandler(objective, waiter, server, forceRefreshCheck, author, channel);
       /*case WINRATE_SPECIFIC_QUEUE:*/
       case SPECIFIC_QUEUE_RANK:
-        return new SpecificQueueDataHandler(objective, waiter, event, server, forceRefreshCheck);
+        return new SpecificQueueDataHandler(objective, waiter, server, forceRefreshCheck, author, channel);
       default:
-        return new NoSpecificDataNeededHandler(objective, waiter, event, server, forceRefreshCheck);
+        return new NoSpecificDataNeededHandler(objective, waiter, server, forceRefreshCheck, author, channel);
     }
   }
 

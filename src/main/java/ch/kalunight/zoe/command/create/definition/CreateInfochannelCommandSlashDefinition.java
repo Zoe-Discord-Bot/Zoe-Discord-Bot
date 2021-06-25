@@ -20,7 +20,7 @@ public class CreateInfochannelCommandSlashDefinition extends ZoeSlashCommand {
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
     this.guildOnly = true;
-    this.help = LanguageManager.getText(LanguageManager.DEFAULT_LANGUAGE, "createInfoChannelHelpMessage");
+    this.help = LanguageManager.getText(LanguageManager.DEFAULT_LANGUAGE, "createInfoChannelHelpMessageSlashCommand");
     
     List<OptionData> data = new ArrayList<>();
     

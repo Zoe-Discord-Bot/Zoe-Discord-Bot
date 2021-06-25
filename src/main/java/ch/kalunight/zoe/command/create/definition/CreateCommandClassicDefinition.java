@@ -8,7 +8,6 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 
 import ch.kalunight.zoe.command.ZoeCommand;
-import ch.kalunight.zoe.command.create.CreateClashChannel;
 import ch.kalunight.zoe.command.create.CreateCommandRunnable;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
@@ -23,7 +22,7 @@ public class CreateCommandClassicDefinition extends ZoeCommand {
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
     Command[] commandsChildren = {new CreateInfochannelCommandClassicDefinition(), new CreatePlayerCommandClassicDefinition(), new CreateTeamCommandClassicDefinition(),
-        new CreateRankHistoryChannelCommandClassicDefinition(), new CreateLeaderboardCommandClassicDefinition(waiter), new CreateClashChannel(waiter)};
+        new CreateRankHistoryChannelCommandClassicDefinition(), new CreateLeaderboardCommandClassicDefinition(waiter), new CreateClashChannelCommandClassicDefinition(waiter)};
     this.children = commandsChildren;
     this.guildOnly = true;
     this.helpBiConsumer = CommandUtil.getHelpMethodHasChildren(USAGE_NAME, commandsChildren);

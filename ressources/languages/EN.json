@@ -542,5 +542,6 @@
 	"createTeamHelpMessageSlashCommand" : "Create a new team. Allows you to group players together on the Info Panel.",
 	"createRankChannelHelpMessageSlashCommand": "Create a Rank Channel where i will send update about rank of registed players.",
 	"createLeaderboardHelpMessageSlashCommand": "Start the leaderboard creation wizard.",
-	"createInfoChannelHelpMessage": "Create a new InfoChannel where i can send info about players."
+	"createInfoChannelHelpMessageSlashCommand": "Create a new InfoChannel where i can send info about players.",
+	"createClashChannelHelpMessageSlashCommand": "Create a new Clash Channel about one specific league account."
 }

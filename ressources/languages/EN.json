@@ -543,5 +543,6 @@
 	"createRankChannelHelpMessageSlashCommand": "Create a Rank Channel where i will send update about rank of registed players.",
 	"createLeaderboardHelpMessageSlashCommand": "Start the leaderboard creation wizard.",
 	"createInfoChannelHelpMessageSlashCommand": "Create a new InfoChannel where i can send info about players.",
-	"createClashChannelHelpMessageSlashCommand": "Create a new Clash Channel about one specific league account."
+	"createClashChannelHelpMessageSlashCommand": "Create a new Clash Channel about one specific league account.",
+	"deletePlayerHelpMessageSlashCommand": "Delete the given player."
 }

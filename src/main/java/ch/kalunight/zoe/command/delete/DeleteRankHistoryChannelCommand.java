@@ -7,6 +7,7 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 
 import ch.kalunight.zoe.command.ZoeCommand;
+import ch.kalunight.zoe.command.delete.definition.DeletePlayerCommandClassicDefinition;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.repositories.RankHistoryChannelRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
@@ -24,7 +25,7 @@ public class DeleteRankHistoryChannelCommand extends ZoeCommand {
     this.userPermissions = permissionRequired;
     this.guildOnly = true;
     this.help = "deleteRankChannelHelpMessage";
-    this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(DeleteCommand.USAGE_NAME, name, arguments, help);
+    this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(DeletePlayerCommandClassicDefinition.USAGE_NAME, name, arguments, help);
   }
 
   @Override

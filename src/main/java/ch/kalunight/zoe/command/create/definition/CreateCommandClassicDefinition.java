@@ -38,7 +38,4 @@ public class CreateCommandClassicDefinition extends ZoeCommand {
   public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
     return helpBiConsumer;
   }
-  
-  
-  
 }

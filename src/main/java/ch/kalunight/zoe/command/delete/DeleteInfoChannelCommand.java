@@ -5,6 +5,7 @@ import java.util.function.BiConsumer;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.command.ZoeCommand;
+import ch.kalunight.zoe.command.delete.definition.DeletePlayerCommandClassicDefinition;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.repositories.InfoChannelRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
@@ -21,7 +22,7 @@ public class DeleteInfoChannelCommand extends ZoeCommand {
     this.help = "deleteInfoChannelHelpMessage";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
-    this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(DeleteCommand.USAGE_NAME, name, arguments, help);
+    this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(DeletePlayerCommandClassicDefinition.USAGE_NAME, name, arguments, help);
   }
 
   @Override

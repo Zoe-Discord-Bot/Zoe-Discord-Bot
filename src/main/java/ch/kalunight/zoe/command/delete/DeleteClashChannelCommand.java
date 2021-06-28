@@ -16,6 +16,7 @@ import com.jagrosh.jdautilities.menu.SelectionDialog;
 
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
+import ch.kalunight.zoe.command.delete.definition.DeletePlayerCommandClassicDefinition;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.ClashChannel;
 import ch.kalunight.zoe.model.dto.DTO.Server;
@@ -43,7 +44,7 @@ public class DeleteClashChannelCommand extends ZoeCommand {
     this.userPermissions = permissionRequired;
     Permission[] botPermissionRequiered = {Permission.MANAGE_CHANNEL, Permission.MANAGE_EMOTES, Permission.MESSAGE_EMBED_LINKS, Permission.MESSAGE_ADD_REACTION};
     this.botPermissions = botPermissionRequiered;
-    this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(DeleteCommand.USAGE_NAME, name, arguments, help);
+    this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(DeletePlayerCommandClassicDefinition.USAGE_NAME, name, arguments, help);
   }
 
   @Override

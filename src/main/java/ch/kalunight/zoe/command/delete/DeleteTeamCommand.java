@@ -25,7 +25,7 @@ public class DeleteTeamCommand extends ZoeCommand {
     this.arguments = "teamName";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
-    this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(DeletePlayerCommand.USAGE_NAME, name, arguments, help);
+    this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(DeletePlayerRunnable.USAGE_NAME, name, arguments, help);
   }
 
   @Override

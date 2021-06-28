@@ -16,6 +16,7 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.SelectionDialog;
 
 import ch.kalunight.zoe.command.ZoeCommand;
+import ch.kalunight.zoe.command.delete.definition.DeletePlayerCommandClassicDefinition;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
 import ch.kalunight.zoe.model.dto.DTO.Server;
@@ -44,7 +45,7 @@ public class DeleteLeaderboardCommand extends ZoeCommand {
     this.help = "deleteLeaderboardCommandHelpMessage";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
-    this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(DeleteCommand.USAGE_NAME, name, arguments, help);
+    this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(DeletePlayerCommandClassicDefinition.USAGE_NAME, name, arguments, help);
   }
 
   @Override

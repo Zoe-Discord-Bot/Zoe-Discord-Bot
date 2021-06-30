@@ -74,8 +74,8 @@ public class PlayerRepository {
   private static final Logger logger = LoggerFactory.getLogger(PlayerRepository.class);
   
   /**
-   * This list contain discordId of player registered by guildid. Sync with the DB
-   * First long : Guild id
+   * This list contain discordId of player registered by guildid. Sync with the DB<p>
+   * First long : Guild id<p>
    * List of long : User's Discord Id
    */
   private static final Map<Long, List<Long>> LIST_DISCORD_ID_OF_REGISTERED_PLAYERS = Collections.synchronizedMap(new HashMap<>());
@@ -190,10 +190,10 @@ public class PlayerRepository {
   public static void deletePlayer(Player player, long guildId, Connection conn) throws SQLException {
     try (Statement query = conn.createStatement();) {
 
-      List<DTO.LeagueAccount> leaguesAccounts = LeagueAccountRepository.getLeaguesAccountsWithPlayerID(guildId, player.player_id);
+      List<DTO.LeagueAccount> leaguesAccounts = LeagueAccountRepository.getLeaguesAccountsWithPlayerID(guildId, player.player_id, conn);
       
       for(DTO.LeagueAccount leagueAccount : leaguesAccounts) {
-        LeagueAccountRepository.deleteAccountWithId(leagueAccount.leagueAccount_id);
+        LeagueAccountRepository.deleteAccountWithId(leagueAccount.leagueAccount_id, conn);
       }
       
       String finalQuery = String.format(DELETE_PLAYER_WITH_PLAYER_ID, player.player_id);

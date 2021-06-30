@@ -214,11 +214,16 @@ public class CurrentGameInfoRepository {
       RepoRessources.closeResultSet(result);
     }
   }
-
+  
   public static long createCurrentGame(CurrentGameInfo currentGame, DTO.LeagueAccount leagueAccount) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();) {
+      return createCurrentGame(currentGame, leagueAccount, conn);
+    }
+  }
+
+  public static long createCurrentGame(CurrentGameInfo currentGame, DTO.LeagueAccount leagueAccount, Connection conn) throws SQLException {
     ResultSet result = null;
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement();) {
+    try (Statement query = conn.createStatement();) {
 
       String currentGameJson = gson.toJson(currentGame);
 
@@ -229,20 +234,25 @@ public class CurrentGameInfoRepository {
 
       long currentGameId = result.getLong("currentgame_id");
 
-      LeagueAccountRepository.updateAccountCurrentGameWithAccountId(leagueAccount.leagueAccount_id, currentGameId);
+      LeagueAccountRepository.updateAccountCurrentGameWithAccountId(leagueAccount.leagueAccount_id, currentGameId, conn);
       return currentGameId;
     } finally {
       RepoRessources.closeResultSet(result);
     }
   }
-
+  
   public static void updateCurrentGame(CurrentGameInfo currentGame, DTO.LeagueAccount leagueAccount) throws SQLException {
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement();) {
+    try (Connection conn = RepoRessources.getConnection();) {
+      updateCurrentGame(currentGame, leagueAccount, conn);
+    }
+  }
+
+  public static void updateCurrentGame(CurrentGameInfo currentGame, DTO.LeagueAccount leagueAccount, Connection conn) throws SQLException {
+    try (Statement query = conn.createStatement();) {
 
       String currentGameJson = gson.toJson(currentGame);
 
-      DTO.CurrentGameInfo currentGameInfo = getCurrentGameWithLeagueAccountID(leagueAccount.leagueAccount_id);
+      DTO.CurrentGameInfo currentGameInfo = getCurrentGameWithLeagueAccountID(leagueAccount.leagueAccount_id, conn);
 
       if(currentGameInfo != null) {
         String finalQuery = String.format(UPDATE_CURRENT_GAME_WITH_ID, currentGameJson,

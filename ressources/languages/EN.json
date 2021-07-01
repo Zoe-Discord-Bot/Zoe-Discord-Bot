@@ -544,5 +544,10 @@
 	"createLeaderboardHelpMessageSlashCommand": "Start the leaderboard creation wizard.",
 	"createInfoChannelHelpMessageSlashCommand": "Create a new InfoChannel where i can send info about players.",
 	"createClashChannelHelpMessageSlashCommand": "Create a new Clash Channel about one specific league account.",
-	"deletePlayerHelpMessageSlashCommand": "Delete the given player."
+	"deletePlayerHelpMessageSlashCommand": "Delete the given player.",
+	"deleteTeamHelpMessageSlashCommand": "Delete the given team.",
+	"deleteInfoChannelHelpMessageSlashCommand": "Delete the Info Channel.",
+	"deleteClashChannelCommandHelpMessageSlashCommand": "Command to delete an existing Clash Channel.",
+	"deleteLeaderboardCommandHelpMessageSlashMessage": "Delete an existing leaderboard with a contextual menu.",
+	"deleteRankChannelHelpMessageSlashCommand": "Delete the rank channel."
 }

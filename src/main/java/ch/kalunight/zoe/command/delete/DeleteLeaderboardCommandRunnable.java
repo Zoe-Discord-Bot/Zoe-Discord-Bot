@@ -10,69 +10,57 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.jagrosh.jdautilities.command.Command;
-import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.SelectionDialog;
 
-import ch.kalunight.zoe.command.ZoeCommand;
-import ch.kalunight.zoe.command.delete.definition.DeletePlayerCommandClassicDefinition;
-import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.leaderboard.dataholder.Objective;
 import ch.kalunight.zoe.repositories.LeaderboardRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
-import ch.kalunight.zoe.util.CommandUtil;
-import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 
-public class DeleteLeaderboardCommand extends ZoeCommand {
+public class DeleteLeaderboardCommandRunnable {
 
-  private static final Logger logger = LoggerFactory.getLogger(DeleteLeaderboardCommand.class);
+  private static final Logger logger = LoggerFactory.getLogger(DeleteLeaderboardCommandRunnable.class);
 
-  private EventWaiter eventWaiter;
-
-  public DeleteLeaderboardCommand(EventWaiter waiter) {
-    this.name = "leaderboard";
-    String[] aliases = {"leader", "lb", "lead", "board"};
-    this.aliases = aliases;
-    this.arguments = "";
-    this.eventWaiter = waiter;
-    this.help = "deleteLeaderboardCommandHelpMessage";
-    Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
-    this.userPermissions = permissionRequired;
-    this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(DeletePlayerCommandClassicDefinition.USAGE_NAME, name, arguments, help);
+  private DeleteLeaderboardCommandRunnable() {
+    // hide default public constructor
   }
-
-  @Override
-  protected void executeCommand(CommandEvent event) throws SQLException {
-    DTO.Server server = getServer(event.getGuild().getIdLong());
+  
+  public static void executeCommand(Server server, Member author, TextChannel commandOriginChannel, Message toEdit, EventWaiter waiter, InteractionHook hook) throws SQLException {
 
     List<Leaderboard> leaderboardList = LeaderboardRepository.getLeaderboardsWithGuildId(server.serv_guildId);
     List<Leaderboard> leaderboardChoiceInOrder = new ArrayList<>();
     AtomicBoolean actionDone = new AtomicBoolean(false);
     
     if(leaderboardList.isEmpty()) {
-      event.reply(LanguageManager.getText(server.getLanguage(), "deleteLeaderboardCommandNoLeaderboardToDelete"));
+      String message = LanguageManager.getText(server.getLanguage(), "deleteLeaderboardCommandNoLeaderboardToDelete");
+      if(toEdit != null) {
+        toEdit.editMessage(message).queue();
+      }else {
+        hook.editOriginal(message).queue();
+      }
       return;
     }
 
     SelectionDialog.Builder selectAccountBuilder = new SelectionDialog.Builder()
-        .addUsers(event.getAuthor())
-        .setEventWaiter(eventWaiter)
+        .addUsers(author.getUser())
+        .setEventWaiter(waiter)
         .useLooping(true)
         .setColor(Color.GREEN)
         .setSelectedEnds("**", "**")
         .setCanceled(getSelectionCancelAction(server.getLanguage(), actionDone))
-        .setSelectionConsumer(getSelectionConsumer(server, event, leaderboardList, actionDone))
+        .setSelectionConsumer(getSelectionConsumer(server, leaderboardList, actionDone, commandOriginChannel))
         .setTimeout(2, TimeUnit.MINUTES);
 
     for(Leaderboard leaderboard : leaderboardList) {
-      TextChannel channel = event.getGuild().getTextChannelById(leaderboard.lead_message_channelId);
+      TextChannel channel = commandOriginChannel.getGuild().getTextChannelById(leaderboard.lead_message_channelId);
       try {
         channel.retrieveMessageById(leaderboard.lead_message_id).complete();
       }catch(ErrorResponseException e) {
@@ -92,10 +80,10 @@ public class DeleteLeaderboardCommand extends ZoeCommand {
     selectAccountBuilder.setText(LanguageManager.getText(server.getLanguage(), "deleteLeaderboardCommandListProposal"));
 
     SelectionDialog choiceLeaderBoard = selectAccountBuilder.build();
-    choiceLeaderBoard.display(event.getChannel());
+    choiceLeaderBoard.display(commandOriginChannel);
   }
 
-  private Consumer<Message> getSelectionCancelAction(String language, AtomicBoolean actionDone){
+  private static Consumer<Message> getSelectionCancelAction(String language, AtomicBoolean actionDone){
     return new Consumer<Message>() {
       @Override
       public void accept(Message message) {
@@ -107,34 +95,29 @@ public class DeleteLeaderboardCommand extends ZoeCommand {
     };
   }
 
-  private BiConsumer<Message, Integer> getSelectionConsumer(Server server, CommandEvent event, List<Leaderboard> leaderboardList, AtomicBoolean actionDone) {
+  private static BiConsumer<Message, Integer> getSelectionConsumer(Server server, List<Leaderboard> leaderboardList, AtomicBoolean actionDone, TextChannel channel) {
     return new BiConsumer<Message, Integer>() {
       @Override
       public void accept(Message selectionMessage, Integer objectiveSelection) {
-        event.getChannel().sendTyping().queue();
+        channel.sendTyping().queue();
         selectionMessage.clearReactions().queue();
         actionDone.set(true);
 
         Leaderboard leaderboard = leaderboardList.get(objectiveSelection - 1);
 
-        event.getGuild().getTextChannelById(leaderboard.lead_message_channelId).deleteMessageById(leaderboard.lead_message_id).queue();
+        channel.getGuild().getTextChannelById(leaderboard.lead_message_channelId).deleteMessageById(leaderboard.lead_message_id).queue();
 
         try {
           LeaderboardRepository.deleteLeaderboardWithId(leaderboard.lead_id);
         } catch(SQLException e) {
           logger.error("SQL Exception throw while deleted a leaderboard !", e);
-          event.reply(LanguageManager.getText(server.getLanguage(), "deleteLeaderboardErrorDatabase"));
+          channel.sendMessage(LanguageManager.getText(server.getLanguage(), "deleteLeaderboardErrorDatabase")).queue();
           return;
         }
 
-        event.reply(LanguageManager.getText(server.getLanguage(), "deleteLeaderboardDoneCorrectly"));
+        channel.sendMessage(LanguageManager.getText(server.getLanguage(), "deleteLeaderboardDoneCorrectly")).queue();
       }
     };
-  }
-
-  @Override
-  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
-    return helpBiConsumer;
   }
 
 }

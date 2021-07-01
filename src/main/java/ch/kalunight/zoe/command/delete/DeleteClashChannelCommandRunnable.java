@@ -9,71 +9,60 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import com.jagrosh.jdautilities.command.Command;
-import com.jagrosh.jdautilities.command.CommandEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.SelectionDialog;
 
 import ch.kalunight.zoe.Zoe;
-import ch.kalunight.zoe.command.ZoeCommand;
-import ch.kalunight.zoe.command.delete.definition.DeletePlayerCommandClassicDefinition;
-import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.ClashChannel;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.dto.DTO.SummonerCache;
 import ch.kalunight.zoe.repositories.ClashChannelRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
-import ch.kalunight.zoe.util.CommandUtil;
-import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.rithms.riot.api.RiotApiException;
 
-public class DeleteClashChannelCommand extends ZoeCommand {
+public class DeleteClashChannelCommandRunnable {
 
-  private EventWaiter eventWaiter;
-
-  public DeleteClashChannelCommand(EventWaiter waiter) {
-    this.name = "clashChannel";
-    String[] aliases = {"clash", "cc"};
-    this.aliases = aliases;
-    this.arguments = "";
-    this.eventWaiter = waiter;
-    this.help = "deleteClashChannelCommandHelpMessage";
-    Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
-    this.userPermissions = permissionRequired;
-    Permission[] botPermissionRequiered = {Permission.MANAGE_CHANNEL, Permission.MANAGE_EMOTES, Permission.MESSAGE_EMBED_LINKS, Permission.MESSAGE_ADD_REACTION};
-    this.botPermissions = botPermissionRequiered;
-    this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(DeletePlayerCommandClassicDefinition.USAGE_NAME, name, arguments, help);
+  private static final Logger logger = LoggerFactory.getLogger(DeleteClashChannelCommandRunnable.class);
+  
+  private DeleteClashChannelCommandRunnable() {
+    // hide default public constructor
   }
-
-  @Override
-  protected void executeCommand(CommandEvent event) throws SQLException {
-    DTO.Server server = getServer(event.getGuild().getIdLong());
+  
+  public static void executeCommand(Server server, EventWaiter eventWaiter, Member author, Message messageLoading, TextChannel commandChannel, InteractionHook hook) throws SQLException {
 
     List<ClashChannel> clashChannelList = ClashChannelRepository.getClashChannels(server.serv_guildId);
     List<ClashChannel> clashChannelChoiceInOrder = new ArrayList<>();
     AtomicBoolean actionDone = new AtomicBoolean(false);
 
     if(clashChannelList.isEmpty()) {
-      event.reply(LanguageManager.getText(server.getLanguage(), "deleteClashChannelCommandNoClashChannelToDelete"));
+      String message = LanguageManager.getText(server.getLanguage(), "deleteClashChannelCommandNoClashChannelToDelete");
+      if(messageLoading != null) {
+        messageLoading.editMessage(message).queue();
+      }else {
+        hook.editOriginal(message).queue();
+      }
       return;
     }
-
-    Message messageLoading = event.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "loadingData")).complete();
     
     SelectionDialog.Builder selectClashChannelBuilder = new SelectionDialog.Builder()
-        .addUsers(event.getAuthor())
+        .addUsers(author.getUser())
         .setEventWaiter(eventWaiter)
         .useLooping(true)
         .setColor(Color.GREEN)
         .setSelectedEnds("**", "**")
         .setCanceled(getSelectionCancelAction(server.getLanguage(), actionDone))
-        .setSelectionConsumer(getSelectionConsumer(server, event, clashChannelList, actionDone))
+        .setSelectionConsumer(getSelectionConsumer(server, clashChannelList, actionDone, commandChannel))
         .setTimeout(2, TimeUnit.MINUTES);
 
     for(ClashChannel clashChannel : clashChannelList) {
-      TextChannel channel = event.getGuild().getTextChannelById(clashChannel.clashChannel_channelId);
+      TextChannel channel = commandChannel.getGuild().getTextChannelById(clashChannel.clashChannel_channelId);
       if(channel == null) {
         logger.info("One clash channel has been deleted, refresh db stats...");
         ClashChannelRepository.deleteClashChannel(clashChannel.clashChannel_id);
@@ -100,10 +89,10 @@ public class DeleteClashChannelCommand extends ZoeCommand {
     selectClashChannelBuilder.setText(LanguageManager.getText(server.getLanguage(), "deleteClashChannelCommandListProposal"));
 
     SelectionDialog choiceClashChannels = selectClashChannelBuilder.build();
-    choiceClashChannels.display(messageLoading);
+    choiceClashChannels.display(commandChannel);
   }
 
-  private Consumer<Message> getSelectionCancelAction(String language, AtomicBoolean actionDone){
+  private static Consumer<Message> getSelectionCancelAction(String language, AtomicBoolean actionDone){
     return new Consumer<Message>() {
       @Override
       public void accept(Message message) {
@@ -115,17 +104,17 @@ public class DeleteClashChannelCommand extends ZoeCommand {
     };
   }
 
-  private BiConsumer<Message, Integer> getSelectionConsumer(Server server, CommandEvent event, List<ClashChannel> clashChannelList, AtomicBoolean actionDone) {
+  private static BiConsumer<Message, Integer> getSelectionConsumer(Server server, List<ClashChannel> clashChannelList, AtomicBoolean actionDone, TextChannel channel) {
     return new BiConsumer<Message, Integer>() {
       @Override
       public void accept(Message selectionMessage, Integer objectiveSelection) {
-        event.getChannel().sendTyping().queue();
+        channel.sendTyping().queue();
         selectionMessage.clearReactions().queue();
         actionDone.set(true);
 
         ClashChannel clashChannel = clashChannelList.get(objectiveSelection - 1);
 
-        TextChannel channelToClean = event.getGuild().getTextChannelById(clashChannel.clashChannel_channelId);
+        TextChannel channelToClean = channel.getGuild().getTextChannelById(clashChannel.clashChannel_channelId);
 
         List<Long> messagesIdToDelete = clashChannel.clashChannel_data.getAllClashChannel();
 
@@ -139,18 +128,13 @@ public class DeleteClashChannelCommand extends ZoeCommand {
           ClashChannelRepository.deleteClashChannel(clashChannel.clashChannel_id);
         } catch(SQLException e) {
           logger.error("SQL Exception throw while deleted a clash channel !", e);
-          event.reply(LanguageManager.getText(server.getLanguage(), "deleteLeaderboardErrorDatabase"));
+          channel.sendMessage(LanguageManager.getText(server.getLanguage(), "deleteLeaderboardErrorDatabase")).queue();
           return;
         }
 
-        event.reply(LanguageManager.getText(server.getLanguage(), "deleteClashChannelDoneCorrectly"));
+        channel.sendMessage(LanguageManager.getText(server.getLanguage(), "deleteClashChannelDoneCorrectly")).queue();
       }
     };
-  }
-
-  @Override
-  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
-    return helpBiConsumer;
   }
 
 }

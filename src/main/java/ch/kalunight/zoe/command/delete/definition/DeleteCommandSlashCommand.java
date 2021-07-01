@@ -16,7 +16,8 @@ public class DeleteCommandSlashCommand extends ZoeSlashCommand {
     this.name = DeleteCommandClassicDefinition.USAGE_NAME;
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
-    SlashCommand[] commandsChildren = {new DeletePlayerCommandSlashDefinition(serverId)};
+    SlashCommand[] commandsChildren = {new DeletePlayerCommandSlashDefinition(serverId), new DeleteTeamCommandSlashDefinition(serverId), new DeleteInfoChannelCommandSlashDefinition(serverId),
+        new DeleteClashChannelCommandSlashDefinition(waiter, serverId), new DeleteLeaderboardCommandSlashDefinition(waiter, serverId), new DeleteRankHistoryChannelCommandSlashDefinition(serverId)};
     this.children = commandsChildren;
     
     if(serverId == null) {

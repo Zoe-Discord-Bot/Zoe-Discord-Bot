@@ -7,12 +7,7 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 
 import ch.kalunight.zoe.command.ZoeCommand;
-import ch.kalunight.zoe.command.delete.DeleteClashChannelCommand;
 import ch.kalunight.zoe.command.delete.DeleteCommandRunnable;
-import ch.kalunight.zoe.command.delete.DeleteInfoChannelCommand;
-import ch.kalunight.zoe.command.delete.DeleteLeaderboardCommand;
-import ch.kalunight.zoe.command.delete.DeleteRankHistoryChannelCommand;
-import ch.kalunight.zoe.command.delete.DeleteTeamCommand;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
@@ -26,8 +21,8 @@ public class DeleteCommandClassicDefinition extends ZoeCommand {
     this.aliases = new String[] {"d"};
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
-    Command[] commandsChildren = {new DeletePlayerCommandClassicDefinition(), new DeleteInfoChannelCommand(), new DeleteTeamCommand(),
-        new DeleteRankHistoryChannelCommand(), new DeleteLeaderboardCommand(waiter), new DeleteClashChannelCommand(waiter)};
+    Command[] commandsChildren = {new DeletePlayerCommandClassicDefinition(), new DeleteInfoChannelCommandClassicDefinition(), new DeleteTeamCommandClassicDefinition(),
+        new DeleteRankHistoryChannelCommandClassicDefinition(), new DeleteLeaderboardCommandClassicDefinition(waiter), new DeleteClashChannelCommandClassicDefinition(waiter)};
     this.children = commandsChildren;
     this.helpBiConsumer = CommandUtil.getHelpMethodHasChildren(USAGE_NAME, commandsChildren);
   }

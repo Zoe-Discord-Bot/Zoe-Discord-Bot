@@ -745,8 +745,14 @@ public class InfoPanelRefresher implements Runnable {
       }
     }
 
-    stringMessage.append(LanguageManager.getText(server.getLanguage(), "informationPanelSmartModEnable"));
-
+    int refreshRate = ServerChecker.getServerRefreshService().getEstimateTimeToFullRefreshInMinutes();
+    
+    if(refreshRate > 60) {
+      stringMessage.append(LanguageManager.getText(server.getLanguage(), "informationPanelSmartModEnable"));
+    }else {
+      stringMessage.append(String.format(LanguageManager.getText(server.getLanguage(), "informationPanelRefreshedTime"), refreshRate));
+    }
+    
     return stringMessage.toString();
   }
 

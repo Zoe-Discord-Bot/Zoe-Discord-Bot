@@ -1,5 +1,6 @@
 package ch.kalunight.zoe.service;
 
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,6 +18,8 @@ import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DatedServer;
+import ch.kalunight.zoe.model.dto.ServerPerLastRefreshComparator;
+import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.service.infochannel.InfoCardsWorker;
 import ch.kalunight.zoe.service.infochannel.InfoPanelRefresher;
@@ -25,11 +28,15 @@ public class TreatServerService {
 
   private static final Logger logger = LoggerFactory.getLogger(TreatServerService.class);
 
+  private static final ServerPerLastRefreshComparator serverOrder = new ServerPerLastRefreshComparator();
+
   private BlockingQueue<Server> serversStatusDetected;
 
   private BlockingQueue<Server> serversAskedToRefresh;
 
   private BlockingQueue<InfoCardsWorker> infocardsToRefresh;
+
+  private BlockingQueue<Server> serverToRefreshPassively;
 
   private Set<Server> serverCurrentlyInTreatment;
 
@@ -42,6 +49,8 @@ public class TreatServerService {
   private int serverTreatedPerMin;
 
   private int nbrOfMinutesToRefreshAllServers;
+  
+  private LocalDateTime cycleStart;
 
   private LocalDateTime serverTreatedLastRefresh;
 
@@ -52,8 +61,10 @@ public class TreatServerService {
     serversAskedToRefresh = new LinkedBlockingQueue<>();
     infocardsToRefresh = new LinkedBlockingQueue<>();
     serverCurrentlyInTreatment = Collections.synchronizedSet(new HashSet<DTO.Server>());
+    serverToRefreshPassively = new LinkedBlockingQueue<>();
     lastServerRefreshed = Collections.synchronizedList(new ArrayList<DatedServer>());
     this.serverExecutor = serverExecutor;
+    cycleStart = LocalDateTime.now();
     init();
   }
 
@@ -72,7 +83,7 @@ public class TreatServerService {
 
       lastServerRefreshed.add(new DatedServer(serverTreatmentEnded, LocalDateTime.now()));
     }
-    
+
     if(Zoe.isShutdownStarted()) {
       return;
     }
@@ -80,6 +91,7 @@ public class TreatServerService {
     synchronized (serversStatusDetected) {
       if(!serversStatusDetected.isEmpty()) {
         Server server = serversStatusDetected.poll();
+        serverToRefreshPassively.remove(server);
 
         if(!serverCurrentlyInTreatment.contains(server)) {
           serverCurrentlyInTreatment.add(server);
@@ -94,6 +106,7 @@ public class TreatServerService {
     synchronized (serversAskedToRefresh) {
       if (!serversAskedToRefresh.isEmpty()) {
         Server server = serversAskedToRefresh.poll();
+        serverToRefreshPassively.remove(server);
 
         if(!serverCurrentlyInTreatment.contains(server)) {
           serverCurrentlyInTreatment.add(server);
@@ -113,10 +126,27 @@ public class TreatServerService {
         return;
       }
     }
-    
-    
+
+    synchronized (serverToRefreshPassively) {
+      if(!serverToRefreshPassively.isEmpty()) {
+        Server server = serverToRefreshPassively.poll();
+        server = refreshServer(server);
+
+        if(!serverCurrentlyInTreatment.contains(server)) {
+          serverCurrentlyInTreatment.add(server);
+          serverExecutor.execute(new InfoPanelRefresher(server, true));
+        }else {
+          taskEnded(null);
+        }
+        return;
+      } else {
+        refillPassiveQueue();
+      }
+    }
+
+
     try {
-      TimeUnit.MILLISECONDS.sleep(500);
+      TimeUnit.MILLISECONDS.sleep(100);
       serverExecutor.execute(new WaitTaskRefresh(this));
     } catch (InterruptedException e) {
       logger.error("InterruptedException while waiting for a task.");
@@ -124,7 +154,24 @@ public class TreatServerService {
       Thread.currentThread().interrupt();
     }
   }
-  
+
+  private void refillPassiveQueue() {
+    
+    List<Server> allServers;
+    try {
+      allServers = ServerRepository.getAllGuildTreatable();
+      cycleStart = LocalDateTime.now();
+    } catch (SQLException e) {
+      logger.warn("Error while getting all servers which need to be refreshed", e);
+      return;
+    }
+    numberOfServerManaged = allServers.size();
+
+    Collections.sort(allServers, serverOrder);
+
+    serverToRefreshPassively.addAll(allServers);
+  }
+
   public int getServerRefreshedEachMinute() {
 
     if(serverTreatedLastRefresh == null || serverTreatedLastRefresh.isBefore(LocalDateTime.now().minusMinutes(3))) {
@@ -166,6 +213,15 @@ public class TreatServerService {
     return nbrOfMinutesToRefreshAllServers;
   }
 
+  private Server refreshServer(Server server) {
+    try {
+      return ServerRepository.getServerWithServId(server.serv_id);
+    } catch (SQLException e) {
+      logger.error("Error while refreshing server !", e);
+    }
+    return server;
+  }
+
   public BlockingQueue<Server> getServersStatusDetected() {
     return serversStatusDetected;
   }
@@ -192,6 +248,14 @@ public class TreatServerService {
 
   public int getQueueSizeInfoCardsToRefresh() {
     return infocardsToRefresh.size();
+  }
+
+  public int getQueueSizePassiveRefresh() {
+    return serverToRefreshPassively.size();
+  }
+  
+  public LocalDateTime getCycleStart() {
+    return cycleStart;
   }
 
 }

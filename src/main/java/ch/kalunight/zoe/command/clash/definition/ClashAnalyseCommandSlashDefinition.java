@@ -15,7 +15,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 public class ClashAnalyseCommandSlashDefinition extends ZoeSlashCommand {
 
-  public ClashAnalyseCommandSlashDefinition() {
+  public ClashAnalyseCommandSlashDefinition(String serverId) {
     this.name = ClashAnalyseCommandRunnable.USAGE_NAME;
     String[] aliases = {"stats"};
     this.arguments = "(Platform) (Summoner Name)";
@@ -29,6 +29,13 @@ public class ClashAnalyseCommandSlashDefinition extends ZoeSlashCommand {
     options.add(CommandUtil.getSummonerSelection(true));
     
     this.options = options;
+    
+    if(serverId == null) {
+      this.guildOnly = true;
+    }else {
+      this.guildOnly = true; //True for testing
+      this.guildId = serverId; //Test server
+    }
   }
   
   @Override
@@ -37,7 +44,7 @@ public class ClashAnalyseCommandSlashDefinition extends ZoeSlashCommand {
     
     event.getHook().editOriginal(LanguageManager.getText(server.getLanguage(), "loadingData")).queue();
     
-    String args = "(" + event.getOptionsByName(ZoeSlashCommand.REGION_OPTION_ID) + ") (" + event.getOptionsByName(ZoeSlashCommand.SUMMONER_OPTION_ID) + ")";
+    String args = "(" + event.getOption(ZoeSlashCommand.REGION_OPTION_ID).getAsString() + ") (" + event.getOption(ZoeSlashCommand.SUMMONER_OPTION_ID).getAsString() + ")";
     
     ClashAnalyseCommandRunnable.executeCommand(server, event.getTextChannel(), args, null, event.getHook());
   }

@@ -402,7 +402,7 @@ public class Zoe {
     commands.add(new RegisterCommandSlashDefinition(testServer));
     commands.add(new DeleteCommandSlashCommand(eventWaiter, testServer));
     
-    commands.add(new ClashCommandSlashDefinition());
+    commands.add(new ClashCommandSlashDefinition(testServer));
     
     slashCommands = commands;
 

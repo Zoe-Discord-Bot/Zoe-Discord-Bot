@@ -10,10 +10,17 @@ import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 
 public class ClashRefreshCommandSlashDefinition extends ZoeSlashCommand {
 
-  public ClashRefreshCommandSlashDefinition() {
+  public ClashRefreshCommandSlashDefinition(String serverId) {
     this.name = ClashRefreshCommandRunnable.USAGE_NAME;
     this.help = LanguageManager.getText(LanguageManager.DEFAULT_LANGUAGE, "clashRefreshHelpMessageSlashCommand");
     this.cooldown = 10;
+    
+    if(serverId == null) {
+      this.guildOnly = true;
+    }else {
+      this.guildOnly = true; //True for testing
+      this.guildId = serverId; //Test server
+    }
   }
 
   @Override

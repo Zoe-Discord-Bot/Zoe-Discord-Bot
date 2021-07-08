@@ -40,6 +40,11 @@ public abstract class ZoeCommand extends Command {
 
       @Override
       public void run() {
+        if(event.getAuthor().isBot()) {
+          logger.debug("The sender is a bot, we ignore his command. ID : {}", event.getAuthor().getId());
+          return;
+        }
+        
         CommandUtil.sendTypingInFonctionOfChannelType(event);
         logger.info("Command \"{}\" executed", this.getClass().getName());
         commandExecuted.incrementAndGet();

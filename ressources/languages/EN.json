@@ -549,5 +549,7 @@
 	"deleteInfoChannelHelpMessageSlashCommand": "Delete the Info Channel.",
 	"deleteClashChannelCommandHelpMessageSlashCommand": "Command to delete an existing Clash Channel.",
 	"deleteLeaderboardCommandHelpMessageSlashMessage": "Delete an existing leaderboard with a contextual menu.",
-	"deleteRankChannelHelpMessageSlashCommand": "Delete the rank channel."
+	"deleteRankChannelHelpMessageSlashCommand": "Delete the rank channel.",
+	"clashAnalyzeHelpMessageSlashCommand": "Send an analyze of the given clash team.",
+	"clashRefreshHelpMessageSlashCommand": "Send this command inside a clash channel to refresh it."
 }

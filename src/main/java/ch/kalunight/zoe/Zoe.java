@@ -43,7 +43,8 @@ import ch.kalunight.zoe.command.SetupCommand;
 import ch.kalunight.zoe.command.ShutDownCommand;
 import ch.kalunight.zoe.command.add.AddCommand;
 import ch.kalunight.zoe.command.admin.AdminCommand;
-import ch.kalunight.zoe.command.clash.ClashCommand;
+import ch.kalunight.zoe.command.clash.definition.ClashCommandClassicDefinition;
+import ch.kalunight.zoe.command.clash.definition.ClashCommandSlashDefinition;
 import ch.kalunight.zoe.command.create.definition.CreateCommandClassicDefinition;
 import ch.kalunight.zoe.command.create.definition.CreateCommandSlashDefinition;
 import ch.kalunight.zoe.command.create.definition.RegisterCommandClassicDefinition;
@@ -375,7 +376,7 @@ public class Zoe {
     commands.add(new UndefineCommand());
     commands.add(new ResetCommand(eventWaiter));
     commands.add(new BanAccountCommand(eventWaiter));
-    commands.add(new ClashCommand());
+    commands.add(new ClashCommandClassicDefinition());
     commands.add(new PatchNotesCommand());
 
     mainCommands = commands;
@@ -400,6 +401,8 @@ public class Zoe {
     commands.add(new CreateCommandSlashDefinition(eventWaiter, testServer));
     commands.add(new RegisterCommandSlashDefinition(testServer));
     commands.add(new DeleteCommandSlashCommand(eventWaiter, testServer));
+    
+    commands.add(new ClashCommandSlashDefinition());
     
     slashCommands = commands;
 

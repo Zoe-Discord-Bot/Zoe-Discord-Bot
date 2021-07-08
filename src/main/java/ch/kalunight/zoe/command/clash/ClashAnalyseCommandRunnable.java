@@ -2,16 +2,9 @@ package ch.kalunight.zoe.command.clash;
 
 import java.sql.SQLException;
 import java.util.List;
-import java.util.function.BiConsumer;
-
-import com.jagrosh.jdautilities.command.Command;
-import com.jagrosh.jdautilities.command.CommandEvent;
-
 import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.Zoe;
-import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.command.create.CreatePlayerCommandRunnable;
-import ch.kalunight.zoe.command.show.ShowCommand;
 import ch.kalunight.zoe.model.dto.DTO.ClashChannel;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.repositories.ClashChannelRepository;
@@ -20,38 +13,32 @@ import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import ch.kalunight.zoe.util.RiotApiUtil;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.constant.Platform;
 
-public class ClashAnalyseCommand extends ZoeCommand {
+public class ClashAnalyseCommandRunnable {
   
   public static final String USAGE_NAME = "analysis";
   
-  public ClashAnalyseCommand() {
-    this.name = USAGE_NAME;
-    String[] aliases = {"stats"};
-    this.arguments = "(Platform) (Summoner Name)";
-    this.aliases = aliases;
-    this.help = "clashAnalyzeHelpMessage";
-    this.cooldown = 30;
-    this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(ShowCommand.USAGE_NAME, name, arguments, help);
+  private ClashAnalyseCommandRunnable() {
+    // hide default private constructor
   }
   
-  @Override
-  protected void executeCommand(CommandEvent event) throws SQLException {
-    Server server = getServer(event.getGuild().getIdLong());
+  public static void executeCommand(Server server, TextChannel channel, String args, Message loadingMessage, InteractionHook hook) throws SQLException {
     
     ClashChannel channelToTreat = null;
     List<ClashChannel> clashchannls = ClashChannelRepository.getClashChannels(server.serv_guildId);
     for(ClashChannel channelToCheck : clashchannls) {
-      if(channelToCheck.clashChannel_channelId == event.getChannel().getIdLong()) {
+      if(channelToCheck.clashChannel_channelId == channel.getIdLong()) {
         channelToTreat = channelToCheck;
         break;
       }
     }
     
-    List<String> listArgs = CreatePlayerCommandRunnable.getParameterInParenteses(event.getArgs());
+    List<String> listArgs = CreatePlayerCommandRunnable.getParameterInParenteses(args);
     String regionName;
     String summonerName;
     
@@ -60,7 +47,7 @@ public class ClashAnalyseCommand extends ZoeCommand {
         regionName = listArgs.get(0);
         summonerName = listArgs.get(1);
       }else {
-        event.reply(LanguageManager.getText(server.getLanguage(), "clashAnalyzeMalformedFormat"));
+        CommandUtil.sendMessageWithClassicOrSlashCommand(LanguageManager.getText(server.getLanguage(), "clashAnalyzeMalformedFormat"), loadingMessage, hook);
         return;
       }
       
@@ -73,14 +60,14 @@ public class ClashAnalyseCommand extends ZoeCommand {
         summonerName = listArgs.get(0);
         regionName = channelToTreat.clashChannel_data.getSelectedPlatform().getName();
       }else {
-        event.reply(String.format(LanguageManager.getText(server.getLanguage(), "clashAnalyzeMalformedFormatInsideClashChannel"), 
-            channelToTreat.clashChannel_data.getSelectedPlatform().getName().toUpperCase()));
+        CommandUtil.sendMessageWithClassicOrSlashCommand(String.format(LanguageManager.getText(server.getLanguage(), "clashAnalyzeMalformedFormatInsideClashChannel"), 
+            channelToTreat.clashChannel_data.getSelectedPlatform().getName().toUpperCase()), loadingMessage, hook);
         return;
       }
       
     }
     
-    Message loadingMessage = event.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "loadingSummoner")).complete();
+    
     Platform platorm = CreatePlayerCommandRunnable.getPlatform(regionName);
     Summoner summoner;
     try {
@@ -91,15 +78,10 @@ public class ClashAnalyseCommand extends ZoeCommand {
     }
     
     if(summoner != null) {
-      LoadClashTeamAndStartBanAnalyseWorker loadClashTeamWorker = new LoadClashTeamAndStartBanAnalyseWorker(server, summoner.getId(), platorm, event.getTextChannel(), channelToTreat);
-      loadingMessage.editMessage("*" + LanguageManager.getText(server.getLanguage(), "clashAnalyzeLoadStarted") + "*").queue();
+      LoadClashTeamAndStartBanAnalyseWorker loadClashTeamWorker = new LoadClashTeamAndStartBanAnalyseWorker(server, summoner.getId(), platorm, channel, channelToTreat);
+      CommandUtil.sendMessageWithClassicOrSlashCommand(("*" + LanguageManager.getText(server.getLanguage(), "clashAnalyzeLoadStarted") + "*"), loadingMessage, hook);
       ServerThreadsManager.getClashChannelExecutor().execute(loadClashTeamWorker);
     }
     
-  }
-
-  @Override
-  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
-    return helpBiConsumer;
   }
 }

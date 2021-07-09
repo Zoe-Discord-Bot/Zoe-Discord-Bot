@@ -39,6 +39,10 @@ public abstract class ZoeSlashCommand extends SlashCommand {
 
       @Override
       public void run() {
+        if(event.getUser().isBot()) {
+          logger.debug("The sender is a bot, we ignore his command. ID : {}", event.getUser().getId());
+          return;
+        }
         event.deferReply().queue();
         logger.info("Command \"{}\" executed", this.getClass().getName());
         commandExecuted.incrementAndGet();

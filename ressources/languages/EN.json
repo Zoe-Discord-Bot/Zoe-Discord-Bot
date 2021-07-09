@@ -551,5 +551,7 @@
 	"deleteLeaderboardCommandHelpMessageSlashMessage": "Delete an existing leaderboard with a contextual menu.",
 	"deleteRankChannelHelpMessageSlashCommand": "Delete the rank channel.",
 	"clashAnalyzeHelpMessageSlashCommand": "Send an analyze of the given clash team.",
-	"clashRefreshHelpMessageSlashCommand": "Send this command inside a clash channel to refresh it."
+	"clashRefreshHelpMessageSlashCommand": "Send this command inside a clash channel to refresh it.",
+	"addAccountHelpMessageSlashCommand": "Add to the mentioned player the given account.",
+	"addPlayerToTeamCommandHelpSlashCommand": "Add the mentioned player to the given team."
 }

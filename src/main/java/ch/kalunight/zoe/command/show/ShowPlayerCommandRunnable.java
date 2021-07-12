@@ -4,14 +4,11 @@ import java.awt.Color;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
-import com.jagrosh.jdautilities.command.Command;
-import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.Paginator;
 import ch.kalunight.zoe.Zoe;
-import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.dto.DTO.SummonerCache;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
@@ -19,33 +16,23 @@ import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import ch.kalunight.zoe.util.RiotApiUtil;
 import ch.kalunight.zoe.util.request.RiotRequest;
-import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.exceptions.PermissionException;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.rithms.riot.api.RiotApiException;
 
-public class ShowPlayerCommand extends ZoeCommand {
+public class ShowPlayerCommandRunnable {
 
   public static final String USAGE_NAME = "players";
 
-  private final EventWaiter waiter;
-
-  public ShowPlayerCommand(EventWaiter eventWaiter) {
-    this.name = USAGE_NAME;
-    String[] aliases = {"p", "player"};
-    this.arguments = "";
-    this.aliases = aliases;
-    this.waiter = eventWaiter;
-    this.help = "showPlayerHelpMessage";
-    this.cooldown = 10;
-    this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(ShowCommand.USAGE_NAME, name, arguments, help);
-    Permission[] botPermissionNeeded = {Permission.MANAGE_EMOTES, Permission.MESSAGE_EMBED_LINKS, Permission.MESSAGE_ADD_REACTION, Permission.MESSAGE_MANAGE};
-    this.botPermissions = botPermissionNeeded;
+  private ShowPlayerCommandRunnable() {
+    // hide default public command
   }
-
-  @Override
-  protected void executeCommand(CommandEvent event) throws SQLException {
-    DTO.Server server = getServer(event.getGuild().getIdLong());
+  
+  public static void executeCommand(Server server, EventWaiter waiter, Member member, TextChannel channel, Message messageToEdit, InteractionHook hook) throws SQLException {
     
     Paginator.Builder pbuilder = new Paginator.Builder()
         .setColumns(1)
@@ -68,14 +55,14 @@ public class ShowPlayerCommand extends ZoeCommand {
     List<DTO.Player> players = PlayerRepository.getPlayers(server.serv_guildId);
     
     if(players.isEmpty()) {
-      event.reply(LanguageManager.getText(server.getLanguage(), "showPlayerServerEmpty"));
+      CommandUtil.sendMessageWithClassicOrSlashCommand(LanguageManager.getText(server.getLanguage(), "showPlayerServerEmpty"), messageToEdit, hook);
       return;
     }
     
     int accountsNmb = 0;
     for(DTO.Player player : players) {
       StringBuilder playerInfo = new StringBuilder();
-      User user = event.getGuild().retrieveMemberById(player.player_discordId).complete().getUser();
+      User user = member.getGuild().retrieveMemberById(player.player_discordId).complete().getUser();
       playerInfo.append(String.format(LanguageManager.getText(server.getLanguage(), "showPlayerName"),
           user.getName()) + "\n");
 
@@ -91,7 +78,7 @@ public class ShowPlayerCommand extends ZoeCommand {
           summoner = Zoe.getRiotApi().getSummoner(leagueAccount.leagueAccount_server,
               leagueAccount.leagueAccount_summonerId, false);
         } catch(RiotApiException e) {
-          RiotApiUtil.handleRiotApi(event.getEvent(), e, server.getLanguage());
+          CommandUtil.sendMessageWithClassicOrSlashCommand(RiotApiUtil.getTextHandlerRiotApiError(e, server.getLanguage()), messageToEdit, hook);
           return;
         }
         playerInfo.append(String.format(LanguageManager.getText(server.getLanguage(), "showPlayerAccount"),
@@ -102,16 +89,12 @@ public class ShowPlayerCommand extends ZoeCommand {
       pbuilder.addItems(playerInfo.toString().substring(0, playerInfo.toString().length() - 1));
     }
 
+    CommandUtil.sendMessageWithClassicOrSlashCommand(String.format(LanguageManager.getText(server.getLanguage(), "showPlayerEmbedTitle"), players.size(), accountsNmb), messageToEdit, hook);
+    
     Paginator p = pbuilder.setColor(Color.GREEN)
-        .setText(String.format(LanguageManager.getText(server.getLanguage(), "showPlayerEmbedTitle"), players.size(), accountsNmb))
-        .setUsers(event.getAuthor())
+        .setUsers(member.getUser())
+        .setText("")
         .build();
-    p.paginate(event.getChannel(), page);
-
-  }
-
-  @Override
-  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
-    return helpBiConsumer;
+    p.paginate(channel, page);
   }
 }

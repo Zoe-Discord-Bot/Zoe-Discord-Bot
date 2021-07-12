@@ -61,7 +61,7 @@ public class CommandUtil {
   
   public static OptionData getSummonerSelection(boolean required) {
     OptionData summoner = new OptionData(OptionType.STRING, ZoeSlashCommand.SUMMONER_OPTION_ID, "The summoner name of the wanted league account");
-    summoner.setRequired(true);
+    summoner.setRequired(required);
     
     return summoner;
   }

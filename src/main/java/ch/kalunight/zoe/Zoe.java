@@ -60,9 +60,12 @@ import ch.kalunight.zoe.command.definition.RefreshCommandClassicDefinition;
 import ch.kalunight.zoe.command.definition.RefreshCommandSlashDefinition;
 import ch.kalunight.zoe.command.delete.definition.DeleteCommandClassicDefinition;
 import ch.kalunight.zoe.command.delete.definition.DeleteCommandSlashCommand;
-import ch.kalunight.zoe.command.remove.RemoveCommand;
-import ch.kalunight.zoe.command.show.ShowCommand;
-import ch.kalunight.zoe.command.stats.StatsCommand;
+import ch.kalunight.zoe.command.remove.definition.RemoveCommandClassicDefinition;
+import ch.kalunight.zoe.command.remove.definition.RemoveCommandSlashDefinition;
+import ch.kalunight.zoe.command.show.definition.ShowCommandClassicDefinition;
+import ch.kalunight.zoe.command.show.definition.ShowCommandSlashDefinition;
+import ch.kalunight.zoe.command.stats.definition.StatsCommandClassicDefinition;
+import ch.kalunight.zoe.command.stats.definition.StatsCommandSlashDefinition;
 import ch.kalunight.zoe.model.dangerosityreport.DangerosityReportKDA;
 import ch.kalunight.zoe.model.dto.DTO.ChampionRoleAnalysis;
 import ch.kalunight.zoe.model.static_data.Champion;
@@ -368,9 +371,9 @@ public class Zoe {
     commands.add(new CreateCommandClassicDefinition(eventWaiter));
     commands.add(new DeleteCommandClassicDefinition(eventWaiter));
     commands.add(new AddCommandClassicDefinition());
-    commands.add(new RemoveCommand());
-    commands.add(new StatsCommand(eventWaiter));
-    commands.add(new ShowCommand(eventWaiter));
+    commands.add(new RemoveCommandClassicDefinition());
+    commands.add(new StatsCommandClassicDefinition(eventWaiter));
+    commands.add(new ShowCommandClassicDefinition(eventWaiter));
     commands.add(new RefreshCommandClassicDefinition());
     commands.add(new RegisterCommandClassicDefinition());
     commands.add(new DefineCommand());
@@ -403,6 +406,9 @@ public class Zoe {
     commands.add(new RegisterCommandSlashDefinition(testServer));
     commands.add(new DeleteCommandSlashCommand(eventWaiter, testServer));
     commands.add(new AddCommandSlashDefinition(testServer));
+    commands.add(new RemoveCommandSlashDefinition(testServer));
+    commands.add(new ShowCommandSlashDefinition(eventWaiter, testServer));
+    commands.add(new StatsCommandSlashDefinition(eventWaiter, testServer));
     
     commands.add(new ClashCommandSlashDefinition(testServer));
     

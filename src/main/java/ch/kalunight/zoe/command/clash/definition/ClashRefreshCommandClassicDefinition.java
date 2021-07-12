@@ -7,8 +7,8 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 
 import ch.kalunight.zoe.command.ZoeCommand;
+import ch.kalunight.zoe.command.clash.ClashCommandRunnable;
 import ch.kalunight.zoe.command.clash.ClashRefreshCommandRunnable;
-import ch.kalunight.zoe.command.show.ShowCommand;
 import ch.kalunight.zoe.util.CommandUtil;
 
 public class ClashRefreshCommandClassicDefinition extends ZoeCommand {
@@ -20,7 +20,7 @@ public class ClashRefreshCommandClassicDefinition extends ZoeCommand {
     this.aliases = aliases;
     this.help = "clashRefreshHelpMessage";
     this.cooldown = 10;
-    this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(ShowCommand.USAGE_NAME, name, arguments, help);
+    this.helpBiConsumer = CommandUtil.getHelpMethodIsChildren(ClashCommandRunnable.USAGE_NAME, name, arguments, help);
   }
 
   @Override

@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -18,9 +19,11 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
 
 import javax.security.auth.login.LoginException;
+
 import org.discordbots.api.client.DiscordBotListAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -28,28 +31,44 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import com.jagrosh.jdautilities.command.CommandEvent;
+import com.jagrosh.jdautilities.command.SlashCommand;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
-import ch.kalunight.zoe.command.AboutCommand;
-import ch.kalunight.zoe.command.BanAccountCommand;
-import ch.kalunight.zoe.command.ConfigCommand;
-import ch.kalunight.zoe.command.LanguageCommand;
+
 import ch.kalunight.zoe.command.PatchNotesCommand;
 import ch.kalunight.zoe.command.RebootCommand;
-import ch.kalunight.zoe.command.RefreshCommand;
-import ch.kalunight.zoe.command.ResetCommand;
 import ch.kalunight.zoe.command.SetupCommand;
 import ch.kalunight.zoe.command.ShutDownCommand;
-import ch.kalunight.zoe.command.add.AddCommand;
+import ch.kalunight.zoe.command.add.definition.AddCommandClassicDefinition;
+import ch.kalunight.zoe.command.add.definition.AddCommandSlashDefinition;
 import ch.kalunight.zoe.command.admin.AdminCommand;
-import ch.kalunight.zoe.command.clash.ClashCommand;
-import ch.kalunight.zoe.command.create.CreateCommand;
-import ch.kalunight.zoe.command.create.RegisterCommand;
+import ch.kalunight.zoe.command.clash.definition.ClashCommandClassicDefinition;
+import ch.kalunight.zoe.command.clash.definition.ClashCommandSlashDefinition;
+import ch.kalunight.zoe.command.create.definition.CreateCommandClassicDefinition;
+import ch.kalunight.zoe.command.create.definition.CreateCommandSlashDefinition;
+import ch.kalunight.zoe.command.create.definition.RegisterCommandClassicDefinition;
+import ch.kalunight.zoe.command.create.definition.RegisterCommandSlashDefinition;
 import ch.kalunight.zoe.command.define.DefineCommand;
 import ch.kalunight.zoe.command.define.UndefineCommand;
-import ch.kalunight.zoe.command.delete.DeleteCommand;
-import ch.kalunight.zoe.command.remove.RemoveCommand;
-import ch.kalunight.zoe.command.show.ShowCommand;
-import ch.kalunight.zoe.command.stats.StatsCommand;
+import ch.kalunight.zoe.command.definition.AboutCommandClassicDefinition;
+import ch.kalunight.zoe.command.definition.AboutCommandSlashDefinition;
+import ch.kalunight.zoe.command.definition.BanAccountCommandClassicDefinition;
+import ch.kalunight.zoe.command.definition.BanAccountCommandSlashDefinition;
+import ch.kalunight.zoe.command.definition.ConfigCommandClassicDefinition;
+import ch.kalunight.zoe.command.definition.ConfigCommandSlashDefinition;
+import ch.kalunight.zoe.command.definition.LanguageCommandClassicDefinition;
+import ch.kalunight.zoe.command.definition.LanguageCommandSlashDefinition;
+import ch.kalunight.zoe.command.definition.RefreshCommandClassicDefinition;
+import ch.kalunight.zoe.command.definition.RefreshCommandSlashDefinition;
+import ch.kalunight.zoe.command.definition.ResetCommandClassicDefinition;
+import ch.kalunight.zoe.command.definition.ResetCommandSlashDefinition;
+import ch.kalunight.zoe.command.delete.definition.DeleteCommandClassicDefinition;
+import ch.kalunight.zoe.command.delete.definition.DeleteCommandSlashCommand;
+import ch.kalunight.zoe.command.remove.definition.RemoveCommandClassicDefinition;
+import ch.kalunight.zoe.command.remove.definition.RemoveCommandSlashDefinition;
+import ch.kalunight.zoe.command.show.definition.ShowCommandClassicDefinition;
+import ch.kalunight.zoe.command.show.definition.ShowCommandSlashDefinition;
+import ch.kalunight.zoe.command.stats.definition.StatsCommandClassicDefinition;
+import ch.kalunight.zoe.command.stats.definition.StatsCommandSlashDefinition;
 import ch.kalunight.zoe.model.dangerosityreport.DangerosityReportKDA;
 import ch.kalunight.zoe.model.dto.DTO.ChampionRoleAnalysis;
 import ch.kalunight.zoe.model.static_data.Champion;
@@ -92,6 +111,8 @@ public class Zoe {
 
   public static final int NUMBER_OF_SHARDS = 4;
 
+  public static final LocalDateTime BOOT_TIME = LocalDateTime.now();
+
   private static final ConcurrentLinkedQueue<List<CustomEmote>> emotesNeedToBeUploaded = new ConcurrentLinkedQueue<>();
 
   private static final List<Object> eventListenerList = Collections.synchronizedList(new ArrayList<>());
@@ -105,6 +126,8 @@ public class Zoe {
   private static final List<GatewayIntent> listOfGatway = Collections.synchronizedList(new ArrayList<>());
 
   private static List<Command> mainCommands;
+  
+  private static List<SlashCommand> slashCommands;
 
   private static CachedRiotApi riotApi;
 
@@ -115,6 +138,8 @@ public class Zoe {
   private static String discordBotListTocken = null;
 
   private static String clientOwnerID;
+  
+  private static boolean shutdownStarted = false;
 
   private static DiscordBotListAPI botListApi;
 
@@ -175,12 +200,27 @@ public class Zoe {
     Consumer<CommandEvent> helpCommand = CommandUtil.getHelpCommand();
 
     client.setHelpConsumer(helpCommand);
-
-    CommandClient commandClient = client.build();
-
+    
+    logger.info("Loading of translations ...");
+    try {
+      LanguageManager.loadTranslations();
+    } catch(IOException e) {
+      logger.error("Critical error with the loading of translations (File issue) !", e);
+      System.exit(1);
+    }
+    logger.info("Loading of translation finished !");
+    
     EventWaiter eventWaiter = new EventWaiter(ServerThreadsManager.getResponseWaiter(), false);
 
     Zoe.setEventWaiter(eventWaiter);
+    
+    logger.info("Setup of slash commands ...");
+    for(SlashCommand command : Zoe.getSlashCommands(eventWaiter)) {
+      client.addSlashCommand(command);
+    }
+    logger.info("Setup of slash commands done !");
+
+    CommandClient commandClient = client.build();
 
     SetupEventListener setupEventListener = new SetupEventListener();
 
@@ -221,14 +261,6 @@ public class Zoe {
   }
 
   private static void loadZoeRessources() {
-    logger.info("Loading of translations ...");
-    try {
-      LanguageManager.loadTranslations();
-    } catch(IOException e) {
-      logger.error("Critical error with the loading of translations (File issue) !", e);
-      System.exit(1);
-    }
-    logger.info("Loading of translation finished !");
 
     logger.info("Loading of champions ...");
     try {
@@ -314,6 +346,7 @@ public class Zoe {
     ApiConfig config = new ApiConfig().setKey(riotTocken).setTFTKey(tftTocken);
 
     config.setMaxAsyncThreads(ServerThreadsManager.NBR_PROC);
+    config.setRequestTimeout(1000);
     riotApi = new CachedRiotApi(new RiotApi(config));
   }
 
@@ -334,26 +367,58 @@ public class Zoe {
     commands.add(new RebootCommand());
 
     // Basic commands
-    commands.add(new AboutCommand());
+    commands.add(new AboutCommandClassicDefinition());
     commands.add(new SetupCommand());
-    commands.add(new LanguageCommand(eventWaiter));
-    commands.add(new ConfigCommand(eventWaiter));
-    commands.add(new CreateCommand(eventWaiter));
-    commands.add(new DeleteCommand(eventWaiter));
-    commands.add(new AddCommand());
-    commands.add(new RemoveCommand());
-    commands.add(new StatsCommand(eventWaiter));
-    commands.add(new ShowCommand(eventWaiter));
-    commands.add(new RefreshCommand());
-    commands.add(new RegisterCommand());
+    commands.add(new LanguageCommandClassicDefinition(eventWaiter));
+    commands.add(new ConfigCommandClassicDefinition(eventWaiter));
+    commands.add(new CreateCommandClassicDefinition(eventWaiter));
+    commands.add(new DeleteCommandClassicDefinition(eventWaiter));
+    commands.add(new AddCommandClassicDefinition());
+    commands.add(new RemoveCommandClassicDefinition());
+    commands.add(new StatsCommandClassicDefinition(eventWaiter));
+    commands.add(new ShowCommandClassicDefinition(eventWaiter));
+    commands.add(new RefreshCommandClassicDefinition());
+    commands.add(new RegisterCommandClassicDefinition());
     commands.add(new DefineCommand());
     commands.add(new UndefineCommand());
-    commands.add(new ResetCommand(eventWaiter));
-    commands.add(new BanAccountCommand(eventWaiter));
-    commands.add(new ClashCommand());
+    commands.add(new ResetCommandClassicDefinition(eventWaiter));
+    commands.add(new BanAccountCommandClassicDefinition(eventWaiter));
+    commands.add(new ClashCommandClassicDefinition());
     commands.add(new PatchNotesCommand());
 
     mainCommands = commands;
+
+    return commands;
+  }
+  
+  public static synchronized List<SlashCommand> getSlashCommands(EventWaiter eventWaiter) {
+    if(slashCommands != null) {
+      return slashCommands;
+    }
+    
+    String testServer = null; //set to null for global command = production
+    
+    List<SlashCommand> commands = new ArrayList<>();
+    
+    //basic
+    commands.add(new AboutCommandSlashDefinition(testServer));
+    commands.add(new LanguageCommandSlashDefinition(testServer));
+    commands.add(new RefreshCommandSlashDefinition(testServer));
+    commands.add(new BanAccountCommandSlashDefinition(eventWaiter, testServer));
+    commands.add(new ConfigCommandSlashDefinition(eventWaiter, testServer));
+    commands.add(new ResetCommandSlashDefinition(eventWaiter, testServer));
+    
+    commands.add(new CreateCommandSlashDefinition(eventWaiter, testServer));
+    commands.add(new RegisterCommandSlashDefinition(testServer));
+    commands.add(new DeleteCommandSlashCommand(eventWaiter, testServer));
+    commands.add(new AddCommandSlashDefinition(testServer));
+    commands.add(new RemoveCommandSlashDefinition(testServer));
+    commands.add(new ShowCommandSlashDefinition(eventWaiter, testServer));
+    commands.add(new StatsCommandSlashDefinition(eventWaiter, testServer));
+    
+    commands.add(new ClashCommandSlashDefinition(testServer));
+    
+    slashCommands = commands;
 
     return commands;
   }
@@ -573,5 +638,13 @@ public class Zoe {
 
   public static List<GatewayIntent> getListOfGatway() {
     return listOfGatway;
+  }
+
+  public static boolean isShutdownStarted() {
+    return shutdownStarted;
+  }
+
+  public static void setShutdownStarted(boolean shutdownStarted) {
+    Zoe.shutdownStarted = shutdownStarted;
   }
 }

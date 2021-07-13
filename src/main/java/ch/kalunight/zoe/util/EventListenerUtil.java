@@ -15,7 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.menu.SelectionDialog;
 import ch.kalunight.zoe.Zoe;
-import ch.kalunight.zoe.command.LanguageCommand;
+import ch.kalunight.zoe.command.LanguageCommandRunnable;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.static_data.CustomEmote;
 import ch.kalunight.zoe.repositories.ConfigRepository;
@@ -123,7 +123,7 @@ public class EventListenerUtil {
         }
 
         selectionMessage.getChannel().sendMessage(String.format(LanguageManager.getText(server.getLanguage(), "addingSystemLanguageSelected"),
-            LanguageManager.getText(server.getLanguage(), LanguageCommand.NATIVE_LANGUAGE_TRANSLATION_ID))).queue();
+            LanguageManager.getText(server.getLanguage(), LanguageCommandRunnable.NATIVE_LANGUAGE_TRANSLATION_ID))).queue();
 
 
         SelectionDialog.Builder selectAccountBuilder = new SelectionDialog.Builder()
@@ -187,10 +187,10 @@ public class EventListenerUtil {
           String strRegion;
           if(regionsList.size() == selectionOfRegion - 1) {
             strRegion = LanguageManager.getText(server.getLanguage(), "regionOptionAnyRegion");
-            ConfigRepository.updateRegionOption(server.serv_guildId, null);
+            ConfigRepository.updateRegionOption(server.serv_guildId, null, selectionMessage.getJDA());
           } else {
             strRegion = regionsList.get(selectionOfRegion - 1).getName().toUpperCase();
-            ConfigRepository.updateRegionOption(server.serv_guildId, regionsList.get(selectionOfRegion - 1));
+            ConfigRepository.updateRegionOption(server.serv_guildId, regionsList.get(selectionOfRegion - 1), selectionMessage.getJDA());
           }
 
           selectionMessage.getChannel().sendMessage(String.format(

@@ -9,16 +9,17 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.SelectionDialog;
 
 import ch.kalunight.zoe.Zoe;
-import ch.kalunight.zoe.command.create.CreatePlayerCommand;
+import ch.kalunight.zoe.command.create.CreatePlayerCommandRunnable;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.TeamUtil;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.clash.constant.TeamPosition;
@@ -35,23 +36,26 @@ public class TeamSelectorDataHandler {
   
   private Server server;
   
-  private CommandEvent baseEvent;
+  private TextChannel channel;
+  
+  private Member author;
   
   private TeamSelectorDataManager dataManager;
   
   private ThreadPoolExecutor whereToExecute;
   
-  public TeamSelectorDataHandler(EventWaiter waiter, Server server, CommandEvent baseEvent, TeamSelectorDataManager dataManager, ThreadPoolExecutor whereToExecute) {
+  public TeamSelectorDataHandler(EventWaiter waiter, Server server, TextChannel channel, Member author, TeamSelectorDataManager dataManager, ThreadPoolExecutor whereToExecute) {
     accountsSelected = Collections.synchronizedList(new ArrayList<>());
     this.waiter = waiter;
     this.server = server;
-    this.baseEvent = baseEvent;
+    this.channel = channel;
+    this.author = author;
     this.dataManager = dataManager;
     this.whereToExecute = whereToExecute;
   }
   
   public void askSelectionAccount() {
-    baseEvent.getTextChannel().sendMessage(String.format(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisAskAccount"), accountsSelected.size())
+    channel.sendMessage(String.format(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisAskAccount"), accountsSelected.size())
         + " " + LanguageManager.getText(server.getLanguage(), STATS_TEAM_ANALYSIS_CANCEL_MESSAGE_ID)).queue();
     
     defineAccountSelectionWaiter();
@@ -59,8 +63,7 @@ public class TeamSelectorDataHandler {
 
   private void defineAccountSelectionWaiter() {
     waiter.waitForEvent(MessageReceivedEvent.class,
-        e -> e.getAuthor().equals(baseEvent.getAuthor()) && e.getChannel().equals(baseEvent.getChannel())
-        && !e.getMessage().getId().equals(baseEvent.getMessage().getId()),
+        e -> e.getAuthor().equals(author.getUser()) && e.getChannel().equals(channel),
         e -> threatAccountSelection(e), 3, TimeUnit.MINUTES,
         () -> cancelSelectionOfAnAccount());
   }
@@ -69,31 +72,31 @@ public class TeamSelectorDataHandler {
     String messageReceived = messageReceivedEvent.getMessage().getContentRaw();
     
     if(messageReceived.equalsIgnoreCase("Stop")) {
-      baseEvent.reply(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisRoleSelectionCancel"));
+      messageReceivedEvent.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisRoleSelectionCancel")).queue();
       return;
     }
     
-    List<String> listArgs = CreatePlayerCommand.getParameterInParenteses(messageReceived);
+    List<String> listArgs = CreatePlayerCommandRunnable.getParameterInParenteses(messageReceived);
     
     if(listArgs.size() != 2) {
-      baseEvent.reply(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisMalformedAccount") 
-          + " " + LanguageManager.getText(server.getLanguage(), STATS_TEAM_ANALYSIS_CANCEL_MESSAGE_ID));
-      
+      messageReceivedEvent.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisMalformedAccount") 
+          + " " + LanguageManager.getText(server.getLanguage(), STATS_TEAM_ANALYSIS_CANCEL_MESSAGE_ID)).queue();
+      defineAccountSelectionWaiter();
       return;
     }
 
     String regionName = listArgs.get(0);
     String summonerName = listArgs.get(1);
 
-    Platform region = CreatePlayerCommand.getPlatform(regionName);
+    Platform region = CreatePlayerCommandRunnable.getPlatform(regionName);
     if(region == null) {
-      baseEvent.reply(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisRegionTagInvalid") 
-          + " " + LanguageManager.getText(server.getLanguage(), STATS_TEAM_ANALYSIS_CANCEL_MESSAGE_ID));
+      messageReceivedEvent.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisRegionTagInvalid") 
+          + " " + LanguageManager.getText(server.getLanguage(), STATS_TEAM_ANALYSIS_CANCEL_MESSAGE_ID)).queue();
       defineAccountSelectionWaiter();
       return;
     }
 
-    Message messageLoading = baseEvent.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "loadingSummoner")).complete();
+    Message messageLoading = messageReceivedEvent.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "loadingSummoner")).complete();
     Summoner summoner;
     try {
       summoner = Zoe.getRiotApi().getSummonerByNameWithRateLimit(region, summonerName);
@@ -121,7 +124,7 @@ public class TeamSelectorDataHandler {
   private void defineRoleSelectionWaiter(Platform platform, Summoner summoner, Message messageLoading) {
     
     SelectionDialog.Builder selectRoleBuilder = new SelectionDialog.Builder()
-        .addUsers(baseEvent.getAuthor())
+        .addUsers(author.getUser())
         .setEventWaiter(waiter)
         .useLooping(true)
         .setColor(Color.GREEN)
@@ -153,14 +156,14 @@ public class TeamSelectorDataHandler {
       
       @Override
       public void accept(Message baseMessage, Integer seletedAnswerId) {
-        baseEvent.getTextChannel().sendTyping().queue();
+        baseMessage.getTextChannel().sendTyping().queue();
         baseMessage.clearReactions().queue();
         TeamPosition selected = rolesOrder.get(seletedAnswerId - 1);
         
         String summonerName = "*" + platform.getName().toUpperCase() + "* " + summoner.getName();
         
-        baseEvent.reply(String.format(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisAccountCorrectlySelected"), summonerName,
-            LanguageManager.getText(server.getLanguage(), TeamUtil.getTeamPositionId(selected))));
+        baseMessage.getTextChannel().sendMessage(String.format(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisAccountCorrectlySelected"), summonerName,
+            LanguageManager.getText(server.getLanguage(), TeamUtil.getTeamPositionId(selected)))).queue();
         
         accountsSelected.add(new AccountDataWithRole(summoner, platform, selected));
         manageAccountNeededOrNot();
@@ -170,7 +173,7 @@ public class TeamSelectorDataHandler {
   
   private void manageAccountNeededOrNot() {
     if(accountsSelected.size() == 5) {
-      baseEvent.reply("*" + LanguageManager.getText(server.getLanguage(), "clashAnalyzeLoadStarted") + "*");
+      channel.sendMessage("*" + LanguageManager.getText(server.getLanguage(), "clashAnalyzeLoadStarted") + "*").queue();
       dataManager.feedWithData(accountsSelected);
       whereToExecute.execute(dataManager);
     }else {
@@ -209,7 +212,7 @@ public class TeamSelectorDataHandler {
   }
 
   private void cancelSelectionOfAnAccount() {
-    baseEvent.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisSelectionTimeOut")).queue();
+    channel.sendMessage(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisSelectionTimeOut")).queue();
   }
   
 }

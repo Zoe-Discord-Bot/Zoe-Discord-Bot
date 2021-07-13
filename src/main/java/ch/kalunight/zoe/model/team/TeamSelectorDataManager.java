@@ -5,10 +5,9 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.jagrosh.jdautilities.command.CommandEvent;
-
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.translation.LanguageManager;
+import net.dv8tion.jda.api.entities.TextChannel;
 
 public abstract class TeamSelectorDataManager implements Runnable {
 
@@ -16,14 +15,14 @@ public abstract class TeamSelectorDataManager implements Runnable {
 
   protected List<AccountDataWithRole> accountsToTreat;
 
-  protected CommandEvent baseEvent;
-
   protected Server server;
   
-  public TeamSelectorDataManager(CommandEvent event, Server server) {
+  protected TextChannel channel;
+  
+  public TeamSelectorDataManager(Server server, TextChannel channel) {
     this.accountsToTreat = null;
-    this.baseEvent = event;
     this.server = server;
+    this.channel = channel;
   }
 
   @Override
@@ -33,7 +32,7 @@ public abstract class TeamSelectorDataManager implements Runnable {
         treatData();
       }else {
         logger.error("Accounts data missing ! We can't process them.");
-        baseEvent.reply(LanguageManager.getText(server.getLanguage(), "statsProfileUnexpectedError"));
+        channel.sendMessage(LanguageManager.getText(server.getLanguage(), "statsProfileUnexpectedError")).queue();
       }
     }catch (Exception e) {
       logger.error("Unexpected error in TeamSelectorDataManager !", e);

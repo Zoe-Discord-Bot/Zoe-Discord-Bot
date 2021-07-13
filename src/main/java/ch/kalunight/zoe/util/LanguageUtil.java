@@ -5,6 +5,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
+import ch.kalunight.zoe.command.LanguageCommandRunnable;
+import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.static_data.Mastery;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.entities.Message;
@@ -15,11 +17,13 @@ public class LanguageUtil {
     //Hide default public constructor
   }
 
-  public static Function<Integer, String> getUpdateMessageAfterChangeSelectAction(String language, List<String> choices) {
+  public static Function<Integer, String> getUpdateMessageAfterChangeSelectAction(String language, List<String> choices, Server server) {
     return new Function<Integer, String>() {
       @Override
       public String apply(Integer index) {
-        return String.format(LanguageManager.getText(language, "languageCommandInSelectionMenu"), choices.get(index - 1));
+        return String.format(LanguageManager.getText(server.getLanguage(),
+            "languageCommandStartMessage"), LanguageManager.getText(server.getLanguage(), LanguageCommandRunnable.NATIVE_LANGUAGE_TRANSLATION_ID), "<https://discord.gg/AyAYWGM>")
+            + "\n" + String.format(LanguageManager.getText(language, "languageCommandInSelectionMenu"), choices.get(index - 1));
       }
     };
   }

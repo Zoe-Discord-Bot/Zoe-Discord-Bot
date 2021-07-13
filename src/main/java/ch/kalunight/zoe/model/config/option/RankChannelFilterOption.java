@@ -5,10 +5,10 @@ import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.ButtonMenu;
 
+import ch.kalunight.zoe.model.CommandGuildDiscordData;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.RepoRessources;
@@ -60,11 +60,11 @@ public class RankChannelFilterOption extends ConfigurationOption {
   }
 
   @Override
-  public Consumer<CommandEvent> getChangeConsumer(EventWaiter waiter, DTO.Server server) {
-    return new Consumer<CommandEvent>() {
+  public Consumer<CommandGuildDiscordData> getChangeConsumer(EventWaiter waiter, DTO.Server server) {
+    return new Consumer<CommandGuildDiscordData>() {
 
       @Override
-      public void accept(CommandEvent event) {
+      public void accept(CommandGuildDiscordData event) {
 
         ButtonMenu.Builder choiceBuilder = new ButtonMenu.Builder();
 
@@ -75,7 +75,7 @@ public class RankChannelFilterOption extends ConfigurationOption {
             RankChannelFilter.LOL_ONLY.unicode,
             RankChannelFilter.TFT_ONLY.unicode,
             "❌");
-        choiceBuilder.addUsers(event.getAuthor());
+        choiceBuilder.addUsers(event.getUser());
         choiceBuilder.setFinalAction(finalAction());
         choiceBuilder.setColor(Color.BLUE);
 
@@ -94,7 +94,7 @@ public class RankChannelFilterOption extends ConfigurationOption {
             + " -> " + LanguageManager.getText(server.getLanguage(), RankChannelFilter.TFT_ONLY.optionName)
             + " : " + LanguageManager.getText(server.getLanguage(), RankChannelFilter.TFT_ONLY.description) + "\n");
 
-        choiceBuilder.setAction(updateOption(event.getChannel(), waiter, event.getAuthor(), server));
+        choiceBuilder.setAction(updateOption(event.getChannel(), waiter, event.getUser(), server));
 
         ButtonMenu menu = choiceBuilder.build();
 
@@ -122,7 +122,7 @@ public class RankChannelFilterOption extends ConfigurationOption {
         }
 
         try {
-          ConfigRepository.updateRankchannelFilter(guildId, tmpRankChannelFilter);
+          ConfigRepository.updateRankchannelFilter(guildId, tmpRankChannelFilter, channel.getJDA());
         } catch(SQLException e) {
           RepoRessources.sqlErrorReport(channel, server, e);
           return;

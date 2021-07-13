@@ -14,6 +14,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 
 public class RepoRessources {
 
@@ -37,6 +38,7 @@ public class RepoRessources {
     HikariConfig config = new HikariConfig();
     config.setDataSource(source);
     config.setAutoCommit(true);
+    config.setLeakDetectionThreshold(20000);
     
     dataSource = new HikariDataSource(config);
   }
@@ -54,6 +56,11 @@ public class RepoRessources {
   public static void sqlErrorReport(MessageChannel channel, DTO.Server server, SQLException e) {
     logger.error("SQL issue when updating option", e);
     channel.sendMessage(LanguageManager.getText(server.getLanguage(), "errorSQLPleaseReport")).complete();
+  }
+  
+  public static void sqlErrorReportSlashResponse(SlashCommandEvent event, DTO.Server server, SQLException e) {
+    logger.error("SQL issue when updating option", e);
+    event.getHook().editOriginal(LanguageManager.getText(server.getLanguage(), "errorSQLPleaseReport")).queue();
   }
   
   public static void shutdownDB() {

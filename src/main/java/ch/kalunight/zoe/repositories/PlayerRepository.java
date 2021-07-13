@@ -74,8 +74,8 @@ public class PlayerRepository {
   private static final Logger logger = LoggerFactory.getLogger(PlayerRepository.class);
   
   /**
-   * This list contain discordId of player registered by guildid. Sync with the DB
-   * First long : Guild id
+   * This list contain discordId of player registered by guildid. Sync with the DB<p>
+   * First long : Guild id<p>
    * List of long : User's Discord Id
    */
   private static final Map<Long, List<Long>> LIST_DISCORD_ID_OF_REGISTERED_PLAYERS = Collections.synchronizedMap(new HashMap<>());
@@ -168,8 +168,13 @@ public class PlayerRepository {
   }
 
   public static void updateTeamOfPlayerDefineNull(long playerId) throws SQLException {
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement();) {
+    try (Connection conn = RepoRessources.getConnection();) {
+      updateTeamOfPlayerDefineNull(playerId, conn);
+    }
+  }
+  
+  public static void updateTeamOfPlayerDefineNull(long playerId, Connection conn) throws SQLException {
+    try (Statement query = conn.createStatement();) {
 
       String finalQuery = String.format(UPDATE_TEAM_OF_PLAYER_DEFINE_NULL, "NULL", playerId);
       query.executeUpdate(finalQuery);
@@ -177,13 +182,18 @@ public class PlayerRepository {
   }
 
   public static void deletePlayer(Player player, long guildId) throws SQLException {
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement();) {
+    try (Connection conn = RepoRessources.getConnection();) {
+      deletePlayer(player, guildId, conn);
+    }
+  }
+  
+  public static void deletePlayer(Player player, long guildId, Connection conn) throws SQLException {
+    try (Statement query = conn.createStatement();) {
 
-      List<DTO.LeagueAccount> leaguesAccounts = LeagueAccountRepository.getLeaguesAccountsWithPlayerID(guildId, player.player_id);
+      List<DTO.LeagueAccount> leaguesAccounts = LeagueAccountRepository.getLeaguesAccountsWithPlayerID(guildId, player.player_id, conn);
       
       for(DTO.LeagueAccount leagueAccount : leaguesAccounts) {
-        LeagueAccountRepository.deleteAccountWithId(leagueAccount.leagueAccount_id);
+        LeagueAccountRepository.deleteAccountWithId(leagueAccount.leagueAccount_id, conn);
       }
       
       String finalQuery = String.format(DELETE_PLAYER_WITH_PLAYER_ID, player.player_id);
@@ -202,9 +212,14 @@ public class PlayerRepository {
   }
 
   public static List<DTO.Player> getPlayers(long guildId) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();) {
+      return getPlayers(guildId, conn);
+    }
+  }
+  
+  public static List<DTO.Player> getPlayers(long guildId, Connection conn) throws SQLException {
     ResultSet result = null;
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+    try (Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
 
       String finalQuery = String.format(SELECT_PLAYERS_WITH_GUILD_ID, guildId);
       result = query.executeQuery(finalQuery);
@@ -217,7 +232,6 @@ public class PlayerRepository {
           result.next();
         }
       }
-
       return accounts;
     }finally {
       RepoRessources.closeResultSet(result);

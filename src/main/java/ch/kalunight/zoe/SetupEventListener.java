@@ -4,6 +4,7 @@ import java.sql.SQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.repositories.ServerStatusRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
@@ -40,9 +41,11 @@ public class SetupEventListener extends ListenerAdapter {
   
   private void setupNonInitializedGuild(JDA jda) throws SQLException {
     for(Guild guild : jda.getGuilds()) {
-      if(!guild.getOwnerId().equals(jda.getSelfUser().getId()) && !ServerRepository.checkServerExist(guild.getIdLong())) {
+      if(!ServerRepository.checkServerExist(guild.getIdLong())) {
         ServerRepository.createNewServer(guild.getIdLong(), LanguageManager.DEFAULT_LANGUAGE);
       }
+      
+      EventListener.getServersConfig().put(guild.getIdLong(), ConfigRepository.getServerConfiguration(guild.getIdLong(), jda));
     }
     ServerStatusRepository.updateAllServerInTreatment(false);
   }

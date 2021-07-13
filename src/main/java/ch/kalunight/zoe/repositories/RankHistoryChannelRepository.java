@@ -8,10 +8,10 @@ import javax.annotation.Nullable;
 import ch.kalunight.zoe.model.dto.DTO;
 
 public class RankHistoryChannelRepository {
-  
+
   private static final String INSERT_RANK_HISTORY_CHANNEL = "INSERT INTO rank_history_channel " +
       "(rhChannel_fk_server, rhChannel_channelId) VALUES (%d, %d)";
-  
+
   private static final String SELECT_RANK_HISTORY_CHANNEL_WITH_GUILDID = "SELECT " + 
       "rank_history_channel.rhchannel_id, " + 
       "rank_history_channel.rhchannel_fk_server, " + 
@@ -22,11 +22,11 @@ public class RankHistoryChannelRepository {
 
   private static final String DELETE_RANK_HISTORY_CHANNEL = 
       "DELETE FROM rank_history_channel WHERE rhChannel_id = %d";
-  
+
   private RankHistoryChannelRepository() {
     // hide default public constructor
   }
-  
+
   public static void createRankHistoryChannel(long serverId, long channelId) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
@@ -35,12 +35,18 @@ public class RankHistoryChannelRepository {
       query.execute(finalQuery);
     }
   }
-  
+
   @Nullable
   public static DTO.RankHistoryChannel getRankHistoryChannel(long guildId) throws SQLException{
+    try (Connection conn = RepoRessources.getConnection();) {
+      return getRankHistoryChannel(guildId, conn);
+    }
+  }
+
+  @Nullable
+  public static DTO.RankHistoryChannel getRankHistoryChannel(long guildId, Connection conn) throws SQLException{
     ResultSet result = null;
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+    try (Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
 
       String finalQuery = String.format(SELECT_RANK_HISTORY_CHANNEL_WITH_GUILDID, guildId);
       result = query.executeQuery(finalQuery);
@@ -53,14 +59,19 @@ public class RankHistoryChannelRepository {
       RepoRessources.closeResultSet(result);
     }
   }
-  
+
   public static void deleteRankHistoryChannel(long rankHistoryChannelId) throws SQLException {
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement();) {
+    try (Connection conn = RepoRessources.getConnection();) {
+      deleteRankHistoryChannel(rankHistoryChannelId, conn);
+    }
+  }
+  
+  public static void deleteRankHistoryChannel(long rankHistoryChannelId, Connection conn) throws SQLException {
+    try (Statement query = conn.createStatement();) {
 
       String finalQuery = String.format(DELETE_RANK_HISTORY_CHANNEL, rankHistoryChannelId);
       query.execute(finalQuery);
     }
   }
-  
+
 }

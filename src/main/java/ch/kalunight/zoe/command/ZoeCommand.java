@@ -2,21 +2,21 @@ package ch.kalunight.zoe.command;
 
 import java.sql.SQLException;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-
 import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.repositories.ServerRepository;
-import ch.kalunight.zoe.repositories.ServerStatusRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 
 public abstract class ZoeCommand extends Command {
@@ -27,12 +27,12 @@ public abstract class ZoeCommand extends Command {
 
   protected static final Logger logger = LoggerFactory.getLogger(ZoeCommand.class);
 
-  private static final ConcurrentHashMap<Long, DTO.Server> servers = new ConcurrentHashMap<>();
+  private static final ConcurrentMap<Long, DTO.Server> serversCache = new ConcurrentHashMap<>();
 
   @Override
   protected void execute(CommandEvent event) {
-      Runnable commandRunnable = getCommandRunnable(event);
-      ServerThreadsManager.getCommandsExecutor().execute(commandRunnable);
+    Runnable commandRunnable = getCommandRunnable(event);
+    ServerThreadsManager.getCommandsExecutor().execute(commandRunnable);
   }
 
   private Runnable getCommandRunnable(CommandEvent event) {
@@ -40,6 +40,11 @@ public abstract class ZoeCommand extends Command {
 
       @Override
       public void run() {
+        if(event.getAuthor().isBot()) {
+          logger.debug("The sender is a bot, we ignore his command. ID : {}", event.getAuthor().getId());
+          return;
+        }
+        
         CommandUtil.sendTypingInFonctionOfChannelType(event);
         logger.info("Command \"{}\" executed", this.getClass().getName());
         commandExecuted.incrementAndGet();
@@ -47,40 +52,16 @@ public abstract class ZoeCommand extends Command {
         if(event.getChannelType().equals(ChannelType.TEXT)) {
           try {
             DTO.Server server = ServerRepository.getServerWithGuildId(event.getGuild().getIdLong());
-            servers.put(event.getGuild().getIdLong(), server);
             if(server == null) {
               ServerRepository.createNewServer(event.getGuild().getIdLong(), LanguageManager.DEFAULT_LANGUAGE);
               server = ServerRepository.getServerWithGuildId(event.getGuild().getIdLong());
-              servers.put(event.getGuild().getIdLong(), server);
             }
+            putServer(server);
           } catch(SQLException e) {
             event.reply("Issue with the db ! Please retry later. Sorry about that :/");
             logger.error("Issue with the db when check if server missing !", e);
             commandFinishedWithError.incrementAndGet();
             return;
-          }
-
-          try {
-            DTO.ServerStatus status = ServerStatusRepository.getServerStatus(event.getGuild().getIdLong());
-
-            int nbrOfTry = 0;
-
-            while(status.servstatus_inTreatment) {
-              nbrOfTry++;
-              if(nbrOfTry > 10) {
-                logger.warn("The server is in treatment for too long ! Execute the command even though the server is in treatment...");
-                break;
-              }
-              TimeUnit.SECONDS.sleep(1);
-              status = ServerStatusRepository.getServerStatus(event.getGuild().getIdLong());
-            }
-
-          } catch (SQLException e) {
-            event.reply("Issue with the db ! Please retry later. Sorry about that :/");
-            logger.error("Issue with the db when check if the server is in treatment !", e);
-          } catch (InterruptedException e) {
-            logger.error("Thread got interupted !", e);
-            Thread.currentThread().interrupt();
           }
         }
 
@@ -114,12 +95,29 @@ public abstract class ZoeCommand extends Command {
     commandFinishedWithError.set(0);
   }
 
-  protected static DTO.Server getServer(long guildId){
-    return servers.get(guildId);
+  public static DTO.Server getServer(long guildId){
+    return serversCache.get(guildId);
+  }
+
+  public static String getLanguage(Guild guild) {
+    if(guild == null) {
+      return LanguageManager.DEFAULT_LANGUAGE;
+    }else {
+      Server server = getServer(guild.getIdLong());
+      if(server != null) {
+        return server.getLanguage();
+      }else {
+        return LanguageManager.DEFAULT_LANGUAGE;
+      }
+    }
+  }
+
+  public static void putServer(Server server) {
+    serversCache.put(server.serv_guildId, server);
   }
 
   public static void clearServerCache() {
-    servers.clear();
+    serversCache.clear();
   }
 
   public static AtomicInteger getCommandExecuted() {

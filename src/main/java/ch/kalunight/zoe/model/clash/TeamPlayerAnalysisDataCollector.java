@@ -323,6 +323,11 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
   public FullTier getHeighestRank() {
     FullTier fullTier = null;
     try {
+      
+      if(eloOfThePlayer == null) {
+        return null;
+      }
+      
       for(LeagueEntry entry : eloOfThePlayer) {
         FullTier currentTestedElo = new FullTier(entry);
         if((!currentTestedElo.getTier().equals(Tier.UNKNOWN) && !currentTestedElo.getTier().equals(Tier.UNRANKED))

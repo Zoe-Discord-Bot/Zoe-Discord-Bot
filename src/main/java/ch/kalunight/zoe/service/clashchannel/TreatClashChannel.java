@@ -64,8 +64,6 @@ public class TreatClashChannel implements Runnable {
 
   private DTO.ClashChannel clashChannelDB;
 
-  private Guild guild;
-
   private TextChannel clashChannel;
 
   private boolean forceRefreshCache;
@@ -93,9 +91,9 @@ public class TreatClashChannel implements Runnable {
 
       SummonerCache summonerCache = Zoe.getRiotApi().getSummoner(clashMessageManager.getSelectedPlatform(), clashMessageManager.getSelectedSummonerId(), forceRefreshCache);
 
-      if(summonerCache == null) {
-        clashChannel.sendMessage(LanguageManager.getText(server.getLanguage(), "clashChannelDeletionBecauseOfSummonerAccountUnreachable")).queue();
-        ClashChannelRepository.deleteClashChannel(clashChannelDB.clashChannel_id);
+      if(summonerCache == null) { //TODO handle timeout case -> don't delete clash channel
+        //clashChannel.sendMessage(LanguageManager.getText(server.getLanguage(), "clashChannelDeletionBecauseOfSummonerAccountUnreachable")).queue();
+        //ClashChannelRepository.deleteClashChannel(clashChannelDB.clashChannel_id);
         return;
       }
 
@@ -453,7 +451,7 @@ public class TreatClashChannel implements Runnable {
   }
 
   private boolean loadDiscordEntities(JDA jda) throws SQLException {
-    guild = jda.getGuildById(server.serv_guildId);
+    Guild guild = jda.getGuildById(server.serv_guildId);
 
     if(guild == null) {
       return true;

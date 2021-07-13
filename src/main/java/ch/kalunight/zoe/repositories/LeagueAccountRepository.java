@@ -215,9 +215,14 @@ public class LeagueAccountRepository {
   }
 
   public static List<DTO.LeagueAccount> getLeaguesAccountsWithPlayerID(long guildId, long playerId) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();) {
+      return getLeaguesAccountsWithPlayerID(guildId, playerId, conn);
+    }
+  }
+  
+  public static List<DTO.LeagueAccount> getLeaguesAccountsWithPlayerID(long guildId, long playerId, Connection conn) throws SQLException {
     ResultSet result = null;
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+    try (Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
 
       String finalQuery = String.format(SELECT_LEAGUES_ACCOUNTS_WITH_PLAYER_ID_AND_GUILD_ID, playerId, guildId);
       result = query.executeQuery(finalQuery);
@@ -237,11 +242,16 @@ public class LeagueAccountRepository {
       RepoRessources.closeResultSet(result);
     }
   }
-
+  
   public static List<DTO.LeagueAccount> getLeaguesAccountsWithCurrentGameId(long currentGameId) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();) {
+      return getLeaguesAccountsWithCurrentGameId(currentGameId, conn);
+    }
+  }
+
+  public static List<DTO.LeagueAccount> getLeaguesAccountsWithCurrentGameId(long currentGameId, Connection conn) throws SQLException {
     ResultSet result = null;
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+    try (Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
 
       String finalQuery = String.format(SELECT_LEAGUES_ACCOUNTS_WITH_CURRENT_GAME_ID, currentGameId);
       result = query.executeQuery(finalQuery);
@@ -264,9 +274,14 @@ public class LeagueAccountRepository {
   }
 
   public static List<DTO.LeagueAccount> getLeaguesAccountsWithGameCardsId(long gameCardsId) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();) {
+      return getLeaguesAccountsWithGameCardsId(gameCardsId, conn);
+    }
+  }
+  
+  public static List<DTO.LeagueAccount> getLeaguesAccountsWithGameCardsId(long gameCardsId, Connection conn) throws SQLException {
     ResultSet result = null;
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+    try (Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
 
       String finalQuery = String.format(SELECT_LEAGUES_ACCOUNTS_WITH_GAME_INFO_CARD_ID, gameCardsId);
       result = query.executeQuery(finalQuery);
@@ -332,9 +347,14 @@ public class LeagueAccountRepository {
   }
 
   public static List<DTO.LeagueAccount> getAllLeaguesAccounts(long guildId) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();) {
+      return getAllLeaguesAccounts(guildId, conn);
+    }
+  }
+  
+  public static List<DTO.LeagueAccount> getAllLeaguesAccounts(long guildId, Connection conn) throws SQLException {
     ResultSet result = null;
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+    try (Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
 
       String finalQuery = String.format(SELECT_ALL_LEAGUES_ACCOUNTS_WITH_GUILD_ID, guildId);
       result = query.executeQuery(finalQuery);
@@ -416,10 +436,15 @@ public class LeagueAccountRepository {
       RepoRessources.closeResultSet(result);
     }
   }
-
+  
   public static void updateAccountCurrentGameWithAccountId(long leagueAccountId, long currentGameId) throws SQLException {
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement();) {
+    try (Connection conn = RepoRessources.getConnection();) {
+      updateAccountCurrentGameWithAccountId(leagueAccountId, currentGameId, conn);
+    }
+  }
+
+  public static void updateAccountCurrentGameWithAccountId(long leagueAccountId, long currentGameId, Connection conn) throws SQLException {
+    try (Statement query = conn.createStatement();) {
 
       String finalQuery;
       if(currentGameId == 0) {
@@ -445,8 +470,13 @@ public class LeagueAccountRepository {
   }
 
   public static void updateAccountGameCardWithAccountId(long leagueAccountId, long gameCardId) throws SQLException {
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement();) {
+    try (Connection conn = RepoRessources.getConnection();) {
+      updateAccountGameCardWithAccountId(leagueAccountId, gameCardId, conn);
+    }
+  }
+  
+  public static void updateAccountGameCardWithAccountId(long leagueAccountId, long gameCardId, Connection conn) throws SQLException {
+    try (Statement query = conn.createStatement();) {
 
       String finalQuery;
       if(gameCardId == 0) {
@@ -458,15 +488,20 @@ public class LeagueAccountRepository {
       query.executeUpdate(finalQuery);
     }
   }
-
+  
   public static void deleteAccountWithId(long leagueAccountId) throws SQLException {
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement();) {
+    try (Connection conn = RepoRessources.getConnection();) {
+      deleteAccountWithId(leagueAccountId, conn);
+    }
+  }
 
-      DTO.LastRank lastRank = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccountId);
+  public static void deleteAccountWithId(long leagueAccountId, Connection conn) throws SQLException {
+    try (Statement query = conn.createStatement();) {
+
+      DTO.LastRank lastRank = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccountId, conn);
 
       if(lastRank != null) {
-        LastRankRepository.deleteLastRank(lastRank.lastRank_id);
+        LastRankRepository.deleteLastRank(lastRank.lastRank_id, conn);
       }
 
       String finalQuery = String.format(DELETE_LEAGUE_ACCOUNT_WITH_ID, leagueAccountId);

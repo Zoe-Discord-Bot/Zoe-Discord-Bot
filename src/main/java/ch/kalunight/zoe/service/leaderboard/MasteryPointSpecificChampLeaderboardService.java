@@ -53,8 +53,7 @@ public class MasteryPointSpecificChampLeaderboardService extends LeaderboardBase
         specificChamp.getChampion().getName()));
     builder.setFooter(LanguageManager.getText(server.getLanguage(), "leaderboardRefreshMessage"));
     message.editMessage(String.format(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveMasterPointGivenSpecifiedChamp"),
-        specificChamp.getChampion().getName())).queue();
-    message.editMessage(builder.build()).queue();
+        specificChamp.getChampion().getName())).setEmbeds(builder.build()).queue();
   }
   
   private List<PlayerPoints> orderAndGetPlayers(Guild guild, int championId, List<Player> players, boolean forceRefreshCache) throws SQLException, RiotApiException {

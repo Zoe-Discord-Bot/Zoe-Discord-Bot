@@ -48,8 +48,7 @@ public class MasteryPointLeaderboardService extends LeaderboardBaseService {
     builder.setColor(Color.ORANGE);
     builder.setTitle(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveMasterPointTitle"));
     builder.setFooter(LanguageManager.getText(server.getLanguage(), "leaderboardRefreshMessage"));
-    message.editMessage(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveMasterPointTitle")).queue();
-    message.editMessage(builder.build()).queue();
+    message.editMessage(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveMasterPointTitle")).setEmbeds(builder.build()).queue();
   }
 
   private List<PlayerPoints> orderAndGetPlayers(Guild guild, List<Player> players, boolean forceRefreshCache) throws SQLException, RiotApiException {

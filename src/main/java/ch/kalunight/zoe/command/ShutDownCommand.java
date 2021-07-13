@@ -39,6 +39,8 @@ public class ShutDownCommand extends ZoeCommand {
     }
 
     logger.info("Shutdown started !");
+    
+    Zoe.setShutdownStarted(true);
 
     channel.sendMessage("ShutDown Started ! I will not respond anymore ...").complete();
 

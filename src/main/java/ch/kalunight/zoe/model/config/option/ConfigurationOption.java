@@ -2,8 +2,9 @@ package ch.kalunight.zoe.model.config.option;
 
 import java.sql.SQLException;
 import java.util.function.Consumer;
-import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
+
+import ch.kalunight.zoe.model.CommandGuildDiscordData;
 import ch.kalunight.zoe.model.dto.DTO;
 
 public abstract class ConfigurationOption {
@@ -23,7 +24,7 @@ public abstract class ConfigurationOption {
    * @param waiter of Zoe. Used to wait user action.
    * @return Consumer who is the interface
    */
-  public abstract Consumer<CommandEvent> getChangeConsumer(EventWaiter waiter, DTO.Server server);
+  public abstract Consumer<CommandGuildDiscordData> getChangeConsumer(EventWaiter waiter, DTO.Server server);
 
   /**
    * Pattern -> Description : Status (Enabled/Disabled)

@@ -32,6 +32,8 @@ import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
 
 public class InfoCardsWorker implements Runnable {
 
+  private static final int ZOE_INFOCARDS_QUEUE_OVERLOAD = 20;
+
   public static final int GAME_LENGTH_AFTER_WE_NOT_GENERATE_IN_SEC = 420;
   
   private static final Logger logger = LoggerFactory.getLogger(InfoCardsWorker.class);
@@ -128,10 +130,15 @@ public class InfoCardsWorker implements Runnable {
     try {
       CurrentGameInfo currentGameRefreshed = Zoe.getRiotApi().getActiveGameBySummonerWithRateLimit(account.leagueAccount_server, account.leagueAccount_summonerId);
 
-      if(currentGameRefreshed != null && currentGameRefreshed.getGameId() == currentGameInfo.currentgame_gameid 
-          && currentGameRefreshed.getGameLength() < GAME_LENGTH_AFTER_WE_NOT_GENERATE_IN_SEC) {
-        currentGameInfo.currentgame_currentgame = currentGameRefreshed;
-        return true;
+      if(currentGameRefreshed != null && currentGameRefreshed.getGameId() == currentGameInfo.currentgame_gameid) {
+        
+        if(ServerChecker.getServerRefreshService().getInfocardsToRefresh().size() <= ZOE_INFOCARDS_QUEUE_OVERLOAD 
+            || currentGameRefreshed.getGameLength() < GAME_LENGTH_AFTER_WE_NOT_GENERATE_IN_SEC) {
+          currentGameInfo.currentgame_currentgame = currentGameRefreshed;
+          return true;
+        }else {
+          return false;
+        }
       }else {
         return false;
       }
@@ -169,7 +176,7 @@ public class InfoCardsWorker implements Runnable {
 
       DTO.GameInfoCard gameCard = GameInfoCardRepository.getGameInfoCardsWithCurrentGameId(server.serv_guildId, currentGameInfo.currentgame_id);
       if(infoChannel != null) {
-        Message message = infoChannel.sendMessage(title.toString()).embed(card.getCard()).complete();
+        Message message = infoChannel.sendMessage(title.toString()).setEmbeds(card.getCard()).complete();
 
         GameInfoCardRepository.updateGameInfoCardsMessagesWithId(-1, message.getIdLong(),
             LocalDateTime.now(), gameCard.gamecard_id);

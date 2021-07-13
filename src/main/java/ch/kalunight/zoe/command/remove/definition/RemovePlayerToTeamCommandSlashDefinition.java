@@ -20,7 +20,6 @@ public class RemovePlayerToTeamCommandSlashDefinition extends ZoeSlashCommand {
   public RemovePlayerToTeamCommandSlashDefinition(String serverId) {
     this.name = RemovePlayerToTeamCommandRunnable.USAGE_NAME;
     this.help = LanguageManager.getText(LanguageManager.DEFAULT_LANGUAGE, "removePlayerToTeamHelpMessageSlashCommand");
-    this.arguments = "@MentionOfPlayer";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
     

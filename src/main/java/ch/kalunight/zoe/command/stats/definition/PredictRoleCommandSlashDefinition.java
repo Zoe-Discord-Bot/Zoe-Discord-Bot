@@ -33,6 +33,8 @@ public class PredictRoleCommandSlashDefinition extends ZoeSlashCommand {
   protected void executeCommand(SlashCommandEvent event) throws SQLException {
     Server server = ZoeCommand.getServer(event.getGuild().getIdLong());
     
+    event.getHook().editOriginal(LanguageManager.getText(server.getLanguage(), "loading")).queue();
+    
     PredictRoleCommandRunnable.executeCommand(server, waiter, event.getTextChannel(), event.getMember());
   }
   

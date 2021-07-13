@@ -30,6 +30,8 @@ public class TreatServerService {
 
   private static final ServerPerLastRefreshComparator serverOrder = new ServerPerLastRefreshComparator();
 
+  private static final boolean IN_TEST = false;
+
   private BlockingQueue<Server> serversStatusDetected;
 
   private BlockingQueue<Server> serversAskedToRefresh;
@@ -132,7 +134,7 @@ public class TreatServerService {
         Server server = serverToRefreshPassively.poll();
         server = refreshServer(server);
 
-        if(!serverCurrentlyInTreatment.contains(server)) {
+        if(!serverCurrentlyInTreatment.contains(server) && !IN_TEST) {
           serverCurrentlyInTreatment.add(server);
           serverExecutor.execute(new InfoPanelRefresher(server, true));
         }else {

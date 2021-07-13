@@ -13,7 +13,7 @@ import net.dv8tion.jda.api.entities.User;
 
 public class RemovePlayerToTeamCommandRunnable {
 
-  public static final String USAGE_NAME = "playertoteam";
+  public static final String USAGE_NAME = "playerfromteam";
   
   private RemovePlayerToTeamCommandRunnable() {
     // hide default public constructor

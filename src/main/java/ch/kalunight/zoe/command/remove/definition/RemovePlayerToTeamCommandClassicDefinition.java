@@ -17,6 +17,8 @@ public class RemovePlayerToTeamCommandClassicDefinition extends ZoeCommand {
 
   public RemovePlayerToTeamCommandClassicDefinition() {
     this.name = RemovePlayerToTeamCommandRunnable.USAGE_NAME;
+    String[] aliases = {"playertoteam"};
+    this.aliases = aliases;
     this.help = "removePlayerToTeamHelpMessage";
     this.arguments = "@MentionOfPlayer";
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};

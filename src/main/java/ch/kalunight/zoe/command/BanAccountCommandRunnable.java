@@ -5,13 +5,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.jagrosh.jdautilities.command.Command;
-import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.Paginator;
 
@@ -27,66 +24,41 @@ import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import ch.kalunight.zoe.util.PaginatorUtil;
 import ch.kalunight.zoe.util.RiotApiUtil;
-import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.PermissionException;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.constant.Platform;
 
-public class BanAccountCommand extends ZoeCommand {
+public class BanAccountCommandRunnable {
 
-  private static final Logger logger = LoggerFactory.getLogger(BanAccountCommand.class);
+  private static final Logger logger = LoggerFactory.getLogger(BanAccountCommandRunnable.class);
 
   private static final int SIZE_OF_THE_RANDOM_STRING = 16;
 
-  private EventWaiter waiter;
-
-  public BanAccountCommand(EventWaiter eventWaiter) {
-    this.name = "banAccount";
-    this.help = "banAccountCommandHelp";
-    String[] aliasesTable = {"ban", "banList", "banAccountList"};
-    this.aliases = aliasesTable;
-    this.waiter = eventWaiter;
-    this.hidden = false;
-    this.ownerCommand = false;
-    this.guildOnly = false;
-    this.cooldown = 180;
-    this.helpBiConsumer = CommandUtil.getHelpMethod(name, help);
+  private BanAccountCommandRunnable() {
+    // hide default constructor
   }
-
-  @Override
-  protected void executeCommand(CommandEvent event) throws SQLException {
-
-    final String language;
-
-    if(event.getChannelType().equals(ChannelType.TEXT)) {
-      Server server = getServer(event.getGuild().getIdLong());
-      if(server != null) {
-        language = server.getLanguage();
-      }else {
-        language = LanguageManager.DEFAULT_LANGUAGE;
-      }
-    }else {
-      language = LanguageManager.DEFAULT_LANGUAGE;
-    }
+  
+  public static void executeCommand(String language, EventWaiter waiter, MessageChannel channel, Guild guild, User author, Message toEdit, InteractionHook hook) {
 
     String accountVerificationCode = "ZOE-" + RandomStringUtils.randomAlphanumeric(SIZE_OF_THE_RANDOM_STRING);
 
-    event.reply(String.format(LanguageManager.getText(language, "banAccountCommandProveAccountOwner"), accountVerificationCode));
+    CommandUtil.sendMessageWithClassicOrSlashCommand(String.format(LanguageManager.getText(language, "banAccountCommandProveAccountOwner"), accountVerificationCode), toEdit, hook);
 
     waiter.waitForEvent(MessageReceivedEvent.class,
-        e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel())
-        && !e.getMessage().getId().equals(event.getMessage().getId()),
-        e -> accountReceived(e, language, accountVerificationCode), 3, TimeUnit.MINUTES,
-        () -> cancelVerification(event.getEvent(), language));
+        e -> e.getAuthor().equals(author) && e.getChannel().equals(channel),
+        e -> accountReceived(e, language, accountVerificationCode, waiter), 3, TimeUnit.MINUTES,
+        () -> cancelVerification(channel, language));
   }
 
-  private void accountReceived(MessageReceivedEvent event, String language, String codeExpected) {
+  private static void accountReceived(MessageReceivedEvent event, String language, String codeExpected, EventWaiter waiter) {
     List<String> listArgs = CreatePlayerCommandRunnable.getParameterInParenteses(event.getMessage().getContentRaw());
 
     if(event.getMessage().getContentRaw().equalsIgnoreCase("STOP")) {
@@ -100,8 +72,8 @@ public class BanAccountCommand extends ZoeCommand {
       waiter.waitForEvent(MessageReceivedEvent.class,
           e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel())
           && !e.getMessage().getId().equals(event.getMessage().getId()),
-          e -> accountReceived(e, language, codeExpected), 3, TimeUnit.MINUTES,
-          () -> cancelVerification(event, language));
+          e -> accountReceived(e, language, codeExpected, waiter), 3, TimeUnit.MINUTES,
+          () -> cancelVerification(event.getChannel(), language));
       return;
     }
 
@@ -112,8 +84,8 @@ public class BanAccountCommand extends ZoeCommand {
       waiter.waitForEvent(MessageReceivedEvent.class,
           e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel())
           && !e.getMessage().getId().equals(event.getMessage().getId()),
-          e -> accountReceived(e, language, codeExpected), 3, TimeUnit.MINUTES,
-          () -> cancelVerification(event, language));
+          e -> accountReceived(e, language, codeExpected, waiter), 3, TimeUnit.MINUTES,
+          () -> cancelVerification(event.getChannel(), language));
 
       return;
     }
@@ -133,8 +105,8 @@ public class BanAccountCommand extends ZoeCommand {
       waiter.waitForEvent(MessageReceivedEvent.class,
           e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel())
           && !e.getMessage().getId().equals(event.getMessage().getId()),
-          e -> accountReceived(e, language, codeExpected), 3, TimeUnit.MINUTES,
-          () -> cancelVerification(event, language));
+          e -> accountReceived(e, language, codeExpected, waiter), 3, TimeUnit.MINUTES,
+          () -> cancelVerification(event.getChannel(), language));
 
       return;
     }
@@ -151,33 +123,33 @@ public class BanAccountCommand extends ZoeCommand {
       waiter.waitForEvent(MessageReceivedEvent.class,
           e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel())
           && !e.getMessage().getId().equals(event.getMessage().getId()),
-          e -> accountReceived(e, language, codeExpected), 3, TimeUnit.MINUTES,
-          () -> cancelVerification(event, language));
+          e -> accountReceived(e, language, codeExpected, waiter), 3, TimeUnit.MINUTES,
+          () -> cancelVerification(event.getChannel(), language));
 
       return;
     }
 
     if(codeExpected.equals(code)) {
       //Owner OK !
-      startAccountManagementPanel(summoner, region, event, language, message);
+      startAccountManagementPanel(summoner, region, event, language, message, waiter);
     }else {
       message.editMessage(String.format(LanguageManager.getText(language, "banAccountCommandInvalidVerificationTag"), codeExpected, event.getMessage().getContentRaw())).queue();
 
       waiter.waitForEvent(MessageReceivedEvent.class,
           e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel())
           && !e.getMessage().getId().equals(event.getMessage().getId()),
-          e -> accountReceived(e, language, codeExpected), 3, TimeUnit.MINUTES,
-          () -> cancelVerification(event, language));
+          e -> accountReceived(e, language, codeExpected, waiter), 3, TimeUnit.MINUTES,
+          () -> cancelVerification(event.getChannel(), language));
     }
 
   }
 
-  private void cancelVerification(MessageReceivedEvent event, String lang) {
-    event.getChannel().sendMessage(LanguageManager.getText(lang, "banAccountCommandCancelVerification")).queue();
+  private static void cancelVerification(MessageChannel channel, String lang) {
+    channel.sendMessage(LanguageManager.getText(lang, "banAccountCommandCancelVerification")).queue();
   }
 
-  private void startAccountManagementPanel(Summoner summoner, Platform region, MessageReceivedEvent event,
-      String language, Message messageToEdit) {
+  private static void startAccountManagementPanel(Summoner summoner, Platform region, MessageReceivedEvent event,
+      String language, Message messageToEdit, EventWaiter waiter) {
 
     List<Server> serversWithTheAccount = null;
     BannedAccount accountInTheBanList;
@@ -249,12 +221,12 @@ public class BanAccountCommand extends ZoeCommand {
     waiter.waitForEvent(MessageReceivedEvent.class,
         e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel())
         && !e.getMessage().getId().equals(event.getMessage().getId()),
-        e -> messageInterpretor(e, language, summoner, region, serversInOrder), 3, TimeUnit.MINUTES,
+        e -> messageInterpretor(e, language, summoner, region, serversInOrder, waiter), 3, TimeUnit.MINUTES,
         () -> stopProcess(event, language));
   }
 
-  private void messageInterpretor(MessageReceivedEvent event, String language, Summoner concernedSummoner, Platform region,
-      List<Server> serverList) {
+  private static void messageInterpretor(MessageReceivedEvent event, String language, Summoner concernedSummoner, Platform region,
+      List<Server> serverList, EventWaiter waiter) {
     String messageReceived = event.getMessage().getContentRaw();
     MessageChannel responseChannel = event.getChannel();
     responseChannel.sendTyping().complete();
@@ -264,31 +236,31 @@ public class BanAccountCommand extends ZoeCommand {
     if(messagePart.length == 1) {
       if(messagePart[0].equalsIgnoreCase("kick")) {
         responseChannel.sendMessage(LanguageManager.getText(language, "banAccountCommandKickMissingOrBadSelection")).queue();
-        waitForAnotherResponse(event, language, concernedSummoner, region, serverList);
+        waitForAnotherResponse(event, language, concernedSummoner, region, serverList, waiter);
       }else if(messagePart[0].equalsIgnoreCase("ban")) {
-        handleBanCommand(event, language, concernedSummoner, region, responseChannel, serverList);
+        handleBanCommand(event, language, concernedSummoner, region, responseChannel, serverList, waiter);
       }else if(messagePart[0].equalsIgnoreCase("stop")) {
         responseChannel.sendMessage(LanguageManager.getText(language, "banAccountCommandStopManageProcess")).queue();
       }else {
         responseChannel.sendMessage(LanguageManager.getText(language, "banAccountCommandInvalidCommand")).queue();
-        waitForAnotherResponse(event, language, concernedSummoner, region, serverList);
+        waitForAnotherResponse(event, language, concernedSummoner, region, serverList, waiter);
       }
     }else if(messagePart.length >= 2) {
       if(messagePart[0].equalsIgnoreCase("kick")) {
-        handleKickCommand(language, concernedSummoner, region, serverList, responseChannel, messagePart, event);
+        handleKickCommand(language, concernedSummoner, region, serverList, responseChannel, messagePart, event, waiter);
       }else if(messagePart[0].equalsIgnoreCase("ban")) {
-        handleBanCommand(event, language, concernedSummoner, region, responseChannel, serverList);
+        handleBanCommand(event, language, concernedSummoner, region, responseChannel, serverList, waiter);
       }else if(messagePart[0].equalsIgnoreCase("stop")) {
         responseChannel.sendMessage(LanguageManager.getText(language, "banAccountCommandStopManageProcess")).queue();
       }else {
         responseChannel.sendMessage(LanguageManager.getText(language, "banAccountCommandInvalidCommand")).queue();
-        waitForAnotherResponse(event, language, concernedSummoner, region, serverList);
+        waitForAnotherResponse(event, language, concernedSummoner, region, serverList, waiter);
       }
     }
   }
 
-  private void handleKickCommand(String language, Summoner concernedSummoner, Platform region, List<Server> serverList,
-      MessageChannel responseChannel, String[] messagePart, MessageReceivedEvent event) {
+  private static void handleKickCommand(String language, Summoner concernedSummoner, Platform region, List<Server> serverList,
+      MessageChannel responseChannel, String[] messagePart, MessageReceivedEvent event, EventWaiter waiter) {
     String selectedServer = messagePart[1];
     Integer selectedServerInt;
 
@@ -338,11 +310,11 @@ public class BanAccountCommand extends ZoeCommand {
     }else {
       responseChannel.sendMessage(LanguageManager.getText(language, "banAccountCommandBadKickCommand")).queue();
     }
-    waitForAnotherResponse(event, language, concernedSummoner, region, serverList);
+    waitForAnotherResponse(event, language, concernedSummoner, region, serverList, waiter);
   }
 
-  private void handleBanCommand(MessageReceivedEvent event, String language, Summoner concernedSummoner, Platform region,
-      MessageChannel responseChannel, List<Server> serverList) {
+  private static void handleBanCommand(MessageReceivedEvent event, String language, Summoner concernedSummoner, Platform region,
+      MessageChannel responseChannel, List<Server> serverList, EventWaiter waiter) {
     try {
       BannedAccount bannedAccount = BannedAccountRepository.getBannedAccount(concernedSummoner.getId(), region);
       if(bannedAccount == null) {
@@ -356,25 +328,19 @@ public class BanAccountCommand extends ZoeCommand {
       responseChannel.sendMessage(LanguageManager.getText(language, "errorSQLPleaseReport")).queue();
       logger.error("SQL Error while adding a Banned Account", e);
     }
-    waitForAnotherResponse(event, language, concernedSummoner, region, serverList);
+    waitForAnotherResponse(event, language, concernedSummoner, region, serverList, waiter);
   }
 
-  private void waitForAnotherResponse(MessageReceivedEvent event, String language, Summoner summoner, Platform region,
-      List<Server> serverList) {
+  private static void waitForAnotherResponse(MessageReceivedEvent event, String language, Summoner summoner, Platform region,
+      List<Server> serverList, EventWaiter waiter) {
     waiter.waitForEvent(MessageReceivedEvent.class,
         e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel())
         && !e.getMessage().getId().equals(event.getMessage().getId()),
-        e -> messageInterpretor(e, language, summoner, region, serverList), 3, TimeUnit.MINUTES,
+        e -> messageInterpretor(e, language, summoner, region, serverList, waiter), 3, TimeUnit.MINUTES,
         () -> stopProcess(event, language));
   }
 
-  private void stopProcess(MessageReceivedEvent event, String language) {
+  private static void stopProcess(MessageReceivedEvent event, String language) {
     event.getChannel().sendMessage(LanguageManager.getText(language, "banAccountCommandCancelVerification")).queue();
   }
-
-  @Override
-  public BiConsumer<CommandEvent, Command> getHelpBiConsumer(CommandEvent event) {
-    return helpBiConsumer;
-  }
-
 }

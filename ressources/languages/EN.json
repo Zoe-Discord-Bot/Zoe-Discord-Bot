@@ -560,5 +560,8 @@
 	"statsProfileHelpMessageSlashCommand": "Get information about the mentioned player or about the given account.",
 	"statsProfileNeedParametersSlashCommand": "I need at least a mentionned player or a LoL account to answer you.",
 	"statsTeamAnalysisHelpMessageSlashCommand": "Start a team analysis with ban recommandation.",
-	"statsPredictRoleHelpMessageSlashMessage": "Predict the role of 5 given accounts if they play together."
+	"statsPredictRoleHelpMessageSlashMessage": "Predict the role of 5 given accounts if they play together.",
+	"banAccountCommandHelpSlashMessage": "Allow an account owner to delete his account from others servers.",
+	"configCommandHelpSlashCommand": "Open an interactive message to configure the server.",
+	"resetCommandHelpSlashCommand": "Reset the actual config of the server."
 }

@@ -34,11 +34,8 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.command.SlashCommand;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 
-import ch.kalunight.zoe.command.BanAccountCommand;
-import ch.kalunight.zoe.command.ConfigCommand;
 import ch.kalunight.zoe.command.PatchNotesCommand;
 import ch.kalunight.zoe.command.RebootCommand;
-import ch.kalunight.zoe.command.ResetCommand;
 import ch.kalunight.zoe.command.SetupCommand;
 import ch.kalunight.zoe.command.ShutDownCommand;
 import ch.kalunight.zoe.command.add.definition.AddCommandClassicDefinition;
@@ -54,10 +51,16 @@ import ch.kalunight.zoe.command.define.DefineCommand;
 import ch.kalunight.zoe.command.define.UndefineCommand;
 import ch.kalunight.zoe.command.definition.AboutCommandClassicDefinition;
 import ch.kalunight.zoe.command.definition.AboutCommandSlashDefinition;
+import ch.kalunight.zoe.command.definition.BanAccountCommandClassicDefinition;
+import ch.kalunight.zoe.command.definition.BanAccountCommandSlashDefinition;
+import ch.kalunight.zoe.command.definition.ConfigCommandClassicDefinition;
+import ch.kalunight.zoe.command.definition.ConfigCommandSlashDefinition;
 import ch.kalunight.zoe.command.definition.LanguageCommandClassicDefinition;
 import ch.kalunight.zoe.command.definition.LanguageCommandSlashDefinition;
 import ch.kalunight.zoe.command.definition.RefreshCommandClassicDefinition;
 import ch.kalunight.zoe.command.definition.RefreshCommandSlashDefinition;
+import ch.kalunight.zoe.command.definition.ResetCommandClassicDefinition;
+import ch.kalunight.zoe.command.definition.ResetCommandSlashDefinition;
 import ch.kalunight.zoe.command.delete.definition.DeleteCommandClassicDefinition;
 import ch.kalunight.zoe.command.delete.definition.DeleteCommandSlashCommand;
 import ch.kalunight.zoe.command.remove.definition.RemoveCommandClassicDefinition;
@@ -367,7 +370,7 @@ public class Zoe {
     commands.add(new AboutCommandClassicDefinition());
     commands.add(new SetupCommand());
     commands.add(new LanguageCommandClassicDefinition(eventWaiter));
-    commands.add(new ConfigCommand(eventWaiter));
+    commands.add(new ConfigCommandClassicDefinition(eventWaiter));
     commands.add(new CreateCommandClassicDefinition(eventWaiter));
     commands.add(new DeleteCommandClassicDefinition(eventWaiter));
     commands.add(new AddCommandClassicDefinition());
@@ -378,8 +381,8 @@ public class Zoe {
     commands.add(new RegisterCommandClassicDefinition());
     commands.add(new DefineCommand());
     commands.add(new UndefineCommand());
-    commands.add(new ResetCommand(eventWaiter));
-    commands.add(new BanAccountCommand(eventWaiter));
+    commands.add(new ResetCommandClassicDefinition(eventWaiter));
+    commands.add(new BanAccountCommandClassicDefinition(eventWaiter));
     commands.add(new ClashCommandClassicDefinition());
     commands.add(new PatchNotesCommand());
 
@@ -401,6 +404,9 @@ public class Zoe {
     commands.add(new AboutCommandSlashDefinition(testServer));
     commands.add(new LanguageCommandSlashDefinition(testServer));
     commands.add(new RefreshCommandSlashDefinition(testServer));
+    commands.add(new BanAccountCommandSlashDefinition(eventWaiter, testServer));
+    commands.add(new ConfigCommandSlashDefinition(eventWaiter, testServer));
+    commands.add(new ResetCommandSlashDefinition(eventWaiter, testServer));
     
     commands.add(new CreateCommandSlashDefinition(eventWaiter, testServer));
     commands.add(new RegisterCommandSlashDefinition(testServer));

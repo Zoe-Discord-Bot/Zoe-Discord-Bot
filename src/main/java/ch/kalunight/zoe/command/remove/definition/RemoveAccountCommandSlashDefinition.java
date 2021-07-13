@@ -20,7 +20,6 @@ public class RemoveAccountCommandSlashDefinition extends ZoeSlashCommand {
   public RemoveAccountCommandSlashDefinition(String serverId) {
     this.name = RemoveAccountCommandRunnable.USAGE_NAME;
     this.help = LanguageManager.getText(LanguageManager.DEFAULT_LANGUAGE, "removeAccountHelpMessageSlashCommand");
-    this.arguments = "@MentionOfPlayer (Region) (SummonerName)";
     
     List<OptionData> data = new ArrayList<>();
     

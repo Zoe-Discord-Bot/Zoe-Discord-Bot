@@ -3,17 +3,16 @@ package ch.kalunight.zoe.model.team;
 import java.util.Collections;
 import java.util.List;
 
-import com.jagrosh.jdautilities.command.CommandEvent;
-
 import ch.kalunight.zoe.model.clash.TeamPlayerAnalysisDataCollector;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.TeamUtil;
+import net.dv8tion.jda.api.entities.TextChannel;
 
 public class TeamSelectorPredictRoleDataManager extends TeamSelectorDataManager {
 
-  public TeamSelectorPredictRoleDataManager(CommandEvent event, Server server) {
-    super(event, server);
+  public TeamSelectorPredictRoleDataManager(Server server, TextChannel channel) {
+    super(server, channel);
   }
 
   @Override
@@ -33,7 +32,7 @@ public class TeamSelectorPredictRoleDataManager extends TeamSelectorDataManager 
 
     builder.append("*" + LanguageManager.getText(server.getLanguage(), "disclaimerAnalysis") + "*");
     
-    baseEvent.reply(builder.toString());
+    channel.sendMessage(builder.toString()).queue();
   }
 
 }

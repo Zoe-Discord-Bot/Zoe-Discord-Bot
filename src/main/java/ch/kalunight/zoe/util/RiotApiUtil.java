@@ -17,19 +17,7 @@ public class RiotApiUtil {
   }
 
   public static void handleRiotApi(Message messageToEdit, RiotApiException e, String language) {
-    if(e.getErrorCode() == RiotApiException.SERVER_ERROR) {
-      messageToEdit.editMessage(LanguageManager.getText(language, "riotApiSummonerByNameError500")).queue();
-    }else if(e.getErrorCode() == RiotApiException.UNAVAILABLE) {
-      messageToEdit.editMessage(LanguageManager.getText(language, "riotApiSummonerByNameError503")).queue();
-    }else if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
-      messageToEdit.editMessage(LanguageManager.getText(language, "riotApiSummonerByNameError429")).queue();
-      logger.info("Receive a {} error code : {}", e.getErrorCode(), e.getMessage());
-    }else if (e.getErrorCode() == RiotApiException.DATA_NOT_FOUND){
-      messageToEdit.editMessage(LanguageManager.getText(language, "riotApiSummonerByNameError404")).queue();
-    }else {
-      messageToEdit.editMessage(String.format(LanguageManager.getText(language, "riotApiSummonerByNameErrorUnexpected"), e.getErrorCode())).queue();
-      logger.warn("Unexpected error with a riot api request.", e);
-    }
+    messageToEdit.editMessage(getTextHandlerRiotApiError(e, language)).queue();
   }
   
   public static void handleRiotApi(MessageReceivedEvent event, RiotApiException e, String language) {
@@ -37,18 +25,22 @@ public class RiotApiUtil {
   }
   
   public static void handleRiotApi(TextChannel channel, RiotApiException e, String language) {
+    channel.sendMessage(getTextHandlerRiotApiError(e, language)).queue();
+  }
+  
+  public static String getTextHandlerRiotApiError(RiotApiException e, String language) {
     if(e.getErrorCode() == RiotApiException.SERVER_ERROR) {
-      channel.sendMessage(LanguageManager.getText(language, "riotApiSummonerByNameError500")).queue();
+      return LanguageManager.getText(language, "riotApiSummonerByNameError500");
     }else if(e.getErrorCode() == RiotApiException.UNAVAILABLE) {
-      channel.sendMessage(LanguageManager.getText(language, "riotApiSummonerByNameError503")).queue();
+      return LanguageManager.getText(language, "riotApiSummonerByNameError503");
     }else if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
-      channel.sendMessage(LanguageManager.getText(language, "riotApiSummonerByNameError429")).queue();
       logger.info("Receive a {} error code : {}", e.getErrorCode(), e.getMessage());
+      return LanguageManager.getText(language, "riotApiSummonerByNameError429");
     }else if (e.getErrorCode() == RiotApiException.DATA_NOT_FOUND){
-      channel.sendMessage(LanguageManager.getText(language, "riotApiSummonerByNameError404")).queue();
+      return LanguageManager.getText(language, "riotApiSummonerByNameError404");
     }else {
-      channel.sendMessage(String.format(LanguageManager.getText(language, "riotApiSummonerByNameErrorUnexpected"), e.getErrorCode())).queue();
       logger.warn("Unexpected error with a riot api request.", e);
+      return String.format(LanguageManager.getText(language, "riotApiSummonerByNameErrorUnexpected"), e.getErrorCode());
     }
   }
   

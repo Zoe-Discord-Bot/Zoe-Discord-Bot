@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.kalunight.zoe.Zoe;
-import ch.kalunight.zoe.command.stats.StatsProfileCommand;
+import ch.kalunight.zoe.command.stats.StatsProfileCommandRunnable;
 import ch.kalunight.zoe.exception.NoValueRankException;
 import ch.kalunight.zoe.exception.PlayerNotFoundException;
 import ch.kalunight.zoe.model.GameQueueConfigId;
@@ -628,7 +628,7 @@ public class MessageBuilderRequest {
           leagueAccount.getSummoner().getLevel()));
     }
 
-    List<SavedSimpleMastery> threeBestchampionMasteries = StatsProfileCommand.getBestMasteries(masteries, 3);
+    List<SavedSimpleMastery> threeBestchampionMasteries = StatsProfileCommandRunnable.getBestMasteries(masteries, 3);
 
     StringBuilder stringBuilder = new StringBuilder();
 

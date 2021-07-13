@@ -526,7 +526,7 @@
     "clashRefreshNeedToBeSendedInClashChannel": "Merci d'envoyer cette commande dans le canal clash que vous souhaitez rafraichir.",
     "clashAnalyzeHelpMessage": "Envoie une analyse de l'équipe. Si la commande est envoyé dans un canal clash le serveur n'est pas obligatoire.",
     "clashAnalyzeMalformedFormatInsideClashChannel": "La commande est mal formé. Merci de respecter le format : `>clash analysis (Serveur *Optionnel: %s par défaut*) (Nom d'invocateur)`",
-    "clashAnalyzeLoadNot5Players": "Il n'y a pas cinq joueurs dans l'équipe clash. Merci d'être cinq et réessayer",
+    "clashAnalyzeLoadNot5Players": "Il n'y a pas cinq joueurs dans l'équipe clash. Merci de réessayer quand l'équipe comportera 5 membres.",
     "statsTeamAnalysisAskAccount": "%d joueurs sur 5 ont été sélectionné. Merci d'envoyer un joueur avec le format : (Serveur) (Nom d'invocateur).",
     "createClashChannelLeagueAccountSelected": "Parfait ! Vous avez correctement sélectionné le compte *%s* %s.\nMaintenant, vous devez sélectionner un fuseau horaire. Merci d'en sélectionner un dans la liste au dessus. Vous pouvez directement le copier/coller ou envoyer son nombre.",
     "clashChannelDeletionBecauseOfSummonerAccountUnreachable": "Le compte League of Legends lié dans ce canal est inatteignable (changement de serveur LoL ?). Je ne vais plus rafraichir ce canal clash à partir de maintenant.",

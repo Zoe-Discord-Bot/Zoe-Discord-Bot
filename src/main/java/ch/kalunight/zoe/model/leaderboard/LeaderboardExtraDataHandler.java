@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
@@ -15,6 +14,7 @@ import ch.kalunight.zoe.model.leaderboard.dataholder.Objective;
 import ch.kalunight.zoe.repositories.LeaderboardRepository;
 import ch.kalunight.zoe.service.leaderboard.LeaderboardBaseService;
 import ch.kalunight.zoe.translation.LanguageManager;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -27,15 +27,17 @@ public abstract class LeaderboardExtraDataHandler {
 
   protected Objective objective;
   protected EventWaiter waiter;
-  protected CommandEvent event;
   protected Server server;
+  protected Member author;
+  protected TextChannel channel;
   protected boolean forceRefreshCache;
 
-  public LeaderboardExtraDataHandler(Objective objective, EventWaiter waiter, CommandEvent event, Server server, boolean forceRefreshCache) {
+  public LeaderboardExtraDataHandler(Objective objective, EventWaiter waiter, Server server, boolean forceRefreshCache, Member author, TextChannel channel) {
     this.objective = objective;
     this.waiter = waiter;
-    this.event = event;
     this.server = server;
+    this.author = author;
+    this.channel = channel;
     this.forceRefreshCache = forceRefreshCache;
   }
 
@@ -44,10 +46,9 @@ public abstract class LeaderboardExtraDataHandler {
   protected void handleEndOfCreation(String dataOftheLeaderboard) {
 
     waiter.waitForEvent(MessageReceivedEvent.class,
-        e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel())
-        && !e.getMessage().getId().equals(event.getMessage().getId()),
+        e -> e.getAuthor().equals(author.getUser()) && e.getChannel().getId().equals(channel.getId()),
         e -> threatChannelSelection(dataOftheLeaderboard, e), 2, TimeUnit.MINUTES,
-        () -> cancelProcedure(event.getTextChannel(), server));
+        () -> cancelProcedure(channel, server));
   }
 
   private void threatChannelSelection(String dataOfLeaderboard, MessageReceivedEvent event) {

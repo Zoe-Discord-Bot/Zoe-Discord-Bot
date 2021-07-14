@@ -45,7 +45,7 @@
 		<dependency>
 			<groupId>pw.chew</groupId>
 			<artifactId>jda-chewtils</artifactId>
-			<version>1.20.2</version>
+			<version>1.20.4</version>
 			<scope>compile</scope>
 			<type>pom</type>
 		</dependency>

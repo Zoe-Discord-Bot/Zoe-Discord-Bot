@@ -40,7 +40,7 @@ public class LanguageCommandSlashDefinition extends ZoeSlashCommand {
     this.options = data;
 
     if(serverId == null) {
-      this.guildOnly = false;
+      this.guildOnly = true;
     }else {
       this.guildOnly = true; //True for testing
       this.guildId = serverId; //Test server

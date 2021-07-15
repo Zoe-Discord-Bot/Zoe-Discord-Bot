@@ -34,7 +34,6 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.command.SlashCommand;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 
-import ch.kalunight.zoe.command.PatchNotesCommand;
 import ch.kalunight.zoe.command.RebootCommand;
 import ch.kalunight.zoe.command.SetupCommand;
 import ch.kalunight.zoe.command.ShutDownCommand;
@@ -57,6 +56,8 @@ import ch.kalunight.zoe.command.definition.ConfigCommandClassicDefinition;
 import ch.kalunight.zoe.command.definition.ConfigCommandSlashDefinition;
 import ch.kalunight.zoe.command.definition.LanguageCommandClassicDefinition;
 import ch.kalunight.zoe.command.definition.LanguageCommandSlashDefinition;
+import ch.kalunight.zoe.command.definition.PatchNotesCommandClassicDefinition;
+import ch.kalunight.zoe.command.definition.PatchNotesCommandSlashDefinition;
 import ch.kalunight.zoe.command.definition.RefreshCommandClassicDefinition;
 import ch.kalunight.zoe.command.definition.RefreshCommandSlashDefinition;
 import ch.kalunight.zoe.command.definition.ResetCommandClassicDefinition;
@@ -384,7 +385,7 @@ public class Zoe {
     commands.add(new ResetCommandClassicDefinition(eventWaiter));
     commands.add(new BanAccountCommandClassicDefinition(eventWaiter));
     commands.add(new ClashCommandClassicDefinition());
-    commands.add(new PatchNotesCommand());
+    commands.add(new PatchNotesCommandClassicDefinition());
 
     mainCommands = commands;
 
@@ -407,6 +408,7 @@ public class Zoe {
     commands.add(new BanAccountCommandSlashDefinition(eventWaiter, testServer));
     commands.add(new ConfigCommandSlashDefinition(eventWaiter, testServer));
     commands.add(new ResetCommandSlashDefinition(eventWaiter, testServer));
+    commands.add(new PatchNotesCommandSlashDefinition(testServer));
     
     commands.add(new CreateCommandSlashDefinition(eventWaiter, testServer));
     commands.add(new RegisterCommandSlashDefinition(testServer));

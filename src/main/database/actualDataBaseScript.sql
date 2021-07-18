@@ -427,3 +427,12 @@ CREATE INDEX index_matchcache_gameVersion ON match_cache USING gin ((mCatch_save
   
 ALTER TABLE ONLY banned_account
   ADD CONSTRAINT banned_account_pkey PRIMARY KEY (banAcc_id);
+  
+CREATE INDEX idx_match_cache_creationTime
+  ON match_cache(mCatch_creationTime);
+  
+DROP INDEX index_matchcache_championId;
+DROP INDEX index_matchcache_queueId;
+DROP INDEX index_matchcache_gameVersion;
+
+CREATE INDEX index_matchcache_All ON match_cache USING gin (mCatch_savedMatch jsonb_path_ops);

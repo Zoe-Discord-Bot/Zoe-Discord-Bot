@@ -565,5 +565,15 @@
     "configCommandHelpSlashCommand": "Opens an interactive message to configure the server.",
     "resetCommandHelpSlashCommand": "Resets the current configuration of the server.",
 	"patchNoteCommandRespondMessage": "Patch notes can be found here : https://wiki.zoe-discord-bot.ch/en/patchnotes",
-	"patchNotesCommandSlashCommand": "Send the patch note history."
+	"patchNotesCommandSlashCommand": "Send the patch note history.",
+	"rankRoleOptionDescription": "Assign role depending of the rank of player.",
+	"rankRoleOptionDisable": "Option Disable",
+	"rankRoleOptionDisableDesc": "All Created",
+	"rankRoleOptionLongDesc": "Option in activation : **%s**\n\nIf you activate this option, a role for each League Rank will be created. Each registered player with receive a role according to their rank. The refresh will happens at the same time as Info Channel and Rank Channel and you can refresh it with ``/refresh``. You can update theses rank as you wish (name, color, permissions, ...) as long Zoe can assign them to players. If one role is deleted, the option will still work with remaining role (you can use that to show only some rank). If all roles are deleted the option is disabled.\n\n:white_check_mark: : Activate this option\n:x: : Cancel the activation"
+	"rankRoleOptionSelectQueueWaitMessage" : "Alright, now please select which queue you want to track :\n\n:one: Use SoloQ rank: %s\n:two: Use Flex rank: %s\n:three: Use TFT rank: %s",
+	"rankRoleOptionCancelCreation": "Alright, we stop the creation of this option here.",
+	"rankRoleOptionCancelButton": "Cancel",
+	"rankRoleOptionActivateButton": "Activate",
+	"rankRoleOptionActivatWait": "Perfect ! Let me a few seconds to enable the option ...",
+	"rankRoleOptionDescriptionChangeText": "Assign role depending of their rank : (%s)"
 }

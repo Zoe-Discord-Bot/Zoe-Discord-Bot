@@ -1,5 +1,6 @@
 CREATE TABLE rank_role_option (
-  rankRoleOption_id 							SERIAL,
+  rankRoleOption_id 							SERIAL				NOT NULL,
+  rankRoleOption_fk_serverConfig				BIGINT				NOT NULL,
   rankRoleOption_ironId							BIGINT,
   rankRoleOption_bronzeId						BIGINT,
   rankRoleOption_silverId						BIGINT,

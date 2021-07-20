@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
+import ch.kalunight.zoe.command.ZoeSlashCommand;
 import ch.kalunight.zoe.repositories.LeaderboardRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
@@ -122,11 +123,15 @@ public class RiotApiUsageChannelRefresh implements Runnable {
         rapiInfoChannel.sendMessage("**Discord Command Stats**"
             + "\nTotal discord command executed : " + ZoeCommand.getCommandExecuted().get() 
             + "\nTotal discord command done correctly : " + ZoeCommand.getCommandFinishedCorrectly().get()
-            + "\nTotal discord command done with error : " + ZoeCommand.getCommandFinishedWithError().get()).queue();
-
+            + "\nTotal discord command done with error : " + ZoeCommand.getCommandFinishedWithError().get()
+            + "\nTotal Slash command executed : " + ZoeSlashCommand.getCommandExecuted().get() 
+            + "\nTotal Slash command done correctly : " + ZoeSlashCommand.getCommandFinishedCorrectly().get()
+            + "\nTotal Slash command done with error : " + ZoeSlashCommand.getCommandFinishedWithError().get()).queue();
+        
         if(DateTime.now().minusDays(TIME_BETWEEN_EACH_RESET_CATCHED_RIOT_API_IN_DAY).isAfter(lastRapiCountReset)) {
           lastRapiCountReset = DateTime.now();
           ZoeCommand.clearStats();
+          ZoeSlashCommand.clearStats();
         }
 
         setInfocardCreatedCount(0);

@@ -414,6 +414,95 @@ public class DTO {
       cleanoption_option = CleanChannelOptionInfo.valueOf(baseData.getString("cleanOption_option"));
     }
   }
+  
+  public static class RankRoleOption {
+    public final long rankRoleOption_id;
+    public final long rankRoleOption_fk_serverConfig;
+    public final Long rankRoleOption_ironId;
+    public final Long rankRoleOption_bronzeId;
+    public final Long rankRoleOption_silverId;
+    public final Long rankRoleOption_goldId;
+    public final Long rankRoleOption_platinumId;
+    public final Long rankRoleOption_diamondId;
+    public final Long rankRoleOption_masterId;
+    public final Long rankRoleOption_grandMasterId;
+    public final Long rankRoleOption_challengerId;
+    public final Boolean rankRoleOption_soloqEnable;
+    public final Boolean rankRoleOption_flexEnable;
+    public final Boolean rankRoleOption_tftEnable;
+
+    public RankRoleOption(ResultSet baseData) throws SQLException {
+      rankRoleOption_id = baseData.getLong("rankRoleOption_id");
+      rankRoleOption_fk_serverConfig = baseData.getLong("rankRoleOption_fk_serverConfig");
+      
+      Long ironId = baseData.getLong("rankRoleOption_ironId");
+      if(ironId != null && ironId != 0) {
+        rankRoleOption_ironId = ironId;
+      }else {
+        rankRoleOption_ironId = null;
+      }
+      
+      Long bronzeId = baseData.getLong("rankRoleOption_bronzeId");
+      if(bronzeId != null && bronzeId != 0) {
+        rankRoleOption_bronzeId = bronzeId;
+      }else {
+        rankRoleOption_bronzeId = null;
+      }
+      
+      Long silverId = baseData.getLong("rankRoleOption_silverId");
+      if(silverId != null && silverId != 0) {
+        rankRoleOption_silverId = silverId;
+      }else {
+        rankRoleOption_silverId = null;
+      }
+      
+      Long goldId = baseData.getLong("rankRoleOption_goldId");
+      if(goldId != null && goldId != 0) {
+        rankRoleOption_goldId = goldId;
+      }else {
+        rankRoleOption_goldId = null;
+      }
+      
+      Long platinumId = baseData.getLong("rankRoleOption_platinumId");
+      if(platinumId != null && platinumId != 0) {
+        rankRoleOption_platinumId = platinumId;
+      }else {
+        rankRoleOption_platinumId = null;
+      }
+      
+      Long diamondId = baseData.getLong("rankRoleOption_diamondId");
+      if(diamondId != null && diamondId != 0) {
+        rankRoleOption_diamondId = diamondId;
+      }else {
+        rankRoleOption_diamondId = null;
+      }
+      
+      Long masterId = baseData.getLong("rankRoleOption_masterId");
+      if(masterId != null && masterId != 0) {
+        rankRoleOption_masterId = masterId;
+      }else {
+        rankRoleOption_masterId = null;
+      }
+      
+      Long grandMasterId = baseData.getLong("rankRoleOption_grandMasterId");
+      if(grandMasterId != null && grandMasterId != 0) {
+        rankRoleOption_grandMasterId = grandMasterId;
+      }else {
+        rankRoleOption_grandMasterId = null;
+      }
+      
+      Long challengerId = baseData.getLong("rankRoleOption_challengerId");
+      if(challengerId != null && challengerId != 0) {
+        rankRoleOption_challengerId = challengerId;
+      }else {
+        rankRoleOption_challengerId = null;
+      }
+     
+      rankRoleOption_soloqEnable = baseData.getBoolean("rankRoleOption_soloqEnable");
+      rankRoleOption_flexEnable = baseData.getBoolean("rankRoleOption_flexEnable");
+      rankRoleOption_tftEnable = baseData.getBoolean("rankRoleOption_tftEnable");
+    }
+  }
 
   public static class ChampionRoleAnalysis {
     public final long cra_id;

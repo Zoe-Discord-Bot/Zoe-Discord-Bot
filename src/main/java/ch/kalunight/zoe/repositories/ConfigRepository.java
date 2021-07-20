@@ -17,9 +17,11 @@ import ch.kalunight.zoe.model.config.option.CleanChannelOption.CleanChannelOptio
 import ch.kalunight.zoe.model.config.option.GameInfoCardOption;
 import ch.kalunight.zoe.model.config.option.InfoPanelRankedOption;
 import ch.kalunight.zoe.model.config.option.RankChannelFilterOption;
+import ch.kalunight.zoe.model.config.option.RankRoleOption;
 import ch.kalunight.zoe.model.config.option.RankChannelFilterOption.RankChannelFilter;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.rithms.riot.constant.Platform;
@@ -31,6 +33,8 @@ import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.dto.DTO.ServerRawSettings;
 
 public class ConfigRepository {
+
+  private static final String FALSE_DB = "FALSE";
 
   private static final String INSERT_INTO_SERVER_CONFIGURATION = "INSERT INTO server_configuration (servConfig_fk_server) "
       + "VALUES (%d)";
@@ -49,6 +53,9 @@ public class ConfigRepository {
   
   private static final String INSERT_INTO_RANK_CHANNEL_FILTER_OPTION = "INSERT INTO rank_channel_filter_option "
       + "(rankchannelFilterOption_fk_serverConfig, rankchannelFilterOption_option) VALUES (%d, '%s')";
+  
+  private static final String INSERT_INTO_RANK_ROLE_OPTION = "INSERT INTO rank_role_option "
+      + "(rankRoleOption_fk_serverConfig, rankRoleOption_soloqEnable, rankRoleOption_flexEnable, rankRoleOption_tftEnable) VALUES (%d, '%s', '%s', '%s')";
 
   private static final String INSERT_INTO_GAME_INFO_CARD_OPTION = "INSERT INTO game_info_card_option "
       + "(gameCardOption_fk_serverConfig, gameCardOption_activate) VALUES (%d, %s)";
@@ -95,6 +102,26 @@ public class ConfigRepository {
       "FROM server " + 
       "INNER JOIN server_configuration ON server.serv_id = server_configuration.servconfig_fk_server " + 
       "INNER JOIN rank_channel_filter_option ON server_configuration.servconfig_id = rank_channel_filter_option.rankchannelfilteroption_fk_serverconfig " + 
+      "WHERE server.serv_guildid = %d";
+  
+  private static final String SELECT_RANK_ROLE_OPTION_WITH_GUILD_ID = "SELECT " + 
+      "rank_role_option.rankroleoption_ironid, " + 
+      "rank_role_option.rankroleoption_bronzeid, " + 
+      "rank_role_option.rankroleoption_silverid, " + 
+      "rank_role_option.rankroleoption_goldid, " + 
+      "rank_role_option.rankroleoption_platinumid, " + 
+      "rank_role_option.rankroleoption_diamondid, " + 
+      "rank_role_option.rankroleoption_masterid, " + 
+      "rank_role_option.rankroleoption_grandmasterid, " + 
+      "rank_role_option.rankroleoption_challengerid, " + 
+      "rank_role_option.rankroleoption_soloqenable, " + 
+      "rank_role_option.rankroleoption_flexenable, " + 
+      "rank_role_option.rankroleoption_tftenable, " +
+      "rank_role_option.rankroleoption_id, " + 
+      "rank_role_option.rankroleoption_fk_serverconfig " + 
+      "FROM server " + 
+      "INNER JOIN server_configuration ON server.serv_id = server_configuration.servconfig_fk_server " + 
+      "INNER JOIN rank_role_option ON server_configuration.servconfig_id = rank_role_option.rankroleoption_fk_serverconfig " + 
       "WHERE server.serv_guildid = %d";
 
   private static final String UPDATE_CLEAN_CHANNEL_OPTION_WITH_GUILD_ID =
@@ -145,6 +172,32 @@ public class ConfigRepository {
       "server.serv_id = server_configuration.servConfig_fk_server AND " +
       "server_configuration.servConfig_id = role_option.roleOption_fk_serverConfig";
   
+  private static final String UPDATE_RANK_ROLE_OPTION_ROLE_WITH_GUILD_ID =
+      "UPDATE rank_role_option " +
+      "SET rankRoleOption_ironId = %d, " +
+      "rankRoleOption_bronzeId = %d, " +
+      "rankRoleOption_silverId = %d, " +
+      "rankRoleOption_goldId = %d, " +
+      "rankRoleOption_platinumId = %d, " +
+      "rankRoleOption_diamondId = %d, " +
+      "rankRoleOption_masterId = %d, " +
+      "rankRoleOption_grandMasterId = %d, " +
+      "rankRoleOption_challengerId = %d " +
+      "FROM server, server_configuration " +
+      "WHERE server.serv_guildId = %d AND " +
+      "server.serv_id = server_configuration.servConfig_fk_server AND " +
+      "server_configuration.servConfig_id = rank_role_option.rankRoleOption_fk_serverConfig";
+  
+  private static final String UPDATE_RANK_ROLE_OPTION_QUEUE_WITH_GUILD_ID =
+      "UPDATE rank_role_option " +
+      "SET rankRoleOption_soloqEnable = %s, " +
+      "rankRoleOption_flexEnable = %s, " +
+      "rankRoleOption_tftEnable = %s " +
+      "FROM server, server_configuration " +
+      "WHERE server.serv_guildId = %d AND " +
+      "server.serv_id = server_configuration.servConfig_fk_server AND " +
+      "server_configuration.servConfig_id = rank_role_option.rankRoleOption_fk_serverConfig";
+  
   private static final String UPDATE_SELF_ADDING_OPTION_WITH_GUILD_ID =
       "UPDATE self_adding_option " +
       "SET selfOption_activate = %s " +
@@ -178,7 +231,7 @@ public class ConfigRepository {
     }
 
     //Create SelfAddingOption
-    finalQuery = String.format(INSERT_INTO_SELF_ADDING_OPTION, servConfigId, "FALSE");
+    finalQuery = String.format(INSERT_INTO_SELF_ADDING_OPTION, servConfigId, FALSE_DB);
     statement.execute(finalQuery);
 
     //Create RegionOption
@@ -203,6 +256,10 @@ public class ConfigRepository {
     
     //Create RankchannelFilterOption
     finalQuery = String.format(INSERT_INTO_RANK_CHANNEL_FILTER_OPTION, servConfigId, RankChannelFilter.ALL.toString());
+    statement.execute(finalQuery);
+    
+    //Create RankRoleOption
+    finalQuery = String.format(INSERT_INTO_RANK_ROLE_OPTION, servConfigId, FALSE_DB, FALSE_DB, FALSE_DB);
     statement.execute(finalQuery);
   }
   
@@ -277,6 +334,14 @@ public class ConfigRepository {
         rankchannelFilterOption.setRankChannelFilter(rankchannelFilter);
       }
       
+      RankRoleOption rankRoleOption = getRankRoleOption(guildId, conn, jda.getGuildById(guildId));
+      if(rankRoleOption == null) {
+        //Create RankRoleOption
+        createRankRoleOption(conn.createStatement(), guildId, conn);
+        
+        rankRoleOption = new RankRoleOption(guildId);
+      }
+      
       ServerConfiguration serverConfig = new ServerConfiguration(guildId);
       serverConfig.setUserSelfAdding(selfAddingOption);
       serverConfig.setDefaultRegion(regionOption);
@@ -285,11 +350,33 @@ public class ConfigRepository {
       serverConfig.setZoeRoleOption(roleOption);
       serverConfig.setInfopanelRankedOption(infopanelRankedOption);
       serverConfig.setRankchannelFilterOption(rankchannelFilterOption);
+      serverConfig.setRankRoleOption(rankRoleOption);
       
       return serverConfig;
     }
   }
   
+  private static RankRoleOption getRankRoleOption(long guildId, Connection conn, Guild guild) throws SQLException {
+    ResultSet result = null;
+    try (Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+
+      String finalQuery = String.format(SELECT_RANK_ROLE_OPTION_WITH_GUILD_ID, guildId);
+      result = query.executeQuery(finalQuery);
+      int rowCount = result.last() ? result.getRow() : 0;
+      if(rowCount == 0) {
+        return null;
+      }
+      
+      DTO.RankRoleOption roleOptionDB = new DTO.RankRoleOption(result);
+      RankRoleOption roleOption = new RankRoleOption(guildId);
+      roleOption.setValues(roleOptionDB, guild);
+      
+      return roleOption;
+    }finally {
+      RepoRessources.closeResultSet(result);
+    }
+  }
+
   @Nullable
   private static DTO.ServerRawSettings getAllSettingsDTO(long guildId, Connection conn) throws SQLException {
     ResultSet result = null;
@@ -345,6 +432,26 @@ public class ConfigRepository {
     }
     
     finalQuery = String.format(INSERT_INTO_RANK_CHANNEL_FILTER_OPTION, servConfigId, rankFilter.toString());
+    statement.execute(finalQuery);
+  }
+  
+  private static void createRankRoleOption(Statement statement, long guildId, Connection conn) throws SQLException {
+    
+    Server server = ServerRepository.getServerWithGuildId(guildId, conn);
+
+    //Get servConfig_id from ServerConfiguration
+    String finalQuery = String.format(SELECT_SERVER_CONFIG_WITH_SERV_ID, server.serv_id);
+    ResultSet result = null;
+    long servConfigId;
+    try {
+      result = statement.executeQuery(finalQuery);
+      result.next();
+      servConfigId = result.getLong("servConfig_id");
+    }finally {
+      RepoRessources.closeResultSet(result);
+    }
+    
+    finalQuery = String.format(INSERT_INTO_RANK_ROLE_OPTION, servConfigId, FALSE_DB, FALSE_DB, FALSE_DB);
     statement.execute(finalQuery);
   }
   
@@ -527,6 +634,42 @@ public class ConfigRepository {
       query.executeUpdate(finalQuery);
       
       EventListener.getServersConfig().put(guildId, ConfigRepository.getServerConfiguration(guildId, jda));
+    }
+  }
+  
+  public static void updateRankRoleOption(long guildId, JDA jda, Connection conn, long ironId, long bronzeId, long silverId, long goldId, 
+      long platinumId, long diamondId, long masterId, long grandMasterId, long challegerId) throws SQLException {
+    try (Statement query = conn.createStatement();) {
+
+      String finalQuery = String.format(UPDATE_RANK_ROLE_OPTION_ROLE_WITH_GUILD_ID, 
+          ironId, bronzeId, silverId, goldId, platinumId, diamondId, masterId, grandMasterId, challegerId, guildId);
+      query.executeUpdate(finalQuery);
+      
+      EventListener.getServersConfig().put(guildId, ConfigRepository.getServerConfiguration(guildId, jda));
+    }
+  }
+  
+  public static void updateRankRoleOption(long guildId, JDA jda, long ironId, long bronzeId, long silverId, long goldId, 
+      long platinumId, long diamondId, long masterId, long grandMasterId, long challegerId) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();) {
+      updateRankRoleOption(guildId, jda, conn, ironId, bronzeId, silverId, goldId, platinumId, diamondId, masterId, grandMasterId, challegerId);
+    }
+  }
+  
+  public static void updateRankRoleOption(long guildId, JDA jda, Connection conn, boolean soloqEnable, boolean flexEnable, boolean tftEnable) throws SQLException {
+    try (Statement query = conn.createStatement();) {
+
+      String finalQuery = String.format(UPDATE_RANK_ROLE_OPTION_QUEUE_WITH_GUILD_ID, 
+          soloqEnable, flexEnable, tftEnable, guildId);
+      query.executeUpdate(finalQuery);
+      
+      EventListener.getServersConfig().put(guildId, ConfigRepository.getServerConfiguration(guildId, jda));
+    }
+  }
+  
+  public static void updateRankRoleOption(long guildId, JDA jda, boolean soloqEnable, boolean flexEnable, boolean tftEnable) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();) {
+      updateRankRoleOption(guildId, jda, conn, soloqEnable, flexEnable, tftEnable);
     }
   }
   

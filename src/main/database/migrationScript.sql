@@ -1,8 +1,24 @@
-CREATE INDEX idx_match_cache_creationTime
-  ON match_cache(mCatch_creationTime);
-  
-DROP INDEX index_matchcache_championId;
-DROP INDEX index_matchcache_queueId;
-DROP INDEX index_matchcache_gameVersion;
+CREATE TABLE rank_role_option (
+  rankRoleOption_id 							SERIAL				NOT NULL,
+  rankRoleOption_fk_serverConfig				BIGINT				NOT NULL,
+  rankRoleOption_ironId							BIGINT,
+  rankRoleOption_bronzeId						BIGINT,
+  rankRoleOption_silverId						BIGINT,
+  rankRoleOption_goldId							BIGINT,
+  rankRoleOption_platinumId						BIGINT,
+  rankRoleOption_diamondId						BIGINT,
+  rankRoleOption_masterId						BIGINT,
+  rankRoleOption_grandMasterId					BIGINT,
+  rankRoleOption_challengerId					BIGINT,
+  rankRoleOption_soloqEnable					boolean,
+  rankRoleOption_flexEnable						boolean,
+  rankRoleOption_tftEnable						boolean
+);
 
-CREATE INDEX index_matchcache_All ON match_cache USING gin (mCatch_savedMatch jsonb_path_ops);
+ALTER TABLE ONLY rank_role_option
+  ADD CONSTRAINT rank_role_option_pkey PRIMARY KEY (rankRoleOption_id);
+  
+ALTER TABLE rank_role_option
+  ADD CONSTRAINT rank_role_option_fk_serverConfig_const 
+  FOREIGN KEY (rankRoleOption_fk_serverConfig) REFERENCES server_configuration (servConfig_id)
+  ON DELETE CASCADE;

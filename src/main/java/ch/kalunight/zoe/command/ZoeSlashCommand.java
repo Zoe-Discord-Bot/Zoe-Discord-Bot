@@ -85,6 +85,12 @@ public abstract class ZoeSlashCommand extends SlashCommand {
   
   protected abstract void executeCommand(SlashCommandEvent event) throws SQLException;
   
+  public static void clearStats() {
+    commandExecuted.set(0);
+    commandFinishedCorrectly.set(0);
+    commandFinishedWithError.set(0);
+  }
+  
   public static AtomicInteger getCommandExecuted() {
     return commandExecuted;
   }

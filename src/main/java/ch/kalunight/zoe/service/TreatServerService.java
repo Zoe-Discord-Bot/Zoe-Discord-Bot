@@ -30,7 +30,7 @@ public class TreatServerService {
 
   private static final ServerPerLastRefreshComparator serverOrder = new ServerPerLastRefreshComparator();
 
-  private static final boolean IN_TEST = false;
+  private static final boolean IN_TEST = true;
 
   private BlockingQueue<Server> serversStatusDetected;
 

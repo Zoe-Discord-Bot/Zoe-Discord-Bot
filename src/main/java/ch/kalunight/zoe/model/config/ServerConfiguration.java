@@ -6,6 +6,7 @@ import ch.kalunight.zoe.model.config.option.ConfigurationOption;
 import ch.kalunight.zoe.model.config.option.GameInfoCardOption;
 import ch.kalunight.zoe.model.config.option.InfoPanelRankedOption;
 import ch.kalunight.zoe.model.config.option.RankChannelFilterOption;
+import ch.kalunight.zoe.model.config.option.RankRoleOption;
 import ch.kalunight.zoe.model.config.option.RegionOption;
 import ch.kalunight.zoe.model.config.option.CleanChannelOption;
 import ch.kalunight.zoe.model.config.option.RoleOption;
@@ -49,6 +50,11 @@ public class ServerConfiguration {
   private RankChannelFilterOption rankchannelFilterOption;
   
   /**
+   * This option allow to create role depending of players rank
+   */
+  private RankRoleOption rankRoleOption;
+  
+  /**
    * This option activate the command join/leave for everyone. They can join team joinable by everyone. NOT IMPLEMENTED
    */
   private boolean everyoneCanMoveOfTeam = false;
@@ -61,6 +67,7 @@ public class ServerConfiguration {
     this.cleanChannelOption = new CleanChannelOption(guildId);
     this.infopanelRankedOption = new InfoPanelRankedOption(guildId);
     this.rankchannelFilterOption = new RankChannelFilterOption(guildId);
+    this.rankRoleOption = new RankRoleOption(guildId);
     this.everyoneCanMoveOfTeam = false;
   }
 
@@ -73,9 +80,22 @@ public class ServerConfiguration {
     options.add(infoCardsOption);
     options.add(infopanelRankedOption);
     options.add(rankchannelFilterOption);
+    options.add(rankRoleOption);
     return options;
   }
   
+  public boolean isOptionRequireRefresh() {
+    return rankRoleOption.isOptionEnable();
+  }
+  
+  public RankRoleOption getRankRoleOption() {
+    return rankRoleOption;
+  }
+
+  public void setRankRoleOption(RankRoleOption rankRoleOption) {
+    this.rankRoleOption = rankRoleOption;
+  }
+
   public RankChannelFilterOption getRankchannelFilterOption() {
     return rankchannelFilterOption;
   }

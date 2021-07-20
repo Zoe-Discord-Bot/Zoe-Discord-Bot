@@ -575,7 +575,7 @@
     "rankRoleOptionCancelButton": "Cancel",
     "rankRoleOptionActivateButton": "Activate",
     "rankRoleOptionActivateWait": "Perfect ! Let me a few seconds to enable the option ...",
-    "rankRoleOptionDescriptionChangeText": "Assign role depending of their rank : (%s)",
+    "rankRoleOptionDescriptionChangeText": "Assigns a role depending of their rank : (%s)",
     "rankRoleOptionDisableTheOptionButton": "Disable",
     "rankRoleOptionUpdateTheOptionButton": "Update",
     "rankRoleOptionCancelUpdate": "Okay, we stop the process here.",
@@ -584,7 +584,7 @@
     "rankRoleOptionPermissionMissingError": "I can't do that since i don't have the permission \"%s\".",
     "rankRoleOptionMaxRoleGuild": "There's to much role in this server. Please remove some roles (i need 9 empty space) if you want to use this option.",
     "rankRoleOptionOptionCreated": "Thanks you for your time! The option has been correctly created! Rank will be assigned at the next refresh.",
-    "rankRoleOptionUpdateSave": "Perfect! Your changes have been save.",
+    "rankRoleOptionUpdateSave": "Perfect! Your changes have been saved.",
     "rankRoleOptionNeedAtLeastOneQueue": "You need to select at least one queue! The process has been canceled, please retry.",
     "rankRoleOptionDisableUpdate": "The option has been correctly disabled!",
     "rankRoleOptionDisableUpdateFailedToDelete": "The option has been correctly disabled! But i got an issue when deleting rank roles so please do it yourself."

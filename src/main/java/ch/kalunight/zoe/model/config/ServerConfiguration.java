@@ -84,6 +84,10 @@ public class ServerConfiguration {
     return options;
   }
   
+  public boolean isOptionRequireRefresh() {
+    return rankRoleOption.isOptionEnable();
+  }
+  
   public RankRoleOption getRankRoleOption() {
     return rankRoleOption;
   }

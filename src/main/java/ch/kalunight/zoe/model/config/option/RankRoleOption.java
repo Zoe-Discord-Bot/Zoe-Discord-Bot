@@ -3,6 +3,7 @@ package ch.kalunight.zoe.model.config.option;
 import java.awt.Color;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -14,6 +15,8 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import ch.kalunight.zoe.model.CommandGuildDiscordData;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.Server;
+import ch.kalunight.zoe.model.player_data.FullTier;
+import ch.kalunight.zoe.model.player_data.Tier;
 import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.service.ServerChecker;
 import ch.kalunight.zoe.translation.LanguageManager;
@@ -25,6 +28,7 @@ import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.interactions.InteractionHook;
+import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.Button;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.api.entities.Role;
@@ -98,8 +102,8 @@ public class RankRoleOption extends ConfigurationOption {
         }
 
         if(!isOptionEnable()) {
-          Button validateButton = Button.success(VALIDATE_ID, Emoji.fromUnicode("✅"));
-          Button cancelButton = Button.danger(CANCEL_ID, Emoji.fromUnicode("❌"));
+          Button validateButton = Button.primary(VALIDATE_ID, Emoji.fromUnicode("✅"));
+          Button cancelButton = Button.secondary(CANCEL_ID, Emoji.fromUnicode("❌"));
 
           Message message = event.getChannel().sendMessage(String.format(LanguageManager.getText(server.getLanguage(), "rankRoleOptionLongDesc"), 
               LanguageManager.getText(server.getLanguage(), description)))
@@ -112,7 +116,7 @@ public class RankRoleOption extends ConfigurationOption {
                 receiveValidationAndAskForOptions(e, event.getChannel(), server, waiter, event.getUser());
               },
               2, TimeUnit.MINUTES,
-              () -> cancelOptionCreation(event.getChannel(), server));
+              () -> cancelOptionCreation(server, message));
 
           return;
         }
@@ -123,21 +127,40 @@ public class RankRoleOption extends ConfigurationOption {
 
   private void createUpdateMessageOrDelete(TextChannel channel, Guild guild, Server server, EventWaiter waiter, User user) {
     String enable = LanguageManager.getText(server.getLanguage(), "optionEnable");
+    String disable = LanguageManager.getText(server.getLanguage(), "optionDisable");
 
-    String soloqEnableString = enable;
-    String flexEnableString = enable;
-    String tftEnableString = enable;
+    String soloqEnableString;
+    String flexEnableString;
+    String tftEnableString;
 
-    Button buttonSoloq = Button.primary(SOLOQ_ID, Emoji.fromUnicode("1️⃣"));
-    Button buttonFlex = Button.primary(FLEX_ID, Emoji.fromUnicode("2️⃣"));
-    Button buttonTFT = Button.primary(TFT_ID, Emoji.fromUnicode("3️⃣"));
-    Button buttonValidate = Button.success(VALIDATE_ID, LanguageManager.getText(server.getLanguage(), "rankRoleOptionActivateButton"));
+    if(soloqEnable) {
+      soloqEnableString = enable;
+    }else {
+      soloqEnableString = disable;
+    }
+
+    if(flexEnable) {
+      flexEnableString = enable;
+    }else {
+      flexEnableString = disable;
+    }
+
+    if(tftEnable) {
+      tftEnableString = enable;
+    }else {
+      tftEnableString = disable;
+    }
+
+    Button buttonSoloq = Button.secondary(SOLOQ_ID, Emoji.fromUnicode("1️⃣"));
+    Button buttonFlex = Button.secondary(FLEX_ID, Emoji.fromUnicode("2️⃣"));
+    Button buttonTFT = Button.secondary(TFT_ID, Emoji.fromUnicode("3️⃣"));
+    Button buttonValidate = Button.success(VALIDATE_ID, LanguageManager.getText(server.getLanguage(), "rankRoleOptionUpdateTheOptionButton"));
     Button buttonCancel = Button.secondary(CANCEL_ID, LanguageManager.getText(server.getLanguage(), "rankRoleOptionCancelButton"));
     Button buttonDelete = Button.danger(DISABLE_ID, LanguageManager.getText(server.getLanguage(), "rankRoleOptionDisableTheOptionButton"));
 
     Message message = channel.sendMessage(String.format(LanguageManager.getText(server.getLanguage(), "rankRoleOptionUpdateDescription"),
         LanguageManager.getText(server.getLanguage(), description), soloqEnableString, flexEnableString, tftEnableString))
-        .setActionRow(buttonSoloq, buttonFlex, buttonTFT, buttonValidate, buttonCancel, buttonDelete).complete();
+        .setActionRows(ActionRow.of(buttonSoloq, buttonFlex, buttonTFT), ActionRow.of(buttonValidate, buttonCancel, buttonDelete)).complete();
 
     waiter.waitForEvent(ButtonClickEvent.class,               
         e -> e.getUser().getId().equals(user.getId()) && e.getChannel().equals(channel) && e.getMessage().equals(message),
@@ -145,7 +168,7 @@ public class RankRoleOption extends ConfigurationOption {
           selectButtonQueueUpdateOrDelete(e, server, waiter);
         },
         2, TimeUnit.MINUTES,
-        () -> cancelOptionUpdate(channel, server));
+        () -> cancelOptionUpdate(server, message));
   }
 
   private void receiveValidationAndAskForOptions(ButtonClickEvent event, TextChannel channel, Server server, EventWaiter waiter, User user) {
@@ -161,15 +184,15 @@ public class RankRoleOption extends ConfigurationOption {
       String flexEnableString = enable;
       String tftEnableString = enable;
 
-      Button buttonSoloq = Button.primary(SOLOQ_ID, Emoji.fromUnicode("1️⃣"));
-      Button buttonFlex = Button.primary(FLEX_ID, Emoji.fromUnicode("2️⃣"));
-      Button buttonTFT = Button.primary(TFT_ID, Emoji.fromUnicode("3️⃣"));
+      Button buttonSoloq = Button.secondary(SOLOQ_ID, Emoji.fromUnicode("1️⃣"));
+      Button buttonFlex = Button.secondary(FLEX_ID, Emoji.fromUnicode("2️⃣"));
+      Button buttonTFT = Button.secondary(TFT_ID, Emoji.fromUnicode("3️⃣"));
       Button buttonValidate = Button.success(VALIDATE_ID, LanguageManager.getText(server.getLanguage(), "rankRoleOptionActivateButton"));
       Button buttonCancel = Button.danger(CANCEL_ID, LanguageManager.getText(server.getLanguage(), "rankRoleOptionCancelButton"));
 
       event.getHook().editOriginal(String.format(LanguageManager.getText(server.getLanguage(), "rankRoleOptionSelectQueueWaitMessage"),
           soloqEnableString, flexEnableString, tftEnableString))
-      .setActionRow(buttonSoloq, buttonFlex, buttonTFT, buttonValidate, buttonCancel).queue();
+      .setActionRows(ActionRow.of(buttonSoloq, buttonFlex, buttonTFT), ActionRow.of(buttonValidate, buttonCancel)).queue();
 
       waiter.waitForEvent(ButtonClickEvent.class,               
           e -> e.getUser().getId().equals(user.getId()) && e.getChannel().equals(channel) && e.getMessage().equals(event.getMessage()),
@@ -177,14 +200,14 @@ public class RankRoleOption extends ConfigurationOption {
             selectButtonQueueCreation(e, server, waiter);
           },
           2, TimeUnit.MINUTES,
-          () -> cancelOptionCreation(channel, server));
+          () -> cancelOptionCreation(server, event));
     }else {
-      channel.sendMessage(LanguageManager.getText(server.getLanguage(), "rankRoleOptionCancelCreation")).queue();
+      event.getHook().editOriginal(LanguageManager.getText(server.getLanguage(), "rankRoleOptionCancelCreation")).setActionRows(new ArrayList<>()).queue();
     }
   }
 
   private void selectButtonQueueUpdateOrDelete(ButtonClickEvent event, Server server, EventWaiter waiter) {
-    event.getHook().getInteraction().deferReply().queue();
+    event.deferEdit().queue();
     String buttonIdSelected = event.getButton().getId();
     InteractionHook hook = event.getHook();
 
@@ -242,7 +265,7 @@ public class RankRoleOption extends ConfigurationOption {
     }
 
     hook.editOriginal(String.format(LanguageManager.getText(server.getLanguage(), "rankRoleOptionUpdateDescription"),
-        soloqEnableString, flexEnableString, tftEnableString)).queue();
+        LanguageManager.getText(server.getLanguage(), description), soloqEnableString, flexEnableString, tftEnableString)).queue();
 
     waiter.waitForEvent(ButtonClickEvent.class,               
         e -> e.getUser().getId().equals(event.getUser().getId()) && e.getChannel().equals(event.getChannel()) && e.getMessage().equals(event.getMessage()),
@@ -250,24 +273,25 @@ public class RankRoleOption extends ConfigurationOption {
           selectButtonQueueUpdateOrDelete(e, server, waiter);
         },
         2, TimeUnit.MINUTES,
-        () -> cancelOptionUpdate(event.getTextChannel(), server));
+        () -> cancelOptionUpdate(server, event));
   }
 
   private void updateOption(Guild guild, Server server, InteractionHook hook) {
     if(!isOptionEnable()) {
-      hook.editOriginal(LanguageManager.getText(server.getLanguage(), "rankRoleOptionNeedAtLeastOneQueue")).setActionRow(new ArrayList<>()).queue();
+      hook.editOriginal(LanguageManager.getText(server.getLanguage(), "rankRoleOptionNeedAtLeastOneQueue")).setActionRows(new ArrayList<>()).queue();
+      return;
     }
 
     try {
       ConfigRepository.updateRankRoleOption(guild.getIdLong(), guild.getJDA(), soloqEnable, flexEnable, tftEnable);
     } catch (SQLException e) {
       logger.error("Database error with update RankRoleOption", e);
-      hook.editOriginal(LanguageManager.getText(server.getLanguage(), DB_FAIL_ERROR_MESSAGE)).setActionRow(new ArrayList<>()).queue();
+      hook.editOriginal(LanguageManager.getText(server.getLanguage(), DB_FAIL_ERROR_MESSAGE)).setActionRows(new ArrayList<>()).queue();
       return;
     }
 
     ServerChecker.getServerRefreshService().getServersStatusDetected().add(server);
-    hook.editOriginal(LanguageManager.getText(server.getLanguage(), "rankRoleOptionUpdateSave")).setActionRow(new ArrayList<>()).queue();
+    hook.editOriginal(LanguageManager.getText(server.getLanguage(), "rankRoleOptionUpdateSave")).setActionRows(new ArrayList<>()).queue();
   }
 
   private void deleteOption(Guild guild, Server server, InteractionHook hook) {
@@ -276,7 +300,7 @@ public class RankRoleOption extends ConfigurationOption {
       ConfigRepository.updateRankRoleOption(guild.getIdLong(), guild.getJDA(), false, false, false);
     } catch (SQLException e) {
       logger.error("Database error with update RankRoleOption", e);
-      hook.editOriginal(LanguageManager.getText(server.getLanguage(), DB_FAIL_ERROR_MESSAGE)).setActionRow(new ArrayList<>()).queue();
+      hook.editOriginal(LanguageManager.getText(server.getLanguage(), DB_FAIL_ERROR_MESSAGE)).setActionRows(new ArrayList<>()).queue();
       return;
     }
     
@@ -329,7 +353,7 @@ public class RankRoleOption extends ConfigurationOption {
   }
 
   private void selectButtonQueueCreation(ButtonClickEvent event, Server server, EventWaiter waiter) {
-    event.getHook().getInteraction().deferReply().queue();
+    event.deferEdit().queue();
     String buttonIdSelected = event.getButton().getId();
     InteractionHook hook = event.getHook();
 
@@ -390,13 +414,14 @@ public class RankRoleOption extends ConfigurationOption {
           selectButtonQueueCreation(e, server, waiter);
         },
         2, TimeUnit.MINUTES,
-        () -> cancelOptionCreation(event.getTextChannel(), server));
+        () -> cancelOptionCreation(server, event));
   }
 
   private void createOption(Guild guild, Server server, InteractionHook hook) {
 
     if(!isOptionEnable()) {
-      hook.editOriginal(LanguageManager.getText(server.getLanguage(), "rankRoleOptionNeedAtLeastOneQueue")).setActionRow(new ArrayList<>()).queue();
+      hook.editOriginal(LanguageManager.getText(server.getLanguage(), "rankRoleOptionNeedAtLeastOneQueue")).setActionRows(new ArrayList<>()).queue();
+      return;
     }
 
     try {
@@ -407,7 +432,7 @@ public class RankRoleOption extends ConfigurationOption {
       platinum = guild.createRole().setName(LanguageManager.getText(server.getLanguage(), "platinum")).setColor(platinumColor).complete();
       diamond = guild.createRole().setName(LanguageManager.getText(server.getLanguage(), "diamond")).setColor(diamondColor).complete();
       master = guild.createRole().setName(LanguageManager.getText(server.getLanguage(), "master")).setColor(masterColor).complete();
-      grandMaster = guild.createRole().setName(LanguageManager.getText(server.getLanguage(), "grandMaster")).setColor(grandMasterColor).complete();
+      grandMaster = guild.createRole().setName(LanguageManager.getText(server.getLanguage(), "grandmaster")).setColor(grandMasterColor).complete();
       challenger = guild.createRole().setName(LanguageManager.getText(server.getLanguage(), "challenger")).setColor(challengerColor).complete();
     }catch(InsufficientPermissionException e) {
       hook.editOriginal(String.format(LanguageManager.getText(server.getLanguage(), "rankRoleOptionPermissionMissingError"), e.getPermission().getName())).queue();
@@ -433,12 +458,20 @@ public class RankRoleOption extends ConfigurationOption {
     hook.editOriginal(LanguageManager.getText(server.getLanguage(), "rankRoleOptionOptionCreated")).queue();
   }
 
-  private void cancelOptionUpdate(TextChannel channel, Server server) {
-    channel.sendMessage(LanguageManager.getText(server.getLanguage(), "rankRoleOptionCancelUpdate")).queue();
+  private void cancelOptionUpdate(Server server, Message message) {
+    message.editMessage(LanguageManager.getText(server.getLanguage(), "rankRoleOptionCancelUpdate")).setActionRows(new ArrayList<>()).queue();
+  }
+  
+  private void cancelOptionUpdate(Server server, ButtonClickEvent event) {
+    event.getHook().editOriginal(LanguageManager.getText(server.getLanguage(), "rankRoleOptionCancelUpdate")).setActionRows(new ArrayList<>()).queue();
   }
 
-  private void cancelOptionCreation(TextChannel channel, Server server) {
-    channel.sendMessage(LanguageManager.getText(server.getLanguage(), "rankRoleOptionCancelCreation")).queue();
+  private void cancelOptionCreation(Server server, Message message) {
+    message.editMessage(LanguageManager.getText(server.getLanguage(), "rankRoleOptionCancelCreation")).setActionRows(new ArrayList<>()).queue();
+  }
+  
+  private void cancelOptionCreation(Server server, ButtonClickEvent event) {
+    event.getHook().editOriginal(LanguageManager.getText(server.getLanguage(), "rankRoleOptionCancelCreation")).setActionRows(new ArrayList<>()).queue();
   }
 
   @Override
@@ -496,6 +529,87 @@ public class RankRoleOption extends ConfigurationOption {
     return soloqEnable || flexEnable || tftEnable;
   }
 
+  public List<Role> assignedRankRole(List<Role> rolesToCheck){
+    List<Role> rankRoleList = new ArrayList<>();
+    
+    for(Role role : rolesToCheck) {
+      if(role.getId().equals(iron.getId())) {
+        rankRoleList.add(role);
+      }
+      
+      if(role.getId().equals(bronze.getId())) {
+        rankRoleList.add(role);
+      }
+      
+      if(role.getId().equals(silver.getId())) {
+        rankRoleList.add(role);
+      }
+      
+      if(role.getId().equals(gold.getId())) {
+        rankRoleList.add(role);
+      }
+      
+      if(role.getId().equals(platinum.getId())) {
+        rankRoleList.add(role);
+      }
+      
+      if(role.getId().equals(diamond.getId())) {
+        rankRoleList.add(role);
+      }
+      
+      if(role.getId().equals(master.getId())) {
+        rankRoleList.add(role);
+      }
+      
+      if(role.getId().equals(grandMaster.getId())) {
+        rankRoleList.add(role);
+      }
+      
+      if(role.getId().equals(challenger.getId())) {
+        rankRoleList.add(role);
+      }
+    }
+    
+    return rankRoleList;
+  }
+  
+  public Role getRoleCorrespondingToTier(Tier tier) {
+    if(tier == null) {
+      return null;
+    }
+    switch(tier) {
+    case BRONZE:
+      return bronze;
+    case CHALLENGER:
+      return challenger;
+    case DIAMOND:
+      return diamond;
+    case GOLD:
+      return gold;
+    case GRANDMASTER:
+      return grandMaster;
+    case IRON:
+      return iron;
+    case MASTER:
+      return master;
+    case PLATINUM:
+      return platinum;
+    case SILVER:
+      return silver;
+    case UNKNOWN:
+    case UNRANKED:
+    default:
+      return null;
+    }
+  }
+  
+  public Role getRoleCorrespondingToTier(FullTier fullTier) {
+    if(fullTier == null) {
+      return null;
+    }
+    return getRoleCorrespondingToTier(fullTier.getTier());
+  }
+  
   public boolean isSoloqEnable() {
     return soloqEnable;
   }

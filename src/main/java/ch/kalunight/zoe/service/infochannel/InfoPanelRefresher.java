@@ -25,9 +25,11 @@ import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.exception.NoValueRankException;
 import ch.kalunight.zoe.model.ComparableMessage;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
+import ch.kalunight.zoe.model.config.option.RankRoleOption;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.InfoChannel;
 import ch.kalunight.zoe.model.dto.DTO.InfoPanelMessage;
+import ch.kalunight.zoe.model.dto.DTO.LastRank;
 import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Player;
@@ -35,10 +37,12 @@ import ch.kalunight.zoe.model.dto.DTO.RankHistoryChannel;
 import ch.kalunight.zoe.model.dto.DTO.ServerStatus;
 import ch.kalunight.zoe.model.dto.GameInfoCardStatus;
 import ch.kalunight.zoe.model.player_data.FullTier;
+import ch.kalunight.zoe.model.player_data.Tier;
 import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.CurrentGameInfoRepository;
 import ch.kalunight.zoe.repositories.GameInfoCardRepository;
 import ch.kalunight.zoe.repositories.InfoChannelRepository;
+import ch.kalunight.zoe.repositories.LastRankRepository;
 import ch.kalunight.zoe.repositories.LeaderboardRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
@@ -52,10 +56,13 @@ import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.InfoPanelRefresherUtil;
 import ch.kalunight.zoe.util.TreatedPlayer;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageReaction;
 import net.dv8tion.jda.api.entities.PermissionOverride;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.requests.ErrorResponse;
@@ -124,7 +131,7 @@ public class InfoPanelRefresher implements Runnable {
 
       List<Leaderboard> leaderboardsOfTheServer = LeaderboardRepository.getLeaderboardsWithGuildId(guild.getIdLong());
 
-      if(infochannel != null || rankChannel != null || !leaderboardsOfTheServer.isEmpty()) {
+      if(infochannel != null || rankChannel != null || !leaderboardsOfTheServer.isEmpty() || configuration.isOptionRequireRefresh()) {
 
         for(Player player : playersDTO) {
           List<LeagueAccount> leaguesAccounts = LeagueAccountRepository.getLeaguesAccountsWithPlayerID(server.serv_guildId, player.player_id);
@@ -143,6 +150,8 @@ public class InfoPanelRefresher implements Runnable {
         TreatPlayerWorker.awaitAll(playersToTreat);
 
         executeRankChannel(playersToTreat);
+
+        executeServerOption(configuration, playersToTreat, guild);
 
         Map<CurrentGameInfo, List<LeagueAccount>> leaguesAccountsPerGameWaitingCreation = Collections.synchronizedMap(new HashMap<CurrentGameInfo, List<LeagueAccount>>());
 
@@ -195,6 +204,96 @@ public class InfoPanelRefresher implements Runnable {
       updateServerStatus();
       ServerChecker.getServerRefreshService().taskEnded(server);
     }
+  }
+
+  private void executeServerOption(ServerConfiguration configuration, List<TreatPlayerWorker> playersToTreat, Guild guild) throws SQLException {
+    if(configuration.getRankRoleOption().isOptionEnable()) {
+      refreshRankRoleOption(configuration, playersToTreat, guild);
+    }
+  }
+
+  private void refreshRankRoleOption(ServerConfiguration configuration, List<TreatPlayerWorker> playersToTreat,
+      Guild guild) throws SQLException {
+    RankRoleOption rankRoleOption = configuration.getRankRoleOption();
+    for(TreatPlayerWorker player : playersToTreat) {
+      FullTier heighestTier = getHeighestRankFromPlayer(rankRoleOption, player);
+      
+      User user = player.getPlayer().retrieveUser(guild.getJDA());
+      Member member = guild.getMember(user);
+      
+      if(member != null) {
+        List<Role> roles = member.getRoles();
+        
+        List<Role> rolesToManage = rankRoleOption.assignedRankRole(roles);
+        
+        Role roleToGive = rankRoleOption.getRoleCorrespondingToTier(heighestTier);
+        
+        //Remove old rank
+        if(rolesToManage.size() == 1) {
+          Role actualRole = rolesToManage.get(0);
+          
+          if(roleToGive == null || !roleToGive.getId().equals(actualRole.getId())) {
+            guild.removeRoleFromMember(member, actualRole).queue();
+          }
+        }else if(rolesToManage.size() > 1) {
+          for(Role role : rolesToManage) {
+            guild.removeRoleFromMember(member, role).complete();
+          }
+        }
+        
+        //Add new rank
+        if(roleToGive != null && !member.getRoles().contains(roleToGive)) {
+          guild.addRoleToMember(member, roleToGive).queue();
+        }
+      }
+    }
+  }
+
+  private FullTier getHeighestRankFromPlayer(RankRoleOption rankRoleOption, TreatPlayerWorker player)
+      throws SQLException {
+    FullTier heighestTier = null;
+
+    for(LeagueAccount leagueAccount : player.getLeaguesAccounts()) {
+      LastRank lastRank = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
+      
+      if(lastRank == null) {
+        continue;
+      }
+      
+      if(rankRoleOption.isSoloqEnable() && lastRank.getLastRankSoloq() != null) {
+        FullTier currentSoloqRank = new FullTier(lastRank.getLastRankSoloq());
+        try {
+          if((heighestTier == null || heighestTier.value() < currentSoloqRank.value()) && (currentSoloqRank.getTier() != Tier.UNKNOWN && currentSoloqRank.getTier() != Tier.UNRANKED)) {
+            heighestTier = currentSoloqRank;
+          }
+        } catch (NoValueRankException e) {
+          logger.debug("Unranked rank for soloq detected, continue...");
+        }
+      }
+      
+      if(rankRoleOption.isFlexEnable() && lastRank.getLastRankFlex() != null) {
+        FullTier currentFlexRank = new FullTier(lastRank.getLastRankFlex());
+        try {
+          if((heighestTier == null || heighestTier.value() < currentFlexRank.value()) && (currentFlexRank.getTier() != Tier.UNKNOWN && currentFlexRank.getTier() != Tier.UNRANKED)) {
+            heighestTier = currentFlexRank;
+          }
+        } catch (NoValueRankException e) {
+          logger.debug("Unranked rank for flex detected, continue...");
+        }
+      }
+      
+      if(rankRoleOption.isTftEnable() && lastRank.getLastRankTft() != null) {
+        FullTier currentTFTRank = new FullTier(lastRank.getLastRankTft());
+        try {
+          if((heighestTier == null || heighestTier.value() < currentTFTRank.value()) && (currentTFTRank.getTier() != Tier.UNKNOWN && currentTFTRank.getTier() != Tier.UNRANKED)) {
+            heighestTier = currentTFTRank;
+          }
+        } catch (NoValueRankException e) {
+          logger.debug("Unranked rank for tft detected, continue...");
+        }
+      }
+    }
+    return heighestTier;
   }
 
   private boolean isServerNeedToBeRefreshed() {
@@ -746,13 +845,13 @@ public class InfoPanelRefresher implements Runnable {
     }
 
     int refreshRate = ServerChecker.getServerRefreshService().getEstimateTimeToFullRefreshInMinutes();
-    
+
     if(refreshRate > 60) {
       stringMessage.append(LanguageManager.getText(server.getLanguage(), "informationPanelSmartModEnable"));
     }else {
       stringMessage.append(String.format(LanguageManager.getText(server.getLanguage(), "informationPanelRefreshedTime"), refreshRate));
     }
-    
+
     return stringMessage.toString();
   }
 

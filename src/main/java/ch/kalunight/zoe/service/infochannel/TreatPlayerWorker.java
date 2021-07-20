@@ -113,7 +113,6 @@ public class TreatPlayerWorker implements Runnable {
     playersInWork.add(this);
   }
 
-
   @Override
   public void run() {
     try {
@@ -523,5 +522,8 @@ public class TreatPlayerWorker implements Runnable {
   public TreatedPlayer getTreatedPlayer() {
     return treatedPlayer;
   }
-
+  public List<LeagueAccount> getLeaguesAccounts() {
+    return leaguesAccounts;
+  }
+  
 }

@@ -79,6 +79,23 @@ CREATE TABLE info_panel_ranked_option (
   infoPanelRanked_activate 						boolean 			DEFAULT TRUE
 );
 
+CREATE TABLE rank_role_option (
+  rankRoleOption_id 							SERIAL				NOT NULL,
+  rankRoleOption_fk_serverConfig				BIGINT				NOT NULL,
+  rankRoleOption_ironId							BIGINT,
+  rankRoleOption_bronzeId						BIGINT,
+  rankRoleOption_silverId						BIGINT,
+  rankRoleOption_goldId							BIGINT,
+  rankRoleOption_platinumId						BIGINT,
+  rankRoleOption_diamondId						BIGINT,
+  rankRoleOption_masterId						BIGINT,
+  rankRoleOption_grandMasterId					BIGINT,
+  rankRoleOption_challengerId					BIGINT,
+  rankRoleOption_soloqEnable					boolean,
+  rankRoleOption_flexEnable						boolean,
+  rankRoleOption_tftEnable						boolean
+);
+
 CREATE TABLE info_channel (
   infoChannel_id								SERIAL,
   infoChannel_fk_server							BIGINT				NOT NULL,
@@ -241,6 +258,9 @@ ALTER TABLE ONLY game_info_card_option
 ALTER TABLE ONLY role_option
   ADD CONSTRAINT role_option_pkey PRIMARY KEY (roleOption_id);
   
+ALTER TABLE ONLY rank_role_option
+  ADD CONSTRAINT rank_role_option_pkey PRIMARY KEY (rankRoleOption_id);
+  
 ALTER TABLE ONLY info_panel_ranked_option
   ADD CONSTRAINT info_panel_ranked_option_pkey PRIMARY KEY (infoPanelRanked_id);
 
@@ -343,6 +363,11 @@ ALTER TABLE role_option
 ALTER TABLE info_panel_ranked_option
   ADD CONSTRAINT info_panel_ranked_option_fk_serverConfig_const
   FOREIGN KEY (infoPanelRanked_fk_serverConfig) REFERENCES server_configuration (servConfig_id)
+  ON DELETE CASCADE;
+  
+ALTER TABLE rank_role_option
+  ADD CONSTRAINT rank_role_option_fk_serverConfig_const 
+  FOREIGN KEY (rankRoleOption_fk_serverConfig) REFERENCES server_configuration (servConfig_id)
   ON DELETE CASCADE;
   
 ALTER TABLE clash_channel

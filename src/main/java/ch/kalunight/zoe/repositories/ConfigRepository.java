@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.EventListener;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.config.option.CleanChannelOption;
+import ch.kalunight.zoe.model.config.option.ForceVerificationOption;
 import ch.kalunight.zoe.model.config.option.CleanChannelOption.CleanChannelOptionInfo;
 import ch.kalunight.zoe.model.config.option.GameInfoCardOption;
 import ch.kalunight.zoe.model.config.option.InfoPanelRankedOption;
@@ -60,6 +61,9 @@ public class ConfigRepository {
   private static final String INSERT_INTO_GAME_INFO_CARD_OPTION = "INSERT INTO game_info_card_option "
       + "(gameCardOption_fk_serverConfig, gameCardOption_activate) VALUES (%d, %s)";
 
+  private static final String INSERT_INTO_FORCE_VERIFICATION_OPTION = "INSERT INTO force_verification_option "
+      + "(verificationOption_fk_serverConfig, verificationOption_activate) VALUES (%d, %s)";
+  
   private static final String INSERT_INTO_ROLE_OPTION = "INSERT INTO role_option "
       + "(roleOption_fk_serverConfig) VALUES (%d)";
   
@@ -73,7 +77,7 @@ public class ConfigRepository {
       "region_option.regionoption_region, " +
       "game_info_card_option.gamecardoption_activate, " + 
       "clean_channel_option.cleanoption_channelid, " + 
-      "clean_channel_option.cleanoption_option " + 
+      "clean_channel_option.cleanoption_option  " +
       "FROM server " + 
       "INNER JOIN server_configuration ON server.serv_id = server_configuration.servconfig_fk_server " + 
       "INNER JOIN role_option ON server_configuration.servconfig_id = role_option.roleoption_fk_serverconfig " + 
@@ -102,6 +106,13 @@ public class ConfigRepository {
       "FROM server " + 
       "INNER JOIN server_configuration ON server.serv_id = server_configuration.servconfig_fk_server " + 
       "INNER JOIN rank_channel_filter_option ON server_configuration.servconfig_id = rank_channel_filter_option.rankchannelfilteroption_fk_serverconfig " + 
+      "WHERE server.serv_guildid = %d";
+  
+  private static final String SELECT_FORCE_VERIFICATION_WITH_GUILD_ID = "SELECT " + 
+      "force_verification_option.verificationoption_activate " + 
+      "FROM server " + 
+      "INNER JOIN server_configuration ON server.serv_id = server_configuration.servconfig_fk_server " + 
+      "INNER JOIN force_verification_option ON server_configuration.servconfig_id = force_verification_option.verificationoption_fk_serverconfig " + 
       "WHERE server.serv_guildid = %d";
   
   private static final String SELECT_RANK_ROLE_OPTION_WITH_GUILD_ID = "SELECT " + 
@@ -206,6 +217,14 @@ public class ConfigRepository {
       "server.serv_id = server_configuration.servConfig_fk_server AND " +
       "server_configuration.servConfig_id = self_adding_option.selfOption_fk_serverConfig";
   
+  private static final String UPDATE_FORCE_VERIFICATION_OPTION_WITH_GUILD_ID =
+      "UPDATE force_verification_option " +
+      "SET verificationOption_activate = %s " +
+      "FROM server, server_configuration " +
+      "WHERE server.serv_guildId = %d AND " +
+      "server.serv_id = server_configuration.servConfig_fk_server AND " +
+      "server_configuration.servConfig_id = force_verification_option.verificationOption_fk_serverConfig";
+  
 
   private static final Logger logger = LoggerFactory.getLogger(ConfigRepository.class);
 
@@ -260,6 +279,10 @@ public class ConfigRepository {
     
     //Create RankRoleOption
     finalQuery = String.format(INSERT_INTO_RANK_ROLE_OPTION, servConfigId, FALSE_DB, FALSE_DB, FALSE_DB);
+    statement.execute(finalQuery);
+    
+    //Create ForceVerificationOption
+    finalQuery = String.format(INSERT_INTO_FORCE_VERIFICATION_OPTION, servConfigId, FALSE_DB);
     statement.execute(finalQuery);
   }
   
@@ -342,6 +365,15 @@ public class ConfigRepository {
         rankRoleOption = new RankRoleOption(guildId);
       }
       
+      ForceVerificationOption forceVericationOption = new ForceVerificationOption(guildId);
+      Boolean verificationOption = getForceVerificationOption(conn, guildId);
+      if(verificationOption == null) {
+        createForceVerificationOption(conn, guildId, conn.createStatement());
+        forceVericationOption.setOptionActivated(false);
+      }else {
+        forceVericationOption.setOptionActivated(verificationOption);
+      }
+      
       ServerConfiguration serverConfig = new ServerConfiguration(guildId);
       serverConfig.setUserSelfAdding(selfAddingOption);
       serverConfig.setDefaultRegion(regionOption);
@@ -351,11 +383,47 @@ public class ConfigRepository {
       serverConfig.setInfopanelRankedOption(infopanelRankedOption);
       serverConfig.setRankchannelFilterOption(rankchannelFilterOption);
       serverConfig.setRankRoleOption(rankRoleOption);
+      serverConfig.setForceVerificationOption(forceVericationOption);
       
       return serverConfig;
     }
   }
   
+  private static void createForceVerificationOption(Connection conn, long guildId, Statement statement) throws SQLException {
+    Server server = ServerRepository.getServerWithGuildId(guildId, conn);
+
+    //Get servConfig_id from ServerConfiguration
+    String finalQuery = String.format(SELECT_SERVER_CONFIG_WITH_SERV_ID, server.serv_id);
+    ResultSet result = null;
+    long servConfigId;
+    try {
+      result = statement.executeQuery(finalQuery);
+      result.next();
+      servConfigId = result.getLong("servConfig_id");
+    }finally {
+      RepoRessources.closeResultSet(result);
+    }
+    
+    finalQuery = String.format(INSERT_INTO_FORCE_VERIFICATION_OPTION, servConfigId, FALSE_DB);
+    statement.execute(finalQuery);
+  }
+
+  private static Boolean getForceVerificationOption(Connection conn, long guildId) throws SQLException {
+    ResultSet result = null;
+    try (Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);){
+      //Get All Options
+      String finalQuery = String.format(SELECT_FORCE_VERIFICATION_WITH_GUILD_ID, guildId);
+      result = query.executeQuery(finalQuery);
+      int rowCount = result.last() ? result.getRow() : 0;
+      if(rowCount == 0) {
+        return null;
+      }
+      return result.getBoolean("verificationOption_activate");
+    }finally {
+      RepoRessources.closeResultSet(result);
+    }
+  }
+
   private static RankRoleOption getRankRoleOption(long guildId, Connection conn, Guild guild) throws SQLException {
     ResultSet result = null;
     try (Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
@@ -634,6 +702,22 @@ public class ConfigRepository {
       query.executeUpdate(finalQuery);
       
       EventListener.getServersConfig().put(guildId, ConfigRepository.getServerConfiguration(guildId, jda));
+    }
+  }
+  
+  public static void updateForceVerificationOption(long guildId, JDA jda, Connection conn, boolean activate) throws SQLException {
+    try (Statement query = conn.createStatement();) {
+
+      String finalQuery = String.format(UPDATE_FORCE_VERIFICATION_OPTION_WITH_GUILD_ID, activate, guildId);
+      query.executeUpdate(finalQuery);
+      
+      EventListener.getServersConfig().put(guildId, ConfigRepository.getServerConfiguration(guildId, jda));
+    }
+  }
+  
+  public static void updateForceVerificationOption(long guildId, JDA jda, boolean activate) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();) {
+      updateForceVerificationOption(guildId, jda, conn, activate);
     }
   }
   

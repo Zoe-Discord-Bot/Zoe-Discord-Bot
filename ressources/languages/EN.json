@@ -575,7 +575,7 @@
     "rankRoleOptionCancelButton": "Cancel",
     "rankRoleOptionActivateButton": "Activate",
     "rankRoleOptionActivateWait": "Perfect ! Let me a few seconds to enable the option ...",
-    "rankRoleOptionDescriptionChangeText": "Assigns a role depending of their rank : (%s)",
+    "rankRoleOptionDescriptionChangeText": "Assigns a role depending of their rank : %s",
     "rankRoleOptionDisableTheOptionButton": "Disable",
     "rankRoleOptionUpdateTheOptionButton": "Update",
     "rankRoleOptionCancelUpdate": "Okay, we stop the process here.",
@@ -587,5 +587,13 @@
     "rankRoleOptionUpdateSave": "Perfect! Your changes have been saved.",
     "rankRoleOptionNeedAtLeastOneQueue": "You need to select at least one queue! The process has been canceled, please retry.",
     "rankRoleOptionDisableUpdate": "The option has been correctly disabled!",
-    "rankRoleOptionDisableUpdateFailedToDelete": "The option has been correctly disabled! But i got an issue when deleting rank roles so please do it yourself."
+    "rankRoleOptionDisableUpdateFailedToDelete": "The option has been correctly disabled! But i got an issue when deleting rank roles so please do it yourself.",
+	"forceVerificationOptionDescription": "Force the verification of the League account owner",
+	"forceVerificationOptionLongDesc": "Option in activation : **%s**\n\nIf you activate this option, All users will have to prove that their League account belongs to them. This is done with the official LoL verification system, you can test the procedure by doing the command ``/banaccont``.\nUsers with permission to manage channel bypass this requirement.\n\n**It is highly recommended to use this option with the option \"%s\"**",
+	"continueButton": "Continue",
+	"forceVerificationInitSetupMessage": "Okay! Now please select an initialisation method.",
+	"forceVerificationContinueWithoutDelete": "Create without deleting players",
+	"forceVerificationContinueWithDelete": "Create and delete all registered players",
+	"forceVerificationOptionCreated": "Perfect! The option has been correctly created.",
+	"forceVerificationOptionDisableDescription": "Option you want to disable : **%s**\n\nDisabling this option will allow users to register without having to validate their account. Users will be able to add accounts that do not belong to them."
 }

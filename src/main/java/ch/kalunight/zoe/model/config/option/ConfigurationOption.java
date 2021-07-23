@@ -20,10 +20,12 @@ public abstract class ConfigurationOption {
   
   protected long guildId;
   protected String description;
+  protected OptionCategory category;
   
-  public ConfigurationOption(long guildId, String description) {
+  public ConfigurationOption(long guildId, String description, OptionCategory category) {
     this.guildId = guildId;
     this.description = description;
+    this.category = category;
   }
   
   /**
@@ -42,5 +44,9 @@ public abstract class ConfigurationOption {
   
   public String getDescription() {
     return description;
+  }
+  
+  public OptionCategory getCategory() {
+    return category;
   }
 }

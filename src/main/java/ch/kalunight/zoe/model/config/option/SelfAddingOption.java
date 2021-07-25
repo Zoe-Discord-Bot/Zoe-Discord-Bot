@@ -21,7 +21,7 @@ public class SelfAddingOption extends ConfigurationOption {
   private boolean optionActivated;
 
   public SelfAddingOption(long guildId) {
-    super(guildId, "selfAddingOptionDesc");
+    super(guildId, "selfAddingOptionDesc", OptionCategory.USER_MANAGEMENT);
     optionActivated = false;
   }
 

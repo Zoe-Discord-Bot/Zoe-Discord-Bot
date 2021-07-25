@@ -25,7 +25,7 @@ public class InfoPanelRankedOption extends ConfigurationOption {
   private boolean optionActivated;
 
   public InfoPanelRankedOption(long guildId) {
-    super(guildId, INFOPANEL_RANKED_DESC_ID);
+    super(guildId, INFOPANEL_RANKED_DESC_ID, OptionCategory.INFOCHANNEL);
     this.optionActivated = true;
   }
 

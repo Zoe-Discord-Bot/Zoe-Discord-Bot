@@ -23,7 +23,7 @@ public class GameInfoCardOption extends ConfigurationOption {
   private boolean optionActivated;
   
   public GameInfoCardOption(long guildId) {
-    super(guildId, INFOCARDS_DESC_ID);
+    super(guildId, INFOCARDS_DESC_ID, OptionCategory.INFOCHANNEL);
     this.optionActivated = true;
   }
 

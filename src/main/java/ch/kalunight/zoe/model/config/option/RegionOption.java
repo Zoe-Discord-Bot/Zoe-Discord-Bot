@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.SelectionDialog;
 
@@ -24,7 +25,7 @@ public class RegionOption extends ConfigurationOption {
   private Platform region;
 
   public RegionOption(long guildId) {
-    super(guildId, "regionOptionDesc");
+    super(guildId, "regionOptionDesc", OptionCategory.GENERAL);
     this.region = null;
   }
 

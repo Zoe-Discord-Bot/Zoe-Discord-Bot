@@ -66,7 +66,7 @@ public class RankRoleOption extends ConfigurationOption {
   private Role challenger;
 
   public RankRoleOption(long guildId) {
-    super(guildId, "rankRoleOptionDescription");
+    super(guildId, "rankRoleOptionDescription", OptionCategory.FEATURES);
     soloqEnable = false;
     flexEnable = false;
     tftEnable = false;

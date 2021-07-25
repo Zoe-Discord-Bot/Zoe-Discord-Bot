@@ -595,5 +595,20 @@
 	"forceVerificationContinueWithoutDelete": "Create without deleting players",
 	"forceVerificationContinueWithDelete": "Create and delete all registered players",
 	"forceVerificationOptionCreated": "Perfect! The option has been correctly created.",
-	"forceVerificationOptionDisableDescription": "Option you want to disable : **%s**\n\nDisabling this option will allow users to register without having to validate their account. Users will be able to add accounts that do not belong to them."
+	"forceVerificationOptionDisableDescription": "Option you want to disable : **%s**\n\nDisabling this option will allow users to register without having to validate their account. Users will be able to add accounts that do not belong to them.",
+	"configCommandMenuCategoryText": "Please select an option category:",
+	"generalCategoryDescription": "Settings concerning the whole server",
+	"infochannelCategoryDescription": "Settings about Info Channel",
+	"rankchannelCategoryDescription": "Settings about Rank Channel",
+	"userManagementCategoryDescription": "Settings concerning users and League accounts",
+	"featuresCategoryDescription": "Settings about additionnal features",
+	"generalCategoryName": "General Settings",
+	"infochannelCategoryName": "Info Channel Settings",
+	"rankchannelCategoryName": "Rank Channel Settings",
+	"userManagementCategoryName": "Users Management Settings",
+	"featuresCategoryName": "Additional features",
+	"configCommandSelectACategory": "Please select a category",
+	"configCommandSelectAOption": "Please select an option",
+	"configCommandMenuOptionText": "Alright! Now please select the option you want:",
+	"configCommandMenuErrorNoOptionFoundWithThisCat": "No option has been found with this category! Please report this error here: https://discord.gg/AyAYWGM"
 }

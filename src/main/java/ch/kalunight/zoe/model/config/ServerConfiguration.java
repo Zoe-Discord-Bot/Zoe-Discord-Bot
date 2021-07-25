@@ -6,6 +6,7 @@ import ch.kalunight.zoe.model.config.option.ConfigurationOption;
 import ch.kalunight.zoe.model.config.option.ForceVerificationOption;
 import ch.kalunight.zoe.model.config.option.GameInfoCardOption;
 import ch.kalunight.zoe.model.config.option.InfoPanelRankedOption;
+import ch.kalunight.zoe.model.config.option.OptionCategory;
 import ch.kalunight.zoe.model.config.option.RankChannelFilterOption;
 import ch.kalunight.zoe.model.config.option.RankRoleOption;
 import ch.kalunight.zoe.model.config.option.RegionOption;
@@ -90,6 +91,17 @@ public class ServerConfiguration {
     options.add(rankRoleOption);
     options.add(forceVerificationOption);
     return options;
+  }
+  
+  public List<ConfigurationOption> getConfigurationsInFunctionOfCategory(OptionCategory category) {
+    List<ConfigurationOption> options = getAllConfigurationOption();
+    List<ConfigurationOption> optionsFiltederd = new ArrayList<>();
+    
+    for(ConfigurationOption option : options) {
+      optionsFiltederd.add(option);
+    }
+    
+    return optionsFiltederd;
   }
   
   public boolean isOptionRequireRefresh() {

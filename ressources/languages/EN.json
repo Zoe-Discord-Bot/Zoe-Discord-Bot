@@ -334,7 +334,7 @@
     "grandmaster": "Grand Master",
     "challenger": "Challenger",
     "rankedAvg": "Ranked avg",
-    "infopanelRankedOptionDesc": "Show last ranked change of the players in InfoPanel",
+    "infopanelRankedOptionDesc": "Show ranked stats of the players in InfoPanel",
     "infoPanelRankedOptionLongDescEnable": "Option in activation : **%s**\n\nIf you activate this option, additional information about the last rank of each league account is displayed in the info panel.\n\n:white_check_mark: : Activate this option.\n:x: : Cancel the activation.",
     "infoPanelRankedOptionLongDescDisable": "Option you want to disable : **%s**\n\nIf you deactivate this option, the display of stats for the account in the infopanel is stopped.\n\n**Are you sure to disable this option ?**\n\n:white_check_mark: : **Disable** the option\n:x: : Cancel the disable procedure",
     "infoPanelRankedTextOneAccount": "%s : Not in game | Rank : %s (%s)",
@@ -610,5 +610,16 @@
 	"configCommandSelectACategory": "Please select a category",
 	"configCommandSelectAOption": "Please select an option",
 	"configCommandMenuOptionText": "Alright! Now please select the option you want:",
-	"configCommandMenuErrorNoOptionFoundWithThisCat": "No option has been found with this category! Please report this error here: https://discord.gg/AyAYWGM"
-}
+	"configCommandMenuErrorNoOptionFoundWithThisCat": "No option has been found with this category! Please report this error here: https://discord.gg/AyAYWGM",
+	"configCommandMenuOptionErrorNotFound": "The selected option has not been found! Please report this issue here: https://discord.gg/AyAYWGM",
+	"cleanChannelOptionName": "Clean Channel",
+	"forceVerificationOptionName": "Force Verification",
+	"infocardsOptionName": "Info Cards",
+	"infopanelRankedOptionName": "Info Panel Ranked",
+	"rankChannelFilterOptionName": "Rank Channel Filter",
+	"rankRoleOptionName": "Rank Role Feature",
+	"regionOptionName": "Default Region",
+	"roleOptionName": "Hide Infochannel",
+	"selfAddingOptionName": "Creation Permission",
+	"configCommandListOption": "Here's the list of options for this category:"
+ }

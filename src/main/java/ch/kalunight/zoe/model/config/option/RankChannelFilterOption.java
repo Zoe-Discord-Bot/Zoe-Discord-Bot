@@ -55,7 +55,7 @@ public class RankChannelFilterOption extends ConfigurationOption {
   private RankChannelFilter tmpRankChannelFilter;
 
   public RankChannelFilterOption(long guildId) {
-    super(guildId, "rankChannelFilterOptionDesc", OptionCategory.RANKCHANNEL);
+    super(guildId, "rankChannelFilterOptionName", "rankChannelFilterOptionDesc", OptionCategory.RANKCHANNEL);
     rankchannelFilter = RankChannelFilter.ALL;
   }
 

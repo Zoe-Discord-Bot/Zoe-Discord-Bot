@@ -33,7 +33,7 @@ public class ForceVerificationOption extends ConfigurationOption {
   private boolean optionActivated;
 
   public ForceVerificationOption(long guildId) {
-    super(guildId, "forceVerificationOptionDescription", OptionCategory.USER_MANAGEMENT);
+    super(guildId, "forceVerificationOptionName", "forceVerificationOptionDescription", OptionCategory.USER_MANAGEMENT);
     optionActivated = false;
   }
 

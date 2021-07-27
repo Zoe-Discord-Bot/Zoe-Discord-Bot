@@ -19,11 +19,13 @@ public abstract class ConfigurationOption {
   protected static final String SOLOQ_ID = "soloq";
   
   protected long guildId;
+  protected String name;
   protected String description;
   protected OptionCategory category;
   
-  public ConfigurationOption(long guildId, String description, OptionCategory category) {
+  public ConfigurationOption(long guildId, String name, String description, OptionCategory category) {
     this.guildId = guildId;
+    this.name = name;
     this.description = description;
     this.category = category;
   }
@@ -41,6 +43,10 @@ public abstract class ConfigurationOption {
    * @throws SQLException
    */
   public abstract String getChoiceText(String langage) throws SQLException;
+  
+  public String getName() {
+    return name;
+  }
   
   public String getDescription() {
     return description;

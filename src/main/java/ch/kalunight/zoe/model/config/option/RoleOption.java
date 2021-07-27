@@ -36,7 +36,7 @@ public class RoleOption extends ConfigurationOption {
   private Role role;
 
   public RoleOption(long guildId) {
-    super(guildId, "roleOptionDescription", OptionCategory.FEATURES);
+    super(guildId, "roleOptionName", "roleOptionDescription", OptionCategory.FEATURES);
     role = null;
   }
 

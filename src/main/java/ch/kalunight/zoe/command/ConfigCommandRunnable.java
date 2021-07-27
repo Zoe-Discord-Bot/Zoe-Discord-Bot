@@ -4,27 +4,21 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 
-import ch.kalunight.zoe.EventListener;
 import ch.kalunight.zoe.model.CommandGuildDiscordData;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.config.option.ConfigurationOption;
 import ch.kalunight.zoe.model.config.option.OptionCategory;
-import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.EmojiUtil;
 import net.dv8tion.jda.api.entities.Emoji;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import net.dv8tion.jda.api.events.interaction.SelectionMenuEvent;
 import net.dv8tion.jda.api.interactions.components.selections.SelectionMenu;
 
@@ -74,7 +68,7 @@ public class ConfigCommandRunnable {
       return;
     }
     
-    List<ConfigurationOption> options = OptionCategory.getOptionsById(event.getSelectionMenu().getId(), config);
+    List<ConfigurationOption> options = OptionCategory.getOptionsById(event.getSelectedOptions().get(0).getValue(), config);
     
     if(options.isEmpty()) {
       logger.warn("Bad id found while searching for option with cat. Bad id : {}", event.getSelectionMenu().getId());
@@ -85,11 +79,26 @@ public class ConfigCommandRunnable {
     SelectionMenu.Builder optionSelectBuilder = SelectionMenu.create("optionSelect");
     optionSelectBuilder.setPlaceholder(LanguageManager.getText(server.getLanguage(), "configCommandSelectAOption"));
     
+    StringBuilder messageBuilder = new StringBuilder();
+    messageBuilder.append(LanguageManager.getText(server.getLanguage(), "configCommandListOption") + "\n\n");
+    
     int emojiCounter = 1;
     for(ConfigurationOption option : options) {
       try {
-        optionSelectBuilder.addOption(LanguageManager.getText(server.getLanguage(), option.getDescription()),
-            option.getDescription(), option.getChoiceText(server.getLanguage()), Emoji.fromUnicode(EmojiUtil.getEmojiNumberKeycapString(emojiCounter)));
+        String translatedDesc = LanguageManager.getText(server.getLanguage(), option.getDescription());
+        
+        if(translatedDesc.length() >= 50) {
+          translatedDesc = LanguageManager.getText(server.getLanguage(), option.getName());
+        }
+        
+        String translatedName = LanguageManager.getText(server.getLanguage(), option.getName());
+        if(translatedName.length() >= 25) {
+          translatedName = LanguageManager.getText(LanguageManager.DEFAULT_LANGUAGE, option.getName());
+        }
+        
+        optionSelectBuilder.addOption(translatedName,
+            option.getDescription(), translatedDesc, Emoji.fromUnicode(EmojiUtil.getEmojiNumberKeycapString(emojiCounter)));
+        messageBuilder.append(EmojiUtil.getEmojiNumberKeycapString(emojiCounter) + " " + option.getChoiceText(server.getLanguage()) + "\n");
       } catch (SQLException e) {
         logger.error("Error while loading server settings from db", e);
         event.getHook().editOriginal(LanguageManager.getText(server.getLanguage(), "errorSQLPleaseReport")).queue();
@@ -98,22 +107,42 @@ public class ConfigCommandRunnable {
       emojiCounter++;
     }
     
-    event.getHook().editOriginal(LanguageManager.getText(server.getLanguage(), "configCommandMenuOptionText")).setActionRow(optionSelectBuilder.build()).queue();
+    messageBuilder.append("\n" + LanguageManager.getText(server.getLanguage(), "configCommandMenuOptionText"));
+    
+    event.getHook().editOriginal(messageBuilder.toString()).setActionRow(optionSelectBuilder.build()).queue();
     
     waiter.waitForEvent(SelectionMenuEvent.class,               
         e -> e.getUser().getId().equals(event.getUser().getId()) && e.getChannel().equals(event.getChannel()) 
         && e.getMessage().equals(event.getMessage()),
         e -> {
-          selectOption(e, server, waiter);
+          selectOption(e, server, waiter, options);
         },
         2, TimeUnit.MINUTES,
         () -> cancelOptionCreation(server, event));
   }
 
-  private static void selectOption(SelectionMenuEvent event, Server server, EventWaiter waiter) {
+  private static void selectOption(SelectionMenuEvent event, Server server,
+      EventWaiter waiter, List<ConfigurationOption> possibleOptions) {
 	  event.deferEdit().queue();
 	  
+	  String selectedOptionId = event.getSelectedOptions().get(0).getValue();
 	  
+	  ConfigurationOption option = null;
+	  for(ConfigurationOption checkForOption : possibleOptions) {
+	    if(checkForOption.getDescription().equals(selectedOptionId)) {
+	      option = checkForOption;
+	      break;
+	    }
+	  }
+	  
+	  if(option != null) {
+	    event.getHook().deleteOriginal().queue();
+	    option.getChangeConsumer(waiter, server).accept(
+	        new CommandGuildDiscordData(event.getMember(), event.getGuild(), event.getTextChannel()));
+	  }else {
+	    event.getHook().editOriginal(LanguageManager.getText(server.getLanguage(),
+	        "configCommandMenuOptionErrorNotFound")).setActionRows(new ArrayList<>()).queue();
+	  }
   }
 
   private static void cancelOptionCreation(Server server, CommandGuildDiscordData event, Message originalMessage) {

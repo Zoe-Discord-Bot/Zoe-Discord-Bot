@@ -98,7 +98,9 @@ public class ServerConfiguration {
     List<ConfigurationOption> optionsFiltederd = new ArrayList<>();
     
     for(ConfigurationOption option : options) {
-      optionsFiltederd.add(option);
+      if(option.getCategory().equals(category)) {
+        optionsFiltederd.add(option);
+      }
     }
     
     return optionsFiltederd;

@@ -25,7 +25,7 @@ public class RegionOption extends ConfigurationOption {
   private Platform region;
 
   public RegionOption(long guildId) {
-    super(guildId, "regionOptionDesc", OptionCategory.GENERAL);
+    super(guildId, "regionOptionName", "regionOptionDesc", OptionCategory.GENERAL);
     this.region = null;
   }
 

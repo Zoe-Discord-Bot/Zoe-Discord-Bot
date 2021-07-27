@@ -67,7 +67,7 @@ public class CleanChannelOption extends ConfigurationOption {
   private CleanChannelOptionInfo tmpCleanChannelOption;
 
   public CleanChannelOption(long guildId) {
-    super(guildId, "cleanChannelOptionDesc", OptionCategory.FEATURES);   
+    super(guildId, "cleanChannelOptionName", "cleanChannelOptionDesc", OptionCategory.FEATURES);   
     cleanChannelOption = CleanChannelOptionInfo.DISABLE;
     cleanChannel = null;
   }

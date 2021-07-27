@@ -63,7 +63,7 @@ public class ConfigCommandRunnable {
   }
   
   private static void selectCategory(SelectionMenuEvent event, Server server, EventWaiter waiter) {
-    event.deferEdit();
+    event.deferEdit().queue();
     
     ServerConfiguration config;
     try {
@@ -101,7 +101,8 @@ public class ConfigCommandRunnable {
     event.getHook().editOriginal(LanguageManager.getText(server.getLanguage(), "configCommandMenuOptionText")).setActionRow(optionSelectBuilder.build()).queue();
     
     waiter.waitForEvent(SelectionMenuEvent.class,               
-        e -> e.getUser().getId().equals(event.getUser().getId()) && e.getChannel().equals(event.getChannel()) && e.getMessage().equals(message),
+        e -> e.getUser().getId().equals(event.getUser().getId()) && e.getChannel().equals(event.getChannel()) 
+        && e.getMessage().equals(event.getMessage()),
         e -> {
           selectOption(e, server, waiter);
         },
@@ -109,9 +110,10 @@ public class ConfigCommandRunnable {
         () -> cancelOptionCreation(server, event));
   }
 
-  private static void selectOption(SelectionMenuEvent e, Server server, EventWaiter waiter) {
-    // TODO Auto-generated method stub
-    
+  private static void selectOption(SelectionMenuEvent event, Server server, EventWaiter waiter) {
+	  event.deferEdit().queue();
+	  
+	  
   }
 
   private static void cancelOptionCreation(Server server, CommandGuildDiscordData event, Message originalMessage) {

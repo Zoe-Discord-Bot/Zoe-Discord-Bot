@@ -2,6 +2,10 @@ package ch.kalunight.zoe.command.create;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
+
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.config.option.RegionOption;
@@ -14,10 +18,14 @@ import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
+import ch.kalunight.zoe.util.AccountVerificationUtil;
 import ch.kalunight.zoe.util.RiotApiUtil;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
 import net.rithms.riot.api.endpoints.tft_summoner.dto.TFTSummoner;
@@ -30,8 +38,9 @@ public class RegisterCommandRunnable {
   private RegisterCommandRunnable() {
     // hide default 
   }
-  
-  public static String executeCommand(Server server, Guild guild, Member author, String args) throws SQLException {
+
+  public static String executeCommand(Server server, Guild guild, Member author, String args,
+      EventWaiter waiter, TextChannel channel) throws SQLException {
 
     ServerConfiguration config = ConfigRepository.getServerConfiguration(server.serv_guildId, guild.getJDA());
 
@@ -71,8 +80,8 @@ public class RegisterCommandRunnable {
     if(region == null) {
       return LanguageManager.getText(server.getLanguage(), "regionTagInvalid");
     }
-    
-    
+
+
     Summoner summoner;
     TFTSummoner tftSummoner;
     try {
@@ -93,23 +102,37 @@ public class RegisterCommandRunnable {
     BannedAccount bannedAccount = BannedAccountRepository.getBannedAccount(summoner.getId(), region);
     if(bannedAccount == null) {
 
-      PlayerRepository.createPlayer(server.serv_id, guild.getIdLong(), user.getIdLong(), false);
-      DTO.Player player = PlayerRepository.getPlayer(server.serv_guildId, user.getIdLong());
-      LeagueAccountRepository.createLeagueAccount(player.player_id, summoner, tftSummoner, region.getName());
+      if(config.getForceVerificationOption().isOptionActivated() && !author.getPermissions().contains(Permission.MANAGE_CHANNEL)) {
 
-      LeagueAccount leagueAccount = 
-          LeagueAccountRepository.getLeagueAccountWithSummonerId(server.serv_guildId, summoner.getId(), region);
-      
-      CreatePlayerCommandRunnable.updateLastRank(leagueAccount);
-      
-      if(config.getZoeRoleOption().getRole() != null) {
-        Member member = guild.retrieveMember(user).complete();
-        if(member != null) {
-          guild.addRoleToMember(member, config.getZoeRoleOption().getRole()).queue();
+        String verificiationCode = AccountVerificationUtil.getVerificationCode();
+
+        String message = String.format(LanguageManager.getText(server.getLanguage(), "verificationProcessWhileAddingAccount"),
+            region.getName().toUpperCase(), summoner.getName(), verificiationCode);
+
+        waiter.waitForEvent(MessageReceivedEvent.class,
+            e -> e.getAuthor().equals(author.getUser()) && e.getChannel().equals(channel),
+            e -> AccountVerificationUtil.verficationCodeRunnable(e, server, verificiationCode, waiter, region, summoner, tftSummoner, author), 3, TimeUnit.MINUTES,
+            () -> AccountVerificationUtil.cancelVerification(channel, server.getLanguage()));
+
+        return message;
+      }else {
+        PlayerRepository.createPlayer(server.serv_id, guild.getIdLong(), user.getIdLong(), false);
+        DTO.Player player = PlayerRepository.getPlayer(server.serv_guildId, user.getIdLong());
+        LeagueAccountRepository.createLeagueAccount(player.player_id, summoner, tftSummoner, region.getName());
+
+        LeagueAccount leagueAccount = 
+            LeagueAccountRepository.getLeagueAccountWithSummonerId(server.serv_guildId, summoner.getId(), region);
+
+        CreatePlayerCommandRunnable.updateLastRank(leagueAccount);
+
+        if(config.getZoeRoleOption().getRole() != null) {
+          Member member = guild.retrieveMember(user).complete();
+          if(member != null) {
+            guild.addRoleToMember(member, config.getZoeRoleOption().getRole()).queue();
+          }
         }
+        return String.format(LanguageManager.getText(server.getLanguage(), "registerCommandDoneMessage"), summoner.getName());
       }
-      return String.format(LanguageManager.getText(server.getLanguage(), "registerCommandDoneMessage"), summoner.getName());
-
     }else {
       return LanguageManager.getText(server.getLanguage(), "accountCantBeAddedOwnerChoice");
     }

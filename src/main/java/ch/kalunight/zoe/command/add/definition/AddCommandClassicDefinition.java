@@ -5,6 +5,7 @@ import java.util.function.BiConsumer;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
+import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.command.add.AddCommandRunnable;
@@ -12,10 +13,10 @@ import ch.kalunight.zoe.util.CommandUtil;
 
 public class AddCommandClassicDefinition extends ZoeCommand{
 
-  public AddCommandClassicDefinition() {
+  public AddCommandClassicDefinition(EventWaiter waiter) {
     this.name = AddCommandRunnable.USAGE_NAME;
     this.arguments = "";
-    Command[] commandsChildren = {new AddPlayerToTeamCommandClassicDefinition(), new AddAccountCommandClassicDefinition()};
+    Command[] commandsChildren = {new AddPlayerToTeamCommandClassicDefinition(), new AddAccountCommandClassicDefinition(waiter)};
     this.children = commandsChildren;
     this.helpBiConsumer = CommandUtil.getHelpMethodHasChildren(AddCommandRunnable.USAGE_NAME, commandsChildren);
   }

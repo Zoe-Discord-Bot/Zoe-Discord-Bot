@@ -374,12 +374,12 @@ public class Zoe {
     commands.add(new ConfigCommandClassicDefinition(eventWaiter));
     commands.add(new CreateCommandClassicDefinition(eventWaiter));
     commands.add(new DeleteCommandClassicDefinition(eventWaiter));
-    commands.add(new AddCommandClassicDefinition());
+    commands.add(new AddCommandClassicDefinition(eventWaiter));
     commands.add(new RemoveCommandClassicDefinition());
     commands.add(new StatsCommandClassicDefinition(eventWaiter));
     commands.add(new ShowCommandClassicDefinition(eventWaiter));
     commands.add(new RefreshCommandClassicDefinition());
-    commands.add(new RegisterCommandClassicDefinition());
+    commands.add(new RegisterCommandClassicDefinition(eventWaiter));
     commands.add(new DefineCommand());
     commands.add(new UndefineCommand());
     commands.add(new ResetCommandClassicDefinition(eventWaiter));
@@ -411,9 +411,9 @@ public class Zoe {
     commands.add(new PatchNotesCommandSlashDefinition(testServer));
     
     commands.add(new CreateCommandSlashDefinition(eventWaiter, testServer));
-    commands.add(new RegisterCommandSlashDefinition(testServer));
+    commands.add(new RegisterCommandSlashDefinition(eventWaiter, testServer));
     commands.add(new DeleteCommandSlashCommand(eventWaiter, testServer));
-    commands.add(new AddCommandSlashDefinition(testServer));
+    commands.add(new AddCommandSlashDefinition(eventWaiter, testServer));
     commands.add(new RemoveCommandSlashDefinition(testServer));
     commands.add(new ShowCommandSlashDefinition(eventWaiter, testServer));
     commands.add(new StatsCommandSlashDefinition(eventWaiter, testServer));

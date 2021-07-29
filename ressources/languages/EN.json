@@ -622,8 +622,8 @@
 	"roleOptionName": "Hide Infochannel",
 	"selfAddingOptionName": "Creation Permission",
 	"configCommandListOption": "Here's the list of options for this category:",
-	"verificationProcessWhileAddingAccount": "This Discord server require a verification when adding new account. To verify that you are the owner of the account *%s* \"%s\" please follow these steps.\n\n1. Log in to the league client with the account.\n2. Go to *Settings -> Verification* in your league client.\n3. Paste the code **%s** in the box.\n4.Click save.\n\nOnce done, reply to me with ``DONE``. If you want to cancel this action, just send a random message.",
-	"verificationProcessAccountValid": "Verification OK! The change has been correctly done.",
-	"verificationProcessAccountNotValid": "The verification has failed! Please retry.\n\nTo validate the code use ``DONE``. To cancel the process send another thing.",
+	"verificationProcessWhileAddingAccount": "This Discord server require a verification when adding new account. To verify that you are the owner of the account *%s* \"%s\" please follow these steps.\n\n1. Log in to the league client with the account.\n2. Go to *Settings -> Verification* in your league client.\n3. Paste the code **%s** in the box.\n4.Click save.\n\nOnce done, reply to me with **DONE**. If you want to cancel this action, just send a random message.",
+	"verificationProcessAccountValid": "Verification OK! The account has been correclty created.",
+	"verificationProcessAccountNotValid": "The verification has failed! Please retry.\n\nTo validate the code use **DONE**. To cancel the process send another thing.",
 	"verificationProcessCancel": "Well, we cancel the process here."
  }

@@ -38,6 +38,8 @@ public class SummonerDataWorker implements Runnable {
   private int gameQueueConfigId;
   
   private boolean forceRefreshCache;
+  
+  private Champion champion;
 
   public SummonerDataWorker(CurrentGameParticipant participant, List<String> listIdPlayers, Platform platform, String language,
       InfocardPlayerData playerData, int gameQueueConfigId, boolean forceRefreshCache) {
@@ -119,6 +121,10 @@ public class SummonerDataWorker implements Runnable {
         }
       }
     }while(needToWait);
+  }
+
+  public Champion getChampion() {
+    return champion;
   }
 
 }

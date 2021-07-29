@@ -92,6 +92,20 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
     summonerIdInWork.add(this);
   }
 
+  public TeamPlayerAnalysisDataCollector(String summonerId, SummonerCache summoner,
+      Platform platform, TeamPosition position) {
+    this.summonerId = summonerId;
+    this.summoner = summoner;
+    this.platform = platform;
+    this.dataPerChampions = new ArrayList<>();
+    if(position != null) {
+      clashSelectedPosition = TeamUtil.convertTeamPosition(position);
+    }
+    this.dangerosityReports = new ArrayList<>();
+    this.picksCompiledData = new ArrayList<>();
+    summonerIdInWork.add(this);
+  }
+  
   @Override
   public void run() {
     try {

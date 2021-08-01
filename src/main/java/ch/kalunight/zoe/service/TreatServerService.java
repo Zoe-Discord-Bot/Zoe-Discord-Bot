@@ -102,7 +102,7 @@ public class TreatServerService {
           taskEnded(null);
         }
         return;
-      } 
+      }
     }
 
     synchronized (serversAskedToRefresh) {

@@ -625,5 +625,21 @@
 	"verificationProcessWhileAddingAccount": "This Discord server require a verification when adding new account. To verify that you are the owner of the account *%s* \"%s\" please follow these steps.\n\n1. Log in to the league client with the account.\n2. Go to *Settings -> Verification* in your league client.\n3. Paste the code **%s** in the box.\n4.Click save.\n\nOnce done, reply to me with **DONE**. If you want to cancel this action, just send a random message.",
 	"verificationProcessAccountValid": "Verification OK! The account has been correclty created.",
 	"verificationProcessAccountNotValid": "The verification has failed! Please retry.\n\nTo validate the code use **DONE**. To cancel the process send another thing.",
-	"verificationProcessCancel": "Well, we cancel the process here."
+	"verificationProcessCancel": "Well, we cancel the process here.",
+	"accessNewFeaturesSmallAndMediumName": "Access to new features earlier for servers less than 500 members",
+	"accessNewFeaturesHugeName": "Access to new features earlier for all type of servers",
+	"nameOnTheWebsiteName": "Name on the official website",
+	"nameOnReleaseNoteName": "Name in release note",
+	"nameOnGithubName": "Name on GitHub",
+	"exclusiveDevNewsName": "Exclusive dev news",
+	"evolutiveSupporterEmoteName": "Evolutive Supporter emote next of your name",
+	"bugReportPriorityName": "Bug Report Priority (we fix faster bugs that your reported)",
+	"supportTheProjectName": "Support the project",
+	"devName": "Dev",
+	"staffName": "Staff",
+	"subTier3Name": "Challenger Supporter",
+	"subTier2Name": "Diamond Supporter",
+	"subTier1Name": "Platinum Supporter",
+	"exceptionnalAccessName": "Exceptionnal Features Access"
+	
  }

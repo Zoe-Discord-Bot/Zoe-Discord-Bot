@@ -185,6 +185,7 @@ public class DTO {
       clashChannel_lastRefresh = LocalDateTime.parse(baseData.getString("clashChannel_lastRefresh"), DB_TIME_PATTERN);
     }
   }
+  
 
   public static class Player {
     public final long player_id;
@@ -374,6 +375,20 @@ public class DTO {
     }
   }
 
+  public static class ZoeUser {
+    public final long zoeUser_id;
+    public final long zoeUser_discordId;
+    public final long zoeUser_fullMonthSupported;
+    public final long zoeUser_totalGiven;
+    
+    public ZoeUser(ResultSet baseData) throws SQLException {
+      zoeUser_id = baseData.getLong("zoeUser_id");
+      zoeUser_discordId = baseData.getLong("zoeUser_discordId");
+      zoeUser_fullMonthSupported = baseData.getLong("zoeUser_fullMonthSupported");
+      zoeUser_totalGiven = baseData.getLong("zoeUser_totalGiven");
+    }
+  }
+  
   public static class MatchCache {
     public final long mCatch_id;
     public final String mCatch_gameId;

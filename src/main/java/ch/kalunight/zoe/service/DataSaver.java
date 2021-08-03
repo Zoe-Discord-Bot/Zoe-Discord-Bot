@@ -22,6 +22,8 @@ public class DataSaver extends TimerTask {
   
   private static final int TIME_BETWEEN_SERVERS_PLAYERS_CLEANING = 24;
 
+  private static final int TIME_BETWEEN_EACH_SUB_REFRESH_IN_MINUTES = 30;
+  
   private static final Logger logger = LoggerFactory.getLogger(DataSaver.class);
   
   private static final boolean CHAMPION_ANALYSIS_ALLOWED = true;
@@ -32,6 +34,9 @@ public class DataSaver extends TimerTask {
   
   private static LocalDateTime nextRefreshServerPlayersCleaning = LocalDateTime.now().plusHours(TIME_BETWEEN_SERVERS_PLAYERS_CLEANING);
 
+  private static LocalDateTime nextRefreshSubscription = LocalDateTime.now();
+
+  
   @Override
   public void run() {
     try {
@@ -55,6 +60,14 @@ public class DataSaver extends TimerTask {
         setNextRefreshServerPlayersCleaning(LocalDateTime.now().plusHours(TIME_BETWEEN_SERVERS_PLAYERS_CLEANING));
         
         InfoPanelRefresher.getServerswhereplayersalreadychecked().clear();
+      }
+      
+      if(nextRefreshSubscription.isBefore(LocalDateTime.now())) {
+        logger.info("Refresh subscriptions started !");
+        nextRefreshSubscription = LocalDateTime.now().plusMinutes(TIME_BETWEEN_EACH_SUB_REFRESH_IN_MINUTES);
+        
+        ZoeUserRoleService subRefreshService = new ZoeUserRoleService();
+        ServerThreadsManager.getServerExecutor().execute(subRefreshService);
       }
       
     } catch(Exception e) {

@@ -72,11 +72,14 @@ import ch.kalunight.zoe.command.stats.definition.StatsCommandClassicDefinition;
 import ch.kalunight.zoe.command.stats.definition.StatsCommandSlashDefinition;
 import ch.kalunight.zoe.model.dangerosityreport.DangerosityReportKDA;
 import ch.kalunight.zoe.model.dto.DTO.ChampionRoleAnalysis;
+import ch.kalunight.zoe.model.dto.DTO.Role;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.model.static_data.CustomEmote;
+import ch.kalunight.zoe.model.sub.UserRank;
 import ch.kalunight.zoe.repositories.ChampionRoleAnalysisRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.repositories.RepoRessources;
+import ch.kalunight.zoe.repositories.ZoeUserManagementRepository;
 import ch.kalunight.zoe.riotapi.CacheManager;
 import ch.kalunight.zoe.riotapi.CachedRiotApi;
 import ch.kalunight.zoe.service.RiotApiUsageChannelRefresh;
@@ -224,12 +227,16 @@ public class Zoe {
     CommandClient commandClient = client.build();
 
     SetupEventListener setupEventListener = new SetupEventListener();
+    
+    ZoeSubscriptionListener subListener = new ZoeSubscriptionListener();
 
     eventListenerList.add(commandClient); //commands set in loadZoeRessources
     eventListenerList.add(setupEventListener);
+    eventListenerList.add(subListener);
     
     try {
-      clientsLoaded = getNewJDAInstance(discordTocken, commandClient, setupEventListener);
+      clientsLoaded = getNewJDAInstance(discordTocken, commandClient, setupEventListener,
+          subListener);
     } catch(IndexOutOfBoundsException e) {
       logger.error("You must provide a token.");
       System.exit(1);
@@ -302,6 +309,15 @@ public class Zoe {
       Zoe.setBotListApi(null);
     }
 
+    logger.info("Setup Zoe User Role ...");
+    try {
+      setupZoeUserRole();
+    } catch (SQLException e) {
+      logger.error("SQL Exception while loading Zoe user role into db! Zoe stop here", e);
+      System.exit(1);
+    }
+    logger.info("Setup Zoe User Role finished!");
+    
     logger.info("Setup of main thread  ...");
     setupContinousRefreshThread();
     logger.info("Setup of main thread finished !");
@@ -322,7 +338,26 @@ public class Zoe {
     PlayerRepository.getLoadedGuild().clear();
   }
 
-  public static List<JDA> getNewJDAInstance(String riotTocken, CommandClient newCommandClient, SetupEventListener setupEventListener) throws LoginException {
+  private static void setupZoeUserRole() throws SQLException {
+    List<Role> alreadyCreatedRoles = ZoeUserManagementRepository.getAllZoeRole();
+    
+    for(UserRank rank : UserRank.values()) {
+      boolean rankAlreadyCreated = false;
+      for(Role roleDb : alreadyCreatedRoles) {
+        if(roleDb.role_roleId == rank.getId()) {
+          rankAlreadyCreated = true;
+          break;
+        }
+      }
+      
+      if(!rankAlreadyCreated) {
+        ZoeUserManagementRepository.createZoeRole(rank.getId());
+      }
+    }
+  }
+
+  public static List<JDA> getNewJDAInstance(String riotTocken, CommandClient newCommandClient, 
+      SetupEventListener setupEventListener, ZoeSubscriptionListener subListener) throws LoginException {
 
     commandClient = newCommandClient;
 
@@ -331,7 +366,7 @@ public class Zoe {
         .disableCache(CacheFlag.CLIENT_STATUS, CacheFlag.VOICE_STATE)
         .setMemberCachePolicy(new ZoeMemberCachePolicy())
         .setChunkingFilter(ChunkingFilter.NONE)
-        .addEventListeners(commandClient, setupEventListener);
+        .addEventListeners(commandClient, setupEventListener, subListener);
 
     List<JDA> clientsLoaded = Collections.synchronizedList(new ArrayList<>());
 

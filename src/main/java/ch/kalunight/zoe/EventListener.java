@@ -55,7 +55,7 @@ public class EventListener extends ListenerAdapter {
   private static final Logger logger = LoggerFactory.getLogger(EventListener.class);
   
   private static final ConcurrentHashMap<Long, ServerConfiguration> serversConfig = new ConcurrentHashMap<>();
-
+  
   @Override
   public void onGuildJoin(GuildJoinEvent event) {
     Runnable task = getOnGuildJoinRunnable(event);

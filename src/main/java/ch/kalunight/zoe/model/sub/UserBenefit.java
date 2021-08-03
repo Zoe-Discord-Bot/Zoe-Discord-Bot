@@ -12,7 +12,8 @@ public enum UserBenefit {
   EXCLUSIVE_DEV_NEWS(5, "exclusiveDevNewsName"),
   EVOLUTIVE_SUPPORTER_EMOTE(6, "evolutiveSupporterEmoteName"),
   BUG_REPORT_PRIORITY(7, "bugReportPriorityName"),
-  SUPPORT_THE_PROJECT(8, "supportTheProjectName");
+  SUPPORT_THE_PROJECT(8, "supportTheProjectName"),
+  EXCLUSIVE_ACCESS_SUPPORTER_CHANNEL(9, "exclusiveAccessToSupporterChannelName");
   
   public static final int HUGE_SERVERS_START = 500;
   
@@ -32,6 +33,7 @@ public enum UserBenefit {
       userBenefits.add(ACCESS_NEW_FEATURES_SMALL_AND_MEDIUM_SERVERS);
       userBenefits.add(ACCESS_NEW_FEATURES_HUGE_SERVERS);
       userBenefits.add(EXCLUSIVE_DEV_NEWS);
+      userBenefits.add(EXCLUSIVE_ACCESS_SUPPORTER_CHANNEL);
       userBenefits.add(SUPPORT_THE_PROJECT);
       break;
     case EXCEPTIONNAL_FEATURES_ACCESS:
@@ -43,7 +45,6 @@ public enum UserBenefit {
       userBenefits.add(NAME_ON_GITHUB);
       userBenefits.add(NAME_ON_RELEASE_NOTE);
       userBenefits.add(ACCESS_NEW_FEATURES_HUGE_SERVERS);
-      
     case SUB_TIER_2:
       userBenefits.add(ACCESS_NEW_FEATURES_SMALL_AND_MEDIUM_SERVERS);
       userBenefits.add(BUG_REPORT_PRIORITY);
@@ -52,11 +53,12 @@ public enum UserBenefit {
       userBenefits.add(SUPPORT_THE_PROJECT);
       userBenefits.add(EVOLUTIVE_SUPPORTER_EMOTE);
       userBenefits.add(EXCLUSIVE_DEV_NEWS);
+      userBenefits.add(EXCLUSIVE_ACCESS_SUPPORTER_CHANNEL);
       break;
     default:
       break;
-    
     }
+    
     return userBenefits;
   }
 

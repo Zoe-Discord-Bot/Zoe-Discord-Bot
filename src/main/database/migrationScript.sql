@@ -35,6 +35,6 @@ ALTER TABLE ONLY role
 CREATE TABLE zoe_user_role (
   zoeUserRole_fk_user_id							BIGINT				REFERENCES zoe_user(zoeUser_id),
   zoeUserRole_fk_role_id							BIGINT				REFERENCES role(role_id),
-  zoeUserRole_endOfTheSubscription					timestamp,
+  zoeUserRole_endOfTheSubscription					TIMESTAMP			WITHOUT TIME ZONE,
   PRIMARY KEY (zoeUserRole_fk_user_id, zoeUserRole_fk_role_id)
 );

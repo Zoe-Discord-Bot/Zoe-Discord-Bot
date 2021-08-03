@@ -5493,11 +5493,11 @@
 										"$ref": "AAAAAAF7A3/jg4wwCao="
 									},
 									"font": "Arial;13;1",
-									"left": 1800,
+									"left": 1784,
 									"top": 789,
-									"width": 316.05078125,
+									"width": 339.1689453125,
 									"height": 13,
-									"text": "UserRole"
+									"text": "ZoeUserRole"
 								},
 								{
 									"_type": "ERDColumnCompartmentView",
@@ -5519,9 +5519,9 @@
 												"$ref": "AAAAAAF7A4O2qIym800="
 											},
 											"font": "Arial;13;0",
-											"left": 1805,
+											"left": 1789,
 											"top": 812,
-											"width": 306.05078125,
+											"width": 329.1689453125,
 											"height": 13
 										},
 										{
@@ -5534,9 +5534,9 @@
 												"$ref": "AAAAAAF7A4hsCYy3z00="
 											},
 											"font": "Arial;13;0",
-											"left": 1805,
+											"left": 1789,
 											"top": 827,
-											"width": 306.05078125,
+											"width": 329.1689453125,
 											"height": 13
 										},
 										{
@@ -5549,23 +5549,23 @@
 												"$ref": "AAAAAAF7A4puZYzEbYU="
 											},
 											"font": "Arial;13;0",
-											"left": 1805,
+											"left": 1789,
 											"top": 842,
-											"width": 306.05078125,
+											"width": 329.1689453125,
 											"height": 13
 										}
 									],
 									"font": "Arial;13;0",
-									"left": 1800,
+									"left": 1784,
 									"top": 807,
-									"width": 316.05078125,
+									"width": 339.1689453125,
 									"height": 53
 								}
 							],
 							"font": "Arial;13;0",
-							"left": 1800,
+							"left": 1784,
 							"top": 784,
-							"width": 316.05078125,
+							"width": 339.1689453125,
 							"height": 160,
 							"nameLabel": {
 								"$ref": "AAAAAAF7A3/jhIwx+HQ="
@@ -5675,7 +5675,7 @@
 									},
 									"visible": false,
 									"font": "Arial;13;0",
-									"left": 2149,
+									"left": 2153,
 									"top": 836,
 									"height": 13,
 									"alpha": 1.5707963267948966,
@@ -5692,7 +5692,7 @@
 										"$ref": "AAAAAAF7A4K+aoxcles="
 									},
 									"font": "Arial;13;0",
-									"left": 2140,
+									"left": 2147,
 									"top": 836,
 									"height": 13,
 									"alpha": 0.5235987755982988,
@@ -5727,7 +5727,7 @@
 								"$ref": "AAAAAAF7A3/jg4wwCao="
 							},
 							"lineStyle": 2,
-							"points": "2115:857;2184:857",
+							"points": "2122:857;2184:857",
 							"nameLabel": {
 								"$ref": "AAAAAAF7A4K+aoxdVl8="
 							},
@@ -5756,7 +5756,7 @@
 									},
 									"visible": false,
 									"font": "Arial;13;0",
-									"left": 1758,
+									"left": 1750,
 									"top": 863,
 									"height": 13,
 									"alpha": 1.5707963267948966,
@@ -5773,7 +5773,7 @@
 										"$ref": "AAAAAAF7A4MwuIyTy0s="
 									},
 									"font": "Arial;13;0",
-									"left": 1774,
+									"left": 1758,
 									"top": 862,
 									"height": 13,
 									"alpha": 0.5235987755982988,
@@ -5808,7 +5808,7 @@
 								"$ref": "AAAAAAF7A3/jg4wwCao="
 							},
 							"lineStyle": 2,
-							"points": "1800:854;1719:854",
+							"points": "1784:854;1719:854",
 							"nameLabel": {
 								"$ref": "AAAAAAF7A4MwuIyUdTQ="
 							},
@@ -8406,7 +8406,7 @@
 							"_parent": {
 								"$ref": "AAAAAAF7A3thl4wS6Fs="
 							},
-							"name": "zoeUser_totalAmonthGiven",
+							"name": "zoeUser_totalGiven",
 							"type": "number",
 							"length": 0
 						}
@@ -8418,7 +8418,7 @@
 					"_parent": {
 						"$ref": "AAAAAAFutjqgw1hwVjc="
 					},
-					"name": "UserRole",
+					"name": "ZoeUserRole",
 					"ownedElements": [
 						{
 							"_type": "ERDRelationship",
@@ -8484,7 +8484,7 @@
 							"_parent": {
 								"$ref": "AAAAAAF7A3/jg4wuwnY="
 							},
-							"name": "userRole_fk_user_id",
+							"name": "zoeUserRole_fk_user_id",
 							"type": "id",
 							"length": 0,
 							"primaryKey": true
@@ -8495,7 +8495,7 @@
 							"_parent": {
 								"$ref": "AAAAAAF7A3/jg4wuwnY="
 							},
-							"name": "userRole_fk_role_id",
+							"name": "zoeUserRole_fk_role_id",
 							"type": "id",
 							"length": 0,
 							"primaryKey": true
@@ -8506,7 +8506,7 @@
 							"_parent": {
 								"$ref": "AAAAAAF7A3/jg4wuwnY="
 							},
-							"name": "userRole_endOfTheSubscription",
+							"name": "zoeUserRole_endOfTheSubscription",
 							"type": "timestamp",
 							"length": 0,
 							"nullable": true

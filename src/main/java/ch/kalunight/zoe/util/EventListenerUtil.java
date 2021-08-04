@@ -98,6 +98,7 @@ public class EventListenerUtil {
       CustomEmoteUtil.addToTierIfisSame(emote);
       CustomEmoteUtil.addToMasteryIfIsSame(emote);
       CustomEmoteUtil.addInfoIconIfSame(emote);
+      CustomEmoteUtil.addZoeSubIconIfSame(emote);
     }
   }
 

@@ -41,6 +41,7 @@ import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.MessageBuilderRequestUtil;
 import ch.kalunight.zoe.util.Ressources;
 import ch.kalunight.zoe.util.TeamUtil;
+import ch.kalunight.zoe.util.ZoeUserRankManagementUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -233,14 +234,15 @@ public class MessageBuilderRequest {
     String gameType = getGameType(gameOfTheChange, lang);
 
     User user = player.retrieveUser(jda);
-    message.setAuthor(user.getName(), null, user.getAvatarUrl());
+    message.setAuthor(user.getName(), null, user.getEffectiveAvatarUrl());
 
     MiniSeries bo = newEntry.getMiniSeries();
     FullTier newFullTier = new FullTier(newEntry);
 
     message.setColor(Color.GREEN);
     message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelBoStartedTitle"), 
-        leagueAccount.getSummoner().getName(), bo.getProgress().length(),
+        ZoeUserRankManagementUtil.getEmotesByDiscordId(user.getIdLong()) 
+        + leagueAccount.getSummoner().getName(), bo.getProgress().length(),
         newFullTier.getHeigerDivision().toStringWithoutLp(lang), gameType));
 
     String boStatus = MessageBuilderRequestUtil.getBoStatus(bo, lang);
@@ -272,19 +274,21 @@ public class MessageBuilderRequest {
     String gameType = getGameType(gameOfTheChange, lang);
 
     User user = player.retrieveUser(jda);
-    message.setAuthor(user.getName(), null, user.getAvatarUrl());
+    message.setAuthor(user.getName(), null, user.getEffectiveAvatarUrl());
 
     FullTier oldFullTier = new FullTier(oldEntry);
     try {
       if(match.isGivenAccountWinner(leagueAccount.leagueAccount_summonerId)) {
         message.setColor(Color.GREEN);
         message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeBOProgressWinTitle"),
-            leagueAccount.getSummoner().getName(), oldBo.getProgress().length(),
+            ZoeUserRankManagementUtil.getEmotesByDiscordId(user.getIdLong())
+            + leagueAccount.getSummoner().getName(), oldBo.getProgress().length(),
             oldFullTier.getHeigerDivision().toStringWithoutLp(lang), gameType));
       }else {
         message.setColor(Color.RED);
         message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeBOProgressLooseTitle"),
-            leagueAccount.getSummoner().getName(), oldBo.getProgress().length(),
+            ZoeUserRankManagementUtil.getEmotesByDiscordId(user.getIdLong())
+            + leagueAccount.getSummoner().getName(), oldBo.getProgress().length(),
             oldFullTier.getHeigerDivision().toStringWithoutLp(lang), gameType));
       }
     }catch(PlayerNotFoundException e) {
@@ -330,16 +334,18 @@ public class MessageBuilderRequest {
     String gameType = getGameType(gameOfTheChange, lang);
 
     User user = player.retrieveUser(jda);
-    message.setAuthor(user.getName(), null, user.getAvatarUrl());
+    message.setAuthor(user.getName(), null, user.getEffectiveAvatarUrl());
 
     if(!boWin) {
       message.setColor(Color.RED);
       message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeBOEndedLooseTitle"),
-          leagueAccount.getSummoner().getName(), bo.getProgress().length(), oldFullTier.getHeigerDivision().toStringWithoutLp(lang), gameType));
+          ZoeUserRankManagementUtil.getEmotesByDiscordId(user.getIdLong())
+          + leagueAccount.getSummoner().getName(), bo.getProgress().length(), oldFullTier.getHeigerDivision().toStringWithoutLp(lang), gameType));
     }else {
       message.setColor(Color.YELLOW);
       message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeBOEndedWinTitle"),
-          leagueAccount.getSummoner().getName(), bo.getProgress().length(), oldFullTier.getHeigerDivision().toStringWithoutLp(lang), gameType));
+          ZoeUserRankManagementUtil.getEmotesByDiscordId(user.getIdLong())
+          + leagueAccount.getSummoner().getName(), bo.getProgress().length(), oldFullTier.getHeigerDivision().toStringWithoutLp(lang), gameType));
     }
 
     message.setDescription(oldFullTier.toString(lang) + " -> " + newFullTier.toString(lang) + "\n"
@@ -367,7 +373,7 @@ public class MessageBuilderRequest {
     String gameType = getGameType(gameOfTheChange, lang);
 
     User user = player.retrieveUser(jda);
-    message.setAuthor(user.getName(), null, user.getAvatarUrl());
+    message.setAuthor(user.getName(), null, user.getEffectiveAvatarUrl());
 
     boolean divisionJump = false;
     boolean goodChange;
@@ -397,21 +403,25 @@ public class MessageBuilderRequest {
       if(divisionJump) {
         message.setColor(Color.YELLOW);
         message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeRankChangeWinDivisionSkippedTitle"),
-            leagueAccount.getSummoner().getName(), gameType));
+            ZoeUserRankManagementUtil.getEmotesByDiscordId(user.getIdLong())
+            + leagueAccount.getSummoner().getName(), gameType));
       }else {
         message.setColor(Color.GREEN);
         message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeWonDivision"),
-            leagueAccount.getSummoner().getName(), newFullTier.toString(lang), gameType));
+            ZoeUserRankManagementUtil.getEmotesByDiscordId(user.getIdLong())
+            + leagueAccount.getSummoner().getName(), newFullTier.toString(lang), gameType));
       }
     }else {
       if(divisionJump) {
         message.setColor(Color.BLACK);
         message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeLooseDivisionDecayTitle"),
-            leagueAccount.getSummoner().getName(), gameType));
+            ZoeUserRankManagementUtil.getEmotesByDiscordId(user.getIdLong())
+            + leagueAccount.getSummoner().getName(), gameType));
       }else {
         message.setColor(Color.RED);
         message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeLooseDivisionTitle"),
-            leagueAccount.getSummoner().getName(), gameType));
+            ZoeUserRankManagementUtil.getEmotesByDiscordId(user.getIdLong())
+            + leagueAccount.getSummoner().getName(), gameType));
       }
     }
 
@@ -439,7 +449,7 @@ public class MessageBuilderRequest {
     String gameType = getGameType(gameOfTheChange, lang);
 
     User user = player.retrieveUser(jda);
-    message.setAuthor(user.getName(), null, user.getAvatarUrl());
+    message.setAuthor(user.getName(), null, user.getEffectiveAvatarUrl());
 
     int lpReceived = newEntry.getLeaguePoints() - oldEntry.getLeaguePoints();
     boolean gameWin = (newEntry.getLeaguePoints() - oldEntry.getLeaguePoints()) > 0;
@@ -447,11 +457,13 @@ public class MessageBuilderRequest {
     if(gameWin) {
       message.setColor(Color.GREEN);
       message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangePointOnlyWinTitle"),
-          leagueAccount.getSummoner().getName(), lpReceived, gameType));
+          ZoeUserRankManagementUtil.getEmotesByDiscordId(user.getIdLong())
+          + leagueAccount.getSummoner().getName(), lpReceived, gameType));
     }else {
       message.setColor(Color.RED);
       message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangePointOnlyLooseTitle"),
-          leagueAccount.getSummoner().getName(), lpReceived * -1, gameType));
+          ZoeUserRankManagementUtil.getEmotesByDiscordId(user.getIdLong())
+          + leagueAccount.getSummoner().getName(), lpReceived * -1, gameType));
     }
 
     FullTier oldFullTier = new FullTier(oldEntry);
@@ -479,7 +491,7 @@ public class MessageBuilderRequest {
     String gameType = LanguageManager.getText(lang, GameQueueConfigId.RANKED_TFT.getNameId());
 
     User user = player.retrieveUser(jda);
-    message.setAuthor(user.getName(), null, user.getAvatarUrl());
+    message.setAuthor(user.getName(), null, user.getEffectiveAvatarUrl());
 
     FullTier oldFullTier = new FullTier(oldEntry);
     FullTier newFullTier = new FullTier(newEntry);
@@ -491,11 +503,13 @@ public class MessageBuilderRequest {
       if(oldFullTier.getTier() != newFullTier.getTier()) {
         message.setColor(Color.YELLOW);
         message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeRankChangeWinTierTFT"),
-            leagueAccount.getSummoner().getName(), lpReceived, LanguageManager.getText(lang, newFullTier.getTier().getTranslationTag()), gameType));
+            ZoeUserRankManagementUtil.getEmotesByDiscordId(user.getIdLong())
+            + leagueAccount.getSummoner().getName(), lpReceived, LanguageManager.getText(lang, newFullTier.getTier().getTranslationTag()), gameType));
       }else {
         message.setColor(Color.GREEN);
         message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangePointOnlyWinTitle"),
-            leagueAccount.getSummoner().getName(), lpReceived, gameType));
+            ZoeUserRankManagementUtil.getEmotesByDiscordId(user.getIdLong())
+            + leagueAccount.getSummoner().getName(), lpReceived, gameType));
       }
     }else {
       message.setColor(Color.RED);
@@ -574,9 +588,9 @@ public class MessageBuilderRequest {
     MessageBuilderRequestUtil.createTeamDataMultipleSummoner(redTeam, listIdPlayers, region, server.getLanguage(), playersData, false, currentGameInfo.getGameQueueConfigId());
 
     SummonerDataWorker.awaitAll(playersData);
-    
+
     TeamUtil.determineRole(null);
-    
+
     StringBuilder blueTeamString = new StringBuilder();
     StringBuilder blueTeamRankString = new StringBuilder();
     StringBuilder blueTeamWinrateString = new StringBuilder();
@@ -622,7 +636,8 @@ public class MessageBuilderRequest {
 
     if(player != null) {
       message.setTitle(String.format(LanguageManager.getText(language, "statsProfileTitle"),
-          player.retrieveUser(jda).getName(), leagueAccount.getSummoner().getName(),
+          ZoeUserRankManagementUtil.getEmotesByDiscordId(player.player_discordId)
+          + player.retrieveUser(jda).getName(), leagueAccount.getSummoner().getName(),
           leagueAccount.getSummoner().getLevel()));
     }else {
       message.setTitle(String.format(LanguageManager.getText(language, "statsProfileTitle"),
@@ -668,17 +683,19 @@ public class MessageBuilderRequest {
     CustomEmote masteryEmote6 = Ressources.getMasteryEmote().get(Mastery.getEnum(6));
     CustomEmote masteryEmote5 = Ressources.getMasteryEmote().get(Mastery.getEnum(5));
 
-    field = new Field(LanguageManager.getText(language, "statsProfileMasteryStatsRespectSize"),
-        nbrMastery7 + "x" + masteryEmote7.getUsableEmote() + " "
-            + nbrMastery6 + "x" + masteryEmote6.getUsableEmote() + " "
-            + nbrMastery5 + "x" + masteryEmote5.getUsableEmote() + "\n"
-            + MessageBuilderRequestUtil.getMasteryUnit(totalNbrMasteries)
-            + " **" + LanguageManager.getText(language, "statsProfileTotalPointsRespectSize") + "**\n"
-            + MessageBuilderRequestUtil.getMasteryUnit((long) moyennePoints)
-            + " **" + LanguageManager.getText(language, "statsProfileAveragePointsRespectSize") + "**", true);
+    if(masteryEmote5 != null && masteryEmote6 != null && masteryEmote7 != null) {
 
+      field = new Field(LanguageManager.getText(language, "statsProfileMasteryStatsRespectSize"),
+          nbrMastery7 + "x" + masteryEmote7.getUsableEmote() + " "
+              + nbrMastery6 + "x" + masteryEmote6.getUsableEmote() + " "
+              + nbrMastery5 + "x" + masteryEmote5.getUsableEmote() + "\n"
+              + MessageBuilderRequestUtil.getMasteryUnit(totalNbrMasteries)
+              + " **" + LanguageManager.getText(language, "statsProfileTotalPointsRespectSize") + "**\n"
+              + MessageBuilderRequestUtil.getMasteryUnit((long) moyennePoints)
+              + " **" + LanguageManager.getText(language, "statsProfileAveragePointsRespectSize") + "**", true);
 
-    message.addField(field);
+      message.addField(field);
+    }
 
     boolean isRiotApiError = false;
     MatchList matchList = null;
@@ -862,7 +879,7 @@ public class MessageBuilderRequest {
     if(player != null) {
       message.setFooter(String.format(LanguageManager.getText(language, "statsProfileFooterProfileOfPlayer"),
           player.retrieveUser(jda).getName()), 
-          player.retrieveUser(jda).getAvatarUrl());
+          player.retrieveUser(jda).getEffectiveAvatarUrl());
     }else {
       message.setFooter(String.format(LanguageManager.getText(language, "statsProfileFooterProfileOfPlayer"),
           leagueAccount.getSummoner().getName(), leagueAccount.getSummoner().getName()));

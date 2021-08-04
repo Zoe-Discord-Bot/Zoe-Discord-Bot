@@ -1,5 +1,8 @@
 package ch.kalunight.zoe.model.sub;
 
+import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.util.Ressources;
+
 public enum UserRank {
   DEV(0, "devName", "554670096103112776", false, 0),
   STAFF(1, "staffName", "872075875745677403", false, 0),
@@ -22,6 +25,36 @@ public enum UserRank {
     this.value = value;
   }
 
+  public String getEmoteWithUser(DTO.ZoeUser user) {
+    switch(this) {
+    case DEV:
+      return ":tools:";
+    case EXCEPTIONNAL_FEATURES_ACCESS:
+      return ":ticket:";
+    case STAFF:
+      return ":shield:";
+    case SUB_TIER_1:
+    case SUB_TIER_2:
+    case SUB_TIER_3:
+      long monthsSupported = user.zoeUser_fullMonthSupported + 1;
+      if(monthsSupported == 1) {
+        return Ressources.getZoeSub1Month().getUsableEmote();
+      }else if(monthsSupported == 2) {
+        return Ressources.getZoeSub2Months().getUsableEmote();
+      }else if(monthsSupported > 2 && monthsSupported < 6) {
+        return Ressources.getZoeSub3Months().getUsableEmote();
+      }else if(monthsSupported > 5 && monthsSupported < 9) {
+        return Ressources.getZoeSub6Months().getUsableEmote();
+      }else if(monthsSupported > 8 && monthsSupported < 12) {
+        return Ressources.getZoeSub9Months().getUsableEmote();
+      }else if(monthsSupported > 11) {
+        return Ressources.getZoeSub1Year().getUsableEmote();
+      }
+    default:
+      return "";
+    }
+  }
+  
   public static UserRank getUserRankByRoleId(String roleId) {
     for(UserRank rank : UserRank.values()) {
       if(rank.getRoleId().equals(roleId)) {

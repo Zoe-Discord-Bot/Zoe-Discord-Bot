@@ -17,6 +17,7 @@ import ch.kalunight.zoe.model.leaderboard.dataholder.PlayerKDA;
 import ch.kalunight.zoe.model.leaderboard.dataholder.SpecificChamp;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
+import ch.kalunight.zoe.util.ZoeUserRankManagementUtil;
 import ch.kalunight.zoe.util.request.RiotRequest;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
@@ -46,7 +47,8 @@ public class KDALeaderboardService extends LeaderboardBaseService {
     List<String> dataList = new ArrayList<>();
 
     for(PlayerKDA playerKDA : playersKDA) {
-      playersName.add(playerKDA.getPlayer().retrieveUser(guild.getJDA()).getName() + "#" + playerKDA.getPlayer().retrieveUser(guild.getJDA()).getDiscriminator());
+      playersName.add(ZoeUserRankManagementUtil.getEmotesByDiscordId(playerKDA.getPlayer().player_discordId) 
+          + playerKDA.getPlayer().retrieveUser(guild.getJDA()).getName() + "#" + playerKDA.getPlayer().retrieveUser(guild.getJDA()).getDiscriminator());
       if(playerKDA.getKdaReceiver().getAverageKDA() == KDAReceiver.PERFECT_KDA_VALUE) {
         dataList.add("**"+ LanguageManager.getText(server.getLanguage(), "perfectKDA") + "** *(" + playerKDA.getKdaReceiver().getAverageStats() + ")*");
       }else {

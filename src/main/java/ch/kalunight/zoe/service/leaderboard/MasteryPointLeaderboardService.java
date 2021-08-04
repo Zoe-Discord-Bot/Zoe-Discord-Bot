@@ -16,6 +16,7 @@ import ch.kalunight.zoe.model.dto.SavedChampionsMastery;
 import ch.kalunight.zoe.model.leaderboard.dataholder.PlayerPoints;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
+import ch.kalunight.zoe.util.ZoeUserRankManagementUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
@@ -37,7 +38,8 @@ public class MasteryPointLeaderboardService extends LeaderboardBaseService {
     List<String> dataList = new ArrayList<>();
     
     for(PlayerPoints playerPoints : playersPoints) {
-      playersName.add(playerPoints.getPlayer().retrieveUser(guild.getJDA()).getName() + "#" + playerPoints.getPlayer().retrieveUser(guild.getJDA()).getDiscriminator());
+      playersName.add(ZoeUserRankManagementUtil.getEmotesByDiscordId(playerPoints.getPlayer().player_discordId) 
+          + playerPoints.getPlayer().retrieveUser(guild.getJDA()).getName() + "#" + playerPoints.getPlayer().retrieveUser(guild.getJDA()).getDiscriminator());
       dataList.add(masteryPointsFormat.format(playerPoints.getPoints()) + " " 
       + LanguageManager.getText(server.getLanguage(), "pointsShort"));
     }

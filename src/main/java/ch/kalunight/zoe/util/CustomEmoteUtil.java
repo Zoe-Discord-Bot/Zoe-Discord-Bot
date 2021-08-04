@@ -163,4 +163,35 @@ public class CustomEmoteUtil {
       Ressources.setGameLost(emote);
     }
   }
+
+  public static void addZoeSubIconIfSame(CustomEmote emote) {
+    if(emote.getEmote().getName().equalsIgnoreCase("ZoeSupporter1Month")) {
+      Ressources.setZoeSub1Month(emote);
+      return;
+    }
+    
+    if(emote.getEmote().getName().equalsIgnoreCase("ZoeSupporter2Months")) {
+      Ressources.setZoeSub2Months(emote);
+      return;
+    }
+    
+    if(emote.getEmote().getName().equalsIgnoreCase("ZoeSupporter3Months")) {
+      Ressources.setZoeSub3Months(emote);
+      return;
+    }
+    
+    if(emote.getEmote().getName().equalsIgnoreCase("ZoeSupporter6Months")) {
+      Ressources.setZoeSub6Months(emote);
+      return;
+    }
+    
+    if(emote.getEmote().getName().equalsIgnoreCase("ZoeSupporter9Months")) {
+      Ressources.setZoeSub9Months(emote);
+      return;
+    }
+    
+    if(emote.getEmote().getName().equalsIgnoreCase("ZoeSupporter1Year")) {
+      Ressources.setZoeSub1Year(emote);
+    }
+  }
 }

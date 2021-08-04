@@ -2,6 +2,12 @@ package ch.kalunight.zoe.util;
 
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.sub.UserRank;
 import ch.kalunight.zoe.repositories.ZoeUserManagementRepository;
@@ -9,10 +15,102 @@ import net.dv8tion.jda.api.entities.Member;
 
 public class ZoeUserRankManagementUtil {
 
+  private static final Logger logger = LoggerFactory.getLogger(ZoeUserRankManagementUtil.class);
+  
+  private static List<DTO.Role> allRoles;
+  
   private ZoeUserRankManagementUtil() {
     // hide default public constructor
   }
   
+  public static String getEmotesByDiscordId(long discordId) {
+    try {
+    List<DTO.ZoeUserRole> assignedRoles = ZoeUserManagementRepository.getZoeSubscriptionByDiscordId(discordId);
+    if(assignedRoles.isEmpty()) {
+      return "";
+    }
+    
+    List<DTO.Role> roles = getRolesByAssignedRoles(assignedRoles);
+    
+    StringBuilder badges = new StringBuilder();
+    
+    boolean alreadyABadge = false;
+    UserRank dev = findUserRankInsideRoles(roles, UserRank.DEV);
+    if(dev != null) {
+      badges.append(dev.getEmoteWithUser(null));
+      alreadyABadge = true;
+    }
+    
+    UserRank staff = findUserRankInsideRoles(roles, UserRank.STAFF);
+    if(staff != null) {
+      badges.append(staff.getEmoteWithUser(null));
+      alreadyABadge = true;
+    }
+    
+    UserRank exceptionnalFeaturesAccess = findUserRankInsideRoles(roles, UserRank.EXCEPTIONNAL_FEATURES_ACCESS);
+    if(exceptionnalFeaturesAccess != null) {
+      badges.append(exceptionnalFeaturesAccess.getEmoteWithUser(null));
+      alreadyABadge = true;
+    }
+    
+    UserRank sub = findUserRankInsideRoles(roles, UserRank.SUB_TIER_3);
+    if(sub == null) {
+      sub = findUserRankInsideRoles(roles, UserRank.SUB_TIER_2);
+    }
+    
+    if(sub == null) {
+      sub = findUserRankInsideRoles(roles, UserRank.SUB_TIER_1);
+    }
+    
+    if(sub != null) {
+      DTO.ZoeUser user = ZoeUserManagementRepository.getZoeUserByDiscordId(discordId);
+      badges.append(sub.getEmoteWithUser(user));
+      alreadyABadge = true;
+    }
+    
+    if(alreadyABadge) {
+      badges.append(" ");
+    }
+    
+    return badges.toString();
+    }catch (SQLException e) {
+      logger.warn("SQL Error while getting player badge!", e);
+      return "";
+    }
+  }
+  
+  private static UserRank findUserRankInsideRoles(List<DTO.Role> roles, UserRank rank) {
+    for(DTO.Role role : roles) {
+      if(rank.getId() == role.role_roleId) {
+        return rank;
+      }
+    }
+    return null;
+  }
+  
+  public static List<DTO.Role> getRolesByAssignedRoles(List<DTO.ZoeUserRole> assignedRoles) throws SQLException{
+    List<DTO.Role> roles = getAllZoeRoles();
+    List<DTO.Role> correspondingRoles = new ArrayList<>();
+    
+    for(DTO.ZoeUserRole assignedRole : assignedRoles) {
+      for(DTO.Role possibleRole : roles) {
+        if(possibleRole.role_id == assignedRole.zoeUserRole_fk_role_id) {
+          correspondingRoles.add(possibleRole);
+          break;
+        }
+      }
+    }
+    
+    return correspondingRoles;
+  }
+  
+  private static List<DTO.Role> getAllZoeRoles() throws SQLException {
+    if(allRoles == null) {
+      allRoles = ZoeUserManagementRepository.getAllZoeRole();
+    }
+    return allRoles;
+  }
+
   public static void addUserRank(UserRank rank, Member member) throws SQLException {
     DTO.ZoeUser user = ZoeUserManagementRepository.getZoeUserByDiscordId(member.getIdLong());
     

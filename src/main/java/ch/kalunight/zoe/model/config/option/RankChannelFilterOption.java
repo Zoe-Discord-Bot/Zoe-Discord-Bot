@@ -55,7 +55,8 @@ public class RankChannelFilterOption extends ConfigurationOption {
   private RankChannelFilter tmpRankChannelFilter;
 
   public RankChannelFilterOption(long guildId) {
-    super(guildId, "rankChannelFilterOptionName", "rankChannelFilterOptionDesc", OptionCategory.RANKCHANNEL);
+    super(guildId, "rankChannelFilterOptionName", "rankChannelFilterOptionDesc",
+        OptionCategory.RANKCHANNEL, false);
     rankchannelFilter = RankChannelFilter.ALL;
   }
 
@@ -147,7 +148,7 @@ public class RankChannelFilterOption extends ConfigurationOption {
   }
 
   @Override
-  public String getChoiceText(String langage) throws SQLException {
+  public String getBaseChoiceText(String langage) throws SQLException {
     String status = LanguageManager.getText(langage, "rankChannelFilterOptionAll");
 
     switch(rankchannelFilter) {

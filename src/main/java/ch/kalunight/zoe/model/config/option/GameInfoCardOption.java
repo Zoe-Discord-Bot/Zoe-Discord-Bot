@@ -23,7 +23,8 @@ public class GameInfoCardOption extends ConfigurationOption {
   private boolean optionActivated;
   
   public GameInfoCardOption(long guildId) {
-    super(guildId, "infocardsOptionName", INFOCARDS_DESC_ID, OptionCategory.INFOCHANNEL);
+    super(guildId, "infocardsOptionName", INFOCARDS_DESC_ID,
+        OptionCategory.INFOCHANNEL, false);
     this.optionActivated = true;
   }
 
@@ -126,7 +127,7 @@ public class GameInfoCardOption extends ConfigurationOption {
 
 
   @Override
-  public String getChoiceText(String langage) {
+  public String getBaseChoiceText(String langage) {
     String status;
     
     if(optionActivated) {

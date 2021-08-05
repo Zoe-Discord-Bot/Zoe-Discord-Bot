@@ -66,7 +66,8 @@ public class RankRoleOption extends ConfigurationOption {
   private Role challenger;
 
   public RankRoleOption(long guildId) {
-    super(guildId, "rankRoleOptionName", "rankRoleOptionDescription", OptionCategory.FEATURES);
+    super(guildId, "rankRoleOptionName", "rankRoleOptionDescription", OptionCategory.FEATURES,
+        false);
     soloqEnable = false;
     flexEnable = false;
     tftEnable = false;
@@ -468,7 +469,7 @@ public class RankRoleOption extends ConfigurationOption {
   }
 
   @Override
-  public String getChoiceText(String langage) throws SQLException {
+  public String getBaseChoiceText(String langage) throws SQLException {
     if(isOptionEnable()) {
       return String.format(LanguageManager.getText(langage, "rankRoleOptionDescriptionChangeText"), LanguageManager.getText(langage, "optionEnable"));
     }else {

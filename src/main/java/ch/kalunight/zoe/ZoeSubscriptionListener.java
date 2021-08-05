@@ -1,6 +1,7 @@
 package ch.kalunight.zoe;
 
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +15,8 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 public class ZoeSubscriptionListener extends ListenerAdapter {
 
+  public static final LocalDateTime END_EARLY_ACCESS_PHASE_FEATURES = LocalDateTime.of(2021, 8, 23, 16, 0);
+  
   public static final String SUBSCRIPTION_SERVER_ID = "554578876811182082";
 
   private static final Logger logger = LoggerFactory.getLogger(ZoeSubscriptionListener.class);

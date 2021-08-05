@@ -25,12 +25,12 @@ public class RegionOption extends ConfigurationOption {
   private Platform region;
 
   public RegionOption(long guildId) {
-    super(guildId, "regionOptionName", "regionOptionDesc", OptionCategory.GENERAL);
+    super(guildId, "regionOptionName", "regionOptionDesc", OptionCategory.GENERAL, false);
     this.region = null;
   }
 
   @Override
-  public String getChoiceText(String langage) {
+  public String getBaseChoiceText(String langage) {
     String strRegion = LanguageManager.getText(langage, "optionRegionDisable");
 
     if(region != null) {

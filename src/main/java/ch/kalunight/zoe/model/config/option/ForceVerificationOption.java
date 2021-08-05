@@ -33,7 +33,8 @@ public class ForceVerificationOption extends ConfigurationOption {
   private boolean optionActivated;
 
   public ForceVerificationOption(long guildId) {
-    super(guildId, "forceVerificationOptionName", "forceVerificationOptionDescription", OptionCategory.USER_MANAGEMENT);
+    super(guildId, "forceVerificationOptionName", "forceVerificationOptionDescription",
+        OptionCategory.USER_MANAGEMENT, true);
     optionActivated = false;
   }
 
@@ -180,7 +181,7 @@ public class ForceVerificationOption extends ConfigurationOption {
   }
 
   @Override
-  public String getChoiceText(String langage) throws SQLException {
+  public String getBaseChoiceText(String langage) throws SQLException {
     String status;
 
     if(optionActivated) {

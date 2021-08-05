@@ -69,11 +69,11 @@ public class SubscriptionCommandSlashDefinition extends ZoeSlashCommand {
         event.getGuild().getPublicRole().hasPermission(Permission.MESSAGE_EXT_EMOJI) 
         && event.getGuild().getPublicRole().hasPermission(Permission.MESSAGE_EMBED_LINKS)) {
     event.getHook().editOriginalEmbeds(
-        SubscriptionCommandRunnable.executeCommand(language, user)).queue();
+        SubscriptionCommandRunnable.executeCommand(language, user, event.getGuild())).queue();
     }else {
       event.getHook().editOriginal(LanguageManager.getText(language, "loading")).queue();
       event.getChannel().sendMessageEmbeds(
-          SubscriptionCommandRunnable.executeCommand(language, user)).queue();
+          SubscriptionCommandRunnable.executeCommand(language, user, event.getGuild())).queue();
     }
   }
 

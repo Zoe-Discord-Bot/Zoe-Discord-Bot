@@ -15,6 +15,9 @@ import ch.kalunight.zoe.repositories.ZoeUserManagementRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.ZoeUserRankManagementUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.MessageEmbed.Field;
 import net.dv8tion.jda.api.entities.User;
@@ -27,7 +30,7 @@ public class SubscriptionCommandRunnable {
     // hide default public constructor
   }
 
-  public static MessageEmbed executeCommand(String language, User userToShow) {
+  public static MessageEmbed executeCommand(String language, User userToShow, Guild guild) throws SQLException {
 
     EmbedBuilder builder = new EmbedBuilder();
     builder.setColor(Color.GREEN);
@@ -110,6 +113,34 @@ public class SubscriptionCommandRunnable {
 
     field = new Field(LanguageManager.getText(language, "subscriptionCommandBenefitTier3Title"), benefitBuilder.toString(), false);
     builder.addField(field);
+    
+    if(guild != null) {
+      StringBuilder serverStatusBuilder = new StringBuilder();
+      
+      if(ZoeUserRankManagementUtil.isServerHaveAccessToEarlyAccessFeature(guild)) {
+        serverStatusBuilder.append("✅ " + 
+            LanguageManager.getText(language, "subscriptionCommandServerAccessNewFeatures"));
+      }else {
+        serverStatusBuilder.append("❌ " +
+            LanguageManager.getText(language, "subscriptionCommandServerAccessNewFeatures"));
+        
+        Member member = guild.retrieveMember(userToShow).complete();
+        
+        if((benefits.contains(UserBenefit.ACCESS_NEW_FEATURES_HUGE_SERVERS) 
+            || (benefits.contains(UserBenefit.ACCESS_NEW_FEATURES_SMALL_AND_MEDIUM_SERVERS)
+                && UserBenefit.HUGE_SERVERS_START >= guild.getMemberCount()))
+            && member.hasPermission(Permission.ADMINISTRATOR)) {
+          
+          serverStatusBuilder.append("\n"
+            + LanguageManager.getText(language, "subscriptionCommandServerAccessNewFeaturesAdminNotRegistered"));
+        }
+      }
+      
+      field = new Field(LanguageManager.getText(language, "subscriptionCommandServerStatus"),
+          serverStatusBuilder.toString(),
+          false);
+      builder.addField(field);
+    }
     
     if(benefits.contains(UserBenefit.SUPPORT_THE_PROJECT)) {
       field = new Field(LanguageManager.getText(language, "subscriptionCommandUserSupportTitle"),

@@ -9,8 +9,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.sub.UserBenefit;
 import ch.kalunight.zoe.model.sub.UserRank;
+import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.repositories.ZoeUserManagementRepository;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 
 public class ZoeUserRankManagementUtil {
@@ -21,6 +25,40 @@ public class ZoeUserRankManagementUtil {
   
   private ZoeUserRankManagementUtil() {
     // hide default public constructor
+  }
+  
+  public static boolean isServerHaveAccessToEarlyAccessFeature(Guild guild) throws SQLException {
+    List<DTO.Player> players = PlayerRepository.getPlayers(guild.getIdLong());
+    
+    List<Member> memberWithAdminPermissions = new ArrayList<>();
+    for(DTO.Player player : players) {
+      Member member = guild.getMemberById(player.player_discordId);
+      
+      if(member != null && member.hasPermission(Permission.ADMINISTRATOR)) {
+        memberWithAdminPermissions.add(member);
+      }
+    }
+    
+    for(Member admin : memberWithAdminPermissions) {
+      List<DTO.ZoeUserRole> subs = ZoeUserManagementRepository.getZoeSubscriptionByDiscordId(admin.getIdLong());
+      List<DTO.Role> roles = getRolesByAssignedRoles(subs);
+      
+      for(DTO.Role role : roles) {
+        UserRank rank = UserRank.getUserRankByRoleId(role.role_roleId);
+        
+        List<UserBenefit> benefits = UserBenefit.getBenefitsByUserRank(rank);
+        
+        if(benefits.contains(UserBenefit.ACCESS_NEW_FEATURES_HUGE_SERVERS)) {
+          return true;
+        }
+        
+        if(benefits.contains(UserBenefit.ACCESS_NEW_FEATURES_SMALL_AND_MEDIUM_SERVERS) 
+            && UserBenefit.HUGE_SERVERS_START >= guild.getMemberCount()) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
   
   public static String getEmotesByDiscordId(long discordId) {

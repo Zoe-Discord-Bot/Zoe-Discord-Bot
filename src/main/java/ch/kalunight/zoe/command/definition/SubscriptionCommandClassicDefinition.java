@@ -45,8 +45,8 @@ public class SubscriptionCommandClassicDefinition extends ZoeCommand {
       user = event.getMessage().getMentionedUsers().get(0);
     }
     
-    event.getChannel()
-    .sendMessageEmbeds(SubscriptionCommandRunnable.executeCommand(language, user)).queue();
+    event.getChannel().sendMessageEmbeds(SubscriptionCommandRunnable.executeCommand(
+        language, user, event.getGuild())).queue();
   }
 
   @Override

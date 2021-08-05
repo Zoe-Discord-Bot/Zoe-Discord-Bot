@@ -20,6 +20,9 @@ public class ZoeSubscriptionListener extends ListenerAdapter {
 
   @Override
   public void onGuildMemberRoleAdd(GuildMemberRoleAddEvent event) {
+    if(!event.getGuild().getId().equals(SUBSCRIPTION_SERVER_ID)) {
+      return;
+    }
     Runnable task = getOnGuildMemberRoleAddRunnable(event);
     ServerThreadsManager.getEventsExecutor().execute(task);
   }
@@ -31,7 +34,7 @@ public class ZoeSubscriptionListener extends ListenerAdapter {
       public void run() {
 
         for(Role roleGiven : event.getRoles()) {
-          UserRank rankReceived = UserRank.getUserRankByRoleId(roleGiven.getId());
+          UserRank rankReceived = UserRank.getUserRankByDiscordRoleId(roleGiven.getId());
 
           if(rankReceived != null) {
             try {
@@ -47,6 +50,9 @@ public class ZoeSubscriptionListener extends ListenerAdapter {
 
   @Override
   public void onGuildMemberRoleRemove(GuildMemberRoleRemoveEvent event) {
+    if(!event.getGuild().getId().equals(SUBSCRIPTION_SERVER_ID)) {
+      return;
+    }
     Runnable task = getOnGuildMemberRoleRemoveRunnable(event);
     ServerThreadsManager.getEventsExecutor().execute(task);
   }
@@ -57,7 +63,7 @@ public class ZoeSubscriptionListener extends ListenerAdapter {
       @Override
       public void run() {
         for(Role roleLost : event.getRoles()) {
-          UserRank rankLost = UserRank.getUserRankByRoleId(roleLost.getId());
+          UserRank rankLost = UserRank.getUserRankByDiscordRoleId(roleLost.getId());
 
           if(rankLost != null) {
             try {

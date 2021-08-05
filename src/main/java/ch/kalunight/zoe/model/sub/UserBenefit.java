@@ -62,6 +62,16 @@ public enum UserBenefit {
     return userBenefits;
   }
 
+  public static List<UserBenefit> getBenefitsByUserRanks(List<UserRank> allUserRanks) {
+    List<UserBenefit> benefits = new ArrayList<>();
+    
+    for(UserRank rank : allUserRanks) {
+      benefits.addAll(getBenefitsByUserRank(rank));
+    }
+    
+    return benefits;
+  }
+
   public int getId() {
     return id;
   }

@@ -47,7 +47,7 @@ public enum UserRank {
         return Ressources.getZoeSub6Months().getUsableEmote();
       }else if(monthsSupported > 8 && monthsSupported < 12) {
         return Ressources.getZoeSub9Months().getUsableEmote();
-      }else if(monthsSupported > 11) {
+      }else {
         return Ressources.getZoeSub1Year().getUsableEmote();
       }
     default:
@@ -55,9 +55,19 @@ public enum UserRank {
     }
   }
   
-  public static UserRank getUserRankByRoleId(String roleId) {
+  public static UserRank getUserRankByDiscordRoleId(String discordRoleId) {
     for(UserRank rank : UserRank.values()) {
-      if(rank.getRoleId().equals(roleId)) {
+      if(rank.getRoleId().equals(discordRoleId)) {
+        return rank;
+      }
+    }
+    
+    return null;
+  }
+  
+  public static UserRank getUserRankByRoleId(long roleId) {
+    for(UserRank rank : UserRank.values()) {
+      if(rank.getId() == roleId) {
         return rank;
       }
     }

@@ -62,6 +62,10 @@ import ch.kalunight.zoe.command.definition.RefreshCommandClassicDefinition;
 import ch.kalunight.zoe.command.definition.RefreshCommandSlashDefinition;
 import ch.kalunight.zoe.command.definition.ResetCommandClassicDefinition;
 import ch.kalunight.zoe.command.definition.ResetCommandSlashDefinition;
+import ch.kalunight.zoe.command.definition.SubscriptionCommandClassicDefinition;
+import ch.kalunight.zoe.command.definition.SubscriptionCommandSlashDefinition;
+import ch.kalunight.zoe.command.definition.WikiCommandClassicDefinition;
+import ch.kalunight.zoe.command.definition.WikiCommandSlashDefinition;
 import ch.kalunight.zoe.command.delete.definition.DeleteCommandClassicDefinition;
 import ch.kalunight.zoe.command.delete.definition.DeleteCommandSlashCommand;
 import ch.kalunight.zoe.command.remove.definition.RemoveCommandClassicDefinition;
@@ -420,6 +424,8 @@ public class Zoe {
     commands.add(new ResetCommandClassicDefinition(eventWaiter));
     commands.add(new BanAccountCommandClassicDefinition(eventWaiter));
     commands.add(new ClashCommandClassicDefinition());
+    commands.add(new SubscriptionCommandClassicDefinition());
+    commands.add(new WikiCommandClassicDefinition());
     commands.add(new PatchNotesCommandClassicDefinition());
 
     mainCommands = commands;
@@ -432,7 +438,7 @@ public class Zoe {
       return slashCommands;
     }
     
-    String testServer = null; //set to null for global command = production
+    String testServer = "565812029538041856"; //set to null for global command = production
     
     List<SlashCommand> commands = new ArrayList<>();
     
@@ -454,6 +460,8 @@ public class Zoe {
     commands.add(new StatsCommandSlashDefinition(eventWaiter, testServer));
     
     commands.add(new ClashCommandSlashDefinition(testServer));
+    commands.add(new SubscriptionCommandSlashDefinition(testServer));
+    commands.add(new WikiCommandSlashDefinition(testServer));
     
     slashCommands = commands;
 

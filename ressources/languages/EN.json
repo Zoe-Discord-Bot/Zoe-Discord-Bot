@@ -655,6 +655,9 @@
 	"subscriptionCommandUserFooterMessage": "Zoe will remain free no matter what. But she needs funds to live.",
 	"subscriptionCommandHelp": "Show the Zoe subscription status of the given user.",
 	"subscriptionCommandSlashHelp": "Show the Zoe subscription status of the given user.",
+	"subscriptionCommandServerStatus": "Server status",
+	"subscriptionCommandServerAccessNewFeatures": "Have access to new features earlier",
+	"subscriptionCommandServerAccessNewFeaturesAdminNotRegistered": "*You have to be registered in the server as a player if you want to activate this server*",
 	"wikiCommandResponse": "You can found the wiki for Zoe here : https://wiki.zoe-discord-bot.ch/",
 	"wikiCommandHelp": "Send the wiki of Zoe",
 	"wikiCommandSlashHelp": "Send the wiki of Zoe"

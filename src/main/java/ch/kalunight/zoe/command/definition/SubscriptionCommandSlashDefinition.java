@@ -9,6 +9,7 @@ import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.command.ZoeSlashCommand;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -44,9 +45,11 @@ public class SubscriptionCommandSlashDefinition extends ZoeSlashCommand {
   @Override
   protected void executeCommand(SlashCommandEvent event) throws SQLException {
     
+    Guild guild = null;
     String language;
-    if(event.getGuild() != null) {
+    if(event.isFromGuild()) {
       language = ZoeCommand.getServer(event.getGuild().getIdLong()).getLanguage();
+      guild = event.getGuild();
     }else {
       language = LanguageManager.DEFAULT_LANGUAGE;
     }
@@ -69,11 +72,11 @@ public class SubscriptionCommandSlashDefinition extends ZoeSlashCommand {
         event.getGuild().getPublicRole().hasPermission(Permission.MESSAGE_EXT_EMOJI) 
         && event.getGuild().getPublicRole().hasPermission(Permission.MESSAGE_EMBED_LINKS)) {
     event.getHook().editOriginalEmbeds(
-        SubscriptionCommandRunnable.executeCommand(language, user, event.getGuild())).queue();
+        SubscriptionCommandRunnable.executeCommand(language, user, guild)).queue();
     }else {
       event.getHook().editOriginal(LanguageManager.getText(language, "loading")).queue();
       event.getChannel().sendMessageEmbeds(
-          SubscriptionCommandRunnable.executeCommand(language, user, event.getGuild())).queue();
+          SubscriptionCommandRunnable.executeCommand(language, user, guild)).queue();
     }
   }
 

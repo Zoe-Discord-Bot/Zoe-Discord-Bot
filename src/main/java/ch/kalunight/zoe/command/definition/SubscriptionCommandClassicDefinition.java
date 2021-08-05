@@ -11,6 +11,8 @@ import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
 
 public class SubscriptionCommandClassicDefinition extends ZoeCommand {
@@ -31,9 +33,12 @@ public class SubscriptionCommandClassicDefinition extends ZoeCommand {
   
   @Override
   protected void executeCommand(CommandEvent event) throws SQLException {
+    
+    Guild guild = null;
     String language;
-    if(event.getGuild() != null) {
+    if(event.isFromType(ChannelType.TEXT)) {
       language = getServer(event.getGuild().getIdLong()).getLanguage();
+      guild = event.getGuild();
     }else {
       language = LanguageManager.DEFAULT_LANGUAGE;
     }
@@ -46,7 +51,7 @@ public class SubscriptionCommandClassicDefinition extends ZoeCommand {
     }
     
     event.getChannel().sendMessageEmbeds(SubscriptionCommandRunnable.executeCommand(
-        language, user, event.getGuild())).queue();
+        language, user, guild)).queue();
   }
 
   @Override

@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 import org.joda.time.DateTime;
@@ -41,6 +42,7 @@ import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.MessageBuilderRequestUtil;
 import ch.kalunight.zoe.util.Ressources;
 import ch.kalunight.zoe.util.TeamUtil;
+import ch.kalunight.zoe.util.ZoeSupportMessageGeneratorUtil;
 import ch.kalunight.zoe.util.ZoeUserRankManagementUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
@@ -69,6 +71,10 @@ public class MessageBuilderRequest {
   private static final String GENERATED_AT_STRING = "generatedAt";
 
   private static final Logger logger = LoggerFactory.getLogger(MessageBuilderRequest.class);
+  
+  private static final Random rand = new Random();
+  private static final int CHANCE_RANDOM_MAX_RANGE = 10;
+  private static final int CHANCE_TO_SHOW_SOMETHING = 1;
 
   private MessageBuilderRequest() {}
 
@@ -218,6 +224,8 @@ public class MessageBuilderRequest {
       message.addField(field);
     }
 
+    addSupportMessage(lang, message);
+    
     message.setFooter(LanguageManager.getText(lang, GENERATED_AT_STRING));
     message.setTimestamp(Instant.now());
 
@@ -254,6 +262,8 @@ public class MessageBuilderRequest {
     Field field = new Field(LanguageManager.getText(lang, RESUME_OF_THE_GAME_STRING), statsGame, true);
 
     message.addField(field);
+    
+    addSupportMessage(lang, message);
 
     message.setFooter(LanguageManager.getText(lang, GENERATED_AT_STRING));
     message.setTimestamp(Instant.now());
@@ -305,6 +315,8 @@ public class MessageBuilderRequest {
     Field field = new Field(LanguageManager.getText(lang, RESUME_OF_THE_GAME_STRING), statsGame, true);
 
     message.addField(field);
+    
+    addSupportMessage(lang, message);
 
     message.setFooter(LanguageManager.getText(lang, GENERATED_AT_STRING));
     message.setTimestamp(Instant.now());
@@ -356,6 +368,8 @@ public class MessageBuilderRequest {
     Field field = new Field(LanguageManager.getText(lang, RESUME_OF_THE_GAME_STRING), statsGame, true);
 
     message.addField(field);
+    
+    addSupportMessage(lang, message);
 
     message.setFooter(LanguageManager.getText(lang, GENERATED_AT_STRING));
     message.setTimestamp(Instant.now());
@@ -433,10 +447,23 @@ public class MessageBuilderRequest {
 
     message.addField(field);
 
+    addSupportMessage(lang, message);
+    
     message.setFooter(LanguageManager.getText(lang, GENERATED_AT_STRING));
     message.setTimestamp(Instant.now());
 
     return message.build();
+  }
+
+  private static void addSupportMessage(String lang, EmbedBuilder message) {
+    Field field;
+    int randomNumber = rand.nextInt(CHANCE_RANDOM_MAX_RANGE);
+    if(randomNumber < CHANCE_TO_SHOW_SOMETHING) {
+      field = new Field("", 
+          "*" + ZoeSupportMessageGeneratorUtil.getRandomSupportPhrase(lang) + "*",
+          false);
+      message.addField(field);
+    }
   }
 
   public static MessageEmbed createRankChannelCardLeaguePointChangeOnly(LeagueEntry oldEntry, LeagueEntry newEntry, 
@@ -477,6 +504,8 @@ public class MessageBuilderRequest {
 
     message.addField(field);
 
+    addSupportMessage(lang, message);
+    
     message.setFooter(LanguageManager.getText(lang, GENERATED_AT_STRING));
     message.setTimestamp(Instant.now());
 
@@ -526,6 +555,8 @@ public class MessageBuilderRequest {
     Field field = new Field(LanguageManager.getText(lang, stringResumeGame), statsGame, true);
     message.addField(field);
 
+    addSupportMessage(lang, message);
+    
     message.setFooter(LanguageManager.getText(lang, GENERATED_AT_STRING));
     message.setTimestamp(Instant.now());
 

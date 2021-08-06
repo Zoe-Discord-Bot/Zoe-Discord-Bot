@@ -65,7 +65,7 @@ public class KDALeaderboardService extends LeaderboardBaseService {
       dataName = LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveDataNameKDA");
     }
 
-    EmbedBuilder builder = buildBaseLeaderboardList(playerTitle, playersName, dataName, dataList);
+    EmbedBuilder builder = buildBaseLeaderboardList(playerTitle, playersName, dataName, dataList, server);
     builder.setColor(Color.ORANGE);
     
     String leaderboardTitle;
@@ -79,7 +79,6 @@ public class KDALeaderboardService extends LeaderboardBaseService {
       builder.setTitle(leaderboardTitle);
     }
 
-    builder.setFooter(LanguageManager.getText(server.getLanguage(), "leaderboardRefreshMessage"));
     message.editMessage(leaderboardTitle).setEmbeds(builder.build()).queue();
   }
 

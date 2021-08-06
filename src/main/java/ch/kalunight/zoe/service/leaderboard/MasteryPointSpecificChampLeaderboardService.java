@@ -49,11 +49,10 @@ public class MasteryPointSpecificChampLeaderboardService extends LeaderboardBase
     String playerTitle = LanguageManager.getText(server.getLanguage(), "leaderboardPlayersTitle");
     String dataName = LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveMasterPoint");
     EmbedBuilder builder = buildBaseLeaderboardList(playerTitle, playersName,
-        specificChamp.getChampion().getDisplayName() + " " + dataName, dataList);
+        specificChamp.getChampion().getDisplayName() + " " + dataName, dataList, server);
     builder.setColor(Color.ORANGE);
     builder.setTitle(String.format(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveMasterPointGivenSpecifiedChamp"), 
         specificChamp.getChampion().getName()));
-    builder.setFooter(LanguageManager.getText(server.getLanguage(), "leaderboardRefreshMessage"));
     message.editMessage(String.format(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveMasterPointGivenSpecifiedChamp"),
         specificChamp.getChampion().getName())).setEmbeds(builder.build()).queue();
   }

@@ -69,7 +69,7 @@ public class RankLeaderboardService extends LeaderboardBaseService {
       dataName = String.format(LanguageManager.getText(server.getLanguage(), "leaderboardRankSpecificQueueTitle"), LanguageManager.getText(server.getLanguage(), queueSelected.getGameQueue().getNameId()));
     }
 
-    EmbedBuilder builder = buildBaseLeaderboardList(playerTitle, playersName, dataName, dataList);
+    EmbedBuilder builder = buildBaseLeaderboardList(playerTitle, playersName, dataName, dataList, server);
     builder.setColor(Color.ORANGE);
     
     String leaderboardMessageTitle;
@@ -83,8 +83,6 @@ public class RankLeaderboardService extends LeaderboardBaseService {
       leaderboardMessageTitle = String.format(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveRankSpecificTitle"), 
           LanguageManager.getText(server.getLanguage(), queueSelected.getGameQueue().getNameId()));
     }
-
-    builder.setFooter(LanguageManager.getText(server.getLanguage(), "leaderboardRefreshMessage"));
     
     message.editMessage(leaderboardMessageTitle).setEmbeds(builder.build()).queue();
   }

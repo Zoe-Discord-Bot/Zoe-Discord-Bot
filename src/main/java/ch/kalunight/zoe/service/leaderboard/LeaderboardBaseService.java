@@ -3,6 +3,8 @@ package ch.kalunight.zoe.service.leaderboard;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.util.List;
+import java.util.Random;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.gson.Gson;
@@ -17,6 +19,7 @@ import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.InfoPanelRefresherUtil;
+import ch.kalunight.zoe.util.ZoeSupportMessageGeneratorUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
@@ -31,23 +34,29 @@ public abstract class LeaderboardBaseService implements Runnable {
   protected static final DecimalFormat masteryPointsFormat = new DecimalFormat("###,###,###");
 
   protected static final Logger logger = LoggerFactory.getLogger(LeaderboardBaseService.class);
-  
+
   protected static final Gson gson = new GsonBuilder().create();
-  
+
   private static final int NUMBER_OF_MESSAGE_CONSIDERED_VISIBLE = 20;
-  
+
   private static final int NUMBER_OF_MESSAGE_FOR_DELETION = 50;
-  
+
   private static final int MAX_PLAYERS_IN_LEADERBOARD = 10;
-  
+
+  private static final int CHANCE_RANDOM_MAX_RANGE = 10;
+
+  private static final int CHANCE_TO_SHOW_SOMETHING = 1; // 1 chance on 10
+
+  private static final Random rand = new Random();
+
   private long guildId;
 
   private long channelId;
 
   private long leaderboardId;
-  
+
   private boolean forceRefreshCache;
-  
+
   public LeaderboardBaseService(long guildId, long channelId, long leaderboardId, boolean forceRefreshCache) {
     this.guildId = guildId;
     this.channelId = channelId;
@@ -75,14 +84,14 @@ public abstract class LeaderboardBaseService implements Runnable {
       Leaderboard leaderboard = LeaderboardRepository.getLeaderboardWithId(leaderboardId);
 
       Message message = channel.retrieveMessageById(leaderboard.lead_message_id).complete();
-      
+
       int messageAfterTheLeaderboard = messageAfterTheLeaderboard(channel, message);
-      
+
       if(messageAfterTheLeaderboard > NUMBER_OF_MESSAGE_CONSIDERED_VISIBLE
           && messageAfterTheLeaderboard < NUMBER_OF_MESSAGE_FOR_DELETION) {
         message.editMessage(LanguageManager.getText(server.getLanguage(), "leaderboardNotRefreshedMessage")).queue();
         return;
-        
+
       }else if (messageAfterTheLeaderboard > NUMBER_OF_MESSAGE_FOR_DELETION) {
         message.editMessage(LanguageManager.getText(server.getLanguage(), "leaderboardDeletedMessage")).queue();
         LeaderboardRepository.deleteLeaderboardWithId(leaderboardId);
@@ -90,12 +99,12 @@ public abstract class LeaderboardBaseService implements Runnable {
       }
 
       message.addReaction("U+23F3").queue();
-      
+
       List<Player> players = PlayerRepository.getPlayers(guildId);
       InfoPanelRefresherUtil.cleanRegisteredPlayerNoLongerInGuild(guild, players);
 
       runLeaderboardRefresh(server, guild, channel, leaderboard, message, players, forceRefreshCache);
-      
+
       message.removeReaction("U+23F3", guild.getJDA().getSelfUser()).queue();
 
     }catch(ErrorResponseException e) {
@@ -127,7 +136,8 @@ public abstract class LeaderboardBaseService implements Runnable {
   protected abstract void runLeaderboardRefresh(Server server, Guild guild, TextChannel channel,
       Leaderboard leaderboard, Message message, List<Player> players, boolean forceRefreshCache) throws SQLException, RiotApiException;
 
-  protected EmbedBuilder buildBaseLeaderboardList(String playerTitle, List<String> playersName, String dataName, List<String> dataList) {
+  protected EmbedBuilder buildBaseLeaderboardList(String playerTitle, List<String> playersName, String dataName, List<String> dataList,
+      Server server) {
 
     EmbedBuilder builder = new EmbedBuilder();
 
@@ -171,6 +181,16 @@ public abstract class LeaderboardBaseService implements Runnable {
     field = new Field(dataName, stringData.toString(), true);
     builder.addField(field);
 
+    int randomNumber = rand.nextInt(CHANCE_RANDOM_MAX_RANGE);
+    if(randomNumber < CHANCE_TO_SHOW_SOMETHING) {
+      field = new Field("", 
+          "*" + ZoeSupportMessageGeneratorUtil.getRandomSupportPhrase(server.getLanguage()) + "*",
+          false);
+      builder.addField(field);
+    }
+
+    builder.setFooter(LanguageManager.getText(server.getLanguage(), "leaderboardRefreshMessage"));
+
     return builder;
   }
 
@@ -187,7 +207,7 @@ public abstract class LeaderboardBaseService implements Runnable {
     case BEST_OF_ALL_RANK:
     case SPECIFIC_QUEUE_RANK:
       return new RankLeaderboardService(guildId, channelId, leaderboardId, forceRefreshCache);
-    /*case WINRATE:
+      /*case WINRATE:
     case WINRATE_SPECIFIC_CHAMP:
     case WINRATE_SPECIFIC_QUEUE:
       return new WinrateLeaderboardService(guildId, channelId, leaderboardId);*/

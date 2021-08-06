@@ -46,10 +46,9 @@ public class MasteryPointLeaderboardService extends LeaderboardBaseService {
     
     String playerTitle = LanguageManager.getText(server.getLanguage(), "leaderboardPlayersTitle");
     String dataName = LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveTotalMasterPoint");
-    EmbedBuilder builder = buildBaseLeaderboardList(playerTitle, playersName, dataName, dataList);
+    EmbedBuilder builder = buildBaseLeaderboardList(playerTitle, playersName, dataName, dataList, server);
     builder.setColor(Color.ORANGE);
     builder.setTitle(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveMasterPointTitle"));
-    builder.setFooter(LanguageManager.getText(server.getLanguage(), "leaderboardRefreshMessage"));
     message.editMessage(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveMasterPointTitle")).setEmbeds(builder.build()).queue();
   }
 

@@ -4,6 +4,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
+
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.command.ZoeSlashCommand;
 import ch.kalunight.zoe.command.create.RegisterCommandRunnable;
@@ -14,7 +16,9 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 public class RegisterCommandSlashDefinition extends ZoeSlashCommand {
 
-  public RegisterCommandSlashDefinition(String serverId) {
+  private EventWaiter waiter;
+  
+  public RegisterCommandSlashDefinition(EventWaiter waiter, String serverId) {
     this.name = RegisterCommandRunnable.USAGE_NAME;
     this.help = LanguageManager.getText(LanguageManager.DEFAULT_LANGUAGE, "registerCommandHelpMessageSlashCommand");
     
@@ -24,6 +28,8 @@ public class RegisterCommandSlashDefinition extends ZoeSlashCommand {
     data.add(CommandUtil.getSummonerSelection(true));
     
     this.options = data;
+    
+    this.waiter = waiter;
     
     if(serverId == null) {
       this.guildOnly = true;
@@ -37,7 +43,8 @@ public class RegisterCommandSlashDefinition extends ZoeSlashCommand {
   protected void executeCommand(SlashCommandEvent event) throws SQLException {
     String args = String.format("(%s) (%s)", event.getOption(ZoeSlashCommand.REGION_OPTION_ID).getAsString(), event.getOption(ZoeSlashCommand.SUMMONER_OPTION_ID).getAsString());
     
-    String message = RegisterCommandRunnable.executeCommand(ZoeCommand.getServer(event.getGuild().getIdLong()), event.getGuild(), event.getMember(), args);
+    String message = RegisterCommandRunnable.executeCommand(ZoeCommand.getServer(event.getGuild().getIdLong()), event.getGuild(),
+        event.getMember(), args, waiter, event.getTextChannel());
     
     event.getHook().editOriginal(message).queue();
   }

@@ -5,7 +5,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +20,7 @@ import ch.kalunight.zoe.repositories.BannedAccountRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
+import ch.kalunight.zoe.util.AccountVerificationUtil;
 import ch.kalunight.zoe.util.CommandUtil;
 import ch.kalunight.zoe.util.PaginatorUtil;
 import ch.kalunight.zoe.util.RiotApiUtil;
@@ -40,15 +40,13 @@ public class BanAccountCommandRunnable {
 
   private static final Logger logger = LoggerFactory.getLogger(BanAccountCommandRunnable.class);
 
-  private static final int SIZE_OF_THE_RANDOM_STRING = 16;
-
   private BanAccountCommandRunnable() {
     // hide default constructor
   }
   
   public static void executeCommand(String language, EventWaiter waiter, MessageChannel channel, Guild guild, User author, Message toEdit, InteractionHook hook) {
 
-    String accountVerificationCode = "ZOE-" + RandomStringUtils.randomAlphanumeric(SIZE_OF_THE_RANDOM_STRING);
+    String accountVerificationCode = AccountVerificationUtil.getVerificationCode();
 
     CommandUtil.sendMessageWithClassicOrSlashCommand(String.format(LanguageManager.getText(language, "banAccountCommandProveAccountOwner"), accountVerificationCode), toEdit, hook);
 

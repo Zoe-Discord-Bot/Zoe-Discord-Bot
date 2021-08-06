@@ -3,6 +3,7 @@ package ch.kalunight.zoe.command.add.definition;
 import java.sql.SQLException;
 
 import com.jagrosh.jdautilities.command.SlashCommand;
+import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.command.ZoeSlashCommand;
@@ -11,9 +12,9 @@ import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 
 public class AddCommandSlashDefinition extends ZoeSlashCommand {
 
-  public AddCommandSlashDefinition(String serverId) {
+  public AddCommandSlashDefinition(EventWaiter waiter, String serverId) {
     this.name = AddCommandRunnable.USAGE_NAME;
-    SlashCommand[] commandsChildren = {new AddAccountCommandSlashDefinition(serverId), new AddPlayerToTeamCommandSlashDefinition(serverId)};
+    SlashCommand[] commandsChildren = {new AddAccountCommandSlashDefinition(waiter, serverId), new AddPlayerToTeamCommandSlashDefinition(serverId)};
     this.children = commandsChildren;
     
     if(serverId == null) {

@@ -25,7 +25,8 @@ public class InfoPanelRankedOption extends ConfigurationOption {
   private boolean optionActivated;
 
   public InfoPanelRankedOption(long guildId) {
-    super(guildId, INFOPANEL_RANKED_DESC_ID);
+    super(guildId, "infopanelRankedOptionName", INFOPANEL_RANKED_DESC_ID, OptionCategory.INFOCHANNEL,
+        false);
     this.optionActivated = true;
   }
 
@@ -127,7 +128,7 @@ public class InfoPanelRankedOption extends ConfigurationOption {
   }
 
   @Override
-  public String getChoiceText(String langage) throws SQLException {
+  public String getBaseChoiceText(String langage) throws SQLException {
     String status;
 
     if(optionActivated) {

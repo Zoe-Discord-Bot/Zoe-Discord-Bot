@@ -41,13 +41,6 @@ public class RankRoleOption extends ConfigurationOption {
 
   private static final Logger logger = LoggerFactory.getLogger(RankRoleOption.class);
 
-  private static final String DISABLE_ID = "disable";
-  private static final String CANCEL_ID = "cancel";
-  private static final String VALIDATE_ID = "validate";
-  private static final String TFT_ID = "tft";
-  private static final String FLEX_ID = "flex";
-  private static final String SOLOQ_ID = "soloq";
-
   private static Color ironColor = new Color(148, 148, 143);
   private static Color bronzeColor = new Color(130, 83, 63);
   private static Color silverColor = new Color(138, 163, 170);
@@ -73,7 +66,8 @@ public class RankRoleOption extends ConfigurationOption {
   private Role challenger;
 
   public RankRoleOption(long guildId) {
-    super(guildId, "rankRoleOptionDescription");
+    super(guildId, "rankRoleOptionName", "rankRoleOptionDescription", OptionCategory.FEATURES,
+        false);
     soloqEnable = false;
     flexEnable = false;
     tftEnable = false;
@@ -475,7 +469,7 @@ public class RankRoleOption extends ConfigurationOption {
   }
 
   @Override
-  public String getChoiceText(String langage) throws SQLException {
+  public String getBaseChoiceText(String langage) throws SQLException {
     if(isOptionEnable()) {
       return String.format(LanguageManager.getText(langage, "rankRoleOptionDescriptionChangeText"), LanguageManager.getText(langage, "optionEnable"));
     }else {

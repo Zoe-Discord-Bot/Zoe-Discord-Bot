@@ -21,7 +21,7 @@ public class CreateCommandClassicDefinition extends ZoeCommand {
     this.aliases = new String[] {"c"};
     Permission[] permissionRequired = {Permission.MANAGE_CHANNEL};
     this.userPermissions = permissionRequired;
-    Command[] commandsChildren = {new CreateInfochannelCommandClassicDefinition(), new CreatePlayerCommandClassicDefinition(), new CreateTeamCommandClassicDefinition(),
+    Command[] commandsChildren = {new CreateInfochannelCommandClassicDefinition(), new CreatePlayerCommandClassicDefinition(waiter), new CreateTeamCommandClassicDefinition(),
         new CreateRankHistoryChannelCommandClassicDefinition(), new CreateLeaderboardCommandClassicDefinition(waiter), new CreateClashChannelCommandClassicDefinition(waiter)};
     this.children = commandsChildren;
     this.guildOnly = true;

@@ -5,6 +5,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.kalunight.zoe.ZoeSubscriptionListener;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
@@ -15,6 +16,10 @@ public class ZoeMemberCachePolicy implements MemberCachePolicy {
 
   @Override
   public boolean cacheMember(Member member) {
+    if(member.getGuild().getId().equals(ZoeSubscriptionListener.SUBSCRIPTION_SERVER_ID)) {
+      return true;
+    }
+    
     try {
       List<Long> registeredPlayersInTheGuild = PlayerRepository.getListDiscordIdOfRegisteredPlayers().get(member.getGuild().getIdLong());
       if(registeredPlayersInTheGuild != null) {

@@ -36,7 +36,7 @@ public class RoleOption extends ConfigurationOption {
   private Role role;
 
   public RoleOption(long guildId) {
-    super(guildId, "roleOptionDescription");
+    super(guildId, "roleOptionName", "roleOptionDescription", OptionCategory.FEATURES, false);
     role = null;
   }
 
@@ -202,7 +202,7 @@ public class RoleOption extends ConfigurationOption {
   }
 
   @Override
-  public String getChoiceText(String langage) {
+  public String getBaseChoiceText(String langage) {
     String status = LanguageManager.getText(langage, "optionDisable");
     if(role != null) {
       status = LanguageManager.getText(langage, "optionEnable");

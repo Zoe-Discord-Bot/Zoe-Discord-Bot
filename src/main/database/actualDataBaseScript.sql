@@ -2,7 +2,7 @@
 
 CREATE DATABASE zoe;
 create user zoeadmin with encrypted password 'xf345sD2#a@v'; --Random test password
-grant all privileges on database zoe to zoeAdmin;
+grant all privileges on database zoe to zoeadmin;
 
 CREATE TABLE server (
   serv_id 										SERIAL,

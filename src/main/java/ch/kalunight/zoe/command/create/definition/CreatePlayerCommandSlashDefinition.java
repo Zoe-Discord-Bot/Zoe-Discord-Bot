@@ -4,6 +4,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
+
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.command.ZoeSlashCommand;
 import ch.kalunight.zoe.command.create.CreatePlayerCommandRunnable;
@@ -17,7 +19,9 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 public class CreatePlayerCommandSlashDefinition extends ZoeSlashCommand {
 
-  public CreatePlayerCommandSlashDefinition(String serverId) {
+  private EventWaiter waiter;
+  
+  public CreatePlayerCommandSlashDefinition(EventWaiter waiter, String serverId) {
     this.name = CreatePlayerCommandClassicDefinition.USAGE_NAME;
     this.help = LanguageManager.getText(LanguageManager.DEFAULT_LANGUAGE, "createPlayerHelpMessage");
     
@@ -33,6 +37,8 @@ public class CreatePlayerCommandSlashDefinition extends ZoeSlashCommand {
     data.add(CommandUtil.getRegionSelection(true));
     data.add(CommandUtil.getSummonerSelection(true));
     this.options = data;
+    
+    this.waiter = waiter;
     
     if(serverId == null) {
       this.guildOnly = true;
@@ -50,7 +56,8 @@ public class CreatePlayerCommandSlashDefinition extends ZoeSlashCommand {
     
     String args = String.format("(%s) (%s)", event.getOption(ZoeSlashCommand.REGION_OPTION_ID).getAsString(), event.getOption(ZoeSlashCommand.SUMMONER_OPTION_ID).getAsString());
     
-    String message = CreatePlayerCommandRunnable.executeCommand(ZoeCommand.getServer(event.getGuild().getIdLong()), event.getJDA(), event.getMember(), mentionnedMembers, args);
+    String message = CreatePlayerCommandRunnable.executeCommand(ZoeCommand.getServer(event.getGuild().getIdLong()), event.getJDA(), event.getMember(),
+        mentionnedMembers, args, waiter, event.getTextChannel());
     
     event.getHook().editOriginal(message).queue();
   }

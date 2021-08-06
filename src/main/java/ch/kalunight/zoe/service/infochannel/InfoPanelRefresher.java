@@ -55,6 +55,7 @@ import ch.kalunight.zoe.service.rankchannel.RankedChannelLoLRefresher;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.InfoPanelRefresherUtil;
 import ch.kalunight.zoe.util.TreatedPlayer;
+import ch.kalunight.zoe.util.ZoeSupportMessageGeneratorUtil;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
@@ -851,6 +852,8 @@ public class InfoPanelRefresher implements Runnable {
     }else {
       stringMessage.append(String.format(LanguageManager.getText(server.getLanguage(), "informationPanelRefreshedTime"), refreshRate));
     }
+    
+    stringMessage.append("\n\n*" + ZoeSupportMessageGeneratorUtil.getRandomSupportPhrase(server.getLanguage()) + "*");
 
     return stringMessage.toString();
   }

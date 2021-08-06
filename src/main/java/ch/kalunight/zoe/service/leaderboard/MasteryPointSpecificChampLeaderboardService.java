@@ -16,6 +16,7 @@ import ch.kalunight.zoe.model.leaderboard.dataholder.PlayerPoints;
 import ch.kalunight.zoe.model.leaderboard.dataholder.SpecificChamp;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
+import ch.kalunight.zoe.util.ZoeUserRankManagementUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
@@ -39,7 +40,8 @@ public class MasteryPointSpecificChampLeaderboardService extends LeaderboardBase
     List<String> dataList = new ArrayList<>();
     
     for(PlayerPoints playerPoints : playersPoints) {
-      playersName.add(playerPoints.getPlayer().retrieveUser(guild.getJDA()).getName() + "#" + playerPoints.getPlayer().retrieveUser(guild.getJDA()).getDiscriminator());
+      playersName.add(ZoeUserRankManagementUtil.getEmotesByDiscordId(playerPoints.getPlayer().player_discordId) 
+          + playerPoints.getPlayer().retrieveUser(guild.getJDA()).getName() + "#" + playerPoints.getPlayer().retrieveUser(guild.getJDA()).getDiscriminator());
       dataList.add(masteryPointsFormat.format(playerPoints.getPoints()) + " " 
       + LanguageManager.getText(server.getLanguage(), "pointsShort"));
     }
@@ -47,11 +49,10 @@ public class MasteryPointSpecificChampLeaderboardService extends LeaderboardBase
     String playerTitle = LanguageManager.getText(server.getLanguage(), "leaderboardPlayersTitle");
     String dataName = LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveMasterPoint");
     EmbedBuilder builder = buildBaseLeaderboardList(playerTitle, playersName,
-        specificChamp.getChampion().getDisplayName() + " " + dataName, dataList);
+        specificChamp.getChampion().getDisplayName() + " " + dataName, dataList, server);
     builder.setColor(Color.ORANGE);
     builder.setTitle(String.format(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveMasterPointGivenSpecifiedChamp"), 
         specificChamp.getChampion().getName()));
-    builder.setFooter(LanguageManager.getText(server.getLanguage(), "leaderboardRefreshMessage"));
     message.editMessage(String.format(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveMasterPointGivenSpecifiedChamp"),
         specificChamp.getChampion().getName())).setEmbeds(builder.build()).queue();
   }

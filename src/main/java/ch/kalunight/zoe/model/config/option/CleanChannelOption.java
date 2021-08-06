@@ -67,7 +67,8 @@ public class CleanChannelOption extends ConfigurationOption {
   private CleanChannelOptionInfo tmpCleanChannelOption;
 
   public CleanChannelOption(long guildId) {
-    super(guildId, "cleanChannelOptionDesc");   
+    super(guildId, "cleanChannelOptionName", "cleanChannelOptionDesc",
+        OptionCategory.FEATURES, true);   
     cleanChannelOption = CleanChannelOptionInfo.DISABLE;
     cleanChannel = null;
   }
@@ -292,7 +293,7 @@ public class CleanChannelOption extends ConfigurationOption {
   }
 
   @Override
-  public String getChoiceText(String langage) throws SQLException {
+  public String getBaseChoiceText(String langage) throws SQLException {
 
     if(cleanChannel != null && cleanChannel.getJDA().getTextChannelById(cleanChannel.getId()) == null) {
       cleanChannel = null;

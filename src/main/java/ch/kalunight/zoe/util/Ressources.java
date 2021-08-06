@@ -41,6 +41,18 @@ public class Ressources {
   
   private static CustomEmote gameLost;
   
+  private static CustomEmote zoeSub1Month;
+  
+  private static CustomEmote zoeSub2Months;
+  
+  private static CustomEmote zoeSub3Months;
+  
+  private static CustomEmote zoeSub6Months;
+  
+  private static CustomEmote zoeSub9Months;
+  
+  private static CustomEmote zoeSub1Year;
+  
   static {
     blackListedSever.add("264445053596991498"); //Discord Bot List Server
     blackListedSever.add("446425626988249089"); //Bot on Discord
@@ -132,4 +144,52 @@ public class Ressources {
     Ressources.gameLost = gameLost;
   }
 
+  public static CustomEmote getZoeSub1Month() {
+    return zoeSub1Month;
+  }
+
+  public static void setZoeSub1Month(CustomEmote zoeSub1Month) {
+    Ressources.zoeSub1Month = zoeSub1Month;
+  }
+
+  public static CustomEmote getZoeSub2Months() {
+    return zoeSub2Months;
+  }
+
+  public static void setZoeSub2Months(CustomEmote zoeSub2Months) {
+    Ressources.zoeSub2Months = zoeSub2Months;
+  }
+
+  public static CustomEmote getZoeSub3Months() {
+    return zoeSub3Months;
+  }
+
+  public static void setZoeSub3Months(CustomEmote zoeSub3Months) {
+    Ressources.zoeSub3Months = zoeSub3Months;
+  }
+
+  public static CustomEmote getZoeSub6Months() {
+    return zoeSub6Months;
+  }
+
+  public static void setZoeSub6Months(CustomEmote zoeSub6Months) {
+    Ressources.zoeSub6Months = zoeSub6Months;
+  }
+
+  public static CustomEmote getZoeSub9Months() {
+    return zoeSub9Months;
+  }
+
+  public static void setZoeSub9Months(CustomEmote zoeSub9Months) {
+    Ressources.zoeSub9Months = zoeSub9Months;
+  }
+
+  public static CustomEmote getZoeSub1Year() {
+    return zoeSub1Year;
+  }
+
+  public static void setZoeSub1Year(CustomEmote zoeSub1Year) {
+    Ressources.zoeSub1Year = zoeSub1Year;
+  }
+  
 }

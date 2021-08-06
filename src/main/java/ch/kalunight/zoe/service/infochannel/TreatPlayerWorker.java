@@ -43,6 +43,7 @@ import ch.kalunight.zoe.util.LastRankUtil;
 import ch.kalunight.zoe.util.Ressources;
 import ch.kalunight.zoe.util.TFTMatchUtil;
 import ch.kalunight.zoe.util.TreatedPlayer;
+import ch.kalunight.zoe.util.ZoeUserRankManagementUtil;
 import net.dv8tion.jda.api.JDA;
 import net.rithms.riot.api.RiotApiException;
 import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
@@ -375,8 +376,9 @@ public class TreatPlayerWorker implements Runnable {
 
           getTextInformationPanelRankOption(infochannelMessage, player, leagueAccount, false);
         }else if (accountNotInGame.size() > 1){
-
-          infochannelMessage.append(String.format(LanguageManager.getText(server.getLanguage(), "infoPanelRankedTitleMultipleAccount"), player.retrieveUser(jda).getAsMention()) + "\n");
+          
+          infochannelMessage.append(String.format(LanguageManager.getText(server.getLanguage(), "infoPanelRankedTitleMultipleAccount"),
+              ZoeUserRankManagementUtil.getEmotesByDiscordId(player.player_discordId) + player.retrieveUser(jda).getAsMention()) + "\n");
 
           for(DTO.LeagueAccount leagueAccount : accountNotInGame) {
 
@@ -389,10 +391,10 @@ public class TreatPlayerWorker implements Runnable {
       }
     }else if (accountsWithGame.size() == 1) {
       Entry<DTO.LeagueAccount, CurrentGameInfo> entry = accountsWithGame.entrySet().iterator().next();
-      infochannelMessage.append(player.retrieveUser(jda).getAsMention() + " : " 
+      infochannelMessage.append(ZoeUserRankManagementUtil.getEmotesByDiscordId(player.player_discordId) + player.retrieveUser(jda).getAsMention() + " : " 
           + InfoPanelRefresherUtil.getCurrentGameInfoStringForOneAccount(entry.getKey(), entry.getValue(), server.getLanguage()) + "\n");
     }else {
-      infochannelMessage.append(player.retrieveUser(jda).getAsMention() + " : " 
+      infochannelMessage.append(ZoeUserRankManagementUtil.getEmotesByDiscordId(player.player_discordId) + player.retrieveUser(jda).getAsMention() + " : " 
           + LanguageManager.getText(server.getLanguage(), "informationPanelMultipleAccountInGame") + "\n"
           + InfoPanelRefresherUtil.getCurrentGameInfoStringForMultipleAccounts(accountsWithGame, server.getLanguage()));
     }
@@ -422,7 +424,7 @@ public class TreatPlayerWorker implements Runnable {
       accountString = leagueAccount.getSummoner().getName();
     }else {
       baseText = "infoPanelRankedTextOneAccount";
-      accountString = player.retrieveUser(jda).getAsMention();
+      accountString = ZoeUserRankManagementUtil.getEmotesByDiscordId(player.player_discordId) + player.retrieveUser(jda).getAsMention();
     }
 
     List<LastRankQueue> lastRanksByQueue = new ArrayList<>();
@@ -473,8 +475,8 @@ public class TreatPlayerWorker implements Runnable {
         + " / " + LanguageManager.getText(server.getLanguage(), rankedQueue.getNameId())) + "\n";
   }
 
-  private void notInGameWithoutRankInfo(final StringBuilder stringMessage, DTO.Player player) {
-    stringMessage.append(player.retrieveUser(jda).getAsMention() + " : " 
+  private void notInGameWithoutRankInfo(final StringBuilder stringMessage, DTO.Player player) throws SQLException {
+    stringMessage.append(ZoeUserRankManagementUtil.getEmotesByDiscordId(player.player_discordId) + player.retrieveUser(jda).getAsMention() + " : " 
         + LanguageManager.getText(server.getLanguage(), "informationPanelNotInGame") + " \n");
   }
 

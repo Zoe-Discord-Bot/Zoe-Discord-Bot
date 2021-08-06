@@ -4,6 +4,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
+
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.command.ZoeSlashCommand;
 import ch.kalunight.zoe.command.add.AddAccountCommandRunnable;
@@ -17,7 +19,9 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 public class AddAccountCommandSlashDefinition extends ZoeSlashCommand {
 
-  public AddAccountCommandSlashDefinition(String serverId) {
+  private EventWaiter waiter;
+  
+  public AddAccountCommandSlashDefinition(EventWaiter waiter, String serverId) {
     this.name = AddAccountCommandRunnable.USAGE_NAME;
     this.help = LanguageManager.getText(LanguageManager.DEFAULT_LANGUAGE, "addAccountHelpMessageSlashCommand");
     
@@ -31,6 +35,8 @@ public class AddAccountCommandSlashDefinition extends ZoeSlashCommand {
     data.add(CommandUtil.getSummonerSelection(true));
     
     this.options = data;
+    
+    this.waiter = waiter;
     
     if(serverId == null) {
       this.guildOnly = true;
@@ -51,7 +57,8 @@ public class AddAccountCommandSlashDefinition extends ZoeSlashCommand {
     
     String args = "(" + event.getOption(ZoeSlashCommand.REGION_OPTION_ID).getAsString() + ") (" + event.getOption(ZoeSlashCommand.SUMMONER_OPTION_ID).getAsString() + ")";
     
-    String messageToSend = AddAccountCommandRunnable.executeCommand(server, event.getMember(), mentionnedMembers, args);
+    String messageToSend = AddAccountCommandRunnable.executeCommand(server, event.getMember(), mentionnedMembers,
+        args, waiter, event.getTextChannel());
     
     event.getHook().editOriginal(messageToSend).queue();
   }

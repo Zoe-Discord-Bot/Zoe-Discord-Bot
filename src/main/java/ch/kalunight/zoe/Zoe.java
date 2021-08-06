@@ -62,6 +62,10 @@ import ch.kalunight.zoe.command.definition.RefreshCommandClassicDefinition;
 import ch.kalunight.zoe.command.definition.RefreshCommandSlashDefinition;
 import ch.kalunight.zoe.command.definition.ResetCommandClassicDefinition;
 import ch.kalunight.zoe.command.definition.ResetCommandSlashDefinition;
+import ch.kalunight.zoe.command.definition.SubscriptionCommandClassicDefinition;
+import ch.kalunight.zoe.command.definition.SubscriptionCommandSlashDefinition;
+import ch.kalunight.zoe.command.definition.WikiCommandClassicDefinition;
+import ch.kalunight.zoe.command.definition.WikiCommandSlashDefinition;
 import ch.kalunight.zoe.command.delete.definition.DeleteCommandClassicDefinition;
 import ch.kalunight.zoe.command.delete.definition.DeleteCommandSlashCommand;
 import ch.kalunight.zoe.command.remove.definition.RemoveCommandClassicDefinition;
@@ -72,11 +76,14 @@ import ch.kalunight.zoe.command.stats.definition.StatsCommandClassicDefinition;
 import ch.kalunight.zoe.command.stats.definition.StatsCommandSlashDefinition;
 import ch.kalunight.zoe.model.dangerosityreport.DangerosityReportKDA;
 import ch.kalunight.zoe.model.dto.DTO.ChampionRoleAnalysis;
+import ch.kalunight.zoe.model.dto.DTO.Role;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.model.static_data.CustomEmote;
+import ch.kalunight.zoe.model.sub.UserRank;
 import ch.kalunight.zoe.repositories.ChampionRoleAnalysisRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.repositories.RepoRessources;
+import ch.kalunight.zoe.repositories.ZoeUserManagementRepository;
 import ch.kalunight.zoe.riotapi.CacheManager;
 import ch.kalunight.zoe.riotapi.CachedRiotApi;
 import ch.kalunight.zoe.service.RiotApiUsageChannelRefresh;
@@ -224,12 +231,16 @@ public class Zoe {
     CommandClient commandClient = client.build();
 
     SetupEventListener setupEventListener = new SetupEventListener();
+    
+    ZoeSubscriptionListener subListener = new ZoeSubscriptionListener();
 
     eventListenerList.add(commandClient); //commands set in loadZoeRessources
     eventListenerList.add(setupEventListener);
+    eventListenerList.add(subListener);
     
     try {
-      clientsLoaded = getNewJDAInstance(discordTocken, commandClient, setupEventListener);
+      clientsLoaded = getNewJDAInstance(discordTocken, commandClient, setupEventListener,
+          subListener);
     } catch(IndexOutOfBoundsException e) {
       logger.error("You must provide a token.");
       System.exit(1);
@@ -302,6 +313,15 @@ public class Zoe {
       Zoe.setBotListApi(null);
     }
 
+    logger.info("Setup Zoe User Role ...");
+    try {
+      setupZoeUserRole();
+    } catch (SQLException e) {
+      logger.error("SQL Exception while loading Zoe user role into db! Zoe stop here", e);
+      System.exit(1);
+    }
+    logger.info("Setup Zoe User Role finished!");
+    
     logger.info("Setup of main thread  ...");
     setupContinousRefreshThread();
     logger.info("Setup of main thread finished !");
@@ -322,7 +342,26 @@ public class Zoe {
     PlayerRepository.getLoadedGuild().clear();
   }
 
-  public static List<JDA> getNewJDAInstance(String riotTocken, CommandClient newCommandClient, SetupEventListener setupEventListener) throws LoginException {
+  private static void setupZoeUserRole() throws SQLException {
+    List<Role> alreadyCreatedRoles = ZoeUserManagementRepository.getAllZoeRole();
+    
+    for(UserRank rank : UserRank.values()) {
+      boolean rankAlreadyCreated = false;
+      for(Role roleDb : alreadyCreatedRoles) {
+        if(roleDb.role_roleId == rank.getId()) {
+          rankAlreadyCreated = true;
+          break;
+        }
+      }
+      
+      if(!rankAlreadyCreated) {
+        ZoeUserManagementRepository.createZoeRole(rank.getId());
+      }
+    }
+  }
+
+  public static List<JDA> getNewJDAInstance(String riotTocken, CommandClient newCommandClient, 
+      SetupEventListener setupEventListener, ZoeSubscriptionListener subListener) throws LoginException {
 
     commandClient = newCommandClient;
 
@@ -331,7 +370,7 @@ public class Zoe {
         .disableCache(CacheFlag.CLIENT_STATUS, CacheFlag.VOICE_STATE)
         .setMemberCachePolicy(new ZoeMemberCachePolicy())
         .setChunkingFilter(ChunkingFilter.NONE)
-        .addEventListeners(commandClient, setupEventListener);
+        .addEventListeners(commandClient, setupEventListener, subListener);
 
     List<JDA> clientsLoaded = Collections.synchronizedList(new ArrayList<>());
 
@@ -374,17 +413,19 @@ public class Zoe {
     commands.add(new ConfigCommandClassicDefinition(eventWaiter));
     commands.add(new CreateCommandClassicDefinition(eventWaiter));
     commands.add(new DeleteCommandClassicDefinition(eventWaiter));
-    commands.add(new AddCommandClassicDefinition());
+    commands.add(new AddCommandClassicDefinition(eventWaiter));
     commands.add(new RemoveCommandClassicDefinition());
     commands.add(new StatsCommandClassicDefinition(eventWaiter));
     commands.add(new ShowCommandClassicDefinition(eventWaiter));
     commands.add(new RefreshCommandClassicDefinition());
-    commands.add(new RegisterCommandClassicDefinition());
+    commands.add(new RegisterCommandClassicDefinition(eventWaiter));
     commands.add(new DefineCommand());
     commands.add(new UndefineCommand());
     commands.add(new ResetCommandClassicDefinition(eventWaiter));
     commands.add(new BanAccountCommandClassicDefinition(eventWaiter));
     commands.add(new ClashCommandClassicDefinition());
+    commands.add(new SubscriptionCommandClassicDefinition());
+    commands.add(new WikiCommandClassicDefinition());
     commands.add(new PatchNotesCommandClassicDefinition());
 
     mainCommands = commands;
@@ -397,7 +438,7 @@ public class Zoe {
       return slashCommands;
     }
     
-    String testServer = null; //set to null for global command = production
+    String testServer = "565812029538041856"; //set to null for global command = production
     
     List<SlashCommand> commands = new ArrayList<>();
     
@@ -411,14 +452,16 @@ public class Zoe {
     commands.add(new PatchNotesCommandSlashDefinition(testServer));
     
     commands.add(new CreateCommandSlashDefinition(eventWaiter, testServer));
-    commands.add(new RegisterCommandSlashDefinition(testServer));
+    commands.add(new RegisterCommandSlashDefinition(eventWaiter, testServer));
     commands.add(new DeleteCommandSlashCommand(eventWaiter, testServer));
-    commands.add(new AddCommandSlashDefinition(testServer));
+    commands.add(new AddCommandSlashDefinition(eventWaiter, testServer));
     commands.add(new RemoveCommandSlashDefinition(testServer));
     commands.add(new ShowCommandSlashDefinition(eventWaiter, testServer));
     commands.add(new StatsCommandSlashDefinition(eventWaiter, testServer));
     
     commands.add(new ClashCommandSlashDefinition(testServer));
+    commands.add(new SubscriptionCommandSlashDefinition(testServer));
+    commands.add(new WikiCommandSlashDefinition(testServer));
     
     slashCommands = commands;
 

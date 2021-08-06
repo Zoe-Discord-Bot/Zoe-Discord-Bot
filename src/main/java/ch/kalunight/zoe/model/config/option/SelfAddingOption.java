@@ -21,7 +21,8 @@ public class SelfAddingOption extends ConfigurationOption {
   private boolean optionActivated;
 
   public SelfAddingOption(long guildId) {
-    super(guildId, "selfAddingOptionDesc");
+    super(guildId, "selfAddingOptionName", "selfAddingOptionDesc", OptionCategory.USER_MANAGEMENT,
+        false);
     optionActivated = false;
   }
 
@@ -125,7 +126,7 @@ public class SelfAddingOption extends ConfigurationOption {
   }
 
   @Override
-  public String getChoiceText(String langage) {
+  public String getBaseChoiceText(String langage) {
     String status;
     
     if(optionActivated) {

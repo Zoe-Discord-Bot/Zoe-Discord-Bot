@@ -649,5 +649,7 @@
     "forceVerificationInitSetupMessage": "Okay ! Maintenant sélectionnez une méthode d'initialisation.",
     "continueButton": "Continuer",
     "forceVerificationOptionLongDesc": "Option en activation : **%s**\n\nSi vous activer cette option, tous les utilisateurs devront prouver que leur compte LoL leur appartient bien. C'est fait fait via le système de vérification officiel de LoL, vous pouvez tester la procédure avec la commande ``/banaccount``.\nLes utilisateurs avec la permissions de gérer les salons évitent cette vérification.\n\n**C'est hautement recommandé d'utiliser cette option avec l'option \"%s\"**",
-    "forceVerificationOptionDescription": "Force la vérification du possesseur du compte LoL"
+    "forceVerificationOptionDescription": "Force la vérification du possesseur du compte LoL",
+    "translationErrorMessagePromote": "Vous avez trouvé une erreur dans la traduction ? Signalez-la sur le serveur Discord officiel ici : <https://discord.gg/BfB2B74VnK>",
+    "translationSupportMessagePromote": "Vous voulez aider à la traduction de Zoe ? Rejoignez-nous sur le serveur Discord officiel ici : <https://discord.gg/BfB2B74VnK>"
 }

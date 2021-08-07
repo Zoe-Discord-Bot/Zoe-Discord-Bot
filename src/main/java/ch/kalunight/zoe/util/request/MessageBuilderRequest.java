@@ -74,7 +74,7 @@ public class MessageBuilderRequest {
   
   private static final Random rand = new Random();
   private static final int CHANCE_RANDOM_MAX_RANGE = 10;
-  private static final int CHANCE_TO_SHOW_SOMETHING = 1;
+  private static final int CHANCE_TO_SHOW_SOMETHING = 1; // 1 chance on 10
 
   private MessageBuilderRequest() {}
 

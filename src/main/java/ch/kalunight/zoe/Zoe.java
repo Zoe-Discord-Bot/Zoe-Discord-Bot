@@ -438,7 +438,7 @@ public class Zoe {
       return slashCommands;
     }
     
-    String testServer = "565812029538041856"; //set to null for global command = production
+    String testServer = null; //set to null for global command = production
     
     List<SlashCommand> commands = new ArrayList<>();
     

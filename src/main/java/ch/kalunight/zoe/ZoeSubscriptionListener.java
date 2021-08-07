@@ -15,7 +15,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 public class ZoeSubscriptionListener extends ListenerAdapter {
 
-  public static final LocalDateTime END_EARLY_ACCESS_PHASE_FEATURES = LocalDateTime.of(2021, 8, 23, 16, 0);
+  public static final LocalDateTime END_EARLY_ACCESS_PHASE_FEATURES = LocalDateTime.of(2021, 8, 22, 0, 0);
   
   public static final String SUBSCRIPTION_SERVER_ID = "554578876811182082";
 

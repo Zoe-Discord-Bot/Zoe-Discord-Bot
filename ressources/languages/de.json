@@ -674,5 +674,7 @@
     "forceVerificationInitSetupMessage": "Gut! Wähle nun bitte eine Initialisierungsmethode aus.",
     "continueButton": "Fortfahren",
     "forceVerificationOptionLongDesc": "Option zur Aktivierung : **%s**\n\nWenn du diese Option aktivierst, müssen alle Benutzer beweisen, dass ihr League-Account ihnen gehört. Dies geschieht mit dem offiziellen LoL Verifizierungssystem, Du kannst das Verfahren mit dem Befehl ``/banaccont`` testen.\nBenutzer mit der Berechtigung, Kanäle zu verwalten, umgehen diese Anforderung.\n\n**Es wird dringend empfohlen, diese Option mit der Option \"%s \"** zu verwenden",
-    "forceVerificationOptionDescription": "Erzwingen der Überprüfung des League-Kontoinhabers"
+    "forceVerificationOptionDescription": "Erzwingen der Überprüfung des League-Kontoinhabers",
+    "translationErrorMessagePromote": "Du hast einen Fehler in der Übersetzung gefunden? Melde ihn auf dem offiziellen Discord Server hier: <https://discord.gg/BfB2B74VnK>",
+    "translationSupportMessagePromote": "Du willst bei der Übersetzung von Zoe helfen? Schließe dich uns auf dem offiziellen Discord-Server hier an: <https://discord.gg/BfB2B74VnK>"
 }

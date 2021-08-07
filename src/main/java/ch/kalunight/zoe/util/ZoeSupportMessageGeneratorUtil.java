@@ -40,8 +40,8 @@ public class ZoeSupportMessageGeneratorUtil {
     supportPhrasesId.add("wikiMessage");
     supportPhrasesId.add("needHelpMessage");
     supportPhrasesId.add("supportMessageZoeLoveDev");
-    supportPhrasesId.add("translationSupportMessage");
-    supportPhrasesId.add("translationErrorMessage");
+    supportPhrasesId.add("translationSupportMessagePromote");
+    supportPhrasesId.add("translationErrorMessagePromote");
   }
   
   private ZoeSupportMessageGeneratorUtil() {

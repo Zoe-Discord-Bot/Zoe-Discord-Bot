@@ -41,7 +41,6 @@ import ch.kalunight.zoe.service.infochannel.SummonerDataWorker;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.MessageBuilderRequestUtil;
 import ch.kalunight.zoe.util.Ressources;
-import ch.kalunight.zoe.util.TeamUtil;
 import ch.kalunight.zoe.util.ZoeSupportMessageGeneratorUtil;
 import ch.kalunight.zoe.util.ZoeUserRankManagementUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -619,8 +618,6 @@ public class MessageBuilderRequest {
     MessageBuilderRequestUtil.createTeamDataMultipleSummoner(redTeam, listIdPlayers, region, server.getLanguage(), playersData, false, currentGameInfo.getGameQueueConfigId());
 
     SummonerDataWorker.awaitAll(playersData);
-
-    TeamUtil.determineRole(null);
 
     StringBuilder blueTeamString = new StringBuilder();
     StringBuilder blueTeamRankString = new StringBuilder();

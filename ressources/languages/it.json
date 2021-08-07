@@ -281,7 +281,7 @@
     "deleteRankChannelDoneMessage": "Il canale di rango è stato correttamente cancellato.",
     "defineRankChannelHelpMessage": "Definisce il canale di rango. È necessario il permesso di gestire il canale.",
     "rankedAvg": "Media classificata",
-    "infopanelRankedOptionDesc": "Mostra l'ultimo cambio di classifica dei giocatori nel pannello informativo",
+    "infopanelRankedOptionDesc": "Mostra le statistiche classificate dei giocatori in InfoPanel",
     "nativeActualLanguage": "Italiano",
     "addingSystemEndMessage": "La configurazione di base è ora completa. Spero che apprezzerete i miei servizi :D",
     "createRankChannelHelpMessage": "Creare un Canale Rank in cui invierò aggiornamenti sui ranghi dei giocatori registrati. È necessario il permesso di gestire il canale.",
@@ -576,7 +576,7 @@
     "rankRoleOptionCancelUpdate": "Ok, fermiamo il processo qui.",
     "rankRoleOptionUpdateTheOptionButton": "Aggiornamento",
     "rankRoleOptionDisableTheOptionButton": "Disattivare",
-    "rankRoleOptionDescriptionChangeText": "Assegna un ruolo a seconda del suo grado: (%s)",
+    "rankRoleOptionDescriptionChangeText": "Assegna un ruolo a seconda del suo grado: %s",
     "rankRoleOptionActivateWait": "Perfetto! Lasciatemi qualche secondo per attivare l'opzione ...",
     "rankRoleOptionActivateButton": "Attivare",
     "rankRoleOptionCancelButton": "Cancella",
@@ -587,5 +587,6 @@
     "rankRoleOptionDisable": "Opzione Disabilitata",
     "rankRoleOptionDescription": "Assegna i ruoli a seconda del rango di un giocatore.",
     "patchNotesCommandSlashCommand": "Invia la cronologia delle note di patch.",
-    "patchNoteCommandRespondMessage": "Le note della patch possono essere trovate qui: https://wiki.zoe-discord-bot.ch/en/patchnotes"
+    "patchNoteCommandRespondMessage": "Le note della patch possono essere trovate qui: https://wiki.zoe-discord-bot.ch/en/patchnotes",
+    "forceVerificationOptionDescription": "Forzare la verifica del proprietario dell'account della LoL"
 }

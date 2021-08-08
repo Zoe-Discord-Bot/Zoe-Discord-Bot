@@ -573,7 +573,7 @@
     "supportMessageCoolBadge": "Tu veux montrer à tout le monde à quel point tu es cool ? Soutient Zoe pour obtenir un super badge évolutif ! Plus d'infos : <https://bit.ly/support-zoe>",
     "supportMessageSubscriptionCommand": "Si vous soutenez Zoe avec un abonnement, vous pouvez voir tous vos avantages avec la commande >subscription",
     "supportMessageSubscription": "Vous pouvez soutenir le développement de Zoe et obtenir un superbe badge évolutif ! Pour plus d'informations : <https://bit.ly/support-zoe>",
-    "supportMessagePlayersSupport": "%d personnes maintiennent Zoe en vie. Merci à elles :heart : Pour soutenir Zoe : <https://bit.ly/support-zoe>",
+    "supportMessagePlayersSupport": "%d personnes maintiennent Zoe en vie. Merci à elles :heart: Pour soutenir Zoe : <https://bit.ly/support-zoe>",
     "supportMessageDeveloppedOnePerson": "Zoe est développé par une seule personne. Vous pouvez me soutenir dans son développement ici : <https://bit.ly/support-zoe>",
     "configEarlyAccessFeatureNeedRight": "*Fonctionnalités en Early Access  | Abonnement requis*",
     "configEarlyAccessFeature": "*Fonctionnalités en Early Access*",
@@ -651,5 +651,12 @@
     "forceVerificationOptionLongDesc": "Option en activation : **%s**\n\nSi vous activer cette option, tous les utilisateurs devront prouver que leur compte LoL leur appartient bien. C'est fait fait via le système de vérification officiel de LoL, vous pouvez tester la procédure avec la commande ``/banaccount``.\nLes utilisateurs avec la permissions de gérer les salons évitent cette vérification.\n\n**C'est hautement recommandé d'utiliser cette option avec l'option \"%s\"**",
     "forceVerificationOptionDescription": "Force la vérification du possesseur du compte LoL",
     "translationErrorMessagePromote": "Vous avez trouvé une erreur dans la traduction ? Signalez-la sur le serveur Discord officiel ici : <https://discord.gg/BfB2B74VnK>",
-    "translationSupportMessagePromote": "Vous voulez aider à la traduction de Zoe ? Rejoignez-nous sur le serveur Discord officiel ici : <https://discord.gg/BfB2B74VnK>"
+    "translationSupportMessagePromote": "Vous voulez aider à la traduction de Zoe ? Rejoignez-nous sur le serveur Discord officiel ici : <https://discord.gg/BfB2B74VnK>",
+    "supportMessageZoeNeedYourHelp": "J'ai besoin de votre aide ! Aidez-moi à payer les serveurs de Zoe ici : <https://bit.ly/support-zoe>",
+    "supportMessageZoeNeeded": "Zoe est actuellement soutenu à %d€ par mois. Pour être viable à long terme, il faudrait un minimum de %d€ par mois. Aidez-moi à atteindre cet objectif ici : <https://bit.ly/support-zoe>",
+    "supportMessageZoeLoveDonation": "Si vous aimez Zoe, pensez à faire un don ! Elle n'est actuellement pas viable à long terme.\nPour aider : <https://bit.ly/support-zoe>",
+    "supportMessageZoeFutur": "Si vous aimez Zoe, pensez à faire un don ! Elle n'est actuellement pas viable à long terme.\nPour aider : <https://bit.ly/support-zoe>",
+    "supportMessageZoeNeededTLDR": "Zoe a besoin de %d€ par mois pour survivre ! Situation actuelle : %d€/%d€\nPour aider : <https://bit.ly/support-zoe>",
+    "configCommandBackToMenu": "Retour vers la liste des catégories",
+    "supportMessageZoeLoss": "Zoe n'est actuellement pas rentable. Si vous voulez continuer à la faire fonctionner, veuillez m'aider ici : <https://bit.ly/support-zoe>"
 }

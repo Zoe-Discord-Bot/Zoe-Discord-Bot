@@ -676,5 +676,12 @@
     "forceVerificationOptionDisableDescription": "Opzione che vuoi disabilitare : **%s**\n\nDisabilitando questa opzione, gli utenti potranno registrarsi senza dover convalidare il loro account. Gli utenti potranno aggiungere account che non gli appartengono.",
     "configCommandMenuOptionErrorNotFound": "L'opzione selezionata non è stata trovata! Per favore, segnala questo problema qui: https://discord.gg/AyAYWGM",
     "subscriptionCommandUserSupport": "Tu sei una delle persone che rendono possibile l'esistenza di Zoe!\nPer maggiori informazioni, controlla la mia [pagina Ko-fi](https://bit.ly/3in4S1E)",
-    "verificationProcessWhileAddingAccount": "Questo server Discord richiede una verifica quando si aggiunge un nuovo account. Per verificare che tu sia il proprietario dell'account *%s* \"%s\" segui questi passi.\n\n1. Accedi al client della lega con l'account.\n2. Vai su *Impostazioni -> Verifica* nel tuo client della lega.\n3. Incolla il codice **%s** nella casella.\n4. Cliccate su Salva.\n\nUna volta fatto, rispondimi con **DONE**. Se vuoi annullare questa azione, manda un messaggio a caso."
+    "verificationProcessWhileAddingAccount": "Questo server Discord richiede una verifica quando si aggiunge un nuovo account. Per verificare che tu sia il proprietario dell'account *%s* \"%s\" segui questi passi.\n\n1. Accedi al client della lega con l'account.\n2. Vai su *Impostazioni -> Verifica* nel tuo client della lega.\n3. Incolla il codice **%s** nella casella.\n4. Cliccate su Salva.\n\nUna volta fatto, rispondimi con **DONE**. Se vuoi annullare questa azione, manda un messaggio a caso.",
+    "supportMessageZoeLoveDonation": "Se ti piace Zoe considera una donazione! Attualmente non è sostenibile a lungo termine.\nPer aiutare: <https://bit.ly/support-zoe>",
+    "configCommandBackToMenu": "Ritorna al menu di categoria",
+    "supportMessageZoeNeedYourHelp": "Ho bisogno del vostro aiuto! Aiutatemi a pagare i server di Zoe qui: <https://bit.ly/support-zoe>",
+    "supportMessageZoeNeeded": "Zoe è attualmente supportato a %d€ al mese. Per essere sostenibile a lungo termine avrebbe bisogno di un minimo di %d€ al mese. Aiutami a raggiungere questo obiettivo qui: <https://bit.ly/support-zoe>",
+    "supportMessageZoeFutur": "Il futuro di Zoe non è garantito. Sostieni il progetto per assicurarti che lo sia.\nPer aiutare: <https://bit.ly/support-zoe>",
+    "supportMessageZoeNeededTLDR": "Zoe ha bisogno di %d€ al mese per sopravvivere! Stato attuale: %d€/%d€\nPer aiutare: <https://bit.ly/support-zoe>",
+    "supportMessageZoeLoss": "Zoe non è attualmente redditizio. Se vuoi che continui a funzionare, per favore aiutami qui: <https://bit.ly/support-zoe>"
 }

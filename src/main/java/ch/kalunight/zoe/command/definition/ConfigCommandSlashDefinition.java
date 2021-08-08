@@ -45,7 +45,7 @@ public class ConfigCommandSlashDefinition extends ZoeSlashCommand {
     
     CommandGuildDiscordData data = new CommandGuildDiscordData(event.getMember(), event.getGuild(), event.getTextChannel());
     
-    ConfigCommandRunnable.executeCommand(server, waiter, data);
+    ConfigCommandRunnable.executeCommand(server, waiter, data, event.getHook());
   }
   
 }

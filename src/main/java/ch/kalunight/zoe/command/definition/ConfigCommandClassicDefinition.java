@@ -39,7 +39,7 @@ public class ConfigCommandClassicDefinition extends ZoeCommand {
     
     CommandGuildDiscordData data = new CommandGuildDiscordData(event.getMember(), event.getGuild(), event.getTextChannel());
     
-    ConfigCommandRunnable.executeCommand(server, waiter, data);
+    ConfigCommandRunnable.executeCommand(server, waiter, data, null);
   }
 
   @Override

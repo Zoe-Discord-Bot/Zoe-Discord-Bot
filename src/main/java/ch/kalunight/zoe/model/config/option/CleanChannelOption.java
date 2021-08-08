@@ -7,9 +7,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.ButtonMenu;
+
+import ch.kalunight.zoe.model.CommandGuildDiscordData;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.InfoChannelRepository;
@@ -66,20 +67,21 @@ public class CleanChannelOption extends ConfigurationOption {
   private CleanChannelOptionInfo tmpCleanChannelOption;
 
   public CleanChannelOption(long guildId) {
-    super(guildId, "cleanChannelOptionDesc");   
+    super(guildId, "cleanChannelOptionName", "cleanChannelOptionDesc",
+        OptionCategory.FEATURES, false);   
     cleanChannelOption = CleanChannelOptionInfo.DISABLE;
     cleanChannel = null;
   }
 
   @Override
-  public Consumer<CommandEvent> getChangeConsumer(EventWaiter waiter, DTO.Server server) {
-    return new Consumer<CommandEvent>() {
+  public Consumer<CommandGuildDiscordData> getChangeConsumer(EventWaiter waiter, DTO.Server server) {
+    return new Consumer<CommandGuildDiscordData>() {
 
       @Override
-      public void accept(CommandEvent event) {
+      public void accept(CommandGuildDiscordData event) {
 
         if(!event.getGuild().getSelfMember().getPermissions().contains(Permission.MESSAGE_MANAGE)) {
-          event.reply(LanguageManager.getText(server.getLanguage(), "cleanChannelOptionPermissionNeeded"));
+          event.getChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "cleanChannelOptionPermissionNeeded")).queue();
           return;
         }
 
@@ -92,7 +94,7 @@ public class CleanChannelOption extends ConfigurationOption {
             CleanChannelOptionInfo.ONLY_ZOE_COMMANDS.unicode,
             CleanChannelOptionInfo.ALL.unicode,
             "❌");
-        choiceBuilder.addUsers(event.getAuthor());
+        choiceBuilder.addUsers(event.getUser());
         choiceBuilder.setFinalAction(finalAction());
         choiceBuilder.setColor(Color.BLUE);
 
@@ -111,7 +113,7 @@ public class CleanChannelOption extends ConfigurationOption {
             + " -> " + LanguageManager.getText(server.getLanguage(), CleanChannelOptionInfo.ALL.name)
             + " : " + LanguageManager.getText(server.getLanguage(), CleanChannelOptionInfo.ALL.description) + "\n");
 
-        choiceBuilder.setAction(updateOption(event.getChannel(), event.getGuild(), waiter, event.getAuthor(), server));
+        choiceBuilder.setAction(updateOption(event.getChannel(), event.getGuild(), waiter, event.getUser(), server));
 
         ButtonMenu menu = choiceBuilder.build();
 
@@ -291,7 +293,7 @@ public class CleanChannelOption extends ConfigurationOption {
   }
 
   @Override
-  public String getChoiceText(String langage) throws SQLException {
+  public String getBaseChoiceText(String langage) throws SQLException {
 
     if(cleanChannel != null && cleanChannel.getJDA().getTextChannelById(cleanChannel.getId()) == null) {
       cleanChannel = null;

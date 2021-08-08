@@ -4,9 +4,10 @@ import java.awt.Color;
 import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.ButtonMenu;
+
+import ch.kalunight.zoe.model.CommandGuildDiscordData;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.RepoRessources;
@@ -20,22 +21,23 @@ public class SelfAddingOption extends ConfigurationOption {
   private boolean optionActivated;
 
   public SelfAddingOption(long guildId) {
-    super(guildId, "selfAddingOptionDesc");
+    super(guildId, "selfAddingOptionName", "selfAddingOptionDesc", OptionCategory.USER_MANAGEMENT,
+        false);
     optionActivated = false;
   }
 
   @Override
-  public Consumer<CommandEvent> getChangeConsumer(EventWaiter waiter, DTO.Server server) {
-    return new Consumer<CommandEvent>() {
+  public Consumer<CommandGuildDiscordData> getChangeConsumer(EventWaiter waiter, DTO.Server server) {
+    return new Consumer<CommandGuildDiscordData>() {
       
       @Override
-      public void accept(CommandEvent event) {
+      public void accept(CommandGuildDiscordData event) {
         
         ButtonMenu.Builder choiceBuilder = new ButtonMenu.Builder();
         
         choiceBuilder.setEventWaiter(waiter);
         choiceBuilder.addChoices("✅","❌");
-        choiceBuilder.addUsers(event.getAuthor());
+        choiceBuilder.addUsers(event.getUser());
         choiceBuilder.setFinalAction(finalAction());
         choiceBuilder.setColor(Color.BLUE);
 
@@ -124,7 +126,7 @@ public class SelfAddingOption extends ConfigurationOption {
   }
 
   @Override
-  public String getChoiceText(String langage) {
+  public String getBaseChoiceText(String langage) {
     String status;
     
     if(optionActivated) {

@@ -16,6 +16,7 @@ import ch.kalunight.zoe.model.dto.SavedChampionsMastery;
 import ch.kalunight.zoe.model.leaderboard.dataholder.PlayerPoints;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
+import ch.kalunight.zoe.util.ZoeUserRankManagementUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
@@ -37,19 +38,18 @@ public class MasteryPointLeaderboardService extends LeaderboardBaseService {
     List<String> dataList = new ArrayList<>();
     
     for(PlayerPoints playerPoints : playersPoints) {
-      playersName.add(playerPoints.getPlayer().retrieveUser(guild.getJDA()).getName() + "#" + playerPoints.getPlayer().retrieveUser(guild.getJDA()).getDiscriminator());
+      playersName.add(ZoeUserRankManagementUtil.getEmotesByDiscordId(playerPoints.getPlayer().player_discordId) 
+          + playerPoints.getPlayer().retrieveUser(guild.getJDA()).getName() + "#" + playerPoints.getPlayer().retrieveUser(guild.getJDA()).getDiscriminator());
       dataList.add(masteryPointsFormat.format(playerPoints.getPoints()) + " " 
       + LanguageManager.getText(server.getLanguage(), "pointsShort"));
     }
     
     String playerTitle = LanguageManager.getText(server.getLanguage(), "leaderboardPlayersTitle");
     String dataName = LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveTotalMasterPoint");
-    EmbedBuilder builder = buildBaseLeaderboardList(playerTitle, playersName, dataName, dataList);
+    EmbedBuilder builder = buildBaseLeaderboardList(playerTitle, playersName, dataName, dataList, server);
     builder.setColor(Color.ORANGE);
     builder.setTitle(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveMasterPointTitle"));
-    builder.setFooter(LanguageManager.getText(server.getLanguage(), "leaderboardRefreshMessage"));
-    message.editMessage(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveMasterPointTitle")).queue();
-    message.editMessage(builder.build()).queue();
+    message.editMessage(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveMasterPointTitle")).setEmbeds(builder.build()).queue();
   }
 
   private List<PlayerPoints> orderAndGetPlayers(Guild guild, List<Player> players, boolean forceRefreshCache) throws SQLException, RiotApiException {

@@ -15,7 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.menu.SelectionDialog;
 import ch.kalunight.zoe.Zoe;
-import ch.kalunight.zoe.command.LanguageCommand;
+import ch.kalunight.zoe.command.LanguageCommandRunnable;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.static_data.CustomEmote;
 import ch.kalunight.zoe.repositories.ConfigRepository;
@@ -98,6 +98,7 @@ public class EventListenerUtil {
       CustomEmoteUtil.addToTierIfisSame(emote);
       CustomEmoteUtil.addToMasteryIfIsSame(emote);
       CustomEmoteUtil.addInfoIconIfSame(emote);
+      CustomEmoteUtil.addZoeSubIconIfSame(emote);
     }
   }
 
@@ -123,7 +124,7 @@ public class EventListenerUtil {
         }
 
         selectionMessage.getChannel().sendMessage(String.format(LanguageManager.getText(server.getLanguage(), "addingSystemLanguageSelected"),
-            LanguageManager.getText(server.getLanguage(), LanguageCommand.NATIVE_LANGUAGE_TRANSLATION_ID))).queue();
+            LanguageManager.getText(server.getLanguage(), LanguageCommandRunnable.NATIVE_LANGUAGE_TRANSLATION_ID))).queue();
 
 
         SelectionDialog.Builder selectAccountBuilder = new SelectionDialog.Builder()

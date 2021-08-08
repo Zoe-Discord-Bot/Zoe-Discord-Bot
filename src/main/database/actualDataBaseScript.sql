@@ -2,7 +2,7 @@
 
 CREATE DATABASE zoe;
 create user zoeadmin with encrypted password 'xf345sD2#a@v'; --Random test password
-grant all privileges on database zoe to zoeAdmin;
+grant all privileges on database zoe to zoeadmin;
 
 CREATE TABLE server (
   serv_id 										SERIAL,
@@ -77,6 +77,23 @@ CREATE TABLE info_panel_ranked_option (
   infoPanelRanked_id 							SERIAL,
   infoPanelRanked_fk_serverConfig 				BIGINT 				NOT NULL,
   infoPanelRanked_activate 						boolean 			DEFAULT TRUE
+);
+
+CREATE TABLE rank_role_option (
+  rankRoleOption_id 							SERIAL				NOT NULL,
+  rankRoleOption_fk_serverConfig				BIGINT				NOT NULL,
+  rankRoleOption_ironId							BIGINT,
+  rankRoleOption_bronzeId						BIGINT,
+  rankRoleOption_silverId						BIGINT,
+  rankRoleOption_goldId							BIGINT,
+  rankRoleOption_platinumId						BIGINT,
+  rankRoleOption_diamondId						BIGINT,
+  rankRoleOption_masterId						BIGINT,
+  rankRoleOption_grandMasterId					BIGINT,
+  rankRoleOption_challengerId					BIGINT,
+  rankRoleOption_soloqEnable					boolean,
+  rankRoleOption_flexEnable						boolean,
+  rankRoleOption_tftEnable						boolean
 );
 
 CREATE TABLE info_channel (
@@ -241,6 +258,9 @@ ALTER TABLE ONLY game_info_card_option
 ALTER TABLE ONLY role_option
   ADD CONSTRAINT role_option_pkey PRIMARY KEY (roleOption_id);
   
+ALTER TABLE ONLY rank_role_option
+  ADD CONSTRAINT rank_role_option_pkey PRIMARY KEY (rankRoleOption_id);
+  
 ALTER TABLE ONLY info_panel_ranked_option
   ADD CONSTRAINT info_panel_ranked_option_pkey PRIMARY KEY (infoPanelRanked_id);
 
@@ -345,6 +365,11 @@ ALTER TABLE info_panel_ranked_option
   FOREIGN KEY (infoPanelRanked_fk_serverConfig) REFERENCES server_configuration (servConfig_id)
   ON DELETE CASCADE;
   
+ALTER TABLE rank_role_option
+  ADD CONSTRAINT rank_role_option_fk_serverConfig_const 
+  FOREIGN KEY (rankRoleOption_fk_serverConfig) REFERENCES server_configuration (servConfig_id)
+  ON DELETE CASCADE;
+  
 ALTER TABLE clash_channel
   ADD CONSTRAINT clash_channel_fk_server_const
   FOREIGN KEY (clashChannel_fk_server) REFERENCES server (serv_id);
@@ -427,3 +452,12 @@ CREATE INDEX index_matchcache_gameVersion ON match_cache USING gin ((mCatch_save
   
 ALTER TABLE ONLY banned_account
   ADD CONSTRAINT banned_account_pkey PRIMARY KEY (banAcc_id);
+  
+CREATE INDEX idx_match_cache_creationTime
+  ON match_cache(mCatch_creationTime);
+  
+DROP INDEX index_matchcache_championId;
+DROP INDEX index_matchcache_queueId;
+DROP INDEX index_matchcache_gameVersion;
+
+CREATE INDEX index_matchcache_All ON match_cache USING gin (mCatch_savedMatch jsonb_path_ops);

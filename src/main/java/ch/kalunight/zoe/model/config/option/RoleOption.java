@@ -6,9 +6,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.ButtonMenu;
+
+import ch.kalunight.zoe.model.CommandGuildDiscordData;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.Player;
 import ch.kalunight.zoe.repositories.ConfigRepository;
@@ -35,19 +36,19 @@ public class RoleOption extends ConfigurationOption {
   private Role role;
 
   public RoleOption(long guildId) {
-    super(guildId, "roleOptionDescription");
+    super(guildId, "roleOptionName", "roleOptionDescription", OptionCategory.FEATURES, false);
     role = null;
   }
 
   @Override
-  public Consumer<CommandEvent> getChangeConsumer(EventWaiter waiter, DTO.Server server) {
-    return new Consumer<CommandEvent>() {
+  public Consumer<CommandGuildDiscordData> getChangeConsumer(EventWaiter waiter, DTO.Server server) {
+    return new Consumer<CommandGuildDiscordData>() {
 
       @Override
-      public void accept(CommandEvent event) {
+      public void accept(CommandGuildDiscordData event) {
 
         if(!event.getGuild().getSelfMember().getPermissions().contains(Permission.MANAGE_ROLES)) {
-          event.reply(LanguageManager.getText(server.getLanguage(), "roleOptionPermissionNeeded"));
+          event.getChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "roleOptionPermissionNeeded")).queue();
           return;
         }
 
@@ -55,7 +56,7 @@ public class RoleOption extends ConfigurationOption {
 
         choiceBuilder.setEventWaiter(waiter);
         choiceBuilder.addChoices("✅","❌");
-        choiceBuilder.addUsers(event.getAuthor());
+        choiceBuilder.addUsers(event.getUser());
         choiceBuilder.setFinalAction(finalAction());
         choiceBuilder.setColor(Color.BLUE);
 
@@ -104,8 +105,7 @@ public class RoleOption extends ConfigurationOption {
               RepoRessources.sqlErrorReport(channel, server, e);
               return;
             }
-
-
+            
             for(Player player : PlayerRepository.getPlayers(guildId)) {
               Member member = guild.retrieveMember(player.retrieveUser(guild.getJDA())).complete();
               guild.addRoleToMember(member, role).queue();
@@ -201,7 +201,7 @@ public class RoleOption extends ConfigurationOption {
   }
 
   @Override
-  public String getChoiceText(String langage) {
+  public String getBaseChoiceText(String langage) {
     String status = LanguageManager.getText(langage, "optionDisable");
     if(role != null) {
       status = LanguageManager.getText(langage, "optionEnable");

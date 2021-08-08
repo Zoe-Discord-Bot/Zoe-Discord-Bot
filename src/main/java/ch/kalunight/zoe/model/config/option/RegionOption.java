@@ -8,9 +8,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import com.jagrosh.jdautilities.command.CommandEvent;
+
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.SelectionDialog;
+
+import ch.kalunight.zoe.model.CommandGuildDiscordData;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.RepoRessources;
@@ -23,12 +25,12 @@ public class RegionOption extends ConfigurationOption {
   private Platform region;
 
   public RegionOption(long guildId) {
-    super(guildId, "regionOptionDesc");
+    super(guildId, "regionOptionName", "regionOptionDesc", OptionCategory.GENERAL, false);
     this.region = null;
   }
 
   @Override
-  public String getChoiceText(String langage) {
+  public String getBaseChoiceText(String langage) {
     String strRegion = LanguageManager.getText(langage, "optionRegionDisable");
 
     if(region != null) {
@@ -39,11 +41,11 @@ public class RegionOption extends ConfigurationOption {
   }
 
   @Override
-  public Consumer<CommandEvent> getChangeConsumer(EventWaiter waiter, DTO.Server server) {
-    return new Consumer<CommandEvent>() {
+  public Consumer<CommandGuildDiscordData> getChangeConsumer(EventWaiter waiter, DTO.Server server) {
+    return new Consumer<CommandGuildDiscordData>() {
 
       @Override
-      public void accept(CommandEvent event) {
+      public void accept(CommandGuildDiscordData event) {
         event.getChannel().sendTyping().complete();
         
         String message;
@@ -57,7 +59,7 @@ public class RegionOption extends ConfigurationOption {
         event.getChannel().sendMessage(message).queue();
 
         SelectionDialog.Builder selectAccountBuilder = new SelectionDialog.Builder()
-            .addUsers(event.getAuthor())
+            .addUsers(event.getUser())
             .setEventWaiter(waiter)
             .useLooping(true)
             .setColor(Color.BLUE)

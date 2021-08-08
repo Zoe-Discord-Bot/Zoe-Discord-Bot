@@ -3,9 +3,12 @@ package ch.kalunight.zoe.model.config;
 import java.util.ArrayList;
 import java.util.List;
 import ch.kalunight.zoe.model.config.option.ConfigurationOption;
+import ch.kalunight.zoe.model.config.option.ForceVerificationOption;
 import ch.kalunight.zoe.model.config.option.GameInfoCardOption;
 import ch.kalunight.zoe.model.config.option.InfoPanelRankedOption;
+import ch.kalunight.zoe.model.config.option.OptionCategory;
 import ch.kalunight.zoe.model.config.option.RankChannelFilterOption;
+import ch.kalunight.zoe.model.config.option.RankRoleOption;
 import ch.kalunight.zoe.model.config.option.RegionOption;
 import ch.kalunight.zoe.model.config.option.CleanChannelOption;
 import ch.kalunight.zoe.model.config.option.RoleOption;
@@ -49,6 +52,16 @@ public class ServerConfiguration {
   private RankChannelFilterOption rankchannelFilterOption;
   
   /**
+   * This option allow to create role depending of players rank
+   */
+  private RankRoleOption rankRoleOption;
+  
+  /**
+   * This option allow to force verification of each account registration
+   */
+  private ForceVerificationOption forceVerificationOption;
+  
+  /**
    * This option activate the command join/leave for everyone. They can join team joinable by everyone. NOT IMPLEMENTED
    */
   private boolean everyoneCanMoveOfTeam = false;
@@ -61,6 +74,8 @@ public class ServerConfiguration {
     this.cleanChannelOption = new CleanChannelOption(guildId);
     this.infopanelRankedOption = new InfoPanelRankedOption(guildId);
     this.rankchannelFilterOption = new RankChannelFilterOption(guildId);
+    this.rankRoleOption = new RankRoleOption(guildId);
+    this.forceVerificationOption = new ForceVerificationOption(guildId);
     this.everyoneCanMoveOfTeam = false;
   }
 
@@ -73,9 +88,44 @@ public class ServerConfiguration {
     options.add(infoCardsOption);
     options.add(infopanelRankedOption);
     options.add(rankchannelFilterOption);
+    options.add(rankRoleOption);
+    options.add(forceVerificationOption);
     return options;
   }
   
+  public List<ConfigurationOption> getConfigurationsInFunctionOfCategory(OptionCategory category) {
+    List<ConfigurationOption> options = getAllConfigurationOption();
+    List<ConfigurationOption> optionsFiltederd = new ArrayList<>();
+    
+    for(ConfigurationOption option : options) {
+      if(option.getCategory().equals(category)) {
+        optionsFiltederd.add(option);
+      }
+    }
+    
+    return optionsFiltederd;
+  }
+  
+  public boolean isOptionRequireRefresh() {
+    return rankRoleOption.isOptionEnable();
+  }
+  
+  public ForceVerificationOption getForceVerificationOption() {
+    return forceVerificationOption;
+  }
+
+  public void setForceVerificationOption(ForceVerificationOption forceVerificationOption) {
+    this.forceVerificationOption = forceVerificationOption;
+  }
+
+  public RankRoleOption getRankRoleOption() {
+    return rankRoleOption;
+  }
+
+  public void setRankRoleOption(RankRoleOption rankRoleOption) {
+    this.rankRoleOption = rankRoleOption;
+  }
+
   public RankChannelFilterOption getRankchannelFilterOption() {
     return rankchannelFilterOption;
   }

@@ -73,9 +73,14 @@ public class LastRankRepository {
   }
 
   public static DTO.LastRank getLastRankWithLeagueAccountId(long leagueAccountId) throws SQLException{
+    try (Connection conn = RepoRessources.getConnection();) {
+      return getLastRankWithLeagueAccountId(leagueAccountId, conn);
+    }
+  }
+  
+  public static DTO.LastRank getLastRankWithLeagueAccountId(long leagueAccountId, Connection conn) throws SQLException{
     ResultSet result = null;
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
+    try (Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
 
       String finalQuery = String.format(SELECT_LAST_RANK_WITH_LEAGUE_ACCOUNT_ID, leagueAccountId);
       result = query.executeQuery(finalQuery);
@@ -218,10 +223,15 @@ public class LastRankRepository {
       query.execute(finalQuery);
     }
   }
-
+  
   public static void deleteLastRank(long lastRankId) throws SQLException {
-    try (Connection conn = RepoRessources.getConnection();
-        Statement query = conn.createStatement();) {
+    try (Connection conn = RepoRessources.getConnection();) {
+      deleteLastRank(lastRankId, conn);
+    }
+  }
+
+  public static void deleteLastRank(long lastRankId, Connection conn) throws SQLException {
+    try (Statement query = conn.createStatement();) {
 
       String finalQuery = String.format(DELETE_LAST_RANK_WITH_ID, lastRankId);
       query.execute(finalQuery);

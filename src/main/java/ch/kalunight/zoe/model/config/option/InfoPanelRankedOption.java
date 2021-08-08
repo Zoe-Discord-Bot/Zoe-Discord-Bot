@@ -5,10 +5,10 @@ import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.ButtonMenu;
 
+import ch.kalunight.zoe.model.CommandGuildDiscordData;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.repositories.ConfigRepository;
@@ -25,22 +25,23 @@ public class InfoPanelRankedOption extends ConfigurationOption {
   private boolean optionActivated;
 
   public InfoPanelRankedOption(long guildId) {
-    super(guildId, INFOPANEL_RANKED_DESC_ID);
+    super(guildId, "infopanelRankedOptionName", INFOPANEL_RANKED_DESC_ID, OptionCategory.INFOCHANNEL,
+        false);
     this.optionActivated = true;
   }
 
   @Override
-  public Consumer<CommandEvent> getChangeConsumer(EventWaiter waiter, Server server) {
-    return new Consumer<CommandEvent>() {
+  public Consumer<CommandGuildDiscordData> getChangeConsumer(EventWaiter waiter, Server server) {
+    return new Consumer<CommandGuildDiscordData>() {
 
       @Override
-      public void accept(CommandEvent event) {
+      public void accept(CommandGuildDiscordData event) {
 
         ButtonMenu.Builder choiceBuilder = new ButtonMenu.Builder();
 
         choiceBuilder.setEventWaiter(waiter);
         choiceBuilder.addChoices("✅","❌");
-        choiceBuilder.addUsers(event.getAuthor());
+        choiceBuilder.addUsers(event.getUser());
         choiceBuilder.setFinalAction(finalAction());
         choiceBuilder.setColor(Color.BLUE);
 
@@ -127,7 +128,7 @@ public class InfoPanelRankedOption extends ConfigurationOption {
   }
 
   @Override
-  public String getChoiceText(String langage) throws SQLException {
+  public String getBaseChoiceText(String langage) throws SQLException {
     String status;
 
     if(optionActivated) {

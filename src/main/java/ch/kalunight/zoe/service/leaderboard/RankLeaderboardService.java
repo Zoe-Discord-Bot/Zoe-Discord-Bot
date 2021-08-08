@@ -21,6 +21,7 @@ import ch.kalunight.zoe.repositories.LastRankRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.Ressources;
+import ch.kalunight.zoe.util.ZoeUserRankManagementUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
@@ -50,7 +51,7 @@ public class RankLeaderboardService extends LeaderboardBaseService {
     List<String> dataList = new ArrayList<>();
 
     for(PlayerRank playerRank : playersRank) {
-      playersName.add(playerRank.getPlayer().retrieveUser(guild.getJDA()).getName() + "#" + playerRank.getPlayer().retrieveUser(guild.getJDA()).getDiscriminator());
+      playersName.add(ZoeUserRankManagementUtil.getEmotesByDiscordId(playerRank.getPlayer().player_discordId) + playerRank.getPlayer().retrieveUser(guild.getJDA()).getName() + "#" + playerRank.getPlayer().retrieveUser(guild.getJDA()).getDiscriminator());
       FullTier fullTier = playerRank.getFullTier();
       if(queueSelected == null) {
         dataList.add(Ressources.getTierEmote().get(fullTier.getTier()).getUsableEmote() + " " + fullTier.toString(server.getLanguage()) 
@@ -68,21 +69,22 @@ public class RankLeaderboardService extends LeaderboardBaseService {
       dataName = String.format(LanguageManager.getText(server.getLanguage(), "leaderboardRankSpecificQueueTitle"), LanguageManager.getText(server.getLanguage(), queueSelected.getGameQueue().getNameId()));
     }
 
-    EmbedBuilder builder = buildBaseLeaderboardList(playerTitle, playersName, dataName, dataList);
+    EmbedBuilder builder = buildBaseLeaderboardList(playerTitle, playersName, dataName, dataList, server);
     builder.setColor(Color.ORANGE);
+    
+    String leaderboardMessageTitle;
+    
     if(queueSelected == null) {
       builder.setTitle(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveRankAllTitle"));
-      message.editMessage(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveRankAllTitle")).queue();
+      leaderboardMessageTitle = LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveRankAllTitle");
     }else {
       builder.setTitle(String.format(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveRankSpecificTitle"), 
           LanguageManager.getText(server.getLanguage(), queueSelected.getGameQueue().getNameId())));
-      message.editMessage(String.format(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveRankSpecificTitle"), 
-          LanguageManager.getText(server.getLanguage(), queueSelected.getGameQueue().getNameId()))).queue();
+      leaderboardMessageTitle = String.format(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveRankSpecificTitle"), 
+          LanguageManager.getText(server.getLanguage(), queueSelected.getGameQueue().getNameId()));
     }
-
-    builder.setFooter(LanguageManager.getText(server.getLanguage(), "leaderboardRefreshMessage"));
-    message.editMessage(builder.build()).queue();
-
+    
+    message.editMessage(leaderboardMessageTitle).setEmbeds(builder.build()).queue();
   }
 
   private List<PlayerRank> orderAndGetPlayers(Guild guild, Objective objective, QueueSelected queueSelected, List<Player> players, boolean forceRefreshCache) throws SQLException, RiotApiException {

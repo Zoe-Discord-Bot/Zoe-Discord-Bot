@@ -676,5 +676,12 @@
     "forceVerificationOptionLongDesc": "Option zur Aktivierung : **%s**\n\nWenn du diese Option aktivierst, müssen alle Benutzer beweisen, dass ihr League-Account ihnen gehört. Dies geschieht mit dem offiziellen LoL Verifizierungssystem, Du kannst das Verfahren mit dem Befehl ``/banaccont`` testen.\nBenutzer mit der Berechtigung, Kanäle zu verwalten, umgehen diese Anforderung.\n\n**Es wird dringend empfohlen, diese Option mit der Option \"%s \"** zu verwenden",
     "forceVerificationOptionDescription": "Erzwingen der Überprüfung des League-Kontoinhabers",
     "translationErrorMessagePromote": "Du hast einen Fehler in der Übersetzung gefunden? Melde ihn auf dem offiziellen Discord Server hier: <https://discord.gg/BfB2B74VnK>",
-    "translationSupportMessagePromote": "Du willst bei der Übersetzung von Zoe helfen? Schließe dich uns auf dem offiziellen Discord-Server hier an: <https://discord.gg/BfB2B74VnK>"
+    "translationSupportMessagePromote": "Du willst bei der Übersetzung von Zoe helfen? Schließe dich uns auf dem offiziellen Discord-Server hier an: <https://discord.gg/BfB2B74VnK>",
+    "configCommandBackToMenu": "Zurück zum Kategoriemenü",
+    "supportMessageZoeNeedYourHelp": "Ich brauche deine Hilfe! Hier kannst du mir helfen Zoe's Server zu bezahlen: <https://bit.ly/support-zoe>",
+    "supportMessageZoeLoss": "Zoe ist zur Zeit nicht profitabel. Wenn du helfen willst, dass Zoe weiterläuft, kannst du hier helfen: <https://bit.ly/support-zoe>",
+    "supportMessageZoeNeeded": "Zoe wird zur Zeit mit %d€ pro Monat unterstützt.  Um langfristig bestehen zu können, wäre ein Mindestbetrag von %d€ pro Monat erforderlich. Hier kannst du helfen, dieses Ziel zu erreichen",
+    "supportMessageZoeLoveDonation": "Wenn du Zoe magst, kannst du eine Spende in Betracht ziehen. Zoe ist aktuell auf lange Sicht nicht zukunftsfähig.\nHier kannst du helfen: <https://bit.ly/support-zoe>",
+    "supportMessageZoeFutur": "Zoe's Zukunft ist nicht garantiert. Unterstütze das Projekt damit Zoe's Zukunft sicher ist.\nHier kannst du uns unterstützen: <https://bit.ly/support-zoe>",
+    "supportMessageZoeNeededTLDR": "Zoe braucht %d€ pro Monat um erhalten zu bleiben! Aktueller Status: %d€/%d€\nHier kannst du helfen: <https://bit.ly/support-zoe>"
 }

@@ -656,7 +656,7 @@
     "subscriptionCommandHelp": "Shows the Zoe subscription status of the given user.",
     "subscriptionCommandSlashHelp": "Shows the Zoe subscription status of the given user.",
     "subscriptionCommandServerStatus": "Server status",
-    "subscriptionCommandServerAccessNewFeatures": "Have earlier access to new features",
+    "subscriptionCommandServerAccessNewFeatures": "Has earlier access to new features",
     "subscriptionCommandServerAccessNewFeaturesAdminNotRegistered": "*You have to be registered as a player in the server if you want to activate this server*",
     "wikiCommandResponse": "You can find the wiki for Zoe here : https://wiki.zoe-discord-bot.ch/",
     "wikiCommandHelp": "Sends the wiki of Zoe",

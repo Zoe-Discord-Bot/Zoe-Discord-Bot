@@ -184,7 +184,7 @@ public abstract class LeaderboardBaseService implements Runnable {
     int randomNumber = rand.nextInt(CHANCE_RANDOM_MAX_RANGE);
     if(randomNumber < CHANCE_TO_SHOW_SOMETHING) {
       field = new Field("", 
-          "*" + ZoeSupportMessageGeneratorUtil.getRandomSupportPhrase(server.getLanguage()) + "*",
+          "*" + ZoeSupportMessageGeneratorUtil.getRandomIncitativeSupportPhrase(server.getLanguage()) + "*",
           false);
       builder.addField(field);
     }

@@ -459,7 +459,7 @@ public class MessageBuilderRequest {
     int randomNumber = rand.nextInt(CHANCE_RANDOM_MAX_RANGE);
     if(randomNumber < CHANCE_TO_SHOW_SOMETHING) {
       field = new Field("", 
-          "*" + ZoeSupportMessageGeneratorUtil.getRandomSupportPhrase(lang) + "*",
+          "*" + ZoeSupportMessageGeneratorUtil.getRandomIncitativeSupportPhrase(lang) + "*",
           false);
       message.addField(field);
     }

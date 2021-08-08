@@ -677,5 +677,11 @@
     "supportMessageZoeLoveDev": "I develop Zoe with love. If you love Zoe as much as I do, please support me in my work: <https://bit.ly/support-zoe>",
     "translationSupportMessagePromote": "You want to help with the translation of Zoe? Join us on the official Discord server here: <https://discord.gg/BfB2B74VnK>",
     "translationErrorMessagePromote": "You found a mistake in the translation? Report it in the official Discord Server here: <https://discord.gg/BfB2B74VnK>",
-	"configCommandBackToMenu": "Return to category menu"
+	"configCommandBackToMenu": "Return to category menu",
+	"supportMessageZoeNeedYourHelp": "I need your help! Help me pay for Zoe's servers here: <https://bit.ly/support-zoe>",
+	"supportMessageZoeLoss": "Zoe is currently not profitable. If you want to keep it running please help me here: <https://bit.ly/support-zoe>",
+	"supportMessageZoeNeeded": "Zoe is currently supported at %d€ per month. To be viable in the long term it would need a minimum of %d€ per month. Help me reach this goal here: <https://bit.ly/support-zoe>",
+	"supportMessageZoeLoveDonation": "If you like Zoe consider a donation! She is currently not sustainable in the long term.\nTo help: <https://bit.ly/support-zoe>",
+	"supportMessageZoeFutur": "Zoe's future is not guaranteed. Support the project to make sure it is.\nTo help: <https://bit.ly/support-zoe>",
+	"supportMessageZoeNeededTLDR": "Zoe need %d€ per month to survive! Current Status: %d€/%d€\nTo help: <https://bit.ly/support-zoe>"
 }

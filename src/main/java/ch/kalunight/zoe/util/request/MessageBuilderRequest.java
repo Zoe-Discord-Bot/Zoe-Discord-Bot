@@ -205,7 +205,9 @@ public class MessageBuilderRequest {
 
     statsGame = MessageBuilderRequestUtil.getResumeGameStats(leagueAccount, lang, match);
 
-    return new PlayerRankedResult(gameOfTheChange.getGameId(), leagueAccount.leagueAccount_server, accountTitle, changeStats, statsGame);
+    Boolean win = match.isGivenAccountWinner(leagueAccount.leagueAccount_summonerId);
+    
+    return new PlayerRankedResult(gameOfTheChange.getGameId(), leagueAccount.leagueAccount_server, accountTitle, changeStats, statsGame, win);
   }
 
   public static MessageEmbed createCombinedMessage(List<PlayerRankedResult> playersRankedResult, CurrentGameInfo currentGameInfo, String lang) {
@@ -214,13 +216,27 @@ public class MessageBuilderRequest {
 
     String gameType = getGameType(currentGameInfo, lang);
 
-    message.setColor(Color.PINK);
     message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeMultipleResultTitle"), gameType));
 
+    int numberWin = 0;
+    int numberLose = 0;
     for(PlayerRankedResult playerRankedResult : playersRankedResult) {
       Field field = new Field(playerRankedResult.getCatTitle(), playerRankedResult.getLpResult() + "\n" + playerRankedResult.getGameStats(), false);
 
       message.addField(field);
+      if(playerRankedResult.getWin()) {
+        numberWin++;
+      }else {
+        numberLose++;
+      }
+    }
+    
+    if(numberWin != 0 && numberLose != 0) {
+      message.setColor(Color.PINK);
+    }else if(numberWin != 0) {
+      message.setColor(Color.GREEN);
+    }else {
+      message.setColor(Color.RED);
     }
 
     addSupportMessage(lang, message);

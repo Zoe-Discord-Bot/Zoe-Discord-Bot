@@ -45,7 +45,7 @@ public class RankedChannelLoLRefresher extends RankedChannelBaseRefresher {
     }
 
     synchronized (participantsFromTheServer) {
-      if(participantsFromTheServer.size() >= 3) {
+      if(participantsFromTheServer.size() >= 2) {
         PlayerRankedResult playerResult = MessageBuilderRequest.getMatchDataMutiplePlayers(oldEntry, newEntry, gameOfTheChange, leagueAccount, server.getLanguage(), change);
 
         List<PlayerRankedResult> listPlayersRankedResult = matchsWaitingToComplete.get(gameAccessDataServer);

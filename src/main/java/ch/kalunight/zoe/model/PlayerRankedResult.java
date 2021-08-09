@@ -9,13 +9,24 @@ public class PlayerRankedResult {
   private String catTitle;
   private String lpResult;
   private String gameStats;
+  private Boolean win;
 
-  public PlayerRankedResult(long gameId, Platform platform, String catTitle, String lpResult, String gameStats) {
+  public PlayerRankedResult(long gameId, Platform platform, String catTitle, String lpResult, String gameStats,
+      Boolean win) {
     this.gameId = gameId;
     this.platform = platform;
     this.catTitle = catTitle;
     this.lpResult = lpResult;
     this.gameStats = gameStats;
+    this.win = win;
+  }
+
+  public boolean getWin() {
+    return win;
+  }
+
+  public void setWin(Boolean win) {
+    this.win = win;
   }
 
   public long getGameId() {

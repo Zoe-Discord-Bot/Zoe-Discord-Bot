@@ -627,7 +627,7 @@
     "forceVerificationOptionName": "Vérification Forcé",
     "cleanChannelOptionName": "Salon Propre",
     "configCommandMenuOptionErrorNotFound": "L'option sélectionné n'a pas été trouvé ! Merci de reporter ce problème ici : https://discord.gg/AyAYWGM",
-    "configCommandMenuErrorNoOptionFoundWithThisCat": "Aucune option n'a été trouvé dans cette catégorie! Merci de reporter cette erreur ici: https://discord.gg/AyAYWGM",
+    "configCommandMenuErrorNoOptionFoundWithThisCat": "Aucune option n'a été trouvé dans cette catégorie! Merci de reporter cette erreur ici : https ://discord.gg/AyAYWGM",
     "configCommandMenuOptionText": "Très bien ! Maintenant sélectionner une option :",
     "configCommandSelectAOption": "Sélectionnez une option",
     "configCommandSelectACategory": "Sélectionnez une option",
@@ -670,5 +670,18 @@
     "deleteRankChannelHelpMessageSlashCommand": "Supprime le canal de rang.",
     "clashAnalyzeHelpMessageSlashCommand": "Envoie une analyse de l'équipe d'affrontement donnée.",
     "clashRefreshHelpMessageSlashCommand": "Envoyez cette commande à l'intérieur d'un canal de clash pour le rafraîchir.",
-    "deleteLeaderboardCommandHelpMessageSlashMessage": "Supprimer un classement existant à l'aide d'un menu contextuel."
+    "deleteLeaderboardCommandHelpMessageSlashMessage": "Supprimer un classement existant à l'aide d'un menu contextuel.",
+    "showPlayerHelpMessageSlashCommand": "Montre tous les joueurs avec leurs comptes dans le serveur.",
+    "configCommandHelpSlashCommand": "Ouvre un message interactif pour configurer le serveur.",
+    "patchNotesCommandSlashCommand": "Envoie l'historique des notes de patch.",
+    "addAccountHelpMessageSlashCommand": "Ajoute au joueur mentionné le compte donné.",
+    "addPlayerToTeamCommandHelpSlashCommand": "Ajoute le joueur mentionné à l'équipe donnée.",
+    "statsProfileHelpMessageSlashCommand": "Obtenez des informations sur le joueur mentionné ou le compte donné.",
+    "statsProfileNeedParametersSlashCommand": "Je dois avoir au moins un joueur mentionné ou un compte LoL pour vous répondre.",
+    "statsPredictRoleHelpMessageSlashMessage": "Prédit les rôles de 5 comptes donnés s'ils jouent ensemble.",
+    "resetCommandHelpSlashCommand": "Réinitialise la configuration actuelle du serveur.",
+    "banAccountCommandHelpSlashMessage": "Permet à un propriétaire de compte de supprimer son compte des autres serveurs.",
+    "removePlayerToTeamHelpMessageSlashCommand": "Supprime le joueur donné de son équipe.",
+    "removeAccountHelpMessageSlashCommand": "Supprime le compte donné du lecteur mentionné.",
+    "statsTeamAnalysisHelpMessageSlashCommand": "Commence une analyse de l'équipe avec des recommandations de bannissement."
 }

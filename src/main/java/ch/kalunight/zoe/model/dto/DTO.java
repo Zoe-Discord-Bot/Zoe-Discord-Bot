@@ -20,13 +20,8 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
-import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.clash.dto.ClashTournament;
-import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
-import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
-import net.rithms.riot.api.endpoints.tft_league.dto.TFTLeagueEntry;
-import net.rithms.riot.api.endpoints.tft_summoner.dto.TFTSummoner;
-import net.rithms.riot.constant.Platform;
+import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
+import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
 
 public class DTO {
 
@@ -237,7 +232,7 @@ public class DTO {
     public final String leagueAccount_tftSummonerId;
     public final String leagueAccount_tftAccountId;
     public final String leagueAccount_tftPuuid;
-    public final Platform leagueAccount_server;
+    public final LeagueShard leagueAccount_server;
     private SavedSummoner summoner = null;
 
     public LeagueAccount(ResultSet baseData) throws SQLException {
@@ -252,7 +247,7 @@ public class DTO {
       leagueAccount_tftSummonerId = baseData.getString("leagueAccount_tftSummonerId");
       leagueAccount_tftAccountId = baseData.getString("leagueAccount_tftAccountId");
       leagueAccount_tftPuuid = baseData.getString("leagueAccount_tftPuuid");
-      leagueAccount_server = Platform.getPlatformByName(baseData.getString("leagueAccount_server"));
+      leagueAccount_server = LeagueShard.fromString(baseData.getString("leagueAccount_server")).get();
     }
 
     public LeagueAccount(Summoner summoner, TFTSummoner tftSummoner, Platform platform) {
@@ -705,8 +700,8 @@ public class DTO {
     private LeagueEntry lastRank_flex;
     private LeagueEntry lastRank_flexSecond;
     public final LocalDateTime lastRank_flexLastRefresh;
-    private TFTLeagueEntry lastRank_tft;
-    private TFTLeagueEntry lastRank_tftSecond;
+    private LeagueEntry lastRank_tft;
+    private LeagueEntry lastRank_tftSecond;
     public final LocalDateTime lastRank_tftLastRefresh;
     public final String lastRank_tftLastTreatedMatchId;
 
@@ -757,14 +752,14 @@ public class DTO {
 
       lastRank = baseData.getString("lastRank_tft");
       if(lastRank != null) {
-        lastRank_tft = gson.fromJson(lastRank, TFTLeagueEntry.class);
+        lastRank_tft = gson.fromJson(lastRank, LeagueEntry.class);
       }else {
         lastRank_tft = null;
       }
 
       lastRank = baseData.getString("lastRank_tftSecond");
       if(lastRank != null) {
-        lastRank_tftSecond = gson.fromJson(lastRank, TFTLeagueEntry.class);
+        lastRank_tftSecond = gson.fromJson(lastRank, LeagueEntry.class);
       }else {
         lastRank_tftSecond = null;
       }
@@ -816,19 +811,19 @@ public class DTO {
       this.lastRank_flexSecond = lastRank_flexSecond;
     }
 
-    public TFTLeagueEntry getLastRankTft() {
+    public LeagueEntry getLastRankTft() {
       return lastRank_tft;
     }
 
-    public void setLastRankTft(TFTLeagueEntry lastRank_tft) {
+    public void setLastRankTft(LeagueEntry lastRank_tft) {
       this.lastRank_tft = lastRank_tft;
     }
 
-    public TFTLeagueEntry getLastRankTftSecond() {
+    public LeagueEntry getLastRankTftSecond() {
       return lastRank_tftSecond;
     }
 
-    public void setLastRankTftSecond(TFTLeagueEntry lastRank_tftSecond) {
+    public void setLastRankTftSecond(LeagueEntry lastRank_tftSecond) {
       this.lastRank_tftSecond = lastRank_tftSecond;
     }
   }

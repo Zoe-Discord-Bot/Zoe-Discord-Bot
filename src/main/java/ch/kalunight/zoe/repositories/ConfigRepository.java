@@ -26,6 +26,7 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.rithms.riot.constant.Platform;
+import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
 import ch.kalunight.zoe.model.config.option.RegionOption;
 import ch.kalunight.zoe.model.config.option.RoleOption;
 import ch.kalunight.zoe.model.config.option.SelfAddingOption;
@@ -685,7 +686,7 @@ public class ConfigRepository {
     }
   }
   
-  public static void updateRegionOption(long guildId, Platform platform, JDA jda)
+  public static void updateRegionOption(long guildId, LeagueShard platform, JDA jda)
       throws SQLException {
 
     try (Connection conn = RepoRessources.getConnection();

@@ -10,7 +10,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.LastRank;
-import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
+import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
 
 public class LastRankRepository {
 

@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import javax.security.auth.login.LoginException;
@@ -84,8 +85,6 @@ import ch.kalunight.zoe.repositories.ChampionRoleAnalysisRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.repositories.RepoRessources;
 import ch.kalunight.zoe.repositories.ZoeUserManagementRepository;
-import ch.kalunight.zoe.riotapi.CacheManager;
-import ch.kalunight.zoe.riotapi.CachedRiotApi;
 import ch.kalunight.zoe.service.RiotApiUsageChannelRefresh;
 import ch.kalunight.zoe.service.ServerChecker;
 import ch.kalunight.zoe.service.analysis.ChampionRole;
@@ -104,8 +103,13 @@ import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
-import net.rithms.riot.api.ApiConfig;
-import net.rithms.riot.api.RiotApi;
+import no.stelar7.api.r4j.basic.APICredentials;
+import no.stelar7.api.r4j.basic.cache.CacheLifetimeHint;
+import no.stelar7.api.r4j.basic.cache.impl.MongoDBCacheProvider;
+import no.stelar7.api.r4j.basic.calling.DataCall;
+import no.stelar7.api.r4j.basic.constants.api.URLEndpoint;
+import no.stelar7.api.r4j.impl.R4J;
+import no.stelar7.api.r4j.impl.tft.TFTSummonerAPI;
 
 public class Zoe {
 
@@ -137,7 +141,7 @@ public class Zoe {
   
   private static List<SlashCommand> slashCommands;
 
-  private static CachedRiotApi riotApi;
+  private static R4J riotApi;
 
   private static List<JDA> clientsLoaded = new ArrayList<>();
 
@@ -292,10 +296,6 @@ public class Zoe {
       logger.warn("Error with the loading of emotes : {}", e.getMessage());
     }
 
-    logger.info("Setup cache ...");
-    CacheManager.setupCache();
-    logger.info("Setup cache finished !");
-
     logger.info("Loading of RAPI Status Channel ...");
 
     initRAPIStatusChannel();
@@ -383,11 +383,18 @@ public class Zoe {
   }
 
   public static void initRiotApi(String riotTocken, String tftTocken) {
-    ApiConfig config = new ApiConfig().setKey(riotTocken).setTFTKey(tftTocken);
-
-    config.setMaxAsyncThreads(ServerThreadsManager.NBR_PROC);
-    config.setRequestTimeout(1000);
-    riotApi = new CachedRiotApi(new RiotApi(config));
+    APICredentials creds = new APICredentials(riotTocken, null, tftTocken, null, null);
+    riotApi = new R4J(creds);
+    
+    MongoDBCacheProvider mongoDbCacheProvider = new MongoDBCacheProvider("mongodb://localhost:27017");
+    CacheLifetimeHint cache = new CacheLifetimeHint();
+    cache.add(URLEndpoint.V5_MATCH, 30, TimeUnit.DAYS);
+    
+    DataCall.setCacheProvider(mongoDbCacheProvider);
+    DataCall.setGlobalTimeout(1);
+    DataCall.setCredentials(creds);
+    
+    mongoDbCacheProvider.setTimeToLive(cache);
   }
 
   private static void setupContinousRefreshThread() {
@@ -544,8 +551,12 @@ public class Zoe {
     }
   }
 
-  public static CachedRiotApi getRiotApi() {
+  public static R4J getRiotApi() {
     return riotApi;
+  }
+  
+  public static TFTSummonerAPI getTftSummonerApi() {
+    return riotApi.getTFTAPI().getSummonerAPI();
   }
 
   public static JDA getJdaByGuildId(long guildId) {

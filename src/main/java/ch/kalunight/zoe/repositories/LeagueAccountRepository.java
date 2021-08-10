@@ -9,9 +9,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import ch.kalunight.zoe.model.dto.DTO;
-import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
-import net.rithms.riot.api.endpoints.tft_summoner.dto.TFTSummoner;
-import net.rithms.riot.constant.Platform;
+import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
+import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class LeagueAccountRepository {
 
@@ -303,19 +302,19 @@ public class LeagueAccountRepository {
     }
   }
 
-  public static void createLeagueAccount(long playerId, Summoner summoner, TFTSummoner tftSummoner, String server) throws SQLException {
+  public static void createLeagueAccount(long playerId, Summoner summoner, Summoner tftSummoner, String server) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();
         PreparedStatement createQuery = conn.prepareStatement(INSERT_LEAGUE_ACCOUNT)) {
 
       createQuery.setLong(1, playerId);
       createQuery.setString(2, summoner.getName());
-      createQuery.setString(3, summoner.getId());
+      createQuery.setString(3, summoner.getSummonerId());
       createQuery.setString(4, summoner.getAccountId());
-      createQuery.setString(5, summoner.getPuuid());
+      createQuery.setString(5, summoner.getPUUID());
       createQuery.setString(6, server);
-      createQuery.setString(7, tftSummoner.getId());
+      createQuery.setString(7, tftSummoner.getSummonerId());
       createQuery.setString(8, tftSummoner.getAccountId());
-      createQuery.setString(9, tftSummoner.getPuuid());
+      createQuery.setString(9, tftSummoner.getPUUID());
       
       createQuery.executeUpdate();
     }
@@ -402,13 +401,13 @@ public class LeagueAccountRepository {
     }
   }
 
-  public static DTO.LeagueAccount getLeagueAccountWithSummonerId(long guildId, String summonerId, Platform region) throws SQLException {
+  public static DTO.LeagueAccount getLeagueAccountWithSummonerId(long guildId, String summonerId, LeagueShard region) throws SQLException {
     ResultSet result = null;
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
       
       String finalQuery = String.format(SELECT_LEAGUE_ACCOUNT_WITH_GUILD_ID_AND_SUMMONER_ID_AND_SERVER,
-          guildId, summonerId, region.getName());
+          guildId, summonerId, region.getRealmValue());
       result = query.executeQuery(finalQuery);
       int rowCount = result.last() ? result.getRow() : 0;
       if(rowCount == 0) {

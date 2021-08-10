@@ -2,8 +2,7 @@ package ch.kalunight.zoe.model.player_data;
 
 import ch.kalunight.zoe.exception.NoValueRankException;
 import ch.kalunight.zoe.translation.LanguageManager;
-import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
-import net.rithms.riot.api.endpoints.tft_league.dto.TFTLeagueEntry;
+import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
 
 public class FullTier implements Comparable<FullTier> {
 
@@ -12,10 +11,6 @@ public class FullTier implements Comparable<FullTier> {
   private int leaguePoints;
 
   public FullTier(LeagueEntry leagueEntry) {
-    this(Tier.valueOf(leagueEntry.getTier()), Rank.valueOf(leagueEntry.getRank()), leagueEntry.getLeaguePoints());
-  }
-  
-  public FullTier(TFTLeagueEntry leagueEntry) {
     this(Tier.valueOf(leagueEntry.getTier()), Rank.valueOf(leagueEntry.getRank()), leagueEntry.getLeaguePoints());
   }
 

@@ -9,8 +9,7 @@ import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.dto.DTO.LastRank;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.repositories.LastRankRepository;
-import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
-import net.rithms.riot.api.endpoints.tft_league.dto.TFTLeagueEntry;
+import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
 
 public class LastRankUtil {
 
@@ -21,7 +20,7 @@ public class LastRankUtil {
   /*
    * @return true if the rank have changed.
    */
-  public static boolean updateTFTLastRank(LastRank lastRank, TFTLeagueEntry tftLeagueEntry)
+  public static boolean updateTFTLastRank(LastRank lastRank, LeagueEntry tftLeagueEntry)
       throws SQLException {
 
     if(tftLeagueEntry != null) {
@@ -44,11 +43,11 @@ public class LastRankUtil {
   /*
    * @return true if the rank have changed.
    */
-  public static boolean updateTFTLastRank(LastRank lastRank, Set<TFTLeagueEntry> tftLeagueEntries) throws SQLException {
-    TFTLeagueEntry tftLeagueEntry = null;
+  public static boolean updateTFTLastRank(LastRank lastRank, List<LeagueEntry> tftLeagueEntries) throws SQLException {
+    LeagueEntry tftLeagueEntry = null;
 
-    for(TFTLeagueEntry checkLeagueEntry : tftLeagueEntries) {
-      if(checkLeagueEntry.getQueueType().equals(GameQueueConfigId.RANKED_TFT.getQueueType())) {
+    for(LeagueEntry checkLeagueEntry : tftLeagueEntries) {
+      if(checkLeagueEntry.getQueueType().getApiName().equals(GameQueueConfigId.RANKED_TFT.getQueueType())) {
         tftLeagueEntry = checkLeagueEntry;
       }
     }
@@ -59,18 +58,18 @@ public class LastRankUtil {
   /**
    * @return return queues updated
    */
-  public static List<Integer> updateLoLLastRank(LastRank lastRank, Set<LeagueEntry> leagueEntries) throws SQLException {
+  public static List<Integer> updateLoLLastRank(LastRank lastRank, List<LeagueEntry> leagueEntries) throws SQLException {
 
     List<Integer> updatedRank = new ArrayList<>();
     for(LeagueEntry checkLeagueEntry : leagueEntries) {
-      if(checkLeagueEntry.getQueueType().equals(GameQueueConfigId.SOLOQ.getQueueType())) {
+      if(checkLeagueEntry.getQueueType().getApiName().equals(GameQueueConfigId.SOLOQ.getQueueType())) {
         if(lastRank.getLastRankSoloq() == null) {
           updateSoloQRankWithoutOldData(lastRank, checkLeagueEntry);
         }else {
           updateSoloQRank(lastRank, checkLeagueEntry);
         }
         updatedRank.add(GameQueueConfigId.SOLOQ.getId());
-      }else if(checkLeagueEntry.getQueueType().equals(GameQueueConfigId.FLEX.getQueueType())) {
+      }else if(checkLeagueEntry.getQueueType().getApiName().equals(GameQueueConfigId.FLEX.getQueueType())) {
         if(lastRank.getLastRankFlex() == null) {
           updateFlexRankWithoutOldData(lastRank, checkLeagueEntry);
         }else {
@@ -90,7 +89,7 @@ public class LastRankUtil {
     List<Integer> updatedRank = new ArrayList<>();
     for(LeagueEntry checkLeagueEntry : leagueEntries) {
       FullTier newRank = new FullTier(checkLeagueEntry);
-      if(checkLeagueEntry.getQueueType().equals(GameQueueConfigId.SOLOQ.getQueueType())) {
+      if(checkLeagueEntry.getQueueType().getApiName().equals(GameQueueConfigId.SOLOQ.getQueueType())) {
         if(lastRank.getLastRankSoloq() == null) {
           updateSoloQRankWithoutOldData(lastRank, checkLeagueEntry);
         }else {
@@ -100,7 +99,7 @@ public class LastRankUtil {
           }
         }
         updatedRank.add(GameQueueConfigId.SOLOQ.getId());
-      }else if(checkLeagueEntry.getQueueType().equals(GameQueueConfigId.FLEX.getQueueType())) {
+      }else if(checkLeagueEntry.getQueueType().getApiName().equals(GameQueueConfigId.FLEX.getQueueType())) {
         if(lastRank.getLastRankFlex() == null) {
           updateFlexRankWithoutOldData(lastRank, checkLeagueEntry);
         }else {

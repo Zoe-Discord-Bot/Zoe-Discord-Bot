@@ -19,7 +19,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.repositories.ServerStatusRepository;
 import net.dv8tion.jda.api.entities.TextChannel;
-import net.rithms.riot.constant.Platform;
+import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
 
 public class ServerThreadsManager {
 
@@ -47,17 +47,17 @@ public class ServerThreadsManager {
   private static final ThreadPoolExecutor SERVER_EXECUTOR =
       new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
 
-  private static final Map<Platform, ThreadPoolExecutor> INFOCHANNEL_HELPER_THREAD =
-      Collections.synchronizedMap(new EnumMap<Platform, ThreadPoolExecutor>(Platform.class));
+  private static final Map<LeagueShard, ThreadPoolExecutor> INFOCHANNEL_HELPER_THREAD =
+      Collections.synchronizedMap(new EnumMap<LeagueShard, ThreadPoolExecutor>(LeagueShard.class));
   
   private static final ThreadPoolExecutor RANKED_MESSAGE_GENERATOR =
       new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
 
-  private static final Map<Platform, ThreadPoolExecutor> PLAYERS_DATA_EXECUTORS =
-      Collections.synchronizedMap(new EnumMap<Platform, ThreadPoolExecutor>(Platform.class));
+  private static final Map<LeagueShard, ThreadPoolExecutor> PLAYERS_DATA_EXECUTORS =
+      Collections.synchronizedMap(new EnumMap<LeagueShard, ThreadPoolExecutor>(LeagueShard.class));
   
-  private static final Map<Platform, ThreadPoolExecutor> MATCH_THREAD_EXECUTORS =
-      Collections.synchronizedMap(new EnumMap<Platform, ThreadPoolExecutor>(Platform.class));
+  private static final Map<LeagueShard, ThreadPoolExecutor> MATCH_THREAD_EXECUTORS =
+      Collections.synchronizedMap(new EnumMap<LeagueShard, ThreadPoolExecutor>(LeagueShard.class));
   
   private static final ThreadPoolExecutor LEADERBOARD_EXECUTOR =
       new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
@@ -95,19 +95,19 @@ public class ServerThreadsManager {
     MONITORING_DATA_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Data-Monitoring-Thread %d").build());
     EVENTS_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Event-Executor-Thread %d").build());
     
-    for(Platform platform : Platform.values()) {
+    for(LeagueShard platform : LeagueShard.values()) {
       ThreadPoolExecutor executor = new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
-      String nameOfThread = String.format("Zoe Infochannel-Helper-%s-Worker", platform.getName().toUpperCase());
+      String nameOfThread = String.format("Zoe Infochannel-Helper-%s-Worker", platform.getValue().toUpperCase());
       executor.setThreadFactory(new ThreadFactoryBuilder().setNameFormat(nameOfThread + " %d").build());
       INFOCHANNEL_HELPER_THREAD.put(platform, executor);
       
       executor = new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
-      nameOfThread = String.format("Zoe Match-%s-Worker", platform.getName().toUpperCase());
+      nameOfThread = String.format("Zoe Match-%s-Worker", platform.getValue().toUpperCase());
       executor.setThreadFactory(new ThreadFactoryBuilder().setNameFormat(nameOfThread + " %d").build());
       MATCH_THREAD_EXECUTORS.put(platform, executor);
       
       executor = new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
-      nameOfThread = String.format("Zoe Player-Data-%s-Worker", platform.getName().toUpperCase());
+      nameOfThread = String.format("Zoe Player-Data-%s-Worker", platform.getValue().toUpperCase());
       executor.setThreadFactory(new ThreadFactoryBuilder().setNameFormat(nameOfThread + " %d").build());
       PLAYERS_DATA_EXECUTORS.put(platform, executor);
     }
@@ -140,17 +140,17 @@ public class ServerThreadsManager {
     LEADERBOARD_EXECUTOR.getQueue().clear();
     COMMANDS_EXECUTOR.getQueue().clear();
     
-    for(Platform platform : Platform.values()) {
+    for(LeagueShard platform : LeagueShard.values()) {
       ThreadPoolExecutor playerWorker = INFOCHANNEL_HELPER_THREAD.get(platform);
       playerWorker.getQueue().clear();
     }
     
-    for(Platform platform : Platform.values()) {
+    for(LeagueShard platform : LeagueShard.values()) {
       ThreadPoolExecutor playerWorker = MATCH_THREAD_EXECUTORS.get(platform);
       playerWorker.getQueue().clear();
     }
     
-    for(Platform platform : Platform.values()) {
+    for(LeagueShard platform : LeagueShard.values()) {
       ThreadPoolExecutor matchWorker = MATCH_THREAD_EXECUTORS.get(platform);
       matchWorker.getQueue().clear();
     }
@@ -223,10 +223,10 @@ public class ServerThreadsManager {
     logger.info("Start to shutdown Infochannel Helper Threads, this can take 1 minutes max...");
     channel.sendMessage("Start to shutdown Infochannel Helper Threads, this can take 1 minutes max...").complete();
     
-    for(Platform platform : Platform.values()) {
+    for(LeagueShard platform : LeagueShard.values()) {
       ThreadPoolExecutor matchWorker = INFOCHANNEL_HELPER_THREAD.get(platform);
       matchWorker.shutdown();
-      logger.info("Start to shutdown Infochannel Helper {}, this can take 1 minutes max...", platform.getName());
+      logger.info("Start to shutdown Infochannel Helper {}, this can take 1 minutes max...", platform.getValue());
 
       matchWorker.awaitTermination(1, TimeUnit.MINUTES);
       if(!matchWorker.isTerminated()) {
@@ -249,32 +249,32 @@ public class ServerThreadsManager {
 
     logger.info("Start to shutdown Players Data Worker...");
     channel.sendMessage("Start to shutdown Players Data Worker ...").complete();
-    for(Platform platform : Platform.values()) {
+    for(LeagueShard platform : LeagueShard.values()) {
       ThreadPoolExecutor playerWorker = PLAYERS_DATA_EXECUTORS.get(platform);
       playerWorker.shutdown();
-      logger.info("Start to shutdown Players Worker {}, this can take 1 minutes max...", platform.getName());
+      logger.info("Start to shutdown Players Worker {}, this can take 1 minutes max...", platform.getValue());
       
       playerWorker.awaitTermination(1, TimeUnit.MINUTES);
       if(!playerWorker.isTerminated()) {
         playerWorker.shutdownNow();
       }
-      logger.info("Shutdown of Player Workers {} has been completed !", platform.getName());
+      logger.info("Shutdown of Player Workers {} has been completed !", platform.getValue());
     }
 
     logger.info("Shutdown of Players Data Worker has been completed !");
     channel.sendMessage("Shutdown of Players Data Worker has been completed !").complete();
 
     channel.sendMessage("Start to shutdown Matchs Worker...").complete();
-    for(Platform platform : Platform.values()) {
+    for(LeagueShard platform : LeagueShard.values()) {
       ThreadPoolExecutor matchWorker = MATCH_THREAD_EXECUTORS.get(platform);
       matchWorker.shutdown();
-      logger.info("Start to shutdown Match Worker {}, this can take 1 minutes max...", platform.getName());
+      logger.info("Start to shutdown Match Worker {}, this can take 1 minutes max...", platform.getValue());
 
       matchWorker.awaitTermination(1, TimeUnit.MINUTES);
       if(!matchWorker.isTerminated()) {
         matchWorker.shutdownNow();
       }
-      logger.info("Shutdown of Match Worker {} has been completed !", platform.getName());
+      logger.info("Shutdown of Match Worker {} has been completed !", platform.getValue());
     }
 
     channel.sendMessage("Shutdown of Matchs Worker has been completed !").complete();
@@ -331,7 +331,7 @@ public class ServerThreadsManager {
   
   public static int getPlayersDataQueue() {
     int queueTotal = 0;
-    for(Platform platform : Platform.values()) {
+    for(LeagueShard platform : LeagueShard.values()) {
       queueTotal += MATCH_THREAD_EXECUTORS.get(platform).getQueue().size();
     }
     
@@ -358,11 +358,11 @@ public class ServerThreadsManager {
     return SERVER_EXECUTOR;
   }
   
-  public static ThreadPoolExecutor getInfochannelHelperThread(Platform platform) {
+  public static ThreadPoolExecutor getInfochannelHelperThread(LeagueShard platform) {
     return INFOCHANNEL_HELPER_THREAD.get(platform);
   }
 
-  public static ThreadPoolExecutor getPlayersDataWorker(Platform platform) {
+  public static ThreadPoolExecutor getPlayersDataWorker(LeagueShard platform) {
     return PLAYERS_DATA_EXECUTORS.get(platform);
   }
 
@@ -370,7 +370,7 @@ public class ServerThreadsManager {
     return RESPONSE_WAITER;
   }
 
-  public static ThreadPoolExecutor getMatchsWorker(Platform platform) {
+  public static ThreadPoolExecutor getMatchsWorker(LeagueShard platform) {
     return MATCH_THREAD_EXECUTORS.get(platform);
   }
 

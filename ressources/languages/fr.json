@@ -666,5 +666,9 @@
     "createInfoChannelHelpMessageSlashCommand": "Crée un nouveau canal d'information dans lequel je peux envoyer des informations sur les joueurs.",
     "createLeaderboardHelpMessageSlashCommand": "Lance l'assistant de création de classement.",
     "createClashChannelHelpMessageSlashCommand": "Crée un nouveau canal Clash via un compte de ligue spécifique.",
-    "deleteTeamHelpMessageSlashCommand": "Supprime l'équipe donnée."
+    "deleteTeamHelpMessageSlashCommand": "Supprime l'équipe donnée.",
+    "deleteRankChannelHelpMessageSlashCommand": "Supprime le canal de rang.",
+    "clashAnalyzeHelpMessageSlashCommand": "Envoie une analyse de l'équipe d'affrontement donnée.",
+    "clashRefreshHelpMessageSlashCommand": "Envoyez cette commande à l'intérieur d'un canal de clash pour le rafraîchir.",
+    "deleteLeaderboardCommandHelpMessageSlashMessage": "Supprimer un classement existant à l'aide d'un menu contextuel."
 }

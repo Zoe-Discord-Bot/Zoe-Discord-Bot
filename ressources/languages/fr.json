@@ -658,5 +658,13 @@
     "supportMessageZoeFutur": "Si vous aimez Zoe, pensez à faire un don ! Elle n'est actuellement pas viable à long terme.\nPour aider : <https://bit.ly/support-zoe>",
     "supportMessageZoeNeededTLDR": "Zoe a besoin de %d€ par mois pour survivre ! Situation actuelle : %d€/%d€\nPour aider : <https://bit.ly/support-zoe>",
     "configCommandBackToMenu": "Retour vers la liste des catégories",
-    "supportMessageZoeLoss": "Zoe n'est actuellement pas rentable. Si vous voulez continuer à la faire fonctionner, veuillez m'aider ici : <https://bit.ly/support-zoe>"
+    "supportMessageZoeLoss": "Zoe n'est actuellement pas rentable. Si vous voulez continuer à la faire fonctionner, veuillez m'aider ici : <https://bit.ly/support-zoe>",
+    "createRankChannelHelpMessageSlashCommand": "Crée un canal de classement dans lequel j'envoie des mises à jour sur le classement des joueurs enregistrés.",
+    "deletePlayerHelpMessageSlashCommand": "Supprime le joueur donné.",
+    "deleteInfoChannelHelpMessageSlashCommand": "Supprime le canal d'information.",
+    "deleteClashChannelCommandHelpMessageSlashCommand": "Commande permettant de supprimer une chaîne Clash existante.",
+    "createInfoChannelHelpMessageSlashCommand": "Crée un nouveau canal d'information dans lequel je peux envoyer des informations sur les joueurs.",
+    "createLeaderboardHelpMessageSlashCommand": "Lance l'assistant de création de classement.",
+    "createClashChannelHelpMessageSlashCommand": "Crée un nouveau canal Clash via un compte de ligue spécifique.",
+    "deleteTeamHelpMessageSlashCommand": "Supprime l'équipe donnée."
 }

@@ -113,7 +113,7 @@
     "statsProfileSelectionDoneMessage": "Вы выбрали учетную запись \"%s\" игрока %s.",
     "statsProfileSelectionEnded": "Выбор закончен",
     "statsProfileRateLimitError": "Пожалуйста, повторите попытку, я получил небольшую внутреннюю ошибку. Простите за это :/",
-    "statsProfileUnexpectedError": "Упс, произашла неожиданная ошибка. Пожалуйста, повторите попытку.",
+    "statsProfileUnexpectedError": "Упс, произошла неожиданная ошибка. Пожалуйста, повторите попытку.",
     "statsProfileUnexpectedErrorGraph": "При создании графика я получил неожиданную ошибку. Повторите попытку.",
     "statsProfileGraphTitle": "Лучшие чемпионы по мастерству %s",
     "statsProfileGraphTitleX": "Лучшие чемпионы по мастерству",

@@ -1,8 +1,8 @@
 {
-    "startHelpMessage": "",
-    "command": "",
-    "commandPlural": "",
-    "endHelpMessage": "",
+    "startHelpMessage": "这是我的命令：",
+    "command": "命令",
+    "commandPlural": "命令",
+    "endHelpMessage": "如需更多帮助，您可以加入我们的官方服务器：",
     "helpMessageSendConfirmation": "",
     "missingPermissionOwnerMessage": "",
     "aboutCommandHelp": "",

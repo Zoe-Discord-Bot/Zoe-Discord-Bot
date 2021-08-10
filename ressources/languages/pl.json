@@ -58,7 +58,7 @@
     "createTeamNeedName": "Proszę o nazwę drużyny. (Np.: `>create team Fnatic`)",
     "createTeamNameAlreadyExist": "Drużyna z taką nazwą już istnieje !",
     "createTeamDoneMessage": "Drużyna \"%s\" została utworzona !",
-    "registerCommandHelpMessage": "",
+    "registerCommandHelpMessage": "Zarejestruj pisarza jako gracza za pomocą podanych informacji. Włącz tylko wtedy, gdy opcja **Każdy może dodać/usunąć siebie w systemie** jest aktywna.",
     "registerCommandOptionRequired": "Komenda może być użyta wyłącznie kiedy opcja \"%s\" jest dostępna.",
     "registerCommandAlreadyInZoe": "Jesteś już w systemie. Jeżeli chcesz dodać następne KontoLeage, proszę użyć komendy `>add account`.",
     "registerCommandMalformedWithoutRegionOption": "Komenda jest niepoprawna. Proszę użyć jej w taki sposób: `>register (Region) (NazwaKontaLeague)",
@@ -255,5 +255,12 @@
     "infoCardsGameInfoAndOf": "",
     "account": "",
     "firstGame": "",
-    "addingSystemEndMessage": "Domyślna podstawowa zakończona. Dziękujemy za skorzystanie z usług :D"
+    "addingSystemEndMessage": "Domyślna podstawowa zakończona. Dziękujemy za skorzystanie z usług :D",
+    "rankChannelFilterOptionAll": "Wszystkie przedstawione typy",
+    "rankChannelFilterOptionChanged": "Ok, opcja serwera została poprawnie zaktualizowana.",
+    "rankChannelFilterOptionLoLDesc": "Wysyłaj tylko wiadomości LoL w kanale rangi",
+    "rankChannelFilterOptionTFTDesc": "Wysyłaj tylko wiadomości TFT w kanale rangowym",
+    "rankChannelFilterOptionNotChanged": "To jest już opcja serwera.",
+    "rankChannelFilterOptionAllDesc": "Wysyłaj wszystkie typy wiadomości w kanale rangowym (LoL i TFT)",
+    "rankChannelFilterOptionLongDesc": "Opcja : **%s** \n\nTa opcja pozwala na dodanie filtra na to, jakiego typu wiadomości są wysyłane wewnątrz kanału rangi.\n\nOto moje opcje : "
 }

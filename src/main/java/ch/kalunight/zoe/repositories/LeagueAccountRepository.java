@@ -204,11 +204,11 @@ public class LeagueAccountRepository {
     }
   }
 
-  public static void updateAccountTFTDataWithId(long leagueAccountId, TFTSummoner summoner) throws SQLException {
+  public static void updateAccountTFTDataWithId(long leagueAccountId, Summoner summoner) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
 
-      String finalQuery = String.format(UPDATE_LEAGUE_ACCOUNT_TFT_DATA_WITH_ID, summoner.getId(), summoner.getAccountId(), summoner.getPuuid(), leagueAccountId);
+      String finalQuery = String.format(UPDATE_LEAGUE_ACCOUNT_TFT_DATA_WITH_ID, summoner.getSummonerId(), summoner.getAccountId(), summoner.getPUUID(), leagueAccountId);
       query.executeUpdate(finalQuery);
     }
   }
@@ -375,13 +375,13 @@ public class LeagueAccountRepository {
     }
   }
   
-  public static List<DTO.LeagueAccount> getLeaguesAccountsWithSummonerIdAndServer(String summonerId, Platform server)
+  public static List<DTO.LeagueAccount> getLeaguesAccountsWithSummonerIdAndServer(String summonerId, LeagueShard server)
       throws SQLException {
     ResultSet result = null;
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
 
-      String finalQuery = String.format(SELECT_LEAGUES_ACCOUNTS_WITH_SUMMONER_ID_AND_SERVER, summonerId, server.getName());
+      String finalQuery = String.format(SELECT_LEAGUES_ACCOUNTS_WITH_SUMMONER_ID_AND_SERVER, summonerId, server.getRealmValue());
       result = query.executeQuery(finalQuery);
 
       List<DTO.LeagueAccount> accounts = Collections.synchronizedList(new ArrayList<>());

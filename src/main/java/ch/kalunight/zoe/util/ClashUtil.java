@@ -5,11 +5,10 @@ import java.util.List;
 
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.clash.ClashTeamRegistration;
-import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.clash.dto.ClashTeam;
-import net.rithms.riot.api.endpoints.clash.dto.ClashTeamMember;
-import net.rithms.riot.api.endpoints.clash.dto.ClashTournament;
-import net.rithms.riot.constant.Platform;
+import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
+import no.stelar7.api.r4j.pojo.lol.clash.ClashPlayer;
+import no.stelar7.api.r4j.pojo.lol.clash.ClashTeam;
+import no.stelar7.api.r4j.pojo.lol.clash.ClashTournament;
 
 public class ClashUtil {
 
@@ -17,16 +16,16 @@ public class ClashUtil {
     // hide default public constructor
   }
   
-  public static ClashTeamRegistration getFirstRegistration(Platform platform, List<ClashTeamMember> clashPlayerRegistrations, boolean forceCacheRefresh) throws RiotApiException, SQLException {
+  public static ClashTeamRegistration getFirstRegistration(LeagueShard platform, List<ClashPlayer> clashPlayerRegistrations, boolean forceCacheRefresh) throws SQLException {
 
     ClashTeamRegistration teamRegistration = null;
 
-    for(ClashTeamMember clashPlayer : clashPlayerRegistrations) {
-      ClashTeam team = Zoe.getRiotApi().getClashTeamByTeamIdWithRateLimit(platform, clashPlayer.getTeamId());
+    for(ClashPlayer clashPlayer : clashPlayerRegistrations) {
+      ClashTeam team = Zoe.getRiotApi().getLoLAPI().getClashAPI().getTeam(platform, clashPlayer.getTeamId());
 
-      ClashTournament tournamentToCheck = Zoe.getRiotApi().getClashTournamentById(platform, team.getTournamentIdInt(), forceCacheRefresh);
+      ClashTournament tournamentToCheck = Zoe.getRiotApi().getLoLAPI().getClashAPI().getTournamentById(platform, team.getTournamentId());
 
-      if(teamRegistration == null || teamRegistration.getTournament().getSchedule().get(0).getStartTime().isAfter(tournamentToCheck.getSchedule().get(0).getStartTime())) {
+      if(teamRegistration == null || teamRegistration.getTournament().getSchedule().get(0).getStartTimeAsDate().isAfter(tournamentToCheck.getSchedule().get(0).getStartTimeAsDate())) {
         teamRegistration = new ClashTeamRegistration(tournamentToCheck, team);
       }
 

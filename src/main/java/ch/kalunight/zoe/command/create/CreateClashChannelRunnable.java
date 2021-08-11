@@ -14,7 +14,6 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.Paginator;
 
 import ch.kalunight.zoe.ServerThreadsManager;
-import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.dto.ClashChannelData;
 import ch.kalunight.zoe.model.dto.ClashStatus;
@@ -38,9 +37,11 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.dv8tion.jda.api.interactions.InteractionHook;
-import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
-import net.rithms.riot.constant.Platform;
+import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
+import no.stelar7.api.r4j.basic.exceptions.APIHTTPErrorReason;
+import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
+import no.stelar7.api.r4j.impl.lol.builders.summoner.SummonerBuilder;
+import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class CreateClashChannelRunnable {
 
@@ -48,7 +49,7 @@ public class CreateClashChannelRunnable {
   
   private static class ClashCreationData {
     private String channelName;
-    private Platform platform;
+    private LeagueShard platform;
     private Summoner summoner;
   }
 
@@ -130,7 +131,7 @@ public class CreateClashChannelRunnable {
     String summonerName = listArgs.get(1);
 
 
-    Platform region = CreatePlayerCommandRunnable.getPlatform(regionName);
+    LeagueShard region = CreatePlayerCommandRunnable.getPlatform(regionName);
     if(region == null) {
       channel.sendMessage(LanguageManager.getText(server.getLanguage(), "createClashChannelRegionTagInvalid")).queue();
       waitForALeagueAccount(member, channel, waiter, server, creationData);
@@ -139,14 +140,14 @@ public class CreateClashChannelRunnable {
 
     Message loadingMessage = channel.sendMessage(LanguageManager.getText(server.getLanguage(), "loadingSummoner")).complete();
     try {
-      Summoner summoner = Zoe.getRiotApi().getSummonerByNameWithRateLimit(region, summonerName);
+      Summoner summoner = new SummonerBuilder().withPlatform(region).withName(summonerName).get();
 
       if(summoner != null) {
 
         List<DTO.ClashChannel> clashChannels = ClashChannelRepository.getClashChannels(server.serv_guildId);
 
         for(DTO.ClashChannel clashChannel : clashChannels) {
-          if(clashChannel.clashChannel_data.getSelectedSummonerId().equals(summoner.getId())
+          if(clashChannel.clashChannel_data.getSelectedSummonerId().equals(summoner.getSummonerId())
               && clashChannel.clashChannel_data.getSelectedPlatform().equals(region)) {
             loadingMessage.editMessage(LanguageManager.getText(server.getLanguage(), "createClashChannelAlreadyCreatedForThisSummoner")).queue();
             waitForALeagueAccount(member, channel, waiter, server, creationData);
@@ -154,10 +155,10 @@ public class CreateClashChannelRunnable {
           }
         }
 
-        BannedAccount bannedAccount = BannedAccountRepository.getBannedAccount(summoner.getId(), region);
+        BannedAccount bannedAccount = BannedAccountRepository.getBannedAccount(summoner.getSummonerId(), region);
         if(bannedAccount == null) {
 
-          loadingMessage.editMessage(String.format(LanguageManager.getText(server.getLanguage(), "createClashChannelLeagueAccountSelected"), region.getName().toUpperCase(), summoner.getName())).queue();
+          loadingMessage.editMessage(String.format(LanguageManager.getText(server.getLanguage(), "createClashChannelLeagueAccountSelected"), region.getRealmValue().toUpperCase(), summoner.getName())).queue();
 
           List<String> timeZoneIds = getTimeZoneIds();
 
@@ -176,10 +177,10 @@ public class CreateClashChannelRunnable {
     } catch (SQLException e) {
       logger.error("SQLException with league account selection in create Clash Command.", e);
       loadingMessage.editMessage(LanguageManager.getText(server.getLanguage(), "deleteLeaderboardErrorDatabase")).queue();
-    } catch (RiotApiException e) {
+    } catch (APIResponseException e) {
       RiotApiUtil.handleRiotApi(loadingMessage, e, server.getLanguage());
 
-      if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND || e.getErrorCode() == RiotApiException.SERVER_ERROR) {
+      if(e.getReason() == APIHTTPErrorReason.ERROR_404 || e.getReason() == APIHTTPErrorReason.ERROR_500) {
         waitForALeagueAccount(member, channel, waiter, server, creationData);
       }
     }
@@ -270,7 +271,7 @@ public class CreateClashChannelRunnable {
         Message loadingMessage = clashChannel.sendMessage(LanguageManager.getText(server.getLanguage(), "clashChannelLoadingMessage")).complete();
         messageIds.add(loadingMessage.getIdLong());
 
-        ClashChannelData data = new ClashChannelData(messageIds, new ArrayList<>(), null, creationData.platform, creationData.summoner.getId(), ClashStatus.WAIT_FOR_TEAM_REGISTRATION);
+        ClashChannelData data = new ClashChannelData(messageIds, new ArrayList<>(), null, creationData.platform, creationData.summoner.getSummonerId(), ClashStatus.WAIT_FOR_TEAM_REGISTRATION);
 
         long clashChannelDbId = ClashChannelRepository.createClashChannel(server, clashChannel.getIdLong(), selectedTimeZone, data);
 

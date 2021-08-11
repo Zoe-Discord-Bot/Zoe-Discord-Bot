@@ -1,7 +1,7 @@
 package ch.kalunight.zoe.model.clash;
 
-import net.rithms.riot.api.endpoints.clash.dto.ClashTeam;
-import net.rithms.riot.api.endpoints.clash.dto.ClashTournament;
+import no.stelar7.api.r4j.pojo.lol.clash.ClashTeam;
+import no.stelar7.api.r4j.pojo.lol.clash.ClashTournament;
 
 public class ClashTeamRegistration {
   private ClashTournament tournament;

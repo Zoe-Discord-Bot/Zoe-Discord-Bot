@@ -6,13 +6,14 @@ import java.util.List;
 import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.service.analysis.ChampionRole;
 import ch.kalunight.zoe.model.dto.DTO.SummonerCache;
-import net.rithms.riot.constant.Platform;
+import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
+import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class PickData implements Comparable<PickData> {
   
-  private Platform platform;
+  private LeagueShard platform;
   
-  private SummonerCache savedSummoner;
+  private Summoner savedSummoner;
   
   private int championId;
   
@@ -20,7 +21,7 @@ public class PickData implements Comparable<PickData> {
   
   private List<DangerosityReport> reportsOfThePick;
 
-  public PickData(Platform platform, SummonerCache savedSummoner, int championId, ChampionRole role, List<DangerosityReport> reports) {
+  public PickData(LeagueShard platform, Summoner savedSummoner, int championId, ChampionRole role, List<DangerosityReport> reports) {
     this.platform = platform;
     this.championId = championId;
     this.role = role;
@@ -54,7 +55,7 @@ public class PickData implements Comparable<PickData> {
   }
   
   public String getSummonerId() {
-    return savedSummoner.sumCache_summonerId;
+    return savedSummoner.getSummonerId();
   }
   
   public List<DangerosityReport> getDangerosityReportBySource(DangerosityReportSource source){
@@ -68,7 +69,7 @@ public class PickData implements Comparable<PickData> {
     return reportsToReturn;
   }
 
-  public Platform getPlatform() {
+  public LeagueShard getPlatform() {
     return platform;
   }
 
@@ -76,8 +77,8 @@ public class PickData implements Comparable<PickData> {
     return role;
   }
 
-  public SavedSummoner getSavedSummoner() {
-    return savedSummoner.getSumCacheData();
+  public Summoner getSavedSummoner() {
+    return savedSummoner;
   }
 
   public int getChampionId() {

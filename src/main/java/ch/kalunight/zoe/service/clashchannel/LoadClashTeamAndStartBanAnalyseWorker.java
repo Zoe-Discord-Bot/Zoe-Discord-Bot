@@ -17,9 +17,9 @@ import ch.kalunight.zoe.util.ClashUtil;
 import ch.kalunight.zoe.util.RiotApiUtil;
 import ch.kalunight.zoe.util.TeamUtil;
 import net.dv8tion.jda.api.entities.TextChannel;
-import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.clash.dto.ClashTeamMember;
-import net.rithms.riot.constant.Platform;
+import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
+import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
+import no.stelar7.api.r4j.pojo.lol.clash.ClashPlayer;
 
 public class LoadClashTeamAndStartBanAnalyseWorker implements Runnable {
 
@@ -29,13 +29,13 @@ public class LoadClashTeamAndStartBanAnalyseWorker implements Runnable {
 
   private String summonerId;
 
-  private Platform platform;
+  private LeagueShard platform;
 
   private ClashChannel clashChannel;
 
   private TextChannel channelWhereToSend;
 
-  public LoadClashTeamAndStartBanAnalyseWorker(Server server, String summonerId, Platform platform, TextChannel channelWhereToSend, ClashChannel clashChannel) {
+  public LoadClashTeamAndStartBanAnalyseWorker(Server server, String summonerId, LeagueShard platform, TextChannel channelWhereToSend, ClashChannel clashChannel) {
     this.server = server;
     this.summonerId = summonerId;
     this.platform = platform;
@@ -47,7 +47,7 @@ public class LoadClashTeamAndStartBanAnalyseWorker implements Runnable {
   public void run() {
     try {
 
-      List<ClashTeamMember> clashPlayerRegistrations = Zoe.getRiotApi().getClashPlayerBySummonerIdWithRateLimit(platform, summonerId);
+      List<ClashPlayer> clashPlayerRegistrations = Zoe.getRiotApi().getLoLAPI().getClashAPI().getPlayerInfo(platform, summonerId);
 
       if(clashPlayerRegistrations.isEmpty()) {
         channelWhereToSend.sendMessage(LanguageManager.getText(server.getLanguage(), "clashAnalyzeLoadNotRegistered")).queue();
@@ -68,7 +68,7 @@ public class LoadClashTeamAndStartBanAnalyseWorker implements Runnable {
         channelWhereToSend.sendMessage(LanguageManager.getText(server.getLanguage(), "clashAnalyzeLoadNot5Players")).queue();
       }
 
-    } catch (RiotApiException e) {
+    } catch (APIResponseException e) {
       RiotApiUtil.handleRiotApi(channelWhereToSend, e, server.getLanguage());
     } catch (Exception e) {
       logger.error("Unexpected error while loading clash team.", e);

@@ -39,9 +39,9 @@ import ch.kalunight.zoe.model.team.AccountDataWithRole;
 import ch.kalunight.zoe.repositories.ChampionRoleAnalysisRepository;
 import ch.kalunight.zoe.service.analysis.ChampionRole;
 import ch.kalunight.zoe.translation.LanguageManager;
-import net.rithms.riot.api.endpoints.clash.constant.TeamPosition;
-import net.rithms.riot.api.endpoints.clash.dto.ClashTeamMember;
-import net.rithms.riot.constant.Platform;
+import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
+import no.stelar7.api.r4j.pojo.lol.clash.ClashPlayer;
+import no.stelar7.api.r4j.pojo.lol.clash.ClashPosition;
 
 public class TeamUtil {
 
@@ -500,7 +500,7 @@ public class TeamUtil {
     }
   }
 
-  public static ChampionRole convertTeamPosition(TeamPosition position) {
+  public static ChampionRole convertTeamPosition(ClashPosition position) {
     switch (position) {
     case BOTTOM:
       return ChampionRole.ADC;
@@ -517,18 +517,18 @@ public class TeamUtil {
     }
   }
 
-  public static List<TeamPlayerAnalysisDataCollector> getTeamPlayersDataWithAnalysisDoneWithClashData(Platform platform, List<ClashTeamMember> teamMembers) {
+  public static List<TeamPlayerAnalysisDataCollector> getTeamPlayersDataWithAnalysisDoneWithClashData(LeagueShard platform, List<ClashPlayer> teamMembers) {
     List<TeamPlayerAnalysisDataCollector> teamPlayersData = loadAllPlayersDataWithClashData(platform, teamMembers);
 
     return executeTeamAnalysis(teamPlayersData);
   }
 
-  public static List<TeamPlayerAnalysisDataCollector> loadAllPlayersDataWithClashData(Platform platform,
-      List<ClashTeamMember> teamMembers) {
+  public static List<TeamPlayerAnalysisDataCollector> loadAllPlayersDataWithClashData(LeagueShard platform,
+      List<ClashPlayer> teamMembers) {
     List<TeamPlayerAnalysisDataCollector> teamPlayersData = new ArrayList<>();
 
-    for(ClashTeamMember teamMember : teamMembers) {
-      TeamPlayerAnalysisDataCollector player = new TeamPlayerAnalysisDataCollector(teamMember.getSummonerId(), platform, teamMember.getTeamPosition());
+    for(ClashPlayer teamMember : teamMembers) {
+      TeamPlayerAnalysisDataCollector player = new TeamPlayerAnalysisDataCollector(teamMember.getSummonerId(), platform, teamMember.getPosition());
       teamPlayersData.add(player);
       ServerThreadsManager.getDataAnalysisThread().execute(player);
     }

@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.Paginator;
 
-import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.create.CreatePlayerCommandRunnable;
 import ch.kalunight.zoe.model.dto.DTO.BannedAccount;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
@@ -94,7 +93,21 @@ public class BanAccountCommandRunnable {
 
     Message message = event.getTextChannel().sendMessage(LanguageManager.getText(language, "loadingSummoner")).complete();
     
-    Summoner summoner = new SummonerBuilder().withName(summonerName).withPlatform(region).get();
+    Summoner summoner;
+    try {
+      summoner = new SummonerBuilder().withName(summonerName).withPlatform(region).get();
+    } catch (APIResponseException error) {
+      RiotApiUtil.handleRiotApi(message, error, language);
+
+      waiter.waitForEvent(MessageReceivedEvent.class,
+          e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel())
+          && !e.getMessage().getId().equals(event.getMessage().getId()),
+          e -> accountReceived(e, language, codeExpected, waiter), 3, TimeUnit.MINUTES,
+          () -> cancelVerification(event.getChannel(), language));
+
+      return;
+    }
+    
     String code = "";
 
     try {
@@ -135,15 +148,15 @@ public class BanAccountCommandRunnable {
     channel.sendMessage(LanguageManager.getText(lang, "banAccountCommandCancelVerification")).queue();
   }
 
-  private static void startAccountManagementPanel(Summoner summoner, Platform region, MessageReceivedEvent event,
+  private static void startAccountManagementPanel(Summoner summoner, LeagueShard region, MessageReceivedEvent event,
       String language, Message messageToEdit, EventWaiter waiter) {
 
     List<Server> serversWithTheAccount = null;
     BannedAccount accountInTheBanList;
 
     try {
-      serversWithTheAccount = ServerRepository.getServersWithLeagueAccountIdAndRegion(summoner.getId(), region);
-      accountInTheBanList = BannedAccountRepository.getBannedAccount(summoner.getId(), region);
+      serversWithTheAccount = ServerRepository.getServersWithLeagueAccountIdAndRegion(summoner.getSummonerId(), region);
+      accountInTheBanList = BannedAccountRepository.getBannedAccount(summoner.getSummonerId(), region);
     } catch (SQLException e) {
       messageToEdit.editMessage(LanguageManager.getText(language, "errorSQLPleaseReport")).queue();
       logger.error("SQL error while starting ban account panel", e);
@@ -187,8 +200,6 @@ public class BanAccountCommandRunnable {
         }
       }
 
-      
-      
       Paginator listOfGuilds = pbuilder.build();
       listOfGuilds.display(messageToEdit);
     }else {
@@ -212,7 +223,7 @@ public class BanAccountCommandRunnable {
         () -> stopProcess(event, language));
   }
 
-  private static void messageInterpretor(MessageReceivedEvent event, String language, Summoner concernedSummoner, Platform region,
+  private static void messageInterpretor(MessageReceivedEvent event, String language, Summoner concernedSummoner, LeagueShard region,
       List<Server> serverList, EventWaiter waiter) {
     String messageReceived = event.getMessage().getContentRaw();
     MessageChannel responseChannel = event.getChannel();
@@ -246,7 +257,7 @@ public class BanAccountCommandRunnable {
     }
   }
 
-  private static void handleKickCommand(String language, Summoner concernedSummoner, Platform region, List<Server> serverList,
+  private static void handleKickCommand(String language, Summoner concernedSummoner, LeagueShard region, List<Server> serverList,
       MessageChannel responseChannel, String[] messagePart, MessageReceivedEvent event, EventWaiter waiter) {
     String selectedServer = messagePart[1];
     Integer selectedServerInt;
@@ -261,7 +272,7 @@ public class BanAccountCommandRunnable {
 
       try {
         List<LeagueAccount> leagueAccountOfTheSummoner = 
-            LeagueAccountRepository.getLeaguesAccountsWithSummonerIdAndServer(concernedSummoner.getId(), region);
+            LeagueAccountRepository.getLeaguesAccountsWithSummonerIdAndServer(concernedSummoner.getSummonerId(), region);
 
         if(!leagueAccountOfTheSummoner.isEmpty()) {
           
@@ -282,7 +293,7 @@ public class BanAccountCommandRunnable {
       Server server = serverList.get(selectedServerInt - 1);
 
       try {
-        LeagueAccount leagueAccount = LeagueAccountRepository.getLeagueAccountWithSummonerId(server.serv_guildId, concernedSummoner.getId(), region);
+        LeagueAccount leagueAccount = LeagueAccountRepository.getLeagueAccountWithSummonerId(server.serv_guildId, concernedSummoner.getSummonerId(), region);
         if(leagueAccount == null) {
           responseChannel.sendMessage(LanguageManager.getText(language, "banAccountCommandAccountAlreadyDeletedInThisServer")).queue();
         }else {
@@ -300,12 +311,12 @@ public class BanAccountCommandRunnable {
     waitForAnotherResponse(event, language, concernedSummoner, region, serverList, waiter);
   }
 
-  private static void handleBanCommand(MessageReceivedEvent event, String language, Summoner concernedSummoner, Platform region,
+  private static void handleBanCommand(MessageReceivedEvent event, String language, Summoner concernedSummoner, LeagueShard region,
       MessageChannel responseChannel, List<Server> serverList, EventWaiter waiter) {
     try {
-      BannedAccount bannedAccount = BannedAccountRepository.getBannedAccount(concernedSummoner.getId(), region);
+      BannedAccount bannedAccount = BannedAccountRepository.getBannedAccount(concernedSummoner.getSummonerId(), region);
       if(bannedAccount == null) {
-        BannedAccountRepository.createBannedAccount(concernedSummoner.getId(), region);
+        BannedAccountRepository.createBannedAccount(concernedSummoner.getSummonerId(), region);
         responseChannel.sendMessage(LanguageManager.getText(language, "banAccountCommandAccountAddedToTheBanList")).queue();
       }else {
         BannedAccountRepository.deleteBannedAccount(bannedAccount.banAcc_id);
@@ -318,7 +329,7 @@ public class BanAccountCommandRunnable {
     waitForAnotherResponse(event, language, concernedSummoner, region, serverList, waiter);
   }
 
-  private static void waitForAnotherResponse(MessageReceivedEvent event, String language, Summoner summoner, Platform region,
+  private static void waitForAnotherResponse(MessageReceivedEvent event, String language, Summoner summoner, LeagueShard region,
       List<Server> serverList, EventWaiter waiter) {
     waiter.waitForEvent(MessageReceivedEvent.class,
         e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel())

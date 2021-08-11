@@ -3,7 +3,7 @@ package ch.kalunight.zoe.model.dto;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.rithms.riot.constant.Platform;
+import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
 
 public class ClashChannelData {
 
@@ -11,11 +11,11 @@ public class ClashChannelData {
   private List<Long> enemyTeamMessages;
   private Long gameCardId;
   private Long gameId;
-  private Platform selectedPlatform;
+  private LeagueShard selectedPlatform;
   private String selectedSummonerId;
   private ClashStatus clashStatus;
 
-  public ClashChannelData(List<Long> infoMessagesId, List<Long> teamsSpecificInfo, Long gameCardId, Platform selectedPlatform, String selectedSummonerId, ClashStatus clashStatus) {
+  public ClashChannelData(List<Long> infoMessagesId, List<Long> teamsSpecificInfo, Long gameCardId, LeagueShard selectedPlatform, String selectedSummonerId, ClashStatus clashStatus) {
     this.infoMessagesId = infoMessagesId;
     this.enemyTeamMessages = teamsSpecificInfo;
     this.gameCardId = gameCardId;
@@ -60,11 +60,11 @@ public class ClashChannelData {
     this.enemyTeamMessages = teamsSpecificInfo;
   }
 
-  public Platform getSelectedPlatform() {
+  public LeagueShard getSelectedPlatform() {
     return selectedPlatform;
   }
 
-  public void setSelectedPlatform(Platform selectedPlatform) {
+  public void setSelectedPlatform(LeagueShard selectedPlatform) {
     this.selectedPlatform = selectedPlatform;
   }
 

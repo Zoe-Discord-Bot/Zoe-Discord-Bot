@@ -20,12 +20,14 @@ import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.AccountVerificationUtil;
+import ch.kalunight.zoe.util.RiotApiUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
+import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
 import no.stelar7.api.r4j.impl.lol.builders.summoner.SummonerBuilder;
 import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
@@ -85,13 +87,15 @@ public class AddAccountCommandRunnable {
       return LanguageManager.getText(server.getLanguage(), "regionTagInvalid");
     }
 
-    Summoner summoner = new SummonerBuilder().withPlatform(region).withName(summonerName).get();
-    Summoner tftSummoner = Zoe.getTftSummonerApi().getSummonerByAccount(region, summonerName);
-
-    if(summoner == null || tftSummoner == null) {
-      return "Summoner Not found (NEED TO TRANSLATE)";
+    Summoner summoner;
+    Summoner tftSummoner;
+    try {
+      summoner = new SummonerBuilder().withPlatform(region).withName(summonerName).get();
+      tftSummoner = Zoe.getTftSummonerApi().getSummonerByAccount(region, summonerName);
+    }catch(APIResponseException e) {
+      return RiotApiUtil.getTextHandlerRiotApiError(e, server.getLanguage());
     }
-    
+
     LeagueAccount newAccount = new LeagueAccount(summoner, region);
 
     DTO.Player playerAlreadyWithTheAccount = PlayerRepository

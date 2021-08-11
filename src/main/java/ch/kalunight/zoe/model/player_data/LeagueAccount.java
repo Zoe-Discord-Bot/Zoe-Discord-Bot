@@ -3,6 +3,7 @@ package ch.kalunight.zoe.model.player_data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
+import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
 import no.stelar7.api.r4j.pojo.lol.spectator.SpectatorGameInfo;
 import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
@@ -21,7 +22,12 @@ public class LeagueAccount {
   }
 
   public void refreshCurrentGameInfo() {
-    currentGameInfo = summoner.getCurrentGame();
+    try {
+      currentGameInfo = summoner.getCurrentGame();
+    } catch(APIResponseException e) {
+      logger.info(e.getMessage());
+      currentGameInfo = null;
+    }
   }
 
   @Override

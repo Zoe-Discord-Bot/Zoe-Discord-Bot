@@ -17,27 +17,34 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
+import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
 import no.stelar7.api.r4j.impl.lol.builders.thirdparty.ThirdPartyCodeBuilder;
 import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class AccountVerificationUtil {
-  
+
   private static final int SIZE_OF_THE_RANDOM_STRING = 16;
 
   private AccountVerificationUtil() {
     //hide default public constructor
   }
-  
+
   public static String getVerificationCode() {
     return "ZOE-" + RandomStringUtils.randomAlphanumeric(SIZE_OF_THE_RANDOM_STRING);
   }
-  
+
   public static void verficationCodeRunnable(MessageReceivedEvent event, Server server, String verificiationCode,
       EventWaiter waiter, LeagueShard region, Summoner summoner, Summoner tftSummoner, Member playerToAdd) {
 
     if(event.getMessage().getContentRaw().equalsIgnoreCase("DONE")) {
-      String codeToCheck = new ThirdPartyCodeBuilder().withPlatform(region)
-          .withSummonerId(summoner.getSummonerId()).getCode();
+
+      String codeToCheck = null;
+      try {
+        codeToCheck = new ThirdPartyCodeBuilder().withPlatform(region)
+            .withSummonerId(summoner.getSummonerId()).getCode();
+      } catch (APIResponseException e) {
+        event.getChannel().sendMessage(RiotApiUtil.getTextHandlerRiotApiError(e, server.getLanguage())).queue();
+      }
 
       if(verificiationCode.equals(codeToCheck)) {
         try {

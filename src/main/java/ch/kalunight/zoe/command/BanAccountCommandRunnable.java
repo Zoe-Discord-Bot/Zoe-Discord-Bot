@@ -32,9 +32,11 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.dv8tion.jda.api.interactions.InteractionHook;
-import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
-import net.rithms.riot.constant.Platform;
+import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
+import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
+import no.stelar7.api.r4j.impl.lol.builders.summoner.SummonerBuilder;
+import no.stelar7.api.r4j.impl.lol.builders.thirdparty.ThirdPartyCodeBuilder;
+import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class BanAccountCommandRunnable {
 
@@ -75,7 +77,7 @@ public class BanAccountCommandRunnable {
       return;
     }
 
-    Platform region = CreatePlayerCommandRunnable.getPlatform(listArgs.get(0));
+    LeagueShard region = CreatePlayerCommandRunnable.getPlatform(listArgs.get(0));
     if(region == null) {
       event.getChannel().sendMessage(LanguageManager.getText(language, "banAccountCommandInvalidRegionTag")).queue();
 
@@ -92,27 +94,14 @@ public class BanAccountCommandRunnable {
 
     Message message = event.getTextChannel().sendMessage(LanguageManager.getText(language, "loadingSummoner")).complete();
     
-    Summoner summoner;
+    Summoner summoner = new SummonerBuilder().withName(summonerName).withPlatform(region).get();
     String code = "";
 
     try {
-      summoner = Zoe.getRiotApi().getSummonerByNameWithRateLimit(region, summonerName);
-    } catch (RiotApiException error) {
-      RiotApiUtil.handleRiotApi(message, error, language);
-
-      waiter.waitForEvent(MessageReceivedEvent.class,
-          e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel())
-          && !e.getMessage().getId().equals(event.getMessage().getId()),
-          e -> accountReceived(e, language, codeExpected, waiter), 3, TimeUnit.MINUTES,
-          () -> cancelVerification(event.getChannel(), language));
-
-      return;
-    }
-
-    try {
-      code = Zoe.getRiotApi().getValidationCode(region, summoner.getId());
-    }catch (RiotApiException error) {
-      if(error.getErrorCode() == 404) {
+      code = new ThirdPartyCodeBuilder().withPlatform(region)
+          .withSummonerId(summoner.getSummonerId()).getCode();
+    }catch (APIResponseException error) {
+      if(error.getReason().getCode() == 404) {
         message.editMessage(String.format(LanguageManager.getText(language, "banAccountCommandInvalidVerificationTag"), codeExpected, event.getMessage().getContentRaw())).queue();
       }else {
         RiotApiUtil.handleRiotApi(message, error, language);

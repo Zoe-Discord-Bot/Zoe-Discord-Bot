@@ -20,16 +20,14 @@ import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.AccountVerificationUtil;
-import ch.kalunight.zoe.util.RiotApiUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
-import net.rithms.riot.api.endpoints.tft_summoner.dto.TFTSummoner;
-import net.rithms.riot.constant.Platform;
+import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
+import no.stelar7.api.r4j.impl.lol.builders.summoner.SummonerBuilder;
+import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class AddAccountCommandRunnable {
 
@@ -69,7 +67,7 @@ public class AddAccountCommandRunnable {
       return String.format(LanguageManager.getText(server.getLanguage(), "addCommandMalformedWithoutRegionOption"), USAGE_NAME);
     }else if((listArgs.isEmpty() || listArgs.size() > 2) && regionOption.getRegion() != null) {
       return String.format(LanguageManager.getText(server.getLanguage(), "addCommandMalformedWithRegionOption"),
-          USAGE_NAME, regionOption.getRegion().getName().toUpperCase());
+          USAGE_NAME, regionOption.getRegion().getRealmValue().toUpperCase());
     }
 
     String regionName;
@@ -78,28 +76,26 @@ public class AddAccountCommandRunnable {
       regionName = listArgs.get(0);
       summonerName = listArgs.get(1);
     }else {
-      regionName = regionOption.getRegion().getName();
+      regionName = regionOption.getRegion().getRealmValue();
       summonerName = listArgs.get(0);
     }
 
-    Platform region = CreatePlayerCommandRunnable.getPlatform(regionName);
+    LeagueShard region = CreatePlayerCommandRunnable.getPlatform(regionName);
     if(region == null) {
       return LanguageManager.getText(server.getLanguage(), "regionTagInvalid");
     }
 
-    Summoner summoner;
-    TFTSummoner tftSummoner;
-    try {
-      summoner = Zoe.getRiotApi().getSummonerByNameWithRateLimit(region, summonerName);
-      tftSummoner = Zoe.getRiotApi().getTFTSummonerByNameWithRateLimit(region, summonerName);
-    }catch(RiotApiException e) {
-      return RiotApiUtil.getTextHandlerRiotApiError(e, server.getLanguage());
-    }
+    Summoner summoner = new SummonerBuilder().withPlatform(region).withName(summonerName).get();
+    Summoner tftSummoner = Zoe.getTftSummonerApi().getSummonerByAccount(region, summonerName);
 
+    if(summoner == null || tftSummoner == null) {
+      return "Summoner Not found (NEED TO TRANSLATE)";
+    }
+    
     LeagueAccount newAccount = new LeagueAccount(summoner, region);
 
     DTO.Player playerAlreadyWithTheAccount = PlayerRepository
-        .getPlayerByLeagueAccountAndGuild(server.serv_guildId, summoner.getId(), region);
+        .getPlayerByLeagueAccountAndGuild(server.serv_guildId, summoner.getSummonerId(), region);
 
     if(playerAlreadyWithTheAccount != null) {
       User userAlreadyWithTheAccount = author.getJDA().retrieveUserById(playerAlreadyWithTheAccount.player_discordId).complete();
@@ -107,7 +103,7 @@ public class AddAccountCommandRunnable {
           userAlreadyWithTheAccount.getName());
     }
 
-    BannedAccount bannedAccount = BannedAccountRepository.getBannedAccount(summoner.getId(), region);
+    BannedAccount bannedAccount = BannedAccountRepository.getBannedAccount(summoner.getSummonerId(), region);
     if(bannedAccount == null) {
 
       if(config.getForceVerificationOption().isOptionActivated() && !author.getPermissions().contains(Permission.MANAGE_CHANNEL)) {
@@ -115,7 +111,7 @@ public class AddAccountCommandRunnable {
         String verificiationCode = AccountVerificationUtil.getVerificationCode();
 
         String message = String.format(LanguageManager.getText(server.getLanguage(), "verificationProcessWhileAddingAccount"),
-            region.getName().toUpperCase(), summoner.getName(), verificiationCode);
+            region.getRealmValue().toUpperCase(), summoner.getName(), verificiationCode);
 
         waiter.waitForEvent(MessageReceivedEvent.class,
             e -> e.getAuthor().equals(author.getUser()) && e.getChannel().equals(channel),

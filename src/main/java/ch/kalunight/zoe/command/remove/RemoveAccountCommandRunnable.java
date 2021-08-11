@@ -3,7 +3,6 @@ package ch.kalunight.zoe.command.remove;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.regex.Pattern;
-import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.create.CreatePlayerCommandRunnable;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.dto.DTO;
@@ -16,9 +15,10 @@ import ch.kalunight.zoe.util.RiotApiUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
-import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
-import net.rithms.riot.constant.Platform;
+import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
+import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
+import no.stelar7.api.r4j.impl.lol.builders.summoner.SummonerBuilder;
+import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class RemoveAccountCommandRunnable {
 
@@ -61,18 +61,18 @@ public class RemoveAccountCommandRunnable {
     String regionName = listArgs.get(0);
     String summonerName = listArgs.get(1);
 
-    Platform region = CreatePlayerCommandRunnable.getPlatform(regionName);
+    LeagueShard region = CreatePlayerCommandRunnable.getPlatform(regionName);
     if(region == null) {
       return LanguageManager.getText(server.getLanguage(), "regionTagInvalid");
     }
 
     DTO.LeagueAccount account;
     try {
-      Summoner summoner = Zoe.getRiotApi().getSummonerByNameWithRateLimit(region, summonerName);
+      Summoner summoner = new SummonerBuilder().withPlatform(region).withName(summonerName).get();
       
       account = LeagueAccountRepository
-          .getLeagueAccountWithSummonerId(server.serv_guildId, summoner.getId(), region);
-    } catch(RiotApiException e) {
+          .getLeagueAccountWithSummonerId(server.serv_guildId, summoner.getSummonerId(), region);
+    } catch(APIResponseException e) {
       return RiotApiUtil.getTextHandlerRiotApiError(e, server.getLanguage());
     }
 

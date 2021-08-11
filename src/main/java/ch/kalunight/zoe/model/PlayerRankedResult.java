@@ -1,17 +1,17 @@
 package ch.kalunight.zoe.model;
 
-import net.rithms.riot.constant.Platform;
+import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
 
 public class PlayerRankedResult {
 
   private long gameId;
-  private Platform platform;
+  private LeagueShard platform;
   private String catTitle;
   private String lpResult;
   private String gameStats;
   private Boolean win;
 
-  public PlayerRankedResult(long gameId, Platform platform, String catTitle, String lpResult, String gameStats,
+  public PlayerRankedResult(long gameId, LeagueShard platform, String catTitle, String lpResult, String gameStats,
       Boolean win) {
     this.gameId = gameId;
     this.platform = platform;
@@ -37,11 +37,11 @@ public class PlayerRankedResult {
     this.gameId = gameId;
   }
 
-  public Platform getPlatform() {
+  public LeagueShard getPlatform() {
     return platform;
   }
 
-  public void setPlatform(Platform platform) {
+  public void setPlatform(LeagueShard platform) {
     this.platform = platform;
   }
 

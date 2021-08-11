@@ -39,6 +39,7 @@ import no.stelar7.api.r4j.basic.exceptions.APIHTTPErrorReason;
 import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
 import no.stelar7.api.r4j.impl.lol.builders.matchv5.match.MatchBuilder;
 import no.stelar7.api.r4j.impl.lol.builders.summoner.SummonerBuilder;
+import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
 import no.stelar7.api.r4j.pojo.lol.match.v4.MatchReference;
 import no.stelar7.api.r4j.pojo.lol.match.v4.Participant;
 import no.stelar7.api.r4j.pojo.lol.match.v5.LOLMatch;
@@ -56,12 +57,12 @@ public class RiotRequest {
 
   private RiotRequest() {}
 
-  public static FullTier getSoloqRank(String summonerId, Platform region) {
+  public static FullTier getSoloqRank(String summonerId, LeagueShard region) {
 
-    Set<LeagueEntry> listLeague;
+    List<LeagueEntry> listLeague;
     try {
-      listLeague = Zoe.getRiotApi().getLeagueEntriesBySummonerIdWithRateLimit(region, summonerId);
-    } catch(RiotApiException e) {
+      listLeague = Zoe.getRiotApi().getLoLAPI().getLeagueAPI().getLeagueEntries(region, summonerId);
+    } catch(APIResponseException e) {
       logger.info("Error with riot api : {}", e.getMessage());
       return new FullTier(Tier.UNKNOWN, Rank.UNKNOWN, 0);
     }

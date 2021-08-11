@@ -21,7 +21,9 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
+import no.stelar7.api.r4j.impl.lol.builders.summoner.SummonerBuilder;
 import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
+import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class DTO {
 
@@ -233,7 +235,7 @@ public class DTO {
     public final String leagueAccount_tftAccountId;
     public final String leagueAccount_tftPuuid;
     public final LeagueShard leagueAccount_server;
-    private SavedSummoner summoner = null;
+    private Summoner summoner = null;
 
     public LeagueAccount(ResultSet baseData) throws SQLException {
       leagueAccount_id = baseData.getLong("leagueAccount_id");
@@ -250,37 +252,25 @@ public class DTO {
       leagueAccount_server = LeagueShard.fromString(baseData.getString("leagueAccount_server")).get();
     }
 
-    public LeagueAccount(Summoner summoner, TFTSummoner tftSummoner, Platform platform) {
+    public LeagueAccount(Summoner summoner, Summoner tftSummoner, LeagueShard platform) {
       leagueAccount_name = summoner.getName();
-      leagueAccount_summonerId = summoner.getId();
+      leagueAccount_summonerId = summoner.getSummonerId();
       leagueAccount_accoundId = summoner.getAccountId();
-      leagueAccount_puuid = summoner.getPuuid();
+      leagueAccount_puuid = summoner.getPUUID();
       leagueAccount_server = platform;
-      leagueAccount_tftSummonerId = tftSummoner.getId();
+      leagueAccount_tftSummonerId = tftSummoner.getSummonerId();
       leagueAccount_tftAccountId = tftSummoner.getAccountId();
-      leagueAccount_tftPuuid = tftSummoner.getPuuid();
+      leagueAccount_tftPuuid = tftSummoner.getPUUID();
       leagueAccount_id = null;
       leagueAccount_fk_player = null;
       leagueAccount_fk_gamecard = null;
       leagueAccount_fk_currentgame = null;
 
-      this.summoner = new SavedSummoner(summoner);
+      this.summoner = summoner;
     }
 
-    public SavedSummoner getSummoner() throws RiotApiException {
-      return getSummoner(false);
-    }
-
-    public SavedSummoner getSummoner(boolean forceRefreshCache) throws RiotApiException {
-      if(summoner != null && !forceRefreshCache) {
-        return summoner;
-      }
-
-      SummonerCache summonerDB = Zoe.getRiotApi().getSummonerWithRateLimit(leagueAccount_server, leagueAccount_summonerId, forceRefreshCache);
-      if(summonerDB != null) {
-        summoner = summonerDB.sumCache_data;
-      }
-      return summoner;
+    public Summoner getSummoner() {
+      return new SummonerBuilder().withPlatform(leagueAccount_server).withSummonerId(leagueAccount_accoundId).get();
     }
 
     @Override

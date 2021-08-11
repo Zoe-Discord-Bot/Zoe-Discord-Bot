@@ -48,16 +48,15 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.MessageEmbed.Field;
 import net.dv8tion.jda.api.entities.User;
-import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
-import net.rithms.riot.api.endpoints.league.dto.MiniSeries;
-import net.rithms.riot.api.endpoints.match.dto.MatchList;
-import net.rithms.riot.api.endpoints.match.dto.MatchReference;
-import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
-import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
-import net.rithms.riot.api.endpoints.tft_league.dto.TFTLeagueEntry;
-import net.rithms.riot.api.endpoints.tft_match.dto.TFTMatch;
-import net.rithms.riot.constant.Platform;
+import no.stelar7.api.r4j.basic.exceptions.APIHTTPErrorReason;
+import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
+import no.stelar7.api.r4j.impl.lol.builders.matchv5.match.MatchBuilder;
+import no.stelar7.api.r4j.pojo.lol.championmastery.ChampionMastery;
+import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
+import no.stelar7.api.r4j.pojo.lol.match.v5.LOLMatch;
+import no.stelar7.api.r4j.pojo.lol.match.v5.MatchIterator;
+import no.stelar7.api.r4j.pojo.lol.match.v5.MatchParticipant;
+import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class MessageBuilderRequest {
 
@@ -70,7 +69,7 @@ public class MessageBuilderRequest {
   private static final String GENERATED_AT_STRING = "generatedAt";
 
   private static final Logger logger = LoggerFactory.getLogger(MessageBuilderRequest.class);
-  
+
   private static final Random rand = new Random();
   private static final int CHANCE_RANDOM_MAX_RANGE = 10;
   private static final int CHANCE_TO_SHOW_SOMETHING = 1; // 1 chance on 10
@@ -206,7 +205,7 @@ public class MessageBuilderRequest {
     statsGame = MessageBuilderRequestUtil.getResumeGameStats(leagueAccount, lang, match);
 
     Boolean win = match.isGivenAccountWinner(leagueAccount.leagueAccount_summonerId);
-    
+
     return new PlayerRankedResult(gameOfTheChange.getGameId(), leagueAccount.leagueAccount_server, accountTitle, changeStats, statsGame, win);
   }
 
@@ -230,7 +229,7 @@ public class MessageBuilderRequest {
         numberLose++;
       }
     }
-    
+
     if(numberWin != 0 && numberLose != 0) {
       message.setColor(Color.PINK);
     }else if(numberWin != 0) {
@@ -240,7 +239,7 @@ public class MessageBuilderRequest {
     }
 
     addSupportMessage(lang, message);
-    
+
     message.setFooter(LanguageManager.getText(lang, GENERATED_AT_STRING));
     message.setTimestamp(Instant.now());
 
@@ -277,7 +276,7 @@ public class MessageBuilderRequest {
     Field field = new Field(LanguageManager.getText(lang, RESUME_OF_THE_GAME_STRING), statsGame, true);
 
     message.addField(field);
-    
+
     addSupportMessage(lang, message);
 
     message.setFooter(LanguageManager.getText(lang, GENERATED_AT_STRING));
@@ -330,7 +329,7 @@ public class MessageBuilderRequest {
     Field field = new Field(LanguageManager.getText(lang, RESUME_OF_THE_GAME_STRING), statsGame, true);
 
     message.addField(field);
-    
+
     addSupportMessage(lang, message);
 
     message.setFooter(LanguageManager.getText(lang, GENERATED_AT_STRING));
@@ -383,7 +382,7 @@ public class MessageBuilderRequest {
     Field field = new Field(LanguageManager.getText(lang, RESUME_OF_THE_GAME_STRING), statsGame, true);
 
     message.addField(field);
-    
+
     addSupportMessage(lang, message);
 
     message.setFooter(LanguageManager.getText(lang, GENERATED_AT_STRING));
@@ -463,7 +462,7 @@ public class MessageBuilderRequest {
     message.addField(field);
 
     addSupportMessage(lang, message);
-    
+
     message.setFooter(LanguageManager.getText(lang, GENERATED_AT_STRING));
     message.setTimestamp(Instant.now());
 
@@ -520,7 +519,7 @@ public class MessageBuilderRequest {
     message.addField(field);
 
     addSupportMessage(lang, message);
-    
+
     message.setFooter(LanguageManager.getText(lang, GENERATED_AT_STRING));
     message.setTimestamp(Instant.now());
 
@@ -571,7 +570,7 @@ public class MessageBuilderRequest {
     message.addField(field);
 
     addSupportMessage(lang, message);
-    
+
     message.setFooter(LanguageManager.getText(lang, GENERATED_AT_STRING));
     message.setTimestamp(Instant.now());
 
@@ -672,31 +671,33 @@ public class MessageBuilderRequest {
   }
 
   public static MessageEmbed createProfileMessage(DTO.Player player, DTO.LeagueAccount leagueAccount,
-      SavedChampionsMastery masteries, String language, String url, JDA jda) throws RiotApiException {    
+      List<ChampionMastery> masteries, String language, String url, JDA jda) {    
 
     String latestGameTranslated = LanguageManager.getText(language, "statsProfileLatestGames");
 
     EmbedBuilder message = new EmbedBuilder();
 
+    Summoner summoner = leagueAccount.getSummoner();
+
     if(player != null) {
       message.setTitle(String.format(LanguageManager.getText(language, "statsProfileTitle"),
           ZoeUserRankManagementUtil.getEmotesByDiscordId(player.player_discordId)
-          + player.retrieveUser(jda).getName(), leagueAccount.getSummoner().getName(),
-          leagueAccount.getSummoner().getLevel()));
+          + player.retrieveUser(jda).getName(), summoner.getName(),
+          summoner.getSummonerLevel()));
     }else {
       message.setTitle(String.format(LanguageManager.getText(language, "statsProfileTitle"),
-          leagueAccount.getSummoner().getName(), leagueAccount.getSummoner().getName(),
-          leagueAccount.getSummoner().getLevel()));
+          summoner.getName(), summoner.getName(),
+          summoner.getSummonerLevel()));
     }
 
-    List<SavedSimpleMastery> threeBestchampionMasteries = StatsProfileCommandRunnable.getBestMasteries(masteries, 3);
+    List<ChampionMastery> threeBestchampionMasteries = StatsProfileCommandRunnable.getBestMasteries(masteries, 3);
 
     StringBuilder stringBuilder = new StringBuilder();
 
-    for(SavedSimpleMastery championMastery : threeBestchampionMasteries) {
+    for(ChampionMastery championMastery : threeBestchampionMasteries) {
       Champion champion = Ressources.getChampionDataById(championMastery.getChampionId());
       stringBuilder.append(champion.getDisplayName() + " " + champion.getName() + " - **" 
-          + MessageBuilderRequestUtil.getMasteryUnit(championMastery.getChampionPoints()) +"**\n");
+          + MessageBuilderRequestUtil.getMasteryUnit((long) championMastery.getChampionPoints()) +"**\n");
     }
 
     if(threeBestchampionMasteries.isEmpty()) {
@@ -711,7 +712,7 @@ public class MessageBuilderRequest {
     int nbrMastery5 = 0;
     long totalNbrMasteries = 0;
 
-    for(SavedSimpleMastery championMastery : masteries.getChampionMasteries()) {
+    for(ChampionMastery championMastery : masteries) {
       switch(championMastery.getChampionLevel()) {
       case 5: nbrMastery5++; break;
       case 6: nbrMastery6++; break;
@@ -721,7 +722,7 @@ public class MessageBuilderRequest {
       totalNbrMasteries += championMastery.getChampionPoints();
     }
 
-    double moyennePoints = (double) totalNbrMasteries / masteries.getChampionMasteries().size();
+    double moyennePoints = (double) totalNbrMasteries / masteries.size();
 
     CustomEmote masteryEmote7 = Ressources.getMasteryEmote().get(Mastery.getEnum(7));
     CustomEmote masteryEmote6 = Ressources.getMasteryEmote().get(Mastery.getEnum(6));
@@ -742,68 +743,50 @@ public class MessageBuilderRequest {
     }
 
     boolean isRiotApiError = false;
-    MatchList matchList = null;
+    List<LOLMatch> matchs = new ArrayList<>();
 
     try {
-      matchList = Zoe.getRiotApi().getMatchListByAccountId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_accoundId, 
-          null, null, null, DateTime.now().minusWeeks(1).plusSeconds(10).getMillis(), DateTime.now().getMillis(), -1, -1);
-    } catch(RiotApiException e) {
-      if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
+      List<String> matchsIds = summoner.getLeagueGamesV5().withCount(3).get();
+
+      for(String matchId : matchsIds) {
+        matchs.add(new MatchBuilder(summoner.getPlatform(), matchId).getMatch());
+      }
+
+    } catch(APIResponseException e) {
+      if(e.getReason() == APIHTTPErrorReason.ERROR_429) {
         throw e;
-      }else if (e.getErrorCode() == RiotApiException.UNAVAILABLE || e.getErrorCode() == RiotApiException.SERVER_ERROR) {
+      }else if (e.getReason() == APIHTTPErrorReason.ERROR_500) {
         isRiotApiError = true;
       }
       logger.info("Impossible to get match history : {}", e.getMessage());
     }
 
-    if(matchList != null) {
-      List<MatchReference> matchsReference = matchList.getMatches();
+    StringBuilder recentMatchsString = new StringBuilder();
 
-      List<SavedMatch> threeMostRecentMatch = new ArrayList<>();
+    if(!matchs.isEmpty()) {
+      String unknownTranslated = LanguageManager.getText(language, "unknown");
+      for(LOLMatch match : matchs) {
+        LocalDateTime matchTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(match.getGameCreation()), ZoneId.ofOffset("UTC", ZoneOffset.UTC));
+        Champion champion = new Champion(-1, unknownTranslated, unknownTranslated, null);
+        try {
+          MatchParticipant choosenParticipant = null;
 
-      if(matchsReference.size() < 3) {
-        for(MatchReference matchReference : matchsReference) {
-          try {
-            threeMostRecentMatch.add(Zoe.getRiotApi().getMatch(leagueAccount.leagueAccount_server,
-                matchReference.getGameId()));
-          } catch(RiotApiException e) {
-            if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
-              throw e;
+          for(MatchParticipant participant : match.getParticipants()) {
+            if(participant.getSummonerId().equals(leagueAccount.leagueAccount_summonerId)) {
+              choosenParticipant = participant;
+              break;
             }
-            logger.info("Riot api got an error : {}", e);
           }
+          if(choosenParticipant != null) {
+            champion = Ressources.getChampionDataById(choosenParticipant.getChampionId());
+          }
+        }catch(NullPointerException e) {
+          logger.debug("Data errored, can't detect champion");
         }
-      }else {
-        for(int i = 0; i < 3; i++) {
-          MatchReference matchReference = matchsReference.get(i);
+        recentMatchsString.append(champion.getEmoteUsable() + " " + champion.getName() + " - **" + MessageBuilderRequestUtil.getPastMoment(matchTime, language) + "**\n");
 
-          try {
-            threeMostRecentMatch.add(Zoe.getRiotApi().getMatch(leagueAccount.leagueAccount_server, matchReference.getGameId()));
-          } catch(RiotApiException e) {
-            if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
-              throw e;
-            }
-            logger.info("Riot api got an error : {}", e);
-          }
-        }
+        field = new Field(latestGameTranslated, recentMatchsString.toString(), true);
       }
-
-      StringBuilder recentMatchsString = new StringBuilder();
-
-      if(!threeMostRecentMatch.isEmpty()) {
-        String unknownTranslated = LanguageManager.getText(language, "unknown");
-        for(SavedMatch match : threeMostRecentMatch) {
-          LocalDateTime matchTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(match.getGameCreation()), ZoneId.ofOffset("UTC", ZoneOffset.UTC));
-          Champion champion = new Champion(-1, unknownTranslated, unknownTranslated, null);
-          try {
-            champion = Ressources.getChampionDataById(match.getSavedMatchPlayerBySummonerId(leagueAccount.leagueAccount_summonerId).getChampionId());
-          }catch(NullPointerException e) {
-            logger.debug("Data errored, can't detect champion");
-          }
-          recentMatchsString.append(champion.getEmoteUsable() + " " + champion.getName() + " - **" + MessageBuilderRequestUtil.getPastMoment(matchTime, language) + "**\n");
-        }
-      }
-      field = new Field(latestGameTranslated, recentMatchsString.toString(), true);
     }else {
       if(isRiotApiError) {
         field = new Field(latestGameTranslated, LanguageManager.getText(language, "statsProfileRiotApiError"), true);
@@ -816,12 +799,11 @@ public class MessageBuilderRequest {
     message.addField(field);
 
 
-    Set<LeagueEntry> rankPosition = null;
+    List<LeagueEntry> rankPosition = null;
     try {
-      rankPosition = Zoe.getRiotApi().getLeagueEntriesBySummonerId(leagueAccount.leagueAccount_server,
-          leagueAccount.leagueAccount_summonerId);
-    }catch (RiotApiException e) {
-      if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
+      rankPosition = summoner.getLeagueEntry();
+    }catch (APIResponseException e) {
+      if(e.getReason() == APIHTTPErrorReason.ERROR_429) {
         throw e;
       }
       logger.info("Error with the api : ", e);
@@ -859,12 +841,12 @@ public class MessageBuilderRequest {
 
     }
 
-    Set<TFTLeagueEntry> tftRankPosition = null;
+    List<LeagueEntry> tftRankPosition = null;
     try {
-      tftRankPosition = Zoe.getRiotApi().getTFTLeagueEntries(leagueAccount.leagueAccount_server,
+      tftRankPosition = Zoe.getRiotApi().getTFTAPI().getLeagueAPI().getLeagueEntries(leagueAccount.leagueAccount_server,
           leagueAccount.leagueAccount_tftSummonerId);
-    }catch (RiotApiException e) {
-      if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
+    }catch (APIResponseException e) {
+      if(e.getReason() == APIHTTPErrorReason.ERROR_429) {
         throw e;
       }
       logger.info("Error with the api : ", e);
@@ -872,7 +854,7 @@ public class MessageBuilderRequest {
 
     if(tftRankPosition != null) {
 
-      Iterator<TFTLeagueEntry> iteratorPosition = tftRankPosition.iterator();
+      Iterator<LeagueEntry> iteratorPosition = tftRankPosition.iterator();
 
       String tftRank = String.format(LanguageManager.getText(language, "statsProfileQueueTFT"), unrankedTranslated);
 
@@ -890,7 +872,7 @@ public class MessageBuilderRequest {
         }
         FullTier fullTier = new FullTier(tier, rank, leaguePosition.getLeaguePoints());
 
-        if(leaguePosition.getQueueType().equals(GameQueueConfigId.RANKED_TFT.getQueueType())) {
+        if(leaguePosition.getQueueType().getApiName().equals(GameQueueConfigId.RANKED_TFT.getQueueType())) {
           tftRank = String.format(LanguageManager.getText(language, "statsProfileQueueTFT"), 
               Ressources.getTierEmote().get(tier).getUsableEmote() + " " + fullTier.toString(language));
         }

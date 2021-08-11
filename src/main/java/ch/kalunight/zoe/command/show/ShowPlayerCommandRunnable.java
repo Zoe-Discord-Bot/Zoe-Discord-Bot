@@ -6,10 +6,8 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.Paginator;
-import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.Server;
-import ch.kalunight.zoe.model.dto.DTO.SummonerCache;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
@@ -22,7 +20,9 @@ import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.dv8tion.jda.api.interactions.InteractionHook;
-import net.rithms.riot.api.RiotApiException;
+import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
+import no.stelar7.api.r4j.impl.lol.builders.summoner.SummonerBuilder;
+import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class ShowPlayerCommandRunnable {
 
@@ -73,16 +73,16 @@ public class ShowPlayerCommandRunnable {
       }
       accountsNmb += leagueAccounts.size();
       for(DTO.LeagueAccount leagueAccount : leagueAccounts) {
-        SummonerCache summoner;
+        Summoner summoner;
         try {
-          summoner = Zoe.getRiotApi().getSummoner(leagueAccount.leagueAccount_server,
-              leagueAccount.leagueAccount_summonerId, false);
-        } catch(RiotApiException e) {
+          summoner = new SummonerBuilder().withPlatform(leagueAccount.leagueAccount_server)
+              .withSummonerId(leagueAccount.leagueAccount_summonerId).get();
+        } catch(APIResponseException e) {
           CommandUtil.sendMessageWithClassicOrSlashCommand(RiotApiUtil.getTextHandlerRiotApiError(e, server.getLanguage()), messageToEdit, hook);
           return;
         }
         playerInfo.append(String.format(LanguageManager.getText(server.getLanguage(), "showPlayerAccount"),
-            summoner.getSumCacheData().getName(), leagueAccount.leagueAccount_server.getName().toUpperCase(),
+            summoner.getName(), leagueAccount.leagueAccount_server.getRealmValue().toUpperCase(),
             RiotRequest.getSoloqRank(leagueAccount.leagueAccount_summonerId,
                 leagueAccount.leagueAccount_server).toString(server.getLanguage())) + "\n");
       }

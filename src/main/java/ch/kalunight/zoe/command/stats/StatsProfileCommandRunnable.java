@@ -30,9 +30,6 @@ import ch.kalunight.zoe.model.config.option.RegionOption;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Server;
-import ch.kalunight.zoe.model.dto.DTO.SummonerCache;
-import ch.kalunight.zoe.model.dto.SavedChampionsMastery;
-import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
@@ -51,10 +48,13 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.InteractionHook;
-import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
-import net.rithms.riot.api.endpoints.tft_summoner.dto.TFTSummoner;
-import net.rithms.riot.constant.Platform;
+import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
+import no.stelar7.api.r4j.basic.exceptions.APIHTTPErrorReason;
+import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
+import no.stelar7.api.r4j.impl.lol.builders.championmastery.ChampionMasteryBuilder;
+import no.stelar7.api.r4j.impl.lol.builders.summoner.SummonerBuilder;
+import no.stelar7.api.r4j.pojo.lol.championmastery.ChampionMastery;
+import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class StatsProfileCommandRunnable {
 
@@ -105,7 +105,7 @@ public class StatsProfileCommandRunnable {
     if(leagueAccount != null) {
       try {
         leagueAccount.getSummoner();
-      } catch(RiotApiException e) {
+      } catch(APIResponseException e) {
         CommandUtil.sendMessageWithClassicOrSlashCommand(RiotApiUtil.getTextHandlerRiotApiError(e, server.getLanguage()), toEdit, hook);
         return;
       }
@@ -129,7 +129,7 @@ public class StatsProfileCommandRunnable {
 
     List<DTO.LeagueAccount> accounts = LeagueAccountRepository.getLeaguesAccounts(server.serv_guildId, user.getIdLong());
     
-    SummonerCache summoner;
+    Summoner summoner;
     if(accounts.size() == 1) {
       generateStatsMessage(player, accounts.get(0), server, toEdit, hook, sourceChannel);
     }else if(accounts.isEmpty()) {
@@ -152,18 +152,18 @@ public class StatsProfileCommandRunnable {
 
       for(DTO.LeagueAccount choiceAccount : accounts) {
         try {
-          summoner = Zoe.getRiotApi().getSummoner(choiceAccount.leagueAccount_server,
-              choiceAccount.leagueAccount_summonerId, false);
-        }catch(RiotApiException e) {
+          summoner = new SummonerBuilder().withPlatform(choiceAccount.leagueAccount_server)
+              .withSummonerId(choiceAccount.leagueAccount_summonerId).get();
+        }catch(APIResponseException e) {
           CommandUtil.sendMessageWithClassicOrSlashCommand(RiotApiUtil.getTextHandlerRiotApiError(e, server.getLanguage()), toEdit, hook);
           return;
         }
 
         selectAccountBuilder.addChoices(String.format(LanguageManager.getText(server.getLanguage(), "showPlayerAccount"),
-            summoner.getSumCacheData().getName(),
-            choiceAccount.leagueAccount_server.getName().toUpperCase(),
+            summoner.getName(),
+            choiceAccount.leagueAccount_server.getRealmValue().toUpperCase(),
             RiotRequest.getSoloqRank(choiceAccount.leagueAccount_summonerId, choiceAccount.leagueAccount_server).toString(server.getLanguage())));
-        accountsName.add(summoner.getSumCacheData().getName());
+        accountsName.add(summoner.getName());
       }
 
       selectAccountBuilder.setText(getUpdateMessageAfterChangeSelectAction(accountsName, server));
@@ -191,24 +191,24 @@ public class StatsProfileCommandRunnable {
       RegionOption regionOption = config.getDefaultRegion();
 
       if(regionOption.getRegion() != null) {
-        regionName = regionOption.getRegion().getName();
+        regionName = regionOption.getRegion().getRealmValue();
       }
       summonerName = listArgs.get(0);
     }else {
       return null;
     }
 
-    Platform region = CreatePlayerCommandRunnable.getPlatform(regionName);
+    LeagueShard region = CreatePlayerCommandRunnable.getPlatform(regionName);
     if(region == null) {
       return null;
     }
 
     Summoner summoner;
-    TFTSummoner tftSummoner;
+    Summoner tftSummoner;
     try {
-      summoner = Zoe.getRiotApi().getSummonerByNameWithRateLimit(region, summonerName);
-      tftSummoner = Zoe.getRiotApi().getTFTSummonerByNameWithRateLimit(region, summonerName);
-    }catch(RiotApiException e) {
+      summoner = new SummonerBuilder().withPlatform(region).withName(summonerName).get();
+      tftSummoner = Zoe.getTftSummonerApi().getSummonerByName(region, summonerName);
+    }catch(APIResponseException e) {
       return null;
     }
     return new LeagueAccount(summoner, tftSummoner, region);
@@ -237,7 +237,7 @@ public class StatsProfileCommandRunnable {
               LanguageManager.getText(server.getLanguage(), "statsProfileSelectionDoneMessage"),
               account.getSummoner().getName(), channel.getJDA().retrieveUserById(player.player_discordId).complete()
               .getName())).queue();
-        } catch (RiotApiException e) {
+        } catch (APIResponseException e) {
           CommandUtil.sendMessageWithClassicOrSlashCommand(RiotApiUtil.getTextHandlerRiotApiError(e, server.getLanguage()), messageLoading, hook);
           return;
         }
@@ -262,12 +262,12 @@ public class StatsProfileCommandRunnable {
 
     String url = Integer.toString(random.nextInt(100000));
 
-    SavedChampionsMastery championsMasteries;
+    List<ChampionMastery> championsMasteries;
     try {
-      championsMasteries = Zoe.getRiotApi().getChampionMasteriesBySummoner(lolAccount.leagueAccount_server,
-          lolAccount.leagueAccount_summonerId, true);
-    } catch(RiotApiException e) {
-      if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
+      championsMasteries = new ChampionMasteryBuilder().withPlatform(lolAccount.leagueAccount_server)
+          .withSummonerId(lolAccount.leagueAccount_summonerId).getChampionMasteries();
+    } catch(APIResponseException e) {
+      if(e.getReason() == APIHTTPErrorReason.ERROR_429) {
         CommandUtil.sendMessageWithClassicOrSlashCommand(LanguageManager.getText(server.getLanguage(), "statsProfileRateLimitError"), messageLoading, hook);
         return;
       }
@@ -278,10 +278,10 @@ public class StatsProfileCommandRunnable {
 
     byte[] imageBytes = null;
     try {
-      if(championsMasteries != null && !championsMasteries.getChampionMasteries().isEmpty()) {
+      if(championsMasteries != null && !championsMasteries.isEmpty()) {
         imageBytes = generateMasteriesChart(player, championsMasteries, server, lolAccount, channel.getJDA());
       }
-    } catch(IOException | RiotApiException e) {
+    } catch(IOException | APIResponseException e) {
       logger.info("Got a error in encoding bytesMap image", e);
       CommandUtil.sendMessageWithClassicOrSlashCommand(LanguageManager.getText(server.getLanguage(), "statsProfileUnexpectedErrorGraph"), messageLoading, hook);
       return;
@@ -290,8 +290,8 @@ public class StatsProfileCommandRunnable {
     MessageEmbed embed;
     try {
       embed = MessageBuilderRequest.createProfileMessage(player, lolAccount, championsMasteries, server.getLanguage(), url, channel.getJDA());
-    } catch(RiotApiException e) {
-      if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
+    } catch(APIResponseException e) {
+      if(e.getReason() == APIHTTPErrorReason.ERROR_429) {
         logger.debug("Get rate limited", e);
         CommandUtil.sendMessageWithClassicOrSlashCommand(LanguageManager.getText(server.getLanguage(), "statsProfileRateLimitError"), messageLoading, hook);
         return;
@@ -316,9 +316,9 @@ public class StatsProfileCommandRunnable {
     }
   }
 
-  private static byte[] generateMasteriesChart(DTO.Player player, SavedChampionsMastery championsMasteries,
-      DTO.Server server, LeagueAccount leagueAccount, JDA jda) throws IOException, RiotApiException {
-    List<SavedSimpleMastery> listHeigherChampion = getBestMasteries(championsMasteries, NUMBER_OF_CHAMPIONS_IN_GRAPH);
+  private static byte[] generateMasteriesChart(DTO.Player player, List<ChampionMastery> championsMasteries,
+      DTO.Server server, LeagueAccount leagueAccount, JDA jda) throws IOException {
+    List<ChampionMastery> listHeigherChampion = getBestMasteries(championsMasteries, NUMBER_OF_CHAMPIONS_IN_GRAPH);
     CategoryChartBuilder masteriesGraphBuilder = new CategoryChartBuilder();
 
     masteriesGraphBuilder.chartTheme = ChartTheme.GGPlot2;
@@ -368,9 +368,9 @@ public class StatsProfileCommandRunnable {
     return BitmapEncoder.getBitmapBytes(masteriesGraph, BitmapFormat.PNG);
   }
 
-  private static long getMoyenneMasteries(List<SavedSimpleMastery> championsMasteries) {
+  private static long getMoyenneMasteries(List<ChampionMastery> championsMasteries) {
     long allMasteries = 0;
-    for(SavedSimpleMastery championMastery : championsMasteries) {
+    for(ChampionMastery championMastery : championsMasteries) {
       if(championMastery != null) {
         allMasteries += championMastery.getChampionPoints();
       }
@@ -381,14 +381,14 @@ public class StatsProfileCommandRunnable {
     return allMasteries / championsMasteries.size();
   }
 
-  public static List<SavedSimpleMastery> getBestMasteries(SavedChampionsMastery championsMasteries, int nbrTop) {
-    List<SavedSimpleMastery> listHeigherChampion = new ArrayList<>();
+  public static List<ChampionMastery> getBestMasteries(List<ChampionMastery> championsMasteries, int nbrTop) {
+    List<ChampionMastery> listHeigherChampion = new ArrayList<>();
 
     for(int i = 0; i < nbrTop; i++) {
 
-      SavedSimpleMastery heigherActual = null;
+      ChampionMastery heigherActual = null;
 
-      for(SavedSimpleMastery championMastery : championsMasteries.getChampionMasteries()) {
+      for(ChampionMastery championMastery : championsMasteries) {
 
         if(listHeigherChampion.contains(championMastery)) {
           continue;

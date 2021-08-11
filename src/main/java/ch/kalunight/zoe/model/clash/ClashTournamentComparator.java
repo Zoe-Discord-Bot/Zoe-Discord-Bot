@@ -2,8 +2,8 @@ package ch.kalunight.zoe.model.clash;
 
 import java.util.Comparator;
 
-import net.rithms.riot.api.endpoints.clash.dto.ClashTournament;
-import net.rithms.riot.api.endpoints.clash.dto.ClashTournamentPhase;
+import no.stelar7.api.r4j.pojo.lol.clash.ClashTournament;
+import no.stelar7.api.r4j.pojo.lol.clash.ClashTournamentPhase;
 
 public class ClashTournamentComparator implements Comparator<ClashTournament> {
 
@@ -16,15 +16,15 @@ public class ClashTournamentComparator implements Comparator<ClashTournament> {
     
     ClashTournamentPhase firstPhase02 = o2.getSchedule().get(0);
     
-    if(firstPhaseO1.getRegistrationTimeTimestamp() == firstPhase02.getRegistrationTimeTimestamp()) {
+    if(firstPhaseO1.getRegistrationTime() == firstPhase02.getRegistrationTime()) {
       return 0;
     }
     
-    if(firstPhaseO1.getRegistrationTimeTimestamp() < firstPhase02.getRegistrationTimeTimestamp()) {
+    if(firstPhaseO1.getRegistrationTime() < firstPhase02.getRegistrationTime()) {
       return -1;
     }
     
-    if(firstPhaseO1.getRegistrationTimeTimestamp() > firstPhase02.getRegistrationTimeTimestamp()) {
+    if(firstPhaseO1.getRegistrationTime() > firstPhase02.getRegistrationTime()) {
       return 1;
     }
     

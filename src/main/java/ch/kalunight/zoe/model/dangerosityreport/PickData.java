@@ -3,9 +3,7 @@ package ch.kalunight.zoe.model.dangerosityreport;
 import java.util.ArrayList;
 import java.util.List;
 
-import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.service.analysis.ChampionRole;
-import ch.kalunight.zoe.model.dto.DTO.SummonerCache;
 import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
 import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 

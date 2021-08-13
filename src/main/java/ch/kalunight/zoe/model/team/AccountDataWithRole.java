@@ -1,16 +1,16 @@
 package ch.kalunight.zoe.model.team;
 
-import net.rithms.riot.api.endpoints.clash.constant.TeamPosition;
-import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
-import net.rithms.riot.constant.Platform;
+import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
+import no.stelar7.api.r4j.pojo.lol.clash.ClashPosition;
+import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class AccountDataWithRole {
   
   private Summoner summoner;
-  private Platform platform;
-  private TeamPosition position;
+  private LeagueShard platform;
+  private ClashPosition position;
   
-  public AccountDataWithRole(Summoner summoner, Platform platform, TeamPosition position) {
+  public AccountDataWithRole(Summoner summoner, LeagueShard platform, ClashPosition position) {
     this.summoner = summoner;
     this.platform = platform;
     this.position = position;
@@ -24,19 +24,19 @@ public class AccountDataWithRole {
     this.summoner = summoner;
   }
 
-  public Platform getPlatform() {
+  public LeagueShard getPlatform() {
     return platform;
   }
 
-  public void setPlatform(Platform platform) {
+  public void setPlatform(LeagueShard platform) {
     this.platform = platform;
   }
 
-  public TeamPosition getPosition() {
+  public ClashPosition getPosition() {
     return position;
   }
 
-  public void setPosition(TeamPosition position) {
+  public void setPosition(ClashPosition position) {
     this.position = position;
   }
   

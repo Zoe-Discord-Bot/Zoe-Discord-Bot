@@ -70,7 +70,7 @@ public class RegionOption extends ConfigurationOption {
 
         List<LeagueShard> regionsList = new ArrayList<>();
         List<String> regionChoices = new ArrayList<>();
-        for(LeagueShard regionMember : LeagueShard.values()) {
+        for(LeagueShard regionMember : LeagueShard.getDefaultPlatforms()) {
           String actualChoice = String.format(LanguageManager.getText(server.getLanguage(), "regionOptionRegionChoice"),
               regionMember.getRealmValue().toUpperCase());
           

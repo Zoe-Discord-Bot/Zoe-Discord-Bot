@@ -13,7 +13,7 @@ import com.google.gson.GsonBuilder;
 
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.SavedSummoner;
-import net.rithms.riot.constant.Platform;
+import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
 
 public class SummonerCacheRepository {
 
@@ -45,12 +45,12 @@ public class SummonerCacheRepository {
     //hide default public constructor
   }
   
-  public static DTO.SummonerCache getSummonerWithSummonerId(String summonerId, Platform platform) throws SQLException {
+  public static DTO.SummonerCache getSummonerWithSummonerId(String summonerId, LeagueShard platform) throws SQLException {
     ResultSet result = null;
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
 
-      String finalQuery = String.format(SELECT_SUMMONER_CACHE_WITH_SUMMONER_ID_AND_SERVER, summonerId, platform.getName());
+      String finalQuery = String.format(SELECT_SUMMONER_CACHE_WITH_SUMMONER_ID_AND_SERVER, summonerId, platform.getRealmValue());
       result = query.executeQuery(finalQuery);
       int rowCount = result.last() ? result.getRow() : 0;
       if(rowCount == 0) {
@@ -72,12 +72,12 @@ public class SummonerCacheRepository {
     }
   }
   
-  public static void createSummonerCache(String summonerId, Platform server, SavedSummoner summonerToCache) throws SQLException {
+  public static void createSummonerCache(String summonerId, LeagueShard server, SavedSummoner summonerToCache) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();
         PreparedStatement preparedQuery = conn.prepareStatement(INSERT_SUMMONER_CACHE);) {
       
       preparedQuery.setString(1, summonerId);
-      preparedQuery.setString(2, server.getName());
+      preparedQuery.setString(2, server.getRealmValue());
       preparedQuery.setString(3, gson.toJson(summonerToCache));
       preparedQuery.setTimestamp(4, Timestamp.valueOf(DTO.DB_TIME_PATTERN.format(LocalDateTime.now())));
       
@@ -94,11 +94,11 @@ public class SummonerCacheRepository {
     }
   }
   
-  public static void deleteSummonerCacheWithSummonerIDAndServer(Platform platform, String summonerId) throws SQLException {
+  public static void deleteSummonerCacheWithSummonerIDAndServer(LeagueShard platform, String summonerId) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
       
-      String finalQuery = String.format(DELETE_SUMMONER_CACHE_WITH_SERVER_AND_SUMMONER_ID, platform.getName(), summonerId);
+      String finalQuery = String.format(DELETE_SUMMONER_CACHE_WITH_SERVER_AND_SUMMONER_ID, platform.getRealmValue(), summonerId);
       query.executeUpdate(finalQuery);
     }
   }

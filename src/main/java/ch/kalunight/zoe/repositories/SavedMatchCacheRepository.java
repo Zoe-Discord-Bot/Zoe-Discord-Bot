@@ -15,7 +15,7 @@ import com.google.gson.GsonBuilder;
 
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.SavedMatch;
-import net.rithms.riot.constant.Platform;
+import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
 
 public class SavedMatchCacheRepository {
   
@@ -108,13 +108,13 @@ public class SavedMatchCacheRepository {
     }
   }
   
-  public static void createMatchCache(long gameId, Platform server, SavedMatch match) throws SQLException {
+  public static void createMatchCache(long gameId, LeagueShard server, SavedMatch match) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
       
       LocalDateTime creationTime = Instant.ofEpochMilli(match.getGameCreation()).atZone(ZoneId.systemDefault()).toLocalDateTime();
       
-      String finalQuery = String.format(INSERT_MATCH_CATCH, gameId, server.getName(), gson.toJson(match), DTO.DB_TIME_PATTERN.format(creationTime));
+      String finalQuery = String.format(INSERT_MATCH_CATCH, gameId, server.getRealmValue(), gson.toJson(match), DTO.DB_TIME_PATTERN.format(creationTime));
       query.execute(finalQuery);
     }
   }
@@ -128,12 +128,12 @@ public class SavedMatchCacheRepository {
     }
   }
   
-  public static DTO.MatchCache getMatch(long gameId, Platform platform) throws SQLException {
+  public static DTO.MatchCache getMatch(long gameId, LeagueShard platform) throws SQLException {
     ResultSet result = null;
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
 
-      String finalQuery = String.format(SELECT_MATCH_WITH_GAMEID_AND_SERVER, gameId, platform.getName());
+      String finalQuery = String.format(SELECT_MATCH_WITH_GAMEID_AND_SERVER, gameId, platform.getRealmValue());
       result = query.executeQuery(finalQuery);
       int rowCount = result.last() ? result.getRow() : 0;
       if(rowCount == 0) {

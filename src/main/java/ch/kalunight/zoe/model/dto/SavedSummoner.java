@@ -1,6 +1,6 @@
 package ch.kalunight.zoe.model.dto;
 
-import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
+import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class SavedSummoner {
 

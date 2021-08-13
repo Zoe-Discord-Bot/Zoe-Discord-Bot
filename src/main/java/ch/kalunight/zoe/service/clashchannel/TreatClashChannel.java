@@ -40,13 +40,11 @@ import net.dv8tion.jda.api.entities.MessageReaction;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.requests.ErrorResponse;
-import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.clash.constant.TeamPosition;
-import net.rithms.riot.api.endpoints.clash.constant.TeamRole;
-import net.rithms.riot.api.endpoints.clash.dto.ClashTeamMember;
-import net.rithms.riot.api.endpoints.clash.dto.ClashTournament;
-import net.rithms.riot.api.endpoints.clash.dto.ClashTournamentPhase;
-import net.rithms.riot.constant.Platform;
+import no.stelar7.api.r4j.impl.lol.builders.summoner.SummonerBuilder;
+import no.stelar7.api.r4j.pojo.lol.clash.ClashPlayer;
+import no.stelar7.api.r4j.pojo.lol.clash.ClashTournament;
+import no.stelar7.api.r4j.pojo.lol.clash.ClashTournamentPhase;
+import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class TreatClashChannel implements Runnable {
 
@@ -77,9 +75,9 @@ public class TreatClashChannel implements Runnable {
   @Override
   public void run() {
     try {
-      
+
       JDA jda = Zoe.getJdaByGuildId(server.serv_guildId);
-      
+
       boolean loadNeedToBeCanceled = loadDiscordEntities(jda);
       if(loadNeedToBeCanceled) {
         return;
@@ -89,7 +87,7 @@ public class TreatClashChannel implements Runnable {
 
       cleanClashChannel(clashMessageManager);
 
-      SummonerCache summonerCache = Zoe.getRiotApi().getSummoner(clashMessageManager.getSelectedPlatform(), clashMessageManager.getSelectedSummonerId(), forceRefreshCache);
+      Summoner summonerCache = new SummonerBuilder().withPlatform(clashMessageManager.getSelectedPlatform()).withSummonerId(clashMessageManager.getSelectedSummonerId()).get();
 
       if(summonerCache == null) { //TODO handle timeout case -> don't delete clash channel
         //clashChannel.sendMessage(LanguageManager.getText(server.getLanguage(), "clashChannelDeletionBecauseOfSummonerAccountUnreachable")).queue();
@@ -97,10 +95,9 @@ public class TreatClashChannel implements Runnable {
         return;
       }
 
-      List<ClashTeamMember> clashPlayerRegistrations = Zoe.getRiotApi().getClashPlayerBySummonerIdWithRateLimit(clashMessageManager.getSelectedPlatform(),
-          clashMessageManager.getSelectedSummonerId());
+      List<ClashPlayer> clashPlayerRegistrations = Zoe.getRiotApi().getLoLAPI().getClashAPI().getPlayerInfo(clashMessageManager.getSelectedPlatform(), clashMessageManager.getSelectedSummonerId());
 
-      ClashTeamRegistration firstClashTeam = ClashUtil.getFirstRegistration(clashMessageManager.getSelectedPlatform(), clashPlayerRegistrations, forceRefreshCache);
+      ClashTeamRegistration firstClashTeam = ClashUtil.getFirstRegistration(clashMessageManager.getSelectedPlatform(), clashPlayerRegistrations);
 
       updateClashStatus(clashMessageManager, firstClashTeam);
 
@@ -305,38 +302,30 @@ public class TreatClashChannel implements Runnable {
     StringBuilder messageBuilder = new StringBuilder();
 
     messageBuilder.append("**" + String.format(LanguageManager.getText(server.getLanguage(), "clashChannelTitle"), summonerCache.getSumCacheData().getName(),
-        clashMessageManager.getSelectedPlatform().getName().toUpperCase()) + "**\n\n");
+        clashMessageManager.getSelectedPlatform().getRealmValue().toUpperCase()) + "**\n\n");
 
     messageBuilder.append(LanguageManager.getText(server.getLanguage(), "clashChannelLeagueAccountNotInGame") + "\n\n");
 
-    List<ClashTournament> nextTournaments = null;
-    try {
-      nextTournaments = Zoe.getRiotApi().getClashTournamentsWithRateLimit(clashMessageManager.getSelectedPlatform());
+    List<ClashTournament> nextTournaments = Zoe.getRiotApi().getLoLAPI().getClashAPI().getTournaments(clashMessageManager.getSelectedPlatform());
 
-      if(nextTournaments == null || nextTournaments.isEmpty()) {
-        messageBuilder.append(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentNotAvailable") + "\n\n");
-      }else {
-        messageBuilder.append(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentUpcoming") + "\n");
+    if(nextTournaments == null || nextTournaments.isEmpty()) {
+      messageBuilder.append(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentNotAvailable") + "\n\n");
+    }else {
+      messageBuilder.append(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentUpcoming") + "\n");
 
-        String tournamentBasicName = LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentBasicName");
+      String tournamentBasicName = LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentBasicName");
 
-        nextTournaments.sort(clashTournamentComparator);
+      nextTournaments.sort(clashTournamentComparator);
 
-        for(ClashTournament clashTournament : nextTournaments) {
-          List<ClashTournamentPhase> phases = clashTournament.getSchedule();
+      for(ClashTournament clashTournament : nextTournaments) {
+        List<ClashTournamentPhase> phases = clashTournament.getSchedule();
 
-          if(phases.size() == 1) {
-            addClashTournamentOnePhase(messageBuilder, tournamentBasicName, clashTournament, phases);
-          }else {
-            addClashTournamentMultplePhase(messageBuilder, tournamentBasicName, clashTournament, phases);
-          }
+        if(phases.size() == 1) {
+          addClashTournamentOnePhase(messageBuilder, tournamentBasicName, clashTournament, phases);
+        }else {
+          addClashTournamentMultplePhase(messageBuilder, tournamentBasicName, clashTournament, phases);
         }
       }
-
-    } catch (SQLException e) {
-      logger.warn("SQL Error in refreshWaitForTeamRegistration !", e);
-
-      messageBuilder.append("\n" + LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentError") + "\n\n");
     }
 
     messageBuilder.append("\n**" + LanguageManager.getText(server.getLanguage(), BOTTOM_MESSAGE_ID) + "**");

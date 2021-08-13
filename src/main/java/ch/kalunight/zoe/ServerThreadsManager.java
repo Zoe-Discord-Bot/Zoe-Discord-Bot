@@ -95,7 +95,7 @@ public class ServerThreadsManager {
     MONITORING_DATA_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Data-Monitoring-Thread %d").build());
     EVENTS_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Event-Executor-Thread %d").build());
     
-    for(LeagueShard platform : LeagueShard.values()) {
+    for(LeagueShard platform : LeagueShard.getDefaultPlatforms()) {
       ThreadPoolExecutor executor = new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
       String nameOfThread = String.format("Zoe Infochannel-Helper-%s-Worker", platform.getValue().toUpperCase());
       executor.setThreadFactory(new ThreadFactoryBuilder().setNameFormat(nameOfThread + " %d").build());
@@ -140,17 +140,17 @@ public class ServerThreadsManager {
     LEADERBOARD_EXECUTOR.getQueue().clear();
     COMMANDS_EXECUTOR.getQueue().clear();
     
-    for(LeagueShard platform : LeagueShard.values()) {
+    for(LeagueShard platform : LeagueShard.getDefaultPlatforms()) {
       ThreadPoolExecutor playerWorker = INFOCHANNEL_HELPER_THREAD.get(platform);
       playerWorker.getQueue().clear();
     }
     
-    for(LeagueShard platform : LeagueShard.values()) {
+    for(LeagueShard platform : LeagueShard.getDefaultPlatforms()) {
       ThreadPoolExecutor playerWorker = MATCH_THREAD_EXECUTORS.get(platform);
       playerWorker.getQueue().clear();
     }
     
-    for(LeagueShard platform : LeagueShard.values()) {
+    for(LeagueShard platform : LeagueShard.getDefaultPlatforms()) {
       ThreadPoolExecutor matchWorker = MATCH_THREAD_EXECUTORS.get(platform);
       matchWorker.getQueue().clear();
     }
@@ -223,7 +223,7 @@ public class ServerThreadsManager {
     logger.info("Start to shutdown Infochannel Helper Threads, this can take 1 minutes max...");
     channel.sendMessage("Start to shutdown Infochannel Helper Threads, this can take 1 minutes max...").complete();
     
-    for(LeagueShard platform : LeagueShard.values()) {
+    for(LeagueShard platform : LeagueShard.getDefaultPlatforms()) {
       ThreadPoolExecutor matchWorker = INFOCHANNEL_HELPER_THREAD.get(platform);
       matchWorker.shutdown();
       logger.info("Start to shutdown Infochannel Helper {}, this can take 1 minutes max...", platform.getValue());
@@ -331,7 +331,7 @@ public class ServerThreadsManager {
   
   public static int getPlayersDataQueue() {
     int queueTotal = 0;
-    for(LeagueShard platform : LeagueShard.values()) {
+    for(LeagueShard platform : LeagueShard.getDefaultPlatforms()) {
       queueTotal += MATCH_THREAD_EXECUTORS.get(platform).getQueue().size();
     }
     

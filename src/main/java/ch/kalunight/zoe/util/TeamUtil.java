@@ -445,7 +445,7 @@ public class TeamUtil {
     }
   }
   
-  public static String getTeamPositionId(TeamPosition teamPosition) {
+  public static String getTeamPositionId(ClashPosition teamPosition) {
     switch (teamPosition) {
     case BOTTOM:
       return "adc";

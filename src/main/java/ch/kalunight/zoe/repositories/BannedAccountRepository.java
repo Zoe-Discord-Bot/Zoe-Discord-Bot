@@ -5,7 +5,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import ch.kalunight.zoe.model.dto.DTO;
-import net.rithms.riot.constant.Platform;
 import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
 
 public class BannedAccountRepository {

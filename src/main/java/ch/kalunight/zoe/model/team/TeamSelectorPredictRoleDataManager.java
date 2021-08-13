@@ -27,7 +27,7 @@ public class TeamSelectorPredictRoleDataManager extends TeamSelectorDataManager 
     builder.append(LanguageManager.getText(server.getLanguage(), "statsPredictRoleTitleDeterminedRole") + "\n");
     for(TeamPlayerAnalysisDataCollector playerToShow : playersData) {
       builder.append(LanguageManager.getText(server.getLanguage(), TeamUtil.getChampionRoleAbrID(playerToShow.getFinalDeterminedPosition())) + " : *" 
-          + playerToShow.getPlatform().getName().toUpperCase() + "* " + playerToShow.getSummoner().getSumCacheData().getName() + "\n");
+          + playerToShow.getPlatform().getRealmValue().toUpperCase() + "* " + playerToShow.getSummoner().getName() + "\n");
     }
 
     builder.append("*" + LanguageManager.getText(server.getLanguage(), "disclaimerAnalysis") + "*");

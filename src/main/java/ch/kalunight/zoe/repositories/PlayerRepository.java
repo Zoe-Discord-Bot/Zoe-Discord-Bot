@@ -18,7 +18,6 @@ import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.Player;
 import net.dv8tion.jda.api.entities.Guild;
-import net.rithms.riot.constant.Platform;
 import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
 
 public class PlayerRepository {

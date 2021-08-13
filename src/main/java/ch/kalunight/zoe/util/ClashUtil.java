@@ -1,6 +1,5 @@
 package ch.kalunight.zoe.util;
 
-import java.sql.SQLException;
 import java.util.List;
 
 import ch.kalunight.zoe.Zoe;
@@ -16,7 +15,7 @@ public class ClashUtil {
     // hide default public constructor
   }
   
-  public static ClashTeamRegistration getFirstRegistration(LeagueShard platform, List<ClashPlayer> clashPlayerRegistrations, boolean forceCacheRefresh) throws SQLException {
+  public static ClashTeamRegistration getFirstRegistration(LeagueShard platform, List<ClashPlayer> clashPlayerRegistrations) {
 
     ClashTeamRegistration teamRegistration = null;
 

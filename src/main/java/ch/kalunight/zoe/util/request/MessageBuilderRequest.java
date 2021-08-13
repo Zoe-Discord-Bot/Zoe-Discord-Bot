@@ -53,9 +53,11 @@ import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
 import no.stelar7.api.r4j.impl.lol.builders.matchv5.match.MatchBuilder;
 import no.stelar7.api.r4j.pojo.lol.championmastery.ChampionMastery;
 import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
+import no.stelar7.api.r4j.pojo.lol.league.MiniSeries;
 import no.stelar7.api.r4j.pojo.lol.match.v5.LOLMatch;
 import no.stelar7.api.r4j.pojo.lol.match.v5.MatchIterator;
 import no.stelar7.api.r4j.pojo.lol.match.v5.MatchParticipant;
+import no.stelar7.api.r4j.pojo.lol.spectator.SpectatorGameInfo;
 import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class MessageBuilderRequest {
@@ -77,9 +79,9 @@ public class MessageBuilderRequest {
   private MessageBuilderRequest() {}
 
   public static PlayerRankedResult getMatchDataMutiplePlayers(LeagueEntry oldEntry, LeagueEntry newEntry, 
-      CurrentGameInfo gameOfTheChange, LeagueAccount leagueAccount, String lang, RankedChangeType changeType) {
+      SpectatorGameInfo gameOfTheChange, LeagueAccount leagueAccount, String lang, RankedChangeType changeType) {
 
-    SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
+    LOLMatch match = new MatchBuilder().withPlatform(leagueAccount.leagueAccount_server.toRegionShard()).withId(((Long) gameOfTheChange.getGameId()).toString()).getMatch();
 
     String accountTitle = null;
     String changeStats = null;

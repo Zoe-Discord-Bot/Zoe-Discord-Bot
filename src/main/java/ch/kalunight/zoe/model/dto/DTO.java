@@ -23,6 +23,7 @@ import net.dv8tion.jda.api.entities.User;
 import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
 import no.stelar7.api.r4j.impl.lol.builders.summoner.SummonerBuilder;
 import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
+import no.stelar7.api.r4j.pojo.lol.spectator.SpectatorGameInfo;
 import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class DTO {
@@ -235,7 +236,6 @@ public class DTO {
     public final String leagueAccount_tftAccountId;
     public final String leagueAccount_tftPuuid;
     public final LeagueShard leagueAccount_server;
-    private Summoner summoner = null;
 
     public LeagueAccount(ResultSet baseData) throws SQLException {
       leagueAccount_id = baseData.getLong("leagueAccount_id");
@@ -265,8 +265,6 @@ public class DTO {
       leagueAccount_fk_player = null;
       leagueAccount_fk_gamecard = null;
       leagueAccount_fk_currentgame = null;
-
-      this.summoner = summoner;
     }
 
     public Summoner getSummoner() {
@@ -281,27 +279,26 @@ public class DTO {
 
   public static class CurrentGameInfo {
     public final long currentgame_id;
-    public net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo currentgame_currentgame;
-    public final Platform currentgame_server;
-    public final Long currentgame_gameid;
+    public SpectatorGameInfo currentgame_currentgame;
+    public final LeagueShard currentgame_server;
+    public final String currentgame_gameid;
 
     public CurrentGameInfo(ResultSet baseData) throws SQLException {
       currentgame_id = baseData.getLong("currentgame_id");
       if(baseData.getString("currentgame_currentgame") != null) {
-        currentgame_currentgame = gson.fromJson(baseData.getString("currentgame_currentgame"),
-            net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo.class);
+        currentgame_currentgame = gson.fromJson(baseData.getString("currentgame_currentgame"), SpectatorGameInfo.class);
       }else {
         currentgame_currentgame = null;
       }
 
       if(baseData.getString("currentgame_server") != null) {
-        currentgame_server = Platform.getPlatformByName(baseData.getString("currentgame_server"));
+        currentgame_server = LeagueShard.fromString(baseData.getString("currentgame_server")).get();
       }else {
         currentgame_server = null;
       }
 
       if(baseData.getString("currentgame_gameid") != null) {
-        currentgame_gameid = baseData.getLong("currentgame_gameid");
+        currentgame_gameid = baseData.getString("currentgame_gameid");
       }else {
         currentgame_gameid = null;
       }
@@ -420,7 +417,7 @@ public class DTO {
   public static class ServerRawSettings {
     public final Boolean selfoption_activate;
     public final Long roleoption_roleid;
-    public final Platform regionoption_region;
+    public final LeagueShard regionoption_region;
     public final Boolean gamecardoption_activate;
     public final Long cleanoption_channelid;
     public final CleanChannelOptionInfo cleanoption_option;
@@ -431,7 +428,7 @@ public class DTO {
 
       String platformName = baseData.getString("regionoption_region");
       if(platformName != null && !platformName.equals("")) {
-        regionoption_region = Platform.getPlatformByName(platformName);
+        regionoption_region = LeagueShard.fromString(baseData.getString("leagueAccount_server")).get();
       }else {
         regionoption_region = null;
       }

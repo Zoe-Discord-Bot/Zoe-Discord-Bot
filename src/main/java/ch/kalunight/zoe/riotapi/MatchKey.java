@@ -1,12 +1,12 @@
 package ch.kalunight.zoe.riotapi;
 
-import net.rithms.riot.constant.Platform;
+import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
 
 public final class MatchKey {
-  private final Platform platform;
+  private final LeagueShard platform;
   private final long matchId;
 
-  public MatchKey(Platform platform, long matchId) {
+  public MatchKey(LeagueShard platform, long matchId) {
     this.platform = platform;
     this.matchId = matchId;
     

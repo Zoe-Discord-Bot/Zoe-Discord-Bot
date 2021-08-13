@@ -12,7 +12,7 @@ public class PlayerProgression {
   
   public PlayerProgression(LeagueAccount leagueAccount, FullTier fullTier) throws NoValueRankException {
     this.playerSummonerId = leagueAccount.leagueAccount_summonerId;
-    this.region = leagueAccount.leagueAccount_server.getId();
+    this.region = leagueAccount.leagueAccount_server.getRealmValue();
     this.startingElo = fullTier.value();
   }
 

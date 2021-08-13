@@ -12,7 +12,6 @@ import java.util.function.Consumer;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.SelectionDialog;
 
-import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.create.CreatePlayerCommandRunnable;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.translation.LanguageManager;
@@ -21,10 +20,12 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.clash.constant.TeamPosition;
-import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
-import net.rithms.riot.constant.Platform;
+import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
+import no.stelar7.api.r4j.basic.exceptions.APIHTTPErrorReason;
+import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
+import no.stelar7.api.r4j.impl.lol.builders.summoner.SummonerBuilder;
+import no.stelar7.api.r4j.pojo.lol.clash.ClashPosition;
+import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class TeamSelectorDataHandler {
 
@@ -88,7 +89,7 @@ public class TeamSelectorDataHandler {
     String regionName = listArgs.get(0);
     String summonerName = listArgs.get(1);
 
-    Platform region = CreatePlayerCommandRunnable.getPlatform(regionName);
+    LeagueShard region = CreatePlayerCommandRunnable.getPlatform(regionName);
     if(region == null) {
       messageReceivedEvent.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisRegionTagInvalid") 
           + " " + LanguageManager.getText(server.getLanguage(), STATS_TEAM_ANALYSIS_CANCEL_MESSAGE_ID)).queue();
@@ -99,9 +100,10 @@ public class TeamSelectorDataHandler {
     Message messageLoading = messageReceivedEvent.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "loadingSummoner")).complete();
     Summoner summoner;
     try {
-      summoner = Zoe.getRiotApi().getSummonerByNameWithRateLimit(region, summonerName);
-    }catch(RiotApiException e) {
-      if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
+      summoner = new SummonerBuilder().withPlatform(region).withName(summonerName).get();
+      
+    }catch(APIResponseException e) {
+      if(e.getReason() == APIHTTPErrorReason.ERROR_404) {
         messageLoading.editMessage(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisSummonerNotFound") 
             + " " + LanguageManager.getText(server.getLanguage(), STATS_TEAM_ANALYSIS_CANCEL_MESSAGE_ID)).queue();
       }else {
@@ -121,7 +123,7 @@ public class TeamSelectorDataHandler {
     defineRoleSelectionWaiter(region, summoner, messageLoading);
   }
   
-  private void defineRoleSelectionWaiter(Platform platform, Summoner summoner, Message messageLoading) {
+  private void defineRoleSelectionWaiter(LeagueShard platform, Summoner summoner, Message messageLoading) {
     
     SelectionDialog.Builder selectRoleBuilder = new SelectionDialog.Builder()
         .addUsers(author.getUser())
@@ -133,14 +135,14 @@ public class TeamSelectorDataHandler {
         .setText(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisAskRole"))
         .setTimeout(2, TimeUnit.MINUTES);
     
-    List<TeamPosition> rolesOrder = new ArrayList<>();
+    List<ClashPosition> rolesOrder = new ArrayList<>();
     
-    selectRoleBuilder.addChoices(LanguageManager.getText(server.getLanguage(), TeamUtil.getTeamPositionId(TeamPosition.FILL))
+    selectRoleBuilder.addChoices(LanguageManager.getText(server.getLanguage(), TeamUtil.getTeamPositionId(ClashPosition.FILL))
     + " " + LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisRoleSelectionFillInfo"));
-    rolesOrder.add(TeamPosition.FILL);
+    rolesOrder.add(ClashPosition.FILL);
     
-    for(TeamPosition roleToSelect : TeamPosition.values()) {
-      if(roleToSelect != TeamPosition.UNSELECTED && roleToSelect != TeamPosition.FILL && !isRoleAlreadySelected(roleToSelect)) {
+    for(ClashPosition roleToSelect : ClashPosition.values()) {
+      if(roleToSelect != ClashPosition.UNSELECTED && roleToSelect != ClashPosition.FILL && !isRoleAlreadySelected(roleToSelect)) {
         selectRoleBuilder.addChoices(LanguageManager.getText(server.getLanguage(), TeamUtil.getTeamPositionId(roleToSelect)));
         rolesOrder.add(roleToSelect);
       }
@@ -151,16 +153,16 @@ public class TeamSelectorDataHandler {
     selectRoleBuilder.build().display(messageLoading);
   }
   
-  private BiConsumer<Message, Integer> roleSelectedDoneAction(List<TeamPosition> rolesOrder, Platform platform, Summoner summoner) {
+  private BiConsumer<Message, Integer> roleSelectedDoneAction(List<ClashPosition> rolesOrder, LeagueShard platform, Summoner summoner) {
     return new BiConsumer<Message, Integer>() {
       
       @Override
       public void accept(Message baseMessage, Integer seletedAnswerId) {
         baseMessage.getTextChannel().sendTyping().queue();
         baseMessage.clearReactions().queue();
-        TeamPosition selected = rolesOrder.get(seletedAnswerId - 1);
+        ClashPosition selected = rolesOrder.get(seletedAnswerId - 1);
         
-        String summonerName = "*" + platform.getName().toUpperCase() + "* " + summoner.getName();
+        String summonerName = "*" + platform.getRealmValue().toUpperCase() + "* " + summoner.getName();
         
         baseMessage.getTextChannel().sendMessage(String.format(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisAccountCorrectlySelected"), summonerName,
             LanguageManager.getText(server.getLanguage(), TeamUtil.getTeamPositionId(selected)))).queue();
@@ -193,16 +195,16 @@ public class TeamSelectorDataHandler {
     };
   }
   
-  private boolean isSummonerAlreadySelected(Summoner summoner, Platform platform) {
+  private boolean isSummonerAlreadySelected(Summoner summoner, LeagueShard platform) {
     for(AccountDataWithRole toCheck : accountsSelected) {
-      if(toCheck.getSummoner().getId().equals(summoner.getId()) && platform == toCheck.getPlatform()) {
+      if(toCheck.getSummoner().getSummonerId().equals(summoner.getSummonerId()) && platform == toCheck.getPlatform()) {
         return true;
       }
     }
     return false;
   }
   
-  private boolean isRoleAlreadySelected(TeamPosition positionToCheck) {
+  private boolean isRoleAlreadySelected(ClashPosition positionToCheck) {
     for(AccountDataWithRole toCheck : accountsSelected) {
       if(toCheck.getPosition() == positionToCheck) {
         return true;

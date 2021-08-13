@@ -12,8 +12,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.Server;
-import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
-import net.rithms.riot.constant.Platform;
+import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
+import no.stelar7.api.r4j.pojo.lol.spectator.SpectatorGameInfo;
 
 public class CurrentGameInfoRepository {
 
@@ -198,12 +198,12 @@ public class CurrentGameInfoRepository {
   }
 
   @Nullable
-  public static DTO.CurrentGameInfo getCurrentGameWithServerAndGameId(Platform platform, long gameID, Server server) throws SQLException {
+  public static DTO.CurrentGameInfo getCurrentGameWithServerAndGameId(LeagueShard platform, long gameID, Server server) throws SQLException {
     ResultSet result = null;
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
 
-      String finalQuery = String.format(SELECT_CURRENT_GAME_INFO_WITH_SERVER_AND_GAME_ID, platform.getName(), gameID, server.serv_guildId);
+      String finalQuery = String.format(SELECT_CURRENT_GAME_INFO_WITH_SERVER_AND_GAME_ID, platform.getRealmValue(), gameID, server.serv_guildId);
       result = query.executeQuery(finalQuery);
       int rowCount = result.last() ? result.getRow() : 0;
       if(rowCount == 0) {
@@ -215,20 +215,20 @@ public class CurrentGameInfoRepository {
     }
   }
   
-  public static long createCurrentGame(CurrentGameInfo currentGame, DTO.LeagueAccount leagueAccount) throws SQLException {
+  public static long createCurrentGame(SpectatorGameInfo currentGame, DTO.LeagueAccount leagueAccount) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();) {
       return createCurrentGame(currentGame, leagueAccount, conn);
     }
   }
 
-  public static long createCurrentGame(CurrentGameInfo currentGame, DTO.LeagueAccount leagueAccount, Connection conn) throws SQLException {
+  public static long createCurrentGame(SpectatorGameInfo currentGame, DTO.LeagueAccount leagueAccount, Connection conn) throws SQLException {
     ResultSet result = null;
     try (Statement query = conn.createStatement();) {
 
       String currentGameJson = gson.toJson(currentGame);
 
       String finalQuery = String.format(INSERT_CURRENT_GAME, currentGameJson, 
-          Long.toString(currentGame.getGameId()), leagueAccount.leagueAccount_server.getName());
+          Long.toString(currentGame.getGameId()), leagueAccount.leagueAccount_server.getRealmValue());
       result = query.executeQuery(finalQuery);
       result.next();
 
@@ -241,13 +241,13 @@ public class CurrentGameInfoRepository {
     }
   }
   
-  public static void updateCurrentGame(CurrentGameInfo currentGame, DTO.LeagueAccount leagueAccount) throws SQLException {
+  public static void updateCurrentGame(SpectatorGameInfo currentGame, DTO.LeagueAccount leagueAccount) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();) {
       updateCurrentGame(currentGame, leagueAccount, conn);
     }
   }
 
-  public static void updateCurrentGame(CurrentGameInfo currentGame, DTO.LeagueAccount leagueAccount, Connection conn) throws SQLException {
+  public static void updateCurrentGame(SpectatorGameInfo currentGame, DTO.LeagueAccount leagueAccount, Connection conn) throws SQLException {
     try (Statement query = conn.createStatement();) {
 
       String currentGameJson = gson.toJson(currentGame);

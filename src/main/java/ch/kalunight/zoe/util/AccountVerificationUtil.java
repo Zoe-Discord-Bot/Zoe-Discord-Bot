@@ -15,6 +15,7 @@ import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
 import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
@@ -48,7 +49,7 @@ public class AccountVerificationUtil {
 
       if(verificiationCode.equals(codeToCheck)) {
         try {
-          addOrCreateDBAccount(server, playerToAdd, region, summoner, tftSummoner);
+          addOrCreateDBAccount(server, playerToAdd.getUser(), region, summoner, tftSummoner);
         } catch (SQLException e) {
           event.getChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "errorSQLPleaseReport")).queue();
           return;
@@ -72,7 +73,7 @@ public class AccountVerificationUtil {
     channel.sendMessage(LanguageManager.getText(language, "verificationProcessCancel")).queue();
   }
 
-  public static void addOrCreateDBAccount(Server server, Member member, LeagueShard region, Summoner summoner,
+  public static void addOrCreateDBAccount(Server server, User member, LeagueShard region, Summoner summoner,
       Summoner tftSummoner) throws SQLException {
     DTO.Player player = PlayerRepository.getPlayer(server.serv_guildId, member.getIdLong());
     if(player == null) {

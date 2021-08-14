@@ -124,7 +124,7 @@ public class AddAccountCommandRunnable {
 
         return message;
       }else {
-        AccountVerificationUtil.addOrCreateDBAccount(server, author, region, summoner, tftSummoner);
+        AccountVerificationUtil.addOrCreateDBAccount(server, user, region, summoner, tftSummoner);
 
         return String.format(LanguageManager.getText(server.getLanguage(), "accountAddedToPlayer"),
             newAccount.getSummoner().getName(), user.getName());

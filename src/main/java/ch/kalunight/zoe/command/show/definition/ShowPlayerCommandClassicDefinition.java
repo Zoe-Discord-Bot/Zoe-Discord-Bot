@@ -14,6 +14,7 @@ import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.CommandUtil;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 
 public class ShowPlayerCommandClassicDefinition extends ZoeCommand {
@@ -23,7 +24,7 @@ public class ShowPlayerCommandClassicDefinition extends ZoeCommand {
   public ShowPlayerCommandClassicDefinition(EventWaiter eventWaiter) {
     this.name = ShowPlayerCommandRunnable.USAGE_NAME;
     String[] aliases = {"p", "player"};
-    this.arguments = "";
+    this.arguments = "@PlayerToShow (not mandatory)";
     this.aliases = aliases;
     this.waiter = eventWaiter;
     this.help = "showPlayerHelpMessage";
@@ -38,8 +39,13 @@ public class ShowPlayerCommandClassicDefinition extends ZoeCommand {
     Server server = getServer(event.getGuild().getIdLong());
     
     Message message = event.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "loadingSummoner")).complete();
+
+    Member firstMemberMentionned = null;
+    if(!event.getMessage().getMentionedMembers().isEmpty()) {
+      firstMemberMentionned = event.getMessage().getMentionedMembers().get(0);
+    }
     
-    ShowPlayerCommandRunnable.executeCommand(server, waiter, event.getMember(), event.getTextChannel(), message, null);
+    ShowPlayerCommandRunnable.executeCommand(server, waiter, event.getMember(), event.getTextChannel(), message, null, firstMemberMentionned);
   }
 
   @Override

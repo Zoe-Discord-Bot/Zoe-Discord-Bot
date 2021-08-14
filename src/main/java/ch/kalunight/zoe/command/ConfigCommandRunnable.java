@@ -148,14 +148,7 @@ public class ConfigCommandRunnable {
       try {
         String translatedDesc = LanguageManager.getText(server.getLanguage(), option.getDescription());
 
-        if(translatedDesc.length() >= 50) {
-          translatedDesc = LanguageManager.getText(server.getLanguage(), option.getName());
-        }
-
         String translatedName = LanguageManager.getText(server.getLanguage(), option.getName());
-        if(translatedName.length() >= 25) {
-          translatedName = LanguageManager.getText(LanguageManager.DEFAULT_LANGUAGE, option.getName());
-        }
 
         boolean optionEnable = option.hasAccessToTheFeatures(serverBoosted);
 

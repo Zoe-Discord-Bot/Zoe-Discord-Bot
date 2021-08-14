@@ -31,9 +31,9 @@ public class ShowPlayerCommandRunnable {
   private ShowPlayerCommandRunnable() {
     // hide default public command
   }
-  
-  public static void executeCommand(Server server, EventWaiter waiter, Member member, TextChannel channel, Message messageToEdit, InteractionHook hook) throws SQLException {
-    
+
+  public static void executeCommand(Server server, EventWaiter waiter, Member member, TextChannel channel, Message messageToEdit, InteractionHook hook, Member mentionnedUser) throws SQLException {
+
     Paginator.Builder pbuilder = new Paginator.Builder()
         .setColumns(1)
         .setItemsPerPage(5)
@@ -51,50 +51,77 @@ public class ShowPlayerCommandRunnable {
         .setTimeout(1, TimeUnit.MINUTES);
 
     int page = 1;
-    
+
     List<DTO.Player> players = PlayerRepository.getPlayers(server.serv_guildId);
-    
+
     if(players.isEmpty()) {
       CommandUtil.sendMessageWithClassicOrSlashCommand(LanguageManager.getText(server.getLanguage(), "showPlayerServerEmpty"), messageToEdit, hook);
       return;
     }
-    
-    int accountsNmb = 0;
-    for(DTO.Player player : players) {
-      StringBuilder playerInfo = new StringBuilder();
-      User user = member.getGuild().retrieveMemberById(player.player_discordId).complete().getUser();
-      playerInfo.append(String.format(LanguageManager.getText(server.getLanguage(), "showPlayerName"),
-          user.getName()) + "\n");
 
-      List<DTO.LeagueAccount> leagueAccounts = LeagueAccountRepository.getLeaguesAccounts(server.serv_guildId, user.getIdLong());
-      
-      if(leagueAccounts.isEmpty()) {
-        playerInfo.append(LanguageManager.getText(server.getLanguage(), "showPlayerNoAccount") + "\n");
-      }
-      accountsNmb += leagueAccounts.size();
-      for(DTO.LeagueAccount leagueAccount : leagueAccounts) {
-        Summoner summoner;
-        try {
-          summoner = new SummonerBuilder().withPlatform(leagueAccount.leagueAccount_server)
-              .withSummonerId(leagueAccount.leagueAccount_summonerId).get();
-        } catch(APIResponseException e) {
-          CommandUtil.sendMessageWithClassicOrSlashCommand(RiotApiUtil.getTextHandlerRiotApiError(e, server.getLanguage()), messageToEdit, hook);
-          return;
+    if(mentionnedUser == null) {
+      try {
+        int accountsNmb = 0;
+        for(DTO.Player player : players) {
+          accountsNmb = addPlayerToEmbed(server, member, messageToEdit, hook, pbuilder, accountsNmb, player);
         }
-        playerInfo.append(String.format(LanguageManager.getText(server.getLanguage(), "showPlayerAccount"),
-            summoner.getName(), leagueAccount.leagueAccount_server.getRealmValue().toUpperCase(),
-            RiotRequest.getSoloqRank(leagueAccount.leagueAccount_summonerId,
-                leagueAccount.leagueAccount_server).toString(server.getLanguage())) + "\n");
+
+        CommandUtil.sendMessageWithClassicOrSlashCommand(String.format(LanguageManager.getText(server.getLanguage(), "showPlayerEmbedTitle"), players.size(), accountsNmb), messageToEdit, hook);
+      }catch (APIResponseException e) {
+        CommandUtil.sendMessageWithClassicOrSlashCommand(RiotApiUtil.getTextHandlerRiotApiError(e, server.getLanguage()), messageToEdit, hook);
+        return;
       }
-      pbuilder.addItems(playerInfo.toString().substring(0, playerInfo.toString().length() - 1));
+    }else {
+      boolean playerDetected = false;
+      for(DTO.Player player : players) {
+        if(player.player_discordId == mentionnedUser.getIdLong()) {
+          try {
+            addPlayerToEmbed(server, member, messageToEdit, hook, pbuilder, 0, player);
+            playerDetected = true;
+          } catch (APIResponseException e) {
+            CommandUtil.sendMessageWithClassicOrSlashCommand(RiotApiUtil.getTextHandlerRiotApiError(e, server.getLanguage()), messageToEdit, hook);
+            return;
+          }
+        }
+      }
+      
+      if(!playerDetected) {
+        CommandUtil.sendMessageWithClassicOrSlashCommand(LanguageManager.getText(server.getLanguage(), "showPlayersCommandNeedToMentionAPlayer"), messageToEdit, hook);
+        return;
+      }else {
+        CommandUtil.sendMessageWithClassicOrSlashCommand(LanguageManager.getText(server.getLanguage(), "showPlayersCommandMentionPlayerShow"), messageToEdit, hook);
+      }
     }
 
-    CommandUtil.sendMessageWithClassicOrSlashCommand(String.format(LanguageManager.getText(server.getLanguage(), "showPlayerEmbedTitle"), players.size(), accountsNmb), messageToEdit, hook);
-    
     Paginator p = pbuilder.setColor(Color.GREEN)
         .setUsers(member.getUser())
         .setText("")
         .build();
     p.paginate(channel, page);
+  }
+
+  private static int addPlayerToEmbed(Server server, Member member, Message messageToEdit, InteractionHook hook,
+      Paginator.Builder pbuilder, int accountsNmb, DTO.Player player) throws SQLException {
+    StringBuilder playerInfo = new StringBuilder();
+    User user = member.getGuild().retrieveMemberById(player.player_discordId).complete().getUser();
+    playerInfo.append(String.format(LanguageManager.getText(server.getLanguage(), "showPlayerName"),
+        user.getName()) + "\n");
+
+    List<DTO.LeagueAccount> leagueAccounts = LeagueAccountRepository.getLeaguesAccounts(server.serv_guildId, user.getIdLong());
+
+    if(leagueAccounts.isEmpty()) {
+      playerInfo.append(LanguageManager.getText(server.getLanguage(), "showPlayerNoAccount") + "\n");
+    }
+    accountsNmb += leagueAccounts.size();
+    for(DTO.LeagueAccount leagueAccount : leagueAccounts) {
+      Summoner summoner = new SummonerBuilder().withPlatform(leagueAccount.leagueAccount_server).withSummonerId(leagueAccount.leagueAccount_summonerId).get();
+      
+      playerInfo.append(String.format(LanguageManager.getText(server.getLanguage(), "showPlayerAccount"),
+          summoner.getName(), leagueAccount.leagueAccount_server.getRealmValue().toUpperCase(),
+          RiotRequest.getSoloqRank(leagueAccount.leagueAccount_summonerId,
+              leagueAccount.leagueAccount_server).toString(server.getLanguage())) + "\n");
+    }
+    pbuilder.addItems(playerInfo.toString().substring(0, playerInfo.toString().length() - 1));
+    return accountsNmb;
   }
 }

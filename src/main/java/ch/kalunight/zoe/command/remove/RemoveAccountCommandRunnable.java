@@ -76,7 +76,7 @@ public class RemoveAccountCommandRunnable {
       return RiotApiUtil.getTextHandlerRiotApiError(e, server.getLanguage());
     }
 
-    if(account == null) {
+    if(account == null || account.leagueAccount_fk_player != player.player_id) {
       return LanguageManager.getText(server.getLanguage(), "removeAccountNotLinkedToPlayer");
     }
     

@@ -1,4 +1,4 @@
-# Zoe-Discord-Bot ![passingPicture](https://travis-ci.com/KaluNight/Zoe-Discord-Bot.svg?branch=master)
+# Zoe-Discord-Bot [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/X8X85IBMO) ![passingPicture](https://travis-ci.com/KaluNight/Zoe-Discord-Bot.svg?branch=master)
 
 Zoe is a discord bot using Riot API that manages an information panel in a text channel which displays whether your friends are in game or not. It also sends information messages about current games that look like [this](https://i.imgur.com/xvvkPn6.png).
 

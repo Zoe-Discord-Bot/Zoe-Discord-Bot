@@ -165,6 +165,10 @@ public class CustomEmoteUtil {
   }
 
   public static void addZoeSubIconIfSame(CustomEmote emote) {
+    if(emote.getEmote() == null) {
+      return;
+    }
+    
     if(emote.getEmote().getName().equalsIgnoreCase("ZoeSupporter1Month")) {
       Ressources.setZoeSub1Month(emote);
       return;

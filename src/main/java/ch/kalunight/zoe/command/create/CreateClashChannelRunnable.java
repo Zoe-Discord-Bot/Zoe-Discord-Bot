@@ -285,7 +285,7 @@ public class CreateClashChannelRunnable {
 
         ClashChannel clashChannelDb = ClashChannelRepository.getClashChannelWithId(clashChannelDbId);
 
-        TreatClashChannel clashChannelWorker = new TreatClashChannel(server, clashChannelDb, false);
+        TreatClashChannel clashChannelWorker = new TreatClashChannel(server, clashChannelDb);
 
         ServerThreadsManager.getClashChannelExecutor().execute(clashChannelWorker);
 

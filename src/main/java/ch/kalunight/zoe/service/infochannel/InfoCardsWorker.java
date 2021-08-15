@@ -20,6 +20,7 @@ import ch.kalunight.zoe.service.RiotApiUsageChannelRefresh;
 import ch.kalunight.zoe.service.ServerChecker;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.InfoPanelRefresherUtil;
+import ch.kalunight.zoe.util.MatchV5Util;
 import ch.kalunight.zoe.util.MessageBuilderRequestUtil;
 import ch.kalunight.zoe.util.request.MessageBuilderRequest;
 import net.dv8tion.jda.api.JDA;
@@ -27,8 +28,8 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
-import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
+import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
+import no.stelar7.api.r4j.pojo.lol.spectator.SpectatorGameInfo;
 
 public class InfoCardsWorker implements Runnable {
 
@@ -47,24 +48,21 @@ public class InfoCardsWorker implements Runnable {
   private DTO.CurrentGameInfo currentGameInfo;
   
   private DTO.GameInfoCard gameInfoCard;
-  
-  private boolean forceRefreshCache;
 
   public InfoCardsWorker(DTO.Server server, TextChannel controlPanel, DTO.LeagueAccount account, DTO.CurrentGameInfo currentGameInfo,
-      DTO.GameInfoCard gameInfoCard, boolean forceRefreshCache) {
+      DTO.GameInfoCard gameInfoCard) {
     this.server = server;
     this.controlPanel = controlPanel;
     this.account = account;
     this.currentGameInfo = currentGameInfo;
     this.gameInfoCard = gameInfoCard;
-    this.forceRefreshCache = forceRefreshCache;
   }
 
   @Override
   public void run() {
     try {
       if(controlPanel.canTalk()) {
-        logger.info("Start generate infocards for the account {} ({})", account.getSummoner(forceRefreshCache).getName(),  account.leagueAccount_server.getName());
+        logger.info("Start generate infocards for the account {} ({})", account.getSummoner().getName(),  account.leagueAccount_server.getRealmValue());
 
         Stopwatch stopWatch = Stopwatch.createStarted();
         
@@ -128,9 +126,9 @@ public class InfoCardsWorker implements Runnable {
 
   private boolean theGameHaveToBeGenerate() {
     try {
-      CurrentGameInfo currentGameRefreshed = Zoe.getRiotApi().getActiveGameBySummonerWithRateLimit(account.leagueAccount_server, account.leagueAccount_summonerId);
-
-      if(currentGameRefreshed != null && currentGameRefreshed.getGameId() == currentGameInfo.currentgame_gameid) {
+      SpectatorGameInfo currentGameRefreshed = Zoe.getRiotApi().getLoLAPI().getSpectatorAPI().getCurrentGame(account.leagueAccount_server, account.getSummoner().getSummonerId());
+      
+      if(currentGameRefreshed != null && MatchV5Util.convertMatchV4IdToMatchV5Id(currentGameRefreshed.getGameId(), currentGameRefreshed.getPlatform()) == currentGameInfo.currentgame_gameid) {
         
         if(ServerChecker.getServerRefreshService().getInfocardsToRefresh().size() <= ZOE_INFOCARDS_QUEUE_OVERLOAD 
             || currentGameRefreshed.getGameLength() < GAME_LENGTH_AFTER_WE_NOT_GENERATE_IN_SEC) {
@@ -142,7 +140,7 @@ public class InfoCardsWorker implements Runnable {
       }else {
         return false;
       }
-    }catch(RiotApiException e) {
+    }catch(APIResponseException e) {
       logger.warn("A riot exception has been throw! Game not generated.", e);
       return false;
     }

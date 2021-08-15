@@ -8,7 +8,7 @@ import ch.kalunight.zoe.model.dto.DTO.RankHistoryChannel;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import net.dv8tion.jda.api.JDA;
-import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
+import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
 
 public abstract class RankedChannelBaseRefresher implements Runnable {
 

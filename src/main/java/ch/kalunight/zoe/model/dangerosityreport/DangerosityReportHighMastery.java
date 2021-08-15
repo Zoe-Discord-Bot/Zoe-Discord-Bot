@@ -1,9 +1,9 @@
 package ch.kalunight.zoe.model.dangerosityreport;
 
-import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.LanguageUtil;
 import net.dv8tion.jda.api.JDA;
+import no.stelar7.api.r4j.pojo.lol.championmastery.ChampionMastery;
 
 public class DangerosityReportHighMastery extends DangerosityReport {
 
@@ -19,9 +19,9 @@ public class DangerosityReportHighMastery extends DangerosityReport {
 
   private static final long HIGH_MASTERY_HIGH_MASTERY_NEEDED = 200000;
 
-  private SavedSimpleMastery mastery;
+  private ChampionMastery mastery;
 
-  public DangerosityReportHighMastery(SavedSimpleMastery mastery) {
+  public DangerosityReportHighMastery(ChampionMastery mastery) {
     super(DangerosityReportType.MASTERIES, DangerosityReportSource.CHAMPION);
     this.mastery = mastery;
   }
@@ -53,7 +53,7 @@ public class DangerosityReportHighMastery extends DangerosityReport {
     return mastery.getChampionPoints();
   }
 
-  public SavedSimpleMastery getRawMastery() {
+  public ChampionMastery getRawMastery() {
     return mastery;
   }
   

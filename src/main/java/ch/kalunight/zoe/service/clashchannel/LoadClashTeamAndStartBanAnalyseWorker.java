@@ -54,7 +54,7 @@ public class LoadClashTeamAndStartBanAnalyseWorker implements Runnable {
         return;
       }
 
-      ClashTeamRegistration clashTeamRegistration = ClashUtil.getFirstRegistration(platform, clashPlayerRegistrations, false);
+      ClashTeamRegistration clashTeamRegistration = ClashUtil.getFirstRegistration(platform, clashPlayerRegistrations);
 
       if(clashTeamRegistration.getTeam().getPlayers().size() == 5) {
 

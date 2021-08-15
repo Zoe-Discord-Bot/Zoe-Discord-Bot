@@ -4,7 +4,7 @@ import ch.kalunight.zoe.exception.NoValueRankException;
 import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.translation.LanguageManager;
-import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
+import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
 
 public class FullTierUtil {
 

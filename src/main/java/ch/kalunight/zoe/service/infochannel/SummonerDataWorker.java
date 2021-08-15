@@ -8,7 +8,6 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.InfocardPlayerData;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.model.static_data.Champion;
@@ -16,8 +15,9 @@ import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.NameConversion;
 import ch.kalunight.zoe.util.Ressources;
 import ch.kalunight.zoe.util.request.RiotRequest;
-import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
-import net.rithms.riot.constant.Platform;
+import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
+import no.stelar7.api.r4j.basic.constants.types.lol.GameQueueType;
+import no.stelar7.api.r4j.pojo.lol.spectator.SpectatorParticipant;
 
 public class SummonerDataWorker implements Runnable {
   
@@ -27,36 +27,33 @@ public class SummonerDataWorker implements Runnable {
   
   private List<String> listIdPlayers;
 
-  private Platform platform;
+  private LeagueShard platform;
 
   private String language;
 
-  private CurrentGameParticipant participant;
+  private SpectatorParticipant participant;
 
   private InfocardPlayerData playerData;
   
-  private int gameQueueConfigId;
-  
-  private boolean forceRefreshCache;
+  private GameQueueType gameQueueConfigId;
   
   private Champion champion;
 
-  public SummonerDataWorker(CurrentGameParticipant participant, List<String> listIdPlayers, Platform platform, String language,
-      InfocardPlayerData playerData, int gameQueueConfigId, boolean forceRefreshCache) {
+  public SummonerDataWorker(SpectatorParticipant participant, List<String> listIdPlayers, LeagueShard platform, String language,
+      InfocardPlayerData playerData, GameQueueType gameQueueType) {
     this.listIdPlayers = listIdPlayers;
     this.platform = platform;
     this.language = language;
     this.participant = participant;
     this.playerData = playerData;
-    this.gameQueueConfigId = gameQueueConfigId;
-    this.forceRefreshCache = forceRefreshCache;
+    this.gameQueueConfigId = gameQueueType;
     playersDataInWork.add(playerData);
   }
 
   @Override
   public void run() {
     try {
-      logger.debug("Start loading Summoner data worker for {} {}", platform.getName(), participant.getSummonerName());
+      logger.debug("Start loading Summoner data worker for {} {}", platform.getRealmValue(), participant.getSummonerName());
       String unknownChampion = LanguageManager.getText(language, "unknown");
 
       Champion champion = null;
@@ -66,7 +63,7 @@ public class SummonerDataWorker implements Runnable {
       }
 
       FullTier fullTier;
-      if(gameQueueConfigId == GameQueueConfigId.FLEX.getId()) {
+      if(gameQueueConfigId == GameQueueType.RANKED_FLEX_SR) {
         fullTier = RiotRequest.getFlexRank(participant.getSummonerId(), platform);
       }else {
         fullTier = RiotRequest.getSoloqRank(participant.getSummonerId(), platform);
@@ -89,10 +86,10 @@ public class SummonerDataWorker implements Runnable {
 
       playerData.setRankData(rank);
 
-      logger.debug("Start loading Winrate Summoner data worker for {} {}", platform.getName(), participant.getSummonerName());
-      playerData.setWinRateData(RiotRequest.getMasterysScore(participant.getSummonerId(), participant.getChampionId(), platform, forceRefreshCache) + " | "
-          + RiotRequest.getWinrateLastMonthWithGivenChampion(participant.getSummonerId(), platform, participant.getChampionId(), language, forceRefreshCache));
-      logger.debug("End loading Summoner data worker for {} {}", platform.getName(), participant.getSummonerName());
+      logger.debug("Start loading Winrate Summoner data worker for {} {}", platform.getRealmValue(), participant.getSummonerName());
+      playerData.setWinRateData(RiotRequest.getMasterysScore(participant.getSummonerId(), participant.getChampionId(), platform) + " | "
+          + RiotRequest.getWinrateLastMonthWithGivenChampion(participant.getSummonerId(), platform, participant.getChampionId(), language));
+      logger.debug("End loading Summoner data worker for {} {}", platform.getRealmValue(), participant.getSummonerName());
     } catch (Exception e) {
       logger.error("Unexpected error in SummonerDataWorker !", e);
     } finally {

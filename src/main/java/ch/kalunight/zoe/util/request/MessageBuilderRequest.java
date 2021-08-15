@@ -39,6 +39,7 @@ import ch.kalunight.zoe.model.static_data.CustomEmote;
 import ch.kalunight.zoe.model.static_data.Mastery;
 import ch.kalunight.zoe.service.infochannel.SummonerDataWorker;
 import ch.kalunight.zoe.translation.LanguageManager;
+import ch.kalunight.zoe.util.MatchV5Util;
 import ch.kalunight.zoe.util.MessageBuilderRequestUtil;
 import ch.kalunight.zoe.util.Ressources;
 import ch.kalunight.zoe.util.ZoeSupportMessageGeneratorUtil;
@@ -48,6 +49,8 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.MessageEmbed.Field;
 import net.dv8tion.jda.api.entities.User;
+import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
+import no.stelar7.api.r4j.basic.constants.types.lol.GameQueueType;
 import no.stelar7.api.r4j.basic.exceptions.APIHTTPErrorReason;
 import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
 import no.stelar7.api.r4j.impl.lol.builders.matchv5.match.MatchBuilder;
@@ -58,7 +61,9 @@ import no.stelar7.api.r4j.pojo.lol.match.v5.LOLMatch;
 import no.stelar7.api.r4j.pojo.lol.match.v5.MatchIterator;
 import no.stelar7.api.r4j.pojo.lol.match.v5.MatchParticipant;
 import no.stelar7.api.r4j.pojo.lol.spectator.SpectatorGameInfo;
+import no.stelar7.api.r4j.pojo.lol.spectator.SpectatorParticipant;
 import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
+import no.stelar7.api.r4j.pojo.tft.TFTMatch;
 
 public class MessageBuilderRequest {
 
@@ -94,7 +99,7 @@ public class MessageBuilderRequest {
 
     try {
       summonerName = leagueAccount.getSummoner().getName();
-    } catch (RiotApiException e) {
+    } catch (APIResponseException e) {
       logger.warn("Error while getting summoner !", e);
     }
 
@@ -211,7 +216,7 @@ public class MessageBuilderRequest {
     return new PlayerRankedResult(gameOfTheChange.getGameId(), leagueAccount.leagueAccount_server, accountTitle, changeStats, statsGame, win);
   }
 
-  public static MessageEmbed createCombinedMessage(List<PlayerRankedResult> playersRankedResult, CurrentGameInfo currentGameInfo, String lang) {
+  public static MessageEmbed createCombinedMessage(List<PlayerRankedResult> playersRankedResult, SpectatorGameInfo currentGameInfo, String lang) {
 
     EmbedBuilder message = new EmbedBuilder();
 
@@ -394,10 +399,10 @@ public class MessageBuilderRequest {
   }
 
   public static MessageEmbed createRankChannelCardLeagueChange(LeagueEntry oldEntry, LeagueEntry newEntry, 
-      CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang, JDA jda) throws RiotApiException {
+      SpectatorGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang, JDA jda) {
 
-    SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
-
+    LOLMatch match = new MatchBuilder(gameOfTheChange.getPlatform(), MatchV5Util.convertMatchV4IdToMatchV5Id(gameOfTheChange.getGameId(), gameOfTheChange.getPlatform())).getMatch();
+    
     EmbedBuilder message = new EmbedBuilder();
 
     String gameType = getGameType(gameOfTheChange, lang);
@@ -483,10 +488,10 @@ public class MessageBuilderRequest {
   }
 
   public static MessageEmbed createRankChannelCardLeaguePointChangeOnly(LeagueEntry oldEntry, LeagueEntry newEntry, 
-      CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang, JDA jda) throws RiotApiException {
+      SpectatorGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang, JDA jda) {
 
-    SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
-
+    LOLMatch match = new MatchBuilder(leagueAccount.leagueAccount_server, MatchV5Util.convertMatchV4IdToMatchV5Id(gameOfTheChange.getGameId(), gameOfTheChange.getPlatform())).getMatch();
+    
     EmbedBuilder message = new EmbedBuilder();
 
     String gameType = getGameType(gameOfTheChange, lang);
@@ -529,7 +534,7 @@ public class MessageBuilderRequest {
   }
 
   public static MessageEmbed createRankChannelCardLeaguePointChangeOnlyTFT(LeagueEntry oldEntry, LeagueEntry newEntry, 
-      TFTMatch match, Player player, LeagueAccount leagueAccount, String lang, JDA jda) throws NoValueRankException, RiotApiException {
+      TFTMatch match, Player player, LeagueAccount leagueAccount, String lang, JDA jda) throws NoValueRankException {
 
     EmbedBuilder message = new EmbedBuilder();
 
@@ -579,25 +584,25 @@ public class MessageBuilderRequest {
     return message.build();
   }
 
-  private static String getGameType(CurrentGameInfo gameOfTheChange, String lang) {
+  private static String getGameType(SpectatorGameInfo gameOfTheChange, String lang) {
     String gameType = "Unknown rank mode";
 
-    if(gameOfTheChange.getGameQueueConfigId() == GameQueueConfigId.SOLOQ.getId()) {
+    if(gameOfTheChange.getGameQueueConfig() == GameQueueType.RANKED_SOLO_5X5) {
       gameType = LanguageManager.getText(lang, "soloq");
-    }else if(gameOfTheChange.getGameQueueConfigId() == GameQueueConfigId.FLEX.getId()){
+    }else if(gameOfTheChange.getGameQueueConfig() == GameQueueType.RANKED_FLEX_SR){
       gameType = LanguageManager.getText(lang, "flex");
     }
     return gameType;
   }
 
-  public static MessageEmbed createInfoCard(List<DTO.Player> players, CurrentGameInfo currentGameInfo,
-      Platform region, DTO.Server server, JDA jda) throws SQLException {
+  public static MessageEmbed createInfoCard(List<DTO.Player> players, SpectatorGameInfo currentGameInfo,
+      LeagueShard region, DTO.Server server, JDA jda) throws SQLException {
 
     String blueTeamTranslated = LanguageManager.getText(server.getLanguage(), BLUE_TEAM_STRING);
     String redTeamTranslated = LanguageManager.getText(server.getLanguage(), RED_TEAM_STRING);
     String masteriesWRThisMonthTranslated = LanguageManager.getText(server.getLanguage(), MASTERIES_WR_THIS_MONTH_STRING);
     String rankTitleTranslated;
-    if(currentGameInfo.getGameQueueConfigId() == GameQueueConfigId.FLEX.getId()) {
+    if(currentGameInfo.getGameQueueConfig().getApiName().equals(GameQueueConfigId.FLEX.getNameId())) {
       rankTitleTranslated = LanguageManager.getText(server.getLanguage(), "flexTitleRespectSize");
     } else {
       rankTitleTranslated = LanguageManager.getText(server.getLanguage(), SOLO_Q_RANK_STRING);
@@ -618,8 +623,8 @@ public class MessageBuilderRequest {
     message.setTitle(title.toString());
 
     int blueTeamID = 100;
-    ArrayList<CurrentGameParticipant> blueTeam = new ArrayList<>();
-    ArrayList<CurrentGameParticipant> redTeam = new ArrayList<>();
+    ArrayList<SpectatorParticipant> blueTeam = new ArrayList<>();
+    ArrayList<SpectatorParticipant> redTeam = new ArrayList<>();
 
     MessageBuilderRequestUtil.getTeamPlayer(currentGameInfo, blueTeamID, blueTeam, redTeam);
 
@@ -631,8 +636,8 @@ public class MessageBuilderRequest {
 
     List<InfocardPlayerData> playersData = new ArrayList<>();
 
-    MessageBuilderRequestUtil.createTeamDataMultipleSummoner(blueTeam, listIdPlayers, region, server.getLanguage(), playersData, true, currentGameInfo.getGameQueueConfigId());
-    MessageBuilderRequestUtil.createTeamDataMultipleSummoner(redTeam, listIdPlayers, region, server.getLanguage(), playersData, false, currentGameInfo.getGameQueueConfigId());
+    MessageBuilderRequestUtil.createTeamDataMultipleSummoner(blueTeam, listIdPlayers, region, server.getLanguage(), playersData, true, currentGameInfo.getGameQueueConfig());
+    MessageBuilderRequestUtil.createTeamDataMultipleSummoner(redTeam, listIdPlayers, region, server.getLanguage(), playersData, false, currentGameInfo.getGameQueueConfig());
 
     SummonerDataWorker.awaitAll(playersData);
 

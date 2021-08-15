@@ -27,7 +27,6 @@ import net.dv8tion.jda.api.entities.MessageEmbed.Field;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.requests.ErrorResponse;
-import net.rithms.riot.api.RiotApiException;
 
 public abstract class LeaderboardBaseService implements Runnable {
 
@@ -55,13 +54,10 @@ public abstract class LeaderboardBaseService implements Runnable {
 
   private long leaderboardId;
 
-  private boolean forceRefreshCache;
-
-  public LeaderboardBaseService(long guildId, long channelId, long leaderboardId, boolean forceRefreshCache) {
+  public LeaderboardBaseService(long guildId, long channelId, long leaderboardId) {
     this.guildId = guildId;
     this.channelId = channelId;
     this.leaderboardId = leaderboardId;
-    this.forceRefreshCache = forceRefreshCache;
   }
 
   @Override
@@ -103,7 +99,7 @@ public abstract class LeaderboardBaseService implements Runnable {
       List<Player> players = PlayerRepository.getPlayers(guildId);
       InfoPanelRefresherUtil.cleanRegisteredPlayerNoLongerInGuild(guild, players);
 
-      runLeaderboardRefresh(server, guild, channel, leaderboard, message, players, forceRefreshCache);
+      runLeaderboardRefresh(server, guild, channel, leaderboard, message, players);
 
       message.removeReaction("U+23F3", guild.getJDA().getSelfUser()).queue();
 
@@ -134,7 +130,7 @@ public abstract class LeaderboardBaseService implements Runnable {
   }
 
   protected abstract void runLeaderboardRefresh(Server server, Guild guild, TextChannel channel,
-      Leaderboard leaderboard, Message message, List<Player> players, boolean forceRefreshCache) throws SQLException, RiotApiException;
+      Leaderboard leaderboard, Message message, List<Player> players) throws SQLException;
 
   protected EmbedBuilder buildBaseLeaderboardList(String playerTitle, List<String> playersName, String dataName, List<String> dataList,
       Server server) {

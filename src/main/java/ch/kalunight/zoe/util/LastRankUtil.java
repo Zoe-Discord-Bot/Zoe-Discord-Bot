@@ -4,11 +4,11 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.dto.DTO.LastRank;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.repositories.LastRankRepository;
+import no.stelar7.api.r4j.basic.constants.types.lol.GameQueueType;
 import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
 
 public class LastRankUtil {
@@ -58,9 +58,9 @@ public class LastRankUtil {
   /**
    * @return return queues updated
    */
-  public static List<Integer> updateLoLLastRank(LastRank lastRank, List<LeagueEntry> leagueEntries) throws SQLException {
+  public static List<GameQueueType> updateLoLLastRank(LastRank lastRank, List<LeagueEntry> leagueEntries) throws SQLException {
 
-    List<Integer> updatedRank = new ArrayList<>();
+    List<GameQueueType> updatedRank = new ArrayList<>();
     for(LeagueEntry checkLeagueEntry : leagueEntries) {
       if(checkLeagueEntry.getQueueType().getApiName().equals(GameQueueConfigId.SOLOQ.getQueueType())) {
         if(lastRank.getLastRankSoloq() == null) {
@@ -68,14 +68,14 @@ public class LastRankUtil {
         }else {
           updateSoloQRank(lastRank, checkLeagueEntry);
         }
-        updatedRank.add(GameQueueConfigId.SOLOQ.getId());
+        updatedRank.add(GameQueueType.RANKED_SOLO_5X5);
       }else if(checkLeagueEntry.getQueueType().getApiName().equals(GameQueueConfigId.FLEX.getQueueType())) {
         if(lastRank.getLastRankFlex() == null) {
           updateFlexRankWithoutOldData(lastRank, checkLeagueEntry);
         }else {
           updateFlexRank(lastRank, checkLeagueEntry);
         }
-        updatedRank.add(GameQueueConfigId.FLEX.getId());
+        updatedRank.add(GameQueueType.RANKED_FLEX_SR);
       }
     }
     return updatedRank;
@@ -84,7 +84,7 @@ public class LastRankUtil {
   /**
    * @return return queues updated
    */
-  public static List<Integer> updateLoLLastRankIfRankDifference(LastRank lastRank, Set<LeagueEntry> leagueEntries) throws SQLException {
+  public static List<Integer> updateLoLLastRankIfRankDifference(LastRank lastRank, List<LeagueEntry> leagueEntries) throws SQLException {
 
     List<Integer> updatedRank = new ArrayList<>();
     for(LeagueEntry checkLeagueEntry : leagueEntries) {

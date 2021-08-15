@@ -4,11 +4,11 @@ import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
 
 public class GameAccessDataServerSpecific {
 
-  private Long gameId;
+  private String gameId;
   private LeagueShard platform;
   private Long guildId;
 
-  public GameAccessDataServerSpecific(Long gameId, LeagueShard platform, Long guildId) {
+  public GameAccessDataServerSpecific(String gameId, LeagueShard platform, Long guildId) {
     this.gameId = gameId;
     this.platform = platform;
     this.guildId = guildId;
@@ -56,11 +56,11 @@ public class GameAccessDataServerSpecific {
     return true;
   }
 
-  public Long getGameId() {
+  public String getGameId() {
     return gameId;
   }
 
-  public void setGameId(Long gameId) {
+  public void setGameId(String gameId) {
     this.gameId = gameId;
   }
 

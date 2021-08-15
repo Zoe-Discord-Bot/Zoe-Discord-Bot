@@ -12,20 +12,21 @@ import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.exception.PlayerNotFoundException;
 import ch.kalunight.zoe.model.InfocardPlayerData;
 import ch.kalunight.zoe.model.dto.DTO;
-import ch.kalunight.zoe.model.dto.SavedMatch;
-import ch.kalunight.zoe.model.dto.SavedMatchPlayer;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.service.infochannel.SummonerDataWorker;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.JDA;
-import net.rithms.riot.api.endpoints.league.dto.MiniSeries;
-import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
-import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
-import net.rithms.riot.api.endpoints.tft_match.dto.TFTMatch;
-import net.rithms.riot.api.endpoints.tft_match.dto.TFTMatchParticipant;
-import net.rithms.riot.constant.Platform;
+import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
+import no.stelar7.api.r4j.basic.constants.types.lol.GameQueueType;
+import no.stelar7.api.r4j.pojo.lol.league.MiniSeries;
+import no.stelar7.api.r4j.pojo.lol.match.v5.LOLMatch;
+import no.stelar7.api.r4j.pojo.lol.match.v5.MatchParticipant;
+import no.stelar7.api.r4j.pojo.lol.spectator.SpectatorGameInfo;
+import no.stelar7.api.r4j.pojo.lol.spectator.SpectatorParticipant;
+import no.stelar7.api.r4j.pojo.tft.TFTMatch;
+import no.stelar7.api.r4j.pojo.tft.TFTParticipant;
 
 public class MessageBuilderRequestUtil {
 
@@ -37,14 +38,14 @@ public class MessageBuilderRequestUtil {
     // Hide default public constructor
   }
 
-  public static List<DTO.LeagueAccount> getLeagueAccountsInTheGivenGame(CurrentGameInfo currentGameInfo, Platform server,
+  public static List<DTO.LeagueAccount> getLeagueAccountsInTheGivenGame(SpectatorGameInfo currentGameInfo, LeagueShard server,
       DTO.Player player, long guildId) throws SQLException{
 
     List<DTO.LeagueAccount> lolAccountsInGame = new ArrayList<>();
     List<DTO.LeagueAccount> leaguesAccounts = LeagueAccountRepository.getLeaguesAccounts(guildId, player.player_discordId);
 
     for(DTO.LeagueAccount leagueAccount : leaguesAccounts) {
-      for(CurrentGameParticipant participant : currentGameInfo.getParticipants()) {
+      for(SpectatorParticipant participant : currentGameInfo.getParticipants()) {
         if(participant.getSummonerId().equals(leagueAccount.leagueAccount_summonerId) 
             && server.equals(leagueAccount.leagueAccount_server)) {
 
@@ -55,10 +56,10 @@ public class MessageBuilderRequestUtil {
     return lolAccountsInGame;
   }
 
-  public static void getTeamPlayer(CurrentGameInfo match, int teamID, List<CurrentGameParticipant> teamParticipant,
-      List<CurrentGameParticipant> redTeam) {
+  public static void getTeamPlayer(SpectatorGameInfo match, int teamID, List<SpectatorParticipant> teamParticipant,
+      List<SpectatorParticipant> redTeam) {
     for(int i = 0; i < match.getParticipants().size(); i++) {
-      if(match.getParticipants().get(i).getTeamId() == teamID) {
+      if(match.getParticipants().get(i).getTeam().getValue() == teamID) {
         teamParticipant.add(match.getParticipants().get(i));
       } else {
         redTeam.add(match.getParticipants().get(i));
@@ -66,18 +67,18 @@ public class MessageBuilderRequestUtil {
     }
   }
 
-  public static void createTeamDataMultipleSummoner(List<CurrentGameParticipant> teamParticipant, List<String> listIdPlayers,
-      Platform platform, String language, List<InfocardPlayerData> playersDataToWait, boolean isBlueTeam, int gameQueueConfigId) {
+  public static void createTeamDataMultipleSummoner(List<SpectatorParticipant> teamParticipant, List<String> listIdPlayers,
+      LeagueShard platform, String language, List<InfocardPlayerData> playersDataToWait, boolean isBlueTeam, GameQueueType gameQueueConfigId) {
 
-    for(CurrentGameParticipant participant : teamParticipant) {
+    for(SpectatorParticipant participant : teamParticipant) {
       InfocardPlayerData playerData = new InfocardPlayerData(isBlueTeam);
-      SummonerDataWorker playerWorker = new SummonerDataWorker(participant, listIdPlayers, platform, language, playerData, gameQueueConfigId, false);
+      SummonerDataWorker playerWorker = new SummonerDataWorker(participant, listIdPlayers, platform, language, playerData, gameQueueConfigId);
       ServerThreadsManager.getPlayersDataWorker(platform).execute(playerWorker);
       playersDataToWait.add(playerData);
     }
   }
 
-  public static void createTitle(List<DTO.Player> players, CurrentGameInfo currentGameInfo, StringBuilder title,
+  public static void createTitle(List<DTO.Player> players, SpectatorGameInfo currentGameInfo, StringBuilder title,
       String language, boolean gameInfo, JDA jda) {
     ArrayList<DTO.Player> playersNotTwice = new ArrayList<>();
 
@@ -90,7 +91,7 @@ public class MessageBuilderRequestUtil {
     addListOfPlayersInGivenString(title, language, jda, playersNotTwice);
     
     if(gameInfo) {
-      title.append(" : " + LanguageManager.getText(language, NameConversion.convertGameQueueIdToString(currentGameInfo.getGameQueueConfigId())));
+      title.append(" : " + LanguageManager.getText(language, NameConversion.convertGameQueueIdToString(currentGameInfo.getGameQueueConfig())));
     }
   }
 
@@ -183,8 +184,18 @@ public class MessageBuilderRequestUtil {
   public static String getResumeGameStatsTFT(LeagueAccount leagueAccount, String lang, TFTMatch match) {
     StringBuilder statsGame = new StringBuilder();
 
-    TFTMatchParticipant participant = match.getInfo()
-        .getTFTMatchParticipantByPuuid(leagueAccount.leagueAccount_tftPuuid);
+    TFTParticipant participant = null;
+    
+    for(TFTParticipant participantToCheck : match.getParticipants()) {
+      if(participantToCheck.getPuuid().equals(leagueAccount.leagueAccount_tftPuuid)) {
+        participant = participantToCheck;
+        break;
+      }
+    }
+    
+    if(participant == null) {
+      return LanguageManager.getText(lang, "Error");
+    }
 
     statsGame.append(String.format(LanguageManager.getText(lang, "numberPlace"), participant.getPlacement()) + " | ");
 
@@ -204,10 +215,17 @@ public class MessageBuilderRequestUtil {
     return statsGame.toString();
   }
 
-  public static String getResumeGameStats(LeagueAccount leagueAccount, String lang, SavedMatch match) {
+  public static String getResumeGameStats(LeagueAccount leagueAccount, String lang, LOLMatch match) {
     StringBuilder statsGame = new StringBuilder();
 
-    SavedMatchPlayer participant = match.getSavedMatchPlayerBySummonerId(leagueAccount.leagueAccount_summonerId);
+    MatchParticipant participant = null;
+    
+    for(MatchParticipant participantToCheck : match.getParticipants()) {
+      if(participantToCheck.getSummonerId().equals(leagueAccount.leagueAccount_summonerId)) {
+        participant = participantToCheck;
+        break;
+      }
+    }
 
     Champion champion = Ressources.getChampionDataById(participant.getChampionId());
 
@@ -217,25 +235,25 @@ public class MessageBuilderRequestUtil {
       statsGame.append("Unknown");
     }
 
-    String gameDuration = MessageBuilderRequestUtil.getMatchTimeFromDuration(match.getGameDurations());
+    String gameDuration = MessageBuilderRequestUtil.getMatchTimeFromDuration(match.getGameDuration());
 
-    String showableResult = getParticipantMatchResult(lang, match, participant);
+    String showableResult = getParticipantMatchResult(lang, participant);
 
-    int totalcs = participant.getCreepScores();
+    int totalcs = participant.getTotalMinionsKilled();
 
     statsGame.append(" | " + participant.getKills() + "/" + participant.getDeaths() + "/" + participant.getAssists() 
     + " | " + totalcs + " " + LanguageManager.getText(lang, "creepScoreAbreviation")
-    + " | " + LanguageManager.getText(lang, "level") + " " + participant.getLevel()
+    + " | " + LanguageManager.getText(lang, "level") + " " + participant.getChampLevel()
     + " | " + gameDuration
     + " | " + showableResult);
     return statsGame.toString();
   }
 
-  private static String getParticipantMatchResult(String lang, SavedMatch match, SavedMatchPlayer participant) {
+  private static String getParticipantMatchResult(String lang, MatchParticipant participant) {
     String showableResult;
 
     try {
-      if(match.isGivenAccountWinner(participant.getSummonerId())) {
+      if(participant.didWin()) {
         showableResult = LanguageManager.getText(lang, "win");
       }else {
         showableResult = LanguageManager.getText(lang, "loose");

@@ -146,7 +146,7 @@ public class TeamUtil {
       }
 
       messageBuilder.append("**" + String.format(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentPlayerData"), translationRole,
-          playerToShow.getSummoner().getSumCacheData().getName(), elo) + "**");
+          playerToShow.getSummoner().getName(), elo) + "**");
 
       messageBuilder.append("\n");
 
@@ -414,17 +414,17 @@ public class TeamUtil {
     return String.format(LanguageManager.getText(language, "dayNumber"), dayNumber);
   }
 
-  public static List<ClashTeamMember> getPlayerByPosition(TeamPosition position, List<ClashTeamMember> members) {
-    List<ClashTeamMember> membersWithTheSamePosition = new ArrayList<>();
-    for(ClashTeamMember member : members) {
-      if(member.getTeamPosition() == position) {
+  public static List<ClashPlayer> getPlayerByPosition(ClashPosition position, List<ClashPlayer> members) {
+    List<ClashPlayer> membersWithTheSamePosition = new ArrayList<>();
+    for(ClashPlayer member : members) {
+      if(member.getPosition() == position) {
         membersWithTheSamePosition.add(member);
       }
     }
     return membersWithTheSamePosition;
   }
 
-  public static String getTeamPositionAbrID(TeamPosition teamPosition) {
+  public static String getTeamPositionAbrID(ClashPosition teamPosition) {
     switch (teamPosition) {
     case BOTTOM:
       return "adcAbr";
@@ -547,7 +547,7 @@ public class TeamUtil {
     List<TeamPlayerAnalysisDataCollector> teamPlayersData = new ArrayList<>();
 
     for(AccountDataWithRole teamMember : teamMembers) {
-      TeamPlayerAnalysisDataCollector player = new TeamPlayerAnalysisDataCollector(teamMember.getSummoner().getId(), teamMember.getPlatform(), teamMember.getPosition());
+      TeamPlayerAnalysisDataCollector player = new TeamPlayerAnalysisDataCollector(teamMember.getSummoner().getSummonerId(), teamMember.getPlatform(), teamMember.getPosition());
       teamPlayersData.add(player);
       ServerThreadsManager.getDataAnalysisThread().execute(player);
     }

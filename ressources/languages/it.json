@@ -683,5 +683,8 @@
     "supportMessageZoeNeeded": "Zoe è attualmente supportato a %d€ al mese. Per essere sostenibile a lungo termine avrebbe bisogno di un minimo di %d€ al mese. Aiutami a raggiungere questo obiettivo qui: <https://bit.ly/support-zoe>",
     "supportMessageZoeFutur": "Il futuro di Zoe non è garantito. Sostieni il progetto per assicurarti che lo sia.\nPer aiutare: <https://bit.ly/support-zoe>",
     "supportMessageZoeNeededTLDR": "Zoe ha bisogno di %d€ al mese per sopravvivere! Stato attuale: %d€/%d€\nPer aiutare: <https://bit.ly/support-zoe>",
-    "supportMessageZoeLoss": "Zoe non è attualmente redditizio. Se vuoi che continui a funzionare, per favore aiutami qui: <https://bit.ly/support-zoe>"
+    "supportMessageZoeLoss": "Zoe non è attualmente redditizio. Se vuoi che continui a funzionare, per favore aiutami qui: <https://bit.ly/support-zoe>",
+    "showPlayersCommandMentionPlayerShow": "Elenco degli account registrati per questo giocatore:",
+    "showPlayersCommandNeedToMentionAPlayer": "Questo giocatore non è registrato. Per favore, menziona un giocatore registrato.",
+    "supportMessageZoeSupPriceReduced": "Dopo il vostro feedback, i prezzi degli abbonamenti sono stati abbassati! Maggiori informazioni: https://bit.ly/support-zoe"
 }

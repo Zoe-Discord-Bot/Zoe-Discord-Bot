@@ -30,7 +30,7 @@ import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.rithms.riot.constant.Platform;
+import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
 
 public class CommandUtil {
 
@@ -52,8 +52,8 @@ public class CommandUtil {
     OptionData regionOption = new OptionData(OptionType.STRING, ZoeSlashCommand.REGION_OPTION_ID, "The region of the account");
     regionOption.setRequired(required);
     
-    for(Platform platform : Platform.values()) {
-      regionOption.addChoice(platform.getName().toUpperCase(), platform.getName().toUpperCase());
+    for(LeagueShard platform : LeagueShard.getDefaultPlatforms()) {
+      regionOption.addChoice(platform.getRealmValue().toUpperCase(), platform.getRealmValue().toUpperCase());
     }
 
     return regionOption;

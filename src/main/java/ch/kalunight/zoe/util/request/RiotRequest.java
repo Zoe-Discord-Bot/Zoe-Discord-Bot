@@ -1,18 +1,12 @@
 package ch.kalunight.zoe.util.request;
 
 import java.sql.Timestamp;
-import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,19 +14,13 @@ import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.KDAReceiver;
 import ch.kalunight.zoe.model.MatchReceiver;
-import ch.kalunight.zoe.model.WinRateReceiver;
-import ch.kalunight.zoe.model.dto.DTO.SummonerCache;
-import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.model.player_data.Rank;
 import ch.kalunight.zoe.model.player_data.Tier;
 import ch.kalunight.zoe.service.match.MatchCollectorReciverWorker;
-import ch.kalunight.zoe.service.match.MatchKDAReceiverWorker;
 import ch.kalunight.zoe.service.match.MatchReceiverWorker;
-import ch.kalunight.zoe.service.match.MatchWinrateReceiverWorker;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.LanguageUtil;
-import ch.kalunight.zoe.util.NameConversion;
 import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
 import no.stelar7.api.r4j.basic.constants.types.lol.GameQueueType;
 import no.stelar7.api.r4j.basic.exceptions.APIHTTPErrorReason;
@@ -42,20 +30,15 @@ import no.stelar7.api.r4j.impl.lol.builders.matchv5.match.MatchBuilder;
 import no.stelar7.api.r4j.impl.lol.builders.summoner.SummonerBuilder;
 import no.stelar7.api.r4j.pojo.lol.championmastery.ChampionMastery;
 import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
-import no.stelar7.api.r4j.pojo.lol.match.v4.MatchReference;
-import no.stelar7.api.r4j.pojo.lol.match.v4.Participant;
 import no.stelar7.api.r4j.pojo.lol.match.v5.LOLMatch;
 import no.stelar7.api.r4j.pojo.lol.match.v5.MatchParticipant;
 import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
-import no.stelar7.api.r4j.pojo.val.match.Match;
 
 public class RiotRequest {
 
   private static final Logger logger = LoggerFactory.getLogger(RiotRequest.class);
 
   private static final DecimalFormat df = new DecimalFormat("###.#");
-
-  private static final Random random = new Random();
 
   private RiotRequest() {}
 
@@ -74,7 +57,7 @@ public class RiotRequest {
     int leaguePoints = 0;
 
     for(LeagueEntry leaguePosition : listLeague) {
-      if(leaguePosition.getQueueType().equals("RANKED_SOLO_5x5")) {
+      if(leaguePosition.getQueueType().equals(GameQueueType.RANKED_SOLO_5X5)) {
         rank = Tier.valueOf(leaguePosition.getTier());
         tier = Rank.valueOf(leaguePosition.getRank());
         leaguePoints = leaguePosition.getLeaguePoints();
@@ -109,40 +92,6 @@ public class RiotRequest {
     return new FullTier(rank, tier, leaguePoints);
   }
 
-  public static LeagueEntry getLeagueEntrySoloq(String summonerId, Platform region) {
-    Set<LeagueEntry> listLeague;
-    try {
-      listLeague = Zoe.getRiotApi().getLeagueEntriesBySummonerIdWithRateLimit(region, summonerId);
-    } catch(RiotApiException e) {
-      logger.info("Error with riot api : {}", e.getMessage());
-      return null;
-    }
-
-    for(LeagueEntry leaguePosition : listLeague) {
-      if(leaguePosition.getQueueType().equals("RANKED_SOLO_5x5")) {
-        return leaguePosition;
-      }
-    }
-    return null;
-  }
-
-  public static LeagueEntry getLeagueEntryFlex(String summonerId, Platform region) {
-    Set<LeagueEntry> listLeague;
-    try {
-      listLeague = Zoe.getRiotApi().getLeagueEntriesBySummonerIdWithRateLimit(region, summonerId);
-    } catch(RiotApiException e) {
-      logger.info("Error with riot api : {}", e.getMessage());
-      return null;
-    }
-
-    for(LeagueEntry leaguePosition : listLeague) {
-      if(leaguePosition.getQueueType().equals("RANKED_FLEX_SR")) {
-        return leaguePosition;
-      }
-    }
-    return null;
-  }
-
   public static String getWinrateLastMonthWithGivenChampion(String summonerId, LeagueShard region,
       int championKey, String language) {
 
@@ -167,7 +116,7 @@ public class RiotRequest {
     if(matchList.isEmpty()) {
       return LanguageManager.getText(language, "firstGame");
     }
-    
+
     int nbrWins = 0;
     int nbrGames = 0;
 
@@ -175,7 +124,7 @@ public class RiotRequest {
       for(MatchParticipant participant : match.getParticipants()) {
         if(participant.getSummonerId().equals(summonerId)) {
           nbrGames++;
-          
+
           if(participant.didWin()) {
             nbrWins++;
           }
@@ -183,7 +132,7 @@ public class RiotRequest {
         }
       }
     }
-    
+
     if(nbrGames == 0) {
       return LanguageManager.getText(language, "firstGame");
     } else if(nbrWins == 0) {
@@ -192,207 +141,32 @@ public class RiotRequest {
 
     return df.format((nbrWins / (double) nbrGames) * 100) + "% (" + nbrWins + "W/" + (nbrGames - nbrWins) + "L)";
   }
+  
+  public static KDAReceiver getKDALastMonth(String summonerId, LeagueShard region, List<Integer> championsId) {
 
-  private static List<MatchReference> getMatchHistoryOfLastMonthWithTheGivenChampion(Platform region, int championKey, SummonerCache summoner)
-      throws RiotApiException {
-    final List<MatchReference> referencesMatchList = new ArrayList<>();
+    KDAReceiver kdaReceiver = new KDAReceiver();
+    
+    try {
+      Summoner summoner = new SummonerBuilder().withSummonerId(summonerId).withPlatform(region).get();
 
-    LocalDateTime beginTimeToHit = LocalDateTime.now().minusMonths(1);
-    Timestamp timeStampToHit = Timestamp.valueOf(beginTimeToHit);
+      List<LOLMatch> matchsLastMonth = getMatchHistoryOfLastMonth(region, summoner, new ArrayList<>(), championsId);
 
-    Set<Integer> championToFilter = new HashSet<>();
-    championToFilter.add(championKey);
-
-    boolean allMatchReceived = false;
-
-    int startIndex = -100;
-
-    do {
-      startIndex += 100;
-      MatchList matchList = null;
-
-      try {
-        matchList = Zoe.getRiotApi().getMatchListByAccountIdWithRateLimit(region, summoner.getSumCacheData().getAccountId(), championToFilter, null, null,
-            -1, -1, startIndex, -1);
-        if(matchList != null && matchList.getMatches() != null) {
-          for(MatchReference matchToCheck : matchList.getMatches()) {
-            final Timestamp matchTimeStamp = new Timestamp(matchToCheck.getTimestamp());
-            if(matchTimeStamp.after(timeStampToHit)) {
-              referencesMatchList.add(matchToCheck);
-            }else {
-              allMatchReceived = true;
-              break;
-            }
+      for(LOLMatch match : matchsLastMonth) {
+        for(MatchParticipant participant : match.getParticipants()) {
+          if(participant.getSummonerId().equals(summoner.getSummonerId())) {
+            kdaReceiver.kills.addAndGet(participant.getKills());
+            kdaReceiver.deaths.addAndGet(participant.getDeaths());
+            kdaReceiver.assists.addAndGet(participant.getAssists());
+            break;
           }
-
-          if(matchList.getMatches().size() != 100) {
-            allMatchReceived = true;
-          }
-        }else {
-          allMatchReceived = true;
-        }
-      } catch(RiotApiException e) {
-        logger.debug("Impossible to get matchs history : {}", e.getMessage());
-        if(e.getErrorCode() != RiotApiException.DATA_NOT_FOUND) {
-          throw e;
         }
       }
 
-    }while(!allMatchReceived);
-
-    return referencesMatchList;
-  }
-
-  public static KDAReceiver getKDALastMonthOneChampionOnly(String summonerId, Platform region, int championId, boolean forceRefreshCache) {
-
-    SummonerCache summoner;
-    try {
-      summoner = Zoe.getRiotApi().getSummonerWithRateLimit(region, summonerId, forceRefreshCache);
-    } catch(RiotApiException e) {
-      logger.warn("Impossible to get the summoner : {}", e.getMessage());
-      return null;
+      return kdaReceiver;
+    }catch(APIResponseException e) {
+      logger.error("Api response error", e);
+      return kdaReceiver;
     }
-
-    List<MatchReference> referencesMatchList;
-    try {
-      referencesMatchList = getMatchHistoryOfLastMonthWithTheGivenChampion(region, championId, summoner);
-    } catch(RiotApiException e) {
-      logger.info("Can't acces to history : {}", e.getMessage());
-      return null;
-    }
-
-    if(referencesMatchList.isEmpty()) {
-      return null;
-    }
-
-    AtomicBoolean gameLoadingConflict = new AtomicBoolean(false);
-    KDAReceiver kdaReceiver = new KDAReceiver();
-
-    for(MatchReference matchReference : referencesMatchList) {
-      MatchKDAReceiverWorker matchWorker = new MatchKDAReceiverWorker(kdaReceiver, gameLoadingConflict, matchReference, region, summoner);
-      ServerThreadsManager.getMatchsWorker(region).execute(matchWorker);
-    }
-
-    MatchReceiverWorker.awaitAll(referencesMatchList);
-
-    return kdaReceiver;
-  }
-
-  public static KDAReceiver getKDALastMonth(String summonerId, Platform region, boolean forceRefreshCache) {
-
-    SummonerCache summoner;
-    try {
-      summoner = Zoe.getRiotApi().getSummonerWithRateLimit(region, summonerId, forceRefreshCache);
-    } catch(RiotApiException e) {
-      logger.warn("Impossible to get the summoner : {}", e.getMessage());
-      return null;
-    }
-
-    List<MatchReference> referencesMatchList;
-    try {
-      referencesMatchList = getMatchHistoryOfLastMonth(region, summoner);
-    } catch(RiotApiException e) {
-      logger.info("Can't acces to history : {}", e.getMessage());
-      return null;
-    }
-
-    if(referencesMatchList.isEmpty()) {
-      return null;
-    }
-
-    AtomicBoolean gameLoadingConflict = new AtomicBoolean(false);
-    KDAReceiver kdaReceiver = new KDAReceiver();
-
-    for(MatchReference matchReference : referencesMatchList) {
-      MatchKDAReceiverWorker matchWorker = new MatchKDAReceiverWorker(kdaReceiver, gameLoadingConflict, matchReference, region, summoner);
-      ServerThreadsManager.getMatchsWorker(region).execute(matchWorker);
-    }
-
-    MatchReceiverWorker.awaitAll(referencesMatchList);
-
-    return kdaReceiver;
-  }
-
-  public static MatchReceiver getAllMatchsByQueue(String summonerId, LeagueShard region, Set<Integer> queuesId) {
-    Summoner summoner;
-    try {
-      summoner = new SummonerBuilder().withPlatform(region).withSummonerId(summonerId).get();
-    } catch(APIResponseException e) {
-      logger.warn("Impossible to get the summoner : {}", e.getMessage());
-      return null;
-    }
-
-    List<String> referencesMatchList;
-    try {
-      referencesMatchList = getMatchHistoryOfLastMonth(region, summoner, queuesId);
-    } catch(APIResponseException e) {
-      logger.info("Can't acces to history : {}", e.getMessage());
-      return null;
-    }
-
-    if(referencesMatchList.isEmpty()) {
-      return null;
-    }
-
-    AtomicBoolean gameLoadingConflict = new AtomicBoolean(false);
-    MatchReceiver matchReceiver = new MatchReceiver();
-
-    for(MatchReference matchReference : referencesMatchList) {
-      MatchCollectorReciverWorker matchWorker = new MatchCollectorReciverWorker(matchReceiver, gameLoadingConflict, matchReference, region, summoner);
-      ServerThreadsManager.getMatchsWorker(region).execute(matchWorker);
-    }
-
-    MatchReceiverWorker.awaitAll(referencesMatchList);
-
-    return matchReceiver;
-  }
-
-  private static List<MatchReference> getMatchHistoryOfLastMonth(Platform region, SummonerCache summoner) {
-    final List<MatchReference> referencesMatchList = new ArrayList<>();
-
-    LocalDateTime beginTimeToHit = LocalDateTime.now().minusMonths(1);
-    Timestamp timeStampToHit = Timestamp.valueOf(beginTimeToHit);
-
-    Set<Integer> championToFilter = new HashSet<>();
-
-    boolean allMatchReceived = false;
-
-    int startIndex = -100;
-
-    do {
-      startIndex += 100;
-      MatchList matchList = null;
-
-      try {
-        matchList = Zoe.getRiotApi().getMatchListByAccountIdWithRateLimit(region, summoner.getSumCacheData().getAccountId(), championToFilter, null, null,
-            -1, -1, startIndex, -1);
-        if(matchList != null && matchList.getMatches() != null) {
-          for(MatchReference matchToCheck : matchList.getMatches()) {
-            final Timestamp matchTimeStamp = new Timestamp(matchToCheck.getTimestamp());
-            if(matchTimeStamp.after(timeStampToHit)) {
-              referencesMatchList.add(matchToCheck);
-            }else {
-              allMatchReceived = true;
-              break;
-            }
-          }
-
-          if(matchList.getMatches().size() != 100) {
-            allMatchReceived = true;
-          }
-        }else {
-          allMatchReceived = true;
-        }
-      } catch(RiotApiException e) {
-        logger.debug("Impossible to get matchs history : {}", e.getMessage());
-        if(e.getErrorCode() != RiotApiException.DATA_NOT_FOUND) {
-          throw e;
-        }
-      }
-
-    }while(!allMatchReceived);
-
-    return referencesMatchList;
   }
 
   public static List<LOLMatch> getMatchHistoryOfLastMonth(LeagueShard region, Summoner summoner,
@@ -402,9 +176,9 @@ public class RiotRequest {
     for(Integer queueId : queuesList) {
       LocalDateTime beginTimeToHit = LocalDateTime.now().minusMonths(1);
       Timestamp timeStampToHit = Timestamp.valueOf(beginTimeToHit);
-      
+
       MatchReceiver matchReceiver = new MatchReceiver(summoner, championsToFilter, queuesList, timeStampToHit);
-      
+
       boolean allMatchReceived = false;
 
       int startIndex = -100;
@@ -426,11 +200,11 @@ public class RiotRequest {
             for(String matchToCheck : matchList) {
               MatchBuilder matchBuilder = new MatchBuilder(region, matchToCheck);
               buildersToWait.add(matchBuilder);
-              
+
               MatchCollectorReciverWorker matchWorker = new MatchCollectorReciverWorker(matchReceiver, matchBuilder, region, summoner);
               ServerThreadsManager.getMatchsWorker(region).execute(matchWorker);
             }
-            
+
             MatchReceiverWorker.awaitAll(buildersToWait);
 
             if(matchReceiver.isTimestampHited()) {
@@ -445,7 +219,7 @@ public class RiotRequest {
             throw e;
           }
         }
-        
+
         if(allMatchReceived) {
           matchsToReturn.addAll(matchReceiver.matchs);
         }
@@ -460,7 +234,7 @@ public class RiotRequest {
     ChampionMastery mastery = null;
     try {
       mastery = new ChampionMasteryBuilder().withPlatform(platform).withSummonerId(summonerId).withChampionId(championId).getChampionMastery();
-      
+
     } catch(APIResponseException e) {
       logger.debug("Impossible to get mastery score : {}", e.getMessage());
       if(e.getReason() == APIHTTPErrorReason.ERROR_404) {
@@ -474,30 +248,5 @@ public class RiotRequest {
     }
 
     return LanguageUtil.convertMasteryToReadableText(mastery);
-  }
-
-  public static String getActualGameStatus(CurrentGameInfo currentGameInfo, String language) {
-
-    if(currentGameInfo == null) {
-      return LanguageManager.getText(language, "informationPanelNotInGame");
-    }
-
-    String gameStatus = LanguageManager.getText(language,
-        NameConversion.convertGameQueueIdToString(currentGameInfo.getGameQueueConfigId())) + " ";
-
-    double minutesOfGames = 0.0;
-
-    if(currentGameInfo.getGameLength() != 0l) {
-      minutesOfGames = currentGameInfo.getGameLength() + 180.0;
-    }
-
-    minutesOfGames = minutesOfGames / 60.0;
-    String[] stringMinutesSecondes = Double.toString(minutesOfGames).split("\\.");
-    int minutesGameLength = Integer.parseInt(stringMinutesSecondes[0]);
-    int secondesGameLength = (int) (Double.parseDouble("0." + stringMinutesSecondes[1]) * 60.0);
-
-    gameStatus += "(" + minutesGameLength + "m " + secondesGameLength + "s)";
-
-    return gameStatus;
   }
 }

@@ -93,9 +93,12 @@ public class KDALeaderboardService extends LeaderboardBaseService {
         KDAReceiver kdaReceiver;
 
         if(champ == null) {
-          kdaReceiver = RiotRequest.getKDALastMonth(leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server);
+          kdaReceiver = RiotRequest.getKDALastMonth(leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server, null);
         }else {
-          kdaReceiver = RiotRequest.getKDALastMonthOneChampionOnly(leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server, champ.getChampion().getKey());
+          List<Integer> championId = new ArrayList<Integer>();
+          championId.add(champ.getChampion().getKey());
+          
+          kdaReceiver = RiotRequest.getKDALastMonth(leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server, championId);
         }
 
         if(kdaReceiver == null) {

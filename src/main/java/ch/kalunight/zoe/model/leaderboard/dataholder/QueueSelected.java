@@ -1,6 +1,9 @@
 package ch.kalunight.zoe.model.leaderboard.dataholder;
 
+import java.util.Optional;
+
 import ch.kalunight.zoe.model.GameQueueConfigId;
+import no.stelar7.api.r4j.basic.constants.types.lol.GameQueueType;
 
 public class QueueSelected {
   
@@ -10,8 +13,18 @@ public class QueueSelected {
     this.queueId = gameQueue.getId();
   }
 
-  public GameQueueConfigId getGameQueue() {
-    return GameQueueConfigId.getGameQueueIdWithId(queueId);
+  public GameQueueType getGameQueue() {
+    Optional<GameQueueType> queue = GameQueueType.getFromId(queueId);
+    if(queue.isPresent()) {
+      return queue.get();
+    }
+    return null;
+  }
+  
+  public String getNameId() {
+    GameQueueType gameQueue = getGameQueue();
+    
+    return GameQueueConfigId.getGameQueueWithQueueType(gameQueue.getApiName()).getNameId();
   }
   
   public int getQueueId() {

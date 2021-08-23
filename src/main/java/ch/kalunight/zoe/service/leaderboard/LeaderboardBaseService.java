@@ -195,14 +195,14 @@ public abstract class LeaderboardBaseService implements Runnable {
     switch(objective) {
     case AVERAGE_KDA:
     case AVERAGE_KDA_SPECIFIC_CHAMP:
-      return new KDALeaderboardService(guildId, channelId, leaderboardId, forceRefreshCache);
+      return new KDALeaderboardService(guildId, channelId, leaderboardId);
     case MASTERY_POINT:
-      return new MasteryPointLeaderboardService(guildId, channelId, leaderboardId, forceRefreshCache);
+      return new MasteryPointLeaderboardService(guildId, channelId, leaderboardId);
     case MASTERY_POINT_SPECIFIC_CHAMP:
-      return new MasteryPointSpecificChampLeaderboardService(guildId, channelId, leaderboardId, forceRefreshCache);
+      return new MasteryPointSpecificChampLeaderboardService(guildId, channelId, leaderboardId);
     case BEST_OF_ALL_RANK:
     case SPECIFIC_QUEUE_RANK:
-      return new RankLeaderboardService(guildId, channelId, leaderboardId, forceRefreshCache);
+      return new RankLeaderboardService(guildId, channelId, leaderboardId);
       /*case WINRATE:
     case WINRATE_SPECIFIC_CHAMP:
     case WINRATE_SPECIFIC_QUEUE:

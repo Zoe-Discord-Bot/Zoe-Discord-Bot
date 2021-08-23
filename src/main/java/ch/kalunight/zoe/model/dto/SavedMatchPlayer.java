@@ -2,7 +2,9 @@ package ch.kalunight.zoe.model.dto;
 
 import java.io.Serializable;
 
-import net.rithms.riot.api.endpoints.match.dto.ParticipantStats;
+import no.stelar7.api.r4j.basic.constants.types.lol.LaneType;
+import no.stelar7.api.r4j.basic.constants.types.lol.RoleType;
+import no.stelar7.api.r4j.pojo.lol.match.v5.MatchParticipant;
 
 public class SavedMatchPlayer implements Serializable {
 
@@ -16,10 +18,10 @@ public class SavedMatchPlayer implements Serializable {
   private int assists;
   private int creepScores;
   private int level;
-  private String role;
-  private String lane;
+  private RoleType role;
+  private LaneType lane;
   
-  public SavedMatchPlayer(boolean blueSide, String summonerId, int championId, ParticipantStats participantStats, String role, String lane) {
+  public SavedMatchPlayer(boolean blueSide, String summonerId, int championId, MatchParticipant participantStats) {
     this.blueSide = blueSide;
     this.summonerId = summonerId;
     this.championId = championId;
@@ -28,8 +30,8 @@ public class SavedMatchPlayer implements Serializable {
     this.assists = participantStats.getAssists();
     this.creepScores = participantStats.getTotalMinionsKilled() + participantStats.getNeutralMinionsKilled();
     this.level = participantStats.getChampLevel();
-    this.role = role;
-    this.lane = lane;
+    this.role = participantStats.getRole();
+    this.lane = participantStats.getLane();
   }
 
   public int getCreepScores() {
@@ -76,19 +78,19 @@ public class SavedMatchPlayer implements Serializable {
     return assists;
   }
 
-  public String getRole() {
+  public RoleType getRole() {
     return role;
   }
 
-  public void setRole(String role) {
+  public void setRole(RoleType role) {
     this.role = role;
   }
 
-  public String getLane() {
+  public LaneType getLane() {
     return lane;
   }
 
-  public void setLane(String lane) {
+  public void setLane(LaneType lane) {
     this.lane = lane;
   }
   

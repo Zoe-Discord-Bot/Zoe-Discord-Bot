@@ -27,7 +27,7 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.RichPresence;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
-import net.rithms.riot.constant.Platform;
+import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
 
 public class EventListenerUtil {
 
@@ -135,11 +135,11 @@ public class EventListenerUtil {
             .setCanceled(getSelectionCancelAction())
             .setTimeout(15, TimeUnit.MINUTES);
 
-        List<Platform> regionsList = new ArrayList<>();
+        List<LeagueShard> regionsList = new ArrayList<>();
         List<String> regionChoices = new ArrayList<>();
-        for(Platform regionMember : Platform.values()) {
+        for(LeagueShard regionMember : LeagueShard.getDefaultPlatforms()) {
           String actualChoice = String.format(LanguageManager.getText(server.getLanguage(), "regionOptionRegionChoice"),
-              regionMember.getName().toUpperCase());
+              regionMember.getRealmValue().toUpperCase());
 
           regionChoices.add(actualChoice);
           selectAccountBuilder.addChoices(actualChoice);
@@ -172,7 +172,7 @@ public class EventListenerUtil {
     };
   }
 
-  private static BiConsumer<Message, Integer> getSelectionDoneActionRegionSelection(List<Platform> regionsList, DTO.Server server) {
+  private static BiConsumer<Message, Integer> getSelectionDoneActionRegionSelection(List<LeagueShard> regionsList, DTO.Server server) {
     return new BiConsumer<Message, Integer>() {
       @Override
       public void accept(Message selectionMessage, Integer selectionOfRegion) {
@@ -190,7 +190,7 @@ public class EventListenerUtil {
             strRegion = LanguageManager.getText(server.getLanguage(), "regionOptionAnyRegion");
             ConfigRepository.updateRegionOption(server.serv_guildId, null, selectionMessage.getJDA());
           } else {
-            strRegion = regionsList.get(selectionOfRegion - 1).getName().toUpperCase();
+            strRegion = regionsList.get(selectionOfRegion - 1).getRealmValue().toUpperCase();
             ConfigRepository.updateRegionOption(server.serv_guildId, regionsList.get(selectionOfRegion - 1), selectionMessage.getJDA());
           }
 

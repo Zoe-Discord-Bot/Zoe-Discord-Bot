@@ -386,15 +386,10 @@ public class Zoe {
     APICredentials creds = new APICredentials(riotTocken, null, tftTocken, null, null);
     riotApi = new R4J(creds);
     
-    MongoDBCacheProvider mongoDbCacheProvider = new MongoDBCacheProvider("mongodb://localhost:27017");
-    CacheLifetimeHint cache = new CacheLifetimeHint();
-    cache.add(URLEndpoint.V5_MATCH, 30, TimeUnit.DAYS);
     
     DataCall.setCacheProvider(mongoDbCacheProvider);
-    DataCall.setGlobalTimeout(1);
+    //DataCall.setGlobalTimeout(1);
     DataCall.setCredentials(creds);
-    
-    mongoDbCacheProvider.setTimeToLive(cache);
   }
 
   private static void setupContinousRefreshThread() {
@@ -508,6 +503,12 @@ public class Zoe {
       try {
         ChampionRoleAnalysis championRole = ChampionRoleAnalysisRepository.getChampionRoleAnalysis(champion.getKey());
 
+        if(true) {
+          champion.setRoles(allRoles);
+          champion.setAverageKDA(DangerosityReportKDA.DEFAULT_AVERAGE_KDA);
+          continue;
+        }
+        
         if(championRole != null) {
           champion.setRoles(championRole.cra_roles);
           champion.setAverageKDA(championRole.cra_average_kda);

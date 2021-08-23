@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,9 +25,6 @@ import ch.kalunight.zoe.model.InfocardPlayerData;
 import ch.kalunight.zoe.model.PlayerRankedResult;
 import ch.kalunight.zoe.model.RankedChangeType;
 import ch.kalunight.zoe.model.dto.DTO;
-import ch.kalunight.zoe.model.dto.SavedChampionsMastery;
-import ch.kalunight.zoe.model.dto.SavedMatch;
-import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Player;
 import ch.kalunight.zoe.model.player_data.FullTier;
@@ -58,7 +54,6 @@ import no.stelar7.api.r4j.pojo.lol.championmastery.ChampionMastery;
 import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
 import no.stelar7.api.r4j.pojo.lol.league.MiniSeries;
 import no.stelar7.api.r4j.pojo.lol.match.v5.LOLMatch;
-import no.stelar7.api.r4j.pojo.lol.match.v5.MatchIterator;
 import no.stelar7.api.r4j.pojo.lol.match.v5.MatchParticipant;
 import no.stelar7.api.r4j.pojo.lol.spectator.SpectatorGameInfo;
 import no.stelar7.api.r4j.pojo.lol.spectator.SpectatorParticipant;
@@ -108,14 +103,20 @@ public class MessageBuilderRequest {
       MiniSeries oldBo = oldEntry.getMiniSeries();
       MiniSeries newBo = newEntry.getMiniSeries();
 
-      if(match.isGivenAccountWinner(leagueAccount.leagueAccount_summonerId)) {
-        accountTitle = String.format(LanguageManager.getText(lang, "rankChannelChangeBOProgressWinTitleWithoutGameType"),
-            summonerName, oldBo.getProgress().length(),
-            oldFullTier.getHeigerDivision().toStringWithoutLp(lang));
-      }else {
-        accountTitle = String.format(LanguageManager.getText(lang, "rankChannelChangeBOProgressLooseTitleWithoutGameType"),
-            summonerName, oldBo.getProgress().length(),
-            oldFullTier.getHeigerDivision().toStringWithoutLp(lang));
+
+      for(MatchParticipant participant : match.getParticipants()) {
+        if(participant.getSummonerId().equals(leagueAccount.leagueAccount_summonerId)) {
+
+          if(participant.didWin()) {
+            accountTitle = String.format(LanguageManager.getText(lang, "rankChannelChangeBOProgressWinTitleWithoutGameType"),
+                summonerName, oldBo.getProgress().length(),
+                oldFullTier.getHeigerDivision().toStringWithoutLp(lang));
+          }else {
+            accountTitle = String.format(LanguageManager.getText(lang, "rankChannelChangeBOProgressLooseTitleWithoutGameType"),
+                summonerName, oldBo.getProgress().length(),
+                oldFullTier.getHeigerDivision().toStringWithoutLp(lang));
+          }
+        }
       }
 
       changeStats = MessageBuilderRequestUtil.getBoStatus(newBo, lang);
@@ -211,7 +212,19 @@ public class MessageBuilderRequest {
 
     statsGame = MessageBuilderRequestUtil.getResumeGameStats(leagueAccount, lang, match);
 
-    Boolean win = match.isGivenAccountWinner(leagueAccount.leagueAccount_summonerId);
+    Boolean win = null;
+    
+    for(MatchParticipant participant : match.getParticipants()) {
+      if(participant.getSummonerId().equals(leagueAccount.leagueAccount_summonerId)) {
+        win = participant.didWin();
+        break;
+      }
+    }
+    
+    if(win == null) {
+      logger.info("A game in rank channel generation message has been canceled");
+      return null;
+    }
 
     return new PlayerRankedResult(gameOfTheChange.getGameId(), leagueAccount.leagueAccount_server, accountTitle, changeStats, statsGame, win);
   }
@@ -254,9 +267,9 @@ public class MessageBuilderRequest {
   }
 
   public static MessageEmbed createRankChannelCardBoStarted(LeagueEntry newEntry, 
-      CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang, JDA jda) throws RiotApiException {
+      SpectatorGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang, JDA jda) {
 
-    SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
+    LOLMatch match = new MatchBuilder(gameOfTheChange.getPlatform(), MatchV5Util.convertMatchV4IdToMatchV5Id(gameOfTheChange.getGameId(), gameOfTheChange.getPlatform())).getMatch();
 
     EmbedBuilder message = new EmbedBuilder();
 
@@ -293,9 +306,9 @@ public class MessageBuilderRequest {
   }
 
   public static MessageEmbed createRankChannelBoInProgress(LeagueEntry oldEntry, LeagueEntry newEntry, 
-      CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang, JDA jda) throws RiotApiException {
+      SpectatorGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang, JDA jda) {
 
-    SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
+    LOLMatch match = new MatchBuilder(gameOfTheChange.getPlatform(), MatchV5Util.convertMatchV4IdToMatchV5Id(gameOfTheChange.getGameId(), gameOfTheChange.getPlatform())).getMatch();
 
     EmbedBuilder message = new EmbedBuilder();
 
@@ -309,19 +322,26 @@ public class MessageBuilderRequest {
 
     FullTier oldFullTier = new FullTier(oldEntry);
     try {
-      if(match.isGivenAccountWinner(leagueAccount.leagueAccount_summonerId)) {
-        message.setColor(Color.GREEN);
-        message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeBOProgressWinTitle"),
-            ZoeUserRankManagementUtil.getEmotesByDiscordId(user.getIdLong())
-            + leagueAccount.getSummoner().getName(), oldBo.getProgress().length(),
-            oldFullTier.getHeigerDivision().toStringWithoutLp(lang), gameType));
-      }else {
-        message.setColor(Color.RED);
-        message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeBOProgressLooseTitle"),
-            ZoeUserRankManagementUtil.getEmotesByDiscordId(user.getIdLong())
-            + leagueAccount.getSummoner().getName(), oldBo.getProgress().length(),
-            oldFullTier.getHeigerDivision().toStringWithoutLp(lang), gameType));
+      
+      for(MatchParticipant participant : match.getParticipants()) {
+        if(participant.getSummonerId().equals(leagueAccount.leagueAccount_summonerId)) {
+          
+          if(participant.didWin()) {
+            message.setColor(Color.GREEN);
+            message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeBOProgressWinTitle"),
+                ZoeUserRankManagementUtil.getEmotesByDiscordId(user.getIdLong())
+                + leagueAccount.getSummoner().getName(), oldBo.getProgress().length(),
+                oldFullTier.getHeigerDivision().toStringWithoutLp(lang), gameType));
+          }else {
+            message.setColor(Color.RED);
+            message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeBOProgressLooseTitle"),
+                ZoeUserRankManagementUtil.getEmotesByDiscordId(user.getIdLong())
+                + leagueAccount.getSummoner().getName(), oldBo.getProgress().length(),
+                oldFullTier.getHeigerDivision().toStringWithoutLp(lang), gameType));
+          }
+        }
       }
+
     }catch(PlayerNotFoundException e) {
       logger.info("A game in rank channel generation message has been canceled");
       return null;
@@ -346,9 +366,9 @@ public class MessageBuilderRequest {
   }
 
   public static MessageEmbed createRankChannelCardBoEnded(LeagueEntry oldEntry, LeagueEntry newEntry, 
-      CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang, JDA jda) throws RiotApiException {
+      SpectatorGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang, JDA jda) {
 
-    SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
+    LOLMatch match = new MatchBuilder(gameOfTheChange.getPlatform(), MatchV5Util.convertMatchV4IdToMatchV5Id(gameOfTheChange.getGameId(), gameOfTheChange.getPlatform())).getMatch();
 
     EmbedBuilder message = new EmbedBuilder();
 
@@ -402,7 +422,7 @@ public class MessageBuilderRequest {
       SpectatorGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang, JDA jda) {
 
     LOLMatch match = new MatchBuilder(gameOfTheChange.getPlatform(), MatchV5Util.convertMatchV4IdToMatchV5Id(gameOfTheChange.getGameId(), gameOfTheChange.getPlatform())).getMatch();
-    
+
     EmbedBuilder message = new EmbedBuilder();
 
     String gameType = getGameType(gameOfTheChange, lang);
@@ -491,7 +511,7 @@ public class MessageBuilderRequest {
       SpectatorGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang, JDA jda) {
 
     LOLMatch match = new MatchBuilder(leagueAccount.leagueAccount_server, MatchV5Util.convertMatchV4IdToMatchV5Id(gameOfTheChange.getGameId(), gameOfTheChange.getPlatform())).getMatch();
-    
+
     EmbedBuilder message = new EmbedBuilder();
 
     String gameType = getGameType(gameOfTheChange, lang);

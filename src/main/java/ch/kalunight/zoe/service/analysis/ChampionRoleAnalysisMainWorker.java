@@ -11,13 +11,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.kalunight.zoe.ServerThreadsManager;
+import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.dangerosityreport.DangerosityReportKDA;
 import ch.kalunight.zoe.model.dto.DTO;
-import ch.kalunight.zoe.model.dto.SavedMatch;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.repositories.ChampionRoleAnalysisRepository;
-import ch.kalunight.zoe.repositories.SavedMatchCacheRepository;
 import ch.kalunight.zoe.util.Ressources;
 
 public class ChampionRoleAnalysisMainWorker implements Runnable {
@@ -60,7 +59,9 @@ public class ChampionRoleAnalysisMainWorker implements Runnable {
     try {
       champion = Ressources.getChampionDataById(championId);
 
-      String version = SavedMatchCacheRepository.getCurrentLoLVersion();
+      List<String> versions = Zoe.getRiotApi().getDDragonAPI().getVersions();
+      
+      String version = versions.get(versions.size() - 1);
 
       if(version == null) {
         return;

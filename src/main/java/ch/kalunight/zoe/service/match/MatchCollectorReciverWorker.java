@@ -1,10 +1,6 @@
 package ch.kalunight.zoe.service.match;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import ch.kalunight.zoe.model.MatchReceiver;
-import ch.kalunight.zoe.model.dto.SavedMatch;
-import ch.kalunight.zoe.model.dto.DTO.SummonerCache;
 import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
 import no.stelar7.api.r4j.impl.lol.builders.matchv5.match.MatchBuilder;
 import no.stelar7.api.r4j.pojo.lol.match.v5.LOLMatch;

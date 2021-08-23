@@ -26,18 +26,18 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
-import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
+import no.stelar7.api.r4j.basic.constants.types.lol.GameQueueType;
+import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
 
 public class RankLeaderboardService extends LeaderboardBaseService {
 
-  public RankLeaderboardService(long guildId, long channelId, long leaderboardId, boolean forceRefreshCache) {
-    super(guildId, channelId, leaderboardId, forceRefreshCache);
+  public RankLeaderboardService(long guildId, long channelId, long leaderboardId) {
+    super(guildId, channelId, leaderboardId);
   }
 
   @Override
   protected void runLeaderboardRefresh(Server server, Guild guild, TextChannel channel, Leaderboard leaderboard,
-      Message message, List<Player> players, boolean forceRefreshCache) throws SQLException, RiotApiException {
+      Message message, List<Player> players) throws SQLException {
 
     Objective objective = Objective.getObjectiveWithId(leaderboard.lead_type);
     QueueSelected queueSelected = null;
@@ -45,7 +45,7 @@ public class RankLeaderboardService extends LeaderboardBaseService {
       queueSelected = gson.fromJson(leaderboard.lead_data, QueueSelected.class);
     }
 
-    List<PlayerRank> playersRank = orderAndGetPlayers(guild, objective, queueSelected, players, forceRefreshCache);
+    List<PlayerRank> playersRank = orderAndGetPlayers(guild, objective, queueSelected, players);
 
     List<String> playersName = new ArrayList<>();
     List<String> dataList = new ArrayList<>();
@@ -55,7 +55,7 @@ public class RankLeaderboardService extends LeaderboardBaseService {
       FullTier fullTier = playerRank.getFullTier();
       if(queueSelected == null) {
         dataList.add(Ressources.getTierEmote().get(fullTier.getTier()).getUsableEmote() + " " + fullTier.toString(server.getLanguage()) 
-        + " (" + LanguageManager.getText(server.getLanguage(), playerRank.getQueue().getNameId()) + ")");
+        + " (" + LanguageManager.getText(server.getLanguage(), GameQueueConfigId.getGameQueueWithQueueType(playerRank.getQueue().getApiName()).getNameId()) + ")");
       }else {
         dataList.add(Ressources.getTierEmote().get(fullTier.getTier()).getUsableEmote() + " " + fullTier.toString(server.getLanguage()));
       }
@@ -66,7 +66,8 @@ public class RankLeaderboardService extends LeaderboardBaseService {
     if(queueSelected == null) {
       dataName = LanguageManager.getText(server.getLanguage(), "leaderboardRankTitle");
     }else {
-      dataName = String.format(LanguageManager.getText(server.getLanguage(), "leaderboardRankSpecificQueueTitle"), LanguageManager.getText(server.getLanguage(), queueSelected.getGameQueue().getNameId()));
+      dataName = String.format(LanguageManager.getText(server.getLanguage(), "leaderboardRankSpecificQueueTitle"), LanguageManager.getText(server.getLanguage(), 
+          GameQueueConfigId.getGameQueueWithQueueType(queueSelected.getGameQueue().getApiName()).getNameId()));
     }
 
     EmbedBuilder builder = buildBaseLeaderboardList(playerTitle, playersName, dataName, dataList, server);
@@ -79,15 +80,15 @@ public class RankLeaderboardService extends LeaderboardBaseService {
       leaderboardMessageTitle = LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveRankAllTitle");
     }else {
       builder.setTitle(String.format(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveRankSpecificTitle"), 
-          LanguageManager.getText(server.getLanguage(), queueSelected.getGameQueue().getNameId())));
+          LanguageManager.getText(server.getLanguage(), GameQueueConfigId.getGameQueueWithQueueType(queueSelected.getGameQueue().getApiName()).getNameId())));
       leaderboardMessageTitle = String.format(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveRankSpecificTitle"), 
-          LanguageManager.getText(server.getLanguage(), queueSelected.getGameQueue().getNameId()));
+          LanguageManager.getText(server.getLanguage(), GameQueueConfigId.getGameQueueWithQueueType(queueSelected.getGameQueue().getApiName()).getNameId()));
     }
     
     message.editMessage(leaderboardMessageTitle).setEmbeds(builder.build()).queue();
   }
 
-  private List<PlayerRank> orderAndGetPlayers(Guild guild, Objective objective, QueueSelected queueSelected, List<Player> players, boolean forceRefreshCache) throws SQLException, RiotApiException {
+  private List<PlayerRank> orderAndGetPlayers(Guild guild, Objective objective, QueueSelected queueSelected, List<Player> players) throws SQLException {
     List<PlayerRank> playersPoints = new ArrayList<>();
 
     for(DTO.Player player : players) {
@@ -95,7 +96,7 @@ public class RankLeaderboardService extends LeaderboardBaseService {
 
       long bestAccountRank = 0;
       FullTier fullTierBestAccountRank = null;
-      GameQueueConfigId queue = null;
+      GameQueueType queue = null;
       for(DTO.LeagueAccount leagueAccount : leaguesAccounts) {
         List<LeagueEntry> leaguesEntries = new ArrayList<>();
         
@@ -117,14 +118,14 @@ public class RankLeaderboardService extends LeaderboardBaseService {
 
         long rankValue = 0;
         FullTier fullTierRankValue = null;
-        GameQueueConfigId queueOfRankValue = null;
+        GameQueueType queueOfRankValue = null;
         if(queueSelected != null) {
           for(LeagueEntry leagueEntry : leaguesEntries) {
-            if(leagueEntry.getQueueType().equals(queueSelected.getGameQueue().getQueueType())) {
+            if(leagueEntry.getQueueType().equals(queueSelected.getGameQueue())) {
               try {
                 fullTierRankValue = new FullTier(leagueEntry);
                 rankValue = fullTierRankValue.value();
-                queueOfRankValue = GameQueueConfigId.getGameQueueWithQueueType(leagueEntry.getQueueType());
+                queueOfRankValue = leagueEntry.getQueueType();
               } catch (NoValueRankException e) {
                 logger.debug("FullTier impossible to create", e);
               }
@@ -133,7 +134,7 @@ public class RankLeaderboardService extends LeaderboardBaseService {
         }else {
           long bestRankQueueAccountValue = 0;
           FullTier bestRankQueueAccountFullTier = null;
-          GameQueueConfigId queueSelectedByQueue = null;
+          GameQueueType queueSelectedByQueue = null;
           for(LeagueEntry leagueEntry : leaguesEntries) {
             try {
               FullTier queueToEvaluate = new FullTier(leagueEntry);
@@ -141,7 +142,7 @@ public class RankLeaderboardService extends LeaderboardBaseService {
                   || (bestRankQueueAccountFullTier.compareTo(queueToEvaluate) > 0)) {
                 bestRankQueueAccountFullTier = queueToEvaluate;
                 bestRankQueueAccountValue = bestRankQueueAccountFullTier.value();
-                queueSelectedByQueue = GameQueueConfigId.getGameQueueWithQueueType(leagueEntry.getQueueType());
+                queueSelectedByQueue = leagueEntry.getQueueType();
               }
             } catch (NoValueRankException e) {
               logger.debug("FullTier impossible to create", e);

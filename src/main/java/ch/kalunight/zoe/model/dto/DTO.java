@@ -11,9 +11,6 @@ import java.util.TimeZone;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
-
-import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.config.option.CleanChannelOption.CleanChannelOptionInfo;
 import ch.kalunight.zoe.service.analysis.ChampionRole;
 import net.dv8tion.jda.api.JDA;
@@ -397,23 +394,7 @@ public class DTO {
       }
     }
   }
-
-  public static class MatchCache {
-    public final long mCatch_id;
-    public final String mCatch_gameId;
-    public final Platform mCatch_platform;
-    public final SavedMatch mCatch_savedMatch;
-    public final LocalDateTime mCatch_creationTime;
-
-    public MatchCache(ResultSet baseData) throws SQLException {
-      mCatch_id = baseData.getLong("mCatch_id");
-      mCatch_gameId = baseData.getString("mCatch_gameId");
-      mCatch_platform = Platform.getPlatformByName(baseData.getString("mCatch_platform"));
-      mCatch_savedMatch = gson.fromJson(baseData.getString("mCatch_savedMatch"), SavedMatch.class);
-      mCatch_creationTime = LocalDateTime.parse(baseData.getString("mCatch_creationTime"), DB_TIME_PATTERN);
-    }
-  }
-
+  
   public static class ServerRawSettings {
     public final Boolean selfoption_activate;
     public final Long roleoption_roleid;
@@ -428,7 +409,7 @@ public class DTO {
 
       String platformName = baseData.getString("regionoption_region");
       if(platformName != null && !platformName.equals("")) {
-        regionoption_region = LeagueShard.fromString(baseData.getString("leagueAccount_server")).get();
+        regionoption_region = LeagueShard.fromString(platformName).get();
       }else {
         regionoption_region = null;
       }
@@ -613,69 +594,14 @@ public class DTO {
   public static class BannedAccount {
     public final long banAcc_id;
     public final String banAcc_summonerId;
-    public final Platform banAcc_server;
+    public final LeagueShard banAcc_server;
 
     public BannedAccount(ResultSet baseData) throws SQLException {
       banAcc_id = baseData.getLong("banAcc_id");
       banAcc_summonerId = baseData.getString("banAcc_summonerId");
-      banAcc_server = Platform.getPlatformByName(baseData.getString("banAcc_server"));
+      banAcc_server = LeagueShard.fromString(baseData.getString("banAcc_server")).get();
     }
 
-  }
-
-  public static class SummonerCache {
-    public final long sumCache_id;
-    public final String sumCache_summonerId;
-    public final Platform sumCache_server;
-    private SavedSummoner sumCache_data;
-    public final LocalDateTime sumCache_lastRefresh;
-
-    public SummonerCache(ResultSet baseData) throws SQLException {
-      sumCache_id = baseData.getLong("sumCache_id");
-      sumCache_summonerId = baseData.getString("sumCache_summonerId");
-      sumCache_server = Platform.getPlatformByName(baseData.getString("sumCache_server"));
-      this.sumCache_data = gson.fromJson(baseData.getString("sumCache_data"), SavedSummoner.class);
-      sumCache_lastRefresh = LocalDateTime.parse(baseData.getString("sumCache_lastRefresh"), DB_TIME_PATTERN);
-    }
-
-    public SavedSummoner getSumCacheData() {
-      return sumCache_data;
-    }
-
-    public void setSumCacheData(SavedSummoner sumCache_data) {
-      this.sumCache_data = sumCache_data;
-    }
-
-  }
-
-  public static class ChampionMasteryCache {
-    public final long champMasCache_id;
-    public final String champMasCache_summonerId;
-    public final Platform champMasCache_server;
-    public final SavedChampionsMastery champMasCache_data;
-    public final LocalDateTime champMasCache_lastRefresh;
-
-    public ChampionMasteryCache(ResultSet baseData) throws SQLException {
-      champMasCache_id = baseData.getLong("champMasCache_id");
-      champMasCache_summonerId = baseData.getString("champMasCache_summonerId");
-      champMasCache_server = Platform.getPlatformByName(baseData.getString("champMasCache_server"));
-      champMasCache_data = gson.fromJson(baseData.getString("champMasCache_data"), SavedChampionsMastery.class);
-      champMasCache_lastRefresh = LocalDateTime.parse(baseData.getString("champMasCache_lastRefresh"), DB_TIME_PATTERN);
-    }
-  }
-
-  public static class ClashTournamentCache {
-    public final long clashTourCache_id;
-    public final Platform clashTourCache_server;
-    public final List<ClashTournament> clashTourCache_data;
-    public final LocalDateTime clashTourCache_lastRefresh;
-
-    public ClashTournamentCache(ResultSet baseData) throws SQLException {
-      clashTourCache_id = baseData.getLong("clashTourCache_id");
-      clashTourCache_server = Platform.getPlatformByName(baseData.getString("clashTourCache_server"));
-      clashTourCache_data = gson.fromJson(baseData.getString("clashTourCache_data"), new TypeToken<List<ClashTournament>>(){}.getType());
-      clashTourCache_lastRefresh = LocalDateTime.parse(baseData.getString("clashTourCache_lastRefresh"), DB_TIME_PATTERN);
-    }
   }
 
   public static class LastRank {

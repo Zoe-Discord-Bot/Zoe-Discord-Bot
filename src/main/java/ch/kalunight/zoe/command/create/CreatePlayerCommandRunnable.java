@@ -160,8 +160,7 @@ public class CreatePlayerCommandRunnable {
     LastRank lastRank = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
 
     try {
-      List<LeagueEntry> leagueEntries = new LeagueBuilder().withPlatform(leagueAccount.leagueAccount_server)
-          .withSummonerId(leagueAccount.leagueAccount_summonerId).getLeagueEntries();
+      List<LeagueEntry> leagueEntries = Zoe.getRiotApi().getLoLAPI().getLeagueAPI().getLeagueEntries(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
       LastRankUtil.updateLoLLastRank(lastRank, leagueEntries);
     } catch(APIResponseException e) {
       Zoe.logger.info("Fail to refresh LoL last rank while creating a leagueAccount, will be done at the next game.");

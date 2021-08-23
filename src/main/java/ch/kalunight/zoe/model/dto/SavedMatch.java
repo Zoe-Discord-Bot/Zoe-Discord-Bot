@@ -4,12 +4,13 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.bson.Document;
+
 import ch.kalunight.zoe.exception.PlayerNotFoundException;
-import net.rithms.riot.api.endpoints.match.dto.Match;
-import net.rithms.riot.api.endpoints.match.dto.Participant;
-import net.rithms.riot.api.endpoints.match.dto.ParticipantIdentity;
-import net.rithms.riot.api.endpoints.match.dto.ParticipantTimeline;
-import net.rithms.riot.api.endpoints.match.dto.Player;
+import no.stelar7.api.r4j.basic.constants.types.lol.GameQueueType;
+import no.stelar7.api.r4j.pojo.lol.match.v5.LOLMatch;
+import no.stelar7.api.r4j.pojo.lol.match.v5.MatchParticipant;
+import no.stelar7.api.r4j.pojo.lol.match.v5.MatchTeam;
 
 public class SavedMatch implements Serializable {
 
@@ -19,7 +20,7 @@ public class SavedMatch implements Serializable {
 
   private List<SavedMatchPlayer> players;
 
-  private int queueId;
+  private GameQueueType queueId;
 
   private String gameVersion;
 
@@ -31,8 +32,8 @@ public class SavedMatch implements Serializable {
   private long gameDurations;
 
   private boolean blueSideHasWin;
-
-  public SavedMatch(Match match) {
+  
+  public SavedMatch(LOLMatch match) {
     queueId = match.getQueueId();
     gameVersion = match.getGameVersion();
     gameDurations = match.getGameDuration();
@@ -40,44 +41,37 @@ public class SavedMatch implements Serializable {
     
     players = new ArrayList<>();
 
-    for(Participant participant : match.getParticipants()) {
-      buildPlayer(match, participant);
+    for(MatchParticipant participant : match.getParticipants()) {
+      buildPlayer(participant);
     }
 
-    if(match.getTeamByTeamId(100).getWin().equals("Win")) {
+    MatchTeam blueTeam = null;
+    for(MatchTeam team : match.getTeams()) {
+      if(team.getTeamId().getValue() == 100) {
+        blueTeam = team;
+        break;
+      }
+    }
+    
+    if(blueTeam != null && blueTeam.didWin()) {
       blueSideHasWin = true;
     }else {
       blueSideHasWin = false;
     }
   }
 
-  private void buildPlayer(Match match, Participant participant) {
-    Player player = null;
-
-    for(ParticipantIdentity participantIdentity : match.getParticipantIdentities()) {
-      if(participant.getParticipantId() == participantIdentity.getParticipantId()) {
-        player = participantIdentity.getPlayer();
-      }
-    }
-
-    if(player != null) {
-      ParticipantTimeline timeline = participant.getTimeline();
-      String role = null;
-      String lane = null;
-      if(timeline != null) {
-        role = timeline.getRole();
-        lane = timeline.getLane();
-      }
+  private void buildPlayer(MatchParticipant participant) {
+    if(participant != null) {
 
       boolean blueSide;
-      if(participant.getTeamId() == BLUE_TEAM_ID) {
+      if(participant.getTeamId().getValue() == BLUE_TEAM_ID) {
         blueSide = true;
       }else {
         blueSide = false;
       }
 
-      SavedMatchPlayer savedPlayer = new SavedMatchPlayer(blueSide, player.getSummonerId(), participant.getChampionId(),
-          participant.getStats(), role, lane);
+      SavedMatchPlayer savedPlayer = new SavedMatchPlayer(blueSide, participant.getSummonerId(), participant.getChampionId(),
+          participant);
 
       players.add(savedPlayer);
     }
@@ -130,12 +124,12 @@ public class SavedMatch implements Serializable {
     return blueSideHasWin;
   }
 
-  public int getQueueId() {
+  public GameQueueType getQueueId() {
     return queueId;
   }
 
   public String getGameVersion() {
     return gameVersion;
   }
-
+  
 }

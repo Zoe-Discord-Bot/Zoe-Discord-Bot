@@ -228,7 +228,7 @@ public class CurrentGameInfoRepository {
       String currentGameJson = gson.toJson(currentGame);
 
       String finalQuery = String.format(INSERT_CURRENT_GAME, currentGameJson, 
-          Long.toString(currentGame.getGameId()), leagueAccount.leagueAccount_server.getRealmValue());
+          Long.toString(currentGame.getGameId()), leagueAccount.leagueAccount_server.getDbName());
       result = query.executeQuery(finalQuery);
       result.next();
 

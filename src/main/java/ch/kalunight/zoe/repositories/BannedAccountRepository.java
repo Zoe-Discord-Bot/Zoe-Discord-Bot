@@ -5,7 +5,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import ch.kalunight.zoe.model.dto.DTO;
-import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 
 public class BannedAccountRepository {
 
@@ -27,21 +27,21 @@ public class BannedAccountRepository {
     // hide default public constructor
   }
   
-  public static void createBannedAccount(String summonerId, LeagueShard platform) throws SQLException {
+  public static void createBannedAccount(String summonerId, ZoePlatform platform) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement();) {
 
-      String finalQuery = String.format(INSERT_BANNED_ACCOUNT, summonerId, platform.getRealmValue());
+      String finalQuery = String.format(INSERT_BANNED_ACCOUNT, summonerId, platform.getDbName());
       query.execute(finalQuery);
     }
   }
   
-  public static DTO.BannedAccount getBannedAccount(String summonerId, LeagueShard platform) throws SQLException {
+  public static DTO.BannedAccount getBannedAccount(String summonerId, ZoePlatform platform) throws SQLException {
     ResultSet result = null;
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
       
-      String finalQuery = String.format(SELECT_BANNED_ACCOUNT_WITH_SUMMONER_ID_AND_SERVER, summonerId, platform.getRealmValue());
+      String finalQuery = String.format(SELECT_BANNED_ACCOUNT_WITH_SUMMONER_ID_AND_SERVER, summonerId, platform.getDbName());
       result = query.executeQuery(finalQuery);
       int rowCount = result.last() ? result.getRow() : 0;
       if(rowCount == 0) {

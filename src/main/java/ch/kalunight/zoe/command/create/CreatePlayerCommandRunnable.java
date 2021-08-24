@@ -3,7 +3,6 @@ package ch.kalunight.zoe.command.create;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -14,6 +13,7 @@ import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.config.option.RegionOption;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.model.dto.DTO.BannedAccount;
 import ch.kalunight.zoe.model.dto.DTO.LastRank;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
@@ -33,10 +33,7 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
 import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
-import no.stelar7.api.r4j.impl.lol.builders.league.LeagueBuilder;
-import no.stelar7.api.r4j.impl.lol.builders.summoner.SummonerBuilder;
 import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
 import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
@@ -91,7 +88,7 @@ public class CreatePlayerCommandRunnable {
     }
 
 
-    LeagueShard region = getPlatform(regionName);
+    ZoePlatform region = getPlatform(regionName);
     if(region == null) {
       return LanguageManager.getText(server.getLanguage(), "regionTagInvalid");
     }
@@ -100,8 +97,8 @@ public class CreatePlayerCommandRunnable {
     Summoner tftSummoner; 
 
     try {
-      summoner = new SummonerBuilder().withPlatform(region).withName(summonerName).get();
-      tftSummoner = Zoe.getTftSummonerApi().getSummonerByName(region, summonerName);
+      summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);
+      tftSummoner = Zoe.getRiotApi().getTFTSummonerByName(region, summonerName);
     }catch(APIResponseException e) {
       return RiotApiUtil.getTextHandlerRiotApiError(e, server.getLanguage());
     }
@@ -122,7 +119,7 @@ public class CreatePlayerCommandRunnable {
         String verificiationCode = AccountVerificationUtil.getVerificationCode();
 
         String message = String.format(LanguageManager.getText(server.getLanguage(), "verificationProcessWhileAddingAccount"),
-            region.getRealmValue().toUpperCase(), summoner.getName(), verificiationCode);
+            region.getShowableName(), summoner.getName(), verificiationCode);
 
         waiter.waitForEvent(MessageReceivedEvent.class,
             e -> e.getAuthor().equals(author.getUser()) && e.getChannel().equals(channel),
@@ -133,7 +130,7 @@ public class CreatePlayerCommandRunnable {
       }else {
         PlayerRepository.createPlayer(server.serv_id, server.serv_guildId, user.getIdLong(), false);
         DTO.Player player = PlayerRepository.getPlayer(server.serv_guildId, user.getIdLong());
-        LeagueAccountRepository.createLeagueAccount(player.player_id, summoner, tftSummoner, region.getRealmValue());
+        LeagueAccountRepository.createLeagueAccount(player.player_id, summoner, tftSummoner, region.getShowableName());
 
         LeagueAccount leagueAccount = 
             LeagueAccountRepository.getLeagueAccountWithSummonerId(server.serv_guildId, summoner.getSummonerId(), region);
@@ -160,29 +157,22 @@ public class CreatePlayerCommandRunnable {
     LastRank lastRank = LastRankRepository.getLastRankWithLeagueAccountId(leagueAccount.leagueAccount_id);
 
     try {
-      List<LeagueEntry> leagueEntries = Zoe.getRiotApi().getLoLAPI().getLeagueAPI().getLeagueEntries(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
+      List<LeagueEntry> leagueEntries = Zoe.getRiotApi().getLeagueEntryBySummonerId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
       LastRankUtil.updateLoLLastRank(lastRank, leagueEntries);
     } catch(APIResponseException e) {
       Zoe.logger.info("Fail to refresh LoL last rank while creating a leagueAccount, will be done at the next game.");
     }
 
     try {
-      List<LeagueEntry> tftLeagueEntries = Zoe.getRiotApi().getTFTAPI()
-          .getLeagueAPI().getLeagueEntries(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_tftSummonerId);
+      List<LeagueEntry> tftLeagueEntries = Zoe.getRiotApi().getTFTLeagueEntryByTFTSummonerId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_tftSummonerId);
       LastRankUtil.updateTFTLastRank(lastRank, tftLeagueEntries);
     } catch(APIResponseException e) {
       Zoe.logger.info("Fail to refresh TFT last rank while creating a leagueAccount, will be done at the next game.");
     }
   }
 
-  public static LeagueShard getPlatform(String regionName) {
-    Optional<LeagueShard> region = LeagueShard.fromString(regionName);
-
-    if(region.isPresent()) {
-      return region.get();
-    }else {
-      return null;
-    }
+  public static ZoePlatform getPlatform(String regionName) {
+    return ZoePlatform.getZoePlatformByName(regionName);
   }
 
   public static List<String> getParameterInParenteses(String args) {

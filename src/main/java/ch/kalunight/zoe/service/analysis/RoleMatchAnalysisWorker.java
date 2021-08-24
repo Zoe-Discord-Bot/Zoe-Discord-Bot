@@ -2,8 +2,6 @@ package ch.kalunight.zoe.service.analysis;
 
 import ch.kalunight.zoe.model.dto.SavedMatch;
 import ch.kalunight.zoe.model.dto.SavedMatchPlayer;
-import no.stelar7.api.r4j.basic.constants.types.lol.LaneType;
-import no.stelar7.api.r4j.basic.constants.types.lol.RoleType;
 
 public class RoleMatchAnalysisWorker implements Runnable {
 
@@ -23,7 +21,7 @@ public class RoleMatchAnalysisWorker implements Runnable {
       SavedMatchPlayer player = match.getSavedMatchPlayerByChampionId(mainAnalyser.getChampionId());
       if(player != null) {
         
-        ChampionRole role = ChampionRole.getChampionRoleWithLaneAndRole(LaneType.valueOf(player.getLane()), RoleType.valueOf(player.getRole()));
+        ChampionRole role = ChampionRole.getChampionRoleWithLaneAndRole(player.getLane(), player.getRole());
         
         if(role != null) {
           switch(role) {

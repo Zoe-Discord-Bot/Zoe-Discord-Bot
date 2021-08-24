@@ -3,10 +3,13 @@ package ch.kalunight.zoe.command.remove;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.regex.Pattern;
+
+import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.create.CreatePlayerCommandRunnable;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.Server;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
@@ -15,9 +18,7 @@ import ch.kalunight.zoe.util.RiotApiUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
-import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
 import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
-import no.stelar7.api.r4j.impl.lol.builders.summoner.SummonerBuilder;
 import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class RemoveAccountCommandRunnable {
@@ -61,14 +62,14 @@ public class RemoveAccountCommandRunnable {
     String regionName = listArgs.get(0);
     String summonerName = listArgs.get(1);
 
-    LeagueShard region = CreatePlayerCommandRunnable.getPlatform(regionName);
+    ZoePlatform region = CreatePlayerCommandRunnable.getPlatform(regionName);
     if(region == null) {
       return LanguageManager.getText(server.getLanguage(), "regionTagInvalid");
     }
 
     DTO.LeagueAccount account;
     try {
-      Summoner summoner = new SummonerBuilder().withPlatform(region).withName(summonerName).get();
+      Summoner summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);
       
       account = LeagueAccountRepository
           .getLeagueAccountWithSummonerId(server.serv_guildId, summoner.getSummonerId(), region);

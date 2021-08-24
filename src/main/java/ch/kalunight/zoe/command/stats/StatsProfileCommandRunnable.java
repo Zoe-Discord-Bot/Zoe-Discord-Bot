@@ -30,6 +30,7 @@ import ch.kalunight.zoe.model.config.option.RegionOption;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Server;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
@@ -48,11 +49,8 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.InteractionHook;
-import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
 import no.stelar7.api.r4j.basic.exceptions.APIHTTPErrorReason;
 import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
-import no.stelar7.api.r4j.impl.lol.builders.championmastery.ChampionMasteryBuilder;
-import no.stelar7.api.r4j.impl.lol.builders.summoner.SummonerBuilder;
 import no.stelar7.api.r4j.pojo.lol.championmastery.ChampionMastery;
 import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
@@ -152,8 +150,7 @@ public class StatsProfileCommandRunnable {
 
       for(DTO.LeagueAccount choiceAccount : accounts) {
         try {
-          summoner = new SummonerBuilder().withPlatform(choiceAccount.leagueAccount_server)
-              .withSummonerId(choiceAccount.leagueAccount_summonerId).get();
+          summoner = Zoe.getRiotApi().getSummonerBySummonerId(choiceAccount.leagueAccount_server, choiceAccount.leagueAccount_summonerId);
         }catch(APIResponseException e) {
           CommandUtil.sendMessageWithClassicOrSlashCommand(RiotApiUtil.getTextHandlerRiotApiError(e, server.getLanguage()), toEdit, hook);
           return;
@@ -161,7 +158,7 @@ public class StatsProfileCommandRunnable {
 
         selectAccountBuilder.addChoices(String.format(LanguageManager.getText(server.getLanguage(), "showPlayerAccount"),
             summoner.getName(),
-            choiceAccount.leagueAccount_server.getRealmValue().toUpperCase(),
+            choiceAccount.leagueAccount_server.getShowableName(),
             RiotRequest.getSoloqRank(choiceAccount.leagueAccount_summonerId, choiceAccount.leagueAccount_server).toString(server.getLanguage())));
         accountsName.add(summoner.getName());
       }
@@ -198,7 +195,7 @@ public class StatsProfileCommandRunnable {
       return null;
     }
 
-    LeagueShard region = CreatePlayerCommandRunnable.getPlatform(regionName);
+    ZoePlatform region = CreatePlayerCommandRunnable.getPlatform(regionName);
     if(region == null) {
       return null;
     }
@@ -206,8 +203,8 @@ public class StatsProfileCommandRunnable {
     Summoner summoner;
     Summoner tftSummoner;
     try {
-      summoner = new SummonerBuilder().withPlatform(region).withName(summonerName).get();
-      tftSummoner = Zoe.getTftSummonerApi().getSummonerByName(region, summonerName);
+      summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);
+      tftSummoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);
     }catch(APIResponseException e) {
       return null;
     }
@@ -264,8 +261,7 @@ public class StatsProfileCommandRunnable {
 
     List<ChampionMastery> championsMasteries;
     try {
-      championsMasteries = new ChampionMasteryBuilder().withPlatform(lolAccount.leagueAccount_server)
-          .withSummonerId(lolAccount.leagueAccount_summonerId).getChampionMasteries();
+      championsMasteries = Zoe.getRiotApi().getChampionMasteryBySummonerId(lolAccount.leagueAccount_server, lolAccount.leagueAccount_summonerId);
     } catch(APIResponseException e) {
       if(e.getReason() == APIHTTPErrorReason.ERROR_429) {
         CommandUtil.sendMessageWithClassicOrSlashCommand(LanguageManager.getText(server.getLanguage(), "statsProfileRateLimitError"), messageLoading, hook);

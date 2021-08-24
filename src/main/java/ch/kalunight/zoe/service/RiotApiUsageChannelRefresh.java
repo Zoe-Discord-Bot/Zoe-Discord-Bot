@@ -12,6 +12,7 @@ import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.command.ZoeSlashCommand;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.repositories.LeaderboardRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
@@ -20,7 +21,6 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
-import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
 
 public class RiotApiUsageChannelRefresh implements Runnable {
 
@@ -89,10 +89,10 @@ public class RiotApiUsageChannelRefresh implements Runnable {
         StringBuilder serverHelperStats = new StringBuilder();
         serverHelperStats.append("**Server Helper Threads Stats**\n");
 
-        for(LeagueShard platform : LeagueShard.getDefaultPlatforms()) {
+        for(ZoePlatform platform : ZoePlatform.values()) {
           ThreadPoolExecutor threadsPool = ServerThreadsManager.getInfochannelHelperThread(platform);
 
-          serverHelperStats.append(platform.getRealmValue().toUpperCase() + " queue : " + threadsPool.getQueue().size() + "\n");
+          serverHelperStats.append(platform.getShowableName() + " queue : " + threadsPool.getQueue().size() + "\n");
         }
 
         rapiInfoChannel.sendMessage(serverHelperStats.toString()).queue();

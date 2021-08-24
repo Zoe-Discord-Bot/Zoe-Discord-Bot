@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import ch.kalunight.zoe.model.dto.DTO;
-import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class LeagueAccountRepository {
@@ -375,13 +375,13 @@ public class LeagueAccountRepository {
     }
   }
   
-  public static List<DTO.LeagueAccount> getLeaguesAccountsWithSummonerIdAndServer(String summonerId, LeagueShard server)
+  public static List<DTO.LeagueAccount> getLeaguesAccountsWithSummonerIdAndServer(String summonerId, ZoePlatform server)
       throws SQLException {
     ResultSet result = null;
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
 
-      String finalQuery = String.format(SELECT_LEAGUES_ACCOUNTS_WITH_SUMMONER_ID_AND_SERVER, summonerId, server.getRealmValue());
+      String finalQuery = String.format(SELECT_LEAGUES_ACCOUNTS_WITH_SUMMONER_ID_AND_SERVER, summonerId, server.getDbName());
       result = query.executeQuery(finalQuery);
 
       List<DTO.LeagueAccount> accounts = Collections.synchronizedList(new ArrayList<>());
@@ -401,13 +401,13 @@ public class LeagueAccountRepository {
     }
   }
 
-  public static DTO.LeagueAccount getLeagueAccountWithSummonerId(long guildId, String summonerId, LeagueShard region) throws SQLException {
+  public static DTO.LeagueAccount getLeagueAccountWithSummonerId(long guildId, String summonerId, ZoePlatform region) throws SQLException {
     ResultSet result = null;
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
       
       String finalQuery = String.format(SELECT_LEAGUE_ACCOUNT_WITH_GUILD_ID_AND_SUMMONER_ID_AND_SERVER,
-          guildId, summonerId, region.getRealmValue());
+          guildId, summonerId, region.getDbName());
       result = query.executeQuery(finalQuery);
       int rowCount = result.last() ? result.getRow() : 0;
       if(rowCount == 0) {

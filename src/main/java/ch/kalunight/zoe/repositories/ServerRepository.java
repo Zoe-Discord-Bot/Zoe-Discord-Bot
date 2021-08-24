@@ -13,9 +13,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.model.dto.DTO.ClashChannel;
 import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
-import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
 
 public class ServerRepository {
 
@@ -139,13 +139,13 @@ public class ServerRepository {
     }
   }
   
-  public static List<DTO.Server> getServersWithLeagueAccountIdAndRegion(String summonerId, LeagueShard platform) throws SQLException {
+  public static List<DTO.Server> getServersWithLeagueAccountIdAndRegion(String summonerId, ZoePlatform platform) throws SQLException {
     ResultSet result = null;
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
       
       String finalQuery = String.format(SELECT_SERVERS_WITH_LEAGUE_ACCOUNT,
-          summonerId, platform.getRealmValue());
+          summonerId, platform.getDbName());
       result = query.executeQuery(finalQuery);
       
       List<DTO.Server> servers = new ArrayList<>();

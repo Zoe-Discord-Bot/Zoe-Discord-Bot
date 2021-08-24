@@ -16,7 +16,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import javax.security.auth.login.LoginException;
@@ -85,6 +84,7 @@ import ch.kalunight.zoe.repositories.ChampionRoleAnalysisRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.repositories.RepoRessources;
 import ch.kalunight.zoe.repositories.ZoeUserManagementRepository;
+import ch.kalunight.zoe.riotapi.CachedRiotApi;
 import ch.kalunight.zoe.service.RiotApiUsageChannelRefresh;
 import ch.kalunight.zoe.service.ServerChecker;
 import ch.kalunight.zoe.service.analysis.ChampionRole;
@@ -104,12 +104,8 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import no.stelar7.api.r4j.basic.APICredentials;
-import no.stelar7.api.r4j.basic.cache.CacheLifetimeHint;
-import no.stelar7.api.r4j.basic.cache.impl.MongoDBCacheProvider;
 import no.stelar7.api.r4j.basic.calling.DataCall;
-import no.stelar7.api.r4j.basic.constants.api.URLEndpoint;
 import no.stelar7.api.r4j.impl.R4J;
-import no.stelar7.api.r4j.impl.tft.TFTSummonerAPI;
 
 public class Zoe {
 
@@ -141,7 +137,7 @@ public class Zoe {
   
   private static List<SlashCommand> slashCommands;
 
-  private static R4J riotApi;
+  private static CachedRiotApi riotApi;
 
   private static List<JDA> clientsLoaded = new ArrayList<>();
 
@@ -384,12 +380,12 @@ public class Zoe {
 
   public static void initRiotApi(String riotTocken, String tftTocken) {
     APICredentials creds = new APICredentials(riotTocken, null, tftTocken, null, null);
-    riotApi = new R4J(creds);
+    R4J baseRiotApi = new R4J(creds);
     
-    
-    DataCall.setCacheProvider(mongoDbCacheProvider);
     //DataCall.setGlobalTimeout(1);
     DataCall.setCredentials(creds);
+    
+    riotApi = new CachedRiotApi(baseRiotApi, "mongodb://localhost:27017", "zoe");
   }
 
   private static void setupContinousRefreshThread() {
@@ -552,12 +548,8 @@ public class Zoe {
     }
   }
 
-  public static R4J getRiotApi() {
+  public static CachedRiotApi getRiotApi() {
     return riotApi;
-  }
-  
-  public static TFTSummonerAPI getTftSummonerApi() {
-    return riotApi.getTFTAPI().getSummonerAPI();
   }
 
   public static JDA getJdaByGuildId(long guildId) {

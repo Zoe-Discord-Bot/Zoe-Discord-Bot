@@ -6,7 +6,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,9 +13,11 @@ import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.KDAReceiver;
 import ch.kalunight.zoe.model.MatchReceiver;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.model.player_data.Rank;
 import ch.kalunight.zoe.model.player_data.Tier;
+import ch.kalunight.zoe.riotapi.MatchKeyString;
 import ch.kalunight.zoe.service.match.MatchCollectorReciverWorker;
 import ch.kalunight.zoe.service.match.MatchReceiverWorker;
 import ch.kalunight.zoe.translation.LanguageManager;
@@ -26,8 +27,6 @@ import no.stelar7.api.r4j.basic.constants.types.lol.GameQueueType;
 import no.stelar7.api.r4j.basic.exceptions.APIHTTPErrorReason;
 import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
 import no.stelar7.api.r4j.impl.lol.builders.championmastery.ChampionMasteryBuilder;
-import no.stelar7.api.r4j.impl.lol.builders.matchv5.match.MatchBuilder;
-import no.stelar7.api.r4j.impl.lol.builders.summoner.SummonerBuilder;
 import no.stelar7.api.r4j.pojo.lol.championmastery.ChampionMastery;
 import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
 import no.stelar7.api.r4j.pojo.lol.match.v5.LOLMatch;
@@ -42,11 +41,11 @@ public class RiotRequest {
 
   private RiotRequest() {}
 
-  public static FullTier getSoloqRank(String summonerId, LeagueShard region) {
+  public static FullTier getSoloqRank(String summonerId, ZoePlatform region) {
 
     List<LeagueEntry> listLeague;
     try {
-      listLeague = Zoe.getRiotApi().getLoLAPI().getLeagueAPI().getLeagueEntries(region, summonerId);
+      listLeague = Zoe.getRiotApi().getLeagueEntryBySummonerId(region, summonerId);
     } catch(APIResponseException e) {
       logger.info("Error with riot api : {}", e.getMessage());
       return new FullTier(Tier.UNKNOWN, Rank.UNKNOWN, 0);
@@ -67,11 +66,11 @@ public class RiotRequest {
     return new FullTier(rank, tier, leaguePoints);
   }
 
-  public static FullTier getFlexRank(String summonerId, LeagueShard region) {
+  public static FullTier getFlexRank(String summonerId, ZoePlatform region) {
 
     List<LeagueEntry> listLeague;
     try {
-      listLeague = Zoe.getRiotApi().getLoLAPI().getLeagueAPI().getLeagueEntries(region, summonerId);
+      listLeague = Zoe.getRiotApi().getLeagueEntryBySummonerId(region, summonerId);
     } catch(APIResponseException e) {
       logger.info("Error with riot api : {}", e.getMessage());
       return new FullTier(Tier.UNKNOWN, Rank.UNKNOWN, 0);
@@ -92,12 +91,12 @@ public class RiotRequest {
     return new FullTier(rank, tier, leaguePoints);
   }
 
-  public static String getWinrateLastMonthWithGivenChampion(String summonerId, LeagueShard region,
+  public static String getWinrateLastMonthWithGivenChampion(String summonerId, ZoePlatform region,
       int championKey, String language) {
 
     Summoner summoner;
     try {
-      summoner = new SummonerBuilder().withPlatform(region).withSummonerId(summonerId).get();
+      summoner = Zoe.getRiotApi().getSummonerBySummonerId(region, summonerId);
     } catch(APIResponseException e) {
       logger.warn("Impossible to get the summoner : {}", e.getMessage());
       return LanguageManager.getText(language, "unknown");
@@ -142,12 +141,12 @@ public class RiotRequest {
     return df.format((nbrWins / (double) nbrGames) * 100) + "% (" + nbrWins + "W/" + (nbrGames - nbrWins) + "L)";
   }
   
-  public static KDAReceiver getKDALastMonth(String summonerId, LeagueShard region, List<Integer> championsId) {
+  public static KDAReceiver getKDALastMonth(String summonerId, ZoePlatform region, List<Integer> championsId) {
 
     KDAReceiver kdaReceiver = new KDAReceiver();
     
     try {
-      Summoner summoner = new SummonerBuilder().withSummonerId(summonerId).withPlatform(region).get();
+      Summoner summoner = Zoe.getRiotApi().getSummonerBySummonerId(region, summonerId);
 
       List<LOLMatch> matchsLastMonth = getMatchHistoryOfLastMonth(region, summoner, new ArrayList<>(), championsId);
 
@@ -169,7 +168,7 @@ public class RiotRequest {
     }
   }
 
-  public static List<LOLMatch> getMatchHistoryOfLastMonth(LeagueShard region, Summoner summoner,
+  public static List<LOLMatch> getMatchHistoryOfLastMonth(ZoePlatform region, Summoner summoner,
       List<Integer> queuesList, List<Integer> championsToFilter) {
     final List<LOLMatch> matchsToReturn = new ArrayList<>();
 
@@ -196,12 +195,12 @@ public class RiotRequest {
         try {
           matchList = summoner.getLeagueGamesV5().withQueue(queueType.get()).withBeginIndex(startIndex).get();
           if(matchList != null) {
-            List<MatchBuilder> buildersToWait = new ArrayList<>();
+            List<MatchKeyString> buildersToWait = new ArrayList<>();
             for(String matchToCheck : matchList) {
-              MatchBuilder matchBuilder = new MatchBuilder(region, matchToCheck);
-              buildersToWait.add(matchBuilder);
+              MatchKeyString matchKey = new MatchKeyString(region, matchToCheck);
+              buildersToWait.add(matchKey);
 
-              MatchCollectorReciverWorker matchWorker = new MatchCollectorReciverWorker(matchReceiver, matchBuilder, region, summoner);
+              MatchCollectorReciverWorker matchWorker = new MatchCollectorReciverWorker(matchReceiver, matchKey, region, summoner);
               ServerThreadsManager.getMatchsWorker(region).execute(matchWorker);
             }
 

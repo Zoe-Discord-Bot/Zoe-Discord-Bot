@@ -11,7 +11,9 @@ import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.Paginator;
 
+import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.create.CreatePlayerCommandRunnable;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.model.dto.DTO.BannedAccount;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Server;
@@ -31,10 +33,7 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.dv8tion.jda.api.interactions.InteractionHook;
-import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
 import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
-import no.stelar7.api.r4j.impl.lol.builders.summoner.SummonerBuilder;
-import no.stelar7.api.r4j.impl.lol.builders.thirdparty.ThirdPartyCodeBuilder;
 import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class BanAccountCommandRunnable {
@@ -76,7 +75,7 @@ public class BanAccountCommandRunnable {
       return;
     }
 
-    LeagueShard region = CreatePlayerCommandRunnable.getPlatform(listArgs.get(0));
+    ZoePlatform region = CreatePlayerCommandRunnable.getPlatform(listArgs.get(0));
     if(region == null) {
       event.getChannel().sendMessage(LanguageManager.getText(language, "banAccountCommandInvalidRegionTag")).queue();
 
@@ -95,7 +94,7 @@ public class BanAccountCommandRunnable {
     
     Summoner summoner;
     try {
-      summoner = new SummonerBuilder().withName(summonerName).withPlatform(region).get();
+      summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);
     } catch (APIResponseException error) {
       RiotApiUtil.handleRiotApi(message, error, language);
 
@@ -111,8 +110,7 @@ public class BanAccountCommandRunnable {
     String code = "";
 
     try {
-      code = new ThirdPartyCodeBuilder().withPlatform(region)
-          .withSummonerId(summoner.getSummonerId()).getCode();
+      code = Zoe.getRiotApi().getThirdPartyCode(region, summoner.getSummonerId());
     }catch (APIResponseException error) {
       if(error.getReason().getCode() == 404) {
         message.editMessage(String.format(LanguageManager.getText(language, "banAccountCommandInvalidVerificationTag"), codeExpected, event.getMessage().getContentRaw())).queue();
@@ -148,7 +146,7 @@ public class BanAccountCommandRunnable {
     channel.sendMessage(LanguageManager.getText(lang, "banAccountCommandCancelVerification")).queue();
   }
 
-  private static void startAccountManagementPanel(Summoner summoner, LeagueShard region, MessageReceivedEvent event,
+  private static void startAccountManagementPanel(Summoner summoner, ZoePlatform region, MessageReceivedEvent event,
       String language, Message messageToEdit, EventWaiter waiter) {
 
     List<Server> serversWithTheAccount = null;
@@ -223,7 +221,7 @@ public class BanAccountCommandRunnable {
         () -> stopProcess(event, language));
   }
 
-  private static void messageInterpretor(MessageReceivedEvent event, String language, Summoner concernedSummoner, LeagueShard region,
+  private static void messageInterpretor(MessageReceivedEvent event, String language, Summoner concernedSummoner, ZoePlatform region,
       List<Server> serverList, EventWaiter waiter) {
     String messageReceived = event.getMessage().getContentRaw();
     MessageChannel responseChannel = event.getChannel();
@@ -257,7 +255,7 @@ public class BanAccountCommandRunnable {
     }
   }
 
-  private static void handleKickCommand(String language, Summoner concernedSummoner, LeagueShard region, List<Server> serverList,
+  private static void handleKickCommand(String language, Summoner concernedSummoner, ZoePlatform region, List<Server> serverList,
       MessageChannel responseChannel, String[] messagePart, MessageReceivedEvent event, EventWaiter waiter) {
     String selectedServer = messagePart[1];
     Integer selectedServerInt;
@@ -311,7 +309,7 @@ public class BanAccountCommandRunnable {
     waitForAnotherResponse(event, language, concernedSummoner, region, serverList, waiter);
   }
 
-  private static void handleBanCommand(MessageReceivedEvent event, String language, Summoner concernedSummoner, LeagueShard region,
+  private static void handleBanCommand(MessageReceivedEvent event, String language, Summoner concernedSummoner, ZoePlatform region,
       MessageChannel responseChannel, List<Server> serverList, EventWaiter waiter) {
     try {
       BannedAccount bannedAccount = BannedAccountRepository.getBannedAccount(concernedSummoner.getSummonerId(), region);
@@ -329,7 +327,7 @@ public class BanAccountCommandRunnable {
     waitForAnotherResponse(event, language, concernedSummoner, region, serverList, waiter);
   }
 
-  private static void waitForAnotherResponse(MessageReceivedEvent event, String language, Summoner summoner, LeagueShard region,
+  private static void waitForAnotherResponse(MessageReceivedEvent event, String language, Summoner summoner, ZoePlatform region,
       List<Server> serverList, EventWaiter waiter) {
     waiter.waitForEvent(MessageReceivedEvent.class,
         e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel())

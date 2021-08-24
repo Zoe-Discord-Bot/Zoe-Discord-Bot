@@ -25,6 +25,7 @@ import ch.kalunight.zoe.model.dto.ClashStatus;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.ClashChannel;
 import ch.kalunight.zoe.model.dto.DTO.Server;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.repositories.ClashChannelRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
@@ -86,15 +87,15 @@ public class TreatClashChannel implements Runnable {
 
       cleanClashChannel(clashMessageManager);
 
-      Summoner summonerCache = new SummonerBuilder().withPlatform(clashMessageManager.getSelectedPlatform()).withSummonerId(clashMessageManager.getSelectedSummonerId()).get();
-
+      Summoner summonerCache = Zoe.getRiotApi().getSummonerBySummonerId(clashMessageManager.getSelectedPlatform(), clashMessageManager.getSelectedSummonerId());
+      
       if(summonerCache == null) { //TODO handle timeout case -> don't delete clash channel
         //clashChannel.sendMessage(LanguageManager.getText(server.getLanguage(), "clashChannelDeletionBecauseOfSummonerAccountUnreachable")).queue();
         //ClashChannelRepository.deleteClashChannel(clashChannelDB.clashChannel_id);
         return;
       }
 
-      List<ClashPlayer> clashPlayerRegistrations = Zoe.getRiotApi().getLoLAPI().getClashAPI().getPlayerInfo(clashMessageManager.getSelectedPlatform(), clashMessageManager.getSelectedSummonerId());
+      List<ClashPlayer> clashPlayerRegistrations = Zoe.getRiotApi().getClashPlayerBySummonerId(clashMessageManager.getSelectedPlatform(), clashMessageManager.getSelectedSummonerId());
 
       ClashTeamRegistration firstClashTeam = ClashUtil.getFirstRegistration(clashMessageManager.getSelectedPlatform(), clashPlayerRegistrations);
 
@@ -132,7 +133,7 @@ public class TreatClashChannel implements Runnable {
     StringBuilder messageBuilder = new StringBuilder();
 
     messageBuilder.append("**" + String.format(LanguageManager.getText(server.getLanguage(), "clashChannelTitle"), summonerCache.getName(),
-        clashMessageManager.getSelectedPlatform().getRealmValue().toUpperCase()) + "**\n\n");
+        clashMessageManager.getSelectedPlatform().getLeagueShard()) + "**\n\n");
 
     addRegisteredInfo(clashMessageManager, firstClashTeam, summonerCache, messageBuilder);
 
@@ -188,7 +189,7 @@ public class TreatClashChannel implements Runnable {
     StringBuilder messageBuilder = new StringBuilder();
 
     messageBuilder.append("**" + String.format(LanguageManager.getText(server.getLanguage(), "clashChannelTitle"), summonerCache.getName(),
-        clashMessageManager.getSelectedPlatform().getRealmValue().toUpperCase()) + "**\n\n");
+        clashMessageManager.getSelectedPlatform().getShowableName()) + "**\n\n");
 
     addRegisteredInfo(clashMessageManager, firstClashTeam, summonerCache, messageBuilder);
 
@@ -207,7 +208,7 @@ public class TreatClashChannel implements Runnable {
 
   private void addRegisteredInfo(ClashChannelData clashMessageManager, ClashTeamRegistration firstClashTeam,
       Summoner summonerCache, StringBuilder messageBuilder) {
-    String formatedSummonerName = summonerCache.getName() + " (" + clashMessageManager.getSelectedPlatform().getRealmValue().toUpperCase() + ")";
+    String formatedSummonerName = summonerCache.getName() + " (" + clashMessageManager.getSelectedPlatform().getShowableName() + ")";
 
     String dayNumber = TeamUtil.parseDayId(server.getLanguage(), firstClashTeam.getTournament().getNameKeySecondary());
 
@@ -256,7 +257,7 @@ public class TreatClashChannel implements Runnable {
   }
 
   private void addTeamMembersTextByPosition(ClashPosition position, List<ClashPlayer> players,
-      StringBuilder messageBuilder, LeagueShard platform) {
+      StringBuilder messageBuilder, ZoePlatform platform) {
     List<ClashPlayer> members = TeamUtil.getPlayerByPosition(position, players);
 
     StringBuilder playerName = new StringBuilder();
@@ -269,7 +270,7 @@ public class TreatClashChannel implements Runnable {
       int numberOfPlayerTreated = 0;
       for(ClashPlayer player : members) {
         numberOfPlayerTreated++;
-        Summoner summoner = new SummonerBuilder().withPlatform(platform).withSummonerId(player.getSummonerId()).get();
+        Summoner summoner = Zoe.getRiotApi().getSummonerBySummonerId(platform, player.getSummonerId());
 
         String summonerName;
         if(player.getRole() == ClashRole.CAPTAIN) {
@@ -301,11 +302,11 @@ public class TreatClashChannel implements Runnable {
     StringBuilder messageBuilder = new StringBuilder();
 
     messageBuilder.append("**" + String.format(LanguageManager.getText(server.getLanguage(), "clashChannelTitle"), summonerCache.getName(),
-        clashMessageManager.getSelectedPlatform().getRealmValue().toUpperCase()) + "**\n\n");
+        clashMessageManager.getSelectedPlatform().getShowableName()) + "**\n\n");
 
     messageBuilder.append(LanguageManager.getText(server.getLanguage(), "clashChannelLeagueAccountNotInGame") + "\n\n");
 
-    List<ClashTournament> nextTournaments = Zoe.getRiotApi().getLoLAPI().getClashAPI().getTournaments(clashMessageManager.getSelectedPlatform());
+    List<ClashTournament> nextTournaments = Zoe.getRiotApi().getTournaments(clashMessageManager.getSelectedPlatform());
 
     if(nextTournaments == null || nextTournaments.isEmpty()) {
       messageBuilder.append(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentNotAvailable") + "\n\n");

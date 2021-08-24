@@ -4,6 +4,7 @@ import java.util.List;
 
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.clash.ClashTeamRegistration;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
 import no.stelar7.api.r4j.pojo.lol.clash.ClashPlayer;
 import no.stelar7.api.r4j.pojo.lol.clash.ClashTeam;
@@ -15,7 +16,7 @@ public class ClashUtil {
     // hide default public constructor
   }
   
-  public static ClashTeamRegistration getFirstRegistration(LeagueShard platform, List<ClashPlayer> clashPlayerRegistrations) {
+  public static ClashTeamRegistration getFirstRegistration(ZoePlatform platform, List<ClashPlayer> clashPlayerRegistrations) {
 
     ClashTeamRegistration teamRegistration = null;
 

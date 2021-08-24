@@ -62,7 +62,7 @@ public class InfoCardsWorker implements Runnable {
   public void run() {
     try {
       if(controlPanel.canTalk()) {
-        logger.info("Start generate infocards for the account {} ({})", account.getSummoner().getName(),  account.leagueAccount_server.getRealmValue());
+        logger.info("Start generate infocards for the account {} ({})", account.getSummoner().getName(),  account.leagueAccount_server.getShowableName());
 
         Stopwatch stopWatch = Stopwatch.createStarted();
         
@@ -126,9 +126,9 @@ public class InfoCardsWorker implements Runnable {
 
   private boolean theGameHaveToBeGenerate() {
     try {
-      SpectatorGameInfo currentGameRefreshed = Zoe.getRiotApi().getLoLAPI().getSpectatorAPI().getCurrentGame(account.leagueAccount_server, account.getSummoner().getSummonerId());
+      SpectatorGameInfo currentGameRefreshed = Zoe.getRiotApi().getSpectatorAPI().getCurrentGame(account.leagueAccount_server, account.getSummoner().getSummonerId());
       
-      if(currentGameRefreshed != null && MatchV5Util.convertMatchV4IdToMatchV5Id(currentGameRefreshed.getGameId(), currentGameRefreshed.getPlatform()) == currentGameInfo.currentgame_gameid) {
+      if(currentGameRefreshed != null && MatchV5Util.convertMatchV4IdToMatchV5Id(currentGameRefreshed.getGameId(), currentGameRefreshed.getPlatform()).equals(currentGameInfo.currentgame_gameid)) {
         
         if(ServerChecker.getServerRefreshService().getInfocardsToRefresh().size() <= ZOE_INFOCARDS_QUEUE_OVERLOAD 
             || currentGameRefreshed.getGameLength() < GAME_LENGTH_AFTER_WE_NOT_GENERATE_IN_SEC) {

@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.Paginator;
+
+import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
@@ -21,7 +23,6 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
-import no.stelar7.api.r4j.impl.lol.builders.summoner.SummonerBuilder;
 import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class ShowPlayerCommandRunnable {
@@ -114,10 +115,10 @@ public class ShowPlayerCommandRunnable {
     }
     accountsNmb += leagueAccounts.size();
     for(DTO.LeagueAccount leagueAccount : leagueAccounts) {
-      Summoner summoner = new SummonerBuilder().withPlatform(leagueAccount.leagueAccount_server).withSummonerId(leagueAccount.leagueAccount_summonerId).get();
+      Summoner summoner = Zoe.getRiotApi().getSummonerBySummonerId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
       
       playerInfo.append(String.format(LanguageManager.getText(server.getLanguage(), "showPlayerAccount"),
-          summoner.getName(), leagueAccount.leagueAccount_server.getRealmValue().toUpperCase(),
+          summoner.getName(), leagueAccount.leagueAccount_server.getShowableName(),
           RiotRequest.getSoloqRank(leagueAccount.leagueAccount_summonerId,
               leagueAccount.leagueAccount_server).toString(server.getLanguage())) + "\n");
     }

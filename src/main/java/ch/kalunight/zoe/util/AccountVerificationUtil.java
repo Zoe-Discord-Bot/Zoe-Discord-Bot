@@ -7,8 +7,10 @@ import org.apache.commons.lang3.RandomStringUtils;
 
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 
+import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.create.CreatePlayerCommandRunnable;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
@@ -17,9 +19,7 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
 import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
-import no.stelar7.api.r4j.impl.lol.builders.thirdparty.ThirdPartyCodeBuilder;
 import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class AccountVerificationUtil {
@@ -35,14 +35,13 @@ public class AccountVerificationUtil {
   }
 
   public static void verficationCodeRunnable(MessageReceivedEvent event, Server server, String verificiationCode,
-      EventWaiter waiter, LeagueShard region, Summoner summoner, Summoner tftSummoner, Member playerToAdd) {
+      EventWaiter waiter, ZoePlatform region, Summoner summoner, Summoner tftSummoner, Member playerToAdd) {
 
     if(event.getMessage().getContentRaw().equalsIgnoreCase("DONE")) {
 
       String codeToCheck = null;
       try {
-        codeToCheck = new ThirdPartyCodeBuilder().withPlatform(region)
-            .withSummonerId(summoner.getSummonerId()).getCode();
+        codeToCheck = Zoe.getRiotApi().getThirdPartyCode(region, summoner.getSummonerId());
       } catch (APIResponseException e) {
         event.getChannel().sendMessage(RiotApiUtil.getTextHandlerRiotApiError(e, server.getLanguage())).queue();
       }
@@ -73,7 +72,7 @@ public class AccountVerificationUtil {
     channel.sendMessage(LanguageManager.getText(language, "verificationProcessCancel")).queue();
   }
 
-  public static void addOrCreateDBAccount(Server server, User member, LeagueShard region, Summoner summoner,
+  public static void addOrCreateDBAccount(Server server, User member, ZoePlatform region, Summoner summoner,
       Summoner tftSummoner) throws SQLException {
     DTO.Player player = PlayerRepository.getPlayer(server.serv_guildId, member.getIdLong());
     if(player == null) {
@@ -81,7 +80,7 @@ public class AccountVerificationUtil {
       player = PlayerRepository.getPlayer(server.serv_guildId, member.getIdLong());
     }
 
-    LeagueAccountRepository.createLeagueAccount(player.player_id, summoner, tftSummoner, region.getRealmValue());
+    LeagueAccountRepository.createLeagueAccount(player.player_id, summoner, tftSummoner, region.getDbName());
     DTO.LeagueAccount leagueAccount = LeagueAccountRepository.getLeagueAccountWithSummonerId(server.serv_guildId, summoner.getSummonerId(), region);
 
     CreatePlayerCommandRunnable.updateLastRank(leagueAccount);

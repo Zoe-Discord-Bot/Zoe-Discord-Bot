@@ -24,9 +24,18 @@ public enum ZoePlatform {
     this.leagueShard = leagueShard;
   }
 
-  public ZoePlatform getZoePlatformByLeagueShard(LeagueShard leagueShard) {
+  public static ZoePlatform getZoePlatformByLeagueShard(LeagueShard leagueShard) {
     for(ZoePlatform platformToCheck : ZoePlatform.values()) {
       if(platformToCheck.leagueShard.equals(leagueShard)) {
+        return platformToCheck;
+      }
+    }
+    return null;
+  }
+  
+  public static ZoePlatform getZoePlatformByName(String name) {
+    for(ZoePlatform platformToCheck : ZoePlatform.values()) {
+      if(platformToCheck.getDbName().equalsIgnoreCase(name)) {
         return platformToCheck;
       }
     }

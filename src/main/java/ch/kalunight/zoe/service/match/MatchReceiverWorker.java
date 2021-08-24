@@ -7,8 +7,9 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
-import no.stelar7.api.r4j.impl.lol.builders.matchv5.match.MatchBuilder;
+import ch.kalunight.zoe.Zoe;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
+import ch.kalunight.zoe.riotapi.MatchKeyString;
 import no.stelar7.api.r4j.pojo.lol.match.v5.LOLMatch;
 import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
@@ -16,17 +17,17 @@ public abstract class MatchReceiverWorker implements Runnable {
 
   private static final int CANCEL_GAME_DURATION = 500;
   
-  protected static final List<MatchBuilder> matchsInWork = Collections.synchronizedList(new ArrayList<>());
+  protected static final List<MatchKeyString> matchsInWork = Collections.synchronizedList(new ArrayList<>());
   
   protected static final Logger logger = LoggerFactory.getLogger(MatchReceiverWorker.class);
   
-  protected LeagueShard server;
+  protected ZoePlatform server;
   
-  protected MatchBuilder matchReference;
+  protected MatchKeyString matchReference;
   
   protected Summoner summoner;
   
-  protected MatchReceiverWorker(MatchBuilder matchReference, LeagueShard server, Summoner summoner) {
+  protected MatchReceiverWorker(MatchKeyString matchReference, ZoePlatform server, Summoner summoner) {
     this.server = server;
     this.matchReference = matchReference;
     this.summoner = summoner;
@@ -35,10 +36,10 @@ public abstract class MatchReceiverWorker implements Runnable {
   
   @Override
   public void run() {
-    logger.debug("Start to load game on server {}", server.getRealmValue());
+    logger.debug("Start to load game on server {}", server.getShowableName());
     LOLMatch match = null;
     try {
-      match = matchReference.getMatch();
+      match = Zoe.getRiotApi().getMatchById(matchReference.getPlatform(), matchReference.getMatchId());
     } catch (Exception e) {
       logger.warn("Unexpected error while getting match !", e);
     }
@@ -56,13 +57,13 @@ public abstract class MatchReceiverWorker implements Runnable {
   
   protected abstract void runMatchReceveirWorker(LOLMatch matchCache);
   
-  public static void awaitAll(List<MatchBuilder> matchsToWait) {
+  public static void awaitAll(List<MatchKeyString> matchsToWait) {
     
     boolean needToWait;
     
     do {
       needToWait = false;
-      for(MatchBuilder matchReference : matchsToWait) {
+      for(MatchKeyString matchReference : matchsToWait) {
         if(matchsInWork.contains(matchReference)) {
           needToWait = true;
           break;

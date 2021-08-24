@@ -1,16 +1,16 @@
 package ch.kalunight.zoe.model.team;
 
-import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import no.stelar7.api.r4j.pojo.lol.clash.ClashPosition;
 import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class AccountDataWithRole {
   
   private Summoner summoner;
-  private LeagueShard platform;
+  private ZoePlatform platform;
   private ClashPosition position;
   
-  public AccountDataWithRole(Summoner summoner, LeagueShard platform, ClashPosition position) {
+  public AccountDataWithRole(Summoner summoner, ZoePlatform platform, ClashPosition position) {
     this.summoner = summoner;
     this.platform = platform;
     this.position = position;
@@ -24,11 +24,11 @@ public class AccountDataWithRole {
     this.summoner = summoner;
   }
 
-  public LeagueShard getPlatform() {
+  public ZoePlatform getPlatform() {
     return platform;
   }
 
-  public void setPlatform(LeagueShard platform) {
+  public void setPlatform(ZoePlatform platform) {
     this.platform = platform;
   }
 

@@ -2,7 +2,8 @@ package ch.kalunight.zoe.model.player_data;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
+
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
 import no.stelar7.api.r4j.pojo.lol.spectator.SpectatorGameInfo;
 import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
@@ -12,10 +13,10 @@ public class LeagueAccount {
   private static final Logger logger = LoggerFactory.getLogger(LeagueAccount.class);
 
   private Summoner summoner;
-  private LeagueShard region;
+  private ZoePlatform region;
   private SpectatorGameInfo currentGameInfo;
 
-  public LeagueAccount(Summoner summoner, LeagueShard region) {
+  public LeagueAccount(Summoner summoner, ZoePlatform region) {
     this.summoner = summoner;
     this.region = region;
     this.currentGameInfo = null;
@@ -67,11 +68,11 @@ public class LeagueAccount {
     this.summoner = summoner;
   }
 
-  public LeagueShard getRegion() {
+  public ZoePlatform getRegion() {
     return region;
   }
 
-  public void setRegion(LeagueShard region) {
+  public void setRegion(ZoePlatform region) {
     this.region = region;
   }
 
@@ -85,6 +86,6 @@ public class LeagueAccount {
 
   @Override
   public String toString() {
-    return "LeagueAccount [summonerName=" + summoner.getName() + ", region=" + region.getRealmValue() + "]";
+    return "LeagueAccount [summonerName=" + summoner.getName() + ", region=" + region.getShowableName() + "]";
   }
 }

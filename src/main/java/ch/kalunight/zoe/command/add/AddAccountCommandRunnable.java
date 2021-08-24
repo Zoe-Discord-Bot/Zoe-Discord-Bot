@@ -14,6 +14,7 @@ import ch.kalunight.zoe.model.config.option.RegionOption;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.BannedAccount;
 import ch.kalunight.zoe.model.dto.DTO.Server;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.model.player_data.LeagueAccount;
 import ch.kalunight.zoe.repositories.BannedAccountRepository;
 import ch.kalunight.zoe.repositories.ConfigRepository;
@@ -26,9 +27,7 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
 import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
-import no.stelar7.api.r4j.impl.lol.builders.summoner.SummonerBuilder;
 import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class AddAccountCommandRunnable {
@@ -82,7 +81,7 @@ public class AddAccountCommandRunnable {
       summonerName = listArgs.get(0);
     }
 
-    LeagueShard region = CreatePlayerCommandRunnable.getPlatform(regionName);
+    ZoePlatform region = CreatePlayerCommandRunnable.getPlatform(regionName);
     if(region == null) {
       return LanguageManager.getText(server.getLanguage(), "regionTagInvalid");
     }
@@ -90,8 +89,8 @@ public class AddAccountCommandRunnable {
     Summoner summoner;
     Summoner tftSummoner;
     try {
-      summoner = new SummonerBuilder().withPlatform(region).withName(summonerName).get();
-      tftSummoner = Zoe.getTftSummonerApi().getSummonerByAccount(region, summonerName);
+      summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);
+      tftSummoner = Zoe.getRiotApi().getTFTSummonerByName(region, summonerName);
     }catch(APIResponseException e) {
       return RiotApiUtil.getTextHandlerRiotApiError(e, server.getLanguage());
     }
@@ -115,7 +114,7 @@ public class AddAccountCommandRunnable {
         String verificiationCode = AccountVerificationUtil.getVerificationCode();
 
         String message = String.format(LanguageManager.getText(server.getLanguage(), "verificationProcessWhileAddingAccount"),
-            region.getRealmValue().toUpperCase(), summoner.getName(), verificiationCode);
+            region.getShowableName(), summoner.getName(), verificiationCode);
 
         waiter.waitForEvent(MessageReceivedEvent.class,
             e -> e.getAuthor().equals(author.getUser()) && e.getChannel().equals(channel),

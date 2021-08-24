@@ -9,11 +9,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.exception.NoValueRankException;
 import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.TeamPositionRated;
 import ch.kalunight.zoe.model.dangerosityreport.DangerosityReport;
 import ch.kalunight.zoe.model.dangerosityreport.PickData;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.model.player_data.Tier;
 import ch.kalunight.zoe.service.analysis.ChampionRole;
@@ -21,10 +23,7 @@ import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.TeamUtil;
 import ch.kalunight.zoe.util.LoLQueueIdUtil;
 import ch.kalunight.zoe.util.request.RiotRequest;
-import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
 import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
-import no.stelar7.api.r4j.impl.lol.builders.championmastery.ChampionMasteryBuilder;
-import no.stelar7.api.r4j.impl.lol.builders.summoner.SummonerBuilder;
 import no.stelar7.api.r4j.pojo.lol.championmastery.ChampionMastery;
 import no.stelar7.api.r4j.pojo.lol.clash.ClashPosition;
 import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
@@ -44,7 +43,7 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
 
   private Summoner summoner;
 
-  private LeagueShard platform;
+  private ZoePlatform platform;
 
   private ChampionRole clashSelectedPosition;
 
@@ -76,7 +75,7 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
     selectedQueuesId.add(LoLQueueIdUtil.CLASH_GAME_QUEUE_ID);
   }
 
-  public TeamPlayerAnalysisDataCollector(String summonerId, LeagueShard platform, ClashPosition position) {
+  public TeamPlayerAnalysisDataCollector(String summonerId, ZoePlatform platform, ClashPosition position) {
     this.summonerId = summonerId;
     this.platform = platform;
     this.dataPerChampions = new ArrayList<>();
@@ -89,7 +88,7 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
   }
 
   public TeamPlayerAnalysisDataCollector(String summonerId, Summoner summoner,
-      LeagueShard platform, ClashPosition position) {
+      ZoePlatform platform, ClashPosition position) {
     this.summonerId = summonerId;
     this.summoner = summoner;
     this.platform = platform;
@@ -117,7 +116,7 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
 
   public void loadAllData() throws APIResponseException {
 
-    summoner = new SummonerBuilder().withPlatform(platform).withSummonerId(summonerId).get();
+    summoner = Zoe.getRiotApi().getSummonerBySummonerId(platform, summonerId);
 
     List<LOLMatch> matchs = RiotRequest.getMatchHistoryOfLastMonth(platform, summoner, selectedQueuesId, new ArrayList<>());
 
@@ -133,7 +132,7 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
       
       if(playerInMatch == null) {
         logger.error("Summoner not detected inside a game where he should be! LeagueShard {} GameId {} SummonerName {}"
-            + " | Skipping...", platform.getRealmValue(), match.getGameId(), summoner.getSummonerId());
+            + " | Skipping...", platform.getShowableName(), match.getGameId(), summoner.getSummonerId());
         continue;
       }
 
@@ -142,9 +141,8 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
       collectWinrateData(playerInMatch, match);
     }
 
-    List<ChampionMastery> masteryPerChampions = new ChampionMasteryBuilder().withPlatform(platform)
-        .withSummonerId(summoner.getSummonerId()).getChampionMasteries();
-
+    List<ChampionMastery> masteryPerChampions = Zoe.getRiotApi().getChampionMasteryBySummonerId(platform, summonerId);
+    
     for(ChampionMastery mastery : masteryPerChampions) {
       DataPerChampion dataOfChampion = getDataByChampion(mastery.getChampionId());
       if(dataOfChampion != null) {
@@ -277,7 +275,7 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
     return summonerId;
   }
 
-  public LeagueShard getPlatform() {
+  public ZoePlatform getPlatform() {
     return platform;
   }
 

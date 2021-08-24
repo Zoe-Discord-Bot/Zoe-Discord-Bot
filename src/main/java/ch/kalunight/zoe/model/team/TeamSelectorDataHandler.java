@@ -12,18 +12,18 @@ import java.util.function.Consumer;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.SelectionDialog;
 
+import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.create.CreatePlayerCommandRunnable;
 import ch.kalunight.zoe.model.dto.DTO.Server;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.TeamUtil;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
 import no.stelar7.api.r4j.basic.exceptions.APIHTTPErrorReason;
 import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
-import no.stelar7.api.r4j.impl.lol.builders.summoner.SummonerBuilder;
 import no.stelar7.api.r4j.pojo.lol.clash.ClashPosition;
 import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
@@ -89,7 +89,7 @@ public class TeamSelectorDataHandler {
     String regionName = listArgs.get(0);
     String summonerName = listArgs.get(1);
 
-    LeagueShard region = CreatePlayerCommandRunnable.getPlatform(regionName);
+    ZoePlatform region = CreatePlayerCommandRunnable.getPlatform(regionName);
     if(region == null) {
       messageReceivedEvent.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisRegionTagInvalid") 
           + " " + LanguageManager.getText(server.getLanguage(), STATS_TEAM_ANALYSIS_CANCEL_MESSAGE_ID)).queue();
@@ -100,7 +100,7 @@ public class TeamSelectorDataHandler {
     Message messageLoading = messageReceivedEvent.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "loadingSummoner")).complete();
     Summoner summoner;
     try {
-      summoner = new SummonerBuilder().withPlatform(region).withName(summonerName).get();
+      summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);
       
     }catch(APIResponseException e) {
       if(e.getReason() == APIHTTPErrorReason.ERROR_404) {
@@ -123,7 +123,7 @@ public class TeamSelectorDataHandler {
     defineRoleSelectionWaiter(region, summoner, messageLoading);
   }
   
-  private void defineRoleSelectionWaiter(LeagueShard platform, Summoner summoner, Message messageLoading) {
+  private void defineRoleSelectionWaiter(ZoePlatform platform, Summoner summoner, Message messageLoading) {
     
     SelectionDialog.Builder selectRoleBuilder = new SelectionDialog.Builder()
         .addUsers(author.getUser())
@@ -153,7 +153,7 @@ public class TeamSelectorDataHandler {
     selectRoleBuilder.build().display(messageLoading);
   }
   
-  private BiConsumer<Message, Integer> roleSelectedDoneAction(List<ClashPosition> rolesOrder, LeagueShard platform, Summoner summoner) {
+  private BiConsumer<Message, Integer> roleSelectedDoneAction(List<ClashPosition> rolesOrder, ZoePlatform platform, Summoner summoner) {
     return new BiConsumer<Message, Integer>() {
       
       @Override
@@ -162,7 +162,7 @@ public class TeamSelectorDataHandler {
         baseMessage.clearReactions().queue();
         ClashPosition selected = rolesOrder.get(seletedAnswerId - 1);
         
-        String summonerName = "*" + platform.getRealmValue().toUpperCase() + "* " + summoner.getName();
+        String summonerName = "*" + platform.getShowableName() + "* " + summoner.getName();
         
         baseMessage.getTextChannel().sendMessage(String.format(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisAccountCorrectlySelected"), summonerName,
             LanguageManager.getText(server.getLanguage(), TeamUtil.getTeamPositionId(selected)))).queue();
@@ -195,7 +195,7 @@ public class TeamSelectorDataHandler {
     };
   }
   
-  private boolean isSummonerAlreadySelected(Summoner summoner, LeagueShard platform) {
+  private boolean isSummonerAlreadySelected(Summoner summoner, ZoePlatform platform) {
     for(AccountDataWithRole toCheck : accountsSelected) {
       if(toCheck.getSummoner().getSummonerId().equals(summoner.getSummonerId()) && platform == toCheck.getPlatform()) {
         return true;

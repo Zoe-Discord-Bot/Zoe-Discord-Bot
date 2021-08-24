@@ -30,6 +30,7 @@ import ch.kalunight.zoe.model.dangerosityreport.DangerosityReportOTP;
 import ch.kalunight.zoe.model.dangerosityreport.DangerosityReportPlayedGames;
 import ch.kalunight.zoe.model.dangerosityreport.DangerosityReportType;
 import ch.kalunight.zoe.model.dangerosityreport.PickData;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.model.dto.DTO.ChampionRoleAnalysis;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.player_data.FullTier;
@@ -517,13 +518,13 @@ public class TeamUtil {
     }
   }
 
-  public static List<TeamPlayerAnalysisDataCollector> getTeamPlayersDataWithAnalysisDoneWithClashData(LeagueShard platform, List<ClashPlayer> teamMembers) {
+  public static List<TeamPlayerAnalysisDataCollector> getTeamPlayersDataWithAnalysisDoneWithClashData(ZoePlatform platform, List<ClashPlayer> teamMembers) {
     List<TeamPlayerAnalysisDataCollector> teamPlayersData = loadAllPlayersDataWithClashData(platform, teamMembers);
 
     return executeTeamAnalysis(teamPlayersData);
   }
 
-  public static List<TeamPlayerAnalysisDataCollector> loadAllPlayersDataWithClashData(LeagueShard platform,
+  public static List<TeamPlayerAnalysisDataCollector> loadAllPlayersDataWithClashData(ZoePlatform platform,
       List<ClashPlayer> teamMembers) {
     List<TeamPlayerAnalysisDataCollector> teamPlayersData = new ArrayList<>();
 

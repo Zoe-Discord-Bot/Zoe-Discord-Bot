@@ -21,6 +21,7 @@ import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.BannedAccount;
 import ch.kalunight.zoe.model.dto.DTO.ClashChannel;
 import ch.kalunight.zoe.model.dto.DTO.Server;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.repositories.BannedAccountRepository;
 import ch.kalunight.zoe.repositories.ClashChannelRepository;
 import ch.kalunight.zoe.repositories.ConfigRepository;
@@ -37,7 +38,6 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.dv8tion.jda.api.interactions.InteractionHook;
-import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
 import no.stelar7.api.r4j.basic.exceptions.APIHTTPErrorReason;
 import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
 import no.stelar7.api.r4j.impl.lol.builders.summoner.SummonerBuilder;
@@ -49,7 +49,7 @@ public class CreateClashChannelRunnable {
   
   private static class ClashCreationData {
     private String channelName;
-    private LeagueShard platform;
+    private ZoePlatform platform;
     private Summoner summoner;
   }
 
@@ -131,7 +131,7 @@ public class CreateClashChannelRunnable {
     String summonerName = listArgs.get(1);
 
 
-    LeagueShard region = CreatePlayerCommandRunnable.getPlatform(regionName);
+    ZoePlatform region = CreatePlayerCommandRunnable.getPlatform(regionName);
     if(region == null) {
       channel.sendMessage(LanguageManager.getText(server.getLanguage(), "createClashChannelRegionTagInvalid")).queue();
       waitForALeagueAccount(member, channel, waiter, server, creationData);
@@ -140,7 +140,7 @@ public class CreateClashChannelRunnable {
 
     Message loadingMessage = channel.sendMessage(LanguageManager.getText(server.getLanguage(), "loadingSummoner")).complete();
     try {
-      Summoner summoner = new SummonerBuilder().withPlatform(region).withName(summonerName).get();
+      Summoner summoner = new SummonerBuilder().withPlatform(region.getLeagueShard()).withName(summonerName).get();
 
       if(summoner != null) {
 
@@ -158,7 +158,7 @@ public class CreateClashChannelRunnable {
         BannedAccount bannedAccount = BannedAccountRepository.getBannedAccount(summoner.getSummonerId(), region);
         if(bannedAccount == null) {
 
-          loadingMessage.editMessage(String.format(LanguageManager.getText(server.getLanguage(), "createClashChannelLeagueAccountSelected"), region.getRealmValue().toUpperCase(), summoner.getName())).queue();
+          loadingMessage.editMessage(String.format(LanguageManager.getText(server.getLanguage(), "createClashChannelLeagueAccountSelected"), region.getShowableName(), summoner.getName())).queue();
 
           List<String> timeZoneIds = getTimeZoneIds();
 

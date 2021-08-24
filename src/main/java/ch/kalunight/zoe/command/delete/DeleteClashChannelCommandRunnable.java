@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.SelectionDialog;
 
+import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.DTO.ClashChannel;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.repositories.ClashChannelRepository;
@@ -24,7 +25,6 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
-import no.stelar7.api.r4j.impl.lol.builders.summoner.SummonerBuilder;
 import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class DeleteClashChannelCommandRunnable {
@@ -72,13 +72,11 @@ public class DeleteClashChannelCommandRunnable {
       Summoner summoner;
       String showableAccountOwner;
       try {
-        summoner = new SummonerBuilder().withPlatform(clashChannel.clashChannel_data.getSelectedPlatform())
-            .withSummonerId(clashChannel.clashChannel_data.getSelectedSummonerId()).get();
-        showableAccountOwner = "*" + clashChannel.clashChannel_data.getSelectedPlatform().getRealmValue().toUpperCase() 
-            + "* " + summoner.getName();
+        summoner = Zoe.getRiotApi().getSummonerBySummonerId(clashChannel.clashChannel_data.getSelectedPlatform(), clashChannel.clashChannel_data.getSelectedSummonerId());
+        showableAccountOwner = "*" + clashChannel.clashChannel_data.getSelectedPlatform().getShowableName() + "* " + summoner.getName();
       } catch (APIResponseException e) {
         logger.warn("Riot exception in delete clash channel command.", e);
-        showableAccountOwner = "*" + clashChannel.clashChannel_data.getSelectedPlatform().getRealmValue().toUpperCase() + "* " + LanguageManager.getText(server.getLanguage(), "unknown");
+        showableAccountOwner = "*" + clashChannel.clashChannel_data.getSelectedPlatform().getShowableName() + "* " + LanguageManager.getText(server.getLanguage(), "unknown");
       }
       
       String showableString = channel.getName() + " : " + showableAccountOwner;

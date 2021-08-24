@@ -11,14 +11,14 @@ import java.util.TimeZone;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+
+import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.config.option.CleanChannelOption.CleanChannelOptionInfo;
 import ch.kalunight.zoe.service.analysis.ChampionRole;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
-import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
-import no.stelar7.api.r4j.impl.lol.builders.summoner.SummonerBuilder;
 import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
 import no.stelar7.api.r4j.pojo.lol.spectator.SpectatorGameInfo;
 import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
@@ -232,7 +232,7 @@ public class DTO {
     public final String leagueAccount_tftSummonerId;
     public final String leagueAccount_tftAccountId;
     public final String leagueAccount_tftPuuid;
-    public final LeagueShard leagueAccount_server;
+    public final ZoePlatform leagueAccount_server;
 
     public LeagueAccount(ResultSet baseData) throws SQLException {
       leagueAccount_id = baseData.getLong("leagueAccount_id");
@@ -246,10 +246,10 @@ public class DTO {
       leagueAccount_tftSummonerId = baseData.getString("leagueAccount_tftSummonerId");
       leagueAccount_tftAccountId = baseData.getString("leagueAccount_tftAccountId");
       leagueAccount_tftPuuid = baseData.getString("leagueAccount_tftPuuid");
-      leagueAccount_server = LeagueShard.fromString(baseData.getString("leagueAccount_server")).get();
+      leagueAccount_server = ZoePlatform.getZoePlatformByName(baseData.getString("leagueAccount_server"));
     }
 
-    public LeagueAccount(Summoner summoner, Summoner tftSummoner, LeagueShard platform) {
+    public LeagueAccount(Summoner summoner, Summoner tftSummoner, ZoePlatform platform) {
       leagueAccount_name = summoner.getName();
       leagueAccount_summonerId = summoner.getSummonerId();
       leagueAccount_accoundId = summoner.getAccountId();
@@ -265,7 +265,7 @@ public class DTO {
     }
 
     public Summoner getSummoner() {
-      return new SummonerBuilder().withPlatform(leagueAccount_server).withSummonerId(leagueAccount_accoundId).get();
+      return Zoe.getRiotApi().getSummonerBySummonerId(leagueAccount_server, leagueAccount_summonerId);
     }
 
     @Override
@@ -277,7 +277,7 @@ public class DTO {
   public static class CurrentGameInfo {
     public final long currentgame_id;
     public SpectatorGameInfo currentgame_currentgame;
-    public final LeagueShard currentgame_server;
+    public final ZoePlatform currentgame_server;
     public final String currentgame_gameid;
 
     public CurrentGameInfo(ResultSet baseData) throws SQLException {
@@ -289,7 +289,7 @@ public class DTO {
       }
 
       if(baseData.getString("currentgame_server") != null) {
-        currentgame_server = LeagueShard.fromString(baseData.getString("currentgame_server")).get();
+        currentgame_server = ZoePlatform.getZoePlatformByName(baseData.getString("currentgame_server"));
       }else {
         currentgame_server = null;
       }
@@ -398,7 +398,7 @@ public class DTO {
   public static class ServerRawSettings {
     public final Boolean selfoption_activate;
     public final Long roleoption_roleid;
-    public final LeagueShard regionoption_region;
+    public final ZoePlatform regionoption_region;
     public final Boolean gamecardoption_activate;
     public final Long cleanoption_channelid;
     public final CleanChannelOptionInfo cleanoption_option;
@@ -409,7 +409,7 @@ public class DTO {
 
       String platformName = baseData.getString("regionoption_region");
       if(platformName != null && !platformName.equals("")) {
-        regionoption_region = LeagueShard.fromString(platformName).get();
+        regionoption_region = ZoePlatform.getZoePlatformByName(platformName);
       }else {
         regionoption_region = null;
       }
@@ -594,12 +594,12 @@ public class DTO {
   public static class BannedAccount {
     public final long banAcc_id;
     public final String banAcc_summonerId;
-    public final LeagueShard banAcc_server;
+    public final ZoePlatform banAcc_server;
 
     public BannedAccount(ResultSet baseData) throws SQLException {
       banAcc_id = baseData.getLong("banAcc_id");
       banAcc_summonerId = baseData.getString("banAcc_summonerId");
-      banAcc_server = LeagueShard.fromString(baseData.getString("banAcc_server")).get();
+      banAcc_server = ZoePlatform.getZoePlatformByName(baseData.getString("banAcc_server"));
     }
 
   }

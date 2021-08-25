@@ -10,6 +10,7 @@ import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.config.option.RegionOption;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.model.dto.DTO.BannedAccount;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
@@ -28,7 +29,6 @@ import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
-import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class RegisterCommandRunnable {
 
@@ -61,7 +61,7 @@ public class RegisterCommandRunnable {
       return LanguageManager.getText(server.getLanguage(), "registerCommandMalformedWithoutRegionOption");
     }else if((listArgs.isEmpty() || listArgs.size() > 2) && regionOption.getRegion() != null) {
       return String.format(LanguageManager.getText(server.getLanguage(), "registerCommandMalformedWithRegionOption"), 
-          regionOption.getRegion().getRealmValue().toUpperCase());
+          regionOption.getRegion().getShowableName());
     }
 
     String regionName;
@@ -70,7 +70,7 @@ public class RegisterCommandRunnable {
       regionName = listArgs.get(0);
       summonerName = listArgs.get(1);
     }else {
-      regionName = regionOption.getRegion().getRealmValue();
+      regionName = regionOption.getRegion().getShowableName();
       summonerName = listArgs.get(0);
     }
 
@@ -81,8 +81,8 @@ public class RegisterCommandRunnable {
     }
 
 
-    Summoner summoner;
-    Summoner tftSummoner;
+    SavedSummoner summoner;
+    SavedSummoner tftSummoner;
     try {
       summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);
       tftSummoner = Zoe.getRiotApi().getTFTSummonerByName(region, summonerName);

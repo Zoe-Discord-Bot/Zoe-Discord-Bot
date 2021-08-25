@@ -23,6 +23,7 @@ import ch.kalunight.zoe.model.dangerosityreport.PickData;
 import ch.kalunight.zoe.model.dto.ClashChannelData;
 import ch.kalunight.zoe.model.dto.ClashStatus;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.model.dto.DTO.ClashChannel;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.dto.ZoePlatform;
@@ -40,14 +41,11 @@ import net.dv8tion.jda.api.entities.MessageReaction;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.requests.ErrorResponse;
-import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
-import no.stelar7.api.r4j.impl.lol.builders.summoner.SummonerBuilder;
 import no.stelar7.api.r4j.pojo.lol.clash.ClashPlayer;
 import no.stelar7.api.r4j.pojo.lol.clash.ClashPosition;
 import no.stelar7.api.r4j.pojo.lol.clash.ClashRole;
 import no.stelar7.api.r4j.pojo.lol.clash.ClashTournament;
 import no.stelar7.api.r4j.pojo.lol.clash.ClashTournamentPhase;
-import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class TreatClashChannel implements Runnable {
 
@@ -87,7 +85,7 @@ public class TreatClashChannel implements Runnable {
 
       cleanClashChannel(clashMessageManager);
 
-      Summoner summonerCache = Zoe.getRiotApi().getSummonerBySummonerId(clashMessageManager.getSelectedPlatform(), clashMessageManager.getSelectedSummonerId());
+      SavedSummoner summonerCache = Zoe.getRiotApi().getSummonerBySummonerId(clashMessageManager.getSelectedPlatform(), clashMessageManager.getSelectedSummonerId());
       
       if(summonerCache == null) { //TODO handle timeout case -> don't delete clash channel
         //clashChannel.sendMessage(LanguageManager.getText(server.getLanguage(), "clashChannelDeletionBecauseOfSummonerAccountUnreachable")).queue();
@@ -125,7 +123,7 @@ public class TreatClashChannel implements Runnable {
   }
 
   private void refreshWaitForGameStart(ClashChannelData clashMessageManager, ClashTeamRegistration firstClashTeam,
-      Summoner summonerCache) {
+      SavedSummoner summonerCache) {
 
     List<ClashPlayer> teamMembers = firstClashTeam.getTeam().getPlayers();
     List<TeamPlayerAnalysisDataCollector> teamPlayersData = TeamUtil.getTeamPlayersDataWithAnalysisDoneWithClashData(clashMessageManager.getSelectedPlatform(), teamMembers);
@@ -153,7 +151,8 @@ public class TreatClashChannel implements Runnable {
 
     addProbablyBan(teamPlayersData, messageBuilder);
 
-    messageBuilder.append(String.format(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentBottomTextFullTeam"), summonerCache.getPlatform().getRealmValue().toUpperCase()) + "\n");
+    messageBuilder.append(String.format(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentBottomTextFullTeam"),
+        clashMessageManager.getSelectedPlatform().getShowableName()) + "\n");
     messageBuilder.append(String.format(LanguageManager.getText(server.getLanguage(), BOTTOM_MESSAGE_ID)));
 
     MessageManagerUtil.editOrCreateTheseMessages(clashMessageManager.getInfoMessagesId(), clashChannel, messageBuilder.toString());
@@ -184,7 +183,7 @@ public class TreatClashChannel implements Runnable {
   }
 
   private void refreshWaitForFullTeam(ClashChannelData clashMessageManager, ClashTeamRegistration firstClashTeam,
-      Summoner summonerCache) {
+      SavedSummoner summonerCache) {
 
     StringBuilder messageBuilder = new StringBuilder();
 
@@ -207,7 +206,7 @@ public class TreatClashChannel implements Runnable {
   }
 
   private void addRegisteredInfo(ClashChannelData clashMessageManager, ClashTeamRegistration firstClashTeam,
-      Summoner summonerCache, StringBuilder messageBuilder) {
+      SavedSummoner summonerCache, StringBuilder messageBuilder) {
     String formatedSummonerName = summonerCache.getName() + " (" + clashMessageManager.getSelectedPlatform().getShowableName() + ")";
 
     String dayNumber = TeamUtil.parseDayId(server.getLanguage(), firstClashTeam.getTournament().getNameKeySecondary());
@@ -270,7 +269,7 @@ public class TreatClashChannel implements Runnable {
       int numberOfPlayerTreated = 0;
       for(ClashPlayer player : members) {
         numberOfPlayerTreated++;
-        Summoner summoner = Zoe.getRiotApi().getSummonerBySummonerId(platform, player.getSummonerId());
+        SavedSummoner summoner = Zoe.getRiotApi().getSummonerBySummonerId(platform, player.getSummonerId());
 
         String summonerName;
         if(player.getRole() == ClashRole.CAPTAIN) {
@@ -295,7 +294,7 @@ public class TreatClashChannel implements Runnable {
 
   }
 
-  private void refreshWaitForTeamRegistration(ClashChannelData clashMessageManager, Summoner summonerCache) {
+  private void refreshWaitForTeamRegistration(ClashChannelData clashMessageManager, SavedSummoner summonerCache) {
 
     cleanTeamAndGameMessages(clashMessageManager);
 

@@ -249,22 +249,22 @@ public class DTO {
       leagueAccount_server = ZoePlatform.getZoePlatformByName(baseData.getString("leagueAccount_server"));
     }
 
-    public LeagueAccount(Summoner summoner, Summoner tftSummoner, ZoePlatform platform) {
+    public LeagueAccount(SavedSummoner summoner, SavedSummoner tftSummoner, ZoePlatform platform) {
       leagueAccount_name = summoner.getName();
       leagueAccount_summonerId = summoner.getSummonerId();
       leagueAccount_accoundId = summoner.getAccountId();
-      leagueAccount_puuid = summoner.getPUUID();
+      leagueAccount_puuid = summoner.getPuuid();
       leagueAccount_server = platform;
       leagueAccount_tftSummonerId = tftSummoner.getSummonerId();
       leagueAccount_tftAccountId = tftSummoner.getAccountId();
-      leagueAccount_tftPuuid = tftSummoner.getPUUID();
+      leagueAccount_tftPuuid = tftSummoner.getPuuid();
       leagueAccount_id = null;
       leagueAccount_fk_player = null;
       leagueAccount_fk_gamecard = null;
       leagueAccount_fk_currentgame = null;
     }
 
-    public Summoner getSummoner() {
+    public SavedSummoner getSummoner() {
       return Zoe.getRiotApi().getSummonerBySummonerId(leagueAccount_server, leagueAccount_summonerId);
     }
 

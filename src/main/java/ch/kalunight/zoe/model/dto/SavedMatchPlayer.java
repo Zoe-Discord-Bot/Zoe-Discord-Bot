@@ -34,6 +34,10 @@ public class SavedMatchPlayer implements Serializable {
     this.lane = participantStats.getLane();
   }
 
+  public boolean didWin(SavedMatch originalMatch) {
+    return originalMatch.isGivenAccountWinner(summonerId);
+  }
+
   public int getCreepScores() {
     return creepScores;
   }

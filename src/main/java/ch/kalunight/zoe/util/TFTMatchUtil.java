@@ -4,11 +4,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import ch.kalunight.zoe.Zoe;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.model.dto.DTO.LastRank;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.static_data.TFTMatchWithId;
 import ch.kalunight.zoe.repositories.LastRankRepository;
-import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
 import no.stelar7.api.r4j.basic.constants.types.lol.GameQueueType;
 import no.stelar7.api.r4j.pojo.tft.TFTMatch;
 
@@ -22,7 +22,7 @@ public class TFTMatchUtil {
     
     List<TFTMatchWithId> matchs = new ArrayList<>();
 
-    List<String> tftMatchsList = Zoe.getRiotApi().getTFTAPI().getMatchAPI().getMatchList(leagueAccount.leagueAccount_server.toRegionShard(), leagueAccount.leagueAccount_tftPuuid, 5);
+    List<String> tftMatchsList = Zoe.getRiotApi().getTFTMatchList(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_tftPuuid, 5);
 
     if(!tftMatchsList.isEmpty() && lastRank.lastRank_tftLastTreatedMatchId != null
         && tftMatchsList.get(0).equals(lastRank.lastRank_tftLastTreatedMatchId)) { //if last treated match is the same than the last available match
@@ -35,7 +35,7 @@ public class TFTMatchUtil {
         break;
       }
 
-      TFTMatch match = Zoe.getRiotApi().getTFTAPI().getMatchAPI().getMatch(leagueAccount.leagueAccount_server.toRegionShard(), matchId);
+      TFTMatch match = Zoe.getRiotApi().getTFTMatch(leagueAccount.leagueAccount_server, matchId);
       
       if(match != null && match.getQueue() == GameQueueType.TEAMFIGHT_TACTICS_RANKED) {
         matchs.add(new TFTMatchWithId(matchId, match));
@@ -64,7 +64,7 @@ public class TFTMatchUtil {
     return matchs;
   }
 
-  private static List<TFTMatchWithId> getMatchsAfterLastGame(List<TFTMatchWithId> matchs, String lastTreatedGameID, LeagueShard platform) {
+  private static List<TFTMatchWithId> getMatchsAfterLastGame(List<TFTMatchWithId> matchs, String lastTreatedGameID, ZoePlatform platform) {
     
     List<TFTMatchWithId> matchsAfterTheGame = new ArrayList<>();
     

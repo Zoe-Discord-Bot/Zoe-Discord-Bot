@@ -15,6 +15,10 @@ import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.TeamPositionRated;
 import ch.kalunight.zoe.model.dangerosityreport.DangerosityReport;
 import ch.kalunight.zoe.model.dangerosityreport.PickData;
+import ch.kalunight.zoe.model.dto.SavedMatch;
+import ch.kalunight.zoe.model.dto.SavedMatchPlayer;
+import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
+import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.model.player_data.Tier;
@@ -24,12 +28,8 @@ import ch.kalunight.zoe.util.TeamUtil;
 import ch.kalunight.zoe.util.LoLQueueIdUtil;
 import ch.kalunight.zoe.util.request.RiotRequest;
 import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
-import no.stelar7.api.r4j.pojo.lol.championmastery.ChampionMastery;
 import no.stelar7.api.r4j.pojo.lol.clash.ClashPosition;
 import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
-import no.stelar7.api.r4j.pojo.lol.match.v5.LOLMatch;
-import no.stelar7.api.r4j.pojo.lol.match.v5.MatchParticipant;
-import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<TeamPlayerAnalysisDataCollector>{
 
@@ -41,7 +41,7 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
 
   private String summonerId;
 
-  private Summoner summoner;
+  private SavedSummoner summoner;
 
   private ZoePlatform platform;
 
@@ -87,7 +87,7 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
     summonerIdInWork.add(this);
   }
 
-  public TeamPlayerAnalysisDataCollector(String summonerId, Summoner summoner,
+  public TeamPlayerAnalysisDataCollector(String summonerId, SavedSummoner summoner,
       ZoePlatform platform, ClashPosition position) {
     this.summonerId = summonerId;
     this.summoner = summoner;
@@ -118,12 +118,12 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
 
     summoner = Zoe.getRiotApi().getSummonerBySummonerId(platform, summonerId);
 
-    List<LOLMatch> matchs = RiotRequest.getMatchHistoryOfLastMonth(platform, summoner, selectedQueuesId, new ArrayList<>());
+    List<SavedMatch> matchs = RiotRequest.getMatchHistoryOfLastMonth(platform, summoner, selectedQueuesId, new ArrayList<>());
 
-    for(LOLMatch match : matchs) {
-      MatchParticipant playerInMatch = null;
+    for(SavedMatch match : matchs) {
+      SavedMatchPlayer playerInMatch = null;
       
-      for(MatchParticipant participantToCheck : match.getParticipants()) {
+      for(SavedMatchPlayer participantToCheck : match.getPlayers()) {
         if(participantToCheck.getSummonerId().equals(summoner.getSummonerId())) {
           playerInMatch = participantToCheck;
           break;
@@ -141,16 +141,16 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
       collectWinrateData(playerInMatch, match);
     }
 
-    List<ChampionMastery> masteryPerChampions = Zoe.getRiotApi().getChampionMasteryBySummonerId(platform, summonerId);
+    List<SavedSimpleMastery> masteryPerChampions = Zoe.getRiotApi().getChampionMasteryBySummonerId(platform, summonerId);
     
-    for(ChampionMastery mastery : masteryPerChampions) {
+    for(SavedSimpleMastery mastery : masteryPerChampions) {
       DataPerChampion dataOfChampion = getDataByChampion(mastery.getChampionId());
       if(dataOfChampion != null) {
         dataOfChampion.setMastery(mastery);
       }
     }
 
-    eloOfThePlayer = summoner.getLeagueEntry();
+    eloOfThePlayer = Zoe.getRiotApi().getLeagueEntryBySummonerId(platform, summoner.getSummonerId());
 
     treatPosition();
   }
@@ -181,7 +181,7 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
     Collections.sort(determinedPositions);
   }
 
-  private void collectWinrateData(MatchParticipant playerInMatch, LOLMatch match) {
+  private void collectWinrateData(SavedMatchPlayer playerInMatch, SavedMatch match) {
     DataPerChampion dataForTheChampion = getDataByChampion(playerInMatch.getChampionId());
 
     if(dataForTheChampion == null) {
@@ -192,7 +192,7 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
     dataForTheChampion.getMatchs().add(match);
   }
 
-  private void collectRoleData(MatchParticipant playerInMatch) {
+  private void collectRoleData(SavedMatchPlayer playerInMatch) {
     ChampionRole role = ChampionRole.getChampionRoleWithLaneAndRole(playerInMatch.getLane(), playerInMatch.getRole());
     
     if(role != null) {
@@ -406,7 +406,7 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
     this.finalDeterminedPosition = finalDeterminedPosition;
   }
 
-  public Summoner getSummoner() {
+  public SavedSummoner getSummoner() {
     return summoner;
   }
 

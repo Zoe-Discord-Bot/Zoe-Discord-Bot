@@ -12,6 +12,7 @@ import ch.kalunight.zoe.command.create.CreatePlayerCommandRunnable;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.model.dto.DTO.Server;
+import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
@@ -20,7 +21,6 @@ import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
-import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class AccountVerificationUtil {
 
@@ -35,7 +35,7 @@ public class AccountVerificationUtil {
   }
 
   public static void verficationCodeRunnable(MessageReceivedEvent event, Server server, String verificiationCode,
-      EventWaiter waiter, ZoePlatform region, Summoner summoner, Summoner tftSummoner, Member playerToAdd) {
+      EventWaiter waiter, ZoePlatform region, SavedSummoner summoner, SavedSummoner tftSummoner, Member playerToAdd) {
 
     if(event.getMessage().getContentRaw().equalsIgnoreCase("DONE")) {
 
@@ -72,8 +72,8 @@ public class AccountVerificationUtil {
     channel.sendMessage(LanguageManager.getText(language, "verificationProcessCancel")).queue();
   }
 
-  public static void addOrCreateDBAccount(Server server, User member, ZoePlatform region, Summoner summoner,
-      Summoner tftSummoner) throws SQLException {
+  public static void addOrCreateDBAccount(Server server, User member, ZoePlatform region, SavedSummoner summoner,
+      SavedSummoner tftSummoner) throws SQLException {
     DTO.Player player = PlayerRepository.getPlayer(server.serv_guildId, member.getIdLong());
     if(player == null) {
       PlayerRepository.createPlayer(server.serv_id, server.serv_guildId, member.getIdLong(), false);

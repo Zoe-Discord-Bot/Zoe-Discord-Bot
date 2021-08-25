@@ -4,8 +4,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.bson.Document;
-
 import ch.kalunight.zoe.exception.PlayerNotFoundException;
 import no.stelar7.api.r4j.basic.constants.types.lol.GameQueueType;
 import no.stelar7.api.r4j.pojo.lol.match.v5.LOLMatch;
@@ -18,6 +16,8 @@ public class SavedMatch implements Serializable {
 
   private static final long serialVersionUID = -3423117740284389063L;
 
+  private String gameId;
+  
   private List<SavedMatchPlayer> players;
 
   private GameQueueType queueId;
@@ -33,7 +33,8 @@ public class SavedMatch implements Serializable {
 
   private boolean blueSideHasWin;
   
-  public SavedMatch(LOLMatch match) {
+  public SavedMatch(LOLMatch match, String gameId) {
+    this.gameId = gameId;
     queueId = match.getQueueId();
     gameVersion = match.getGameVersion();
     gameDurations = match.getGameDuration();
@@ -106,6 +107,10 @@ public class SavedMatch implements Serializable {
     }
 
     throw new PlayerNotFoundException("Impossible to give a winner in the game since the player is not in the game");
+  }
+  
+  public String getGameId() {
+    return gameId;
   }
 
   public long getGameCreation() {

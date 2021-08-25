@@ -6,15 +6,15 @@ import java.util.List;
 import ch.kalunight.zoe.model.dangerosityreport.DangerosityReport;
 import ch.kalunight.zoe.model.dangerosityreport.DangerosityReportKDA;
 import ch.kalunight.zoe.model.dangerosityreport.DangerosityReportType;
-import no.stelar7.api.r4j.pojo.lol.championmastery.ChampionMastery;
-import no.stelar7.api.r4j.pojo.lol.match.v5.LOLMatch;
-import no.stelar7.api.r4j.pojo.lol.match.v5.MatchParticipant;
+import ch.kalunight.zoe.model.dto.SavedMatch;
+import ch.kalunight.zoe.model.dto.SavedMatchPlayer;
+import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
 
 public class DataPerChampion implements Comparable<DataPerChampion> {
 
   private int championId;
 
-  private List<LOLMatch> matchs;
+  private List<SavedMatch> matchs;
   
   private Integer nbrWin;
 
@@ -22,13 +22,13 @@ public class DataPerChampion implements Comparable<DataPerChampion> {
 
   private Double winrate;
 
-  private ChampionMastery mastery;
+  private SavedSimpleMastery mastery;
   
   private Double averageKDA;
   
   private List<DangerosityReport> dangerosityReports;
   
-  public DataPerChampion(int championId, List<LOLMatch> matchs) {
+  public DataPerChampion(int championId, List<SavedMatch> matchs) {
     this.championId = championId;
     this.matchs = matchs;
     this.dangerosityReports = new ArrayList<>();
@@ -39,10 +39,10 @@ public class DataPerChampion implements Comparable<DataPerChampion> {
       nbrWin = 0;
       nbrLose = 0;
 
-      for(LOLMatch match : matchs) {
-        for(MatchParticipant player : match.getParticipants()) {
+      for(SavedMatch match : matchs) {
+        for(SavedMatchPlayer player : match.getPlayers()) {
           if(player.getChampionId() == championId) {
-            if(player.didWin()){
+            if(player.didWin(match)){
               nbrWin++;
             }else {
               nbrLose++;
@@ -67,10 +67,10 @@ public class DataPerChampion implements Comparable<DataPerChampion> {
       int deaths = 0;
       int assists = 0;
       
-      for(LOLMatch match : matchs) {
-        MatchParticipant matchPlayer = null;
+      for(SavedMatch match : matchs) {
+        SavedMatchPlayer matchPlayer = null;
         
-        for(MatchParticipant participant : match.getParticipants()) {
+        for(SavedMatchPlayer participant : match.getPlayers()) {
           if(participant.getChampionId() == championId) {
             matchPlayer = participant;
             break;
@@ -144,15 +144,15 @@ public class DataPerChampion implements Comparable<DataPerChampion> {
     return championId;
   }
 
-  public List<LOLMatch> getMatchs() {
+  public List<SavedMatch> getMatchs() {
     return matchs;
   }
 
-  public ChampionMastery getMastery() {
+  public SavedSimpleMastery getMastery() {
     return mastery;
   }
 
-  public void setMastery(ChampionMastery mastery) {
+  public void setMastery(SavedSimpleMastery mastery) {
     this.mastery = mastery;
   }
   

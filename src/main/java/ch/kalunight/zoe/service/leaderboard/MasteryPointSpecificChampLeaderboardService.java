@@ -12,6 +12,7 @@ import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Player;
 import ch.kalunight.zoe.model.dto.DTO.Server;
+import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
 import ch.kalunight.zoe.model.leaderboard.dataholder.PlayerPoints;
 import ch.kalunight.zoe.model.leaderboard.dataholder.SpecificChamp;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
@@ -21,7 +22,6 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
-import no.stelar7.api.r4j.pojo.lol.championmastery.ChampionMastery;
 
 public class MasteryPointSpecificChampLeaderboardService extends LeaderboardBaseService {
   
@@ -65,11 +65,11 @@ public class MasteryPointSpecificChampLeaderboardService extends LeaderboardBase
       
       long bestAccountPoints = 0;
       for(DTO.LeagueAccount leagueAccount : leaguesAccounts) {
-        ChampionMastery mastery = null;
+        SavedSimpleMastery mastery = null;
         
-        List<ChampionMastery> championsMasteries = Zoe.getRiotApi().getChampionMasteryBySummonerId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
+        List<SavedSimpleMastery> championsMasteries = Zoe.getRiotApi().getChampionMasteryBySummonerId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
         
-        for(ChampionMastery masteryToCheck : championsMasteries) {
+        for(SavedSimpleMastery masteryToCheck : championsMasteries) {
           if(masteryToCheck.getChampionId() == championId) {
             mastery = masteryToCheck;
             break;

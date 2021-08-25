@@ -3,15 +3,15 @@ package ch.kalunight.zoe.model.dangerosityreport;
 import java.util.ArrayList;
 import java.util.List;
 
+import ch.kalunight.zoe.model.dto.SavedSummoner;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.service.analysis.ChampionRole;
-import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
-import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class PickData implements Comparable<PickData> {
   
-  private LeagueShard platform;
+  private ZoePlatform platform;
   
-  private Summoner savedSummoner;
+  private SavedSummoner savedSummoner;
   
   private int championId;
   
@@ -19,7 +19,7 @@ public class PickData implements Comparable<PickData> {
   
   private List<DangerosityReport> reportsOfThePick;
 
-  public PickData(LeagueShard platform, Summoner savedSummoner, int championId, ChampionRole role, List<DangerosityReport> reports) {
+  public PickData(ZoePlatform platform, SavedSummoner savedSummoner, int championId, ChampionRole role, List<DangerosityReport> reports) {
     this.platform = platform;
     this.championId = championId;
     this.role = role;
@@ -67,7 +67,7 @@ public class PickData implements Comparable<PickData> {
     return reportsToReturn;
   }
 
-  public LeagueShard getPlatform() {
+  public ZoePlatform getPlatform() {
     return platform;
   }
 
@@ -75,7 +75,7 @@ public class PickData implements Comparable<PickData> {
     return role;
   }
 
-  public Summoner getSavedSummoner() {
+  public SavedSummoner getSavedSummoner() {
     return savedSummoner;
   }
 

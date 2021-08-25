@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.model.dto.ZoePlatform;
 import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
@@ -302,7 +303,7 @@ public class LeagueAccountRepository {
     }
   }
 
-  public static void createLeagueAccount(long playerId, Summoner summoner, Summoner tftSummoner, String server) throws SQLException {
+  public static void createLeagueAccount(long playerId, SavedSummoner summoner, SavedSummoner tftSummoner, String server) throws SQLException {
     try (Connection conn = RepoRessources.getConnection();
         PreparedStatement createQuery = conn.prepareStatement(INSERT_LEAGUE_ACCOUNT)) {
 
@@ -310,11 +311,11 @@ public class LeagueAccountRepository {
       createQuery.setString(2, summoner.getName());
       createQuery.setString(3, summoner.getSummonerId());
       createQuery.setString(4, summoner.getAccountId());
-      createQuery.setString(5, summoner.getPUUID());
+      createQuery.setString(5, summoner.getPuuid());
       createQuery.setString(6, server);
       createQuery.setString(7, tftSummoner.getSummonerId());
       createQuery.setString(8, tftSummoner.getAccountId());
-      createQuery.setString(9, tftSummoner.getPUUID());
+      createQuery.setString(9, tftSummoner.getPuuid());
       
       createQuery.executeUpdate();
     }

@@ -17,6 +17,7 @@ import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.model.dto.DTO.BannedAccount;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Server;
+import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.repositories.BannedAccountRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.ServerRepository;
@@ -34,7 +35,6 @@ import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
-import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class BanAccountCommandRunnable {
 
@@ -92,7 +92,7 @@ public class BanAccountCommandRunnable {
 
     Message message = event.getTextChannel().sendMessage(LanguageManager.getText(language, "loadingSummoner")).complete();
     
-    Summoner summoner;
+    SavedSummoner summoner;
     try {
       summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);
     } catch (APIResponseException error) {
@@ -146,7 +146,7 @@ public class BanAccountCommandRunnable {
     channel.sendMessage(LanguageManager.getText(lang, "banAccountCommandCancelVerification")).queue();
   }
 
-  private static void startAccountManagementPanel(Summoner summoner, ZoePlatform region, MessageReceivedEvent event,
+  private static void startAccountManagementPanel(SavedSummoner summoner, ZoePlatform region, MessageReceivedEvent event,
       String language, Message messageToEdit, EventWaiter waiter) {
 
     List<Server> serversWithTheAccount = null;
@@ -221,7 +221,7 @@ public class BanAccountCommandRunnable {
         () -> stopProcess(event, language));
   }
 
-  private static void messageInterpretor(MessageReceivedEvent event, String language, Summoner concernedSummoner, ZoePlatform region,
+  private static void messageInterpretor(MessageReceivedEvent event, String language, SavedSummoner concernedSummoner, ZoePlatform region,
       List<Server> serverList, EventWaiter waiter) {
     String messageReceived = event.getMessage().getContentRaw();
     MessageChannel responseChannel = event.getChannel();
@@ -255,7 +255,7 @@ public class BanAccountCommandRunnable {
     }
   }
 
-  private static void handleKickCommand(String language, Summoner concernedSummoner, ZoePlatform region, List<Server> serverList,
+  private static void handleKickCommand(String language, SavedSummoner concernedSummoner, ZoePlatform region, List<Server> serverList,
       MessageChannel responseChannel, String[] messagePart, MessageReceivedEvent event, EventWaiter waiter) {
     String selectedServer = messagePart[1];
     Integer selectedServerInt;
@@ -309,7 +309,7 @@ public class BanAccountCommandRunnable {
     waitForAnotherResponse(event, language, concernedSummoner, region, serverList, waiter);
   }
 
-  private static void handleBanCommand(MessageReceivedEvent event, String language, Summoner concernedSummoner, ZoePlatform region,
+  private static void handleBanCommand(MessageReceivedEvent event, String language, SavedSummoner concernedSummoner, ZoePlatform region,
       MessageChannel responseChannel, List<Server> serverList, EventWaiter waiter) {
     try {
       BannedAccount bannedAccount = BannedAccountRepository.getBannedAccount(concernedSummoner.getSummonerId(), region);
@@ -327,7 +327,7 @@ public class BanAccountCommandRunnable {
     waitForAnotherResponse(event, language, concernedSummoner, region, serverList, waiter);
   }
 
-  private static void waitForAnotherResponse(MessageReceivedEvent event, String language, Summoner summoner, ZoePlatform region,
+  private static void waitForAnotherResponse(MessageReceivedEvent event, String language, SavedSummoner summoner, ZoePlatform region,
       List<Server> serverList, EventWaiter waiter) {
     waiter.waitForEvent(MessageReceivedEvent.class,
         e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel())

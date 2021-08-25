@@ -12,6 +12,7 @@ import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Player;
 import ch.kalunight.zoe.model.dto.DTO.Server;
+import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
 import ch.kalunight.zoe.model.leaderboard.dataholder.PlayerPoints;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
@@ -20,7 +21,6 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
-import no.stelar7.api.r4j.pojo.lol.championmastery.ChampionMastery;
 
 public class MasteryPointLeaderboardService extends LeaderboardBaseService {
   
@@ -59,10 +59,10 @@ public class MasteryPointLeaderboardService extends LeaderboardBaseService {
       
       long bestAccountPoints = 0;
       for(DTO.LeagueAccount leagueAccount : leaguesAccounts) {
-        List<ChampionMastery> masteries = Zoe.getRiotApi().getChampionMasteryBySummonerId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
+        List<SavedSimpleMastery> masteries = Zoe.getRiotApi().getChampionMasteryBySummonerId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
         
         long totalAccountPoints = 0;
-        for(ChampionMastery mastery : masteries) {
+        for(SavedSimpleMastery mastery : masteries) {
           totalAccountPoints += mastery.getChampionPoints();
         }
         

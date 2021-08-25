@@ -8,10 +8,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.kalunight.zoe.Zoe;
+import ch.kalunight.zoe.model.dto.SavedMatch;
+import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.riotapi.MatchKeyString;
-import no.stelar7.api.r4j.pojo.lol.match.v5.LOLMatch;
-import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public abstract class MatchReceiverWorker implements Runnable {
 
@@ -25,9 +25,9 @@ public abstract class MatchReceiverWorker implements Runnable {
   
   protected MatchKeyString matchReference;
   
-  protected Summoner summoner;
+  protected SavedSummoner summoner;
   
-  protected MatchReceiverWorker(MatchKeyString matchReference, ZoePlatform server, Summoner summoner) {
+  protected MatchReceiverWorker(MatchKeyString matchReference, ZoePlatform server, SavedSummoner summoner) {
     this.server = server;
     this.matchReference = matchReference;
     this.summoner = summoner;
@@ -37,7 +37,7 @@ public abstract class MatchReceiverWorker implements Runnable {
   @Override
   public void run() {
     logger.debug("Start to load game on server {}", server.getShowableName());
-    LOLMatch match = null;
+    SavedMatch match = null;
     try {
       match = Zoe.getRiotApi().getMatchById(matchReference.getPlatform(), matchReference.getMatchId());
     } catch (Exception e) {
@@ -45,7 +45,7 @@ public abstract class MatchReceiverWorker implements Runnable {
     }
     
     try {
-      if(match != null && match.getGameDuration() > CANCEL_GAME_DURATION) { // Check if the game has been canceled
+      if(match != null && match.getGameCreation() > CANCEL_GAME_DURATION) { // Check if the game has been canceled
         runMatchReceveirWorker(match);
       }
     }catch(Exception e){
@@ -55,7 +55,7 @@ public abstract class MatchReceiverWorker implements Runnable {
     }
   }
   
-  protected abstract void runMatchReceveirWorker(LOLMatch matchCache);
+  protected abstract void runMatchReceveirWorker(SavedMatch matchCache);
   
   public static void awaitAll(List<MatchKeyString> matchsToWait) {
     

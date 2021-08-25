@@ -14,6 +14,7 @@ import ch.kalunight.zoe.model.config.option.RegionOption;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.BannedAccount;
 import ch.kalunight.zoe.model.dto.DTO.Server;
+import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.model.player_data.LeagueAccount;
 import ch.kalunight.zoe.repositories.BannedAccountRepository;
@@ -68,7 +69,7 @@ public class AddAccountCommandRunnable {
       return String.format(LanguageManager.getText(server.getLanguage(), "addCommandMalformedWithoutRegionOption"), USAGE_NAME);
     }else if((listArgs.isEmpty() || listArgs.size() > 2) && regionOption.getRegion() != null) {
       return String.format(LanguageManager.getText(server.getLanguage(), "addCommandMalformedWithRegionOption"),
-          USAGE_NAME, regionOption.getRegion().getRealmValue().toUpperCase());
+          USAGE_NAME, regionOption.getRegion().getShowableName());
     }
 
     String regionName;
@@ -77,7 +78,7 @@ public class AddAccountCommandRunnable {
       regionName = listArgs.get(0);
       summonerName = listArgs.get(1);
     }else {
-      regionName = regionOption.getRegion().getRealmValue();
+      regionName = regionOption.getRegion().getShowableName();
       summonerName = listArgs.get(0);
     }
 
@@ -86,8 +87,8 @@ public class AddAccountCommandRunnable {
       return LanguageManager.getText(server.getLanguage(), "regionTagInvalid");
     }
 
-    Summoner summoner;
-    Summoner tftSummoner;
+    SavedSummoner summoner;
+    SavedSummoner tftSummoner;
     try {
       summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);
       tftSummoner = Zoe.getRiotApi().getTFTSummonerByName(region, summonerName);

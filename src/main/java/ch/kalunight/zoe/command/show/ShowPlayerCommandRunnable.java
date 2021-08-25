@@ -10,6 +10,7 @@ import com.jagrosh.jdautilities.menu.Paginator;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.Server;
+import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
@@ -115,7 +116,7 @@ public class ShowPlayerCommandRunnable {
     }
     accountsNmb += leagueAccounts.size();
     for(DTO.LeagueAccount leagueAccount : leagueAccounts) {
-      Summoner summoner = Zoe.getRiotApi().getSummonerBySummonerId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
+      SavedSummoner summoner = Zoe.getRiotApi().getSummonerBySummonerId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
       
       playerInfo.append(String.format(LanguageManager.getText(server.getLanguage(), "showPlayerAccount"),
           summoner.getName(), leagueAccount.leagueAccount_server.getShowableName(),

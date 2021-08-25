@@ -8,6 +8,7 @@ import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.create.CreatePlayerCommandRunnable;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.repositories.ConfigRepository;
@@ -19,7 +20,6 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
-import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class RemoveAccountCommandRunnable {
 
@@ -69,7 +69,7 @@ public class RemoveAccountCommandRunnable {
 
     DTO.LeagueAccount account;
     try {
-      Summoner summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);
+      SavedSummoner summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);
       
       account = LeagueAccountRepository
           .getLeagueAccountWithSummonerId(server.serv_guildId, summoner.getSummonerId(), region);

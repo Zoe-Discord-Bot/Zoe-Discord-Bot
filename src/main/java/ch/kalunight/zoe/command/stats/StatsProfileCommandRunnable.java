@@ -28,6 +28,8 @@ import ch.kalunight.zoe.command.create.CreatePlayerCommandRunnable;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.config.option.RegionOption;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
+import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.dto.ZoePlatform;
@@ -127,7 +129,7 @@ public class StatsProfileCommandRunnable {
 
     List<DTO.LeagueAccount> accounts = LeagueAccountRepository.getLeaguesAccounts(server.serv_guildId, user.getIdLong());
     
-    Summoner summoner;
+    SavedSummoner summoner;
     if(accounts.size() == 1) {
       generateStatsMessage(player, accounts.get(0), server, toEdit, hook, sourceChannel);
     }else if(accounts.isEmpty()) {
@@ -188,7 +190,7 @@ public class StatsProfileCommandRunnable {
       RegionOption regionOption = config.getDefaultRegion();
 
       if(regionOption.getRegion() != null) {
-        regionName = regionOption.getRegion().getRealmValue();
+        regionName = regionOption.getRegion().getShowableName();
       }
       summonerName = listArgs.get(0);
     }else {
@@ -200,8 +202,8 @@ public class StatsProfileCommandRunnable {
       return null;
     }
 
-    Summoner summoner;
-    Summoner tftSummoner;
+    SavedSummoner summoner;
+    SavedSummoner tftSummoner;
     try {
       summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);
       tftSummoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);
@@ -259,7 +261,7 @@ public class StatsProfileCommandRunnable {
 
     String url = Integer.toString(random.nextInt(100000));
 
-    List<ChampionMastery> championsMasteries;
+    List<SavedSimpleMastery> championsMasteries;
     try {
       championsMasteries = Zoe.getRiotApi().getChampionMasteryBySummonerId(lolAccount.leagueAccount_server, lolAccount.leagueAccount_summonerId);
     } catch(APIResponseException e) {
@@ -312,9 +314,9 @@ public class StatsProfileCommandRunnable {
     }
   }
 
-  private static byte[] generateMasteriesChart(DTO.Player player, List<ChampionMastery> championsMasteries,
+  private static byte[] generateMasteriesChart(DTO.Player player, List<SavedSimpleMastery> championsMasteries,
       DTO.Server server, LeagueAccount leagueAccount, JDA jda) throws IOException {
-    List<ChampionMastery> listHeigherChampion = getBestMasteries(championsMasteries, NUMBER_OF_CHAMPIONS_IN_GRAPH);
+    List<SavedSimpleMastery> listHeigherChampion = getBestMasteries(championsMasteries, NUMBER_OF_CHAMPIONS_IN_GRAPH);
     CategoryChartBuilder masteriesGraphBuilder = new CategoryChartBuilder();
 
     masteriesGraphBuilder.chartTheme = ChartTheme.GGPlot2;
@@ -364,9 +366,9 @@ public class StatsProfileCommandRunnable {
     return BitmapEncoder.getBitmapBytes(masteriesGraph, BitmapFormat.PNG);
   }
 
-  private static long getMoyenneMasteries(List<ChampionMastery> championsMasteries) {
+  private static long getMoyenneMasteries(List<SavedSimpleMastery> championsMasteries) {
     long allMasteries = 0;
-    for(ChampionMastery championMastery : championsMasteries) {
+    for(SavedSimpleMastery championMastery : championsMasteries) {
       if(championMastery != null) {
         allMasteries += championMastery.getChampionPoints();
       }
@@ -377,14 +379,14 @@ public class StatsProfileCommandRunnable {
     return allMasteries / championsMasteries.size();
   }
 
-  public static List<ChampionMastery> getBestMasteries(List<ChampionMastery> championsMasteries, int nbrTop) {
-    List<ChampionMastery> listHeigherChampion = new ArrayList<>();
+  public static List<SavedSimpleMastery> getBestMasteries(List<SavedSimpleMastery> championsMasteries, int nbrTop) {
+    List<SavedSimpleMastery> listHeigherChampion = new ArrayList<>();
 
     for(int i = 0; i < nbrTop; i++) {
 
-      ChampionMastery heigherActual = null;
+      SavedSimpleMastery heigherActual = null;
 
-      for(ChampionMastery championMastery : championsMasteries) {
+      for(SavedSimpleMastery championMastery : championsMasteries) {
 
         if(listHeigherChampion.contains(championMastery)) {
           continue;

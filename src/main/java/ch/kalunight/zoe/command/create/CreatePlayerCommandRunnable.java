@@ -18,6 +18,7 @@ import ch.kalunight.zoe.model.dto.DTO.BannedAccount;
 import ch.kalunight.zoe.model.dto.DTO.LastRank;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Server;
+import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.repositories.BannedAccountRepository;
 import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.LastRankRepository;
@@ -35,7 +36,6 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
 import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
-import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class CreatePlayerCommandRunnable {
 
@@ -74,7 +74,7 @@ public class CreatePlayerCommandRunnable {
       return LanguageManager.getText(server.getLanguage(), "createPlayerMalformedWithoutRegionOption");
     }else if((listArgs.isEmpty() || listArgs.size() > 2) && regionOption.getRegion() != null) {
       return String.format(LanguageManager.getText(server.getLanguage(), "createPlayerMalformedWithRegionOption"), 
-          regionOption.getRegion().getRealmValue().toUpperCase());
+          regionOption.getRegion().getShowableName());
     }
 
     String regionName;
@@ -83,7 +83,7 @@ public class CreatePlayerCommandRunnable {
       regionName = listArgs.get(0);
       summonerName = listArgs.get(1);
     }else {
-      regionName = regionOption.getRegion().getRealmValue();
+      regionName = regionOption.getRegion().getShowableName();
       summonerName = listArgs.get(0);
     }
 
@@ -93,8 +93,8 @@ public class CreatePlayerCommandRunnable {
       return LanguageManager.getText(server.getLanguage(), "regionTagInvalid");
     }
 
-    Summoner summoner; 
-    Summoner tftSummoner; 
+    SavedSummoner summoner; 
+    SavedSummoner tftSummoner; 
 
     try {
       summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);

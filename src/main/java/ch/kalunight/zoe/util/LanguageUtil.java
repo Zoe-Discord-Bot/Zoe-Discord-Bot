@@ -5,11 +5,11 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import ch.kalunight.zoe.command.LanguageCommandRunnable;
+import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.static_data.Mastery;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.entities.Message;
-import no.stelar7.api.r4j.pojo.lol.championmastery.ChampionMastery;
 
 public class LanguageUtil {
 
@@ -36,7 +36,7 @@ public class LanguageUtil {
       }};
   }
 
-  public static String convertMasteryToReadableText(ChampionMastery mastery) {
+  public static String convertMasteryToReadableText(SavedSimpleMastery mastery) {
     StringBuilder masteryString = new StringBuilder();
   
     long points = mastery.getChampionPoints();

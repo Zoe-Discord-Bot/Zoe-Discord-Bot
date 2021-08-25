@@ -3,20 +3,21 @@ package ch.kalunight.zoe.model.player_data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.kalunight.zoe.Zoe;
+import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.model.dto.ZoePlatform;
 import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
 import no.stelar7.api.r4j.pojo.lol.spectator.SpectatorGameInfo;
-import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class LeagueAccount {
 
   private static final Logger logger = LoggerFactory.getLogger(LeagueAccount.class);
 
-  private Summoner summoner;
+  private SavedSummoner summoner;
   private ZoePlatform region;
   private SpectatorGameInfo currentGameInfo;
 
-  public LeagueAccount(Summoner summoner, ZoePlatform region) {
+  public LeagueAccount(SavedSummoner summoner, ZoePlatform region) {
     this.summoner = summoner;
     this.region = region;
     this.currentGameInfo = null;
@@ -24,7 +25,7 @@ public class LeagueAccount {
 
   public void refreshCurrentGameInfo() {
     try {
-      currentGameInfo = summoner.getCurrentGame();
+      currentGameInfo = Zoe.getRiotApi().getSpectatorGameInfo(region, summoner.getSummonerId());
     } catch(APIResponseException e) {
       logger.info(e.getMessage());
       currentGameInfo = null;
@@ -60,11 +61,11 @@ public class LeagueAccount {
     return result;
   }
 
-  public Summoner getSummoner() {
+  public SavedSummoner getSummoner() {
     return summoner;
   }
 
-  public void setSummoner(Summoner summoner) {
+  public void setSummoner(SavedSummoner summoner) {
     this.summoner = summoner;
   }
 

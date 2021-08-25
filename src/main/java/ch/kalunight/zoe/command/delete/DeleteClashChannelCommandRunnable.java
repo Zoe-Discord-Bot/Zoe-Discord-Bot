@@ -16,6 +16,7 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.SelectionDialog;
 
 import ch.kalunight.zoe.Zoe;
+import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.model.dto.DTO.ClashChannel;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.repositories.ClashChannelRepository;
@@ -69,7 +70,7 @@ public class DeleteClashChannelCommandRunnable {
         continue;
       }
 
-      Summoner summoner;
+      SavedSummoner summoner;
       String showableAccountOwner;
       try {
         summoner = Zoe.getRiotApi().getSummonerBySummonerId(clashChannel.clashChannel_data.getSelectedPlatform(), clashChannel.clashChannel_data.getSelectedSummonerId());

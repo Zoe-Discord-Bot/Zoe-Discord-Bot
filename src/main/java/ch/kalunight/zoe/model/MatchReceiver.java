@@ -4,15 +4,16 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import no.stelar7.api.r4j.pojo.lol.match.v5.LOLMatch;
-import no.stelar7.api.r4j.pojo.lol.match.v5.MatchParticipant;
-import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
+
+import ch.kalunight.zoe.model.dto.SavedMatch;
+import ch.kalunight.zoe.model.dto.SavedMatchPlayer;
+import ch.kalunight.zoe.model.dto.SavedSummoner;
 
 public class MatchReceiver {
   
-  public final List<LOLMatch> matchs = Collections.synchronizedList(new ArrayList<>());
+  public final List<SavedMatch> matchs = Collections.synchronizedList(new ArrayList<>());
   
-  private Summoner summoner;
+  private SavedSummoner summoner;
   
   private List<Integer> championsWanted;
   
@@ -22,7 +23,7 @@ public class MatchReceiver {
   
   private boolean timestampHit;
   
-  public MatchReceiver(Summoner summoner, List<Integer> championsWanted, List<Integer> queueWanted,
+  public MatchReceiver(SavedSummoner summoner, List<Integer> championsWanted, List<Integer> queueWanted,
       Timestamp timestampToHit) {
     this.summoner = summoner;
     this.championsWanted = championsWanted;
@@ -31,12 +32,12 @@ public class MatchReceiver {
     this.timestampHit = false;
   }
   
-  public boolean isGivenMatchWanted(LOLMatch match) {
+  public boolean isGivenMatchWanted(SavedMatch match) {
     boolean wanted = true;
     
     if(championsWanted != null && !championsWanted.isEmpty() && summoner != null) {
       wanted = false;
-      for(MatchParticipant participantToCheck : match.getParticipants()) {
+      for(SavedMatchPlayer participantToCheck : match.getPlayers()) {
         if(participantToCheck.getSummonerId().equals(summoner.getSummonerId()) &&
             championsWanted.contains(participantToCheck.getChampionId())) {
           wanted = true;

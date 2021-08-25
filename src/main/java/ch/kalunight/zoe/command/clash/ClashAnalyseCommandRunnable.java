@@ -5,6 +5,7 @@ import java.util.List;
 import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.create.CreatePlayerCommandRunnable;
+import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.model.dto.DTO.ClashChannel;
 import ch.kalunight.zoe.model.dto.DTO.Server;
@@ -67,7 +68,7 @@ public class ClashAnalyseCommandRunnable {
     }
     
     ZoePlatform platorm = CreatePlayerCommandRunnable.getPlatform(regionName);
-    Summoner summoner;
+    SavedSummoner summoner;
     try {
       summoner = Zoe.getRiotApi().getSummonerByName(platorm, summonerName);
     }catch(APIResponseException e) {

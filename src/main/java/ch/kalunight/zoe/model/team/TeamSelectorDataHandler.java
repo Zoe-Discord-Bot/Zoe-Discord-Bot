@@ -15,6 +15,7 @@ import com.jagrosh.jdautilities.menu.SelectionDialog;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.create.CreatePlayerCommandRunnable;
 import ch.kalunight.zoe.model.dto.DTO.Server;
+import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.TeamUtil;
@@ -32,19 +33,19 @@ public class TeamSelectorDataHandler {
   private static final String STATS_TEAM_ANALYSIS_CANCEL_MESSAGE_ID = "statsTeamAnalysisCancelMessage";
 
   private List<AccountDataWithRole> accountsSelected;
-  
+
   private EventWaiter waiter;
-  
+
   private Server server;
-  
+
   private TextChannel channel;
-  
+
   private Member author;
-  
+
   private TeamSelectorDataManager dataManager;
-  
+
   private ThreadPoolExecutor whereToExecute;
-  
+
   public TeamSelectorDataHandler(EventWaiter waiter, Server server, TextChannel channel, Member author, TeamSelectorDataManager dataManager, ThreadPoolExecutor whereToExecute) {
     accountsSelected = Collections.synchronizedList(new ArrayList<>());
     this.waiter = waiter;
@@ -54,11 +55,11 @@ public class TeamSelectorDataHandler {
     this.dataManager = dataManager;
     this.whereToExecute = whereToExecute;
   }
-  
+
   public void askSelectionAccount() {
     channel.sendMessage(String.format(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisAskAccount"), accountsSelected.size())
         + " " + LanguageManager.getText(server.getLanguage(), STATS_TEAM_ANALYSIS_CANCEL_MESSAGE_ID)).queue();
-    
+
     defineAccountSelectionWaiter();
   }
 
@@ -71,14 +72,14 @@ public class TeamSelectorDataHandler {
 
   private void threatAccountSelection(MessageReceivedEvent messageReceivedEvent) {
     String messageReceived = messageReceivedEvent.getMessage().getContentRaw();
-    
+
     if(messageReceived.equalsIgnoreCase("Stop")) {
       messageReceivedEvent.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisRoleSelectionCancel")).queue();
       return;
     }
-    
+
     List<String> listArgs = CreatePlayerCommandRunnable.getParameterInParenteses(messageReceived);
-    
+
     if(listArgs.size() != 2) {
       messageReceivedEvent.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisMalformedAccount") 
           + " " + LanguageManager.getText(server.getLanguage(), STATS_TEAM_ANALYSIS_CANCEL_MESSAGE_ID)).queue();
@@ -98,10 +99,10 @@ public class TeamSelectorDataHandler {
     }
 
     Message messageLoading = messageReceivedEvent.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "loadingSummoner")).complete();
-    Summoner summoner;
+    SavedSummoner summoner;
     try {
       summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);
-      
+
     }catch(APIResponseException e) {
       if(e.getReason() == APIHTTPErrorReason.ERROR_404) {
         messageLoading.editMessage(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisSummonerNotFound") 
@@ -113,18 +114,18 @@ public class TeamSelectorDataHandler {
       defineAccountSelectionWaiter();
       return;
     }
-    
+
     if(isSummonerAlreadySelected(summoner, region)) {
       messageLoading.editMessage(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisAlreadySelectedAccount")).queue();
       defineAccountSelectionWaiter();
       return;
     }
-    
+
     defineRoleSelectionWaiter(region, summoner, messageLoading);
   }
-  
-  private void defineRoleSelectionWaiter(ZoePlatform platform, Summoner summoner, Message messageLoading) {
-    
+
+  private void defineRoleSelectionWaiter(ZoePlatform platform, SavedSummoner summoner, Message messageLoading) {
+
     SelectionDialog.Builder selectRoleBuilder = new SelectionDialog.Builder()
         .addUsers(author.getUser())
         .setEventWaiter(waiter)
@@ -134,45 +135,45 @@ public class TeamSelectorDataHandler {
         .setCanceled(getSelectionCancelAction(server.getLanguage(), accountsSelected.size()))
         .setText(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisAskRole"))
         .setTimeout(2, TimeUnit.MINUTES);
-    
+
     List<ClashPosition> rolesOrder = new ArrayList<>();
-    
+
     selectRoleBuilder.addChoices(LanguageManager.getText(server.getLanguage(), TeamUtil.getTeamPositionId(ClashPosition.FILL))
-    + " " + LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisRoleSelectionFillInfo"));
+        + " " + LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisRoleSelectionFillInfo"));
     rolesOrder.add(ClashPosition.FILL);
-    
+
     for(ClashPosition roleToSelect : ClashPosition.values()) {
       if(roleToSelect != ClashPosition.UNSELECTED && roleToSelect != ClashPosition.FILL && !isRoleAlreadySelected(roleToSelect)) {
         selectRoleBuilder.addChoices(LanguageManager.getText(server.getLanguage(), TeamUtil.getTeamPositionId(roleToSelect)));
         rolesOrder.add(roleToSelect);
       }
     }
-    
+
     selectRoleBuilder.setSelectionConsumer(roleSelectedDoneAction(rolesOrder, platform, summoner));
-    
+
     selectRoleBuilder.build().display(messageLoading);
   }
-  
-  private BiConsumer<Message, Integer> roleSelectedDoneAction(List<ClashPosition> rolesOrder, ZoePlatform platform, Summoner summoner) {
+
+  private BiConsumer<Message, Integer> roleSelectedDoneAction(List<ClashPosition> rolesOrder, ZoePlatform platform, SavedSummoner summoner) {
     return new BiConsumer<Message, Integer>() {
-      
+
       @Override
       public void accept(Message baseMessage, Integer seletedAnswerId) {
         baseMessage.getTextChannel().sendTyping().queue();
         baseMessage.clearReactions().queue();
         ClashPosition selected = rolesOrder.get(seletedAnswerId - 1);
-        
+
         String summonerName = "*" + platform.getShowableName() + "* " + summoner.getName();
-        
+
         baseMessage.getTextChannel().sendMessage(String.format(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisAccountCorrectlySelected"), summonerName,
             LanguageManager.getText(server.getLanguage(), TeamUtil.getTeamPositionId(selected)))).queue();
-        
+
         accountsSelected.add(new AccountDataWithRole(summoner, platform, selected));
         manageAccountNeededOrNot();
       }
     };
   }
-  
+
   private void manageAccountNeededOrNot() {
     if(accountsSelected.size() == 5) {
       channel.sendMessage("*" + LanguageManager.getText(server.getLanguage(), "clashAnalyzeLoadStarted") + "*").queue();
@@ -194,8 +195,8 @@ public class TeamSelectorDataHandler {
       }
     };
   }
-  
-  private boolean isSummonerAlreadySelected(Summoner summoner, ZoePlatform platform) {
+
+  private boolean isSummonerAlreadySelected(SavedSummoner summoner, ZoePlatform platform) {
     for(AccountDataWithRole toCheck : accountsSelected) {
       if(toCheck.getSummoner().getSummonerId().equals(summoner.getSummonerId()) && platform == toCheck.getPlatform()) {
         return true;
@@ -203,7 +204,7 @@ public class TeamSelectorDataHandler {
     }
     return false;
   }
-  
+
   private boolean isRoleAlreadySelected(ClashPosition positionToCheck) {
     for(AccountDataWithRole toCheck : accountsSelected) {
       if(toCheck.getPosition() == positionToCheck) {
@@ -216,5 +217,5 @@ public class TeamSelectorDataHandler {
   private void cancelSelectionOfAnAccount() {
     channel.sendMessage(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisSelectionTimeOut")).queue();
   }
-  
+
 }

@@ -14,12 +14,13 @@ import ch.kalunight.zoe.model.InfocardPlayerData;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
+import ch.kalunight.zoe.model.dto.SavedMatch;
+import ch.kalunight.zoe.model.dto.SavedMatchPlayer;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.service.infochannel.SummonerDataWorker;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.JDA;
-import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
 import no.stelar7.api.r4j.basic.constants.types.lol.GameQueueType;
 import no.stelar7.api.r4j.pojo.lol.league.MiniSeries;
 import no.stelar7.api.r4j.pojo.lol.match.v5.LOLMatch;
@@ -216,12 +217,12 @@ public class MessageBuilderRequestUtil {
     return statsGame.toString();
   }
 
-  public static String getResumeGameStats(LeagueAccount leagueAccount, String lang, LOLMatch match) {
+  public static String getResumeGameStats(LeagueAccount leagueAccount, String lang, SavedMatch match) {
     StringBuilder statsGame = new StringBuilder();
 
-    MatchParticipant participant = null;
+    SavedMatchPlayer participant = null;
     
-    for(MatchParticipant participantToCheck : match.getParticipants()) {
+    for(SavedMatchPlayer participantToCheck : match.getPlayers()) {
       if(participantToCheck.getSummonerId().equals(leagueAccount.leagueAccount_summonerId)) {
         participant = participantToCheck;
         break;
@@ -236,25 +237,25 @@ public class MessageBuilderRequestUtil {
       statsGame.append("Unknown");
     }
 
-    String gameDuration = MessageBuilderRequestUtil.getMatchTimeFromDuration(match.getGameDuration());
+    String gameDuration = MessageBuilderRequestUtil.getMatchTimeFromDuration(match.getGameDurations());
 
-    String showableResult = getParticipantMatchResult(lang, participant);
+    String showableResult = getParticipantMatchResult(lang, participant, match);
 
-    int totalcs = participant.getTotalMinionsKilled();
+    int totalcs = participant.getCreepScores();
 
     statsGame.append(" | " + participant.getKills() + "/" + participant.getDeaths() + "/" + participant.getAssists() 
     + " | " + totalcs + " " + LanguageManager.getText(lang, "creepScoreAbreviation")
-    + " | " + LanguageManager.getText(lang, "level") + " " + participant.getChampLevel()
+    + " | " + LanguageManager.getText(lang, "level") + " " + participant.getLevel()
     + " | " + gameDuration
     + " | " + showableResult);
     return statsGame.toString();
   }
 
-  private static String getParticipantMatchResult(String lang, MatchParticipant participant) {
+  private static String getParticipantMatchResult(String lang, SavedMatchPlayer participant, SavedMatch match) {
     String showableResult;
 
     try {
-      if(participant.didWin()) {
+      if(participant.didWin(match)) {
         showableResult = LanguageManager.getText(lang, "win");
       }else {
         showableResult = LanguageManager.getText(lang, "loose");

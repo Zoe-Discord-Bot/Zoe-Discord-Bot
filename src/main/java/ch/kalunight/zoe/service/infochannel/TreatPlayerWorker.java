@@ -25,6 +25,7 @@ import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Player;
 import ch.kalunight.zoe.model.dto.DTO.RankHistoryChannel;
 import ch.kalunight.zoe.model.dto.DTO.Server;
+import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.model.static_data.TFTMatchWithId;
 import ch.kalunight.zoe.repositories.CurrentGameInfoRepository;
@@ -140,7 +141,7 @@ public class TreatPlayerWorker implements Runnable {
     while(leagueAccountsIterator.hasNext()) {
       LeagueAccount leagueAccount = leagueAccountsIterator.next();
 
-      Summoner summoner;
+      SavedSummoner summoner;
       try {
         summoner = leagueAccount.getSummoner();
         if(summoner == null) {

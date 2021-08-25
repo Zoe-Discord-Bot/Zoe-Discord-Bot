@@ -1,14 +1,14 @@
 package ch.kalunight.zoe.model;
 
-import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 
 public class GameAccessDataServerSpecific {
 
   private String gameId;
-  private LeagueShard platform;
+  private ZoePlatform platform;
   private Long guildId;
 
-  public GameAccessDataServerSpecific(String gameId, LeagueShard platform, Long guildId) {
+  public GameAccessDataServerSpecific(String gameId, ZoePlatform platform, Long guildId) {
     this.gameId = gameId;
     this.platform = platform;
     this.guildId = guildId;
@@ -64,11 +64,11 @@ public class GameAccessDataServerSpecific {
     this.gameId = gameId;
   }
 
-  public LeagueShard getPlatform() {
+  public ZoePlatform getPlatform() {
     return platform;
   }
 
-  public void setPlatform(LeagueShard platform) {
+  public void setPlatform(ZoePlatform platform) {
     this.platform = platform;
   }
 

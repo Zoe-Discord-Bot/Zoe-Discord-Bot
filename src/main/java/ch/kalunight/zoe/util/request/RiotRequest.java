@@ -22,11 +22,9 @@ import ch.kalunight.zoe.service.match.MatchCollectorReciverWorker;
 import ch.kalunight.zoe.service.match.MatchReceiverWorker;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.LanguageUtil;
-import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
 import no.stelar7.api.r4j.basic.constants.types.lol.GameQueueType;
 import no.stelar7.api.r4j.basic.exceptions.APIHTTPErrorReason;
 import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
-import no.stelar7.api.r4j.impl.lol.builders.championmastery.ChampionMasteryBuilder;
 import no.stelar7.api.r4j.pojo.lol.championmastery.ChampionMastery;
 import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
 import no.stelar7.api.r4j.pojo.lol.match.v5.LOLMatch;
@@ -229,11 +227,18 @@ public class RiotRequest {
     return matchsToReturn;
   }
 
-  public static String getMasterysScore(String summonerId, int championId, LeagueShard platform) {
+  public static String getMasterysScore(String summonerId, int championId, ZoePlatform platform) {
     ChampionMastery mastery = null;
     try {
-      mastery = new ChampionMasteryBuilder().withPlatform(platform).withSummonerId(summonerId).withChampionId(championId).getChampionMastery();
+      List<ChampionMastery> allMasteries = Zoe.getRiotApi().getChampionMasteryBySummonerId(platform, summonerId);
 
+      for(ChampionMastery masteryToCheck : allMasteries) {
+        if(masteryToCheck.getChampionId() == championId) {
+          mastery = masteryToCheck;
+          break;
+        }
+      }
+      
     } catch(APIResponseException e) {
       logger.debug("Impossible to get mastery score : {}", e.getMessage());
       if(e.getReason() == APIHTTPErrorReason.ERROR_404) {

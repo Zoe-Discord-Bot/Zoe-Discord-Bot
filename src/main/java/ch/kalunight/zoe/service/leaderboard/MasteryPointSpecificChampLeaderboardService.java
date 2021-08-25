@@ -5,6 +5,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
@@ -19,7 +21,6 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
-import no.stelar7.api.r4j.impl.lol.builders.championmastery.ChampionMasteryBuilder;
 import no.stelar7.api.r4j.pojo.lol.championmastery.ChampionMastery;
 
 public class MasteryPointSpecificChampLeaderboardService extends LeaderboardBaseService {
@@ -64,7 +65,16 @@ public class MasteryPointSpecificChampLeaderboardService extends LeaderboardBase
       
       long bestAccountPoints = 0;
       for(DTO.LeagueAccount leagueAccount : leaguesAccounts) {
-        ChampionMastery mastery = new ChampionMasteryBuilder().withSummonerId(leagueAccount.leagueAccount_summonerId).withPlatform(leagueAccount.leagueAccount_server).getChampionMastery();
+        ChampionMastery mastery = null;
+        
+        List<ChampionMastery> championsMasteries = Zoe.getRiotApi().getChampionMasteryBySummonerId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
+        
+        for(ChampionMastery masteryToCheck : championsMasteries) {
+          if(masteryToCheck.getChampionId() == championId) {
+            mastery = masteryToCheck;
+            break;
+          }
+        }
         
         if(mastery == null) {
           continue;

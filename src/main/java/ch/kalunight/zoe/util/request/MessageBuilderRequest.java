@@ -25,6 +25,7 @@ import ch.kalunight.zoe.model.InfocardPlayerData;
 import ch.kalunight.zoe.model.PlayerRankedResult;
 import ch.kalunight.zoe.model.RankedChangeType;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Player;
 import ch.kalunight.zoe.model.player_data.FullTier;
@@ -616,7 +617,7 @@ public class MessageBuilderRequest {
   }
 
   public static MessageEmbed createInfoCard(List<DTO.Player> players, SpectatorGameInfo currentGameInfo,
-      LeagueShard region, DTO.Server server, JDA jda) throws SQLException {
+      ZoePlatform region, DTO.Server server, JDA jda) throws SQLException {
 
     String blueTeamTranslated = LanguageManager.getText(server.getLanguage(), BLUE_TEAM_STRING);
     String redTeamTranslated = LanguageManager.getText(server.getLanguage(), RED_TEAM_STRING);

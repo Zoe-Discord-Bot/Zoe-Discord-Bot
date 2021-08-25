@@ -12,7 +12,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.Server;
-import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import no.stelar7.api.r4j.pojo.lol.spectator.SpectatorGameInfo;
 
 public class CurrentGameInfoRepository {
@@ -198,12 +198,12 @@ public class CurrentGameInfoRepository {
   }
 
   @Nullable
-  public static DTO.CurrentGameInfo getCurrentGameWithServerAndGameId(LeagueShard platform, long gameID, Server server) throws SQLException {
+  public static DTO.CurrentGameInfo getCurrentGameWithServerAndGameId(ZoePlatform platform, long gameID, Server server) throws SQLException {
     ResultSet result = null;
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
 
-      String finalQuery = String.format(SELECT_CURRENT_GAME_INFO_WITH_SERVER_AND_GAME_ID, platform.getRealmValue(), gameID, server.serv_guildId);
+      String finalQuery = String.format(SELECT_CURRENT_GAME_INFO_WITH_SERVER_AND_GAME_ID, platform.getDbName(), gameID, server.serv_guildId);
       result = query.executeQuery(finalQuery);
       int rowCount = result.last() ? result.getRow() : 0;
       if(rowCount == 0) {

@@ -181,14 +181,14 @@ public class TreatPlayerWorker implements Runnable {
   private void forceRefreshAllRank(LeagueAccount leagueAccount, LastRank lastRank) throws SQLException {
     List<LeagueEntry> leagueEntries;
     try {
-      leagueEntries = Zoe.getRiotApi().getLoLAPI().getLeagueAPI().getLeagueEntries(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
+      leagueEntries = Zoe.getRiotApi().getLeagueEntryBySummonerId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
       
       LastRankUtil.updateLoLLastRankIfRankDifference(lastRank, leagueEntries);
     } catch(APIResponseException e) {
       logger.info("Error while refreshing rank in updateLoLLastRank. Server Id : {}", server.serv_guildId, e);
     }
     
-    List<LeagueEntry> tftLeagueEntries = Zoe.getRiotApi().getLoLAPI().getLeagueAPI().getLeagueEntries(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_tftSummonerId);
+    List<LeagueEntry> tftLeagueEntries = Zoe.getRiotApi().getTFTLeagueEntryByTFTSummonerId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_tftSummonerId);
 
     LastRankUtil.updateTFTLastRank(lastRank, tftLeagueEntries);
   }
@@ -208,7 +208,7 @@ public class TreatPlayerWorker implements Runnable {
     List<TFTMatchWithId> matchs = TFTMatchUtil.getTFTRankedMatchsSinceTheLastMessage(leagueAccount, lastRank);
 
     if(!matchs.isEmpty()) {
-      List<LeagueEntry> tftLeagueEntries = Zoe.getRiotApi().getTFTAPI().getLeagueAPI().getLeagueEntries(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_tftSummonerId);
+      List<LeagueEntry> tftLeagueEntries = Zoe.getRiotApi().getTFTLeagueEntryByTFTSummonerId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_tftSummonerId);
 
       boolean rankUpdated = LastRankUtil.updateTFTLastRank(lastRank, tftLeagueEntries);
 
@@ -231,7 +231,7 @@ public class TreatPlayerWorker implements Runnable {
 
     SpectatorGameInfo currentGame;
     try {
-      currentGame = Zoe.getRiotApi().getLoLAPI().getSpectatorAPI().getCurrentGame(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
+      currentGame = Zoe.getRiotApi().getSpectatorGameInfo(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
       if(currentGame == null) {
         accountNotInGame.add(leagueAccount);
       }else {
@@ -295,7 +295,7 @@ public class TreatPlayerWorker implements Runnable {
 
       List<LeagueEntry> leagueEntries;
       try {
-        leagueEntries = Zoe.getRiotApi().getLoLAPI().getLeagueAPI().getLeagueEntries(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
+        leagueEntries = Zoe.getRiotApi().getLeagueEntryBySummonerId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
       } catch(APIResponseException e) {
         logger.info("Error while getting leagueEntries in updateLoLLastRank.");
         return false;

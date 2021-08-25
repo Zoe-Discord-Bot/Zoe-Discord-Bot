@@ -26,6 +26,7 @@ import no.stelar7.api.r4j.pojo.lol.clash.ClashPlayer;
 import no.stelar7.api.r4j.pojo.lol.clash.ClashTournament;
 import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
 import no.stelar7.api.r4j.pojo.lol.match.v5.LOLMatch;
+import no.stelar7.api.r4j.pojo.lol.spectator.SpectatorGameInfo;
 import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class CachedRiotApi {
@@ -156,11 +157,11 @@ public class CachedRiotApi {
       return matchDB;
     }
 
-    LOLMatch match = new MatchBuilder().withPlatform(platform.getLeagueShard().toRegionShard()).withId(matchId).getMatch();
+    matchDB = new MatchBuilder().withPlatform(platform.getLeagueShard().toRegionShard()).withId(matchId).getMatch();
 
     matchCache.insertOne(matchDB);
 
-    return match;
+    return matchDB;
   }
 
   public List<String> getMatchListBySummonerId(ZoePlatform platform, String puuid){
@@ -229,6 +230,10 @@ public class CachedRiotApi {
     clashTournamentCache.insertOne(tournamentDb);
     
     return clashTournaments;
+  }
+  
+  public SpectatorGameInfo getSpectatorGameInfo(ZoePlatform platform, String summonerId) {
+    return riotApi.getLoLAPI().getSpectatorAPI().getCurrentGame(platform.getLeagueShard(), summonerId);
   }
 
 }

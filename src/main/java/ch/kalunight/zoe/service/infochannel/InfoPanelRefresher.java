@@ -36,6 +36,7 @@ import ch.kalunight.zoe.model.dto.DTO.Player;
 import ch.kalunight.zoe.model.dto.DTO.RankHistoryChannel;
 import ch.kalunight.zoe.model.dto.DTO.ServerStatus;
 import ch.kalunight.zoe.model.dto.GameInfoCardStatus;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.model.player_data.Tier;
 import ch.kalunight.zoe.repositories.ConfigRepository;
@@ -67,7 +68,6 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.requests.ErrorResponse;
-import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
 import no.stelar7.api.r4j.pojo.lol.spectator.SpectatorGameInfo;
 
 public class InfoPanelRefresher implements Runnable {
@@ -144,7 +144,7 @@ public class InfoPanelRefresher implements Runnable {
             ServerThreadsManager.getInfochannelHelperThread(leaguesAccounts.get(0).leagueAccount_server).execute(playerWorker);
           }else {
             // When there's no accounts, we go in a not really used threadpool
-            ServerThreadsManager.getInfochannelHelperThread(LeagueShard.OC1).execute(playerWorker);
+            ServerThreadsManager.getInfochannelHelperThread(ZoePlatform.OCE).execute(playerWorker);
           }
         }
 

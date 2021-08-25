@@ -126,7 +126,7 @@ public class InfoCardsWorker implements Runnable {
 
   private boolean theGameHaveToBeGenerate() {
     try {
-      SpectatorGameInfo currentGameRefreshed = Zoe.getRiotApi().getSpectatorAPI().getCurrentGame(account.leagueAccount_server, account.getSummoner().getSummonerId());
+      SpectatorGameInfo currentGameRefreshed = Zoe.getRiotApi().getSpectatorGameInfo(account.leagueAccount_server, account.getSummoner().getSummonerId());
       
       if(currentGameRefreshed != null && MatchV5Util.convertMatchV4IdToMatchV5Id(currentGameRefreshed.getGameId(), currentGameRefreshed.getPlatform()).equals(currentGameInfo.currentgame_gameid)) {
         

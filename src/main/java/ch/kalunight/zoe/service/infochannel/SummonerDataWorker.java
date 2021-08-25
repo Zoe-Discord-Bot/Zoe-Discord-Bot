@@ -9,13 +9,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.kalunight.zoe.model.InfocardPlayerData;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.NameConversion;
 import ch.kalunight.zoe.util.Ressources;
 import ch.kalunight.zoe.util.request.RiotRequest;
-import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
 import no.stelar7.api.r4j.basic.constants.types.lol.GameQueueType;
 import no.stelar7.api.r4j.pojo.lol.spectator.SpectatorParticipant;
 
@@ -27,7 +27,7 @@ public class SummonerDataWorker implements Runnable {
   
   private List<String> listIdPlayers;
 
-  private LeagueShard platform;
+  private ZoePlatform platform;
 
   private String language;
 
@@ -39,7 +39,7 @@ public class SummonerDataWorker implements Runnable {
   
   private Champion champion;
 
-  public SummonerDataWorker(SpectatorParticipant participant, List<String> listIdPlayers, LeagueShard platform, String language,
+  public SummonerDataWorker(SpectatorParticipant participant, List<String> listIdPlayers, ZoePlatform platform, String language,
       InfocardPlayerData playerData, GameQueueType gameQueueType) {
     this.listIdPlayers = listIdPlayers;
     this.platform = platform;
@@ -53,7 +53,7 @@ public class SummonerDataWorker implements Runnable {
   @Override
   public void run() {
     try {
-      logger.debug("Start loading Summoner data worker for {} {}", platform.getRealmValue(), participant.getSummonerName());
+      logger.debug("Start loading Summoner data worker for {} {}", platform.getShowableName(), participant.getSummonerName());
       String unknownChampion = LanguageManager.getText(language, "unknown");
 
       Champion champion = null;
@@ -86,10 +86,10 @@ public class SummonerDataWorker implements Runnable {
 
       playerData.setRankData(rank);
 
-      logger.debug("Start loading Winrate Summoner data worker for {} {}", platform.getRealmValue(), participant.getSummonerName());
+      logger.debug("Start loading Winrate Summoner data worker for {} {}", platform.getShowableName(), participant.getSummonerName());
       playerData.setWinRateData(RiotRequest.getMasterysScore(participant.getSummonerId(), participant.getChampionId(), platform) + " | "
           + RiotRequest.getWinrateLastMonthWithGivenChampion(participant.getSummonerId(), platform, participant.getChampionId(), language));
-      logger.debug("End loading Summoner data worker for {} {}", platform.getRealmValue(), participant.getSummonerName());
+      logger.debug("End loading Summoner data worker for {} {}", platform.getShowableName(), participant.getSummonerName());
     } catch (Exception e) {
       logger.error("Unexpected error in SummonerDataWorker !", e);
     } finally {

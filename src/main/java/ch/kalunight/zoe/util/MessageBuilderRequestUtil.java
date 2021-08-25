@@ -12,6 +12,7 @@ import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.exception.PlayerNotFoundException;
 import ch.kalunight.zoe.model.InfocardPlayerData;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
@@ -38,7 +39,7 @@ public class MessageBuilderRequestUtil {
     // Hide default public constructor
   }
 
-  public static List<DTO.LeagueAccount> getLeagueAccountsInTheGivenGame(SpectatorGameInfo currentGameInfo, LeagueShard server,
+  public static List<DTO.LeagueAccount> getLeagueAccountsInTheGivenGame(SpectatorGameInfo currentGameInfo, ZoePlatform server,
       DTO.Player player, long guildId) throws SQLException{
 
     List<DTO.LeagueAccount> lolAccountsInGame = new ArrayList<>();
@@ -68,7 +69,7 @@ public class MessageBuilderRequestUtil {
   }
 
   public static void createTeamDataMultipleSummoner(List<SpectatorParticipant> teamParticipant, List<String> listIdPlayers,
-      LeagueShard platform, String language, List<InfocardPlayerData> playersDataToWait, boolean isBlueTeam, GameQueueType gameQueueConfigId) {
+      ZoePlatform platform, String language, List<InfocardPlayerData> playersDataToWait, boolean isBlueTeam, GameQueueType gameQueueConfigId) {
 
     for(SpectatorParticipant participant : teamParticipant) {
       InfocardPlayerData playerData = new InfocardPlayerData(isBlueTeam);

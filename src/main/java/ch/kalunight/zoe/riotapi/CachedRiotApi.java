@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.conversions.Bson;
@@ -70,7 +71,7 @@ public class CachedRiotApi {
 
   public CachedRiotApi(R4J r4j, String connectString, String dbName) {
     this.riotApi = r4j;
-    CodecRegistry pojoCodecRegistry = org.bson.codecs.configuration.CodecRegistries.fromRegistries(MongoClientSettings.getDefaultCodecRegistry(), org.bson.codecs.configuration.CodecRegistries.fromProviders(PojoCodecProvider.builder().automatic(true).build()));
+    CodecRegistry pojoCodecRegistry = CodecRegistries.fromRegistries(MongoClientSettings.getDefaultCodecRegistry(), org.bson.codecs.configuration.CodecRegistries.fromProviders(PojoCodecProvider.builder().automatic(true).build()));
     client = new MongoClient(new MongoClientURI(connectString));
     
     Iterator<String> iterator = client.listDatabaseNames().iterator();
@@ -106,6 +107,12 @@ public class CachedRiotApi {
     if(!allCollections.contains(SUMMONER_V4)) {
       cacheDatabase.createCollection(SUMMONER_V4);
       summonerCache = cacheDatabase.getCollection(SUMMONER_V4, SavedSummoner.class);
+      IndexOptions options = new IndexOptions();
+      options.name("summonerIndexConstraint");
+      options.unique(true);
+
+      Bson bson = Projections.include("platform", "summonerId");
+      summonerCache.createIndex(bson, options);
     }
 
     tftSummonerCache = cacheDatabase.getCollection(TFT_SUMMONER_V1, SavedSummoner.class);

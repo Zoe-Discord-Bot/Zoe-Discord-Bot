@@ -117,7 +117,7 @@ public class RegisterCommandRunnable {
       }else {
         PlayerRepository.createPlayer(server.serv_id, guild.getIdLong(), user.getIdLong(), false);
         DTO.Player player = PlayerRepository.getPlayer(server.serv_guildId, user.getIdLong());
-        LeagueAccountRepository.createLeagueAccount(player.player_id, summoner, tftSummoner, region.getShowableName());
+        LeagueAccountRepository.createLeagueAccount(player.player_id, summoner, tftSummoner, region);
 
         LeagueAccount leagueAccount = 
             LeagueAccountRepository.getLeagueAccountWithSummonerId(server.serv_guildId, summoner.getSummonerId(), region);

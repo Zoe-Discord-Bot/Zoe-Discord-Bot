@@ -104,6 +104,7 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import no.stelar7.api.r4j.basic.APICredentials;
+import no.stelar7.api.r4j.basic.cache.CacheProvider;
 import no.stelar7.api.r4j.basic.calling.DataCall;
 import no.stelar7.api.r4j.impl.R4J;
 
@@ -384,6 +385,7 @@ public class Zoe {
     
     //DataCall.setGlobalTimeout(1);
     DataCall.setCredentials(creds);
+    DataCall.setCacheProvider(null);
     
     riotApi = new CachedRiotApi(baseRiotApi, "mongodb://localhost:27017", "zoe");
   }

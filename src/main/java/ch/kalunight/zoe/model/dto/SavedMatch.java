@@ -16,6 +16,8 @@ public class SavedMatch implements Serializable {
 
   private static final long serialVersionUID = -3423117740284389063L;
 
+  private String platform;
+  
   private String gameId;
   
   private List<SavedMatchPlayer> players;
@@ -33,7 +35,8 @@ public class SavedMatch implements Serializable {
 
   private boolean blueSideHasWin;
   
-  public SavedMatch(LOLMatch match, String gameId) {
+  public SavedMatch(LOLMatch match, String gameId, ZoePlatform platform) {
+    this.platform = platform.getDbName();
     this.gameId = gameId;
     queueId = match.getQueueId();
     gameVersion = match.getGameVersion();
@@ -107,6 +110,10 @@ public class SavedMatch implements Serializable {
     }
 
     throw new PlayerNotFoundException("Impossible to give a winner in the game since the player is not in the game");
+  }
+  
+  public ZoePlatform getZoePlatform() {
+    return ZoePlatform.getZoePlatformByName(platform);
   }
   
   public String getGameId() {

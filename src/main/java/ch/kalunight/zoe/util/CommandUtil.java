@@ -14,6 +14,7 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeSlashCommand;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.Permission;
@@ -30,7 +31,6 @@ import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import no.stelar7.api.r4j.basic.constants.api.regions.LeagueShard;
 
 public class CommandUtil {
 
@@ -52,8 +52,8 @@ public class CommandUtil {
     OptionData regionOption = new OptionData(OptionType.STRING, ZoeSlashCommand.REGION_OPTION_ID, "The region of the account");
     regionOption.setRequired(required);
     
-    for(LeagueShard platform : LeagueShard.getDefaultPlatforms()) {
-      regionOption.addChoice(platform.getRealmValue().toUpperCase(), platform.getRealmValue().toUpperCase());
+    for(ZoePlatform platform : ZoePlatform.values()) {
+      regionOption.addChoice(platform.getShowableName(), platform.getShowableName());
     }
 
     return regionOption;

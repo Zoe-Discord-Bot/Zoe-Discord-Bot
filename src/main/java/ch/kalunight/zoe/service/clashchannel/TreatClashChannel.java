@@ -26,6 +26,8 @@ import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.model.dto.DTO.ClashChannel;
 import ch.kalunight.zoe.model.dto.DTO.Server;
+import ch.kalunight.zoe.model.dto.SavedClashTournament;
+import ch.kalunight.zoe.model.dto.SavedClashTournamentPhase;
 import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.repositories.ClashChannelRepository;
@@ -44,8 +46,6 @@ import net.dv8tion.jda.api.requests.ErrorResponse;
 import no.stelar7.api.r4j.pojo.lol.clash.ClashPlayer;
 import no.stelar7.api.r4j.pojo.lol.clash.ClashPosition;
 import no.stelar7.api.r4j.pojo.lol.clash.ClashRole;
-import no.stelar7.api.r4j.pojo.lol.clash.ClashTournament;
-import no.stelar7.api.r4j.pojo.lol.clash.ClashTournamentPhase;
 
 public class TreatClashChannel implements Runnable {
 
@@ -57,7 +57,7 @@ public class TreatClashChannel implements Runnable {
 
   private static final Logger logger = LoggerFactory.getLogger(TreatClashChannel.class);
 
-  private static final Comparator<ClashTournament> clashTournamentComparator = new ClashTournamentComparator();
+  private static final Comparator<SavedClashTournament> clashTournamentComparator = new ClashTournamentComparator();
 
   private DTO.Server server;
 
@@ -222,7 +222,7 @@ public class TreatClashChannel implements Runnable {
     }
 
     if(firstClashTeam.getTournament().getSchedule().size() == 1) {
-      ClashTournamentPhase phase = firstClashTeam.getTournament().getSchedule().get(0);
+      SavedClashTournamentPhase phase = firstClashTeam.getTournament().getSchedule().get(0);
       messageBuilder.append(String.format(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentRegistered"), formatedSummonerName,
           tournamentName, getFormatedDateFromPhase(phase), clashChannelDB.clashChannel_timezone.getID()) + "\n\n");
     }else {
@@ -305,7 +305,7 @@ public class TreatClashChannel implements Runnable {
 
     messageBuilder.append(LanguageManager.getText(server.getLanguage(), "clashChannelLeagueAccountNotInGame") + "\n\n");
 
-    List<ClashTournament> nextTournaments = Zoe.getRiotApi().getTournaments(clashMessageManager.getSelectedPlatform());
+    List<SavedClashTournament> nextTournaments = Zoe.getRiotApi().getTournaments(clashMessageManager.getSelectedPlatform());
 
     if(nextTournaments == null || nextTournaments.isEmpty()) {
       messageBuilder.append(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentNotAvailable") + "\n\n");
@@ -316,8 +316,8 @@ public class TreatClashChannel implements Runnable {
 
       nextTournaments.sort(clashTournamentComparator);
 
-      for(ClashTournament clashTournament : nextTournaments) {
-        List<ClashTournamentPhase> phases = clashTournament.getSchedule();
+      for(SavedClashTournament clashTournament : nextTournaments) {
+        List<SavedClashTournamentPhase> phases = clashTournament.getSchedule();
 
         if(phases.size() == 1) {
           addClashTournamentOnePhase(messageBuilder, tournamentBasicName, clashTournament, phases);
@@ -333,7 +333,7 @@ public class TreatClashChannel implements Runnable {
   }
 
   private void addClashTournamentMultplePhase(StringBuilder messageBuilder, String tournamentBasicName,
-      ClashTournament clashTournament, List<ClashTournamentPhase> phases) {
+      SavedClashTournament clashTournament, List<SavedClashTournamentPhase> phases) {
     String tournamentName = LanguageManager.getText(server.getLanguage(), clashTournament.getNameKey());
 
     if(tournamentName.startsWith("Translation error")) {
@@ -343,7 +343,7 @@ public class TreatClashChannel implements Runnable {
     messageBuilder.append(String.format(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentMultiplePhaseTitle"), tournamentName) + "\n");
 
     int phaseNumber = 0;
-    for(ClashTournamentPhase phase : phases) {
+    for(SavedClashTournamentPhase phase : phases) {
       phaseNumber++;
       String currentPhase = String.format(LanguageManager.getText(server.getLanguage(), "phaseNumber"), phaseNumber);
       messageBuilder.append(String.format(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentPhaseElement"),
@@ -355,8 +355,8 @@ public class TreatClashChannel implements Runnable {
   }
 
   private void addClashTournamentOnePhase(StringBuilder messageBuilder, String tournamentBasicName,
-      ClashTournament clashTournament, List<ClashTournamentPhase> phases) {
-    ClashTournamentPhase phase = phases.get(0);
+      SavedClashTournament clashTournament, List<SavedClashTournamentPhase> phases) {
+    SavedClashTournamentPhase phase = phases.get(0);
 
     String dayNumber = TeamUtil.parseDayId(server.getLanguage(), clashTournament.getNameKeySecondary());
 
@@ -374,7 +374,7 @@ public class TreatClashChannel implements Runnable {
         formatedDate, clashChannelDB.clashChannel_timezone.getID()) + "\n");
   }
 
-  private String getFormatedDateFromPhase(ClashTournamentPhase phase) {
+  private String getFormatedDateFromPhase(SavedClashTournamentPhase phase) {
     ZonedDateTime dateTimeRegistrationToShow = phase.getRegistrationTimeAsDate().withZoneSameInstant(ZoneId.of(clashChannelDB.clashChannel_timezone.getID()));
     ZonedDateTime dateTimeStartToShow = phase.getStartTimeAsDate().withZoneSameInstant(ZoneId.of(clashChannelDB.clashChannel_timezone.getID()));
 

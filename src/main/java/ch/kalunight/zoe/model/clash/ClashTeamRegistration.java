@@ -1,22 +1,22 @@
 package ch.kalunight.zoe.model.clash;
 
+import ch.kalunight.zoe.model.dto.SavedClashTournament;
 import no.stelar7.api.r4j.pojo.lol.clash.ClashTeam;
-import no.stelar7.api.r4j.pojo.lol.clash.ClashTournament;
 
 public class ClashTeamRegistration {
-  private ClashTournament tournament;
+  private SavedClashTournament tournament;
   private ClashTeam team;
 
-  public ClashTeamRegistration(ClashTournament tournament, ClashTeam team) {
+  public ClashTeamRegistration(SavedClashTournament tournament, ClashTeam team) {
     this.tournament = tournament;
     this.team = team;
   }
 
-  public ClashTournament getTournament() {
+  public SavedClashTournament getTournament() {
     return tournament;
   }
 
-  public void setTournament(ClashTournament tournament) {
+  public void setTournament(SavedClashTournament tournament) {
     this.tournament = tournament;
   }
 

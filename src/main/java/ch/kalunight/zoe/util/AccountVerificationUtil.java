@@ -80,7 +80,7 @@ public class AccountVerificationUtil {
       player = PlayerRepository.getPlayer(server.serv_guildId, member.getIdLong());
     }
 
-    LeagueAccountRepository.createLeagueAccount(player.player_id, summoner, tftSummoner, region.getDbName());
+    LeagueAccountRepository.createLeagueAccount(player.player_id, summoner, tftSummoner, region);
     DTO.LeagueAccount leagueAccount = LeagueAccountRepository.getLeagueAccountWithSummonerId(server.serv_guildId, summoner.getSummonerId(), region);
 
     CreatePlayerCommandRunnable.updateLastRank(leagueAccount);

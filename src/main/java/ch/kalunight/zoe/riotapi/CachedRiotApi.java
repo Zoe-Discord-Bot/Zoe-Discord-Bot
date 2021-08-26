@@ -136,7 +136,7 @@ public class CachedRiotApi {
   public SavedSummoner getSummonerByName(ZoePlatform platform, String summonerName) {
     Summoner summoner = riotApi.getLoLAPI().getSummonerAPI().getSummonerByName(platform.getLeagueShard(), summonerName);
 
-    SavedSummoner savedSummoner = new SavedSummoner(summoner);
+    SavedSummoner savedSummoner = new SavedSummoner(summoner, platform);
     
     summonerCache.insertOne(savedSummoner);
 
@@ -144,9 +144,8 @@ public class CachedRiotApi {
   }
 
   public SavedSummoner getSummonerBySummonerId(ZoePlatform platform, String summonerId) {
-    Bson matchWanted = Projections.computed("id", summonerId);
 
-    SavedSummoner summoner = summonerCache.find(matchWanted).first();
+    SavedSummoner summoner = summonerCache.find(getSearchBsonForSummoner(platform, summonerId)).first();
 
     if(summoner != null) {
       return summoner;
@@ -154,7 +153,7 @@ public class CachedRiotApi {
 
     Summoner summonerOriginal = riotApi.getLoLAPI().getSummonerAPI().getSummonerById(platform.getLeagueShard(), summonerId);
     
-    summoner = new SavedSummoner(summonerOriginal);
+    summoner = new SavedSummoner(summonerOriginal, platform);
     
     summonerCache.insertOne(summoner);
 
@@ -164,7 +163,7 @@ public class CachedRiotApi {
   public SavedSummoner getTFTSummonerByName(ZoePlatform platform, String summonerName) {
     Summoner summoner = riotApi.getTFTAPI().getSummonerAPI().getSummonerByName(platform.getLeagueShard(), summonerName);
 
-    SavedSummoner savedSummoner = new SavedSummoner(summoner);
+    SavedSummoner savedSummoner = new SavedSummoner(summoner, platform);
     
     tftSummonerCache.insertOne(savedSummoner);
 
@@ -172,9 +171,8 @@ public class CachedRiotApi {
   }
 
   public SavedSummoner getTFTSummonerBySummonerId(ZoePlatform platform, String summonerId) {
-    Bson matchWanted = Projections.computed("id", summonerId);
 
-    SavedSummoner tftSummoner = tftSummonerCache.find(matchWanted).first();
+    SavedSummoner tftSummoner = tftSummonerCache.find(getSearchBsonForSummoner(platform, summonerId)).first();
 
     if(tftSummoner != null) {
       return tftSummoner;
@@ -182,7 +180,7 @@ public class CachedRiotApi {
 
     Summoner tftSummonerOriginal = riotApi.getTFTAPI().getSummonerAPI().getSummonerById(platform.getLeagueShard(), summonerId);
 
-    tftSummoner = new SavedSummoner(tftSummonerOriginal);
+    tftSummoner = new SavedSummoner(tftSummonerOriginal, platform);
     
     tftSummonerCache.insertOne(tftSummoner);
 
@@ -335,6 +333,10 @@ public class CachedRiotApi {
 
   public TFTMatch getTFTMatch(ZoePlatform platform, String matchId) {
     return riotApi.getTFTAPI().getMatchAPI().getMatch(platform.getLeagueShard().toRegionShard(), matchId);
+  }
+  
+  private Bson getSearchBsonForSummoner(ZoePlatform platform, String summonerId) {
+    return Projections.fields(Projections.computed("platform", platform.getDbName()), Projections.computed("summonerId", summonerId));
   }
 
 }

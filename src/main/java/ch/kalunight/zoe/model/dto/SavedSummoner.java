@@ -4,13 +4,15 @@ import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class SavedSummoner {
 
+  private String platform;
   private String summonerId;
   private String accountId;
   private String puuid;
   private String name;
   private int level;
   
-  public SavedSummoner(Summoner summoner) {
+  public SavedSummoner(Summoner summoner, ZoePlatform platform) {
+    this.platform = platform.getDbName();
     this.summonerId = summoner.getSummonerId();
     this.accountId = summoner.getAccountId();
     this.puuid = summoner.getPUUID();
@@ -18,6 +20,10 @@ public class SavedSummoner {
     this.level = summoner.getSummonerLevel();
   }
 
+  public ZoePlatform getPlatform() {
+    return ZoePlatform.getZoePlatformByName(platform);
+  }
+  
   public String getAccountId() {
     return accountId;
   }

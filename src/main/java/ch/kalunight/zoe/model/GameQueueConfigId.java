@@ -36,13 +36,4 @@ public enum GameQueueConfigId {
     return null;
   }
   
-  public static GameQueueConfigId getGameQueueWithQueueType(String queueType) {
-    for(GameQueueConfigId gameQueue : GameQueueConfigId.values()) {
-      if(gameQueue.getQueueType().equals(queueType)) {
-        return gameQueue;
-      }
-    }
-    return null;
-  }
-  
 }

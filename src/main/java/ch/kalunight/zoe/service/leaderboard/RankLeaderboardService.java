@@ -67,7 +67,7 @@ public class RankLeaderboardService extends LeaderboardBaseService {
       dataName = LanguageManager.getText(server.getLanguage(), "leaderboardRankTitle");
     }else {
       dataName = String.format(LanguageManager.getText(server.getLanguage(), "leaderboardRankSpecificQueueTitle"), LanguageManager.getText(server.getLanguage(), 
-          GameQueueConfigId.getGameQueueWithQueueType(queueSelected.getGameQueue().getApiName()).getNameId()));
+          GameQueueConfigId.getGameQueueIdWithId(queueSelected.getGameQueue().getValues()[0]).getNameId()));
     }
 
     EmbedBuilder builder = buildBaseLeaderboardList(playerTitle, playersName, dataName, dataList, server);

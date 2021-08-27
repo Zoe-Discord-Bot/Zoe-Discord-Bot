@@ -35,6 +35,7 @@ import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.ClashUtil;
 import ch.kalunight.zoe.util.MessageManagerUtil;
 import ch.kalunight.zoe.util.Ressources;
+import ch.kalunight.zoe.util.SavedClashTournamentPhaseUtil;
 import ch.kalunight.zoe.util.TeamUtil;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
@@ -375,8 +376,8 @@ public class TreatClashChannel implements Runnable {
   }
 
   private String getFormatedDateFromPhase(SavedClashTournamentPhase phase) {
-    ZonedDateTime dateTimeRegistrationToShow = phase.getRegistrationTimeAsDate().withZoneSameInstant(ZoneId.of(clashChannelDB.clashChannel_timezone.getID()));
-    ZonedDateTime dateTimeStartToShow = phase.getStartTimeAsDate().withZoneSameInstant(ZoneId.of(clashChannelDB.clashChannel_timezone.getID()));
+    ZonedDateTime dateTimeRegistrationToShow = SavedClashTournamentPhaseUtil.convertTimestampToZone(phase.getRegistrationTime()).withZoneSameInstant(ZoneId.of(clashChannelDB.clashChannel_timezone.getID()));
+    ZonedDateTime dateTimeStartToShow = SavedClashTournamentPhaseUtil.convertTimestampToZone(phase.getStartTime()).withZoneSameInstant(ZoneId.of(clashChannelDB.clashChannel_timezone.getID()));
 
     return CLASH_TOURNAMENT_DATE_TIME_PATTERN.format(dateTimeRegistrationToShow) + "-" + CLASH_TOURNAMENT_TIME_ONLY_PATTERN.format(dateTimeStartToShow);
   }

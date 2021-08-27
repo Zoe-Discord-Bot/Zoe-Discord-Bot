@@ -24,7 +24,8 @@ public class ClashUtil {
 
       SavedClashTournament tournamentToCheck = Zoe.getRiotApi().getTournamentById(platform, team.getTournamentId());
 
-      if(teamRegistration == null || teamRegistration.getTournament().getSchedule().get(0).getStartTimeAsDate().isAfter(tournamentToCheck.getSchedule().get(0).getStartTimeAsDate())) {
+      if(teamRegistration == null || SavedClashTournamentPhaseUtil.convertTimestampToZone(teamRegistration.getTournament().getSchedule().get(0).getStartTime())
+          .isAfter(SavedClashTournamentPhaseUtil.convertTimestampToZone(tournamentToCheck.getSchedule().get(0).getStartTime()))) {
         teamRegistration = new ClashTeamRegistration(tournamentToCheck, team);
       }
 

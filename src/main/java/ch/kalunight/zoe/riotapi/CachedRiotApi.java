@@ -145,7 +145,7 @@ public class CachedRiotApi {
       options.name("championMasteryIndexConstraint");
       options.unique(true);
 
-      Bson bson = Projections.include("playerId", "championId");
+      Bson bson = Projections.include("summonerId", "platform", "championId");
       championsMasteryCache.createIndex(bson, options);
     }
 
@@ -158,7 +158,7 @@ public class CachedRiotApi {
       options.name("clashTournamentIndexConstraint");
       options.unique(true);
 
-      Bson bson = Projections.include("platform");
+      Bson bson = Projections.include("platform", "tournamentId");
       clashTournamentCache.createIndex(bson, options);
     }
   }
@@ -185,7 +185,7 @@ public class CachedRiotApi {
 
     summoner = new SavedSummoner(summonerOriginal, platform);
 
-    summonerCache.replaceOne(getSearchBsonForSummoner(platform, summonerId), summoner);
+    summonerCache.insertOne(summoner);
 
     return summoner;
   }
@@ -276,7 +276,7 @@ public class CachedRiotApi {
 
   public List<SavedSimpleMastery> getChampionMasteryBySummonerId(ZoePlatform platform, String summonerId) {
 
-    Bson matchWanted = Projections.fields(Projections.computed("playerId", summonerId), Projections.excludeId());
+    Bson matchWanted = Projections.fields(Projections.computed("summonerId", summonerId), Projections.computed("platform", platform.getShowableName()));
 
     List<SavedSimpleMastery> championMastery = new ArrayList<>();
 
@@ -286,14 +286,14 @@ public class CachedRiotApi {
       championMastery.add(cursor.next());
     }
 
-    if(championMastery.isEmpty()) {
+    if(!championMastery.isEmpty()) {
       return championMastery;
     }
 
     List<ChampionMastery> championMasteryOriginal = new ChampionMasteryBuilder().withPlatform(platform.getLeagueShard()).withSummonerId(summonerId).getChampionMasteries();
 
     for(ChampionMastery masteryOrignial : championMasteryOriginal) {
-      championMastery.add(new SavedSimpleMastery(masteryOrignial));
+      championMastery.add(new SavedSimpleMastery(masteryOrignial, summonerId, platform));
     }
 
     championsMasteryCache.insertMany(championMastery);
@@ -311,7 +311,7 @@ public class CachedRiotApi {
 
   public List<SavedClashTournament> getTournaments(ZoePlatform selectedPlatform) {
 
-    Bson tournamentWanted = Projections.fields(Projections.computed("serverName", selectedPlatform.getShowableName()), Projections.excludeId());
+    Bson tournamentWanted = Projections.fields(Projections.computed("server", selectedPlatform.getShowableName()));
 
     Iterator<SavedClashTournament> iterator = clashTournamentCache.find(tournamentWanted).iterator();
 
@@ -321,7 +321,7 @@ public class CachedRiotApi {
       tournamentsToReturn.add(iterator.next());
     }
 
-    if(tournamentsToReturn.isEmpty()) {
+    if(!tournamentsToReturn.isEmpty()) {
       return tournamentsToReturn;
     }
 
@@ -330,7 +330,7 @@ public class CachedRiotApi {
     for(ClashTournament tournamentToRegister : clashTournaments) {
       SavedClashTournament tournamentDb = new SavedClashTournament(tournamentToRegister, selectedPlatform);
 
-      clashTournamentCache.replaceOne(tournamentWanted, tournamentDb);
+      clashTournamentCache.insertOne(tournamentDb);
       
       tournamentsToReturn.add(tournamentDb);
     }
@@ -357,7 +357,7 @@ public class CachedRiotApi {
     while(iterator.hasNext()) {
       SavedClashTournament tournamentToCheck = iterator.next();
 
-      if(tournamentToCheck.getId() == tournamentId) {
+      if(tournamentToCheck.getTournamentId() == tournamentId) {
         tournamentToReturn = tournamentToCheck;
         break;
       }
@@ -374,7 +374,7 @@ public class CachedRiotApi {
 
       clashTournamentCache.replaceOne(tournamentWanted, tournamentDb);
 
-      if(tournamentDb.getId() == tournamentId) {
+      if(tournamentDb.getTournamentId() == tournamentId) {
         tournamentToReturn = tournamentDb;
       }
     }

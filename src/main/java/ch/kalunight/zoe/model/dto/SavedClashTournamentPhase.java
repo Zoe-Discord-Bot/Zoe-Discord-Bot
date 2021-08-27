@@ -1,18 +1,17 @@
 package ch.kalunight.zoe.model.dto;
 
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
 import java.util.Objects;
 
 import no.stelar7.api.r4j.pojo.lol.clash.ClashTournamentPhase;
 
 public class SavedClashTournamentPhase {
 
-  private int id;
-  private long registrationTime;
-  private long startTime;
-  private boolean cancelled;
+  protected int id;
+  protected long registrationTime;
+  protected long startTime;
+  protected boolean cancelled;
+  
+  public SavedClashTournamentPhase() {}
   
   public SavedClashTournamentPhase(ClashTournamentPhase phase) {
     id = phase.getId();
@@ -29,20 +28,28 @@ public class SavedClashTournamentPhase {
     return registrationTime;
   }
 
-  public ZonedDateTime getRegistrationTimeAsDate() {
-    return ZonedDateTime.ofInstant(Instant.ofEpochMilli(this.registrationTime), ZoneOffset.UTC);
-  }
-
   public long getStartTime() {
     return startTime;
   }
 
-  public ZonedDateTime getStartTimeAsDate() {
-    return ZonedDateTime.ofInstant(Instant.ofEpochMilli(this.startTime), ZoneOffset.UTC);
-  }
-
   public boolean isCancelled() {
     return cancelled;
+  }
+
+  public void setId(int id) {
+    this.id = id;
+  }
+
+  public void setRegistrationTime(long registrationTime) {
+    this.registrationTime = registrationTime;
+  }
+
+  public void setStartTime(long startTime) {
+    this.startTime = startTime;
+  }
+
+  public void setCancelled(boolean cancelled) {
+    this.cancelled = cancelled;
   }
 
   @Override

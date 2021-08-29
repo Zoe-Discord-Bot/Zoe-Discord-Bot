@@ -47,7 +47,7 @@ public class LastRankUtil {
     LeagueEntry tftLeagueEntry = null;
 
     for(LeagueEntry checkLeagueEntry : tftLeagueEntries) {
-      if(checkLeagueEntry.getQueueType().getApiName().equals(GameQueueConfigId.RANKED_TFT.getQueueType())) {
+      if(GameQueueConfigId.RANKED_TFT.equals(GameQueueConfigId.getGameQueueIdWithQueueType(checkLeagueEntry.getQueueType()))) {
         tftLeagueEntry = checkLeagueEntry;
       }
     }
@@ -62,14 +62,14 @@ public class LastRankUtil {
 
     List<GameQueueType> updatedRank = new ArrayList<>();
     for(LeagueEntry checkLeagueEntry : leagueEntries) {
-      if(checkLeagueEntry.getQueueType().getApiName().equals(GameQueueConfigId.SOLOQ.getQueueType())) {
+      if(GameQueueConfigId.getGameQueueIdWithQueueType(checkLeagueEntry.getQueueType()).equals(GameQueueConfigId.SOLOQ)) {
         if(lastRank.getLastRankSoloq() == null) {
           updateSoloQRankWithoutOldData(lastRank, checkLeagueEntry);
         }else {
           updateSoloQRank(lastRank, checkLeagueEntry);
         }
         updatedRank.add(GameQueueType.RANKED_SOLO_5X5);
-      }else if(checkLeagueEntry.getQueueType().getApiName().equals(GameQueueConfigId.FLEX.getQueueType())) {
+      }else if(GameQueueConfigId.getGameQueueIdWithQueueType(checkLeagueEntry.getQueueType()).equals(GameQueueConfigId.FLEX)) {
         if(lastRank.getLastRankFlex() == null) {
           updateFlexRankWithoutOldData(lastRank, checkLeagueEntry);
         }else {
@@ -89,7 +89,7 @@ public class LastRankUtil {
     List<Integer> updatedRank = new ArrayList<>();
     for(LeagueEntry checkLeagueEntry : leagueEntries) {
       FullTier newRank = new FullTier(checkLeagueEntry);
-      if(checkLeagueEntry.getQueueType().getApiName().equals(GameQueueConfigId.SOLOQ.getQueueType())) {
+      if(GameQueueConfigId.getGameQueueIdWithQueueType(checkLeagueEntry.getQueueType()).equals(GameQueueConfigId.SOLOQ)) {
         if(lastRank.getLastRankSoloq() == null) {
           updateSoloQRankWithoutOldData(lastRank, checkLeagueEntry);
         }else {
@@ -99,7 +99,7 @@ public class LastRankUtil {
           }
         }
         updatedRank.add(GameQueueConfigId.SOLOQ.getId());
-      }else if(checkLeagueEntry.getQueueType().getApiName().equals(GameQueueConfigId.FLEX.getQueueType())) {
+      }else if(GameQueueConfigId.getGameQueueIdWithQueueType(checkLeagueEntry.getQueueType()).equals(GameQueueConfigId.FLEX)) {
         if(lastRank.getLastRankFlex() == null) {
           updateFlexRankWithoutOldData(lastRank, checkLeagueEntry);
         }else {

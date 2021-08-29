@@ -55,7 +55,7 @@ public class RankLeaderboardService extends LeaderboardBaseService {
       FullTier fullTier = playerRank.getFullTier();
       if(queueSelected == null) {
         dataList.add(Ressources.getTierEmote().get(fullTier.getTier()).getUsableEmote() + " " + fullTier.toString(server.getLanguage()) 
-        + " (" + LanguageManager.getText(server.getLanguage(), GameQueueConfigId.getGameQueueWithQueueType(playerRank.getQueue().getApiName()).getNameId()) + ")");
+        + " (" + LanguageManager.getText(server.getLanguage(), GameQueueConfigId.getGameQueueIdWithQueueType(playerRank.getQueue()).getNameId()) + ")");
       }else {
         dataList.add(Ressources.getTierEmote().get(fullTier.getTier()).getUsableEmote() + " " + fullTier.toString(server.getLanguage()));
       }
@@ -67,7 +67,7 @@ public class RankLeaderboardService extends LeaderboardBaseService {
       dataName = LanguageManager.getText(server.getLanguage(), "leaderboardRankTitle");
     }else {
       dataName = String.format(LanguageManager.getText(server.getLanguage(), "leaderboardRankSpecificQueueTitle"), LanguageManager.getText(server.getLanguage(), 
-          GameQueueConfigId.getGameQueueIdWithId(queueSelected.getGameQueue().getValues()[0]).getNameId()));
+          queueSelected.getGameQueueId().getNameId()));
     }
 
     EmbedBuilder builder = buildBaseLeaderboardList(playerTitle, playersName, dataName, dataList, server);
@@ -80,9 +80,9 @@ public class RankLeaderboardService extends LeaderboardBaseService {
       leaderboardMessageTitle = LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveRankAllTitle");
     }else {
       builder.setTitle(String.format(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveRankSpecificTitle"), 
-          LanguageManager.getText(server.getLanguage(), GameQueueConfigId.getGameQueueWithQueueType(queueSelected.getGameQueue().getApiName()).getNameId())));
+          LanguageManager.getText(server.getLanguage(), queueSelected.getGameQueueId().getNameId())));
       leaderboardMessageTitle = String.format(LanguageManager.getText(server.getLanguage(), "leaderboardObjectiveRankSpecificTitle"), 
-          LanguageManager.getText(server.getLanguage(), GameQueueConfigId.getGameQueueWithQueueType(queueSelected.getGameQueue().getApiName()).getNameId()));
+          LanguageManager.getText(server.getLanguage(), queueSelected.getGameQueueId().getNameId()));
     }
     
     message.editMessage(leaderboardMessageTitle).setEmbeds(builder.build()).queue();
@@ -121,7 +121,7 @@ public class RankLeaderboardService extends LeaderboardBaseService {
         GameQueueType queueOfRankValue = null;
         if(queueSelected != null) {
           for(LeagueEntry leagueEntry : leaguesEntries) {
-            if(leagueEntry.getQueueType().equals(queueSelected.getGameQueue())) {
+            if(GameQueueConfigId.getGameQueueIdWithQueueType(leagueEntry.getQueueType()).equals(queueSelected.getGameQueueId())) {
               try {
                 fullTierRankValue = new FullTier(leagueEntry);
                 rankValue = fullTierRankValue.value();

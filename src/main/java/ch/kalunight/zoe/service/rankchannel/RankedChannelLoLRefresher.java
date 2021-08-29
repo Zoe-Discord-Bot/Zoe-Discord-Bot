@@ -14,7 +14,6 @@ import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Player;
 import ch.kalunight.zoe.model.dto.DTO.RankHistoryChannel;
 import ch.kalunight.zoe.model.dto.DTO.Server;
-import ch.kalunight.zoe.util.MatchV5Util;
 import ch.kalunight.zoe.util.request.MessageBuilderRequest;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -38,7 +37,7 @@ public class RankedChannelLoLRefresher extends RankedChannelBaseRefresher {
   }
 
   private TreatMultiplePlayerResponse manageMultipleAccountsInGame(RankedChangeType change) {
-    GameAccessDataServerSpecific gameAccessDataServer = new GameAccessDataServerSpecific(MatchV5Util.convertMatchV4IdToMatchV5Id(gameOfTheChange.getGameId(), leagueAccount.leagueAccount_server),
+    GameAccessDataServerSpecific gameAccessDataServer = new GameAccessDataServerSpecific(gameOfTheChange.getGameId(),
         leagueAccount.leagueAccount_server, server.serv_guildId);
     List<LeagueAccount> participantsFromTheServer = matchsToTreat.get(gameAccessDataServer);
 

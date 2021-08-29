@@ -1,14 +1,15 @@
 package ch.kalunight.zoe.model;
 
 import ch.kalunight.zoe.model.dto.ZoePlatform;
+import ch.kalunight.zoe.util.MatchV5Util;
 
 public class GameAccessDataServerSpecific {
 
-  private String gameId;
+  private Long gameId;
   private ZoePlatform platform;
   private Long guildId;
 
-  public GameAccessDataServerSpecific(String gameId, ZoePlatform platform, Long guildId) {
+  public GameAccessDataServerSpecific(Long gameId, ZoePlatform platform, Long guildId) {
     this.gameId = gameId;
     this.platform = platform;
     this.guildId = guildId;
@@ -57,10 +58,10 @@ public class GameAccessDataServerSpecific {
   }
 
   public String getGameId() {
-    return gameId;
+    return MatchV5Util.convertMatchV4IdToMatchV5Id(gameId, platform);
   }
 
-  public void setGameId(String gameId) {
+  public void setGameId(Long gameId) {
     this.gameId = gameId;
   }
 

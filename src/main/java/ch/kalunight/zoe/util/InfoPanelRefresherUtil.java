@@ -28,9 +28,16 @@ public class InfoPanelRefresherUtil {
       SpectatorGameInfo currentGameInfo, String language)  {
     Preconditions.checkNotNull(account);
     
-    String gameStatus = LanguageManager.getText(language, 
-        NameConversion.convertGameQueueIdToString(currentGameInfo.getGameQueueConfig())) 
-        + " " + LanguageManager.getText(language, "withTheAccount") + " **" + account.getSummoner().getName() + "**";
+    String gameStatus;
+    if(currentGameInfo.getGameQueueConfig() != null) {
+      gameStatus = LanguageManager.getText(language, 
+          NameConversion.convertGameQueueIdToString(currentGameInfo.getGameQueueConfig())) 
+          + " " + LanguageManager.getText(language, "withTheAccount") + " **" + account.getSummoner().getName() + "**";
+    }else {
+      gameStatus = LanguageManager.getText(language, 
+          NameConversion.convertGameTypeToString(currentGameInfo.getGameType())) 
+          + " " + LanguageManager.getText(language, "withTheAccount") + " **" + account.getSummoner().getName() + "**";
+    }
 
     double minutesOfGames = 0.0;
 
@@ -59,8 +66,13 @@ public class InfoPanelRefresherUtil {
       stringBuilder.append("-" + LanguageManager.getText(language, "account") 
       + " **" + currentGamePerLeagueAccount.getKey().getSummoner().getName() + "** : ");
 
-      stringBuilder.append(LanguageManager.getText(language,
-          NameConversion.convertGameQueueIdToString(currentGamePerLeagueAccount.getValue().getGameQueueConfig())));
+      if(currentGamePerLeagueAccount.getValue().getGameQueueConfig() != null) {
+        stringBuilder.append(LanguageManager.getText(language,
+            NameConversion.convertGameQueueIdToString(currentGamePerLeagueAccount.getValue().getGameQueueConfig())));
+      }else {
+        stringBuilder.append(LanguageManager.getText(language,
+            NameConversion.convertGameTypeToString(currentGamePerLeagueAccount.getValue().getGameType())));
+      }
 
       double minutesOfGames = 0.0;
 

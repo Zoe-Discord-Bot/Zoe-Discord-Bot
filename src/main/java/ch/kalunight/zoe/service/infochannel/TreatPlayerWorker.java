@@ -189,7 +189,7 @@ public class TreatPlayerWorker implements Runnable {
       logger.info("Error while refreshing rank in updateLoLLastRank. Server Id : {}", server.serv_guildId, e);
     }
     
-    List<LeagueEntry> tftLeagueEntries = Zoe.getRiotApi().getTFTLeagueEntryByTFTSummonerId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_tftSummonerId);
+    List<LeagueEntry> tftLeagueEntries = Zoe.getRiotApi().getTFTLeagueEntryConvertedByTFTSummonerId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_tftSummonerId);
 
     LastRankUtil.updateTFTLastRank(lastRank, tftLeagueEntries);
   }
@@ -209,7 +209,7 @@ public class TreatPlayerWorker implements Runnable {
     List<TFTMatchWithId> matchs = TFTMatchUtil.getTFTRankedMatchsSinceTheLastMessage(leagueAccount, lastRank);
 
     if(!matchs.isEmpty()) {
-      List<LeagueEntry> tftLeagueEntries = Zoe.getRiotApi().getTFTLeagueEntryByTFTSummonerId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_tftSummonerId);
+      List<LeagueEntry> tftLeagueEntries = Zoe.getRiotApi().getTFTLeagueEntryConvertedByTFTSummonerId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_tftSummonerId);
 
       boolean rankUpdated = LastRankUtil.updateTFTLastRank(lastRank, tftLeagueEntries);
 

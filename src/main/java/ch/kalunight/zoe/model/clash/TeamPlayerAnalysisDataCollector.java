@@ -25,15 +25,15 @@ import ch.kalunight.zoe.model.player_data.Tier;
 import ch.kalunight.zoe.service.analysis.ChampionRole;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.TeamUtil;
-import ch.kalunight.zoe.util.LoLQueueIdUtil;
 import ch.kalunight.zoe.util.request.RiotRequest;
+import no.stelar7.api.r4j.basic.constants.types.lol.GameQueueType;
 import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
 import no.stelar7.api.r4j.pojo.lol.clash.ClashPosition;
 import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
 
 public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<TeamPlayerAnalysisDataCollector>{
 
-  private static final List<Integer> selectedQueuesId = Collections.synchronizedList(new ArrayList<>());
+  private static final List<GameQueueType> selectedQueuesId = Collections.synchronizedList(new ArrayList<>());
 
   private static final Logger logger = LoggerFactory.getLogger(TeamPlayerAnalysisDataCollector.class);
 
@@ -68,11 +68,11 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
   private AtomicInteger nbrMatch = new AtomicInteger();
 
   static {
-    selectedQueuesId.add(LoLQueueIdUtil.NORMAL_DRAFT_QUEUE_ID);
-    selectedQueuesId.add(LoLQueueIdUtil.RANKED_SOLO_QUEUE_ID);
-    selectedQueuesId.add(LoLQueueIdUtil.NORMAL_BLIND_QUEUE_ID);
-    selectedQueuesId.add(LoLQueueIdUtil.RANKED_FLEX_QUEUE_ID);
-    selectedQueuesId.add(LoLQueueIdUtil.CLASH_GAME_QUEUE_ID);
+    selectedQueuesId.add(GameQueueType.NORMAL_5X5_DRAFT);
+    selectedQueuesId.add(GameQueueType.NORMAL_5V5_BLIND_PICK);
+    selectedQueuesId.add(GameQueueType.RANKED_SOLO_5X5);
+    selectedQueuesId.add(GameQueueType.RANKED_FLEX_SR);
+    selectedQueuesId.add(GameQueueType.CLASH);
   }
 
   public TeamPlayerAnalysisDataCollector(String summonerId, ZoePlatform platform, ClashPosition position) {
@@ -383,7 +383,7 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
       return null;
     }
     
-    if(heighestEntry.getQueueType().equals(GameQueueConfigId.SOLOQ.getQueueType())) {
+    if(GameQueueConfigId.getGameQueueIdWithQueueType(heighestEntry.getQueueType()).equals(GameQueueConfigId.SOLOQ)) {
       return LanguageManager.getText(lang, GameQueueConfigId.SOLOQ.getNameId());
     }else {
       return LanguageManager.getText(lang, GameQueueConfigId.FLEX.getNameId());

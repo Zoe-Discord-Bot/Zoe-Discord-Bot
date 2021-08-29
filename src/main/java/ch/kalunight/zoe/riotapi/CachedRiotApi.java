@@ -25,6 +25,8 @@ import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
 import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.model.dto.ZoePlatform;
 import no.stelar7.api.r4j.basic.constants.types.lol.GameQueueType;
+import no.stelar7.api.r4j.basic.exceptions.APIHTTPErrorReason;
+import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
 import no.stelar7.api.r4j.impl.R4J;
 import no.stelar7.api.r4j.impl.lol.builders.championmastery.ChampionMasteryBuilder;
 import no.stelar7.api.r4j.impl.lol.builders.league.LeagueBuilder;
@@ -40,6 +42,7 @@ import no.stelar7.api.r4j.pojo.lol.match.v5.LOLMatch;
 import no.stelar7.api.r4j.pojo.lol.spectator.SpectatorGameInfo;
 import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 import no.stelar7.api.r4j.pojo.tft.TFTMatch;
+import no.stelar7.api.r4j.pojo.tft.league.TFTLeagueEntry;
 
 public class CachedRiotApi {
 
@@ -106,7 +109,13 @@ public class CachedRiotApi {
       options.name("matchIndexConstraint");
       options.unique(true);
 
-      Bson bson = Projections.include("platform", "gameId");
+      Bson bson = Projections.include("zoePlatform", "gameId");
+      matchCache.createIndex(bson, options);
+      
+      options = new IndexOptions();
+      options.name("matchChampionIdQueueIndex");
+      
+      bson = Projections.include("players.championId", "queueId");
       matchCache.createIndex(bson, options);
     }
 
@@ -166,10 +175,14 @@ public class CachedRiotApi {
   public SavedSummoner getSummonerByName(ZoePlatform platform, String summonerName) {
     Summoner summoner = riotApi.getLoLAPI().getSummonerAPI().getSummonerByName(platform.getLeagueShard(), summonerName);
 
+    if(summoner == null) {
+      throw new APIResponseException(APIHTTPErrorReason.ERROR_404, "Not found");
+    }
+    
     SavedSummoner savedSummoner = new SavedSummoner(summoner, platform);
-
-    summonerCache.replaceOne(getSearchBsonForSummoner(platform, savedSummoner.getSummonerId()), savedSummoner);
-
+    
+    insertOrReplaceSummoner(savedSummoner, getSearchBsonForSummoner(platform, savedSummoner.getSummonerId()));
+    
     return savedSummoner;
   }
 
@@ -183,19 +196,38 @@ public class CachedRiotApi {
 
     Summoner summonerOriginal = riotApi.getLoLAPI().getSummonerAPI().getSummonerById(platform.getLeagueShard(), summonerId);
 
+    if(summonerOriginal == null) {
+      throw new APIResponseException(APIHTTPErrorReason.ERROR_404, "Not found");
+    }
+    
     summoner = new SavedSummoner(summonerOriginal, platform);
 
-    summonerCache.insertOne(summoner);
+    insertOrReplaceSummoner(summoner, getSearchBsonForSummoner(platform, summoner.getSummonerId()));
 
     return summoner;
+  }
+  
+  private void insertOrReplaceSummoner(SavedSummoner savedSummoner, Bson searchBsonForSummoner) {
+    SavedSummoner summonerToReplace = summonerCache.find(searchBsonForSummoner).first();
+    
+    if(summonerToReplace == null) {
+      summonerCache.insertOne(savedSummoner);
+    }else {
+      summonerCache.replaceOne(searchBsonForSummoner, savedSummoner);
+    }
+    
   }
 
   public SavedSummoner getTFTSummonerByName(ZoePlatform platform, String summonerName) {
     Summoner summoner = riotApi.getTFTAPI().getSummonerAPI().getSummonerByName(platform.getLeagueShard(), summonerName);
 
+    if(summoner == null) {
+      throw new APIResponseException(APIHTTPErrorReason.ERROR_404, "Not found");
+    }
+    
     SavedSummoner savedSummoner = new SavedSummoner(summoner, platform);
 
-    tftSummonerCache.insertOne(savedSummoner);
+    insertOrReplaceTFTSummoner(savedSummoner, getSearchBsonForSummoner(platform, summoner.getSummonerId()));
 
     return savedSummoner;
   }
@@ -210,11 +242,25 @@ public class CachedRiotApi {
 
     Summoner tftSummonerOriginal = riotApi.getTFTAPI().getSummonerAPI().getSummonerById(platform.getLeagueShard(), summonerId);
 
+    if(tftSummonerOriginal == null) {
+      throw new APIResponseException(APIHTTPErrorReason.ERROR_404, "Not found");
+    }
+    
     tftSummoner = new SavedSummoner(tftSummonerOriginal, platform);
 
-    tftSummonerCache.insertOne(tftSummoner);
+    insertOrReplaceTFTSummoner(tftSummoner, getSearchBsonForSummoner(platform, tftSummoner.getSummonerId()));
 
     return tftSummoner;
+  }
+  
+  private void insertOrReplaceTFTSummoner(SavedSummoner savedSummoner, Bson searchBsonForSummoner) {
+    SavedSummoner summonerToReplace = tftSummonerCache.find(searchBsonForSummoner).first();
+    
+    if(summonerToReplace == null) {
+      tftSummonerCache.insertOne(savedSummoner);
+    }else {
+      tftSummonerCache.replaceOne(searchBsonForSummoner, savedSummoner);
+    }
   }
 
   public SavedMatch getMatchById(ZoePlatform platform, String matchId) {
@@ -229,11 +275,25 @@ public class CachedRiotApi {
 
     LOLMatch matchOriginal = new MatchBuilder().withPlatform(platform.getLeagueShard().toRegionShard()).withId(matchId).getMatch();
 
+    if(matchOriginal == null) {
+      throw new APIResponseException(APIHTTPErrorReason.ERROR_404, "Not found");
+    }
+    
     matchDB = new SavedMatch(matchOriginal, matchId, platform);
-
-    matchCache.insertOne(matchDB);
+    
+    insertOrReplaceMatch(matchDB, matchWanted);
 
     return matchDB;
+  }
+
+  private void insertOrReplaceMatch(SavedMatch newMatch, Bson matchToChange) {
+    SavedMatch matchToReplace = matchCache.find(matchToChange).first();
+    
+    if(matchToReplace == null) {
+      matchCache.insertOne(newMatch);
+    }else {
+      matchCache.replaceOne(matchToChange, newMatch);
+    }
   }
 
   public List<String> getMatchListBySummonerId(ZoePlatform platform, String puuid){
@@ -245,7 +305,7 @@ public class CachedRiotApi {
     return builder.get();
   }
 
-  public List<String> getMatchListBySummonerId(ZoePlatform platform, String puuid, int count){
+  public List<String> getMatchListByPuuid(ZoePlatform platform, String puuid, int count){
     MatchListBuilder builder = new MatchListBuilder();
 
     builder.withPlatform(platform.getLeagueShard());
@@ -255,32 +315,38 @@ public class CachedRiotApi {
     return builder.get();
   }
 
-  public List<String> getMatchListBySummonerId(ZoePlatform platform, String puuid, GameQueueType queueWanted, int beginIndex) {
+  public List<String> getMatchListByPuuid(ZoePlatform platform, String puuid, GameQueueType queueWanted, int beginIndex) {
     MatchListBuilder builder = new MatchListBuilder();
 
-    builder.withPlatform(platform.getLeagueShard());
-    builder.withPuuid(puuid);
-    builder.withQueue(queueWanted);
-    builder.withBeginIndex(beginIndex);
-
-    return builder.get();
+    return builder.withPlatform(platform.getLeagueShard()).withPuuid(puuid).withQueue(queueWanted).withBeginIndex(beginIndex).withCount(100).get();
   }
 
   public List<LeagueEntry> getLeagueEntryBySummonerId(ZoePlatform platform, String summonerId) {
     return new LeagueBuilder().withPlatform(platform.getLeagueShard()).withSummonerId(summonerId).getLeagueEntries();
   }
 
-  public List<LeagueEntry> getTFTLeagueEntryByTFTSummonerId(ZoePlatform platform, String summonerId) {
+  public List<TFTLeagueEntry> getTFTLeagueEntryByTFTSummonerId(ZoePlatform platform, String summonerId) {
     return riotApi.getTFTAPI().getLeagueAPI().getLeagueEntries(platform.getLeagueShard(), summonerId);
+  }
+  
+  public List<LeagueEntry> getTFTLeagueEntryConvertedByTFTSummonerId(ZoePlatform platform, String summonerId) {
+    List<TFTLeagueEntry> leagueEntryToConvert = getTFTLeagueEntryByTFTSummonerId(platform, summonerId);
+    
+    List<LeagueEntry> leagueEntryConverted = new ArrayList<>();
+    for(TFTLeagueEntry entry : leagueEntryToConvert) {
+      leagueEntryConverted.add((LeagueEntry) entry);
+    }
+    
+    return leagueEntryConverted;
   }
 
   public List<SavedSimpleMastery> getChampionMasteryBySummonerId(ZoePlatform platform, String summonerId) {
 
-    Bson matchWanted = Projections.fields(Projections.computed("summonerId", summonerId), Projections.computed("platform", platform.getShowableName()));
+    Bson masteryWanted = Projections.fields(Projections.computed("summonerId", summonerId), Projections.computed("platform", platform.getShowableName()));
 
     List<SavedSimpleMastery> championMastery = new ArrayList<>();
 
-    MongoCursor<SavedSimpleMastery> cursor = championsMasteryCache.find(matchWanted).iterator();
+    MongoCursor<SavedSimpleMastery> cursor = championsMasteryCache.find(masteryWanted).iterator();
 
     while(cursor.hasNext()) {
       championMastery.add(cursor.next());
@@ -291,14 +357,41 @@ public class CachedRiotApi {
     }
 
     List<ChampionMastery> championMasteryOriginal = new ChampionMasteryBuilder().withPlatform(platform.getLeagueShard()).withSummonerId(summonerId).getChampionMasteries();
-
+    
     for(ChampionMastery masteryOrignial : championMasteryOriginal) {
       championMastery.add(new SavedSimpleMastery(masteryOrignial, summonerId, platform));
     }
-
-    championsMasteryCache.insertMany(championMastery);
+    
+    insertOrReplaceChampionMastery(championMastery, masteryWanted);
 
     return championMastery;
+  }
+
+  private void insertOrReplaceChampionMastery(List<SavedSimpleMastery> championMasteryToUpdate, Bson masteryWanted) {
+    List<SavedSimpleMastery> championMasteryCache = new ArrayList<>();
+
+    MongoCursor<SavedSimpleMastery> cursor = championsMasteryCache.find(masteryWanted).iterator();
+
+    while(cursor.hasNext()) {
+      championMasteryCache.add(cursor.next());
+    }
+    
+    for(SavedSimpleMastery championMastery : championMasteryToUpdate) {
+      boolean championFound = false;
+      for(SavedSimpleMastery masteryToCheck : championMasteryCache) {
+        if(championMastery.getChampionId() == masteryToCheck.getChampionId()) {
+          championFound = true;
+          break;
+        }
+      }
+      
+      if(championFound) {
+        championsMasteryCache.replaceOne(Projections.fields(Projections.computed("summonerId", championMastery.getSummonerId()),
+            Projections.computed("platform", championMastery.getPlatform().getShowableName()), Projections.computed("championId", championMastery.getChampionId())), championMastery);
+      }else {
+        championsMasteryCache.insertOne(championMastery);
+      }
+    }
   }
 
   public String getThirdPartyCode(ZoePlatform platform, String summonerId) {

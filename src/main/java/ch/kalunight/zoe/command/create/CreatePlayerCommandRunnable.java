@@ -164,7 +164,7 @@ public class CreatePlayerCommandRunnable {
     }
 
     try {
-      List<LeagueEntry> tftLeagueEntries = Zoe.getRiotApi().getTFTLeagueEntryByTFTSummonerId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_tftSummonerId);
+      List<LeagueEntry> tftLeagueEntries = Zoe.getRiotApi().getTFTLeagueEntryConvertedByTFTSummonerId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_tftSummonerId);
       LastRankUtil.updateTFTLastRank(lastRank, tftLeagueEntries);
     } catch(APIResponseException e) {
       Zoe.logger.info("Fail to refresh TFT last rank while creating a leagueAccount, will be done at the next game.");

@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 
-import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.leaderboard.LeaderboardExtraDataHandler;
@@ -104,7 +103,7 @@ public enum Objective {
         case SPECIFIC_QUEUE_RANK:
           QueueSelected queue = gson.fromJson(leaderboard.lead_data, QueueSelected.class);
           typeText = String.format(LanguageManager.getText(language, "leaderboardSpecifiedQueueRank"),
-              LanguageManager.getText(language, GameQueueConfigId.getGameQueueWithQueueType(queue.getGameQueue().getApiName()).getNameId()));
+              LanguageManager.getText(language, queue.getGameQueueId().getNameId()));
           break;
         default:
           typeText = LanguageManager.getText(language, objective.getTranslationId());

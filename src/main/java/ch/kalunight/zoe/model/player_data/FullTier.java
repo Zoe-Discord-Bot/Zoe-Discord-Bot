@@ -11,7 +11,7 @@ public class FullTier implements Comparable<FullTier> {
   private int leaguePoints;
 
   public FullTier(LeagueEntry leagueEntry) {
-    this(Tier.valueOf(leagueEntry.getTier()), Rank.valueOf(leagueEntry.getRank()), leagueEntry.getLeaguePoints());
+    this(Tier.valueOf(((LeagueEntry) leagueEntry).getTier()), Rank.valueOf(leagueEntry.getRank()), leagueEntry.getLeaguePoints());
   }
 
   public FullTier(Tier tier, Rank rank, int leaguePoints) {

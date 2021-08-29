@@ -129,8 +129,7 @@ public class InfoCardsWorker implements Runnable {
     try {
       SpectatorGameInfo currentGameRefreshed = Zoe.getRiotApi().getSpectatorGameInfo(account.leagueAccount_server, account.getSummoner().getSummonerId());
       
-      if(currentGameRefreshed != null && MatchV5Util.convertMatchV4IdToMatchV5Id(currentGameRefreshed.getGameId(),
-          ZoePlatform.getZoePlatformByLeagueShard(currentGameRefreshed.getPlatform())).equals(currentGameInfo.currentgame_gameid)) {
+      if(currentGameRefreshed != null && currentGameRefreshed.getGameId() == currentGameInfo.currentgame_gameid) {
         
         if(ServerChecker.getServerRefreshService().getInfocardsToRefresh().size() <= ZOE_INFOCARDS_QUEUE_OVERLOAD 
             || currentGameRefreshed.getGameLength() < GAME_LENGTH_AFTER_WE_NOT_GENERATE_IN_SEC) {

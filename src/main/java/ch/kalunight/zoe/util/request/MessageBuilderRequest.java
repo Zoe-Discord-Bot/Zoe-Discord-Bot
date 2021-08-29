@@ -622,7 +622,7 @@ public class MessageBuilderRequest {
     String redTeamTranslated = LanguageManager.getText(server.getLanguage(), RED_TEAM_STRING);
     String masteriesWRThisMonthTranslated = LanguageManager.getText(server.getLanguage(), MASTERIES_WR_THIS_MONTH_STRING);
     String rankTitleTranslated;
-    if(currentGameInfo.getGameQueueConfig().getApiName().equals(GameQueueConfigId.FLEX.getNameId())) {
+    if(GameQueueConfigId.FLEX.equals(GameQueueConfigId.getGameQueueIdWithQueueType(currentGameInfo.getGameQueueConfig()))) {
       rankTitleTranslated = LanguageManager.getText(server.getLanguage(), "flexTitleRespectSize");
     } else {
       rankTitleTranslated = LanguageManager.getText(server.getLanguage(), SOLO_Q_RANK_STRING);
@@ -773,7 +773,7 @@ public class MessageBuilderRequest {
     List<SavedMatch> matchs = new ArrayList<>();
 
     try {
-      List<String> matchsIds = Zoe.getRiotApi().getMatchListBySummonerId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_puuid, 3);
+      List<String> matchsIds = Zoe.getRiotApi().getMatchListByPuuid(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_puuid, 3);
 
       for(String matchId : matchsIds) {
         matchs.add(Zoe.getRiotApi().getMatchById(leagueAccount.leagueAccount_server, matchId));
@@ -870,7 +870,7 @@ public class MessageBuilderRequest {
 
     List<LeagueEntry> tftRankPosition = null;
     try {
-      tftRankPosition = Zoe.getRiotApi().getTFTLeagueEntryByTFTSummonerId(leagueAccount.leagueAccount_server,
+      tftRankPosition = Zoe.getRiotApi().getTFTLeagueEntryConvertedByTFTSummonerId(leagueAccount.leagueAccount_server,
           leagueAccount.leagueAccount_tftSummonerId);
     }catch (APIResponseException e) {
       if(e.getReason() == APIHTTPErrorReason.ERROR_429) {
@@ -899,7 +899,7 @@ public class MessageBuilderRequest {
         }
         FullTier fullTier = new FullTier(tier, rank, leaguePosition.getLeaguePoints());
 
-        if(leaguePosition.getQueueType().getApiName().equals(GameQueueConfigId.RANKED_TFT.getQueueType())) {
+        if(leaguePosition.getQueueType().equals(GameQueueConfigId.RANKED_TFT.getGameQueueType())) {
           tftRank = String.format(LanguageManager.getText(language, "statsProfileQueueTFT"), 
               Ressources.getTierEmote().get(tier).getUsableEmote() + " " + fullTier.toString(language));
         }

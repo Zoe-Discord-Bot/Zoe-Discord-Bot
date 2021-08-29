@@ -5,7 +5,7 @@ import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,7 +90,7 @@ public class RiotRequest {
   }
 
   public static String getWinrateLastMonthWithGivenChampion(String summonerId, ZoePlatform region,
-      int championKey, String language) {
+      int championKey, List<GameQueueType> queuesList, String language) {
 
     SavedSummoner summoner;
     try {
@@ -104,7 +104,7 @@ public class RiotRequest {
     try {
       List<Integer> championsToFilter = new ArrayList<>();
       championsToFilter.add(championKey);
-      matchList = getMatchHistoryOfLastMonth(region, summoner, new ArrayList<>(), championsToFilter);
+      matchList = getMatchHistoryOfLastMonth(region, summoner, queuesList, championsToFilter);
     } catch(APIResponseException e) {
       logger.info("Can't acces to history : {}", e.getMessage());
       return LanguageManager.getText(language, "unknown");
@@ -167,10 +167,10 @@ public class RiotRequest {
   }
 
   public static List<SavedMatch> getMatchHistoryOfLastMonth(ZoePlatform region, SavedSummoner summoner,
-      List<Integer> queuesList, List<Integer> championsToFilter) {
+      List<GameQueueType> queuesList, List<Integer> championsToFilter) {
     final List<SavedMatch> matchsToReturn = new ArrayList<>();
 
-    for(Integer queueId : queuesList) {
+    for(GameQueueType queueId : queuesList) {
       LocalDateTime beginTimeToHit = LocalDateTime.now().minusMonths(1);
       Timestamp timeStampToHit = Timestamp.valueOf(beginTimeToHit);
 
@@ -180,19 +180,13 @@ public class RiotRequest {
 
       int startIndex = -100;
 
-      Optional<GameQueueType> queueType = GameQueueType.getFromId(queueId);
-
-      if(!queueType.isPresent()) {
-        continue;
-      }
-
       do {
         startIndex += 100;
         List<String> matchList = null;
 
         try {
-          matchList = Zoe.getRiotApi().getMatchListBySummonerId(region, summoner.getPuuid(), queueType.get(), startIndex);
-          if(matchList != null) {
+          matchList = Zoe.getRiotApi().getMatchListByPuuid(region, summoner.getPuuid(), queueId, startIndex);
+          if(!matchList.isEmpty()) {
             List<MatchKeyString> buildersToWait = new ArrayList<>();
             for(String matchToCheck : matchList) {
               MatchKeyString matchKey = new MatchKeyString(region, matchToCheck);

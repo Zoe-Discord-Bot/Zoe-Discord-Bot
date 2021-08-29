@@ -278,7 +278,7 @@ public class DTO {
     public final long currentgame_id;
     public SpectatorGameInfo currentgame_currentgame;
     public final ZoePlatform currentgame_server;
-    public final String currentgame_gameid;
+    public final Long currentgame_gameid;
 
     public CurrentGameInfo(ResultSet baseData) throws SQLException {
       currentgame_id = baseData.getLong("currentgame_id");
@@ -294,8 +294,9 @@ public class DTO {
         currentgame_server = null;
       }
 
-      if(baseData.getString("currentgame_gameid") != null) {
-        currentgame_gameid = baseData.getString("currentgame_gameid");
+      Long currentgame_gameid_temp = baseData.getLong("currentgame_gameid");
+      if(currentgame_gameid_temp != 0) {
+        currentgame_gameid = currentgame_gameid_temp;
       }else {
         currentgame_gameid = null;
       }

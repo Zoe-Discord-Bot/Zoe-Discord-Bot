@@ -1,6 +1,7 @@
 package ch.kalunight.zoe.util;
 
 import no.stelar7.api.r4j.basic.constants.types.lol.GameQueueType;
+import no.stelar7.api.r4j.basic.constants.types.lol.GameType;
 
 public class NameConversion {
 
@@ -20,10 +21,12 @@ public class NameConversion {
       case NORMAL_5X5_DRAFT:
         return "gameType5v5DraftSR";
       case RANKED_SOLO_5X5:
+      case TEAM_BUILDER_RANKED_SOLO:
         return "gameType5v5RankSoloQSR";
       case NORMAL_5V5_BLIND_PICK:
         return "gameType5v5BlindSR";
       case RANKED_FLEX_SR:
+      case TEAM_BUILDER_DRAFT_RANKED_5X5:
         return "gameType5v5RankedFlexSR";
       case ARAM:
         return "gameTypeARAM";
@@ -43,6 +46,15 @@ public class NameConversion {
         return "gameTypeCoopVsIASR";
       case ALL_RANDOM_URF:
         return "gameTypeClassicUrf";
+      default:
+        return "gameTypeUnknown";
+    }
+  }
+  
+  public static String convertGameTypeToString(GameType gameType) {
+    switch(gameType) {
+      case CUSTOM_GAME:
+        return "gameTypeCustom";
       default:
         return "gameTypeUnknown";
     }

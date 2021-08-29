@@ -1,6 +1,8 @@
 package ch.kalunight.zoe.service.infochannel;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -63,10 +65,17 @@ public class SummonerDataWorker implements Runnable {
       }
 
       FullTier fullTier;
+      List<GameQueueType> queuesList = new ArrayList<>();
       if(gameQueueConfigId == GameQueueType.RANKED_FLEX_SR) {
         fullTier = RiotRequest.getFlexRank(participant.getSummonerId(), platform);
+        queuesList.add(GameQueueType.TEAM_BUILDER_DRAFT_RANKED_5X5);
+        queuesList.add(GameQueueType.NORMAL_5V5_BLIND_PICK);
+        queuesList.add(GameQueueType.TEAM_BUILDER_DRAFT_UNRANKED_5X5);
       }else {
         fullTier = RiotRequest.getSoloqRank(participant.getSummonerId(), platform);
+        queuesList.add(GameQueueType.TEAM_BUILDER_RANKED_SOLO);
+        queuesList.add(GameQueueType.NORMAL_5V5_BLIND_PICK);
+        queuesList.add(GameQueueType.TEAM_BUILDER_DRAFT_UNRANKED_5X5);
       }
       
       String rank;
@@ -85,10 +94,10 @@ public class SummonerDataWorker implements Runnable {
       }
 
       playerData.setRankData(rank);
-
+      
       logger.debug("Start loading Winrate Summoner data worker for {} {}", platform.getShowableName(), participant.getSummonerName());
       playerData.setWinRateData(RiotRequest.getMasterysScore(participant.getSummonerId(), participant.getChampionId(), platform) + " | "
-          + RiotRequest.getWinrateLastMonthWithGivenChampion(participant.getSummonerId(), platform, participant.getChampionId(), language));
+          + RiotRequest.getWinrateLastMonthWithGivenChampion(participant.getSummonerId(), platform, participant.getChampionId(), queuesList, language));
       logger.debug("End loading Summoner data worker for {} {}", platform.getShowableName(), participant.getSummonerName());
     } catch (Exception e) {
       logger.error("Unexpected error in SummonerDataWorker !", e);

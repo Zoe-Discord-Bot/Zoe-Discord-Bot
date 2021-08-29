@@ -13,18 +13,18 @@ public class QueueSelected {
     this.queueId = gameQueue.getId();
   }
 
-  public GameQueueType getGameQueue() {
+  public GameQueueConfigId getGameQueueId() {
     Optional<GameQueueType> queue = GameQueueType.getFromId(queueId);
     if(queue.isPresent()) {
-      return queue.get();
+      return GameQueueConfigId.getGameQueueIdWithQueueType(queue.get());
     }
     return null;
   }
   
   public String getNameId() {
-    GameQueueType gameQueue = getGameQueue();
+    GameQueueConfigId gameQueue = getGameQueueId();
     
-    return GameQueueConfigId.getGameQueueWithQueueType(gameQueue.getApiName()).getNameId();
+    return gameQueue.getNameId();
   }
   
   public int getQueueId() {

@@ -53,7 +53,7 @@
 		<dependency>
 			<groupId>com.github.stelar7</groupId>
 			<artifactId>R4J</artifactId>
-			<version>1.10.9</version>
+			<version>1.10.11</version>
 		</dependency>
 
 		<dependency>

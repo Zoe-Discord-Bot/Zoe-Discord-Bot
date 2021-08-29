@@ -91,7 +91,11 @@ public class MessageBuilderRequestUtil {
     addListOfPlayersInGivenString(title, language, jda, playersNotTwice);
     
     if(gameInfo) {
-      title.append(" : " + LanguageManager.getText(language, NameConversion.convertGameQueueIdToString(currentGameInfo.getGameQueueConfig())));
+      if(currentGameInfo.getGameQueueConfig() != null) {
+        title.append(" : " + LanguageManager.getText(language, NameConversion.convertGameQueueIdToString(currentGameInfo.getGameQueueConfig())));
+      }else {
+        title.append(" : " + LanguageManager.getText(language, NameConversion.convertGameTypeToString(currentGameInfo.getGameType())));
+      }
     }
   }
 

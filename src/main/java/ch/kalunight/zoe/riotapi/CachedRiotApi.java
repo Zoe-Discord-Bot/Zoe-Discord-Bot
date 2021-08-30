@@ -3,6 +3,7 @@ package ch.kalunight.zoe.riotapi;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
@@ -43,6 +44,7 @@ import no.stelar7.api.r4j.pojo.lol.spectator.SpectatorGameInfo;
 import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 import no.stelar7.api.r4j.pojo.tft.TFTMatch;
 import no.stelar7.api.r4j.pojo.tft.league.TFTLeagueEntry;
+import okio.Options;
 
 public class CachedRiotApi {
 
@@ -95,11 +97,13 @@ public class CachedRiotApi {
 
     List<String> allCollections = new ArrayList<>();
     Iterator<String> collectionsIterator = cacheDatabase.listCollectionNames().iterator();
-
+    
     while(collectionsIterator.hasNext()) {
       allCollections.add(collectionsIterator.next());
     }
 
+    Bson indexDateBson = Projections.fields(Projections.include("retrieveDate"));
+    
     matchCache = cacheDatabase.getCollection(MATCH_V5, SavedMatch.class);
     if(!allCollections.contains(MATCH_V5)) {
       cacheDatabase.createCollection(MATCH_V5);
@@ -111,6 +115,11 @@ public class CachedRiotApi {
 
       Bson bson = Projections.include("zoePlatform", "gameId");
       matchCache.createIndex(bson, options);
+      
+      options = new IndexOptions();
+      options.name("matchTTLIndex");
+      options.expireAfter(14l, TimeUnit.DAYS);
+      matchCache.createIndex(indexDateBson, options);
       
       options = new IndexOptions();
       options.name("matchChampionIdQueueIndex");
@@ -130,6 +139,11 @@ public class CachedRiotApi {
 
       Bson bson = Projections.include("platform", "summonerId");
       summonerCache.createIndex(bson, options);
+      
+      options = new IndexOptions();
+      options.name("summonerTTLIndex");
+      options.expireAfter(10l, TimeUnit.SECONDS);
+      summonerCache.createIndex(indexDateBson, options);
     }
 
     tftSummonerCache = cacheDatabase.getCollection(TFT_SUMMONER_V1, SavedSummoner.class);
@@ -143,6 +157,11 @@ public class CachedRiotApi {
 
       Bson bson = Projections.include("platform", "summonerId");
       summonerCache.createIndex(bson, options);
+      
+      options = new IndexOptions();
+      options.name("TFTSummonerTTLIndex");
+      options.expireAfter(1l, TimeUnit.DAYS);
+      tftSummonerCache.createIndex(indexDateBson, options);
     }
 
     championsMasteryCache = cacheDatabase.getCollection(MASTERY_V4, SavedSimpleMastery.class);
@@ -156,6 +175,11 @@ public class CachedRiotApi {
 
       Bson bson = Projections.include("summonerId", "platform", "championId");
       championsMasteryCache.createIndex(bson, options);
+      
+      options = new IndexOptions();
+      options.name("championMasteryTTLIndex");
+      options.expireAfter(1l, TimeUnit.DAYS);
+      championsMasteryCache.createIndex(indexDateBson, options);
     }
 
     clashTournamentCache = cacheDatabase.getCollection(CLASH_TOURNAMENT_V1, SavedClashTournament.class);
@@ -169,6 +193,11 @@ public class CachedRiotApi {
 
       Bson bson = Projections.include("platform", "tournamentId");
       clashTournamentCache.createIndex(bson, options);
+      
+      options = new IndexOptions();
+      options.name("clashTournamentTTLIndex");
+      options.expireAfter(6l, TimeUnit.HOURS);
+      clashTournamentCache.createIndex(indexDateBson, options);
     }
   }
 

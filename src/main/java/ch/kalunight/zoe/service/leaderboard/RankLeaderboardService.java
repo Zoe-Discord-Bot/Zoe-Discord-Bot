@@ -121,7 +121,8 @@ public class RankLeaderboardService extends LeaderboardBaseService {
         GameQueueType queueOfRankValue = null;
         if(queueSelected != null) {
           for(LeagueEntry leagueEntry : leaguesEntries) {
-            if(GameQueueConfigId.getGameQueueIdWithQueueType(leagueEntry.getQueueType()).equals(queueSelected.getGameQueueId())) {
+            if(queueSelected.getGameQueueId().equals(
+                GameQueueConfigId.getGameQueueIdWithQueueType(leagueEntry.getQueueType()))) {
               try {
                 fullTierRankValue = new FullTier(leagueEntry);
                 rankValue = fullTierRankValue.value();

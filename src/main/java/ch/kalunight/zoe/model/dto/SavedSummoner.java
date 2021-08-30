@@ -1,5 +1,9 @@
 package ch.kalunight.zoe.model.dto;
 
+import java.time.LocalDateTime;
+import java.util.Date;
+
+import ch.kalunight.zoe.util.MongodbDateUtil;
 import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class SavedSummoner {
@@ -11,6 +15,8 @@ public class SavedSummoner {
   private String name;
   private int level;
   
+  private Date retrieveDate;
+  
   public SavedSummoner() {}
   
   public SavedSummoner(Summoner summoner, ZoePlatform platform) {
@@ -20,6 +26,16 @@ public class SavedSummoner {
     this.puuid = summoner.getPUUID();
     this.name = summoner.getName();
     this.level = summoner.getSummonerLevel();
+    
+    this.retrieveDate = MongodbDateUtil.toDate(LocalDateTime.now());
+  }
+
+  public Date getRetrieveDate() {
+    return retrieveDate;
+  }
+
+  public void setRetrieveDate(Date retrieveDate) {
+    this.retrieveDate = retrieveDate;
   }
 
   public ZoePlatform getPlatform() {
@@ -69,5 +85,4 @@ public class SavedSummoner {
   public void setLevel(int level) {
     this.level = level;
   }
-  
 }

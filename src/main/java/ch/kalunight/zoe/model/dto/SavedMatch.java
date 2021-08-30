@@ -1,6 +1,7 @@
 package ch.kalunight.zoe.model.dto;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,7 +28,7 @@ public class SavedMatch implements Serializable {
   private String gameVersion;
 
   private long gameCreation;
-  
+   
   /**
    * Match duration in seconds.
    */

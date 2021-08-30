@@ -26,8 +26,8 @@ import net.dv8tion.jda.api.entities.TextChannel;
 
 public class KDALeaderboardService extends LeaderboardBaseService {
 
-  public KDALeaderboardService(long guildId, long channelId, long leaderboardId) {
-    super(guildId, channelId, leaderboardId);
+  public KDALeaderboardService(long guildId, long channelId, long leaderboardId, boolean forceRefresh) {
+    super(guildId, channelId, leaderboardId, forceRefresh);
   }
 
   @Override
@@ -93,12 +93,12 @@ public class KDALeaderboardService extends LeaderboardBaseService {
         KDAReceiver kdaReceiver;
 
         if(champ == null) {
-          kdaReceiver = RiotRequest.getKDALastMonth(leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server, null);
+          kdaReceiver = RiotRequest.getKDALastMonth(leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server, null, forceRefresh);
         }else {
           List<Integer> championId = new ArrayList<Integer>();
           championId.add(champ.getChampion().getKey());
           
-          kdaReceiver = RiotRequest.getKDALastMonth(leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server, championId);
+          kdaReceiver = RiotRequest.getKDALastMonth(leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server, championId, forceRefresh);
         }
 
         if(kdaReceiver == null) {

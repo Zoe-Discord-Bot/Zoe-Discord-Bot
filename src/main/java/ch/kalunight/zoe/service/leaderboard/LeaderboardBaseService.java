@@ -53,11 +53,14 @@ public abstract class LeaderboardBaseService implements Runnable {
   private long channelId;
 
   private long leaderboardId;
+  
+  protected boolean forceRefresh;
 
-  public LeaderboardBaseService(long guildId, long channelId, long leaderboardId) {
+  public LeaderboardBaseService(long guildId, long channelId, long leaderboardId, boolean forceRefresh) {
     this.guildId = guildId;
     this.channelId = channelId;
     this.leaderboardId = leaderboardId;
+    this.forceRefresh = forceRefresh;
   }
 
   @Override
@@ -195,14 +198,14 @@ public abstract class LeaderboardBaseService implements Runnable {
     switch(objective) {
     case AVERAGE_KDA:
     case AVERAGE_KDA_SPECIFIC_CHAMP:
-      return new KDALeaderboardService(guildId, channelId, leaderboardId);
+      return new KDALeaderboardService(guildId, channelId, leaderboardId, forceRefreshCache);
     case MASTERY_POINT:
-      return new MasteryPointLeaderboardService(guildId, channelId, leaderboardId);
+      return new MasteryPointLeaderboardService(guildId, channelId, leaderboardId, forceRefreshCache);
     case MASTERY_POINT_SPECIFIC_CHAMP:
-      return new MasteryPointSpecificChampLeaderboardService(guildId, channelId, leaderboardId);
+      return new MasteryPointSpecificChampLeaderboardService(guildId, channelId, leaderboardId, forceRefreshCache);
     case BEST_OF_ALL_RANK:
     case SPECIFIC_QUEUE_RANK:
-      return new RankLeaderboardService(guildId, channelId, leaderboardId);
+      return new RankLeaderboardService(guildId, channelId, leaderboardId, forceRefreshCache);
       /*case WINRATE:
     case WINRATE_SPECIFIC_CHAMP:
     case WINRATE_SPECIFIC_QUEUE:

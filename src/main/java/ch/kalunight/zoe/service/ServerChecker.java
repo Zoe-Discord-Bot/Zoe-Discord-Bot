@@ -137,7 +137,7 @@ public class ServerChecker extends TimerTask {
 
       ClashChannelRepository.updateClashChannelRefresh(LocalDateTime.now(), clashChannelToRefresh.clashChannel_id);
 
-      TreatClashChannel clashChannelWorker = new TreatClashChannel(server, clashChannelToRefresh);
+      TreatClashChannel clashChannelWorker = new TreatClashChannel(server, clashChannelToRefresh, false);
 
       ServerThreadsManager.getClashChannelExecutor().execute(clashChannelWorker);
     }

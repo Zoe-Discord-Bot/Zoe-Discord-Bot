@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.Paginator;
 
@@ -24,7 +25,6 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
-import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class ShowPlayerCommandRunnable {
 
@@ -34,7 +34,8 @@ public class ShowPlayerCommandRunnable {
     // hide default public command
   }
 
-  public static void executeCommand(Server server, EventWaiter waiter, Member member, TextChannel channel, Message messageToEdit, InteractionHook hook, Member mentionnedUser) throws SQLException {
+  public static void executeCommand(Server server, EventWaiter waiter, Member member, TextChannel channel,
+      Message messageToEdit, InteractionHook hook, Member mentionnedUser, boolean forceRefresh) throws SQLException {
 
     Paginator.Builder pbuilder = new Paginator.Builder()
         .setColumns(1)
@@ -65,7 +66,7 @@ public class ShowPlayerCommandRunnable {
       try {
         int accountsNmb = 0;
         for(DTO.Player player : players) {
-          accountsNmb = addPlayerToEmbed(server, member, messageToEdit, hook, pbuilder, accountsNmb, player);
+          accountsNmb = addPlayerToEmbed(server, member, messageToEdit, hook, pbuilder, accountsNmb, player, forceRefresh);
         }
 
         CommandUtil.sendMessageWithClassicOrSlashCommand(String.format(LanguageManager.getText(server.getLanguage(), "showPlayerEmbedTitle"), players.size(), accountsNmb), messageToEdit, hook);
@@ -78,7 +79,7 @@ public class ShowPlayerCommandRunnable {
       for(DTO.Player player : players) {
         if(player.player_discordId == mentionnedUser.getIdLong()) {
           try {
-            addPlayerToEmbed(server, member, messageToEdit, hook, pbuilder, 0, player);
+            addPlayerToEmbed(server, member, messageToEdit, hook, pbuilder, 0, player, forceRefresh);
             playerDetected = true;
           } catch (APIResponseException e) {
             CommandUtil.sendMessageWithClassicOrSlashCommand(RiotApiUtil.getTextHandlerRiotApiError(e, server.getLanguage()), messageToEdit, hook);
@@ -103,7 +104,7 @@ public class ShowPlayerCommandRunnable {
   }
 
   private static int addPlayerToEmbed(Server server, Member member, Message messageToEdit, InteractionHook hook,
-      Paginator.Builder pbuilder, int accountsNmb, DTO.Player player) throws SQLException {
+      Paginator.Builder pbuilder, int accountsNmb, DTO.Player player, boolean forceRefresh) throws SQLException {
     StringBuilder playerInfo = new StringBuilder();
     User user = member.getGuild().retrieveMemberById(player.player_discordId).complete().getUser();
     playerInfo.append(String.format(LanguageManager.getText(server.getLanguage(), "showPlayerName"),
@@ -116,7 +117,7 @@ public class ShowPlayerCommandRunnable {
     }
     accountsNmb += leagueAccounts.size();
     for(DTO.LeagueAccount leagueAccount : leagueAccounts) {
-      SavedSummoner summoner = Zoe.getRiotApi().getSummonerBySummonerId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
+      SavedSummoner summoner = Zoe.getRiotApi().getSummonerBySummonerId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId, forceRefresh);
       
       playerInfo.append(String.format(LanguageManager.getText(server.getLanguage(), "showPlayerAccount"),
           summoner.getName(), leagueAccount.leagueAccount_server.getShowableName(),

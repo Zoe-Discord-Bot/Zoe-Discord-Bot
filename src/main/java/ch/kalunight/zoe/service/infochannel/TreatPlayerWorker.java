@@ -50,7 +50,6 @@ import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
 import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
 import no.stelar7.api.r4j.pojo.lol.spectator.SpectatorGameInfo;
 import no.stelar7.api.r4j.pojo.lol.spectator.SpectatorParticipant;
-import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class TreatPlayerWorker implements Runnable {
 
@@ -143,7 +142,7 @@ public class TreatPlayerWorker implements Runnable {
 
       SavedSummoner summoner;
       try {
-        summoner = leagueAccount.getSummoner();
+        summoner = leagueAccount.getSummoner(forceRefreshCache);
         if(summoner == null) {
           leagueAccountsIterator.remove();
         }
@@ -220,7 +219,7 @@ public class TreatPlayerWorker implements Runnable {
         }
 
         RankedChannelTFTRefresher tftRankedChannelRefresher = new RankedChannelTFTRefresher(rankChannel,
-            lastRank.getLastRankTftSecond(), lastRank.getLastRankTft(), player, leagueAccount, server, matchs.get(0).getMatch(), jda);
+            lastRank.getLastRankTftSecond(), lastRank.getLastRankTft(), player, leagueAccount, server, matchs.get(0).getMatch(), jda, forceRefreshCache);
         ServerThreadsManager.getRankedMessageGenerator().execute(tftRankedChannelRefresher);
       }
     }
@@ -345,7 +344,7 @@ public class TreatPlayerWorker implements Runnable {
 
       RankedChannelLoLRefresher rankedRefresher = 
           new RankedChannelLoLRefresher(rankChannel, lastRank.getLastRankSoloqSecond(), lastRank.getLastRankSoloq(),
-              gameOfTheChange, player, leagueAccount, server, jda);
+              gameOfTheChange, player, leagueAccount, server, jda, forceRefreshCache);
 
       GameAccessDataServerSpecific gameAccessData = new GameAccessDataServerSpecific(currentGameDb.currentgame_gameid, currentGameDb.currentgame_server, server.serv_guildId);
       RankedChannelLoLRefresher.addMatchToTreat(gameAccessData, leagueAccount);
@@ -356,7 +355,7 @@ public class TreatPlayerWorker implements Runnable {
 
       RankedChannelLoLRefresher rankedRefresher = 
           new RankedChannelLoLRefresher(rankChannel, lastRank.getLastRankFlexSecond(), lastRank.getLastRankFlex(),
-              gameOfTheChange, player, leagueAccount, server, jda);
+              gameOfTheChange, player, leagueAccount, server, jda, forceRefreshCache);
 
       GameAccessDataServerSpecific gameAccessData = new GameAccessDataServerSpecific(currentGameDb.currentgame_gameid, currentGameDb.currentgame_server, server.serv_guildId);
       RankedChannelLoLRefresher.addMatchToTreat(gameAccessData, leagueAccount);
@@ -394,11 +393,11 @@ public class TreatPlayerWorker implements Runnable {
     }else if (accountsWithGame.size() == 1) {
       Entry<DTO.LeagueAccount, SpectatorGameInfo> entry = accountsWithGame.entrySet().iterator().next();
       infochannelMessage.append(ZoeUserRankManagementUtil.getEmotesByDiscordId(player.player_discordId) + player.retrieveUser(jda).getAsMention() + " : " 
-          + InfoPanelRefresherUtil.getCurrentGameInfoStringForOneAccount(entry.getKey(), entry.getValue(), server.getLanguage()) + "\n");
+          + InfoPanelRefresherUtil.getCurrentGameInfoStringForOneAccount(entry.getKey(), entry.getValue(), server.getLanguage(), forceRefreshCache) + "\n");
     }else {
       infochannelMessage.append(ZoeUserRankManagementUtil.getEmotesByDiscordId(player.player_discordId) + player.retrieveUser(jda).getAsMention() + " : " 
           + LanguageManager.getText(server.getLanguage(), "informationPanelMultipleAccountInGame") + "\n"
-          + InfoPanelRefresherUtil.getCurrentGameInfoStringForMultipleAccounts(accountsWithGame, server.getLanguage()));
+          + InfoPanelRefresherUtil.getCurrentGameInfoStringForMultipleAccounts(accountsWithGame, server.getLanguage(), forceRefreshCache));
     }
   }
 
@@ -423,7 +422,7 @@ public class TreatPlayerWorker implements Runnable {
     String baseText;
     if(mutlipleAccount) {
       baseText = "infoPanelRankedTextMultipleAccount";
-      accountString = leagueAccount.getSummoner().getName();
+      accountString = leagueAccount.getSummoner(forceRefreshCache).getName();
     }else {
       baseText = "infoPanelRankedTextOneAccount";
       accountString = ZoeUserRankManagementUtil.getEmotesByDiscordId(player.player_discordId) + player.retrieveUser(jda).getAsMention();
@@ -483,7 +482,7 @@ public class TreatPlayerWorker implements Runnable {
   }
 
   private void notInGameUnranked(final StringBuilder stringMessage, DTO.LeagueAccount leagueAccount) {
-    stringMessage.append("- " + leagueAccount.getSummoner().getName() + " : " 
+    stringMessage.append("- " + leagueAccount.getSummoner(forceRefreshCache).getName() + " : " 
         + LanguageManager.getText(server.getLanguage(), "unranked") + " \n");
   }
 

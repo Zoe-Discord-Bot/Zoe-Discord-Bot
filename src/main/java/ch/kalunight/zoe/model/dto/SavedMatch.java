@@ -3,9 +3,11 @@ package ch.kalunight.zoe.model.dto;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import ch.kalunight.zoe.exception.PlayerNotFoundException;
+import ch.kalunight.zoe.util.MongodbDateUtil;
 import no.stelar7.api.r4j.basic.constants.types.lol.GameQueueType;
 import no.stelar7.api.r4j.pojo.lol.match.v5.LOLMatch;
 import no.stelar7.api.r4j.pojo.lol.match.v5.MatchParticipant;
@@ -35,6 +37,8 @@ public class SavedMatch implements Serializable {
   private long gameDurations;
 
   private boolean blueSideHasWin;
+
+  private Date retrieveDate;
   
   public SavedMatch(LOLMatch match, String gameId, ZoePlatform platform) {
     this.platform = platform.getDbName();
@@ -63,6 +67,8 @@ public class SavedMatch implements Serializable {
     }else {
       blueSideHasWin = false;
     }
+    
+    this.retrieveDate = MongodbDateUtil.toDate(LocalDateTime.now());
   }
 
   private void buildPlayer(MatchParticipant participant) {
@@ -143,6 +149,14 @@ public class SavedMatch implements Serializable {
 
   public String getGameVersion() {
     return gameVersion;
+  }
+
+  public Date getRetrieveDate() {
+    return retrieveDate;
+  }
+
+  public void setRetrieveDate(Date retrieveDate) {
+    this.retrieveDate = retrieveDate;
   }
   
 }

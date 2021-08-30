@@ -15,13 +15,14 @@ public class PredictRoleCommandRunnable {
   private PredictRoleCommandRunnable() {
     // hide default constructor
   }
-  
-  public static void executeCommand(Server server, EventWaiter waiter, TextChannel channel, Member author) {
-    
-    TeamSelectorDataHandler teamDataHandler = new TeamSelectorDataHandler(waiter, server, channel, author, new TeamSelectorPredictRoleDataManager(server, channel), ServerThreadsManager.getClashChannelExecutor());
+
+  public static void executeCommand(Server server, EventWaiter waiter, TextChannel channel, Member author, boolean forceRefresh) {
+
+    TeamSelectorDataHandler teamDataHandler = new TeamSelectorDataHandler(waiter, server, channel, author, new TeamSelectorPredictRoleDataManager(server, channel, forceRefresh),
+        ServerThreadsManager.getClashChannelExecutor());
 
     channel.sendMessage(LanguageManager.getText(server.getLanguage(), "statsPredictRoleAnalysisStart")).queue();
-    
+
     teamDataHandler.askSelectionAccount();
   }
 

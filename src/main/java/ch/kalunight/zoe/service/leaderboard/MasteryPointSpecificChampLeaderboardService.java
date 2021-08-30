@@ -25,8 +25,8 @@ import net.dv8tion.jda.api.entities.TextChannel;
 
 public class MasteryPointSpecificChampLeaderboardService extends LeaderboardBaseService {
   
-  public MasteryPointSpecificChampLeaderboardService(long guildId, long channelId, long leaderboardId) {
-    super(guildId, channelId, leaderboardId);
+  public MasteryPointSpecificChampLeaderboardService(long guildId, long channelId, long leaderboardId, boolean forceRefreshCache) {
+    super(guildId, channelId, leaderboardId, forceRefreshCache);
   }
 
   @Override
@@ -67,7 +67,7 @@ public class MasteryPointSpecificChampLeaderboardService extends LeaderboardBase
       for(DTO.LeagueAccount leagueAccount : leaguesAccounts) {
         SavedSimpleMastery mastery = null;
         
-        List<SavedSimpleMastery> championsMasteries = Zoe.getRiotApi().getChampionMasteryBySummonerId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
+        List<SavedSimpleMastery> championsMasteries = Zoe.getRiotApi().getChampionMasteryBySummonerId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId, forceRefresh);
         
         for(SavedSimpleMastery masteryToCheck : championsMasteries) {
           if(masteryToCheck.getChampionId() == championId) {

@@ -1,8 +1,11 @@
 package ch.kalunight.zoe.model.dto;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
+import ch.kalunight.zoe.util.MongodbDateUtil;
 import no.stelar7.api.r4j.pojo.lol.clash.ClashTournament;
 import no.stelar7.api.r4j.pojo.lol.clash.ClashTournamentPhase;
 
@@ -18,6 +21,8 @@ public class SavedClashTournament {
   private String nameKeySecondary;
   private List<SavedClashTournamentPhase> schedule;
   
+  private Date retrieveDate;
+  
   public SavedClashTournament() {}
   
   public SavedClashTournament(ClashTournament tournament, ZoePlatform server) {
@@ -32,6 +37,8 @@ public class SavedClashTournament {
     for(ClashTournamentPhase scheduleToAdd : tournament.getSchedule()) {
       schedule.add(new SavedClashTournamentPhase(scheduleToAdd));
     }
+    
+    this.retrieveDate = MongodbDateUtil.toDate(LocalDateTime.now());
   }
 
   public int getTournamentId() {
@@ -80,6 +87,14 @@ public class SavedClashTournament {
 
   public void setSchedule(List<SavedClashTournamentPhase> schedule) {
     this.schedule = schedule;
+  }
+
+  public Date getRetrieveDate() {
+    return retrieveDate;
+  }
+
+  public void setRetrieveDate(Date retrieveDate) {
+    this.retrieveDate = retrieveDate;
   }
   
 }

@@ -57,7 +57,7 @@ public class ShowPlayerCommandSlashDefinition extends ZoeSlashCommand {
       selectedUser = event.getOption(ZoeSlashCommand.USER_OPTION_ID).getAsMember();
     }
     
-    ShowPlayerCommandRunnable.executeCommand(server, waiter, event.getMember(), event.getTextChannel(), null, event.getHook(), selectedUser);
+    ShowPlayerCommandRunnable.executeCommand(server, waiter, event.getMember(), event.getTextChannel(), null, event.getHook(), selectedUser, false);
   }
   
 }

@@ -35,7 +35,7 @@ public class PredictRoleCommandSlashDefinition extends ZoeSlashCommand {
     
     event.getHook().editOriginal(LanguageManager.getText(server.getLanguage(), "loading")).queue();
     
-    PredictRoleCommandRunnable.executeCommand(server, waiter, event.getTextChannel(), event.getMember());
+    PredictRoleCommandRunnable.executeCommand(server, waiter, event.getTextChannel(), event.getMember(), false);
   }
   
 }

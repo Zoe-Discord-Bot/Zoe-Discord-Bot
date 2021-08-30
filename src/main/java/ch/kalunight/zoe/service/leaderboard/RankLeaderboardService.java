@@ -31,8 +31,8 @@ import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
 
 public class RankLeaderboardService extends LeaderboardBaseService {
 
-  public RankLeaderboardService(long guildId, long channelId, long leaderboardId) {
-    super(guildId, channelId, leaderboardId);
+  public RankLeaderboardService(long guildId, long channelId, long leaderboardId, boolean forceRefreshCache) {
+    super(guildId, channelId, leaderboardId, forceRefreshCache);
   }
 
   @Override

@@ -517,18 +517,18 @@ public class TeamUtil {
     }
   }
 
-  public static List<TeamPlayerAnalysisDataCollector> getTeamPlayersDataWithAnalysisDoneWithClashData(ZoePlatform platform, List<ClashPlayer> teamMembers) {
-    List<TeamPlayerAnalysisDataCollector> teamPlayersData = loadAllPlayersDataWithClashData(platform, teamMembers);
+  public static List<TeamPlayerAnalysisDataCollector> getTeamPlayersDataWithAnalysisDoneWithClashData(ZoePlatform platform, List<ClashPlayer> teamMembers, boolean forceRefresh) {
+    List<TeamPlayerAnalysisDataCollector> teamPlayersData = loadAllPlayersDataWithClashData(platform, teamMembers, forceRefresh);
 
     return executeTeamAnalysis(teamPlayersData);
   }
 
   public static List<TeamPlayerAnalysisDataCollector> loadAllPlayersDataWithClashData(ZoePlatform platform,
-      List<ClashPlayer> teamMembers) {
+      List<ClashPlayer> teamMembers, boolean forceRefresh) {
     List<TeamPlayerAnalysisDataCollector> teamPlayersData = new ArrayList<>();
 
     for(ClashPlayer teamMember : teamMembers) {
-      TeamPlayerAnalysisDataCollector player = new TeamPlayerAnalysisDataCollector(teamMember.getSummonerId(), platform, teamMember.getPosition());
+      TeamPlayerAnalysisDataCollector player = new TeamPlayerAnalysisDataCollector(teamMember.getSummonerId(), platform, teamMember.getPosition(), forceRefresh);
       teamPlayersData.add(player);
       ServerThreadsManager.getDataAnalysisThread().execute(player);
     }
@@ -537,17 +537,17 @@ public class TeamUtil {
     return teamPlayersData;
   }
   
-  public static List<TeamPlayerAnalysisDataCollector> getTeamPlayersDataWithAnalysisDoneWithAccountData(List<AccountDataWithRole> teamMembers) {
-    List<TeamPlayerAnalysisDataCollector> teamPlayersData = loadAllPlayersDataWithAccountData(teamMembers);
+  public static List<TeamPlayerAnalysisDataCollector> getTeamPlayersDataWithAnalysisDoneWithAccountData(List<AccountDataWithRole> teamMembers, boolean forceRefresh) {
+    List<TeamPlayerAnalysisDataCollector> teamPlayersData = loadAllPlayersDataWithAccountData(teamMembers, forceRefresh);
 
     return executeTeamAnalysis(teamPlayersData);
   }
 
-  public static List<TeamPlayerAnalysisDataCollector> loadAllPlayersDataWithAccountData(List<AccountDataWithRole> teamMembers) {
+  public static List<TeamPlayerAnalysisDataCollector> loadAllPlayersDataWithAccountData(List<AccountDataWithRole> teamMembers, boolean forceRefresh) {
     List<TeamPlayerAnalysisDataCollector> teamPlayersData = new ArrayList<>();
 
     for(AccountDataWithRole teamMember : teamMembers) {
-      TeamPlayerAnalysisDataCollector player = new TeamPlayerAnalysisDataCollector(teamMember.getSummoner().getSummonerId(), teamMember.getPlatform(), teamMember.getPosition());
+      TeamPlayerAnalysisDataCollector player = new TeamPlayerAnalysisDataCollector(teamMember.getSummoner().getSummonerId(), teamMember.getPlatform(), teamMember.getPosition(), forceRefresh);
       teamPlayersData.add(player);
       ServerThreadsManager.getDataAnalysisThread().execute(player);
     }

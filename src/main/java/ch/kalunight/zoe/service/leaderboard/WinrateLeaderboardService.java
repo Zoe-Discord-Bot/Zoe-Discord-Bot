@@ -12,8 +12,8 @@ import net.dv8tion.jda.api.entities.TextChannel;
 
 public class WinrateLeaderboardService extends LeaderboardBaseService {
 
-  public WinrateLeaderboardService(long guildId, long channelId, long leaderboardId) {
-    super(guildId, channelId, leaderboardId);
+  public WinrateLeaderboardService(long guildId, long channelId, long leaderboardId, boolean forceRefresh) {
+    super(guildId, channelId, leaderboardId, forceRefresh);
   }
 
   @Override

@@ -26,7 +26,6 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
-import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class DeleteClashChannelCommandRunnable {
 
@@ -73,7 +72,7 @@ public class DeleteClashChannelCommandRunnable {
       SavedSummoner summoner;
       String showableAccountOwner;
       try {
-        summoner = Zoe.getRiotApi().getSummonerBySummonerId(clashChannel.clashChannel_data.getSelectedPlatform(), clashChannel.clashChannel_data.getSelectedSummonerId());
+        summoner = Zoe.getRiotApi().getSummonerBySummonerId(clashChannel.clashChannel_data.getSelectedPlatform(), clashChannel.clashChannel_data.getSelectedSummonerId(), false);
         showableAccountOwner = "*" + clashChannel.clashChannel_data.getSelectedPlatform().getShowableName() + "* " + summoner.getName();
       } catch (APIResponseException e) {
         logger.warn("Riot exception in delete clash channel command.", e);

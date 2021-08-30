@@ -39,7 +39,7 @@ public class ClashRefreshCommandRunnable {
         hook.editOriginal(message).complete();
       }
       
-      ServerThreadsManager.getClashChannelExecutor().execute(new TreatClashChannel(server, channelToRefresh));
+      ServerThreadsManager.getClashChannelExecutor().execute(new TreatClashChannel(server, channelToRefresh, true));
     }else {
       String message = LanguageManager.getText(server.getLanguage(), "clashRefreshNeedToBeSendedInClashChannel");
       

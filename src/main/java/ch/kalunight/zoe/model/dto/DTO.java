@@ -21,7 +21,6 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
 import no.stelar7.api.r4j.pojo.lol.spectator.SpectatorGameInfo;
-import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class DTO {
 
@@ -264,8 +263,8 @@ public class DTO {
       leagueAccount_fk_currentgame = null;
     }
 
-    public SavedSummoner getSummoner() {
-      return Zoe.getRiotApi().getSummonerBySummonerId(leagueAccount_server, leagueAccount_summonerId);
+    public SavedSummoner getSummoner(boolean forceRefresh) {
+      return Zoe.getRiotApi().getSummonerBySummonerId(leagueAccount_server, leagueAccount_summonerId, forceRefresh);
     }
 
     @Override

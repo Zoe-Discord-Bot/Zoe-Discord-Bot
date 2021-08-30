@@ -25,18 +25,18 @@ public class InfoPanelRefresherUtil {
   }
 
   public static String getCurrentGameInfoStringForOneAccount(DTO.LeagueAccount account,
-      SpectatorGameInfo currentGameInfo, String language)  {
+      SpectatorGameInfo currentGameInfo, String language, boolean forceRefresh)  {
     Preconditions.checkNotNull(account);
     
     String gameStatus;
     if(currentGameInfo.getGameQueueConfig() != null) {
       gameStatus = LanguageManager.getText(language, 
           NameConversion.convertGameQueueIdToString(currentGameInfo.getGameQueueConfig())) 
-          + " " + LanguageManager.getText(language, "withTheAccount") + " **" + account.getSummoner().getName() + "**";
+          + " " + LanguageManager.getText(language, "withTheAccount") + " **" + account.getSummoner(forceRefresh).getName() + "**";
     }else {
       gameStatus = LanguageManager.getText(language, 
           NameConversion.convertGameTypeToString(currentGameInfo.getGameType())) 
-          + " " + LanguageManager.getText(language, "withTheAccount") + " **" + account.getSummoner().getName() + "**";
+          + " " + LanguageManager.getText(language, "withTheAccount") + " **" + account.getSummoner(forceRefresh).getName() + "**";
     }
 
     double minutesOfGames = 0.0;
@@ -56,7 +56,7 @@ public class InfoPanelRefresherUtil {
   }
 
   public static String getCurrentGameInfoStringForMultipleAccounts(Map<DTO.LeagueAccount, 
-      SpectatorGameInfo> accountsWithCurrentGame, String language) {
+      SpectatorGameInfo> accountsWithCurrentGame, String language, boolean forceRefresh) {
     Preconditions.checkNotNull(accountsWithCurrentGame);
 
     StringBuilder stringBuilder = new StringBuilder();
@@ -64,7 +64,7 @@ public class InfoPanelRefresherUtil {
     for(Entry<LeagueAccount, SpectatorGameInfo> currentGamePerLeagueAccount : accountsWithCurrentGame.entrySet()) {
       
       stringBuilder.append("-" + LanguageManager.getText(language, "account") 
-      + " **" + currentGamePerLeagueAccount.getKey().getSummoner().getName() + "** : ");
+      + " **" + currentGamePerLeagueAccount.getKey().getSummoner(forceRefresh).getName() + "** : ");
 
       if(currentGamePerLeagueAccount.getValue().getGameQueueConfig() != null) {
         stringBuilder.append(LanguageManager.getText(language,

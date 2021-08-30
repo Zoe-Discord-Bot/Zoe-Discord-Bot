@@ -28,8 +28,10 @@ public abstract class RankedChannelBaseRefresher implements Runnable {
   
   protected JDA jda;
   
+  protected boolean forceRefresh;
+  
   public RankedChannelBaseRefresher(RankHistoryChannel rankChannel, LeagueEntry oldEntry, LeagueEntry newEntry,
-      Player player, LeagueAccount leagueAccount, Server server, JDA jda) {
+      Player player, LeagueAccount leagueAccount, Server server, JDA jda, boolean forceRefresh) {
     this.rankChannel = rankChannel;
     this.oldEntry = oldEntry;
     this.newEntry = newEntry;
@@ -37,6 +39,7 @@ public abstract class RankedChannelBaseRefresher implements Runnable {
     this.leagueAccount = leagueAccount;
     this.server = server;
     this.jda = jda;
+    this.forceRefresh = forceRefresh;
   }
   
   @Override

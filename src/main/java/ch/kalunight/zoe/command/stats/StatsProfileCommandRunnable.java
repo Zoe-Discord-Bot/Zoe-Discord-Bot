@@ -53,8 +53,6 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import no.stelar7.api.r4j.basic.exceptions.APIHTTPErrorReason;
 import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
-import no.stelar7.api.r4j.pojo.lol.championmastery.ChampionMastery;
-import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class StatsProfileCommandRunnable {
 
@@ -98,19 +96,19 @@ public class StatsProfileCommandRunnable {
   }
   
   public static void executeCommand(Server server, TextChannel sourceChannel, String args, List<User> mentionnedMembers,
-      Message toEdit, InteractionHook hook, EventWaiter waiter, Member author) throws SQLException {
+      Message toEdit, InteractionHook hook, EventWaiter waiter, Member author, boolean forceRefresh) throws SQLException {
     
     DTO.LeagueAccount leagueAccount = getLeagueAccountWithParam(args, server, sourceChannel.getJDA());
 
     if(leagueAccount != null) {
       try {
-        leagueAccount.getSummoner();
+        leagueAccount.getSummoner(forceRefresh);
       } catch(APIResponseException e) {
         CommandUtil.sendMessageWithClassicOrSlashCommand(RiotApiUtil.getTextHandlerRiotApiError(e, server.getLanguage()), toEdit, hook);
         return;
       }
 
-      generateStatsMessage(null, leagueAccount, server, toEdit, hook, sourceChannel);
+      generateStatsMessage(null, leagueAccount, server, toEdit, hook, sourceChannel, forceRefresh);
       return;
     }
 
@@ -131,7 +129,7 @@ public class StatsProfileCommandRunnable {
     
     SavedSummoner summoner;
     if(accounts.size() == 1) {
-      generateStatsMessage(player, accounts.get(0), server, toEdit, hook, sourceChannel);
+      generateStatsMessage(player, accounts.get(0), server, toEdit, hook, sourceChannel, forceRefresh);
     }else if(accounts.isEmpty()) {
       CommandUtil.sendMessageWithClassicOrSlashCommand(LanguageManager.getText(server.getLanguage(), "statsProfileNeedARegisteredAccount"), toEdit, hook);
     }else {
@@ -146,13 +144,13 @@ public class StatsProfileCommandRunnable {
 
       selectAccountBuilder
       .addUsers(author.getUser())
-      .setSelectionConsumer(getSelectionDoneAction(player, server, accounts, toEdit, hook, sourceChannel));
+      .setSelectionConsumer(getSelectionDoneAction(player, server, accounts, toEdit, hook, sourceChannel, forceRefresh));
 
       List<String> accountsName = new ArrayList<>();
 
       for(DTO.LeagueAccount choiceAccount : accounts) {
         try {
-          summoner = Zoe.getRiotApi().getSummonerBySummonerId(choiceAccount.leagueAccount_server, choiceAccount.leagueAccount_summonerId);
+          summoner = Zoe.getRiotApi().getSummonerBySummonerId(choiceAccount.leagueAccount_server, choiceAccount.leagueAccount_summonerId, forceRefresh);
         }catch(APIResponseException e) {
           CommandUtil.sendMessageWithClassicOrSlashCommand(RiotApiUtil.getTextHandlerRiotApiError(e, server.getLanguage()), toEdit, hook);
           return;
@@ -223,7 +221,7 @@ public class StatsProfileCommandRunnable {
   }
 
   private static BiConsumer<Message, Integer> getSelectionDoneAction(DTO.Player player,
-      DTO.Server server, List<DTO.LeagueAccount> lolAccounts, Message messageLoading, InteractionHook hook, TextChannel channel) {
+      DTO.Server server, List<DTO.LeagueAccount> lolAccounts, Message messageLoading, InteractionHook hook, TextChannel channel, boolean forceRefresh) {
     return new BiConsumer<Message, Integer>() {
       @Override
       public void accept(Message selectionMessage, Integer selectionOfUser) {
@@ -234,14 +232,14 @@ public class StatsProfileCommandRunnable {
         try {
           selectionMessage.getTextChannel().sendMessage(String.format(
               LanguageManager.getText(server.getLanguage(), "statsProfileSelectionDoneMessage"),
-              account.getSummoner().getName(), channel.getJDA().retrieveUserById(player.player_discordId).complete()
+              account.getSummoner(forceRefresh).getName(), channel.getJDA().retrieveUserById(player.player_discordId).complete()
               .getName())).queue();
         } catch (APIResponseException e) {
           CommandUtil.sendMessageWithClassicOrSlashCommand(RiotApiUtil.getTextHandlerRiotApiError(e, server.getLanguage()), messageLoading, hook);
           return;
         }
 
-        generateStatsMessage(player, account, server, messageLoading, hook, channel);
+        generateStatsMessage(player, account, server, messageLoading, hook, channel, forceRefresh);
       }
 
     };
@@ -257,13 +255,14 @@ public class StatsProfileCommandRunnable {
     };
   }
 
-  private static void generateStatsMessage(DTO.Player player, DTO.LeagueAccount lolAccount, DTO.Server server, Message messageLoading, InteractionHook hook, TextChannel channel) {
+  private static void generateStatsMessage(DTO.Player player, DTO.LeagueAccount lolAccount, DTO.Server server, Message messageLoading,
+      InteractionHook hook, TextChannel channel, boolean forceRefresh) {
 
     String url = Integer.toString(random.nextInt(100000));
 
     List<SavedSimpleMastery> championsMasteries;
     try {
-      championsMasteries = Zoe.getRiotApi().getChampionMasteryBySummonerId(lolAccount.leagueAccount_server, lolAccount.leagueAccount_summonerId);
+      championsMasteries = Zoe.getRiotApi().getChampionMasteryBySummonerId(lolAccount.leagueAccount_server, lolAccount.leagueAccount_summonerId, forceRefresh);
     } catch(APIResponseException e) {
       if(e.getReason() == APIHTTPErrorReason.ERROR_429) {
         CommandUtil.sendMessageWithClassicOrSlashCommand(LanguageManager.getText(server.getLanguage(), "statsProfileRateLimitError"), messageLoading, hook);
@@ -277,7 +276,7 @@ public class StatsProfileCommandRunnable {
     byte[] imageBytes = null;
     try {
       if(championsMasteries != null && !championsMasteries.isEmpty()) {
-        imageBytes = generateMasteriesChart(player, championsMasteries, server, lolAccount, channel.getJDA());
+        imageBytes = generateMasteriesChart(player, championsMasteries, server, lolAccount, channel.getJDA(), forceRefresh);
       }
     } catch(IOException | APIResponseException e) {
       logger.info("Got a error in encoding bytesMap image", e);
@@ -287,7 +286,7 @@ public class StatsProfileCommandRunnable {
 
     MessageEmbed embed;
     try {
-      embed = MessageBuilderRequest.createProfileMessage(player, lolAccount, championsMasteries, server.getLanguage(), url, channel.getJDA());
+      embed = MessageBuilderRequest.createProfileMessage(player, lolAccount, championsMasteries, server.getLanguage(), url, channel.getJDA(), forceRefresh);
     } catch(APIResponseException e) {
       if(e.getReason() == APIHTTPErrorReason.ERROR_429) {
         logger.debug("Get rate limited", e);
@@ -315,7 +314,7 @@ public class StatsProfileCommandRunnable {
   }
 
   private static byte[] generateMasteriesChart(DTO.Player player, List<SavedSimpleMastery> championsMasteries,
-      DTO.Server server, LeagueAccount leagueAccount, JDA jda) throws IOException {
+      DTO.Server server, LeagueAccount leagueAccount, JDA jda, boolean forceRefresh) throws IOException {
     List<SavedSimpleMastery> listHeigherChampion = getBestMasteries(championsMasteries, NUMBER_OF_CHAMPIONS_IN_GRAPH);
     CategoryChartBuilder masteriesGraphBuilder = new CategoryChartBuilder();
 
@@ -326,7 +325,7 @@ public class StatsProfileCommandRunnable {
           player.retrieveUser(jda).getName()));
     }else {
       masteriesGraphBuilder.title(String.format(LanguageManager.getText(server.getLanguage(), "statsProfileGraphTitle"),
-          leagueAccount.getSummoner().getName()));
+          leagueAccount.getSummoner(forceRefresh).getName()));
     }
 
     CategoryChart masteriesGraph = masteriesGraphBuilder.build();

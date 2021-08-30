@@ -67,6 +67,8 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
 
   private AtomicInteger nbrMatch = new AtomicInteger();
 
+  private boolean forceRefresh;
+  
   static {
     selectedQueuesId.add(GameQueueType.NORMAL_5X5_DRAFT);
     selectedQueuesId.add(GameQueueType.NORMAL_5V5_BLIND_PICK);
@@ -75,7 +77,7 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
     selectedQueuesId.add(GameQueueType.CLASH);
   }
 
-  public TeamPlayerAnalysisDataCollector(String summonerId, ZoePlatform platform, ClashPosition position) {
+  public TeamPlayerAnalysisDataCollector(String summonerId, ZoePlatform platform, ClashPosition position, boolean forceRefresh) {
     this.summonerId = summonerId;
     this.platform = platform;
     this.dataPerChampions = new ArrayList<>();
@@ -88,7 +90,7 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
   }
 
   public TeamPlayerAnalysisDataCollector(String summonerId, SavedSummoner summoner,
-      ZoePlatform platform, ClashPosition position) {
+      ZoePlatform platform, ClashPosition position, boolean forceRefresh) {
     this.summonerId = summonerId;
     this.summoner = summoner;
     this.platform = platform;
@@ -116,7 +118,7 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
 
   public void loadAllData() throws APIResponseException {
 
-    summoner = Zoe.getRiotApi().getSummonerBySummonerId(platform, summonerId);
+    summoner = Zoe.getRiotApi().getSummonerBySummonerId(platform, summonerId, forceRefresh);
 
     List<SavedMatch> matchs = RiotRequest.getMatchHistoryOfLastMonth(platform, summoner, selectedQueuesId, new ArrayList<>());
 
@@ -141,7 +143,7 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
       collectWinrateData(playerInMatch, match);
     }
 
-    List<SavedSimpleMastery> masteryPerChampions = Zoe.getRiotApi().getChampionMasteryBySummonerId(platform, summonerId);
+    List<SavedSimpleMastery> masteryPerChampions = Zoe.getRiotApi().getChampionMasteryBySummonerId(platform, summonerId, forceRefresh);
     
     for(SavedSimpleMastery mastery : masteryPerChampions) {
       DataPerChampion dataOfChampion = getDataByChampion(mastery.getChampionId());

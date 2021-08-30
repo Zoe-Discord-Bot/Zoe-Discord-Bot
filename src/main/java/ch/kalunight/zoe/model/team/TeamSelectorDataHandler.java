@@ -26,7 +26,6 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import no.stelar7.api.r4j.basic.exceptions.APIHTTPErrorReason;
 import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
 import no.stelar7.api.r4j.pojo.lol.clash.ClashPosition;
-import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class TeamSelectorDataHandler {
 

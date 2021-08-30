@@ -1,8 +1,6 @@
 package ch.kalunight.zoe.service.infochannel;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -41,14 +39,17 @@ public class SummonerDataWorker implements Runnable {
   
   private Champion champion;
 
+  private boolean forceRefresh;
+  
   public SummonerDataWorker(SpectatorParticipant participant, List<String> listIdPlayers, ZoePlatform platform, String language,
-      InfocardPlayerData playerData, GameQueueType gameQueueType) {
+      InfocardPlayerData playerData, GameQueueType gameQueueType, boolean forceRefresh) {
     this.listIdPlayers = listIdPlayers;
     this.platform = platform;
     this.language = language;
     this.participant = participant;
     this.playerData = playerData;
     this.gameQueueConfigId = gameQueueType;
+    this.forceRefresh = forceRefresh;
     playersDataInWork.add(playerData);
   }
 
@@ -96,8 +97,8 @@ public class SummonerDataWorker implements Runnable {
       playerData.setRankData(rank);
       
       logger.debug("Start loading Winrate Summoner data worker for {} {}", platform.getShowableName(), participant.getSummonerName());
-      playerData.setWinRateData(RiotRequest.getMasterysScore(participant.getSummonerId(), participant.getChampionId(), platform) + " | "
-          + RiotRequest.getWinrateLastMonthWithGivenChampion(participant.getSummonerId(), platform, participant.getChampionId(), queuesList, language));
+      playerData.setWinRateData(RiotRequest.getMasterysScore(participant.getSummonerId(), participant.getChampionId(), platform, forceRefresh) + " | "
+          + RiotRequest.getWinrateLastMonthWithGivenChampion(participant.getSummonerId(), platform, participant.getChampionId(), queuesList, language, forceRefresh));
       logger.debug("End loading Summoner data worker for {} {}", platform.getShowableName(), participant.getSummonerName());
     } catch (Exception e) {
       logger.error("Unexpected error in SummonerDataWorker !", e);

@@ -29,7 +29,6 @@ import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
-import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class AddAccountCommandRunnable {
 

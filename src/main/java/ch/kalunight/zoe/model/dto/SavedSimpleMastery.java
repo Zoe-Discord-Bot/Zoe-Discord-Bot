@@ -1,5 +1,9 @@
 package ch.kalunight.zoe.model.dto;
 
+import java.time.LocalDateTime;
+import java.util.Date;
+
+import ch.kalunight.zoe.util.MongodbDateUtil;
 import no.stelar7.api.r4j.pojo.lol.championmastery.ChampionMastery;
 
 public class SavedSimpleMastery {
@@ -14,6 +18,8 @@ public class SavedSimpleMastery {
   
   private int championLevel;
   
+  private Date retrieveDate;
+  
   public SavedSimpleMastery() {}
   
   public SavedSimpleMastery(ChampionMastery championMastery, String summonerId, ZoePlatform platform) {
@@ -22,6 +28,8 @@ public class SavedSimpleMastery {
     this.championId = championMastery.getChampionId();
     this.championPoints = championMastery.getChampionPoints();
     this.championLevel = championMastery.getChampionLevel();
+    
+    this.retrieveDate = MongodbDateUtil.toDate(LocalDateTime.now());
   }
 
   public int getChampionId() {
@@ -62,5 +70,13 @@ public class SavedSimpleMastery {
 
   public void setSummonerId(String summonerId) {
     this.summonerId = summonerId;
+  }
+
+  public Date getRetrieveDate() {
+    return retrieveDate;
+  }
+
+  public void setRetrieveDate(Date retrieveDate) {
+    this.retrieveDate = retrieveDate;
   }
 }

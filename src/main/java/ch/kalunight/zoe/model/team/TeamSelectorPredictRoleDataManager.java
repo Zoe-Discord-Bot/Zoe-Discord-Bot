@@ -11,13 +11,13 @@ import net.dv8tion.jda.api.entities.TextChannel;
 
 public class TeamSelectorPredictRoleDataManager extends TeamSelectorDataManager {
 
-  public TeamSelectorPredictRoleDataManager(Server server, TextChannel channel) {
-    super(server, channel);
+  public TeamSelectorPredictRoleDataManager(Server server, TextChannel channel, boolean forceRefresh) {
+    super(server, channel, forceRefresh);
   }
 
   @Override
   public void treatData() {
-    List<TeamPlayerAnalysisDataCollector> playersData = TeamUtil.loadAllPlayersDataWithAccountData(accountsToTreat);
+    List<TeamPlayerAnalysisDataCollector> playersData = TeamUtil.loadAllPlayersDataWithAccountData(accountsToTreat, forceRefresh);
     
     TeamUtil.determineRole(playersData);
     

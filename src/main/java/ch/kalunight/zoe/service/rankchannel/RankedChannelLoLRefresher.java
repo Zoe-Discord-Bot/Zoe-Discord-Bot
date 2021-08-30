@@ -31,8 +31,8 @@ public class RankedChannelLoLRefresher extends RankedChannelBaseRefresher {
   private SpectatorGameInfo gameOfTheChange;
 
   public RankedChannelLoLRefresher(RankHistoryChannel rankChannel, LeagueEntry oldEntry, LeagueEntry newEntry,
-      SpectatorGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, Server server, JDA jda) {
-    super(rankChannel, oldEntry, newEntry, player, leagueAccount, server, jda);
+      SpectatorGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, Server server, JDA jda, boolean forceRefresh) {
+    super(rankChannel, oldEntry, newEntry, player, leagueAccount, server, jda, forceRefresh);
     this.gameOfTheChange = gameOfTheChange;
   }
 
@@ -47,7 +47,7 @@ public class RankedChannelLoLRefresher extends RankedChannelBaseRefresher {
 
     synchronized (participantsFromTheServer) {
       if(participantsFromTheServer.size() >= 2) {
-        PlayerRankedResult playerResult = MessageBuilderRequest.getMatchDataMutiplePlayers(oldEntry, newEntry, gameOfTheChange, leagueAccount, server.getLanguage(), change);
+        PlayerRankedResult playerResult = MessageBuilderRequest.getMatchDataMutiplePlayers(oldEntry, newEntry, gameOfTheChange, leagueAccount, server.getLanguage(), change, forceRefresh);
 
         List<PlayerRankedResult> listPlayersRankedResult = matchsWaitingToComplete.get(gameAccessDataServer);
         if(listPlayersRankedResult != null) {
@@ -101,7 +101,7 @@ public class RankedChannelLoLRefresher extends RankedChannelBaseRefresher {
     if(message == null) {
       try {
         message = MessageBuilderRequest.createRankChannelCardLeagueChange
-            (oldEntry, newEntry, gameOfTheChange, player, leagueAccount, server.getLanguage(), jda);
+            (oldEntry, newEntry, gameOfTheChange, player, leagueAccount, server.getLanguage(), jda, forceRefresh);
       } catch (APIResponseException e) {
         logger.warn("RiotApiException while creating Rankchannel Message", e);
         return;
@@ -128,7 +128,7 @@ public class RankedChannelLoLRefresher extends RankedChannelBaseRefresher {
     if(message == null) {
       try {
         message = MessageBuilderRequest.createRankChannelCardBoEnded(oldEntry, newEntry, gameOfTheChange,
-            player, leagueAccount, server.getLanguage(), jda);
+            player, leagueAccount, server.getLanguage(), jda, forceRefresh);
       } catch (APIResponseException e) {
         logger.warn("RiotApiException while creating Rankchannel Message", e);
         return;
@@ -155,7 +155,7 @@ public class RankedChannelLoLRefresher extends RankedChannelBaseRefresher {
     if(message == null) {
       try {
         message = MessageBuilderRequest.createRankChannelCardBoStarted(newEntry, gameOfTheChange, player, leagueAccount, 
-            server.getLanguage(), jda);
+            server.getLanguage(), jda, forceRefresh);
       } catch (APIResponseException e) {
         logger.warn("RiotApiException while creating Rankchannel Message", e);
         return;
@@ -182,7 +182,7 @@ public class RankedChannelLoLRefresher extends RankedChannelBaseRefresher {
     if(message == null) {
       try {
         message = MessageBuilderRequest.createRankChannelBoInProgress(oldEntry, newEntry,
-            gameOfTheChange, player,leagueAccount, server.getLanguage(), jda);
+            gameOfTheChange, player,leagueAccount, server.getLanguage(), jda, forceRefresh);
       } catch (APIResponseException e) {
         logger.warn("RiotApiException while creating Rankchannel Message", e);
         return;
@@ -210,7 +210,7 @@ public class RankedChannelLoLRefresher extends RankedChannelBaseRefresher {
     if(message == null) {
       try {
         message = MessageBuilderRequest.createRankChannelCardLeaguePointChangeOnly
-            (oldEntry, newEntry, gameOfTheChange, player, leagueAccount, server.getLanguage(), jda);
+            (oldEntry, newEntry, gameOfTheChange, player, leagueAccount, server.getLanguage(), jda, forceRefresh);
       } catch (APIResponseException e) {
         logger.warn("RiotApiException while creating Rankchannel Message", e);
         return;

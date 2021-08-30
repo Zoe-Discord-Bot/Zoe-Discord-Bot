@@ -68,11 +68,11 @@ public class MessageBuilderRequestUtil {
   }
 
   public static void createTeamDataMultipleSummoner(List<SpectatorParticipant> teamParticipant, List<String> listIdPlayers,
-      ZoePlatform platform, String language, List<InfocardPlayerData> playersDataToWait, boolean isBlueTeam, GameQueueType gameQueueConfigId) {
+      ZoePlatform platform, String language, List<InfocardPlayerData> playersDataToWait, boolean isBlueTeam, GameQueueType gameQueueConfigId, boolean forceRefresh) {
 
     for(SpectatorParticipant participant : teamParticipant) {
       InfocardPlayerData playerData = new InfocardPlayerData(isBlueTeam);
-      SummonerDataWorker playerWorker = new SummonerDataWorker(participant, listIdPlayers, platform, language, playerData, gameQueueConfigId);
+      SummonerDataWorker playerWorker = new SummonerDataWorker(participant, listIdPlayers, platform, language, playerData, gameQueueConfigId, forceRefresh);
       ServerThreadsManager.getPlayersDataWorker(platform).execute(playerWorker);
       playersDataToWait.add(playerData);
     }

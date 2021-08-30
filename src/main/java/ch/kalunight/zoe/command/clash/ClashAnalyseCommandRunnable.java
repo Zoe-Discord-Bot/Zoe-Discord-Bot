@@ -18,7 +18,6 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
-import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
 
 public class ClashAnalyseCommandRunnable {
   
@@ -77,7 +76,7 @@ public class ClashAnalyseCommandRunnable {
     }
     
     if(summoner != null) {
-      LoadClashTeamAndStartBanAnalyseWorker loadClashTeamWorker = new LoadClashTeamAndStartBanAnalyseWorker(server, summoner.getSummonerId(), platorm, channel, channelToTreat);
+      LoadClashTeamAndStartBanAnalyseWorker loadClashTeamWorker = new LoadClashTeamAndStartBanAnalyseWorker(server, summoner.getSummonerId(), platorm, channel, channelToTreat, true);
       CommandUtil.sendMessageWithClassicOrSlashCommand(("*" + LanguageManager.getText(server.getLanguage(), "clashAnalyzeLoadStarted") + "*"), loadingMessage, hook);
       ServerThreadsManager.getClashChannelExecutor().execute(loadClashTeamWorker);
     }

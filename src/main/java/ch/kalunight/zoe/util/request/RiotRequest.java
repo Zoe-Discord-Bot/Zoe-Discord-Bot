@@ -90,11 +90,11 @@ public class RiotRequest {
   }
 
   public static String getWinrateLastMonthWithGivenChampion(String summonerId, ZoePlatform region,
-      int championKey, List<GameQueueType> queuesList, String language) {
+      int championKey, List<GameQueueType> queuesList, String language, boolean forceRefresh) {
 
     SavedSummoner summoner;
     try {
-      summoner = Zoe.getRiotApi().getSummonerBySummonerId(region, summonerId);
+      summoner = Zoe.getRiotApi().getSummonerBySummonerId(region, summonerId, forceRefresh);
     } catch(APIResponseException e) {
       logger.warn("Impossible to get the summoner : {}", e.getMessage());
       return LanguageManager.getText(language, "unknown");
@@ -139,14 +139,21 @@ public class RiotRequest {
     return df.format((nbrWins / (double) nbrGames) * 100) + "% (" + nbrWins + "W/" + (nbrGames - nbrWins) + "L)";
   }
   
-  public static KDAReceiver getKDALastMonth(String summonerId, ZoePlatform region, List<Integer> championsId) {
+  public static KDAReceiver getKDALastMonth(String summonerId, ZoePlatform region, List<Integer> championsId, boolean forceRefresh) {
 
     KDAReceiver kdaReceiver = new KDAReceiver();
     
     try {
-      SavedSummoner summoner = Zoe.getRiotApi().getSummonerBySummonerId(region, summonerId);
+      SavedSummoner summoner = Zoe.getRiotApi().getSummonerBySummonerId(region, summonerId, forceRefresh);
+      
+      List<GameQueueType> queuesList = new ArrayList<>();
 
-      List<SavedMatch> matchsLastMonth = getMatchHistoryOfLastMonth(region, summoner, new ArrayList<>(), championsId);
+      queuesList.add(GameQueueType.TEAM_BUILDER_RANKED_SOLO);
+      queuesList.add(GameQueueType.TEAM_BUILDER_DRAFT_RANKED_5X5);
+      queuesList.add(GameQueueType.NORMAL_5V5_BLIND_PICK);
+      queuesList.add(GameQueueType.TEAM_BUILDER_DRAFT_UNRANKED_5X5);
+      
+      List<SavedMatch> matchsLastMonth = getMatchHistoryOfLastMonth(region, summoner, queuesList, championsId);
 
       for(SavedMatch match : matchsLastMonth) {
         for(SavedMatchPlayer participant : match.getPlayers()) {
@@ -221,10 +228,10 @@ public class RiotRequest {
     return matchsToReturn;
   }
 
-  public static String getMasterysScore(String summonerId, int championId, ZoePlatform platform) {
+  public static String getMasterysScore(String summonerId, int championId, ZoePlatform platform, boolean forceRefresh) {
     SavedSimpleMastery mastery = null;
     try {
-      List<SavedSimpleMastery> allMasteries = Zoe.getRiotApi().getChampionMasteryBySummonerId(platform, summonerId);
+      List<SavedSimpleMastery> allMasteries = Zoe.getRiotApi().getChampionMasteryBySummonerId(platform, summonerId, forceRefresh);
 
       for(SavedSimpleMastery masteryToCheck : allMasteries) {
         if(masteryToCheck.getChampionId() == championId) {

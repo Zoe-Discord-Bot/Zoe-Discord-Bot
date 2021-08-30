@@ -13,7 +13,6 @@ import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.InfoCard;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.GameInfoCardStatus;
-import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.repositories.GameInfoCardRepository;
 import ch.kalunight.zoe.repositories.InfoChannelRepository;
 import ch.kalunight.zoe.repositories.ServerRepository;
@@ -21,7 +20,6 @@ import ch.kalunight.zoe.service.RiotApiUsageChannelRefresh;
 import ch.kalunight.zoe.service.ServerChecker;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.InfoPanelRefresherUtil;
-import ch.kalunight.zoe.util.MatchV5Util;
 import ch.kalunight.zoe.util.MessageBuilderRequestUtil;
 import ch.kalunight.zoe.util.request.MessageBuilderRequest;
 import net.dv8tion.jda.api.JDA;
@@ -50,20 +48,23 @@ public class InfoCardsWorker implements Runnable {
   
   private DTO.GameInfoCard gameInfoCard;
 
+  private boolean forceRefresh;
+  
   public InfoCardsWorker(DTO.Server server, TextChannel controlPanel, DTO.LeagueAccount account, DTO.CurrentGameInfo currentGameInfo,
-      DTO.GameInfoCard gameInfoCard) {
+      DTO.GameInfoCard gameInfoCard, boolean forceRefresh) {
     this.server = server;
     this.controlPanel = controlPanel;
     this.account = account;
     this.currentGameInfo = currentGameInfo;
     this.gameInfoCard = gameInfoCard;
+    this.forceRefresh = forceRefresh;
   }
 
   @Override
   public void run() {
     try {
       if(controlPanel.canTalk()) {
-        logger.info("Start generate infocards for the account {} ({})", account.getSummoner().getName(),  account.leagueAccount_server.getShowableName());
+        logger.info("Start generate infocards for the account {} ({})", account.getSummoner(forceRefresh).getName(),  account.leagueAccount_server.getShowableName());
 
         Stopwatch stopWatch = Stopwatch.createStarted();
         
@@ -127,7 +128,7 @@ public class InfoCardsWorker implements Runnable {
 
   private boolean theGameHaveToBeGenerate() {
     try {
-      SpectatorGameInfo currentGameRefreshed = Zoe.getRiotApi().getSpectatorGameInfo(account.leagueAccount_server, account.getSummoner().getSummonerId());
+      SpectatorGameInfo currentGameRefreshed = Zoe.getRiotApi().getSpectatorGameInfo(account.leagueAccount_server, account.getSummoner(forceRefresh).getSummonerId());
       
       if(currentGameRefreshed != null && currentGameRefreshed.getGameId() == currentGameInfo.currentgame_gameid) {
         
@@ -157,7 +158,7 @@ public class InfoCardsWorker implements Runnable {
     if(!listOfPlayerInTheGame.isEmpty()) {
       MessageEmbed messageCard =
           MessageBuilderRequest.createInfoCard(listOfPlayerInTheGame, currentGameInfo.currentgame_currentgame,
-              account.leagueAccount_server, server, jda);
+              account.leagueAccount_server, server, jda, forceRefresh);
 
       if(messageCard != null) {
         card = new InfoCard(listOfPlayerInTheGame, messageCard, currentGameInfo.currentgame_currentgame);

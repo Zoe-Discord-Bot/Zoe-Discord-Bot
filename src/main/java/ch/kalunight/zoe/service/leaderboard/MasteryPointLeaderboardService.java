@@ -24,8 +24,8 @@ import net.dv8tion.jda.api.entities.TextChannel;
 
 public class MasteryPointLeaderboardService extends LeaderboardBaseService {
   
-  public MasteryPointLeaderboardService(long guildId, long channelId, long leaderboardId) {
-    super(guildId, channelId, leaderboardId);
+  public MasteryPointLeaderboardService(long guildId, long channelId, long leaderboardId, boolean forceRefreshCache) {
+    super(guildId, channelId, leaderboardId, forceRefreshCache);
   }
 
   @Override
@@ -59,7 +59,7 @@ public class MasteryPointLeaderboardService extends LeaderboardBaseService {
       
       long bestAccountPoints = 0;
       for(DTO.LeagueAccount leagueAccount : leaguesAccounts) {
-        List<SavedSimpleMastery> masteries = Zoe.getRiotApi().getChampionMasteryBySummonerId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
+        List<SavedSimpleMastery> masteries = Zoe.getRiotApi().getChampionMasteryBySummonerId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId, forceRefresh);
         
         long totalAccountPoints = 0;
         for(SavedSimpleMastery mastery : masteries) {

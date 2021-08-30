@@ -35,12 +35,16 @@ public class LoadClashTeamAndStartBanAnalyseWorker implements Runnable {
 
   private TextChannel channelWhereToSend;
 
-  public LoadClashTeamAndStartBanAnalyseWorker(Server server, String summonerId, ZoePlatform platform, TextChannel channelWhereToSend, ClashChannel clashChannel) {
+  private boolean forceRefresh;
+  
+  public LoadClashTeamAndStartBanAnalyseWorker(Server server, String summonerId, ZoePlatform platform, TextChannel channelWhereToSend, ClashChannel clashChannel, boolean forceRefresh) {
     this.server = server;
     this.summonerId = summonerId;
     this.platform = platform;
     this.clashChannel = clashChannel;
     this.channelWhereToSend = channelWhereToSend;
+    this.forceRefresh = forceRefresh;
+    
   }
 
   @Override
@@ -58,7 +62,7 @@ public class LoadClashTeamAndStartBanAnalyseWorker implements Runnable {
 
       if(clashTeamRegistration.getTeam().getPlayers().size() == 5) {
 
-        List<TeamPlayerAnalysisDataCollector> playersData = TeamUtil.getTeamPlayersDataWithAnalysisDoneWithClashData(platform, clashTeamRegistration.getTeam().getPlayers());
+        List<TeamPlayerAnalysisDataCollector> playersData = TeamUtil.getTeamPlayersDataWithAnalysisDoneWithClashData(platform, clashTeamRegistration.getTeam().getPlayers(), forceRefresh);
 
         TeamBanAnalysisWorker banAnalysisWorker = new TeamBanAnalysisWorker(server, clashChannel, clashTeamRegistration, channelWhereToSend, playersData);
 

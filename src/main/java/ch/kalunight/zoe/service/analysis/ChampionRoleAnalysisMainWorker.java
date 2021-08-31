@@ -59,9 +59,7 @@ public class ChampionRoleAnalysisMainWorker implements Runnable {
     try {
       champion = Ressources.getChampionDataById(championId);
 
-      List<String> versions = Zoe.getRiotApi().getDDragonAPI().getVersions();
-      
-      String version = versions.get(versions.size() - 1);
+      String version = Zoe.getRiotApi().getLastPatchVersion();
 
       if(version == null) {
         return;

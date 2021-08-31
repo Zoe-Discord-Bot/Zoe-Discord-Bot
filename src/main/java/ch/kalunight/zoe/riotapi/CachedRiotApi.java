@@ -346,6 +346,17 @@ public class CachedRiotApi {
     }
   }
 
+  public String getLastPatchVersion() {
+    SavedMatch matchLastVersion = matchCache.find().sort(Projections.computed("gameVersion", -1))
+        .limit(1).first();
+    
+    if(matchLastVersion == null) {
+      return null;
+    }
+    
+    return matchLastVersion.getGameVersion();
+  }
+  
   public List<String> getMatchListBySummonerId(ZoePlatform platform, String puuid){
     MatchListBuilder builder = new MatchListBuilder();
 

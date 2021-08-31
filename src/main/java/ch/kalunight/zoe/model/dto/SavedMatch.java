@@ -19,7 +19,7 @@ public class SavedMatch implements Serializable {
 
   private static final long serialVersionUID = -3423117740284389063L;
 
-  private String platform;
+  private ZoePlatform platform;
   
   private String gameId;
   
@@ -40,8 +40,10 @@ public class SavedMatch implements Serializable {
 
   private Date retrieveDate;
   
+  public SavedMatch() {}
+  
   public SavedMatch(LOLMatch match, String gameId, ZoePlatform platform) {
-    this.platform = platform.getDbName();
+    this.platform = platform;
     this.gameId = gameId;
     queueId = match.getQueueId();
     gameVersion = match.getGameVersion();
@@ -120,7 +122,7 @@ public class SavedMatch implements Serializable {
   }
   
   public ZoePlatform getZoePlatform() {
-    return ZoePlatform.getZoePlatformByName(platform);
+    return platform;
   }
   
   public String getGameId() {
@@ -153,6 +155,38 @@ public class SavedMatch implements Serializable {
 
   public Date getRetrieveDate() {
     return retrieveDate;
+  }
+
+  public void setPlatform(ZoePlatform platform) {
+    this.platform = platform;
+  }
+
+  public void setGameId(String gameId) {
+    this.gameId = gameId;
+  }
+
+  public void setPlayers(List<SavedMatchPlayer> players) {
+    this.players = players;
+  }
+
+  public void setQueueId(GameQueueType queueId) {
+    this.queueId = queueId;
+  }
+
+  public void setGameVersion(String gameVersion) {
+    this.gameVersion = gameVersion;
+  }
+
+  public void setGameCreation(long gameCreation) {
+    this.gameCreation = gameCreation;
+  }
+
+  public void setGameDurations(long gameDurations) {
+    this.gameDurations = gameDurations;
+  }
+
+  public void setBlueSideHasWin(boolean blueSideHasWin) {
+    this.blueSideHasWin = blueSideHasWin;
   }
 
   public void setRetrieveDate(Date retrieveDate) {

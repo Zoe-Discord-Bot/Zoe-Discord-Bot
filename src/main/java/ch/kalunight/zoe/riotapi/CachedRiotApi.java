@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
@@ -129,6 +130,12 @@ public class CachedRiotApi {
       options.name("matchChampionIdQueueIndex");
 
       bson = Projections.include("players.championId", "queueId");
+      matchCache.createIndex(bson, options);
+      
+      options = new IndexOptions();
+      options.name("versionQueueIndex");
+
+      bson = Projections.include("gameVersion");
       matchCache.createIndex(bson, options);
     }
 
@@ -357,6 +364,21 @@ public class CachedRiotApi {
     return matchLastVersion.getGameVersion();
   }
   
+  public List<SavedMatch> getMatchsByChampionId(int championId, List<GameQueueType> queueList) {
+    Document document = new Document();
+    document.put("queueId", queueList);
+    document.put("players.championId", championId);
+    
+    Iterator<SavedMatch> iterator = matchCache.find(document).limit(10000).iterator();
+    
+    List<SavedMatch> matchToReturn = new ArrayList<>();
+    while (iterator.hasNext()) {
+      matchToReturn.add(iterator.next());
+    }
+    
+    return matchToReturn;
+  }
+  
   public List<String> getMatchListBySummonerId(ZoePlatform platform, String puuid){
     MatchListBuilder builder = new MatchListBuilder();
 
@@ -456,7 +478,7 @@ public class CachedRiotApi {
           championsMasteryCache.insertOne(championMastery);
         }
       }catch (MongoException e) {
-        logger.warn("Probably nothing serious (unique error)", e);
+        logger.warn("Probably nothing serious (unique error)");
       }
     }
   }

@@ -104,7 +104,6 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import no.stelar7.api.r4j.basic.APICredentials;
-import no.stelar7.api.r4j.basic.cache.CacheProvider;
 import no.stelar7.api.r4j.basic.calling.DataCall;
 import no.stelar7.api.r4j.impl.R4J;
 
@@ -500,12 +499,6 @@ public class Zoe {
     for(Champion champion : champions) {
       try {
         ChampionRoleAnalysis championRole = ChampionRoleAnalysisRepository.getChampionRoleAnalysis(champion.getKey());
-
-        if(true) {
-          champion.setRoles(allRoles);
-          champion.setAverageKDA(DangerosityReportKDA.DEFAULT_AVERAGE_KDA);
-          continue;
-        }
         
         if(championRole != null) {
           champion.setRoles(championRole.cra_roles);

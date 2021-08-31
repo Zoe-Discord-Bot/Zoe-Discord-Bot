@@ -21,6 +21,8 @@ public class SavedMatchPlayer implements Serializable {
   private RoleType role;
   private LaneType lane;
   
+  public SavedMatchPlayer() {}
+  
   public SavedMatchPlayer(boolean blueSide, String summonerId, int championId, MatchParticipant participantStats) {
     this.blueSide = blueSide;
     this.summonerId = summonerId;
@@ -96,6 +98,26 @@ public class SavedMatchPlayer implements Serializable {
 
   public void setLane(LaneType lane) {
     this.lane = lane;
+  }
+
+  public void setKills(int kills) {
+    this.kills = kills;
+  }
+
+  public void setDeaths(int deaths) {
+    this.deaths = deaths;
+  }
+
+  public void setAssists(int assists) {
+    this.assists = assists;
+  }
+
+  public void setCreepScores(int creepScores) {
+    this.creepScores = creepScores;
+  }
+
+  public void setLevel(int level) {
+    this.level = level;
   }
   
 }

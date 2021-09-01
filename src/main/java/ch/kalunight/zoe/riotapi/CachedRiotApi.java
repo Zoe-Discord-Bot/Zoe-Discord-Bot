@@ -364,9 +364,16 @@ public class CachedRiotApi {
     return matchLastVersion.getGameVersion();
   }
   
-  public List<SavedMatch> getMatchsByChampionId(int championId, List<GameQueueType> queueList) {
+  public List<SavedMatch> getMatchsByChampionId(int championId, List<GameQueueType> queuesList) {
+    
+    List<String> queuesListString = new ArrayList<>();
+    
+    for(GameQueueType queueToCheck : queuesList) {
+      queuesListString.add(queueToCheck.name());
+    }
+    
     Document document = new Document();
-    document.put("queueId", queueList);
+    document.put("queueId", queuesListString);
     document.put("players.championId", championId);
     
     Iterator<SavedMatch> iterator = matchCache.find(document).limit(10000).iterator();

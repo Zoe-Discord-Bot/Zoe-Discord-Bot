@@ -120,77 +120,85 @@ public class SavedMatch implements Serializable {
 
     throw new PlayerNotFoundException("Impossible to give a winner in the game since the player is not in the game");
   }
-  
+
   public ZoePlatform getPlatform() {
     return platform;
-  }
-  
-  public String getGameId() {
-    return gameId;
-  }
-
-  public long getGameCreation() {
-    return gameCreation;
-  }
-
-  public long getGameDurations() {
-    return gameDurations;
-  }
-  
-  public List<SavedMatchPlayer> getPlayers() {
-    return players;
-  }
-
-  public boolean isBlueSideHasWin() {
-    return blueSideHasWin;
-  }
-
-  public GameQueueType getQueueId() {
-    return queueId;
-  }
-
-  public String getGameVersion() {
-    return gameVersion;
-  }
-
-  public Date getRetrieveDate() {
-    return retrieveDate;
   }
 
   public void setPlatform(ZoePlatform platform) {
     this.platform = platform;
   }
 
+  public String getGameId() {
+    return gameId;
+  }
+
   public void setGameId(String gameId) {
     this.gameId = gameId;
+  }
+
+  public List<SavedMatchPlayer> getPlayers() {
+    return players;
   }
 
   public void setPlayers(List<SavedMatchPlayer> players) {
     this.players = players;
   }
 
+  public GameQueueType getQueueId() {
+    return queueId;
+  }
+
   public void setQueueId(GameQueueType queueId) {
     this.queueId = queueId;
+  }
+
+  public String getGameVersion() {
+    return gameVersion;
   }
 
   public void setGameVersion(String gameVersion) {
     this.gameVersion = gameVersion;
   }
 
+  public long getGameCreation() {
+    return gameCreation;
+  }
+
   public void setGameCreation(long gameCreation) {
     this.gameCreation = gameCreation;
+  }
+
+  public long getGameDurations() {
+    return gameDurations;
   }
 
   public void setGameDurations(long gameDurations) {
     this.gameDurations = gameDurations;
   }
 
+  public boolean isBlueSideHasWin() {
+    return blueSideHasWin;
+  }
+
   public void setBlueSideHasWin(boolean blueSideHasWin) {
     this.blueSideHasWin = blueSideHasWin;
   }
 
+  public Date getRetrieveDate() {
+    return retrieveDate;
+  }
+
   public void setRetrieveDate(Date retrieveDate) {
     this.retrieveDate = retrieveDate;
+  }
+
+  public static int getBlueTeamId() {
+    return BLUE_TEAM_ID;
+  }
+
+  public static long getSerialversionuid() {
+    return serialVersionUID;
   }
   
 }

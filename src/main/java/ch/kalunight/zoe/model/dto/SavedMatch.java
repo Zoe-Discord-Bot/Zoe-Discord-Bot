@@ -121,7 +121,7 @@ public class SavedMatch implements Serializable {
     throw new PlayerNotFoundException("Impossible to give a winner in the game since the player is not in the game");
   }
   
-  public ZoePlatform getZoePlatform() {
+  public ZoePlatform getPlatform() {
     return platform;
   }
   

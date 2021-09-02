@@ -192,13 +192,5 @@ public class SavedMatch implements Serializable {
   public void setRetrieveDate(Date retrieveDate) {
     this.retrieveDate = retrieveDate;
   }
-
-  public static int getBlueTeamId() {
-    return BLUE_TEAM_ID;
-  }
-
-  public static long getSerialversionuid() {
-    return serialVersionUID;
-  }
   
 }

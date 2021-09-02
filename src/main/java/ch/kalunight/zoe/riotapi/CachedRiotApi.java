@@ -118,7 +118,7 @@ public class CachedRiotApi {
       options.name("matchIndexConstraint");
       options.unique(true);
 
-      Bson bson = Projections.include("zoePlatform", "gameId");
+      Bson bson = Projections.include("platform", "gameId");
       matchCache.createIndex(bson, options);
 
       options = new IndexOptions();
@@ -318,7 +318,7 @@ public class CachedRiotApi {
 
   public SavedMatch getMatchById(ZoePlatform platform, String matchId) {
 
-    Bson matchWanted = Projections.fields(Projections.computed("gameId", matchId), Projections.excludeId());
+    Bson matchWanted = Projections.fields(Projections.computed("gameId", matchId), Projections.computed("platform", platform.getShowableName()));
 
     SavedMatch matchDB = matchCache.find(matchWanted).first();
 

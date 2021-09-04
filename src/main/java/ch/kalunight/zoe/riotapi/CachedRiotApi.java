@@ -228,7 +228,6 @@ public class CachedRiotApi {
     try {
       summonerCache = SummonerCacheRepository.getSummonerWithSummonerId(summonerId, platform);
     } catch (SQLException e) {
-      logger.warn("Error while getting summoner cache !", e);
     }
 
     if((summonerCache != null && summonerCache.sumCache_lastRefresh.isAfter(LocalDateTime.now().minusHours(CacheRefreshTime.SUMMONER_CACHE_REFRESH_TIME_IN_HOURS)))
@@ -786,14 +785,19 @@ public class CachedRiotApi {
   }
 
   public List<String> getTFTMatchListWithRateLimit(Platform platform, String summonerPuuid, Integer maxMatch) {
-    List<String> matchsList = null;
+    List<String> matchsList = new ArrayList<>();
     boolean needToRetry;
+    int numberTry = 0;
 
     do {
       leagueEntryRequestCount.incrementAndGet();
       increaseTFTCallCountForGivenRegion(platform);
 
       needToRetry = true;
+      numberTry++;
+      if(numberTry > 3) {
+        break;
+      }
       try {
         matchsList = riotApi.getTFTMatchList(platform, summonerPuuid, maxMatch);
         needToRetry = false;
@@ -828,12 +832,17 @@ public class CachedRiotApi {
   public TFTMatch getTFTMatchWithRateLimit(Platform platform, String matchId) {
     TFTMatch match = null;
     boolean needToRetry;
-
+    int numberTry = 0;
+    
     do {
       leagueEntryRequestCount.incrementAndGet();
       increaseTFTCallCountForGivenRegion(platform);
 
       needToRetry = true;
+      numberTry++;
+      if(numberTry > 3) {
+        break;
+      }
       try {
         match = riotApi.getTFTMatch(platform, matchId);
         needToRetry = false;

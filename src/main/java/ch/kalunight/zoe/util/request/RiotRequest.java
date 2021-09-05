@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.Zoe;
+import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.KDAReceiver;
 import ch.kalunight.zoe.model.MatchReceiver;
 import ch.kalunight.zoe.model.dto.SavedMatch;
@@ -54,7 +55,7 @@ public class RiotRequest {
     int leaguePoints = 0;
 
     for(LeagueEntry leaguePosition : listLeague) {
-      if(leaguePosition.getQueueType().equals(GameQueueType.RANKED_SOLO_5X5)) {
+      if(GameQueueConfigId.getGameQueueIdWithQueueType(leaguePosition.getQueueType()).equals(GameQueueConfigId.SOLOQ)) {
         rank = Tier.valueOf(leaguePosition.getTier());
         tier = Rank.valueOf(leaguePosition.getRank());
         leaguePoints = leaguePosition.getLeaguePoints();
@@ -79,7 +80,7 @@ public class RiotRequest {
     int leaguePoints = 0;
 
     for(LeagueEntry leaguePosition : listLeague) {
-      if(leaguePosition.getQueueType().equals(GameQueueType.RANKED_FLEX_SR)) {
+      if(GameQueueConfigId.getGameQueueIdWithQueueType(leaguePosition.getQueueType()).equals(GameQueueConfigId.FLEX)) {
         rank = Tier.valueOf(leaguePosition.getTier());
         tier = Rank.valueOf(leaguePosition.getRank());
         leaguePoints = leaguePosition.getLeaguePoints();
@@ -161,6 +162,7 @@ public class RiotRequest {
             kdaReceiver.kills.addAndGet(participant.getKills());
             kdaReceiver.deaths.addAndGet(participant.getDeaths());
             kdaReceiver.assists.addAndGet(participant.getAssists());
+            kdaReceiver.numberOfMatchs.incrementAndGet();
             break;
           }
         }

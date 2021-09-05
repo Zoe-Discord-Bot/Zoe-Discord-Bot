@@ -326,8 +326,13 @@ public class CachedRiotApi {
       return matchDB;
     }
 
-    LOLMatch matchOriginal = new MatchBuilder().withPlatform(platform.getLeagueShard().toRegionShard()).withId(matchId).getMatch();
-
+    LOLMatch matchOriginal = null;
+    try {
+      matchOriginal = new MatchBuilder().withPlatform(platform.getLeagueShard().toRegionShard()).withId(matchId).getMatch();
+    }catch (NullPointerException e) {
+      logger.warn("Null pointer exception while getting ID {}", matchId);
+    }
+    
     if(matchOriginal == null) {
       throw new APIResponseException(APIHTTPErrorReason.ERROR_404, "Not found");
     }

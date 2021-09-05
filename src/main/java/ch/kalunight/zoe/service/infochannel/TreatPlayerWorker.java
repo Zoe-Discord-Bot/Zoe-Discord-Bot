@@ -44,7 +44,6 @@ import ch.kalunight.zoe.util.TFTMatchUtil;
 import ch.kalunight.zoe.util.TreatedPlayer;
 import ch.kalunight.zoe.util.ZoeUserRankManagementUtil;
 import net.dv8tion.jda.api.JDA;
-import no.stelar7.api.r4j.basic.constants.types.lol.GameQueueType;
 import no.stelar7.api.r4j.basic.exceptions.APIHTTPErrorReason;
 import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
 import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
@@ -290,8 +289,8 @@ public class TreatPlayerWorker implements Runnable {
 
     SpectatorGameInfo currentGameData = currentGameDone.currentgame_currentgame;
 
-    if(currentGameData.getGameQueueConfig() == GameQueueType.RANKED_SOLO_5X5 
-        || currentGameData.getGameQueueConfig() == GameQueueType.RANKED_FLEX_SR) {
+    if(GameQueueConfigId.getGameQueueIdWithQueueType(currentGameData.getGameQueueConfig()) == GameQueueConfigId.SOLOQ 
+        || GameQueueConfigId.getGameQueueIdWithQueueType(currentGameData.getGameQueueConfig()) == GameQueueConfigId.FLEX) {
 
       List<LeagueEntry> leagueEntries;
       try {
@@ -301,7 +300,7 @@ public class TreatPlayerWorker implements Runnable {
         return false;
       }
 
-      return LastRankUtil.updateLoLLastRank(lastRank, leagueEntries).contains(currentGameData.getGameQueueConfig());
+      return LastRankUtil.updateLoLLastRank(lastRank, leagueEntries).contains(GameQueueConfigId.getGameQueueIdWithQueueType(currentGameData.getGameQueueConfig()));
     }
     return false;
   }
@@ -340,7 +339,7 @@ public class TreatPlayerWorker implements Runnable {
       LastRank lastRank) {
     SpectatorGameInfo gameOfTheChange = currentGameDb.currentgame_currentgame;
 
-    if(gameOfTheChange.getGameQueueConfig() == GameQueueType.RANKED_SOLO_5X5) {
+    if(GameQueueConfigId.getGameQueueIdWithQueueType(gameOfTheChange.getGameQueueConfig()) == GameQueueConfigId.SOLOQ) {
 
       RankedChannelLoLRefresher rankedRefresher = 
           new RankedChannelLoLRefresher(rankChannel, lastRank.getLastRankSoloqSecond(), lastRank.getLastRankSoloq(),
@@ -351,7 +350,7 @@ public class TreatPlayerWorker implements Runnable {
 
       rankChannelsToProcess.add(rankedRefresher);
 
-    }else if(gameOfTheChange.getGameQueueConfig() == GameQueueType.RANKED_FLEX_SR) {
+    }else if(GameQueueConfigId.getGameQueueIdWithQueueType(gameOfTheChange.getGameQueueConfig()) == GameQueueConfigId.FLEX) {
 
       RankedChannelLoLRefresher rankedRefresher = 
           new RankedChannelLoLRefresher(rankChannel, lastRank.getLastRankFlexSecond(), lastRank.getLastRankFlex(),

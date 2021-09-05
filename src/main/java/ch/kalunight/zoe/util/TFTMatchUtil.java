@@ -5,11 +5,11 @@ import java.util.ArrayList;
 import java.util.List;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.ZoePlatform;
+import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.dto.DTO.LastRank;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.static_data.TFTMatchWithId;
 import ch.kalunight.zoe.repositories.LastRankRepository;
-import no.stelar7.api.r4j.basic.constants.types.lol.GameQueueType;
 import no.stelar7.api.r4j.pojo.tft.TFTMatch;
 
 public class TFTMatchUtil {
@@ -37,7 +37,7 @@ public class TFTMatchUtil {
 
       TFTMatch match = Zoe.getRiotApi().getTFTMatch(leagueAccount.leagueAccount_server, matchId);
       
-      if(match != null && match.getQueue() == GameQueueType.TEAMFIGHT_TACTICS_RANKED) {
+      if(match != null && GameQueueConfigId.getGameQueueIdWithQueueType(match.getQueue()) == GameQueueConfigId.RANKED_TFT) {
         matchs.add(new TFTMatchWithId(matchId, match));
         
         if(lastRank.lastRank_tftLastTreatedMatchId == null) {

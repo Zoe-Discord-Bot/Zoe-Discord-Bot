@@ -50,7 +50,6 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.MessageEmbed.Field;
 import net.dv8tion.jda.api.entities.User;
-import no.stelar7.api.r4j.basic.constants.types.lol.GameQueueType;
 import no.stelar7.api.r4j.basic.exceptions.APIHTTPErrorReason;
 import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
 
@@ -607,9 +606,9 @@ public class MessageBuilderRequest {
   private static String getGameType(SpectatorGameInfo gameOfTheChange, String lang) {
     String gameType = "Unknown rank mode";
 
-    if(gameOfTheChange.getGameQueueConfig() == GameQueueType.RANKED_SOLO_5X5) {
+    if(GameQueueConfigId.SOLOQ == GameQueueConfigId.getGameQueueIdWithQueueType(gameOfTheChange.getGameQueueConfig())) {
       gameType = LanguageManager.getText(lang, "soloq");
-    }else if(gameOfTheChange.getGameQueueConfig() == GameQueueType.RANKED_FLEX_SR){
+    }else if(GameQueueConfigId.FLEX == GameQueueConfigId.getGameQueueIdWithQueueType(gameOfTheChange.getGameQueueConfig())){
       gameType = LanguageManager.getText(lang, "flex");
     }
     return gameType;
@@ -690,7 +689,7 @@ public class MessageBuilderRequest {
     message.addField(masteriesWRThisMonthTranslated, redTeamWinrateString.toString(), true);
 
     message.setFooter(LanguageManager.getText(server.getLanguage(), "infoCardsGameFooter") 
-        + " : " + MessageBuilderRequestUtil.getMatchTimeFromDuration(currentGameInfo.getGameLength()), null);
+        + " : " + MessageBuilderRequestUtil.getMatchTimeFromDurationInSeconds(currentGameInfo.getGameLength()), null);
 
     message.setColor(Color.GREEN);
 
@@ -854,10 +853,10 @@ public class MessageBuilderRequest {
 
         FullTier fullTier = new FullTier(tier, rank, leaguePosition.getLeaguePoints());
 
-        if(leaguePosition.getQueueType().equals(GameQueueType.RANKED_SOLO_5X5)) {
+        if(GameQueueConfigId.getGameQueueIdWithQueueType(leaguePosition.getQueueType()).equals(GameQueueConfigId.SOLOQ)) {
           soloqRank = String.format(LanguageManager.getText(language, "statsProfileQueueSoloq"), 
               Ressources.getTierEmote().get(tier).getUsableEmote() + " " + fullTier.toString(language));
-        } else if(leaguePosition.getQueueType().equals(GameQueueType.RANKED_FLEX_SR)) {
+        } else if(GameQueueConfigId.getGameQueueIdWithQueueType(leaguePosition.getQueueType()).equals(GameQueueConfigId.FLEX)) {
           flexRank = String.format(LanguageManager.getText(language, "statsProfileQueueFlex"),
               Ressources.getTierEmote().get(tier).getUsableEmote() + " " + fullTier.toString(language));
         }
@@ -899,7 +898,7 @@ public class MessageBuilderRequest {
         }
         FullTier fullTier = new FullTier(tier, rank, leaguePosition.getLeaguePoints());
 
-        if(leaguePosition.getQueueType().equals(GameQueueConfigId.RANKED_TFT.getGameQueueType())) {
+        if(GameQueueConfigId.getGameQueueIdWithQueueType(leaguePosition.getQueueType()).equals(GameQueueConfigId.RANKED_TFT)) {
           tftRank = String.format(LanguageManager.getText(language, "statsProfileQueueTFT"), 
               Ressources.getTierEmote().get(tier).getUsableEmote() + " " + fullTier.toString(language));
         }

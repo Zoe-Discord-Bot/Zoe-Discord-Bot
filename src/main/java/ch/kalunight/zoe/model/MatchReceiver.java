@@ -46,12 +46,20 @@ public class MatchReceiver {
         }
       }
     }
+    
+    if(!wanted) {
+      return wanted;
+    }
 
     if(queueWanted != null && !queueWanted.isEmpty()) {
       wanted = false;
       if(queueWanted.contains(match.getQueueId())) {
         wanted = true;
       }
+    }
+    
+    if(!wanted) {
+      return wanted;
     }
 
     if(timestampToHit != null) {

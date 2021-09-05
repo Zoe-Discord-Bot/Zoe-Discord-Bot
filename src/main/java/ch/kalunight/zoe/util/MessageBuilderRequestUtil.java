@@ -108,7 +108,7 @@ public class MessageBuilderRequestUtil {
     getReadableListOfPlayers(title, jda, playersNotTwice, andOfTranslated);
   }
 
-  public static void getReadableListOfPlayers(StringBuilder baseString, JDA jda, ArrayList<DTO.Player> playersNotTwice,
+  public static void getReadableListOfPlayers(StringBuilder baseString, JDA jda, List<DTO.Player> playersNotTwice,
       String andOfTranslated) {
     switch (playersNotTwice.size()) {
     case 1:
@@ -231,31 +231,61 @@ public class MessageBuilderRequestUtil {
       }
     }
 
-    Champion champion = Ressources.getChampionDataById(participant.getChampionId());
-
+    Champion champion = null;
+    if(participant != null) {
+      champion = Ressources.getChampionDataById(participant.getChampionId());
+    }
+    
     if(champion != null) {
       statsGame.append(champion.getDisplayName());
     }else {
       statsGame.append("Unknown");
     }
 
-    String gameDuration = MessageBuilderRequestUtil.getMatchTimeFromDuration(match.getGameDurations());
-
+    String gameDuration = MessageBuilderRequestUtil.getMatchTimeFromDurationInMillis(match.getGameDurations());
+    
     String showableResult = getParticipantMatchResult(lang, participant, match);
 
-    int totalcs = participant.getCreepScores();
+    String kills = "?";
+    String deaths = "?";
+    String assists = "?";
+    String totalcs = "?";
+    String level = "?";
+    
+    if(participant != null) {
+      kills = Long.toString(participant.getKills());
+      deaths = Long.toString(participant.getDeaths());
+      assists = Long.toString(participant.getAssists());
+      totalcs = Long.toString(participant.getCreepScores());
+      level = Long.toString(participant.getLevel());
+    }
 
-    statsGame.append(" | " + participant.getKills() + "/" + participant.getDeaths() + "/" + participant.getAssists() 
+    statsGame.append(" | " + kills + "/" + deaths + "/" + assists 
     + " | " + totalcs + " " + LanguageManager.getText(lang, "creepScoreAbreviation")
-    + " | " + LanguageManager.getText(lang, "level") + " " + participant.getLevel()
+    + " | " + LanguageManager.getText(lang, "level") + " " + level
     + " | " + gameDuration
     + " | " + showableResult);
     return statsGame.toString();
   }
 
+  private static String getMatchTimeFromDurationInMillis(long gameDurations) {
+    double minutesOfGames = gameDurations / 1000;
+
+    minutesOfGames = minutesOfGames / 60.0;
+    String[] stringMinutesSecondes = Double.toString(minutesOfGames).split("\\.");
+    int minutesGameLength = Integer.parseInt(stringMinutesSecondes[0]);
+    int secondesGameLength = (int) (Double.parseDouble("0." + stringMinutesSecondes[1]) * 60.0);
+
+    return String.format("%02d", minutesGameLength) + ":" + String.format("%02d", secondesGameLength);
+  }
+
   private static String getParticipantMatchResult(String lang, SavedMatchPlayer participant, SavedMatch match) {
     String showableResult;
 
+    if(participant == null) {
+      return LanguageManager.getText(lang, "error");
+    }
+    
     try {
       if(participant.didWin(match)) {
         showableResult = LanguageManager.getText(lang, "win");
@@ -269,7 +299,7 @@ public class MessageBuilderRequestUtil {
     return showableResult;
   }
 
-  public static String getMatchTimeFromDuration(long duration) {
+  public static String getMatchTimeFromDurationInSeconds(long duration) {
     double minutesOfGames = duration;
 
     minutesOfGames = minutesOfGames / 60.0;

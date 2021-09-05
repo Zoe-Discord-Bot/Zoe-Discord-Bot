@@ -4,11 +4,11 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
 import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.dto.DTO.LastRank;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.repositories.LastRankRepository;
-import no.stelar7.api.r4j.basic.constants.types.lol.GameQueueType;
 import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
 
 public class LastRankUtil {
@@ -58,9 +58,9 @@ public class LastRankUtil {
   /**
    * @return return queues updated
    */
-  public static List<GameQueueType> updateLoLLastRank(LastRank lastRank, List<LeagueEntry> leagueEntries) throws SQLException {
+  public static List<GameQueueConfigId> updateLoLLastRank(LastRank lastRank, List<LeagueEntry> leagueEntries) throws SQLException {
 
-    List<GameQueueType> updatedRank = new ArrayList<>();
+    List<GameQueueConfigId> updatedRank = new ArrayList<>();
     for(LeagueEntry checkLeagueEntry : leagueEntries) {
       if(GameQueueConfigId.getGameQueueIdWithQueueType(checkLeagueEntry.getQueueType()).equals(GameQueueConfigId.SOLOQ)) {
         if(lastRank.getLastRankSoloq() == null) {
@@ -68,14 +68,14 @@ public class LastRankUtil {
         }else {
           updateSoloQRank(lastRank, checkLeagueEntry);
         }
-        updatedRank.add(GameQueueType.RANKED_SOLO_5X5);
+        updatedRank.add(GameQueueConfigId.SOLOQ);
       }else if(GameQueueConfigId.getGameQueueIdWithQueueType(checkLeagueEntry.getQueueType()).equals(GameQueueConfigId.FLEX)) {
         if(lastRank.getLastRankFlex() == null) {
           updateFlexRankWithoutOldData(lastRank, checkLeagueEntry);
         }else {
           updateFlexRank(lastRank, checkLeagueEntry);
         }
-        updatedRank.add(GameQueueType.RANKED_FLEX_SR);
+        updatedRank.add(GameQueueConfigId.FLEX);
       }
     }
     return updatedRank;

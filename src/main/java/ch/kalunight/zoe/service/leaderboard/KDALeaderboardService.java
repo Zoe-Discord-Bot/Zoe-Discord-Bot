@@ -95,7 +95,7 @@ public class KDALeaderboardService extends LeaderboardBaseService {
         if(champ == null) {
           kdaReceiver = RiotRequest.getKDALastMonth(leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server, null, forceRefresh);
         }else {
-          List<Integer> championId = new ArrayList<Integer>();
+          List<Integer> championId = new ArrayList<>();
           championId.add(champ.getChampion().getKey());
           
           kdaReceiver = RiotRequest.getKDALastMonth(leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server, championId, forceRefresh);
@@ -110,7 +110,7 @@ public class KDALeaderboardService extends LeaderboardBaseService {
         }
       }
 
-      if(bestAccountKDA != null) {
+      if(bestAccountKDA != null && bestAccountKDA.numberOfMatchs.get() != 0) {
         playersKDA.add(new PlayerKDA(player, bestAccountKDA));
       }
     }

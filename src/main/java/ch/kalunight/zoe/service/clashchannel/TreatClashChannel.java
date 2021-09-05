@@ -197,8 +197,8 @@ public class TreatClashChannel implements Runnable {
     addRegisteredInfo(clashMessageManager, firstClashTeam, summonerCache, messageBuilder);
 
 
-    messageBuilder.append("**" + String.format(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentTeamName"), firstClashTeam.getTeam().getAbbreviation(),
-        firstClashTeam.getTeam().getName(),
+    messageBuilder.append("**" + String.format(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentTeamName"), firstClashTeam.getTeam().getAbbreviation().toUpperCase(),
+        firstClashTeam.getTeam().getName().toUpperCase(),
         firstClashTeam.getTeam().getTier()) + "**\n");
 
     //Show players

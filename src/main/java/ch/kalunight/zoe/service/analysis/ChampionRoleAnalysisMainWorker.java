@@ -19,6 +19,7 @@ import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.repositories.ChampionRoleAnalysisRepository;
 import ch.kalunight.zoe.util.GameQueueConfigIdUtil;
 import ch.kalunight.zoe.util.Ressources;
+import no.stelar7.api.r4j.basic.constants.types.lol.GameQueueType;
 
 public class ChampionRoleAnalysisMainWorker implements Runnable {
 
@@ -64,7 +65,7 @@ public class ChampionRoleAnalysisMainWorker implements Runnable {
         return;
       }
       
-      List<SavedMatch> matchsToAnalyse = Zoe.getRiotApi().getMatchsByChampionId(championId, GameQueueConfigIdUtil.getAllSoloqType());
+      List<SavedMatch> matchsToAnalyse = Zoe.getRiotApi().getMatchsByChampionId(championId, GameQueueType.TEAM_BUILDER_RANKED_SOLO);
 
       int nbrMatchsToAnaylse = matchsToAnalyse.size();
 

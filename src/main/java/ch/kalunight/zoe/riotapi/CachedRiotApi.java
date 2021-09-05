@@ -369,19 +369,11 @@ public class CachedRiotApi {
     return matchLastVersion.getGameVersion();
   }
   
-  public List<SavedMatch> getMatchsByChampionId(int championId, List<GameQueueType> queuesList) {
+  public List<SavedMatch> getMatchsByChampionId(int championId, GameQueueType queue) {
     
-    List<String> queuesListString = new ArrayList<>();
+    Bson matchSearch = Projections.fields(Projections.computed("queueId", queue), Projections.computed("players.championId", championId));
     
-    for(GameQueueType queueToCheck : queuesList) {
-      queuesListString.add(queueToCheck.name());
-    }
-    
-    Document document = new Document();
-    document.put("queueId", queuesListString);
-    document.put("players.championId", championId);
-    
-    Iterator<SavedMatch> iterator = matchCache.find(document).limit(10000).iterator();
+    Iterator<SavedMatch> iterator = matchCache.find(matchSearch).limit(10000).iterator();
     
     List<SavedMatch> matchToReturn = new ArrayList<>();
     while (iterator.hasNext()) {

@@ -24,24 +24,24 @@ public enum ChampionRole {
 
   @Nullable
   public static ChampionRole getChampionRoleWithLaneAndRole(LaneType lane, RoleType role) {
-    if(lane.getValue().equals(TOP.lane) && role.getValue().equals(TOP.role)){
+    if(lane.equals(LaneType.TOP)){
       return TOP;
     }
     
-    if(lane.getValue().equals(MID.lane) && role.getValue().equals(MID.role)) {
+    if(lane.equals(LaneType.MID)) {
       return MID;
     }
     
-    if(lane.getValue().equals(JUNGLE.lane) || role.getValue().equals(JUNGLE.role)) {
+    if(lane.equals(LaneType.JUNGLE)) {
       return JUNGLE;
     }
     
-    if(lane.getValue().equals(ADC.lane)) {
-      if(role.getValue().equals(ADC.role)) {
+    if(lane.equals(LaneType.BOT)) {
+      if(role.equals(RoleType.DUO_CARRY) || role.equals(RoleType.CARRY)) {
         return ADC;
       }
       
-      if(role.getValue().equals(SUPPORT.role)) {
+      if(role.equals(RoleType.DUO_SUPPORT) || role.equals(RoleType.SUPPORT)) {
         return SUPPORT;
       }
     }

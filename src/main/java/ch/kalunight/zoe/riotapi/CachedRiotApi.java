@@ -371,7 +371,7 @@ public class CachedRiotApi {
   
   public List<SavedMatch> getMatchsByChampionId(int championId, GameQueueType queue) {
     
-    Bson matchSearch = Projections.fields(Projections.computed("queueId", queue), Projections.computed("players.championId", championId));
+    Bson matchSearch = Projections.fields(Projections.computed("queueId", queue.name()), Projections.computed("players.championId", championId));
     
     Iterator<SavedMatch> iterator = matchCache.find(matchSearch).limit(10000).iterator();
     

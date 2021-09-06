@@ -70,10 +70,10 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
   private boolean forceRefresh;
   
   static {
-    selectedQueuesId.add(GameQueueType.NORMAL_5X5_DRAFT);
+    selectedQueuesId.add(GameQueueType.TEAM_BUILDER_DRAFT_UNRANKED_5X5);
     selectedQueuesId.add(GameQueueType.NORMAL_5V5_BLIND_PICK);
-    selectedQueuesId.add(GameQueueType.RANKED_SOLO_5X5);
-    selectedQueuesId.add(GameQueueType.RANKED_FLEX_SR);
+    selectedQueuesId.add(GameQueueType.TEAM_BUILDER_RANKED_SOLO);
+    selectedQueuesId.add(GameQueueType.TEAM_BUILDER_DRAFT_RANKED_5X5);
     selectedQueuesId.add(GameQueueType.CLASH);
   }
 

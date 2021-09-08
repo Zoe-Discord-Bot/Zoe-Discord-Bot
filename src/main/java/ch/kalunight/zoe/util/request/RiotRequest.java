@@ -34,6 +34,8 @@ import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
 
 public class RiotRequest {
 
+  private static final int MATCH_LIST_SIZE_ASKED = 25;
+  
   private static final Logger logger = LoggerFactory.getLogger(RiotRequest.class);
 
   private static final DecimalFormat df = new DecimalFormat("###.#");
@@ -186,15 +188,15 @@ public class RiotRequest {
       MatchReceiver matchReceiver = new MatchReceiver(summoner, championsToFilter, queuesList, timeStampToHit);
 
       boolean allMatchReceived = false;
-
-      int startIndex = -100;
+      
+      int startIndex = MATCH_LIST_SIZE_ASKED * -1;
 
       do {
-        startIndex += 100;
+        startIndex += MATCH_LIST_SIZE_ASKED;
         List<String> matchList = null;
 
         try {
-          matchList = Zoe.getRiotApi().getMatchListByPuuid(region, summoner.getPuuid(), queueId, startIndex);
+          matchList = Zoe.getRiotApi().getMatchListByPuuid(region, summoner.getPuuid(), queueId, startIndex, MATCH_LIST_SIZE_ASKED);
           if(!matchList.isEmpty()) {
             List<MatchKeyString> buildersToWait = new ArrayList<>();
             for(String matchToCheck : matchList) {

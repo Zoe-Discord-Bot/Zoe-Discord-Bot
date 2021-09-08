@@ -17,7 +17,6 @@ import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.SavedMatch;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.repositories.ChampionRoleAnalysisRepository;
-import ch.kalunight.zoe.util.GameQueueConfigIdUtil;
 import ch.kalunight.zoe.util.Ressources;
 import no.stelar7.api.r4j.basic.constants.types.lol.GameQueueType;
 

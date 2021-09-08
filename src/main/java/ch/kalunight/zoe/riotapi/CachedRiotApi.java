@@ -5,7 +5,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
@@ -402,10 +401,16 @@ public class CachedRiotApi {
     return builder.get();
   }
 
-  public List<String> getMatchListByPuuid(ZoePlatform platform, String puuid, GameQueueType queueWanted, int beginIndex) {
+  public List<String> getMatchListByPuuid(ZoePlatform platform, String puuid, GameQueueType queueWanted, int beginIndex, int count) {
     MatchListBuilder builder = new MatchListBuilder();
 
-    return builder.withPlatform(platform.getLeagueShard()).withPuuid(puuid).withQueue(queueWanted).withBeginIndex(beginIndex).withCount(100).get();
+    return builder
+        .withPlatform(platform.getLeagueShard())
+        .withPuuid(puuid)
+        .withQueue(queueWanted)
+        .withBeginIndex(beginIndex)
+        .withCount(count)
+        .get();
   }
 
   public List<LeagueEntry> getLeagueEntryBySummonerId(ZoePlatform platform, String summonerId) {

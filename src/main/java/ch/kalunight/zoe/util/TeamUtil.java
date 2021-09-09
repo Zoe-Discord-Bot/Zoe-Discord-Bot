@@ -373,7 +373,7 @@ public class TeamUtil {
 
   public static void clearChampionNotInRole(List<TeamPlayerAnalysisDataCollector> playersToClear) {
     try {
-      List<ChampionRoleAnalysis> championsDataRole = ChampionRoleAnalysisRepository.getAllChampionRoleAnalysis(); //TODO: Test this
+      List<ChampionRoleAnalysis> championsDataRole = ChampionRoleAnalysisRepository.getAllChampionRoleAnalysis();
 
       for(TeamPlayerAnalysisDataCollector player : playersToClear) {
         List<DataPerChampion> championsToDelete = new ArrayList<>();
@@ -385,8 +385,6 @@ public class TeamUtil {
     } catch (SQLException e) {
       logger.error("Error to get championRoleAnalysis");
     }
-
-
   }
 
   private static void getChampionToDelete(List<ChampionRoleAnalysis> championsDataRole,

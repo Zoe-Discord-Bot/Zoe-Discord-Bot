@@ -298,7 +298,7 @@ public class CommandUtil {
   
         PrivateChannel privateChannel = event.getAuthor().openPrivateChannel().complete();
   
-        List<String> helpMessages = CommandEvent.splitMessage(stringBuilder.toString());
+        List<String> helpMessages = MessageUtil.splitMessageToBeSendable(stringBuilder.toString());
   
         for(String helpMessage : helpMessages) {
           privateChannel.sendMessage(helpMessage).queue();

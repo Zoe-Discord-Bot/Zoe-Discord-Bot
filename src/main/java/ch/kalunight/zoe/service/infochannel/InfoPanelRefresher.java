@@ -19,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Stopwatch;
-import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.exception.NoValueRankException;
@@ -55,6 +54,7 @@ import ch.kalunight.zoe.service.ServerChecker;
 import ch.kalunight.zoe.service.rankchannel.RankedChannelLoLRefresher;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.InfoPanelRefresherUtil;
+import ch.kalunight.zoe.util.MessageUtil;
 import ch.kalunight.zoe.util.TreatedPlayer;
 import ch.kalunight.zoe.util.ZoeSupportMessageGeneratorUtil;
 import net.dv8tion.jda.api.entities.Guild;
@@ -489,7 +489,7 @@ public class InfoPanelRefresher implements Runnable {
 
   private void refreshInfoPanel(DTO.InfoChannel infoChannelDTO, ServerConfiguration configuration, List<TreatedPlayer> treatedPlayers)
       throws SQLException {
-    ArrayList<String> infoPanels = CommandEvent.splitMessage(refreshPannel(configuration, treatedPlayers));
+    List<String> infoPanels = MessageUtil.splitMessageToBeSendable(refreshPannel(configuration, treatedPlayers));
 
     List<DTO.InfoPanelMessage> infoPanelMessages = InfoChannelRepository.getInfoPanelMessages(server.serv_guildId);
 

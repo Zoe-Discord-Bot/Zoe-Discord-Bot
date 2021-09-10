@@ -24,7 +24,7 @@ public class MessageUtil {
       return listSendableMessage;
     }
     
-    listSendableMessage = splitString(messageToSplit, "\\n\\s+\\n");
+    listSendableMessage = splitString(messageToSplit, "(\\n\\s+\\n)?(\\n\\n)");
     
     List<String> finalMessageList = new ArrayList<>();
     
@@ -49,9 +49,18 @@ public class MessageUtil {
     for(String partOfMessage : messageSplited) {
       if(messageAccumulation.length() + partOfMessage.length() > Message.MAX_CONTENT_LENGTH) {
         sendableMessage.add(messageAccumulation.toString());
-        messageAccumulation = new StringBuilder(partOfMessage);
+        if(separator.equals("(\\n\\s+\\n)?(\\n\\n)")) {
+          messageAccumulation = new StringBuilder(partOfMessage + "\n \n");
+        } else {
+          messageAccumulation = new StringBuilder(partOfMessage + "\n");
+        }
+        
       }else {
-        messageAccumulation.append(partOfMessage);
+        if(separator.equals("(\\n\\s+\\n)?(\\n\\n)")) {
+          messageAccumulation.append(partOfMessage + "\n \n");
+        } else {
+          messageAccumulation.append(partOfMessage + "\n");
+        }
       }
     }
     

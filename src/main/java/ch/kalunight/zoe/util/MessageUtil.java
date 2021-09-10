@@ -24,7 +24,7 @@ public class MessageUtil {
       return listSendableMessage;
     }
     
-    listSendableMessage = splitString(messageToSplit, "2(\\r?\\n)");
+    listSendableMessage = splitString(messageToSplit, "\\n\\s+\\n");
     
     List<String> finalMessageList = new ArrayList<>();
     

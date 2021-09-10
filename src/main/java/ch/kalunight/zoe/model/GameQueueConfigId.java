@@ -43,5 +43,4 @@ public enum GameQueueConfigId {
     }
     return null;
   }
-  
 }

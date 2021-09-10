@@ -7,6 +7,9 @@ import net.dv8tion.jda.api.entities.Message;
 
 public class MessageUtil {
   
+  private static final String PATTERN_SPLIT_ONE_LINE = "\\r?\\n";
+  private static final String PATTERN_SPLIT_TWO_NEW_LINES = "(\\n\\s+\\n|\\n\\n|\\n \\n)";
+
   private MessageUtil() {
     // hide default public constructor
   }
@@ -24,13 +27,17 @@ public class MessageUtil {
       return listSendableMessage;
     }
     
-    listSendableMessage = splitString(messageToSplit, "(\\n\\s+\\n)?(\\n\\n)");
+    listSendableMessage = splitString(messageToSplit, PATTERN_SPLIT_TWO_NEW_LINES);
     
     List<String> finalMessageList = new ArrayList<>();
     
     for(String messageToCheck : listSendableMessage) {
+      if(messageToCheck.isBlank()) {
+        continue;
+      }
+      
       if(messageToCheck.length() > Message.MAX_CONTENT_LENGTH) {
-        finalMessageList.addAll(splitString(messageToCheck, "\\r?\\n"));
+        finalMessageList.addAll(splitString(messageToCheck, PATTERN_SPLIT_ONE_LINE));
       }else {
         finalMessageList.add(messageToCheck);
       }
@@ -49,14 +56,14 @@ public class MessageUtil {
     for(String partOfMessage : messageSplited) {
       if(messageAccumulation.length() + partOfMessage.length() > Message.MAX_CONTENT_LENGTH) {
         sendableMessage.add(messageAccumulation.toString());
-        if(separator.equals("(\\n\\s+\\n)?(\\n\\n)")) {
+        if(separator.equals(PATTERN_SPLIT_TWO_NEW_LINES)) {
           messageAccumulation = new StringBuilder(partOfMessage + "\n \n");
         } else {
           messageAccumulation = new StringBuilder(partOfMessage + "\n");
         }
         
       }else {
-        if(separator.equals("(\\n\\s+\\n)?(\\n\\n)")) {
+        if(separator.equals(PATTERN_SPLIT_TWO_NEW_LINES)) {
           messageAccumulation.append(partOfMessage + "\n \n");
         } else {
           messageAccumulation.append(partOfMessage + "\n");
@@ -64,7 +71,9 @@ public class MessageUtil {
       }
     }
     
-    sendableMessage.add(messageAccumulation.toString());
+    if(!messageAccumulation.toString().isBlank()) {
+      sendableMessage.add(messageAccumulation.toString());
+    }
     
     return sendableMessage;
   }

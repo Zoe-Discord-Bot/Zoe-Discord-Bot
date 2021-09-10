@@ -82,7 +82,7 @@ public class CachedRiotApi {
     this.riotApi = r4j;
     CodecRegistry pojoCodecRegistry = CodecRegistries.fromRegistries(MongoClientSettings.getDefaultCodecRegistry(), org.bson.codecs.configuration.CodecRegistries.fromProviders(PojoCodecProvider.builder().automatic(true).build()));
     client = new MongoClient(new MongoClientURI(connectString));
-
+    
     Iterator<String> iterator = client.listDatabaseNames().iterator();
 
     boolean dbExist = false;

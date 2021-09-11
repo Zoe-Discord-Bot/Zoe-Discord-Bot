@@ -174,7 +174,6 @@ public class Zoe {
 
     String riotTocken;
     String tftTocken;
-    String mongoDbString;
 
     try {
       discordTocken = args[0];
@@ -184,10 +183,9 @@ public class Zoe {
       client.setOwnerId(clientOwnerID);
 
       RepoRessources.setupDatabase(args[5], args[4]);
-      mongoDbString = args[6];
     }catch(Exception e) {
-      logger.error("Error with parameters : 1. Discord Tocken 2. LoL tocken 3. TFT tocken 4. Owner Id 5. DB url 6. DB password 7. MongoDB String", e);
-      throw e;
+      logger.error("Error with parameters : 1. Discord Tocken 2. LoL tocken 3. TFT tocken 4. Owner Id 5. DB url 6. DB password", e);
+      return;
     }
 
     try {
@@ -197,10 +195,15 @@ public class Zoe {
       return;
     }
 
-    initRiotApi(riotTocken, tftTocken, mongoDbString);
-
     try {
-      discordBotListTocken = args[7];
+      initRiotApi(riotTocken, tftTocken);
+    } catch(Exception e) {
+      logger.error("Error while init Riot api", e);
+      return;
+    }
+    
+    try {
+      discordBotListTocken = args[6];
     } catch(Exception e) {
       logger.info("Discord api list tocken not implement");
     }
@@ -380,7 +383,7 @@ public class Zoe {
     return clientsLoaded;
   }
 
-  public static void initRiotApi(String riotTocken, String tftTocken, String mongoDbString) {
+  public static void initRiotApi(String riotTocken, String tftTocken) throws IOException {
     APICredentials creds = new APICredentials(riotTocken, null, tftTocken, null, null);
     R4J baseRiotApi = new R4J(creds);
     
@@ -388,7 +391,7 @@ public class Zoe {
     DataCall.setCredentials(creds);
     DataCall.setCacheProvider(null);
     
-    riotApi = new CachedRiotApi(baseRiotApi, mongoDbString, "zoe");
+    riotApi = new CachedRiotApi(baseRiotApi, "zoe");
   }
 
   private static void setupContinousRefreshThread() {

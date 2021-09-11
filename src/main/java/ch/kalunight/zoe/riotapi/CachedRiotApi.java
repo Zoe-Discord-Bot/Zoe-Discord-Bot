@@ -1,5 +1,8 @@
 package ch.kalunight.zoe.riotapi;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -14,9 +17,12 @@ import org.slf4j.LoggerFactory;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientException;
+import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.MongoClientURI;
+import com.mongodb.MongoCredential;
 import com.mongodb.MongoException;
+import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
@@ -59,6 +65,8 @@ public class CachedRiotApi {
   private static final String TFT_SUMMONER_V1 = "TFT-SUMMONER-V1";
 
   private static final String MATCH_V5 = "MATCH-V5";
+  
+  private static final String MONGO_CREDENTIAL_FILE_PATH = "ressources/mongoCredential.txt";
 
   private static final Logger logger = LoggerFactory.getLogger(CachedRiotApi.class);
 
@@ -78,10 +86,11 @@ public class CachedRiotApi {
 
   private MongoCollection<SavedClashTournament> clashTournamentCache;
 
-  public CachedRiotApi(R4J r4j, String connectString, String dbName) {
+  public CachedRiotApi(R4J r4j, String dbName) throws IOException {
     this.riotApi = r4j;
     CodecRegistry pojoCodecRegistry = CodecRegistries.fromRegistries(MongoClientSettings.getDefaultCodecRegistry(), org.bson.codecs.configuration.CodecRegistries.fromProviders(PojoCodecProvider.builder().automatic(true).build()));
-    client = new MongoClient(new MongoClientURI(connectString));
+    
+    client = getMongoClient(pojoCodecRegistry);
     
     Iterator<String> iterator = client.listDatabaseNames().iterator();
 
@@ -97,8 +106,12 @@ public class CachedRiotApi {
       throw new MongoClientException("Db doesn't exist! Please create it!");
     }
 
-    cacheDatabase = client.getDatabase(dbName).withCodecRegistry(pojoCodecRegistry);
-
+    if(getMongoCredential().split("\\|").length == 1) {
+      cacheDatabase = client.getDatabase(dbName).withCodecRegistry(pojoCodecRegistry);
+    }else {
+      cacheDatabase = client.getDatabase(dbName);
+    }
+    
     List<String> allCollections = new ArrayList<>();
     Iterator<String> collectionsIterator = cacheDatabase.listCollectionNames().iterator();
 
@@ -159,14 +172,14 @@ public class CachedRiotApi {
     tftSummonerCache = cacheDatabase.getCollection(TFT_SUMMONER_V1, SavedSummoner.class);
     if(!allCollections.contains(TFT_SUMMONER_V1)) {
       cacheDatabase.createCollection(TFT_SUMMONER_V1);
-      summonerCache = cacheDatabase.getCollection(TFT_SUMMONER_V1, SavedSummoner.class);
+      tftSummonerCache = cacheDatabase.getCollection(TFT_SUMMONER_V1, SavedSummoner.class);
 
       IndexOptions options = new IndexOptions();
       options.name("tftSummonerIndexConstraint");
       options.unique(true);
 
       Bson bson = Projections.include("platform", "summonerId");
-      summonerCache.createIndex(bson, options);
+      tftSummonerCache.createIndex(bson, options);
 
       options = new IndexOptions();
       options.name("TFTSummonerTTLIndex");
@@ -209,6 +222,33 @@ public class CachedRiotApi {
       options.expireAfter(6l, TimeUnit.HOURS);
       clashTournamentCache.createIndex(indexDateBson, options);
     }
+  }
+
+  private MongoClient getMongoClient(CodecRegistry pojoCodecRegistry) throws IOException {
+    
+    String[] splitString = getMongoCredential().split("\\|");
+    if(splitString.length == 1) {
+      return new MongoClient(new MongoClientURI(splitString[0]));
+    }
+    
+    int nbrRound = 0;
+    List<ServerAddress> serversAdress = new ArrayList<>();
+    while(nbrRound < (splitString.length - 2)) {
+      serversAdress.add(new ServerAddress(splitString[nbrRound]));
+      nbrRound++;
+    }
+    
+    MongoCredential credential = MongoCredential.createCredential(splitString[nbrRound], "admin", splitString[nbrRound + 1].toCharArray());
+    
+    return new MongoClient(serversAdress, credential, MongoClientOptions.builder().codecRegistry(pojoCodecRegistry).applicationName("Zoe Java APP").build());
+  }
+
+  private String getMongoCredential() throws IOException {
+    String credentialFile;
+    try(BufferedReader reader = new BufferedReader(new FileReader(MONGO_CREDENTIAL_FILE_PATH));){
+      credentialFile = reader.readLine();
+    }
+    return credentialFile;
   }
 
   public SavedSummoner getSummonerByName(ZoePlatform platform, String summonerName) {

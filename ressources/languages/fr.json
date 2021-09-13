@@ -683,5 +683,8 @@
     "banAccountCommandHelpSlashMessage": "Permet à un propriétaire de compte de supprimer son compte des autres serveurs.",
     "removePlayerToTeamHelpMessageSlashCommand": "Supprime le joueur donné de son équipe.",
     "removeAccountHelpMessageSlashCommand": "Supprime le compte donné du lecteur mentionné.",
-    "statsTeamAnalysisHelpMessageSlashCommand": "Commence une analyse de l'équipe avec des recommandations de bannissement."
+    "statsTeamAnalysisHelpMessageSlashCommand": "Commence une analyse de l'équipe avec des recommandations de bannissement.",
+    "showPlayersCommandNeedToMentionAPlayer": "Ce joueur n'est pas enregistré. Veuillez mentionner un joueur enregistré.",
+    "showPlayersCommandMentionPlayerShow": "Liste des comptes enregistrés pour ce joueur :",
+    "supportMessageZoeSupPriceReduced": "Suite à vos commentaires, les prix des abonnements ont été revus à la baisse ! Plus d'informations : <https://bit.ly/support-zoe>"
 }

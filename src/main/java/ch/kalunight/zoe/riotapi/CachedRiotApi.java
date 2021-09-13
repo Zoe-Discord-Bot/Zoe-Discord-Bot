@@ -223,6 +223,10 @@ public class CachedRiotApi {
       clashTournamentCache.createIndex(indexDateBson, options);
     }
   }
+  
+  public void closeMongoClient() {
+    client.close();
+  }
 
   private MongoClient getMongoClient(CodecRegistry pojoCodecRegistry) throws IOException {
     

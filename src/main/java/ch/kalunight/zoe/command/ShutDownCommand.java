@@ -88,6 +88,7 @@ public class ShutDownCommand extends ZoeCommand {
     }
 
     RepoRessources.shutdownDB();
+    Zoe.getRiotApi().closeMongoClient();
 
     logger.info("JDA has been ShutDown !");
     logger.info("Zoe Process are now totally down ! Some process can remain and will be shutdown automatically.");

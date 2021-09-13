@@ -32,7 +32,7 @@ public class MessageUtil {
     List<String> finalMessageList = new ArrayList<>();
     
     for(String messageToCheck : listSendableMessage) {
-      if(messageToCheck.isBlank()) {
+      if(messageToCheck.isEmpty()) {
         continue;
       }
       
@@ -71,7 +71,7 @@ public class MessageUtil {
       }
     }
     
-    if(!messageAccumulation.toString().isBlank()) {
+    if(!messageAccumulation.toString().isEmpty()) {
       sendableMessage.add(messageAccumulation.toString());
     }
     

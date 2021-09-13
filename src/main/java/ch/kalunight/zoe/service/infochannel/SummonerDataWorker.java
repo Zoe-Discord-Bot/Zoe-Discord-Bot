@@ -25,6 +25,8 @@ public class SummonerDataWorker implements Runnable {
   
   private static final Logger logger = LoggerFactory.getLogger(SummonerDataWorker.class);
   
+  private static final boolean WINRATE_DISABLE = true;
+  
   private List<String> listIdPlayers;
 
   private ZoePlatform platform;
@@ -97,8 +99,14 @@ public class SummonerDataWorker implements Runnable {
       playerData.setRankData(rank);
       
       logger.debug("Start loading Winrate Summoner data worker for {} {}", platform.getShowableName(), participant.getSummonerName());
-      playerData.setWinRateData(RiotRequest.getMasterysScore(participant.getSummonerId(), participant.getChampionId(), platform, forceRefresh) + " | "
-          + RiotRequest.getWinrateLastMonthWithGivenChampion(participant.getSummonerId(), platform, participant.getChampionId(), queuesList, language, forceRefresh));
+      if(!WINRATE_DISABLE) {
+        playerData.setWinRateData(RiotRequest.getMasterysScore(participant.getSummonerId(), participant.getChampionId(), platform, forceRefresh) + " | "
+            + RiotRequest.getWinrateLastMonthWithGivenChampion(participant.getSummonerId(), platform, participant.getChampionId(), queuesList, language, forceRefresh));
+      }else {
+        playerData.setWinRateData(RiotRequest.getMasterysScore(participant.getSummonerId(), participant.getChampionId(), platform, forceRefresh) + " | "
+            + "Stats tmp. disable");
+      }
+
       logger.debug("End loading Summoner data worker for {} {}", platform.getShowableName(), participant.getSummonerName());
     } catch (Exception e) {
       logger.error("Unexpected error in SummonerDataWorker !", e);

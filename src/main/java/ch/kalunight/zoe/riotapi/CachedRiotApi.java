@@ -65,7 +65,7 @@ public class CachedRiotApi {
   private static final String TFT_SUMMONER_V1 = "TFT-SUMMONER-V1";
 
   private static final String MATCH_V5 = "MATCH-V5";
-  
+
   private static final String MONGO_CREDENTIAL_FILE_PATH = "ressources/mongoCredential.txt";
 
   private static final Logger logger = LoggerFactory.getLogger(CachedRiotApi.class);
@@ -89,9 +89,9 @@ public class CachedRiotApi {
   public CachedRiotApi(R4J r4j, String dbName) throws IOException {
     this.riotApi = r4j;
     CodecRegistry pojoCodecRegistry = CodecRegistries.fromRegistries(MongoClientSettings.getDefaultCodecRegistry(), org.bson.codecs.configuration.CodecRegistries.fromProviders(PojoCodecProvider.builder().automatic(true).build()));
-    
+
     client = getMongoClient(pojoCodecRegistry);
-    
+
     Iterator<String> iterator = client.listDatabaseNames().iterator();
 
     boolean dbExist = false;
@@ -111,7 +111,7 @@ public class CachedRiotApi {
     }else {
       cacheDatabase = client.getDatabase(dbName);
     }
-    
+
     List<String> allCollections = new ArrayList<>();
     Iterator<String> collectionsIterator = cacheDatabase.listCollectionNames().iterator();
 
@@ -143,7 +143,7 @@ public class CachedRiotApi {
 
       bson = Projections.include("players.championId", "queueId");
       matchCache.createIndex(bson, options);
-      
+
       options = new IndexOptions();
       options.name("versionQueueIndex");
 
@@ -214,7 +214,7 @@ public class CachedRiotApi {
       options.name("clashTournamentIndexConstraint");
       options.unique(true);
 
-      Bson bson = Projections.include("platform", "tournamentId");
+      Bson bson = Projections.include("server", "tournamentId");
       clashTournamentCache.createIndex(bson, options);
 
       options = new IndexOptions();
@@ -223,27 +223,27 @@ public class CachedRiotApi {
       clashTournamentCache.createIndex(indexDateBson, options);
     }
   }
-  
+
   public void closeMongoClient() {
     client.close();
   }
 
   private MongoClient getMongoClient(CodecRegistry pojoCodecRegistry) throws IOException {
-    
+
     String[] splitString = getMongoCredential().split("\\|");
     if(splitString.length == 1) {
       return new MongoClient(new MongoClientURI(splitString[0]));
     }
-    
+
     int nbrRound = 0;
     List<ServerAddress> serversAdress = new ArrayList<>();
     while(nbrRound < (splitString.length - 2)) {
       serversAdress.add(new ServerAddress(splitString[nbrRound]));
       nbrRound++;
     }
-    
+
     MongoCredential credential = MongoCredential.createCredential(splitString[nbrRound], "admin", splitString[nbrRound + 1].toCharArray());
-    
+
     return new MongoClient(serversAdress, credential, MongoClientOptions.builder().codecRegistry(pojoCodecRegistry).applicationName("Zoe Java APP").build());
   }
 
@@ -375,7 +375,7 @@ public class CachedRiotApi {
     }catch (NullPointerException e) {
       logger.warn("Null pointer exception while getting ID {}", matchId);
     }
-    
+
     if(matchOriginal == null) {
       throw new APIResponseException(APIHTTPErrorReason.ERROR_404, "Not found");
     }
@@ -404,28 +404,28 @@ public class CachedRiotApi {
   public String getLastPatchVersion() {
     SavedMatch matchLastVersion = matchCache.find().sort(Projections.computed("gameVersion", -1))
         .limit(1).first();
-    
+
     if(matchLastVersion == null) {
       return null;
     }
-    
+
     return matchLastVersion.getGameVersion();
   }
-  
+
   public List<SavedMatch> getMatchsByChampionId(int championId, GameQueueType queue) {
-    
+
     Bson matchSearch = Projections.fields(Projections.computed("queueId", queue.name()), Projections.computed("players.championId", championId));
-    
+
     Iterator<SavedMatch> iterator = matchCache.find(matchSearch).limit(10000).iterator();
-    
+
     List<SavedMatch> matchToReturn = new ArrayList<>();
     while (iterator.hasNext()) {
       matchToReturn.add(iterator.next());
     }
-    
+
     return matchToReturn;
   }
-  
+
   public List<String> getMatchListBySummonerId(ZoePlatform platform, String puuid){
     MatchListBuilder builder = new MatchListBuilder();
 
@@ -481,7 +481,7 @@ public class CachedRiotApi {
     Bson masteryWanted = Projections.fields(Projections.computed("summonerId", summonerId), Projections.computed("platform", platform.getShowableName()));
 
     List<SavedSimpleMastery> championMastery = new ArrayList<>();
-    
+
     if(!forceRefresh) {
       MongoCursor<SavedSimpleMastery> cursor = championsMasteryCache.find(masteryWanted).iterator();
 

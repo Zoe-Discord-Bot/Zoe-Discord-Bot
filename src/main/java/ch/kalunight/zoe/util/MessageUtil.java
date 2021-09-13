@@ -3,6 +3,8 @@ package ch.kalunight.zoe.util;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.jagrosh.jdautilities.command.CommandEvent;
+
 import net.dv8tion.jda.api.entities.Message;
 
 public class MessageUtil {
@@ -43,7 +45,12 @@ public class MessageUtil {
       }
     }
     
-    return finalMessageList;
+    List<String> discordCheckedFinalMessageList = new ArrayList<>();
+    for(String messageToCheck : finalMessageList) {
+      discordCheckedFinalMessageList.addAll(CommandEvent.splitMessage(messageToCheck));
+    }
+    
+    return discordCheckedFinalMessageList;
   }
 
   private static List<String> splitString(String messageToSplit, String separator) {

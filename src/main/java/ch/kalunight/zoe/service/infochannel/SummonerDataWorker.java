@@ -104,7 +104,7 @@ public class SummonerDataWorker implements Runnable {
             + RiotRequest.getWinrateLastMonthWithGivenChampion(participant.getSummonerId(), platform, participant.getChampionId(), queuesList, language, forceRefresh));
       }else {
         playerData.setWinRateData(RiotRequest.getMasterysScore(participant.getSummonerId(), participant.getChampionId(), platform, forceRefresh) + " | "
-            + "Stats tmp. disable");
+            + LanguageManager.getText(language, "winrateTemporaryDisable"));
       }
 
       logger.debug("End loading Summoner data worker for {} {}", platform.getShowableName(), participant.getSummonerName());

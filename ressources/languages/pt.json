@@ -683,5 +683,8 @@
     "subscriptionCommandUserNotSupport": "Vai a [my Ko-fi](https://bit.ly/support-zoe) e selecione um tier! Todas as doações contam!\nJá é um apoiador, mas seus benefícios estão faltando? Junte-se a [Official Zoe Discord server](https://discord.gg/zGyrJ9GvRt) e [link your Ko-fi account with your Discord account.](https://ko-fi.com/Discord/Settings)",
     "supportMessageDeveloppedOnePerson": "Zoe é desenvolvida por uma única pessoa. Você pode me apoiar no desenvolvimento aqui : <https://bit.ly/support-zoe>",
     "supportMessageSubscriptionCommand": "Se você oferece suporte a Zoe com uma assinatura, pode ver todos os seus benefícios com o comando >subscription",
-    "supportMessageEarlyAccess": "Quer um acesso mais rápido aos novos recursos do Zoe? Apoie Zoe e use-os 2 semanas antes. Mais informações: <https://bit.ly/support-zoe>"
+    "supportMessageEarlyAccess": "Quer um acesso mais rápido aos novos recursos do Zoe? Apoie Zoe e use-os 2 semanas antes. Mais informações: <https://bit.ly/support-zoe>",
+    "showPlayersCommandMentionPlayerShow": "Lista de contas registadas para este jogador:",
+    "showPlayersCommandNeedToMentionAPlayer": "Este jogador não está registado. Por favor, mencione um jogador registado.",
+    "supportMessageZoeSupPriceReduced": "Após o seu feedback, os preços de subscrição foram reduzidos! Mais informações: <https://bit.ly/support-zoe>"
 }

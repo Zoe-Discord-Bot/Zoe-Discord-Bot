@@ -684,7 +684,7 @@
     "supportMessageZoeLoveDonation": "If you like Zoe consider a donation! She is currently not sustainable in the long term.\nTo help: <https://bit.ly/support-zoe>",
     "supportMessageZoeFutur": "Zoe's future is not guaranteed. Support the project to make sure it is.\nTo help: <https://bit.ly/support-zoe>",
     "supportMessageZoeNeededTLDR": "Zoe needs %d€ per month to survive! Current Status: %d€/%d€\nTo help: <https://bit.ly/support-zoe>",
-	"showPlayersCommandNeedToMentionAPlayer": "This player is not registered. Please mention a registered player.",
-	"showPlayersCommandMentionPlayerShow": "List of registered accounts for this player:",
-	"supportMessageZoeSupPriceReduced": "After your feedback, the subscription prices have been lowered! More info: https://bit.ly/support-zoe"
+    "showPlayersCommandNeedToMentionAPlayer": "This player is not registered. Please mention a registered player.",
+    "showPlayersCommandMentionPlayerShow": "List of registered accounts for this player:",
+    "supportMessageZoeSupPriceReduced": "After your feedback, the subscription prices have been lowered! More info: <https://bit.ly/support-zoe>"
 }

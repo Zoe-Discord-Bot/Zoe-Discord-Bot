@@ -29,7 +29,7 @@ public class ZoeSupportMessageGeneratorUtil {
 
   private static final int CHANCE_RANDOM_MAX_RANGE = 10;
 
-  private static final int CHANCE_TO_SHOW_INCITATIVE = 5; // 5 chance on 10
+  private static final int CHANCE_TO_SHOW_INCITATIVE = 3; // 3 chance on 10
 
   private static Integer nbrSupporters = null;
 
@@ -57,6 +57,7 @@ public class ZoeSupportMessageGeneratorUtil {
     incitativeSupportPhrasesId.add("supportMessageZoeLoveDonation");
     incitativeSupportPhrasesId.add("supportMessageZoeFutur");
     incitativeSupportPhrasesId.add("supportMessageZoeNeededTLDR");
+    incitativeSupportPhrasesId.add("supportMessageZoeSupPriceReduced");
   }
 
   private ZoeSupportMessageGeneratorUtil() {

@@ -6,9 +6,9 @@ import ch.kalunight.zoe.util.Ressources;
 public enum UserRank {
   DEV(0, "devName", "554670096103112776", false, 0),
   STAFF(1, "staffName", "872075875745677403", false, 0),
-  SUB_TIER_3(2, "subTier3Name", "870672597673705493", true, 25),
-  SUB_TIER_2(3, "subTier2Name", "870672480946233365", true, 10),
-  SUB_TIER_1(4, "subTier1Name", "870672322032447538", true, 5),
+  SUB_TIER_3(2, "subTier3Name", "870672597673705493", true, 10),
+  SUB_TIER_2(3, "subTier2Name", "870672480946233365", true, 5),
+  SUB_TIER_1(4, "subTier1Name", "870672322032447538", true, 2),
   EXCEPTIONNAL_FEATURES_ACCESS(5, "exceptionnalAccessName", "872088918370181150", false, 0);
   
   private long id;

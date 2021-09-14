@@ -898,7 +898,7 @@ public class MessageBuilderRequest {
         }
         FullTier fullTier = new FullTier(tier, rank, leaguePosition.getLeaguePoints());
 
-        if(GameQueueConfigId.getGameQueueIdWithQueueType(leaguePosition.getQueueType()).equals(GameQueueConfigId.RANKED_TFT)) {
+        if(GameQueueConfigId.RANKED_TFT == GameQueueConfigId.getGameQueueIdWithQueueType(leaguePosition.getQueueType())) {
           tftRank = String.format(LanguageManager.getText(language, "statsProfileQueueTFT"), 
               Ressources.getTierEmote().get(tier).getUsableEmote() + " " + fullTier.toString(language));
         }

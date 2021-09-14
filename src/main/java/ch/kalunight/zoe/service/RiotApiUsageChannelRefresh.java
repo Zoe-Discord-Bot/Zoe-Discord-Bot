@@ -103,6 +103,8 @@ public class RiotApiUsageChannelRefresh implements Runnable {
             + "\nTotal number of Leaderboards : " + LeaderboardRepository.countLeaderboards()).queue();
 
         InfoPanelRefresher.getNbrServerSefreshedLast2Minutes().set(0);
+        setInfocardCanceledCount(0);
+        setInfocardCreatedCount(0);
 
         rapiInfoChannel.sendMessage("**Discord Command Stats**"
             + "\nTotal discord command executed : " + ZoeCommand.getCommandExecuted().get() 

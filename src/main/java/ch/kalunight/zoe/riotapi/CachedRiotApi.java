@@ -29,6 +29,7 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.Projections;
 
+import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.SavedClashTournament;
 import ch.kalunight.zoe.model.dto.SavedMatch;
 import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
@@ -281,6 +282,30 @@ public class CachedRiotApi {
     }
 
     Summoner summonerOriginal = riotApi.getLoLAPI().getSummonerAPI().getSummonerById(platform.getLeagueShard(), summonerId);
+
+    if(summonerOriginal == null) {
+      throw new APIResponseException(APIHTTPErrorReason.ERROR_404, "Not found");
+    }
+
+    summoner = new SavedSummoner(summonerOriginal, platform);
+
+    insertOrReplaceSummoner(summoner, getSearchBsonForSummoner(platform, summoner.getSummonerId()));
+
+    return summoner;
+  }
+  
+  public SavedSummoner getSummonerByPUUIDWithAccountTransferManagement(ZoePlatform platform, LeagueAccount leagueaccount, boolean forceRefresh) {
+
+    SavedSummoner summoner;
+    if(!forceRefresh) {
+      summoner = summonerCache.find(getSearchBsonForSummoner(platform, leagueaccount.leagueAccount_summonerId)).first();
+
+      if(summoner != null) {
+        return summoner;
+      }
+    }
+
+    Summoner summonerOriginal = riotApi.getLoLAPI().getSummonerAPI().getSummonerByPUUID(platform.getLeagueShard(), leagueaccount.leagueAccount_puuid);
 
     if(summonerOriginal == null) {
       throw new APIResponseException(APIHTTPErrorReason.ERROR_404, "Not found");

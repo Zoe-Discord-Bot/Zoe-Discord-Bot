@@ -13,7 +13,7 @@ import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.model.player_data.Rank;
 import ch.kalunight.zoe.model.player_data.Tier;
 import ch.kalunight.zoe.service.rankchannel.RankedChannelLoLRefresher;
-import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
+import no.stelar7.api.r4j.pojo.lol.spectator.SpectatorGameInfo;
 
 public class TreatedPlayer {
   
@@ -22,11 +22,11 @@ public class TreatedPlayer {
   private String infochannelMessage;
   private List<FullTier> soloqRanks;
   private Map<DTO.CurrentGameInfo, LeagueAccount> gamesToDelete = Collections.synchronizedMap(new HashMap<>());
-  private Map<CurrentGameInfo, LeagueAccount> gamesToCreate = Collections.synchronizedMap(new HashMap<>());
+  private Map<SpectatorGameInfo, LeagueAccount> gamesToCreate = Collections.synchronizedMap(new HashMap<>());
   private List<RankedChannelLoLRefresher> rankChannelsToProcess = Collections.synchronizedList(new ArrayList<>());
   
   public TreatedPlayer(Player player, DTO.Team team, String infochannelMessage, List<FullTier> soloqRank,
-      Map<DTO.CurrentGameInfo, LeagueAccount> gamesToDelete, Map<CurrentGameInfo, LeagueAccount> gamesToCreate,
+      Map<DTO.CurrentGameInfo, LeagueAccount> gamesToDelete, Map<SpectatorGameInfo, LeagueAccount> gamesToCreate,
       List<RankedChannelLoLRefresher> rankChannelsToProcess) {
     this.player = player;
     this.team = team;
@@ -73,7 +73,7 @@ public class TreatedPlayer {
     return gamesToDelete;
   }
 
-  public Map<CurrentGameInfo, LeagueAccount> getGamesToCreate() {
+  public Map<SpectatorGameInfo, LeagueAccount> getGamesToCreate() {
     return gamesToCreate;
   }
 

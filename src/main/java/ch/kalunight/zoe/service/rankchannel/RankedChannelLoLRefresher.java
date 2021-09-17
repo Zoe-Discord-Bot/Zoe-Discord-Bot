@@ -18,9 +18,9 @@ import ch.kalunight.zoe.util.request.MessageBuilderRequest;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
-import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
-import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
+import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
+import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
+import no.stelar7.api.r4j.pojo.lol.spectator.SpectatorGameInfo;
 
 public class RankedChannelLoLRefresher extends RankedChannelBaseRefresher {
 
@@ -28,16 +28,17 @@ public class RankedChannelLoLRefresher extends RankedChannelBaseRefresher {
 
   private static final Map<GameAccessDataServerSpecific, List<PlayerRankedResult>> matchsWaitingToComplete = Collections.synchronizedMap(new HashedMap<GameAccessDataServerSpecific, List<PlayerRankedResult>>());
 
-  private CurrentGameInfo gameOfTheChange;
+  private SpectatorGameInfo gameOfTheChange;
 
   public RankedChannelLoLRefresher(RankHistoryChannel rankChannel, LeagueEntry oldEntry, LeagueEntry newEntry,
-      CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, Server server, JDA jda) {
-    super(rankChannel, oldEntry, newEntry, player, leagueAccount, server, jda);
+      SpectatorGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, Server server, JDA jda, boolean forceRefresh) {
+    super(rankChannel, oldEntry, newEntry, player, leagueAccount, server, jda, forceRefresh);
     this.gameOfTheChange = gameOfTheChange;
   }
 
   private TreatMultiplePlayerResponse manageMultipleAccountsInGame(RankedChangeType change) {
-    GameAccessDataServerSpecific gameAccessDataServer = new GameAccessDataServerSpecific(gameOfTheChange.getGameId(), leagueAccount.leagueAccount_server, server.serv_guildId);
+    GameAccessDataServerSpecific gameAccessDataServer = new GameAccessDataServerSpecific(gameOfTheChange.getGameId(),
+        leagueAccount.leagueAccount_server, server.serv_guildId);
     List<LeagueAccount> participantsFromTheServer = matchsToTreat.get(gameAccessDataServer);
 
     if(participantsFromTheServer == null) {
@@ -46,7 +47,7 @@ public class RankedChannelLoLRefresher extends RankedChannelBaseRefresher {
 
     synchronized (participantsFromTheServer) {
       if(participantsFromTheServer.size() >= 2) {
-        PlayerRankedResult playerResult = MessageBuilderRequest.getMatchDataMutiplePlayers(oldEntry, newEntry, gameOfTheChange, leagueAccount, server.getLanguage(), change);
+        PlayerRankedResult playerResult = MessageBuilderRequest.getMatchDataMutiplePlayers(oldEntry, newEntry, gameOfTheChange, leagueAccount, server.getLanguage(), change, forceRefresh);
 
         List<PlayerRankedResult> listPlayersRankedResult = matchsWaitingToComplete.get(gameAccessDataServer);
         if(listPlayersRankedResult != null) {
@@ -100,8 +101,8 @@ public class RankedChannelLoLRefresher extends RankedChannelBaseRefresher {
     if(message == null) {
       try {
         message = MessageBuilderRequest.createRankChannelCardLeagueChange
-            (oldEntry, newEntry, gameOfTheChange, player, leagueAccount, server.getLanguage(), jda);
-      } catch (RiotApiException e) {
+            (oldEntry, newEntry, gameOfTheChange, player, leagueAccount, server.getLanguage(), jda, forceRefresh);
+      } catch (APIResponseException e) {
         logger.warn("RiotApiException while creating Rankchannel Message", e);
         return;
       }
@@ -127,8 +128,8 @@ public class RankedChannelLoLRefresher extends RankedChannelBaseRefresher {
     if(message == null) {
       try {
         message = MessageBuilderRequest.createRankChannelCardBoEnded(oldEntry, newEntry, gameOfTheChange,
-            player, leagueAccount, server.getLanguage(), jda);
-      } catch (RiotApiException e) {
+            player, leagueAccount, server.getLanguage(), jda, forceRefresh);
+      } catch (APIResponseException e) {
         logger.warn("RiotApiException while creating Rankchannel Message", e);
         return;
       }
@@ -154,8 +155,8 @@ public class RankedChannelLoLRefresher extends RankedChannelBaseRefresher {
     if(message == null) {
       try {
         message = MessageBuilderRequest.createRankChannelCardBoStarted(newEntry, gameOfTheChange, player, leagueAccount, 
-            server.getLanguage(), jda);
-      } catch (RiotApiException e) {
+            server.getLanguage(), jda, forceRefresh);
+      } catch (APIResponseException e) {
         logger.warn("RiotApiException while creating Rankchannel Message", e);
         return;
       }
@@ -181,8 +182,8 @@ public class RankedChannelLoLRefresher extends RankedChannelBaseRefresher {
     if(message == null) {
       try {
         message = MessageBuilderRequest.createRankChannelBoInProgress(oldEntry, newEntry,
-            gameOfTheChange, player,leagueAccount, server.getLanguage(), jda);
-      } catch (RiotApiException e) {
+            gameOfTheChange, player,leagueAccount, server.getLanguage(), jda, forceRefresh);
+      } catch (APIResponseException e) {
         logger.warn("RiotApiException while creating Rankchannel Message", e);
         return;
       }
@@ -209,8 +210,8 @@ public class RankedChannelLoLRefresher extends RankedChannelBaseRefresher {
     if(message == null) {
       try {
         message = MessageBuilderRequest.createRankChannelCardLeaguePointChangeOnly
-            (oldEntry, newEntry, gameOfTheChange, player, leagueAccount, server.getLanguage(), jda);
-      } catch (RiotApiException e) {
+            (oldEntry, newEntry, gameOfTheChange, player, leagueAccount, server.getLanguage(), jda, forceRefresh);
+      } catch (APIResponseException e) {
         logger.warn("RiotApiException while creating Rankchannel Message", e);
         return;
       }

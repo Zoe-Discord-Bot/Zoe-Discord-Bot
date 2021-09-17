@@ -1,1198 +1,683 @@
 package ch.kalunight.zoe.riotapi;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.sql.SQLException;
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
+import org.bson.codecs.configuration.CodecRegistries;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.codecs.pojo.PojoCodecProvider;
+import org.bson.conversions.Bson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.kalunight.zoe.model.dto.DTO;
-import ch.kalunight.zoe.model.dto.SavedChampionsMastery;
+import com.mongodb.MongoClient;
+import com.mongodb.MongoClientException;
+import com.mongodb.MongoClientOptions;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.MongoClientURI;
+import com.mongodb.MongoCredential;
+import com.mongodb.MongoException;
+import com.mongodb.ServerAddress;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.IndexOptions;
+import com.mongodb.client.model.Projections;
+
+import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
+import ch.kalunight.zoe.model.dto.SavedClashTournament;
 import ch.kalunight.zoe.model.dto.SavedMatch;
 import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
 import ch.kalunight.zoe.model.dto.SavedSummoner;
-import ch.kalunight.zoe.repositories.ChampionMasteryRepository;
-import ch.kalunight.zoe.repositories.ClashTournamentRepository;
-import ch.kalunight.zoe.repositories.SavedMatchCacheRepository;
-import ch.kalunight.zoe.repositories.SummonerCacheRepository;
-import ch.kalunight.zoe.model.dto.DTO.ChampionMasteryCache;
-import ch.kalunight.zoe.model.dto.DTO.ClashTournamentCache;
-import ch.kalunight.zoe.model.dto.DTO.MatchCache;
-import ch.kalunight.zoe.model.dto.DTO.SummonerCache;
-import net.rithms.riot.api.RiotApi;
-import net.rithms.riot.api.RiotApiAsync;
-import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.champion_mastery.dto.ChampionMastery;
-import net.rithms.riot.api.endpoints.clash.dto.ClashTeam;
-import net.rithms.riot.api.endpoints.clash.dto.ClashTeamMember;
-import net.rithms.riot.api.endpoints.clash.dto.ClashTournament;
-import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
-import net.rithms.riot.api.endpoints.match.dto.Match;
-import net.rithms.riot.api.endpoints.match.dto.MatchList;
-import net.rithms.riot.api.endpoints.match.dto.MatchTimeline;
-import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
-import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
-import net.rithms.riot.api.endpoints.tft_league.dto.TFTLeagueEntry;
-import net.rithms.riot.api.endpoints.tft_match.dto.TFTMatch;
-import net.rithms.riot.api.endpoints.tft_summoner.dto.TFTSummoner;
-import net.rithms.riot.api.request.ratelimit.RateLimitException;
-import net.rithms.riot.constant.Platform;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
+import ch.kalunight.zoe.repositories.LeagueAccountRepository;
+import no.stelar7.api.r4j.basic.constants.types.lol.GameQueueType;
+import no.stelar7.api.r4j.basic.exceptions.APIHTTPErrorReason;
+import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
+import no.stelar7.api.r4j.impl.R4J;
+import no.stelar7.api.r4j.impl.lol.builders.championmastery.ChampionMasteryBuilder;
+import no.stelar7.api.r4j.impl.lol.builders.league.LeagueBuilder;
+import no.stelar7.api.r4j.impl.lol.builders.matchv5.match.MatchBuilder;
+import no.stelar7.api.r4j.impl.lol.builders.matchv5.match.MatchListBuilder;
+import no.stelar7.api.r4j.impl.lol.builders.thirdparty.ThirdPartyCodeBuilder;
+import no.stelar7.api.r4j.pojo.lol.championmastery.ChampionMastery;
+import no.stelar7.api.r4j.pojo.lol.clash.ClashPlayer;
+import no.stelar7.api.r4j.pojo.lol.clash.ClashTeam;
+import no.stelar7.api.r4j.pojo.lol.clash.ClashTournament;
+import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
+import no.stelar7.api.r4j.pojo.lol.match.v5.LOLMatch;
+import no.stelar7.api.r4j.pojo.lol.spectator.SpectatorGameInfo;
+import no.stelar7.api.r4j.pojo.lol.summoner.Summoner;
+import no.stelar7.api.r4j.pojo.tft.TFTMatch;
+import no.stelar7.api.r4j.pojo.tft.league.TFTLeagueEntry;
 
-/**
- * This class is a wrapper for riotApi which will cache some data to reduces requests to riot servers
- */
 public class CachedRiotApi {
 
-  public static final boolean CACHE_ENABLE = true;
+  private static final String CLASH_TOURNAMENT_V1 = "CLASH-TOURNAMENT-V1";
 
-  public static final int RIOT_API_HUGE_LIMIT = 15000;
-  public static final int RIOT_API_TFT_HUGE_LIMIT = 30000;
-  public static final Duration RIOT_API_HUGE_TIME = Duration.ofMinutes(10);
+  private static final String MASTERY_V4 = "MASTERY-V4";
+
+  private static final String SUMMONER_V4 = "SUMMONER-V4";
+
+  private static final String TFT_SUMMONER_V1 = "TFT-SUMMONER-V1";
+
+  private static final String MATCH_V5 = "MATCH-V5";
+
+  private static final String MONGO_CREDENTIAL_FILE_PATH = "ressources/mongoCredential.txt";
 
   private static final Logger logger = LoggerFactory.getLogger(CachedRiotApi.class);
 
-  private static LocalDateTime lastReset = LocalDateTime.now();
+  private R4J riotApi; 
 
-  private final RiotApi riotApi;
+  private MongoClient client;
 
-  private final AtomicInteger apiMatchRequestCount = new AtomicInteger(0);
-  private final AtomicInteger allMatchRequestCount = new AtomicInteger(0);
-  private final AtomicInteger matchListRequestCount = new AtomicInteger(0);
-  private final AtomicInteger summonerRequestCount = new AtomicInteger(0);
-  private final AtomicInteger leagueEntryRequestCount = new AtomicInteger(0);
-  private final AtomicInteger championMasteryRequestCount = new AtomicInteger(0);
-  private final AtomicInteger currentGameInfoRequestCount = new AtomicInteger(0);
-  private static final Map<Platform, AtomicInteger> callByEndpoints = Collections.synchronizedMap(new EnumMap<Platform, AtomicInteger>(Platform.class));
-  private static final Map<Platform, AtomicInteger> callTFTByEndpoints = Collections.synchronizedMap(new EnumMap<Platform, AtomicInteger>(Platform.class));
+  private MongoDatabase cacheDatabase;
 
-  static {
-    for(Platform platform : Platform.values()) {
-      callByEndpoints.put(platform, new AtomicInteger(0));
-      callTFTByEndpoints.put(platform, new AtomicInteger(0));
-    }
-  }
+  private MongoCollection<SavedMatch> matchCache;
 
-  private static void increaseCallCountForGivenRegion(Platform platform) {
-    callByEndpoints.get(platform).incrementAndGet();
-  }
+  private MongoCollection<SavedSummoner> summonerCache;
 
-  private static void increaseTFTCallCountForGivenRegion(Platform platform) {
-    callTFTByEndpoints.get(platform).incrementAndGet();
-  }
+  private MongoCollection<SavedSummoner> tftSummonerCache;
 
-  public CachedRiotApi(RiotApi riotApi) {
-    this.riotApi = riotApi;
-  }
+  private MongoCollection<SavedSimpleMastery> championsMasteryCache;
 
-  public synchronized void cleanCache() throws SQLException {
-    CacheManager.cleanMatchCache();
-  }
+  private MongoCollection<SavedClashTournament> clashTournamentCache;
 
-  public MatchTimeline getMatchTimeLine(Platform platform, long matchId) throws RiotApiException {
+  public CachedRiotApi(R4J r4j, String dbName) throws IOException {
+    this.riotApi = r4j;
+    CodecRegistry pojoCodecRegistry = CodecRegistries.fromRegistries(MongoClientSettings.getDefaultCodecRegistry(), org.bson.codecs.configuration.CodecRegistries.fromProviders(PojoCodecProvider.builder().automatic(true).build()));
 
-    MatchTimeline match = riotApi.getTimelineByMatchId(platform, matchId);
+    client = getMongoClient(pojoCodecRegistry);
 
-    increaseCallCountForGivenRegion(platform);
+    Iterator<String> iterator = client.listDatabaseNames().iterator();
 
-    return match;
-  }
+    boolean dbExist = false;
 
-  public MatchTimeline getMatchTimelineWithRateLimit(Platform server, long gameId) {
-    MatchTimeline match = null;
-    boolean needToRetry;
-    do {
-
-      needToRetry = true;
-      try {
-        increaseCallCountForGivenRegion(server);
-        match = riotApi.getTimelineByMatchId(server, gameId);
-        needToRetry = false;
-      }catch(RateLimitException e) {
-        try {
-          if(e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10) {
-            return null;
-          }
-          logger.info("Waiting rate limit ({} sec) to retry", e.getRetryAfter());
-          TimeUnit.SECONDS.sleep(e.getRetryAfter());
-        } catch (InterruptedException e1) {
-          logger.error("Thread Interupted when waiting the rate limit !", e1);
-          Thread.currentThread().interrupt();
-        }
-      } catch (RiotApiException e) {
-        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
-          return null;
-        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
-          logger.warn("Bad request received from Riot Api!", e);
-          return null;
-        }
+    while(iterator.hasNext()) {
+      if(iterator.next().equals(dbName)) {
+        dbExist = true;
       }
-    }while(needToRetry);
-
-    return match;
-  }
-
-  public SavedMatch getMatch(Platform platform, long matchId) throws RiotApiException {
-
-    try {
-      MatchCache matchCache = getCachedMatch(platform, matchId);
-
-      if(matchCache != null) {
-        return matchCache.mCatch_savedMatch;
-      }
-    } catch (SQLException e) {
-      logger.warn("Error while getting cached match", e);
     }
 
-    Match match = riotApi.getMatch(platform, matchId);
-
-    apiMatchRequestCount.incrementAndGet();
-
-    allMatchRequestCount.incrementAndGet();
-    increaseCallCountForGivenRegion(platform);
-
-    SavedMatch cachedMatch = new SavedMatch(match);
-
-    try {
-      SavedMatchCacheRepository.createMatchCache(matchId, platform, cachedMatch);
-    }catch (SQLException e) {
-      logger.info("Sql expection");
+    if(!dbExist) {
+      throw new MongoClientException("Db doesn't exist! Please create it!");
     }
 
-    return cachedMatch;
-  }
-
-  public DTO.MatchCache getCachedMatch(Platform platform, long gameID) throws SQLException {
-    return CacheManager.getMatch(platform, gameID);
-  }
-
-  public MatchList getMatchListByAccountId(Platform platform, String accountId, Set<Integer> champion, Set<Integer> queue,
-      Set<Integer> season, long beginTime, long endTime, int beginIndex, int endIndex) throws RiotApiException {
-    MatchList matchList = riotApi.getMatchListByAccountId(platform, accountId, champion, queue, season, beginTime, endTime, beginIndex, endIndex);
-
-    matchListRequestCount.incrementAndGet();
-    increaseCallCountForGivenRegion(platform);
-
-    return matchList;
-  }
-
-  public MatchList getMatchListByAccountIdWithRateLimit(Platform platform, String accountId, Set<Integer> champion, Set<Integer> queue,
-      Set<Integer> season, long beginTime, long endTime, int beginIndex, int endIndex) throws RiotApiException {
-
-    MatchList matchList = null;
-    boolean needToRetry;
-    do {
-      matchListRequestCount.incrementAndGet();
-      increaseCallCountForGivenRegion(platform);
-
-      needToRetry = true;
-      try {
-        matchList = riotApi.getMatchListByAccountId(platform, accountId, champion, queue, season, beginTime, endTime, beginIndex, endIndex);
-        needToRetry = false;
-      }catch(RateLimitException e) {
-        try {
-          if(e.getRateLimitType() == null || (e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10)) {
-            return null;
-          }
-          logger.info("Waiting rate limit ({} sec) to retry in getMatchList", e.getRetryAfter());
-          TimeUnit.SECONDS.sleep(e.getRetryAfter());
-        } catch (InterruptedException e1) {
-          logger.error("Thread Interupted when waiting the rate limit in getMatchList !", e1);
-          Thread.currentThread().interrupt();
-        }
-      } catch (RiotApiException e) {
-        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
-          return null;
-        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
-          logger.warn("Bad request received from Riot Api!", e);
-          return null;
-        }
-      }
-    }while(needToRetry);
-
-    return matchList;
-  }
-
-  public SummonerCache getSummoner(Platform platform, String summonerId, boolean forceRefreshCache) throws RiotApiException {
-
-    SummonerCache summonerCache = null;
-    try {
-      summonerCache = SummonerCacheRepository.getSummonerWithSummonerId(summonerId, platform);
-    } catch (SQLException e) {
+    if(getMongoCredential().split("\\|").length == 1) {
+      cacheDatabase = client.getDatabase(dbName).withCodecRegistry(pojoCodecRegistry);
+    }else {
+      cacheDatabase = client.getDatabase(dbName);
     }
 
-    if((summonerCache != null && summonerCache.sumCache_lastRefresh.isAfter(LocalDateTime.now().minusHours(CacheRefreshTime.SUMMONER_CACHE_REFRESH_TIME_IN_HOURS)))
-        && !forceRefreshCache) {
-      return summonerCache;
+    List<String> allCollections = new ArrayList<>();
+    Iterator<String> collectionsIterator = cacheDatabase.listCollectionNames().iterator();
+
+    while(collectionsIterator.hasNext()) {
+      allCollections.add(collectionsIterator.next());
     }
 
-    try {
-      Summoner summoner = riotApi.getSummoner(platform, summonerId);
+    Bson indexDateBson = Projections.fields(Projections.include("retrieveDate"));
 
-      summonerRequestCount.incrementAndGet();
-      increaseCallCountForGivenRegion(platform);
+    matchCache = cacheDatabase.getCollection(MATCH_V5, SavedMatch.class);
+    if(!allCollections.contains(MATCH_V5)) {
+      cacheDatabase.createCollection(MATCH_V5);
+      matchCache = cacheDatabase.getCollection(MATCH_V5, SavedMatch.class);
+
+      IndexOptions options = new IndexOptions();
+      options.name("matchIndexConstraint");
+      options.unique(true);
+
+      Bson bson = Projections.include("platform", "gameId");
+      matchCache.createIndex(bson, options);
+
+      options = new IndexOptions();
+      options.name("matchTTLIndex");
+      options.expireAfter(14l, TimeUnit.DAYS);
+      matchCache.createIndex(indexDateBson, options);
+
+      options = new IndexOptions();
+      options.name("matchChampionIdQueueIndex");
+
+      bson = Projections.include("players.championId", "queueId");
+      matchCache.createIndex(bson, options);
+
+      options = new IndexOptions();
+      options.name("versionQueueIndex");
+
+      bson = Projections.include("gameVersion");
+      matchCache.createIndex(bson, options);
+    }
+
+    summonerCache = cacheDatabase.getCollection(SUMMONER_V4, SavedSummoner.class);
+    if(!allCollections.contains(SUMMONER_V4)) {
+      cacheDatabase.createCollection(SUMMONER_V4);
+      summonerCache = cacheDatabase.getCollection(SUMMONER_V4, SavedSummoner.class);
+
+      IndexOptions options = new IndexOptions();
+      options.name("summonerIndexConstraint");
+      options.unique(true);
+
+      Bson bson = Projections.include("platform", "summonerId");
+      summonerCache.createIndex(bson, options);
+
+      options = new IndexOptions();
+      options.name("summonerTTLIndex");
+      options.expireAfter(1l, TimeUnit.DAYS);
+      summonerCache.createIndex(indexDateBson, options);
+    }
+
+    tftSummonerCache = cacheDatabase.getCollection(TFT_SUMMONER_V1, SavedSummoner.class);
+    if(!allCollections.contains(TFT_SUMMONER_V1)) {
+      cacheDatabase.createCollection(TFT_SUMMONER_V1);
+      tftSummonerCache = cacheDatabase.getCollection(TFT_SUMMONER_V1, SavedSummoner.class);
+
+      IndexOptions options = new IndexOptions();
+      options.name("tftSummonerIndexConstraint");
+      options.unique(true);
+
+      Bson bson = Projections.include("platform", "summonerId");
+      tftSummonerCache.createIndex(bson, options);
+
+      options = new IndexOptions();
+      options.name("TFTSummonerTTLIndex");
+      options.expireAfter(1l, TimeUnit.DAYS);
+      tftSummonerCache.createIndex(indexDateBson, options);
+    }
+
+    championsMasteryCache = cacheDatabase.getCollection(MASTERY_V4, SavedSimpleMastery.class);
+    if(!allCollections.contains(MASTERY_V4)) {
+      cacheDatabase.createCollection(MASTERY_V4);
+      championsMasteryCache = cacheDatabase.getCollection(MASTERY_V4, SavedSimpleMastery.class);
+
+      IndexOptions options = new IndexOptions();
+      options.name("championMasteryIndexConstraint");
+      options.unique(true);
+
+      Bson bson = Projections.include("summonerId", "platform", "championId");
+      championsMasteryCache.createIndex(bson, options);
+
+      options = new IndexOptions();
+      options.name("championMasteryTTLIndex");
+      options.expireAfter(1l, TimeUnit.DAYS);
+      championsMasteryCache.createIndex(indexDateBson, options);
+    }
+
+    clashTournamentCache = cacheDatabase.getCollection(CLASH_TOURNAMENT_V1, SavedClashTournament.class);
+    if(!allCollections.contains(CLASH_TOURNAMENT_V1)) {
+      cacheDatabase.createCollection(CLASH_TOURNAMENT_V1);
+      clashTournamentCache = cacheDatabase.getCollection(CLASH_TOURNAMENT_V1, SavedClashTournament.class);
+
+      IndexOptions options = new IndexOptions();
+      options.name("clashTournamentIndexConstraint");
+      options.unique(true);
+
+      Bson bson = Projections.include("server", "tournamentId");
+      clashTournamentCache.createIndex(bson, options);
+
+      options = new IndexOptions();
+      options.name("clashTournamentTTLIndex");
+      options.expireAfter(6l, TimeUnit.HOURS);
+      clashTournamentCache.createIndex(indexDateBson, options);
+    }
+  }
+
+  public void closeMongoClient() {
+    client.close();
+  }
+
+  private MongoClient getMongoClient(CodecRegistry pojoCodecRegistry) throws IOException {
+
+    String[] splitString = getMongoCredential().split("\\|");
+    if(splitString.length == 1) {
+      return new MongoClient(new MongoClientURI(splitString[0]));
+    }
+
+    int nbrRound = 0;
+    List<ServerAddress> serversAdress = new ArrayList<>();
+    while(nbrRound < (splitString.length - 2)) {
+      serversAdress.add(new ServerAddress(splitString[nbrRound]));
+      nbrRound++;
+    }
+
+    MongoCredential credential = MongoCredential.createCredential(splitString[nbrRound], "admin", splitString[nbrRound + 1].toCharArray());
+
+    return new MongoClient(serversAdress, credential, MongoClientOptions.builder().codecRegistry(pojoCodecRegistry).applicationName("Zoe Java APP").build());
+  }
+
+  private String getMongoCredential() throws IOException {
+    String credentialFile;
+    try(BufferedReader reader = new BufferedReader(new FileReader(MONGO_CREDENTIAL_FILE_PATH));){
+      credentialFile = reader.readLine();
+    }
+    return credentialFile;
+  }
+
+  public SavedSummoner getSummonerByName(ZoePlatform platform, String summonerName) {
+    Summoner summoner = riotApi.getLoLAPI().getSummonerAPI().getSummonerByName(platform.getLeagueShard(), summonerName);
+
+    if(summoner == null) {
+      throw new APIResponseException(APIHTTPErrorReason.ERROR_404, "Not found");
+    }
+
+    SavedSummoner savedSummoner = new SavedSummoner(summoner, platform);
+
+    insertOrReplaceSummoner(savedSummoner, getSearchBsonForSummoner(platform, savedSummoner.getSummonerId()));
+
+    return savedSummoner;
+  }
+
+  public SavedSummoner getSummonerBySummonerId(ZoePlatform platform, String summonerId, boolean forceRefresh) {
+
+    SavedSummoner summoner;
+    if(!forceRefresh) {
+      summoner = summonerCache.find(getSearchBsonForSummoner(platform, summonerId)).first();
 
       if(summoner != null) {
-        SavedSummoner summonerToCache = new SavedSummoner(summoner);
-
-        try {
-          if(summonerCache == null) {
-            SummonerCacheRepository.createSummonerCache(summoner.getId(), platform, summonerToCache);
-            summonerCache = SummonerCacheRepository.getSummonerWithSummonerId(summonerId, platform);
-          }else {
-            SummonerCacheRepository.updateSummonerCache(summonerToCache, summonerCache.sumCache_id);
-            summonerCache.setSumCacheData(summonerToCache);
-          }
-        } catch (SQLException e) {
-          logger.warn("Error while saving a summoner, summoner returned anyway", e);
-        }
-
-        return summonerCache;
-      }
-    }catch(RiotApiException e) {
-      if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
-        try {
-          SummonerCacheRepository.deleteSummonerCacheWithSummonerIDAndServer(platform, summonerId);
-        } catch (SQLException e1) {
-          logger.warn("Impossible to delete summoner correctly, null returned anyway.");
-        }
-        return null;
-      }else {
-        throw e;
+        return summoner;
       }
     }
 
-    return null;
-  }
+    Summoner summonerOriginal = riotApi.getLoLAPI().getSummonerAPI().getSummonerById(platform.getLeagueShard(), summonerId);
 
-  public SummonerCache getSummonerWithRateLimit(Platform platform, String summonerId, boolean forceRefreshCache) throws RiotApiException {
-    boolean needToRetry;
-    do {
-      needToRetry = true;
-      try {
-        SummonerCache summonerCache = null;
-        try {
-          summonerCache = SummonerCacheRepository.getSummonerWithSummonerId(summonerId, platform);
-        } catch (SQLException e) {
-          logger.warn("Error while getting summoner cache !", e);
-        }
+    if(summonerOriginal == null) {
+      throw new APIResponseException(APIHTTPErrorReason.ERROR_404, "Not found");
+    }
 
-        if((summonerCache != null && summonerCache.sumCache_lastRefresh.isAfter(LocalDateTime.now().minusHours(CacheRefreshTime.SUMMONER_CACHE_REFRESH_TIME_IN_HOURS)))
-            && !forceRefreshCache) {
-          return summonerCache;
-        }
+    summoner = new SavedSummoner(summonerOriginal, platform);
 
-        Summoner summoner = riotApi.getSummoner(platform, summonerId);
-
-        needToRetry = false;
-
-        summonerRequestCount.incrementAndGet();
-        increaseCallCountForGivenRegion(platform);
-
-        if(summoner != null) {
-          SavedSummoner summonerToCache = new SavedSummoner(summoner);
-          
-          try {
-            if(summonerCache == null) {
-              SummonerCacheRepository.createSummonerCache(summoner.getId(), platform, summonerToCache);
-              summonerCache = SummonerCacheRepository.getSummonerWithSummonerId(summonerId, platform);
-            }else {
-              SummonerCacheRepository.updateSummonerCache(summonerToCache, summonerCache.sumCache_id);
-              summonerCache.setSumCacheData(summonerToCache);
-            }
-          } catch (SQLException e) {
-            logger.warn("Error while saving a summoner, summoner returned anyway", e);
-          }
-
-          return summonerCache;
-        }
-      }catch(RateLimitException e) {
-        try {
-          if(e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10) {
-            return null;
-          }
-          logger.info("Waiting rate limit ({} sec) to retry in getSummoner", e.getRetryAfter());
-          TimeUnit.SECONDS.sleep(e.getRetryAfter());
-        } catch (InterruptedException e1) {
-          logger.error("Thread Interupted when waiting the rate limit in getSummoner !", e1);
-          Thread.currentThread().interrupt();
-        }
-      } catch (RiotApiException e) {
-        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
-          try {
-            SummonerCacheRepository.deleteSummonerCacheWithSummonerIDAndServer(platform, summonerId);
-          } catch (SQLException e1) {
-            logger.warn("Impossible to delete summoner correctly, null returned anyway.");
-          }
-          return null;
-        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
-          logger.warn("Bad request received from Riot Api!", e);
-          return null;
-        }
-      }
-    }while(needToRetry);
-
-    return null;
-  }
-
-  public TFTSummoner getTFTSummonerByNameWithRateLimit(Platform platform, String name) throws RiotApiException {
-    TFTSummoner summoner = null;
-    boolean needToRetry;
-    do {
-      needToRetry = true;
-      increaseTFTCallCountForGivenRegion(platform);
-      try {
-        summoner = riotApi.getTFTSummonerByName(platform, name);
-        needToRetry = false;
-      }catch(RateLimitException e) {
-        try {
-          if(e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10) {
-            return null;
-          }
-          logger.info("Waiting rate limit ({} sec) to retry in getTFTSummoner", e.getRetryAfter());
-          TimeUnit.SECONDS.sleep(e.getRetryAfter());
-        } catch (InterruptedException e1) {
-          logger.error("Thread Interupted when waiting the rate limit in getSummoner !", e1);
-          Thread.currentThread().interrupt();
-        }
-      } catch (RiotApiException e) {
-        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
-          return null;
-        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
-          logger.warn("Bad request received from Riot Api!", e);
-          return null;
-        }
-      }
-    }while(needToRetry);
+    insertOrReplaceSummoner(summoner, getSearchBsonForSummoner(platform, summoner.getSummonerId()));
 
     return summoner;
   }
+  
+  public SavedSummoner getSummonerByPUUIDWithAccountTransferManagement(ZoePlatform platform, LeagueAccount leagueaccount, boolean forceRefresh) {
 
-  public Summoner getSummonerByNameWithRateLimit(Platform platform, String summonerName) throws RiotApiException {
-    Summoner summoner = null;
-    boolean needToRetry;
-    do {
-      needToRetry = true;
-      increaseCallCountForGivenRegion(platform);
-      summonerRequestCount.incrementAndGet();
+    SavedSummoner summoner;
+    if(!forceRefresh) {
+      summoner = summonerCache.find(getSearchBsonForSummoner(platform, leagueaccount.leagueAccount_summonerId)).first();
+
+      if(summoner != null) {
+        return summoner;
+      }
+    }
+
+    Summoner summonerOriginal = riotApi.getLoLAPI().getSummonerAPI().getSummonerByPUUID(platform.getLeagueShard(), leagueaccount.leagueAccount_puuid);
+
+    if(summonerOriginal == null) {
+      try {
+        summonerOriginal = searchForAccountTransfer(leagueaccount);
+      } catch (SQLException e) {
+        logger.error("SQL Error while trying to check for account transfer", e);
+      }
       
-      try {
-        summoner = riotApi.getSummonerByName(platform, summonerName);
-
-        SavedSummoner summonerToCache = new SavedSummoner(summoner);
-        
-        SummonerCache currentSummonerCache = null;
-        try {
-          currentSummonerCache = SummonerCacheRepository.getSummonerWithSummonerId(summoner.getId(), platform);
-        } catch (SQLException e) {
-          logger.warn("Error while getting summoner cache !", e);
-        }
-
-        if(currentSummonerCache == null) {
-          try {
-            SummonerCacheRepository.createSummonerCache(summoner.getId(), platform, summonerToCache);
-          } catch (SQLException e) {
-            logger.warn("Error while saving a summoner, summoner returned anyway", e);
-          }
-        }else {
-          try {
-            SummonerCacheRepository.updateSummonerCache(summonerToCache, currentSummonerCache.sumCache_id);
-          } catch (SQLException e) {
-            logger.warn("Error while saving a summoner, summoner returned anyway", e);
-          }
-        }
-        
-        needToRetry = false;
-        
-      }catch(RateLimitException e) {
-        try {
-          if(e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10) {
-            return null;
-          }
-          logger.info("Waiting rate limit ({} sec) to retry in getTFTSummoner", e.getRetryAfter());
-          TimeUnit.SECONDS.sleep(e.getRetryAfter());
-        } catch (InterruptedException e1) {
-          logger.error("Thread Interupted when waiting the rate limit in getSummoner !", e1);
-          Thread.currentThread().interrupt();
-        }
+      if(summonerOriginal == null) {
+        throw new APIResponseException(APIHTTPErrorReason.ERROR_404, "Not found");
       }
-    }while(needToRetry);
+    }
+
+    summoner = new SavedSummoner(summonerOriginal, platform);
+
+    insertOrReplaceSummoner(summoner, getSearchBsonForSummoner(platform, summoner.getSummonerId()));
 
     return summoner;
   }
 
-  public Summoner getSummonerByPuuid(Platform platform, String puuid) throws RiotApiException {
-    Summoner summoner = riotApi.getSummonerByPuuid(platform, puuid);
-
-    summonerRequestCount.incrementAndGet();
-    increaseCallCountForGivenRegion(platform);
-
-    SavedSummoner summonerToCache = new SavedSummoner(summoner);
-
-    SummonerCache summonerCache = null;
-    try {
-      summonerCache = SummonerCacheRepository.getSummonerWithSummonerId(summoner.getId(), platform);
-    } catch (SQLException e) {
-      logger.warn("Error while getting summoner cache !", e);
-    }
-
-    if(summonerCache == null) {
-      try {
-        SummonerCacheRepository.createSummonerCache(summoner.getId(), platform, summonerToCache);
-      } catch (SQLException e) {
-        logger.warn("Error while saving a summoner, summoner returned anyway", e);
-      }
-    }else {
-      try {
-        SummonerCacheRepository.updateSummonerCache(summonerToCache, summonerCache.sumCache_id);
-      } catch (SQLException e) {
-        logger.warn("Error while saving a summoner, summoner returned anyway", e);
-      }
-    }
-
-    return summoner;
-  }
-
-  public Set<LeagueEntry> getLeagueEntriesBySummonerId(Platform platform, String summonerId) throws RiotApiException {
-    Set<LeagueEntry> leagueEntries = riotApi.getLeagueEntriesBySummonerId(platform, summonerId);
-
-    leagueEntryRequestCount.incrementAndGet();
-    increaseCallCountForGivenRegion(platform);
-
-    return leagueEntries;
-  }
-
-  public Set<LeagueEntry> getLeagueEntriesBySummonerIdWithRateLimit(Platform platform, String summonerId) throws RiotApiException {
-    Set<LeagueEntry> leagueEntries = null;
-    boolean needToRetry;
-
-    do {
-      leagueEntryRequestCount.incrementAndGet();
-      increaseCallCountForGivenRegion(platform);
-
-      needToRetry = true;
-      try {
-        leagueEntries = riotApi.getLeagueEntriesBySummonerId(platform, summonerId);
-        needToRetry = false;
-      }catch(RateLimitException e) {
-        try {
-          if(e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10) {
-            return new HashSet<>();
-          }
-          logger.info("Waiting rate limit ({} sec) to retry when getting the rank", e.getRetryAfter());
-          TimeUnit.SECONDS.sleep(e.getRetryAfter());
-        } catch (InterruptedException e1) {
-          logger.error("Thread Interupted when waiting the rate limit !", e1);
-          Thread.currentThread().interrupt();
-        }
-      } catch (RiotApiException e) {
-        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
-          return new HashSet<>();
-        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
-          logger.warn("Bad request received from Riot Api!", e);
-          return new HashSet<>();
-        }
-      }
-    }while(needToRetry);
-
-    return leagueEntries;
-  }
-
-  public CurrentGameInfo getActiveGameBySummoner(Platform platform, String summonerId) throws RiotApiException {
-    CurrentGameInfo gameInfo = riotApi.getActiveGameBySummoner(platform, summonerId);
-
-    currentGameInfoRequestCount.incrementAndGet();
-    increaseCallCountForGivenRegion(platform);
-
-    return gameInfo;
-  }
-
-  public CurrentGameInfo getActiveGameBySummonerWithRateLimit(Platform platform, String summonerId) throws RiotApiException {
-    CurrentGameInfo gameInfo = null;
-
-    boolean needToRetry;
-    do {
-      currentGameInfoRequestCount.incrementAndGet();
-      increaseCallCountForGivenRegion(platform);
-
-      needToRetry = true;
-      try {
-        gameInfo = riotApi.getActiveGameBySummoner(platform, summonerId);
-        needToRetry = false;
-      }catch(RateLimitException e) {
-        try {
-          if(e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10) {
-            return null;
-          }
-          logger.info("Waiting rate limit ({} sec) to retry when getting current match", e.getRetryAfter());
-          TimeUnit.SECONDS.sleep(e.getRetryAfter());
-        } catch (InterruptedException e1) {
-          logger.error("Thread Interupted when waiting the rate limit !", e1);
-          Thread.currentThread().interrupt();
-        }
-      } catch (RiotApiException e) {
-        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
-          return null;
-        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
-          logger.warn("Bad request received from Riot Api!", e);
-          throw e;
-        }
-      }
-    }while(needToRetry);
-
-    return gameInfo;
-  }
-
-  public List<ClashTournament> getClashTournamentsWithRateLimit(Platform platform) throws SQLException {
-
-    ClashTournamentCache clashTournamentCache = ClashTournamentRepository.getClashTournamentCache(platform);
-
-    if(clashTournamentCache != null && !clashTournamentCache.clashTourCache_lastRefresh.isBefore(LocalDateTime.now().minusHours(CacheRefreshTime.CLASH_TOURNAMENT_REFRESH_TIME_IN_HOURS))) {
-      return clashTournamentCache.clashTourCache_data;
-    }else {
-      refreshClashTournaments();
-      clashTournamentCache = ClashTournamentRepository.getClashTournamentCache(platform);
-      if(clashTournamentCache != null) {
-        return clashTournamentCache.clashTourCache_data;
-      }
-      return new ArrayList<>();
-    }
-  }
-
-  public synchronized void refreshClashTournaments() throws SQLException {
-
-    for(Platform platform : Platform.values()) {
-
-      boolean needToRetry;
-      do {
-        increaseCallCountForGivenRegion(platform);
-
-        needToRetry = true;
-        try {
-          List<ClashTournament> clashTournaments = riotApi.getClashTournaments(platform);
-
-          ClashTournamentCache tournamentCache = ClashTournamentRepository.getClashTournamentCache(platform);
-
-          if(tournamentCache == null) {
-            ClashTournamentRepository.createClashTournamentCache(platform, clashTournaments);
-          }else {
-            ClashTournamentRepository.updateClashTournamentCache(clashTournaments, tournamentCache.clashTourCache_id);
-          }
-
-          needToRetry = false;
-        }catch(RateLimitException e) {
-          try {
-            if(e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10) {
-              break;
-            }
-            logger.info("Waiting rate limit ({} sec) to retry when getting clash tournament", e.getRetryAfter());
-            TimeUnit.SECONDS.sleep(e.getRetryAfter());
-          } catch (InterruptedException e1) {
-            logger.error("Thread Interupted when waiting the rate limit !", e1);
-            Thread.currentThread().interrupt();
-          }
-        } catch (RiotApiException e) {
-          if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
-            break;
-          }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
-            logger.warn("Bad request received from Riot Api!", e);
-            break;
-          }
-        }
-      }while(needToRetry);
-    }
-
-  }
-
-  public ClashTournament getClashTournamentById(Platform platform, int tournamentId, boolean forceRefreshCache) throws SQLException {
-
-    List<ClashTournament> clashTournaments = getClashTournamentsWithRateLimit(platform);
-
-    for(ClashTournament clashTournament : clashTournaments) {
-      if(clashTournament.getId() == tournamentId) {
-        return clashTournament;
-      }
-    }
-
-    return null;
-  }
-
-  public ClashTeam getClashTeamByTeamIdWithRateLimit(Platform platform, String teamId) throws RiotApiException {
-    ClashTeam clashTeam = null;
-    boolean needToRetry;
-
-    do {
-      increaseCallCountForGivenRegion(platform);
-
-      needToRetry = true;
-      try {
-        clashTeam = riotApi.getClashTeamByTeamId(platform, teamId);
-        needToRetry = false;
-      }catch(RateLimitException e) {
-        try {
-          if(e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10) {
-            return clashTeam;
-          }
-          logger.info("Waiting rate limit ({} sec) to retry when getting clash team", e.getRetryAfter());
-          TimeUnit.SECONDS.sleep(e.getRetryAfter());
-        } catch (InterruptedException e1) {
-          logger.error("Thread Interupted when waiting the rate limit !", e1);
-          Thread.currentThread().interrupt();
-        }
-      } catch (RiotApiException e) {
-        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
-          return clashTeam;
-        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
-          logger.warn("Bad request received from Riot Api!", e);
-          return clashTeam;
-        }
-      }
-    }while(needToRetry);
-
-    return clashTeam;
-  }
-
-  public List<ClashTeamMember> getClashPlayerBySummonerIdWithRateLimit(Platform platform, String summonerId) throws RiotApiException {
-    List<ClashTeamMember> clashTeamMembers = new ArrayList<>();
-    boolean needToRetry;
-
-    do {
-      increaseCallCountForGivenRegion(platform);
-
-      needToRetry = true;
-      try {
-        clashTeamMembers = riotApi.getClashPlayersBySummoner(platform, summonerId);
-        needToRetry = false;
-      }catch(RateLimitException e) {
-        try {
-          if(e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10) {
-            return clashTeamMembers;
-          }
-          logger.info("Waiting rate limit ({} sec) to retry when getting Clash Player", e.getRetryAfter());
-          TimeUnit.SECONDS.sleep(e.getRetryAfter());
-        } catch (InterruptedException e1) {
-          logger.error("Thread Interupted when waiting the rate limit !", e1);
-          Thread.currentThread().interrupt();
-        }
-      } catch (RiotApiException e) {
-        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
-          return clashTeamMembers;
-        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
-          logger.warn("Bad request received from Riot Api!", e);
-          return clashTeamMembers;
-        }
-      }
-    }while(needToRetry);
-
-    return clashTeamMembers;
-  }
-
-  public String getValidationCode(Platform platform, String summonerId) throws RiotApiException {
-    return riotApi.getThirdPartyCodeBySummoner(platform, summonerId);
-  }
-
-  public SavedSimpleMastery getChampionMasteriesBySummonerByChampion(Platform platform, String summonerId, int championId, boolean forceRefreshCache) throws RiotApiException {
-
-    ChampionMasteryCache championMasteryCache = null;
-    if(!forceRefreshCache) {
-      try {
-        championMasteryCache = ChampionMasteryRepository.getChampionMasteryWithSummonerId(summonerId, platform);
-      } catch (SQLException e) {
-        logger.warn("Error while getting champion mastery cache !", e);
-      }
-    }
-
-    if(championMasteryCache != null && championMasteryCache.champMasCache_lastRefresh.isAfter(LocalDateTime.now().minusHours(CacheRefreshTime.MASTERY_CACHE_REFRESH_TIME_IN_HOURS))) {
-
-      SavedSimpleMastery championMastery = championMasteryCache.champMasCache_data.getChampionMasteryWithChampionId(championId);
-
-      if(championMastery != null) {
-        return championMastery;
-      }else {
-        return null;
-      }
-    }
-
-    List<ChampionMastery> masteries = riotApi.getChampionMasteriesBySummoner(platform, summonerId);
-
-    championMasteryRequestCount.incrementAndGet();
-    increaseCallCountForGivenRegion(platform);
-
-    SavedChampionsMastery championMasteryToCache = new SavedChampionsMastery(masteries);
-
-    SavedSimpleMastery championMasteryToReturn = championMasteryToCache.getChampionMasteryWithChampionId(championId);
-
-    try {
-      ChampionMasteryRepository.createMasteryCache(summonerId, platform, championMasteryToCache);
-    } catch (SQLException e) {
-      logger.warn("Error while creating a new mastery cache, result returned anyway", e);
-    }
-
-    return championMasteryToReturn;
-  }
-
-  public Set<TFTLeagueEntry> getTFTLeagueEntries(Platform platform, String summonerId) throws RiotApiException {
-    increaseTFTCallCountForGivenRegion(platform);
-
-    return riotApi.getTFTLeagueEntryBySummoner(platform, summonerId);
-  }
-
-  public Set<TFTLeagueEntry> getTFTLeagueEntriesWithRateLimit(Platform platform, String summonerId) {
-    Set<TFTLeagueEntry> leagueEntries = null;
-    boolean needToRetry;
-
-    do {
-      increaseTFTCallCountForGivenRegion(platform);
-      needToRetry = true;
-      try {
-        leagueEntries = riotApi.getTFTLeagueEntryBySummoner(platform, summonerId);
-        needToRetry = false;
-      }catch(RateLimitException e) {
-        try {
-          if(e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10) {
-            return new HashSet<>();
-          }
-          logger.info("Waiting rate limit ({} sec) to retry when getting a TFT rank", e.getRetryAfter());
-          TimeUnit.SECONDS.sleep(e.getRetryAfter());
-        } catch (InterruptedException e1) {
-          logger.error("Thread Interupted when waiting the rate limit !", e1);
-          Thread.currentThread().interrupt();
-        }
-      } catch (RiotApiException e) {
-        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
-          return new HashSet<>();
-        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
-          logger.warn("Bad request received from Riot Api!", e);
-          return new HashSet<>();
-        }
-      }
-    }while(needToRetry);
-
-    if(leagueEntries.isEmpty()) {
-      return new HashSet<>();
-    }
-
-    return leagueEntries;
-  }
-
-  public List<String> getTFTMatchListWithRateLimit(Platform platform, String summonerPuuid, Integer maxMatch) {
-    List<String> matchsList = new ArrayList<>();
-    boolean needToRetry;
-    int numberTry = 0;
-
-    do {
-      leagueEntryRequestCount.incrementAndGet();
-      increaseTFTCallCountForGivenRegion(platform);
-
-      needToRetry = true;
-      numberTry++;
-      if(numberTry > 3) {
-        break;
-      }
-      try {
-        matchsList = riotApi.getTFTMatchList(platform, summonerPuuid, maxMatch);
-        needToRetry = false;
-      }catch(RateLimitException e) {
-        try {
-          if(e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10) {
-            return new ArrayList<>();
-          }
-          logger.info("Waiting rate limit ({} sec) to retry when getting a TFTMatchList", e.getRetryAfter());
-          TimeUnit.SECONDS.sleep(e.getRetryAfter());
-        } catch (InterruptedException e1) {
-          logger.error("Thread Interupted when waiting the rate limit !", e1);
-          Thread.currentThread().interrupt();
-        }
-      } catch (RiotApiException e) {
-        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
-          return new ArrayList<>();
-        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
-          logger.warn("Bad request received from Riot Api!", e);
-          return new ArrayList<>();
-        }
-      }
-    }while(needToRetry);
-
-    if(matchsList.isEmpty()) {
-      return new ArrayList<>();
-    }
-
-    return matchsList;
-  }
-
-  public TFTMatch getTFTMatchWithRateLimit(Platform platform, String matchId) {
-    TFTMatch match = null;
-    boolean needToRetry;
-    int numberTry = 0;
+  private Summoner searchForAccountTransfer(LeagueAccount account) throws SQLException {
     
-    do {
-      leagueEntryRequestCount.incrementAndGet();
-      increaseTFTCallCountForGivenRegion(platform);
-
-      needToRetry = true;
-      numberTry++;
-      if(numberTry > 3) {
+    Summoner summoner = null;
+    for(ZoePlatform platformToCheck : ZoePlatform.values()) {
+      summoner = riotApi.getLoLAPI().getSummonerAPI().getSummonerByPUUID(platformToCheck.getLeagueShard(), account.leagueAccount_puuid);
+      if(summoner != null) {
+        if(summoner.getPlatform() != account.leagueAccount_server.getLeagueShard()) {
+          LeagueAccountRepository.updateAccountDataWithId(account.leagueAccount_id, summoner);
+        }
         break;
       }
-      try {
-        match = riotApi.getTFTMatch(platform, matchId);
-        needToRetry = false;
-      }catch(RateLimitException e) {
-        try {
-          if(e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10) {
-            return null;
-          }
-          logger.info("Waiting rate limit ({} sec) to retry when getting a TFTMatch", e.getRetryAfter());
-          TimeUnit.SECONDS.sleep(e.getRetryAfter());
-        } catch (InterruptedException e1) {
-          logger.error("Thread Interupted when waiting the rate limit !", e1);
-          Thread.currentThread().interrupt();
-        }
-      } catch (RiotApiException e) {
-        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
-          return null;
-        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
-          logger.warn("Bad request received from Riot Api!", e);
-          return null;
-        }
-      }
-    }while(needToRetry);
-
-    return match;
+    }
+    
+    return summoner;
   }
 
-  public SavedSimpleMastery getChampionMasteriesBySummonerByChampionWithRateLimit(Platform platform, String summonerId, int championId, boolean forceRefreshCache) throws RiotApiException {
-    SavedSimpleMastery championMasteryToReturn = null;
-    boolean needToRetry;
-    do {
-
-      needToRetry = true;
-      try {
-        ChampionMasteryCache championMasteryCache = null;
-        try {
-          championMasteryCache = ChampionMasteryRepository.getChampionMasteryWithSummonerId(summonerId, platform);
-        } catch (SQLException e) {
-          logger.warn("Error while getting champion mastery cache !", e);
-        }
-
-        if((championMasteryCache != null && championMasteryCache.champMasCache_lastRefresh.isAfter(LocalDateTime.now().minusHours(CacheRefreshTime.MASTERY_CACHE_REFRESH_TIME_IN_HOURS)))
-            && !forceRefreshCache) {
-
-          SavedSimpleMastery championMastery = championMasteryCache.champMasCache_data.getChampionMasteryWithChampionId(championId);
-
-          if(championMastery != null) {
-            return championMastery;
-          }else {
-            return null;
-          }
-        }
-
-        List<ChampionMastery> masteries = riotApi.getChampionMasteriesBySummoner(platform, summonerId);
-        needToRetry = false;
-
-        championMasteryRequestCount.incrementAndGet();
-        increaseCallCountForGivenRegion(platform);
-
-        if(masteries != null) {
-          SavedChampionsMastery championMasteryToCache = new SavedChampionsMastery(masteries);
-
-          championMasteryToReturn = championMasteryToCache.getChampionMasteryWithChampionId(championId);
-
-          try {
-            if(championMasteryCache == null) {
-              ChampionMasteryRepository.createMasteryCache(summonerId, platform, championMasteryToCache);
-            }else {
-              ChampionMasteryRepository.updateChampionMastery(championMasteryToCache, championMasteryCache.champMasCache_id);
-            }
-          } catch (SQLException e) {
-            logger.warn("Error while creating a new mastery cache, result returned anyway", e);
-          }
-        }
-
-      }catch(RateLimitException e) {
-        try {
-          if(e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10) {
-            return null;
-          }
-          logger.info("Waiting rate limit ({} sec) to retry when getting mastery", e.getRetryAfter());
-          TimeUnit.SECONDS.sleep(e.getRetryAfter());
-        } catch (InterruptedException e1) {
-          logger.error("Thread Interupted when waiting the rate limit !", e1);
-          Thread.currentThread().interrupt();
-        }
-      } catch (RiotApiException e) {
-        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
-          return null;
-        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
-          logger.warn("Bad request received from Riot Api!", e);
-          return null;
-        }
-      }
-    }while(needToRetry);
-
-    return championMasteryToReturn;
-  }
-
-  public SavedChampionsMastery getChampionMasteriesBySummoner(Platform platform, String summonerId, boolean forceRefreshCache) throws RiotApiException {
-    SavedChampionsMastery championMasteries = null;
-    ChampionMasteryCache championMasteryCache = null;
+  private void insertOrReplaceSummoner(SavedSummoner savedSummoner, Bson searchBsonForSummoner) {
     try {
-      championMasteryCache = ChampionMasteryRepository.getChampionMasteryWithSummonerId(summonerId, platform);
-    } catch (SQLException e) {
-      logger.warn("Error while getting champion mastery cache !", e);
+      SavedSummoner summonerToReplace = summonerCache.find(searchBsonForSummoner).first();
+
+      if(summonerToReplace == null) {
+        summonerCache.insertOne(savedSummoner);
+      }else {
+        summonerCache.replaceOne(searchBsonForSummoner, savedSummoner);
+      }
+    }catch (MongoException e) {
+      logger.warn("Probably nothing serious (unique error)", e);
+    }
+  }
+
+  public SavedSummoner getTFTSummonerByName(ZoePlatform platform, String summonerName) {
+    Summoner summoner = riotApi.getTFTAPI().getSummonerAPI().getSummonerByName(platform.getLeagueShard(), summonerName);
+
+    if(summoner == null) {
+      throw new APIResponseException(APIHTTPErrorReason.ERROR_404, "Not found");
     }
 
-    if((championMasteryCache != null && championMasteryCache.champMasCache_lastRefresh.isAfter(LocalDateTime.now().minusHours(CacheRefreshTime.MASTERY_CACHE_REFRESH_TIME_IN_HOURS)))
-        && !forceRefreshCache) {
-      return championMasteryCache.champMasCache_data;
+    SavedSummoner savedSummoner = new SavedSummoner(summoner, platform);
+
+    insertOrReplaceTFTSummoner(savedSummoner, getSearchBsonForSummoner(platform, summoner.getSummonerId()));
+
+    return savedSummoner;
+  }
+
+  public SavedSummoner getTFTSummonerBySummonerId(ZoePlatform platform, String summonerId, boolean forceRefresh) {
+
+    SavedSummoner tftSummoner;
+    if(!forceRefresh) {
+      tftSummoner = tftSummonerCache.find(getSearchBsonForSummoner(platform, summonerId)).first();
+
+      if(tftSummoner != null) {
+        return tftSummoner;
+      }
     }
 
-    List<ChampionMastery> masteries = riotApi.getChampionMasteriesBySummoner(platform, summonerId);
+    Summoner tftSummonerOriginal = riotApi.getTFTAPI().getSummonerAPI().getSummonerById(platform.getLeagueShard(), summonerId);
 
-    championMasteryRequestCount.incrementAndGet();
-    increaseCallCountForGivenRegion(platform);
+    if(tftSummonerOriginal == null) {
+      throw new APIResponseException(APIHTTPErrorReason.ERROR_404, "Not found");
+    }
 
-    if(masteries != null) {
-      championMasteries = new SavedChampionsMastery(masteries);
+    tftSummoner = new SavedSummoner(tftSummonerOriginal, platform);
+
+    insertOrReplaceTFTSummoner(tftSummoner, getSearchBsonForSummoner(platform, tftSummoner.getSummonerId()));
+
+    return tftSummoner;
+  }
+
+  private void insertOrReplaceTFTSummoner(SavedSummoner savedSummoner, Bson searchBsonForSummoner) {
+    SavedSummoner summonerToReplace = tftSummonerCache.find(searchBsonForSummoner).first();
+
+    try {
+      if(summonerToReplace == null) {
+        tftSummonerCache.insertOne(savedSummoner);
+      }else {
+        tftSummonerCache.replaceOne(searchBsonForSummoner, savedSummoner);
+      }
+    }catch (MongoException e) {
+      logger.warn("Probably nothing serious (unique error)", e);
+    }
+  }
+
+  public SavedMatch getMatchById(ZoePlatform platform, String matchId) {
+
+    Bson matchWanted = Projections.fields(Projections.computed("gameId", matchId), Projections.computed("platform", platform.getShowableName()));
+
+    SavedMatch matchDB = matchCache.find(matchWanted).first();
+
+    if(matchDB != null) {
+      return matchDB;
+    }
+
+    LOLMatch matchOriginal = null;
+    try {
+      matchOriginal = new MatchBuilder().withPlatform(platform.getLeagueShard().toRegionShard()).withId(matchId).getMatch();
+    }catch (NullPointerException e) {
+      logger.warn("Null pointer exception while getting ID {}", matchId);
+    }
+
+    if(matchOriginal == null) {
+      throw new APIResponseException(APIHTTPErrorReason.ERROR_404, "Not found");
+    }
+
+    matchDB = new SavedMatch(matchOriginal, matchId, platform);
+
+    insertOrReplaceMatch(matchDB, matchWanted);
+
+    return matchDB;
+  }
+
+  private void insertOrReplaceMatch(SavedMatch newMatch, Bson matchToChange) {
+    SavedMatch matchToReplace = matchCache.find(matchToChange).first();
+
+    try {
+      if(matchToReplace == null) {
+        matchCache.insertOne(newMatch);
+      }else {
+        matchCache.replaceOne(matchToChange, newMatch);
+      }
+    }catch (MongoException e) {
+      logger.warn("Probably nothing serious (unique error)", e);
+    }
+  }
+
+  public String getLastPatchVersion() {
+    SavedMatch matchLastVersion = matchCache.find().sort(Projections.computed("gameVersion", -1))
+        .limit(1).first();
+
+    if(matchLastVersion == null) {
+      return null;
+    }
+
+    return matchLastVersion.getGameVersion();
+  }
+
+  public List<SavedMatch> getMatchsByChampionId(int championId, GameQueueType queue) {
+
+    Bson matchSearch = Projections.fields(Projections.computed("queueId", queue.name()), Projections.computed("players.championId", championId));
+
+    Iterator<SavedMatch> iterator = matchCache.find(matchSearch).limit(10000).iterator();
+
+    List<SavedMatch> matchToReturn = new ArrayList<>();
+    while (iterator.hasNext()) {
+      matchToReturn.add(iterator.next());
+    }
+
+    return matchToReturn;
+  }
+
+  public List<String> getMatchListBySummonerId(ZoePlatform platform, String puuid){
+    MatchListBuilder builder = new MatchListBuilder();
+
+    builder.withPlatform(platform.getLeagueShard());
+    builder.withPuuid(puuid);
+
+    return builder.get();
+  }
+
+  public List<String> getMatchListByPuuid(ZoePlatform platform, String puuid, int count){
+    MatchListBuilder builder = new MatchListBuilder();
+
+    builder.withPlatform(platform.getLeagueShard());
+    builder.withPuuid(puuid);
+    builder.withCount(count);
+
+    return builder.get();
+  }
+
+  public List<String> getMatchListByPuuid(ZoePlatform platform, String puuid, GameQueueType queueWanted, int beginIndex, int count) {
+    MatchListBuilder builder = new MatchListBuilder();
+
+    return builder
+        .withPlatform(platform.getLeagueShard())
+        .withPuuid(puuid)
+        .withQueue(queueWanted)
+        .withBeginIndex(beginIndex)
+        .withCount(count)
+        .get();
+  }
+
+  public List<LeagueEntry> getLeagueEntryBySummonerId(ZoePlatform platform, String summonerId) {
+    return new LeagueBuilder().withPlatform(platform.getLeagueShard()).withSummonerId(summonerId).getLeagueEntries();
+  }
+
+  public List<TFTLeagueEntry> getTFTLeagueEntryByTFTSummonerId(ZoePlatform platform, String summonerId) {
+    return riotApi.getTFTAPI().getLeagueAPI().getLeagueEntries(platform.getLeagueShard(), summonerId);
+  }
+
+  public List<LeagueEntry> getTFTLeagueEntryConvertedByTFTSummonerId(ZoePlatform platform, String summonerId) {
+    List<TFTLeagueEntry> leagueEntryToConvert = getTFTLeagueEntryByTFTSummonerId(platform, summonerId);
+
+    List<LeagueEntry> leagueEntryConverted = new ArrayList<>();
+    for(TFTLeagueEntry entry : leagueEntryToConvert) {
+      leagueEntryConverted.add((LeagueEntry) entry);
+    }
+
+    return leagueEntryConverted;
+  }
+
+  public List<SavedSimpleMastery> getChampionMasteryBySummonerId(ZoePlatform platform, String summonerId, boolean forceRefresh) {
+
+    Bson masteryWanted = Projections.fields(Projections.computed("summonerId", summonerId), Projections.computed("platform", platform.getShowableName()));
+
+    List<SavedSimpleMastery> championMastery = new ArrayList<>();
+
+    if(!forceRefresh) {
+      MongoCursor<SavedSimpleMastery> cursor = championsMasteryCache.find(masteryWanted).iterator();
+
+      while(cursor.hasNext()) {
+        championMastery.add(cursor.next());
+      }
+
+      if(!championMastery.isEmpty()) {
+        return championMastery;
+      }
+    }
+
+    List<ChampionMastery> championMasteryOriginal = new ChampionMasteryBuilder().withPlatform(platform.getLeagueShard()).withSummonerId(summonerId).getChampionMasteries();
+
+    for(ChampionMastery masteryOrignial : championMasteryOriginal) {
+      championMastery.add(new SavedSimpleMastery(masteryOrignial, summonerId, platform));
+    }
+
+    insertOrReplaceChampionMastery(championMastery, masteryWanted);
+
+    return championMastery;
+  }
+
+  private void insertOrReplaceChampionMastery(List<SavedSimpleMastery> championMasteryToUpdate, Bson masteryWanted) {
+    List<SavedSimpleMastery> championMasteryCache = new ArrayList<>();
+
+    MongoCursor<SavedSimpleMastery> cursor = championsMasteryCache.find(masteryWanted).iterator();
+
+    while(cursor.hasNext()) {
+      championMasteryCache.add(cursor.next());
+    }
+
+    for(SavedSimpleMastery championMastery : championMasteryToUpdate) {
+      boolean championFound = false;
+      for(SavedSimpleMastery masteryToCheck : championMasteryCache) {
+        if(championMastery.getChampionId() == masteryToCheck.getChampionId()) {
+          championFound = true;
+          break;
+        }
+      }
 
       try {
-        if(championMasteryCache == null) {
-          ChampionMasteryRepository.createMasteryCache(summonerId, platform, championMasteries);
+        if(championFound) {
+          championsMasteryCache.replaceOne(Projections.fields(Projections.computed("summonerId", championMastery.getSummonerId()),
+              Projections.computed("platform", championMastery.getPlatform().getShowableName()), Projections.computed("championId", championMastery.getChampionId())), championMastery);
         }else {
-          ChampionMasteryRepository.updateChampionMastery(championMasteries, championMasteryCache.champMasCache_id);
+          championsMasteryCache.insertOne(championMastery);
         }
-      } catch (SQLException e) {
-        logger.warn("Error while creating a new mastery cache, result returned anyway", e);
-      }
-    }
-
-    return championMasteries;
-  }
-
-  public SavedChampionsMastery getChampionMasteriesBySummonerWithRateLimit(Platform platform, String summonerId, boolean forceRefreshCache) throws RiotApiException {
-    SavedChampionsMastery masteries = null;
-    boolean needToRetry;
-    do {
-
-      needToRetry = true;
-      try {
-
-        ChampionMasteryCache championMasteryCache = null;
-        try {
-          championMasteryCache = ChampionMasteryRepository.getChampionMasteryWithSummonerId(summonerId, platform);
-          if(championMasteryCache != null) {
-            masteries = championMasteryCache.champMasCache_data;
-          }
-        } catch (SQLException e) {
-          logger.warn("Error while getting champion mastery cache !", e);
-        }
-
-
-        if((championMasteryCache != null && championMasteryCache.champMasCache_lastRefresh.isAfter(LocalDateTime.now().minusHours(CacheRefreshTime.MASTERY_CACHE_REFRESH_TIME_IN_HOURS)))
-            && !forceRefreshCache) {
-          return championMasteryCache.champMasCache_data;
-        }
-
-        List<ChampionMastery> baseDataMasteries = riotApi.getChampionMasteriesBySummoner(platform, summonerId);
-        needToRetry = false;
-
-        championMasteryRequestCount.incrementAndGet();
-        increaseCallCountForGivenRegion(platform);
-
-        if(baseDataMasteries != null) {
-          masteries = new SavedChampionsMastery(baseDataMasteries);
-
-          try {
-            if(championMasteryCache == null) {
-              ChampionMasteryRepository.createMasteryCache(summonerId, platform, masteries);
-            }else {
-              ChampionMasteryRepository.updateChampionMastery(masteries, championMasteryCache.champMasCache_id);
-            }
-          } catch (SQLException e) {
-            logger.warn("Error while creating a new mastery cache, result returned anyway", e);
-          }
-        }
-
-      }catch(RateLimitException e) {
-        try {
-          if(e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10) {
-            return null;
-          }
-          logger.info("Waiting rate limit ({} sec) to retry when getting mastery", e.getRetryAfter());
-          TimeUnit.SECONDS.sleep(e.getRetryAfter());
-        } catch (InterruptedException e1) {
-          logger.error("Thread Interupted when waiting the rate limit !", e1);
-          Thread.currentThread().interrupt();
-        }
-      } catch (RiotApiException e) {
-        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
-          return null;
-        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
-          logger.warn("Bad request received from Riot Api!", e);
-          return null;
-        }
-      }
-    }while(needToRetry);
-
-    return masteries;
-  }
-
-  public SavedMatch getMatchWithRateLimit(Platform server, long gameId) {
-    SavedMatch match = null;
-
-    try {
-      MatchCache matchCache = getCachedMatch(server, gameId);
-
-      if(matchCache != null) {
-        return matchCache.mCatch_savedMatch;
-      }
-    } catch (SQLException e) {
-      logger.warn("Error while getting cached match", e);
-    }
-
-    boolean needToRetry;
-    do {
-      apiMatchRequestCount.incrementAndGet();
-      allMatchRequestCount.incrementAndGet();
-
-      needToRetry = true;
-      try {
-        increaseCallCountForGivenRegion(server);
-        Match completeMatch = riotApi.getMatch(server, gameId);
-        if(completeMatch == null) {
-          return null;
-        }
-
-        match = new SavedMatch(completeMatch);
-        needToRetry = false;
-        SavedMatchCacheRepository.createMatchCache(gameId, server, match);
-      }catch(RateLimitException e) {
-        try {
-          if(e.getRateLimitType() == null || (e.getRateLimitType().equals(RateLimitType.METHOD.getTypeName()) && e.getRetryAfter() > 10)) {
-            return null;
-          }
-          logger.info("Waiting rate limit ({} sec) to retry", e.getRetryAfter());
-          TimeUnit.SECONDS.sleep(e.getRetryAfter());
-        } catch (InterruptedException e1) {
-          logger.error("Thread Interupted when waiting the rate limit !", e1);
-          Thread.currentThread().interrupt();
-        }
-      } catch (RiotApiException e) {
-        if(e.getErrorCode() == RiotApiException.DATA_NOT_FOUND) {
-          return null;
-        }else if(e.getErrorCode() == RiotApiException.BAD_REQUEST) {
-          logger.warn("Bad request received from Riot Api!", e);
-          return null;
-        }
-      } catch (SQLException e) {
-        logger.info("Error while creating match inside the cache, the result is returned anyway", e);
-      }
-    }while(needToRetry);
-
-    return match;
-  }
-
-  public synchronized void clearCounts() {
-    apiMatchRequestCount.set(0);
-    allMatchRequestCount.set(0);
-    matchListRequestCount.set(0);
-    summonerRequestCount.set(0);
-    leagueEntryRequestCount.set(0);
-    championMasteryRequestCount.set(0);
-    currentGameInfoRequestCount.set(0);
-  }
-
-  public int getTotalRequestCount() {
-    return apiMatchRequestCount.intValue() + allMatchRequestCount.intValue() + matchListRequestCount.intValue()
-    + summonerRequestCount.intValue() + leagueEntryRequestCount.intValue() + championMasteryRequestCount.intValue()
-    + currentGameInfoRequestCount.intValue();
-  }
-
-  public RiotApiAsync getAsyncRiotApi() {
-    return riotApi.getAsyncApi();
-  }
-
-  public void resetApiCallPerPlatform() {
-    setLastReset(LocalDateTime.now());
-    synchronized(callByEndpoints) {
-      for(Platform platform : Platform.values()) {
-        callByEndpoints.put(platform, new AtomicInteger(0));
-        callTFTByEndpoints.put(platform, new AtomicInteger(0));
+      }catch (MongoException e) {
+        logger.warn("Probably nothing serious (unique error)");
       }
     }
   }
 
-  public void addApiCallForARegion(int nbrCalls, Platform platform) {
-    callByEndpoints.get(platform).addAndGet(nbrCalls);
+  public String getThirdPartyCode(ZoePlatform platform, String summonerId) {
+    return new ThirdPartyCodeBuilder().withPlatform(platform.getLeagueShard()).withSummonerId(summonerId).getCode();
   }
 
-  public boolean isApiCallPerPlatformNeedToBeReset() {
-    return lastReset.isBefore(LocalDateTime.now().minus(RIOT_API_HUGE_TIME));
+  public List<ClashPlayer> getClashPlayerBySummonerId(ZoePlatform platform, String summonerId){
+    return riotApi.getLoLAPI().getClashAPI().getPlayerInfo(platform.getLeagueShard(), summonerId);
   }
 
-  public int getApiCallPerPlatform(Platform platform) {
-    return callByEndpoints.get(platform).intValue();
-  }
+  public List<SavedClashTournament> getTournaments(ZoePlatform selectedPlatform) {
 
-  public int getApiCallRemainingPerRegion(Platform platform) {  
-    int remainingCall = RIOT_API_HUGE_LIMIT - callByEndpoints.get(platform).intValue();
-    if(remainingCall < 0) {
-      return 0;
+    Bson tournamentWanted = Projections.fields(Projections.computed("server", selectedPlatform.getShowableName()));
+
+    Iterator<SavedClashTournament> iterator = clashTournamentCache.find(tournamentWanted).iterator();
+
+    List<SavedClashTournament> tournamentsToReturn = new ArrayList<>();
+
+    while(iterator.hasNext()) {
+      tournamentsToReturn.add(iterator.next());
     }
-    return remainingCall;
-  }
 
-  public int getApiCallRemainingPerRegionTFT(Platform platform) {
-    int remainingCall = RIOT_API_TFT_HUGE_LIMIT - callTFTByEndpoints.get(platform).intValue();
-    if(remainingCall < 0) {
-      return 0;
+    if(!tournamentsToReturn.isEmpty()) {
+      return tournamentsToReturn;
     }
-    return remainingCall;
+
+    List<ClashTournament> clashTournaments = riotApi.getLoLAPI().getClashAPI().getTournaments(selectedPlatform.getLeagueShard());
+
+    for(ClashTournament tournamentToRegister : clashTournaments) {
+      SavedClashTournament tournamentDb = new SavedClashTournament(tournamentToRegister, selectedPlatform);
+
+      clashTournamentCache.insertOne(tournamentDb);
+
+      tournamentsToReturn.add(tournamentDb);
+    }
+
+    return tournamentsToReturn;
   }
 
-  public AtomicInteger getAllMatchCounter() {
-    return allMatchRequestCount;
+  public ClashTeam getClashTeamById(ZoePlatform platform, String teamId) {
+    return riotApi.getLoLAPI().getClashAPI().getTeam(platform.getLeagueShard(), teamId);
   }
 
-
-  public int getApiMatchRequestCount() {
-    return apiMatchRequestCount.intValue();
+  public SpectatorGameInfo getSpectatorGameInfo(ZoePlatform platform, String summonerId) {
+    return riotApi.getLoLAPI().getSpectatorAPI().getCurrentGame(platform.getLeagueShard(), summonerId);
   }
 
-  public int getAllMatchRequestCount() {
-    return allMatchRequestCount.intValue();
+  public SavedClashTournament getTournamentById(ZoePlatform platform, int tournamentId) {
+
+    Bson tournamentWanted = Projections.fields(Projections.computed("server", platform.getShowableName()), Projections.excludeId());
+
+    Iterator<SavedClashTournament> iterator = clashTournamentCache.find(tournamentWanted).iterator();
+
+    SavedClashTournament tournamentToReturn = null;
+
+    while(iterator.hasNext()) {
+      SavedClashTournament tournamentToCheck = iterator.next();
+
+      if(tournamentToCheck.getTournamentId() == tournamentId) {
+        tournamentToReturn = tournamentToCheck;
+        break;
+      }
+    }
+
+    if(tournamentToReturn != null) {
+      return tournamentToReturn;
+    }
+
+    List<ClashTournament> clashTournaments = riotApi.getLoLAPI().getClashAPI().getTournaments(platform.getLeagueShard());
+
+    for(ClashTournament tournamentToRegister : clashTournaments) {
+      SavedClashTournament tournamentDb = new SavedClashTournament(tournamentToRegister, platform);
+
+      clashTournamentCache.replaceOne(tournamentWanted, tournamentDb);
+
+      if(tournamentDb.getTournamentId() == tournamentId) {
+        tournamentToReturn = tournamentDb;
+      }
+    }
+
+    return tournamentToReturn;
   }
 
-  public int getMatchListRequestCount() {
-    return matchListRequestCount.intValue();
+  public List<String> getTFTMatchList(ZoePlatform platform, String tftPuuid, int nbrOfGames) {
+    return riotApi.getTFTAPI().getMatchAPI().getMatchList(platform.getLeagueShard().toRegionShard(), tftPuuid, nbrOfGames);
   }
 
-  public int getSummonerRequestCount() {
-    return summonerRequestCount.intValue();
+  public TFTMatch getTFTMatch(ZoePlatform platform, String matchId) {
+    return riotApi.getTFTAPI().getMatchAPI().getMatch(platform.getLeagueShard().toRegionShard(), matchId);
   }
 
-  public int getLeagueEntryRequestCount() {
-    return leagueEntryRequestCount.intValue();
+  private Bson getSearchBsonForSummoner(ZoePlatform platform, String summonerId) {
+    return Projections.fields(Projections.computed("platform", platform.getShowableName()), Projections.computed("summonerId", summonerId));
   }
 
-  public int getChampionMasteryRequestCount() {
-    return championMasteryRequestCount.intValue();
-  }
-
-  public int getCurrentGameInfoRequestCount() {
-    return currentGameInfoRequestCount.intValue();
-  }
-
-  public static void setLastReset(LocalDateTime lastReset) {
-    CachedRiotApi.lastReset = lastReset;
-  }
 }

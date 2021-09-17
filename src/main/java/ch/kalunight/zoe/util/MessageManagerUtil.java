@@ -6,8 +6,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.jagrosh.jdautilities.command.CommandEvent;
-
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
@@ -41,7 +39,7 @@ public class MessageManagerUtil {
 
     messageListToUpdate.removeAll(messagesNotFound);
 
-    List<String> messagesToSendCutted = CommandEvent.splitMessage(messageToSend); 
+    List<String> messagesToSendCutted = MessageUtil.splitMessageToBeSendable(messageToSend); 
 
     if(messageToEditOrDelete.size() > messagesToSendCutted.size()) {
       int messageToGet = 0;

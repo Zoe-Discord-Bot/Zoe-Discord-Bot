@@ -10,6 +10,8 @@ import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.config.option.RegionOption;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.SavedSummoner;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.model.dto.DTO.BannedAccount;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Server;
@@ -26,10 +28,7 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
-import net.rithms.riot.api.endpoints.tft_summoner.dto.TFTSummoner;
-import net.rithms.riot.constant.Platform;
+import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
 
 public class RegisterCommandRunnable {
 
@@ -62,7 +61,7 @@ public class RegisterCommandRunnable {
       return LanguageManager.getText(server.getLanguage(), "registerCommandMalformedWithoutRegionOption");
     }else if((listArgs.isEmpty() || listArgs.size() > 2) && regionOption.getRegion() != null) {
       return String.format(LanguageManager.getText(server.getLanguage(), "registerCommandMalformedWithRegionOption"), 
-          regionOption.getRegion().getName().toUpperCase());
+          regionOption.getRegion().getShowableName());
     }
 
     String regionName;
@@ -71,35 +70,35 @@ public class RegisterCommandRunnable {
       regionName = listArgs.get(0);
       summonerName = listArgs.get(1);
     }else {
-      regionName = regionOption.getRegion().getName();
+      regionName = regionOption.getRegion().getShowableName();
       summonerName = listArgs.get(0);
     }
 
 
-    Platform region = CreatePlayerCommandRunnable.getPlatform(regionName);
+    ZoePlatform region = CreatePlayerCommandRunnable.getPlatform(regionName);
     if(region == null) {
       return LanguageManager.getText(server.getLanguage(), "regionTagInvalid");
     }
 
 
-    Summoner summoner;
-    TFTSummoner tftSummoner;
+    SavedSummoner summoner;
+    SavedSummoner tftSummoner;
     try {
-      summoner = Zoe.getRiotApi().getSummonerByNameWithRateLimit(region, summonerName);
-      tftSummoner = Zoe.getRiotApi().getTFTSummonerByNameWithRateLimit(region, summonerName);
-    }catch(RiotApiException e) {
+      summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);
+      tftSummoner = Zoe.getRiotApi().getTFTSummonerByName(region, summonerName);
+    }catch(APIResponseException e) {
       return RiotApiUtil.getTextHandlerRiotApiError(e, server.getLanguage());
     }
 
     DTO.Player playerAlreadyWithTheAccount = PlayerRepository
-        .getPlayerByLeagueAccountAndGuild(server.serv_guildId, summoner.getId(), region);
+        .getPlayerByLeagueAccountAndGuild(server.serv_guildId, summoner.getSummonerId(), region);
 
     if(playerAlreadyWithTheAccount != null) {
       return String.format(LanguageManager.getText(server.getLanguage(), "accountAlreadyLinkedToAnotherPlayer"),
           playerAlreadyWithTheAccount.retrieveUser(guild.getJDA()).getName());
     }
 
-    BannedAccount bannedAccount = BannedAccountRepository.getBannedAccount(summoner.getId(), region);
+    BannedAccount bannedAccount = BannedAccountRepository.getBannedAccount(summoner.getSummonerId(), region);
     if(bannedAccount == null) {
 
       if(config.getForceVerificationOption().isOptionActivated() && !author.getPermissions().contains(Permission.MANAGE_CHANNEL)) {
@@ -107,7 +106,7 @@ public class RegisterCommandRunnable {
         String verificiationCode = AccountVerificationUtil.getVerificationCode();
 
         String message = String.format(LanguageManager.getText(server.getLanguage(), "verificationProcessWhileAddingAccount"),
-            region.getName().toUpperCase(), summoner.getName(), verificiationCode);
+            region.getShowableName(), summoner.getName(), verificiationCode);
 
         waiter.waitForEvent(MessageReceivedEvent.class,
             e -> e.getAuthor().equals(author.getUser()) && e.getChannel().equals(channel),
@@ -118,10 +117,10 @@ public class RegisterCommandRunnable {
       }else {
         PlayerRepository.createPlayer(server.serv_id, guild.getIdLong(), user.getIdLong(), false);
         DTO.Player player = PlayerRepository.getPlayer(server.serv_guildId, user.getIdLong());
-        LeagueAccountRepository.createLeagueAccount(player.player_id, summoner, tftSummoner, region.getName());
+        LeagueAccountRepository.createLeagueAccount(player.player_id, summoner, tftSummoner, region);
 
         LeagueAccount leagueAccount = 
-            LeagueAccountRepository.getLeagueAccountWithSummonerId(server.serv_guildId, summoner.getId(), region);
+            LeagueAccountRepository.getLeagueAccountWithSummonerId(server.serv_guildId, summoner.getSummonerId(), region);
 
         CreatePlayerCommandRunnable.updateLastRank(leagueAccount);
 

@@ -45,7 +45,7 @@ public class ShowPlayerCommandClassicDefinition extends ZoeCommand {
       firstMemberMentionned = event.getMessage().getMentionedMembers().get(0);
     }
     
-    ShowPlayerCommandRunnable.executeCommand(server, waiter, event.getMember(), event.getTextChannel(), message, null, firstMemberMentionned);
+    ShowPlayerCommandRunnable.executeCommand(server, waiter, event.getMember(), event.getTextChannel(), message, null, firstMemberMentionned, false);
   }
 
   @Override

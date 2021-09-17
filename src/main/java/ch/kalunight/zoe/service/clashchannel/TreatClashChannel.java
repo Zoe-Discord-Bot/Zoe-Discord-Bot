@@ -23,15 +23,19 @@ import ch.kalunight.zoe.model.dangerosityreport.PickData;
 import ch.kalunight.zoe.model.dto.ClashChannelData;
 import ch.kalunight.zoe.model.dto.ClashStatus;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.model.dto.DTO.ClashChannel;
 import ch.kalunight.zoe.model.dto.DTO.Server;
-import ch.kalunight.zoe.model.dto.DTO.SummonerCache;
+import ch.kalunight.zoe.model.dto.SavedClashTournament;
+import ch.kalunight.zoe.model.dto.SavedClashTournamentPhase;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.repositories.ClashChannelRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.ClashUtil;
 import ch.kalunight.zoe.util.MessageManagerUtil;
 import ch.kalunight.zoe.util.Ressources;
+import ch.kalunight.zoe.util.SavedClashTournamentPhaseUtil;
 import ch.kalunight.zoe.util.TeamUtil;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
@@ -40,13 +44,9 @@ import net.dv8tion.jda.api.entities.MessageReaction;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.requests.ErrorResponse;
-import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.clash.constant.TeamPosition;
-import net.rithms.riot.api.endpoints.clash.constant.TeamRole;
-import net.rithms.riot.api.endpoints.clash.dto.ClashTeamMember;
-import net.rithms.riot.api.endpoints.clash.dto.ClashTournament;
-import net.rithms.riot.api.endpoints.clash.dto.ClashTournamentPhase;
-import net.rithms.riot.constant.Platform;
+import no.stelar7.api.r4j.pojo.lol.clash.ClashPlayer;
+import no.stelar7.api.r4j.pojo.lol.clash.ClashPosition;
+import no.stelar7.api.r4j.pojo.lol.clash.ClashRole;
 
 public class TreatClashChannel implements Runnable {
 
@@ -58,7 +58,7 @@ public class TreatClashChannel implements Runnable {
 
   private static final Logger logger = LoggerFactory.getLogger(TreatClashChannel.class);
 
-  private static final Comparator<ClashTournament> clashTournamentComparator = new ClashTournamentComparator();
+  private static final Comparator<SavedClashTournament> clashTournamentComparator = new ClashTournamentComparator();
 
   private DTO.Server server;
 
@@ -66,20 +66,20 @@ public class TreatClashChannel implements Runnable {
 
   private TextChannel clashChannel;
 
-  private boolean forceRefreshCache;
-
-  public TreatClashChannel(Server server, ClashChannel clashChannel, boolean forceRefreshCache) {
+  private boolean forceRefresh;
+  
+  public TreatClashChannel(Server server, ClashChannel clashChannel, boolean forceRefresh) {
     this.server = server;
     this.clashChannelDB = clashChannel;
-    this.forceRefreshCache = forceRefreshCache;
+    this.forceRefresh = forceRefresh;
   }
 
   @Override
   public void run() {
     try {
-      
+
       JDA jda = Zoe.getJdaByGuildId(server.serv_guildId);
-      
+
       boolean loadNeedToBeCanceled = loadDiscordEntities(jda);
       if(loadNeedToBeCanceled) {
         return;
@@ -89,18 +89,17 @@ public class TreatClashChannel implements Runnable {
 
       cleanClashChannel(clashMessageManager);
 
-      SummonerCache summonerCache = Zoe.getRiotApi().getSummoner(clashMessageManager.getSelectedPlatform(), clashMessageManager.getSelectedSummonerId(), forceRefreshCache);
-
+      SavedSummoner summonerCache = Zoe.getRiotApi().getSummonerBySummonerId(clashMessageManager.getSelectedPlatform(), clashMessageManager.getSelectedSummonerId(), forceRefresh);
+      
       if(summonerCache == null) { //TODO handle timeout case -> don't delete clash channel
         //clashChannel.sendMessage(LanguageManager.getText(server.getLanguage(), "clashChannelDeletionBecauseOfSummonerAccountUnreachable")).queue();
         //ClashChannelRepository.deleteClashChannel(clashChannelDB.clashChannel_id);
         return;
       }
 
-      List<ClashTeamMember> clashPlayerRegistrations = Zoe.getRiotApi().getClashPlayerBySummonerIdWithRateLimit(clashMessageManager.getSelectedPlatform(),
-          clashMessageManager.getSelectedSummonerId());
+      List<ClashPlayer> clashPlayerRegistrations = Zoe.getRiotApi().getClashPlayerBySummonerId(clashMessageManager.getSelectedPlatform(), clashMessageManager.getSelectedSummonerId());
 
-      ClashTeamRegistration firstClashTeam = ClashUtil.getFirstRegistration(clashMessageManager.getSelectedPlatform(), clashPlayerRegistrations, forceRefreshCache);
+      ClashTeamRegistration firstClashTeam = ClashUtil.getFirstRegistration(clashMessageManager.getSelectedPlatform(), clashPlayerRegistrations);
 
       updateClashStatus(clashMessageManager, firstClashTeam);
 
@@ -112,7 +111,7 @@ public class TreatClashChannel implements Runnable {
         refreshWaitForFullTeam(clashMessageManager, firstClashTeam, summonerCache);
         break;
       case WAIT_FOR_GAME_START:
-        refreshWaitForGameStart(clashMessageManager, firstClashTeam, summonerCache);
+        refreshWaitForGameStart(clashMessageManager, firstClashTeam, summonerCache, forceRefresh);
         break;
       }
 
@@ -128,21 +127,21 @@ public class TreatClashChannel implements Runnable {
   }
 
   private void refreshWaitForGameStart(ClashChannelData clashMessageManager, ClashTeamRegistration firstClashTeam,
-      SummonerCache summonerCache) {
+      SavedSummoner summonerCache, boolean forceRefresh) {
 
-    List<ClashTeamMember> teamMembers = firstClashTeam.getTeam().getPlayers();
-    List<TeamPlayerAnalysisDataCollector> teamPlayersData = TeamUtil.getTeamPlayersDataWithAnalysisDoneWithClashData(clashMessageManager.getSelectedPlatform(), teamMembers);
+    List<ClashPlayer> teamMembers = firstClashTeam.getTeam().getPlayers();
+    List<TeamPlayerAnalysisDataCollector> teamPlayersData = TeamUtil.getTeamPlayersDataWithAnalysisDoneWithClashData(clashMessageManager.getSelectedPlatform(), teamMembers, forceRefresh);
 
     StringBuilder messageBuilder = new StringBuilder();
 
-    messageBuilder.append("**" + String.format(LanguageManager.getText(server.getLanguage(), "clashChannelTitle"), summonerCache.getSumCacheData().getName(),
-        clashMessageManager.getSelectedPlatform().getName().toUpperCase()) + "**\n\n");
+    messageBuilder.append("**" + String.format(LanguageManager.getText(server.getLanguage(), "clashChannelTitle"), summonerCache.getName(),
+        clashMessageManager.getSelectedPlatform().getLeagueShard()) + "**\n\n");
 
     addRegisteredInfo(clashMessageManager, firstClashTeam, summonerCache, messageBuilder);
 
     messageBuilder.append("**" + String.format(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentTeamNameStats"), firstClashTeam.getTeam().getAbbreviation(),
         firstClashTeam.getTeam().getName(),
-        firstClashTeam.getTeam().getTier().getTier()) + "**\n");
+        firstClashTeam.getTeam().getTier()) + "**\n");
 
     Collections.sort(teamPlayersData);
 
@@ -156,7 +155,8 @@ public class TreatClashChannel implements Runnable {
 
     addProbablyBan(teamPlayersData, messageBuilder);
 
-    messageBuilder.append(String.format(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentBottomTextFullTeam"), summonerCache.sumCache_server.getName().toUpperCase()) + "\n");
+    messageBuilder.append(String.format(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentBottomTextFullTeam"),
+        clashMessageManager.getSelectedPlatform().getShowableName()) + "\n");
     messageBuilder.append(String.format(LanguageManager.getText(server.getLanguage(), BOTTOM_MESSAGE_ID)));
 
     MessageManagerUtil.editOrCreateTheseMessages(clashMessageManager.getInfoMessagesId(), clashChannel, messageBuilder.toString());
@@ -187,19 +187,19 @@ public class TreatClashChannel implements Runnable {
   }
 
   private void refreshWaitForFullTeam(ClashChannelData clashMessageManager, ClashTeamRegistration firstClashTeam,
-      SummonerCache summonerCache) throws RiotApiException {
+      SavedSummoner summonerCache) {
 
     StringBuilder messageBuilder = new StringBuilder();
 
-    messageBuilder.append("**" + String.format(LanguageManager.getText(server.getLanguage(), "clashChannelTitle"), summonerCache.getSumCacheData().getName(),
-        clashMessageManager.getSelectedPlatform().getName().toUpperCase()) + "**\n\n");
+    messageBuilder.append("**" + String.format(LanguageManager.getText(server.getLanguage(), "clashChannelTitle"), summonerCache.getName(),
+        clashMessageManager.getSelectedPlatform().getShowableName()) + "**\n\n");
 
     addRegisteredInfo(clashMessageManager, firstClashTeam, summonerCache, messageBuilder);
 
 
-    messageBuilder.append("**" + String.format(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentTeamName"), firstClashTeam.getTeam().getAbbreviation(),
-        firstClashTeam.getTeam().getName(),
-        firstClashTeam.getTeam().getTier().getTier()) + "**\n");
+    messageBuilder.append("**" + String.format(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentTeamName"), firstClashTeam.getTeam().getAbbreviation().toUpperCase(),
+        firstClashTeam.getTeam().getName().toUpperCase(),
+        firstClashTeam.getTeam().getTier()) + "**\n");
 
     //Show players
     addAllTeamToBuilder(clashMessageManager, firstClashTeam, messageBuilder);
@@ -210,8 +210,8 @@ public class TreatClashChannel implements Runnable {
   }
 
   private void addRegisteredInfo(ClashChannelData clashMessageManager, ClashTeamRegistration firstClashTeam,
-      SummonerCache summonerCache, StringBuilder messageBuilder) {
-    String formatedSummonerName = summonerCache.getSumCacheData().getName() + " (" + clashMessageManager.getSelectedPlatform().getName().toUpperCase() + ")";
+      SavedSummoner summonerCache, StringBuilder messageBuilder) {
+    String formatedSummonerName = summonerCache.getName() + " (" + clashMessageManager.getSelectedPlatform().getShowableName() + ")";
 
     String dayNumber = TeamUtil.parseDayId(server.getLanguage(), firstClashTeam.getTournament().getNameKeySecondary());
 
@@ -226,7 +226,7 @@ public class TreatClashChannel implements Runnable {
     }
 
     if(firstClashTeam.getTournament().getSchedule().size() == 1) {
-      ClashTournamentPhase phase = firstClashTeam.getTournament().getSchedule().get(0);
+      SavedClashTournamentPhase phase = firstClashTeam.getTournament().getSchedule().get(0);
       messageBuilder.append(String.format(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentRegistered"), formatedSummonerName,
           tournamentName, getFormatedDateFromPhase(phase), clashChannelDB.clashChannel_timezone.getID()) + "\n\n");
     }else {
@@ -235,33 +235,33 @@ public class TreatClashChannel implements Runnable {
   }
 
   private void addAllTeamToBuilder(ClashChannelData clashMessageManager, ClashTeamRegistration firstClashTeam,
-      StringBuilder messageBuilder) throws RiotApiException {
-    addTeamMembersTextByPosition(TeamPosition.TOP, firstClashTeam.getTeam().getPlayers(), messageBuilder, clashMessageManager.getSelectedPlatform());
+      StringBuilder messageBuilder) {
+    addTeamMembersTextByPosition(ClashPosition.TOP, firstClashTeam.getTeam().getPlayers(), messageBuilder, clashMessageManager.getSelectedPlatform());
     messageBuilder.append("\n");
-    addTeamMembersTextByPosition(TeamPosition.JUNGLE, firstClashTeam.getTeam().getPlayers(), messageBuilder, clashMessageManager.getSelectedPlatform());
+    addTeamMembersTextByPosition(ClashPosition.JUNGLE, firstClashTeam.getTeam().getPlayers(), messageBuilder, clashMessageManager.getSelectedPlatform());
     messageBuilder.append("\n");
-    addTeamMembersTextByPosition(TeamPosition.MIDDLE, firstClashTeam.getTeam().getPlayers(), messageBuilder, clashMessageManager.getSelectedPlatform());
+    addTeamMembersTextByPosition(ClashPosition.MIDDLE, firstClashTeam.getTeam().getPlayers(), messageBuilder, clashMessageManager.getSelectedPlatform());
     messageBuilder.append("\n");
-    addTeamMembersTextByPosition(TeamPosition.BOTTOM, firstClashTeam.getTeam().getPlayers(), messageBuilder, clashMessageManager.getSelectedPlatform());
+    addTeamMembersTextByPosition(ClashPosition.BOTTOM, firstClashTeam.getTeam().getPlayers(), messageBuilder, clashMessageManager.getSelectedPlatform());
     messageBuilder.append("\n");
-    addTeamMembersTextByPosition(TeamPosition.UTILITY, firstClashTeam.getTeam().getPlayers(), messageBuilder, clashMessageManager.getSelectedPlatform());
+    addTeamMembersTextByPosition(ClashPosition.UTILITY, firstClashTeam.getTeam().getPlayers(), messageBuilder, clashMessageManager.getSelectedPlatform());
 
-    List<ClashTeamMember> membersFill = TeamUtil.getPlayerByPosition(TeamPosition.FILL, firstClashTeam.getTeam().getPlayers());
+    List<ClashPlayer> membersFill = TeamUtil.getPlayerByPosition(ClashPosition.FILL, firstClashTeam.getTeam().getPlayers());
     if(!membersFill.isEmpty()) {
       messageBuilder.append("\n");
-      addTeamMembersTextByPosition(TeamPosition.FILL, firstClashTeam.getTeam().getPlayers(), messageBuilder, clashMessageManager.getSelectedPlatform());
+      addTeamMembersTextByPosition(ClashPosition.FILL, firstClashTeam.getTeam().getPlayers(), messageBuilder, clashMessageManager.getSelectedPlatform());
     }
 
-    List<ClashTeamMember> membersUnselected = TeamUtil.getPlayerByPosition(TeamPosition.UNSELECTED, firstClashTeam.getTeam().getPlayers());
+    List<ClashPlayer> membersUnselected = TeamUtil.getPlayerByPosition(ClashPosition.UNSELECTED, firstClashTeam.getTeam().getPlayers());
     if(!membersUnselected.isEmpty()) {
       messageBuilder.append("\n");
-      addTeamMembersTextByPosition(TeamPosition.UNSELECTED, firstClashTeam.getTeam().getPlayers(), messageBuilder, clashMessageManager.getSelectedPlatform());
+      addTeamMembersTextByPosition(ClashPosition.UNSELECTED, firstClashTeam.getTeam().getPlayers(), messageBuilder, clashMessageManager.getSelectedPlatform());
     }
   }
 
-  private void addTeamMembersTextByPosition(TeamPosition position, List<ClashTeamMember> players,
-      StringBuilder messageBuilder, Platform platform) throws RiotApiException {
-    List<ClashTeamMember> members = TeamUtil.getPlayerByPosition(position, players);
+  private void addTeamMembersTextByPosition(ClashPosition position, List<ClashPlayer> players,
+      StringBuilder messageBuilder, ZoePlatform platform) {
+    List<ClashPlayer> members = TeamUtil.getPlayerByPosition(position, players);
 
     StringBuilder playerName = new StringBuilder();
 
@@ -271,15 +271,15 @@ public class TreatClashChannel implements Runnable {
       playerName.append("*" + LanguageManager.getText(server.getLanguage(), "empty") + "*");
     }else {
       int numberOfPlayerTreated = 0;
-      for(ClashTeamMember player : members) {
+      for(ClashPlayer player : members) {
         numberOfPlayerTreated++;
-        SummonerCache summoner = Zoe.getRiotApi().getSummonerWithRateLimit(platform, player.getSummonerId(), forceRefreshCache);
+        SavedSummoner summoner = Zoe.getRiotApi().getSummonerBySummonerId(platform, player.getSummonerId(), forceRefresh);
 
         String summonerName;
-        if(player.getTeamRole() == TeamRole.CAPTAIN) {
-          summonerName = "👑 " + summoner.getSumCacheData().getName();
+        if(player.getRole() == ClashRole.CAPTAIN) {
+          summonerName = "👑 " + summoner.getName();
         }else {
-          summonerName = summoner.getSumCacheData().getName();
+          summonerName = summoner.getName();
         }
 
         if(numberOfPlayerTreated == 1) {
@@ -298,45 +298,37 @@ public class TreatClashChannel implements Runnable {
 
   }
 
-  private void refreshWaitForTeamRegistration(ClashChannelData clashMessageManager, SummonerCache summonerCache) {
+  private void refreshWaitForTeamRegistration(ClashChannelData clashMessageManager, SavedSummoner summonerCache) {
 
     cleanTeamAndGameMessages(clashMessageManager);
 
     StringBuilder messageBuilder = new StringBuilder();
 
-    messageBuilder.append("**" + String.format(LanguageManager.getText(server.getLanguage(), "clashChannelTitle"), summonerCache.getSumCacheData().getName(),
-        clashMessageManager.getSelectedPlatform().getName().toUpperCase()) + "**\n\n");
+    messageBuilder.append("**" + String.format(LanguageManager.getText(server.getLanguage(), "clashChannelTitle"), summonerCache.getName(),
+        clashMessageManager.getSelectedPlatform().getShowableName()) + "**\n\n");
 
     messageBuilder.append(LanguageManager.getText(server.getLanguage(), "clashChannelLeagueAccountNotInGame") + "\n\n");
 
-    List<ClashTournament> nextTournaments = null;
-    try {
-      nextTournaments = Zoe.getRiotApi().getClashTournamentsWithRateLimit(clashMessageManager.getSelectedPlatform());
+    List<SavedClashTournament> nextTournaments = Zoe.getRiotApi().getTournaments(clashMessageManager.getSelectedPlatform());
 
-      if(nextTournaments == null || nextTournaments.isEmpty()) {
-        messageBuilder.append(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentNotAvailable") + "\n\n");
-      }else {
-        messageBuilder.append(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentUpcoming") + "\n");
+    if(nextTournaments == null || nextTournaments.isEmpty()) {
+      messageBuilder.append(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentNotAvailable") + "\n\n");
+    }else {
+      messageBuilder.append(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentUpcoming") + "\n");
 
-        String tournamentBasicName = LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentBasicName");
+      String tournamentBasicName = LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentBasicName");
 
-        nextTournaments.sort(clashTournamentComparator);
+      nextTournaments.sort(clashTournamentComparator);
 
-        for(ClashTournament clashTournament : nextTournaments) {
-          List<ClashTournamentPhase> phases = clashTournament.getSchedule();
+      for(SavedClashTournament clashTournament : nextTournaments) {
+        List<SavedClashTournamentPhase> phases = clashTournament.getSchedule();
 
-          if(phases.size() == 1) {
-            addClashTournamentOnePhase(messageBuilder, tournamentBasicName, clashTournament, phases);
-          }else {
-            addClashTournamentMultplePhase(messageBuilder, tournamentBasicName, clashTournament, phases);
-          }
+        if(phases.size() == 1) {
+          addClashTournamentOnePhase(messageBuilder, tournamentBasicName, clashTournament, phases);
+        }else {
+          addClashTournamentMultplePhase(messageBuilder, tournamentBasicName, clashTournament, phases);
         }
       }
-
-    } catch (SQLException e) {
-      logger.warn("SQL Error in refreshWaitForTeamRegistration !", e);
-
-      messageBuilder.append("\n" + LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentError") + "\n\n");
     }
 
     messageBuilder.append("\n**" + LanguageManager.getText(server.getLanguage(), BOTTOM_MESSAGE_ID) + "**");
@@ -345,7 +337,7 @@ public class TreatClashChannel implements Runnable {
   }
 
   private void addClashTournamentMultplePhase(StringBuilder messageBuilder, String tournamentBasicName,
-      ClashTournament clashTournament, List<ClashTournamentPhase> phases) {
+      SavedClashTournament clashTournament, List<SavedClashTournamentPhase> phases) {
     String tournamentName = LanguageManager.getText(server.getLanguage(), clashTournament.getNameKey());
 
     if(tournamentName.startsWith("Translation error")) {
@@ -355,7 +347,7 @@ public class TreatClashChannel implements Runnable {
     messageBuilder.append(String.format(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentMultiplePhaseTitle"), tournamentName) + "\n");
 
     int phaseNumber = 0;
-    for(ClashTournamentPhase phase : phases) {
+    for(SavedClashTournamentPhase phase : phases) {
       phaseNumber++;
       String currentPhase = String.format(LanguageManager.getText(server.getLanguage(), "phaseNumber"), phaseNumber);
       messageBuilder.append(String.format(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentPhaseElement"),
@@ -367,8 +359,8 @@ public class TreatClashChannel implements Runnable {
   }
 
   private void addClashTournamentOnePhase(StringBuilder messageBuilder, String tournamentBasicName,
-      ClashTournament clashTournament, List<ClashTournamentPhase> phases) {
-    ClashTournamentPhase phase = phases.get(0);
+      SavedClashTournament clashTournament, List<SavedClashTournamentPhase> phases) {
+    SavedClashTournamentPhase phase = phases.get(0);
 
     String dayNumber = TeamUtil.parseDayId(server.getLanguage(), clashTournament.getNameKeySecondary());
 
@@ -386,9 +378,9 @@ public class TreatClashChannel implements Runnable {
         formatedDate, clashChannelDB.clashChannel_timezone.getID()) + "\n");
   }
 
-  private String getFormatedDateFromPhase(ClashTournamentPhase phase) {
-    ZonedDateTime dateTimeRegistrationToShow = phase.getRegistrationTime().withZoneSameInstant(ZoneId.of(clashChannelDB.clashChannel_timezone.getID()));
-    ZonedDateTime dateTimeStartToShow = phase.getStartTime().withZoneSameInstant(ZoneId.of(clashChannelDB.clashChannel_timezone.getID()));
+  private String getFormatedDateFromPhase(SavedClashTournamentPhase phase) {
+    ZonedDateTime dateTimeRegistrationToShow = SavedClashTournamentPhaseUtil.convertTimestampToZone(phase.getRegistrationTime()).withZoneSameInstant(ZoneId.of(clashChannelDB.clashChannel_timezone.getID()));
+    ZonedDateTime dateTimeStartToShow = SavedClashTournamentPhaseUtil.convertTimestampToZone(phase.getStartTime()).withZoneSameInstant(ZoneId.of(clashChannelDB.clashChannel_timezone.getID()));
 
     return CLASH_TOURNAMENT_DATE_TIME_PATTERN.format(dateTimeRegistrationToShow) + "-" + CLASH_TOURNAMENT_TIME_ONLY_PATTERN.format(dateTimeStartToShow);
   }

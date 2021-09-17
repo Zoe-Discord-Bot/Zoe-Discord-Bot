@@ -1,14 +1,15 @@
 package ch.kalunight.zoe.model;
 
-import net.rithms.riot.constant.Platform;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
+import ch.kalunight.zoe.util.MatchV5Util;
 
 public class GameAccessDataServerSpecific {
 
   private Long gameId;
-  private Platform platform;
+  private ZoePlatform platform;
   private Long guildId;
 
-  public GameAccessDataServerSpecific(Long gameId, Platform platform, Long guildId) {
+  public GameAccessDataServerSpecific(Long gameId, ZoePlatform platform, Long guildId) {
     this.gameId = gameId;
     this.platform = platform;
     this.guildId = guildId;
@@ -56,19 +57,19 @@ public class GameAccessDataServerSpecific {
     return true;
   }
 
-  public Long getGameId() {
-    return gameId;
+  public String getGameId() {
+    return MatchV5Util.convertMatchV4IdToMatchV5Id(gameId, platform);
   }
 
   public void setGameId(Long gameId) {
     this.gameId = gameId;
   }
 
-  public Platform getPlatform() {
+  public ZoePlatform getPlatform() {
     return platform;
   }
 
-  public void setPlatform(Platform platform) {
+  public void setPlatform(ZoePlatform platform) {
     this.platform = platform;
   }
 

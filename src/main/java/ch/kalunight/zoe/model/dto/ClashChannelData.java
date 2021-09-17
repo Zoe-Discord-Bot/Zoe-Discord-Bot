@@ -3,19 +3,17 @@ package ch.kalunight.zoe.model.dto;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.rithms.riot.constant.Platform;
-
 public class ClashChannelData {
 
   private List<Long> infoMessagesId;
   private List<Long> enemyTeamMessages;
   private Long gameCardId;
   private Long gameId;
-  private Platform selectedPlatform;
+  private ZoePlatform selectedPlatform;
   private String selectedSummonerId;
   private ClashStatus clashStatus;
 
-  public ClashChannelData(List<Long> infoMessagesId, List<Long> teamsSpecificInfo, Long gameCardId, Platform selectedPlatform, String selectedSummonerId, ClashStatus clashStatus) {
+  public ClashChannelData(List<Long> infoMessagesId, List<Long> teamsSpecificInfo, Long gameCardId, ZoePlatform selectedPlatform, String selectedSummonerId, ClashStatus clashStatus) {
     this.infoMessagesId = infoMessagesId;
     this.enemyTeamMessages = teamsSpecificInfo;
     this.gameCardId = gameCardId;
@@ -60,11 +58,11 @@ public class ClashChannelData {
     this.enemyTeamMessages = teamsSpecificInfo;
   }
 
-  public Platform getSelectedPlatform() {
+  public ZoePlatform getSelectedPlatform() {
     return selectedPlatform;
   }
 
-  public void setSelectedPlatform(Platform selectedPlatform) {
+  public void setSelectedPlatform(ZoePlatform selectedPlatform) {
     this.selectedPlatform = selectedPlatform;
   }
 

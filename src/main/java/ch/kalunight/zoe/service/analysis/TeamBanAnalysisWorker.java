@@ -67,7 +67,7 @@ public class TeamBanAnalysisWorker implements Runnable {
       if(clashTeam != null) {
         messageBuilder.append("**" + String.format(LanguageManager.getText(server.getLanguage(), "clashChannelClashTournamentTeamNameStats"), clashTeam.getTeam().getAbbreviation(),
             clashTeam.getTeam().getName(),
-            clashTeam.getTeam().getTier().getTier()) + "**\n");
+            clashTeam.getTeam().getTier()) + "**\n");
       }else {
         messageBuilder.append("**" + LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisAccountCustomTeamTitle") + "**\n");
       }
@@ -123,7 +123,7 @@ public class TeamBanAnalysisWorker implements Runnable {
 
       List<PickData> picksToShow = TeamUtil.getHeighestDangerosity(playerPick, 2);
 
-      messageBuilder.append("**" + LanguageManager.getText(server.getLanguage(), TeamUtil.getChampionRoleID(role)) + " " + player.getSummoner().getSumCacheData().getName() + "**");
+      messageBuilder.append("**" + LanguageManager.getText(server.getLanguage(), TeamUtil.getChampionRoleID(role)) + " " + player.getSummoner().getName() + "**");
 
       if(!picksToShow.isEmpty()) {
 

@@ -5,7 +5,7 @@ import org.joda.time.DateTime;
 import ch.kalunight.zoe.model.dto.DTO;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
+import no.stelar7.api.r4j.pojo.lol.spectator.SpectatorGameInfo;
 
 public class InfoCard {
 
@@ -14,9 +14,9 @@ public class InfoCard {
   private Message title;
   private Message message;
   private DateTime creationTime;
-  private CurrentGameInfo currentGameInfo;
+  private SpectatorGameInfo currentGameInfo;
 
-  public InfoCard(List<DTO.Player> players, MessageEmbed card, CurrentGameInfo currentGameInfo) {
+  public InfoCard(List<DTO.Player> players, MessageEmbed card, SpectatorGameInfo currentGameInfo) {
     this.players = players;
     this.card = card;
     this.currentGameInfo = currentGameInfo;
@@ -63,11 +63,11 @@ public class InfoCard {
     this.title = title;
   }
 
-  public CurrentGameInfo getCurrentGameInfo() {
+  public SpectatorGameInfo getCurrentGameInfo() {
     return currentGameInfo;
   }
 
-  public void setCurrentGameInfo(CurrentGameInfo currentGameInfo) {
+  public void setCurrentGameInfo(SpectatorGameInfo currentGameInfo) {
     this.currentGameInfo = currentGameInfo;
   }
 }

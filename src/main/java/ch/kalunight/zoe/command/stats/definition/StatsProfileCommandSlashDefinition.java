@@ -85,12 +85,12 @@ public class StatsProfileCommandSlashDefinition extends ZoeSlashCommand {
       if(selectedMember != null) {
         List<User> mentionnedUser = new ArrayList<>();
         mentionnedUser.add(selectedMember.getUser());
-        StatsProfileCommandRunnable.executeCommand(server, event.getTextChannel(), "", mentionnedUser, null, event.getHook(), waiter, event.getMember());
+        StatsProfileCommandRunnable.executeCommand(server, event.getTextChannel(), "", mentionnedUser, null, event.getHook(), waiter, event.getMember(), false);
         return;
       }
       
       String args = "(" + region + ") (" + summonerName + ")";
-      StatsProfileCommandRunnable.executeCommand(server, event.getTextChannel(), args, new ArrayList<>(), null, event.getHook(), waiter, event.getMember());
+      StatsProfileCommandRunnable.executeCommand(server, event.getTextChannel(), args, new ArrayList<>(), null, event.getHook(), waiter, event.getMember(), false);
     }else {
       event.getHook().editOriginal(LanguageManager.getText(server.getLanguage(), "statsProfileNeedParametersSlashCommand")).queue();
     }

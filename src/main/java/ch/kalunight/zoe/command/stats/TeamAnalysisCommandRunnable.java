@@ -17,7 +17,7 @@ public class TeamAnalysisCommandRunnable {
   }
   
   public static void executeCommand(Server server, EventWaiter waiter, TextChannel channel, Member member) {
-    TeamSelectorDataHandler teamDataHandler = new TeamSelectorDataHandler(waiter, server, channel, member, new TeamSelectorAnalysisDataManager(server, channel), ServerThreadsManager.getClashChannelExecutor());
+    TeamSelectorDataHandler teamDataHandler = new TeamSelectorDataHandler(waiter, server, channel, member, new TeamSelectorAnalysisDataManager(server, channel, false), ServerThreadsManager.getClashChannelExecutor());
 
     channel.sendMessage(LanguageManager.getText(server.getLanguage(), "statsTeamAnalysisStart")).queue();
     

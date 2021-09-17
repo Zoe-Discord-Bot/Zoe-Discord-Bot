@@ -84,7 +84,6 @@ import ch.kalunight.zoe.repositories.ChampionRoleAnalysisRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.repositories.RepoRessources;
 import ch.kalunight.zoe.repositories.ZoeUserManagementRepository;
-import ch.kalunight.zoe.riotapi.CacheManager;
 import ch.kalunight.zoe.riotapi.CachedRiotApi;
 import ch.kalunight.zoe.service.RiotApiUsageChannelRefresh;
 import ch.kalunight.zoe.service.ServerChecker;
@@ -104,8 +103,9 @@ import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
-import net.rithms.riot.api.ApiConfig;
-import net.rithms.riot.api.RiotApi;
+import no.stelar7.api.r4j.basic.APICredentials;
+import no.stelar7.api.r4j.basic.calling.DataCall;
+import no.stelar7.api.r4j.impl.R4J;
 
 public class Zoe {
 
@@ -185,7 +185,7 @@ public class Zoe {
       RepoRessources.setupDatabase(args[5], args[4]);
     }catch(Exception e) {
       logger.error("Error with parameters : 1. Discord Tocken 2. LoL tocken 3. TFT tocken 4. Owner Id 5. DB url 6. DB password", e);
-      throw e;
+      return;
     }
 
     try {
@@ -195,8 +195,13 @@ public class Zoe {
       return;
     }
 
-    initRiotApi(riotTocken, tftTocken);
-
+    try {
+      initRiotApi(riotTocken, tftTocken);
+    } catch(Exception e) {
+      logger.error("Error while init Riot api", e);
+      return;
+    }
+    
     try {
       discordBotListTocken = args[6];
     } catch(Exception e) {
@@ -292,10 +297,6 @@ public class Zoe {
       logger.warn("Error with the loading of emotes : {}", e.getMessage());
     }
 
-    logger.info("Setup cache ...");
-    CacheManager.setupCache();
-    logger.info("Setup cache finished !");
-
     logger.info("Loading of RAPI Status Channel ...");
 
     initRAPIStatusChannel();
@@ -382,12 +383,15 @@ public class Zoe {
     return clientsLoaded;
   }
 
-  public static void initRiotApi(String riotTocken, String tftTocken) {
-    ApiConfig config = new ApiConfig().setKey(riotTocken).setTFTKey(tftTocken);
-
-    config.setMaxAsyncThreads(ServerThreadsManager.NBR_PROC);
-    config.setRequestTimeout(1000);
-    riotApi = new CachedRiotApi(new RiotApi(config));
+  public static void initRiotApi(String riotTocken, String tftTocken) throws IOException {
+    APICredentials creds = new APICredentials(riotTocken, null, tftTocken, null, null);
+    R4J baseRiotApi = new R4J(creds);
+    
+    //DataCall.setGlobalTimeout(1);
+    DataCall.setCredentials(creds);
+    DataCall.setCacheProvider(null);
+    
+    riotApi = new CachedRiotApi(baseRiotApi, "zoe");
   }
 
   private static void setupContinousRefreshThread() {
@@ -500,7 +504,7 @@ public class Zoe {
     for(Champion champion : champions) {
       try {
         ChampionRoleAnalysis championRole = ChampionRoleAnalysisRepository.getChampionRoleAnalysis(champion.getKey());
-
+        
         if(championRole != null) {
           champion.setRoles(championRole.cra_roles);
           champion.setAverageKDA(championRole.cra_average_kda);

@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,11 +25,13 @@ import ch.kalunight.zoe.model.InfocardPlayerData;
 import ch.kalunight.zoe.model.PlayerRankedResult;
 import ch.kalunight.zoe.model.RankedChangeType;
 import ch.kalunight.zoe.model.dto.DTO;
-import ch.kalunight.zoe.model.dto.SavedChampionsMastery;
-import ch.kalunight.zoe.model.dto.SavedMatch;
-import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Player;
+import ch.kalunight.zoe.model.dto.SavedMatch;
+import ch.kalunight.zoe.model.dto.SavedMatchPlayer;
+import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
+import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.model.player_data.Rank;
 import ch.kalunight.zoe.model.player_data.Tier;
@@ -39,6 +40,7 @@ import ch.kalunight.zoe.model.static_data.CustomEmote;
 import ch.kalunight.zoe.model.static_data.Mastery;
 import ch.kalunight.zoe.service.infochannel.SummonerDataWorker;
 import ch.kalunight.zoe.translation.LanguageManager;
+import ch.kalunight.zoe.util.MatchV5Util;
 import ch.kalunight.zoe.util.MessageBuilderRequestUtil;
 import ch.kalunight.zoe.util.Ressources;
 import ch.kalunight.zoe.util.ZoeSupportMessageGeneratorUtil;
@@ -48,16 +50,14 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.MessageEmbed.Field;
 import net.dv8tion.jda.api.entities.User;
-import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
-import net.rithms.riot.api.endpoints.league.dto.MiniSeries;
-import net.rithms.riot.api.endpoints.match.dto.MatchList;
-import net.rithms.riot.api.endpoints.match.dto.MatchReference;
-import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
-import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
-import net.rithms.riot.api.endpoints.tft_league.dto.TFTLeagueEntry;
-import net.rithms.riot.api.endpoints.tft_match.dto.TFTMatch;
-import net.rithms.riot.constant.Platform;
+import no.stelar7.api.r4j.basic.exceptions.APIHTTPErrorReason;
+import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
+
+import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
+import no.stelar7.api.r4j.pojo.lol.league.MiniSeries;
+import no.stelar7.api.r4j.pojo.lol.spectator.SpectatorGameInfo;
+import no.stelar7.api.r4j.pojo.lol.spectator.SpectatorParticipant;
+import no.stelar7.api.r4j.pojo.tft.TFTMatch;
 
 public class MessageBuilderRequest {
 
@@ -70,7 +70,7 @@ public class MessageBuilderRequest {
   private static final String GENERATED_AT_STRING = "generatedAt";
 
   private static final Logger logger = LoggerFactory.getLogger(MessageBuilderRequest.class);
-  
+
   private static final Random rand = new Random();
   private static final int CHANCE_RANDOM_MAX_RANGE = 10;
   private static final int CHANCE_TO_SHOW_SOMETHING = 1; // 1 chance on 10
@@ -78,10 +78,10 @@ public class MessageBuilderRequest {
   private MessageBuilderRequest() {}
 
   public static PlayerRankedResult getMatchDataMutiplePlayers(LeagueEntry oldEntry, LeagueEntry newEntry, 
-      CurrentGameInfo gameOfTheChange, LeagueAccount leagueAccount, String lang, RankedChangeType changeType) {
+      SpectatorGameInfo gameOfTheChange, LeagueAccount leagueAccount, String lang, RankedChangeType changeType, boolean forceRefresh) {
 
-    SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
-
+    SavedMatch match = Zoe.getRiotApi().getMatchById(leagueAccount.leagueAccount_server, MatchV5Util.convertMatchV4IdToMatchV5Id(gameOfTheChange.getGameId(), leagueAccount.leagueAccount_server));
+    
     String accountTitle = null;
     String changeStats = null;
     String statsGame = null;
@@ -92,8 +92,8 @@ public class MessageBuilderRequest {
     String summonerName = LanguageManager.getText(lang, "unknown");
 
     try {
-      summonerName = leagueAccount.getSummoner().getName();
-    } catch (RiotApiException e) {
+      summonerName = leagueAccount.getSummoner(forceRefresh).getName();
+    } catch (APIResponseException e) {
       logger.warn("Error while getting summoner !", e);
     }
 
@@ -102,14 +102,20 @@ public class MessageBuilderRequest {
       MiniSeries oldBo = oldEntry.getMiniSeries();
       MiniSeries newBo = newEntry.getMiniSeries();
 
-      if(match.isGivenAccountWinner(leagueAccount.leagueAccount_summonerId)) {
-        accountTitle = String.format(LanguageManager.getText(lang, "rankChannelChangeBOProgressWinTitleWithoutGameType"),
-            summonerName, oldBo.getProgress().length(),
-            oldFullTier.getHeigerDivision().toStringWithoutLp(lang));
-      }else {
-        accountTitle = String.format(LanguageManager.getText(lang, "rankChannelChangeBOProgressLooseTitleWithoutGameType"),
-            summonerName, oldBo.getProgress().length(),
-            oldFullTier.getHeigerDivision().toStringWithoutLp(lang));
+
+      for(SavedMatchPlayer participant : match.getPlayers()) {
+        if(participant.getSummonerId().equals(leagueAccount.leagueAccount_summonerId)) {
+
+          if(participant.didWin(match)) {
+            accountTitle = String.format(LanguageManager.getText(lang, "rankChannelChangeBOProgressWinTitleWithoutGameType"),
+                summonerName, oldBo.getProgress().length(),
+                oldFullTier.getHeigerDivision().toStringWithoutLp(lang));
+          }else {
+            accountTitle = String.format(LanguageManager.getText(lang, "rankChannelChangeBOProgressLooseTitleWithoutGameType"),
+                summonerName, oldBo.getProgress().length(),
+                oldFullTier.getHeigerDivision().toStringWithoutLp(lang));
+          }
+        }
       }
 
       changeStats = MessageBuilderRequestUtil.getBoStatus(newBo, lang);
@@ -205,26 +211,54 @@ public class MessageBuilderRequest {
 
     statsGame = MessageBuilderRequestUtil.getResumeGameStats(leagueAccount, lang, match);
 
-    return new PlayerRankedResult(gameOfTheChange.getGameId(), leagueAccount.leagueAccount_server, accountTitle, changeStats, statsGame);
+    Boolean win = null;
+    
+    for(SavedMatchPlayer participant : match.getPlayers()) {
+      if(participant.getSummonerId().equals(leagueAccount.leagueAccount_summonerId)) {
+        win = participant.didWin(match);
+        break;
+      }
+    }
+    
+    if(win == null) {
+      logger.info("A game in rank channel generation message has been canceled");
+      return null;
+    }
+
+    return new PlayerRankedResult(gameOfTheChange.getGameId(), leagueAccount.leagueAccount_server, accountTitle, changeStats, statsGame, win);
   }
 
-  public static MessageEmbed createCombinedMessage(List<PlayerRankedResult> playersRankedResult, CurrentGameInfo currentGameInfo, String lang) {
+  public static MessageEmbed createCombinedMessage(List<PlayerRankedResult> playersRankedResult, SpectatorGameInfo currentGameInfo, String lang) {
 
     EmbedBuilder message = new EmbedBuilder();
 
     String gameType = getGameType(currentGameInfo, lang);
 
-    message.setColor(Color.PINK);
     message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeMultipleResultTitle"), gameType));
 
+    int numberWin = 0;
+    int numberLose = 0;
     for(PlayerRankedResult playerRankedResult : playersRankedResult) {
       Field field = new Field(playerRankedResult.getCatTitle(), playerRankedResult.getLpResult() + "\n" + playerRankedResult.getGameStats(), false);
 
       message.addField(field);
+      if(playerRankedResult.getWin()) {
+        numberWin++;
+      }else {
+        numberLose++;
+      }
+    }
+
+    if(numberWin != 0 && numberLose != 0) {
+      message.setColor(Color.PINK);
+    }else if(numberWin != 0) {
+      message.setColor(Color.GREEN);
+    }else {
+      message.setColor(Color.RED);
     }
 
     addSupportMessage(lang, message);
-    
+
     message.setFooter(LanguageManager.getText(lang, GENERATED_AT_STRING));
     message.setTimestamp(Instant.now());
 
@@ -232,10 +266,10 @@ public class MessageBuilderRequest {
   }
 
   public static MessageEmbed createRankChannelCardBoStarted(LeagueEntry newEntry, 
-      CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang, JDA jda) throws RiotApiException {
+      SpectatorGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang, JDA jda, boolean forceRefresh) {
 
-    SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
-
+    SavedMatch match = Zoe.getRiotApi().getMatchById(leagueAccount.leagueAccount_server, MatchV5Util.convertMatchV4IdToMatchV5Id(gameOfTheChange.getGameId(), leagueAccount.leagueAccount_server));
+    
     EmbedBuilder message = new EmbedBuilder();
 
     String gameType = getGameType(gameOfTheChange, lang);
@@ -249,7 +283,7 @@ public class MessageBuilderRequest {
     message.setColor(Color.GREEN);
     message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelBoStartedTitle"), 
         ZoeUserRankManagementUtil.getEmotesByDiscordId(user.getIdLong()) 
-        + leagueAccount.getSummoner().getName(), bo.getProgress().length(),
+        + leagueAccount.getSummoner(forceRefresh).getName(), bo.getProgress().length(),
         newFullTier.getHeigerDivision().toStringWithoutLp(lang), gameType));
 
     String boStatus = MessageBuilderRequestUtil.getBoStatus(bo, lang);
@@ -261,7 +295,7 @@ public class MessageBuilderRequest {
     Field field = new Field(LanguageManager.getText(lang, RESUME_OF_THE_GAME_STRING), statsGame, true);
 
     message.addField(field);
-    
+
     addSupportMessage(lang, message);
 
     message.setFooter(LanguageManager.getText(lang, GENERATED_AT_STRING));
@@ -271,9 +305,9 @@ public class MessageBuilderRequest {
   }
 
   public static MessageEmbed createRankChannelBoInProgress(LeagueEntry oldEntry, LeagueEntry newEntry, 
-      CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang, JDA jda) throws RiotApiException {
+      SpectatorGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang, JDA jda, boolean forceRefresh) {
 
-    SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
+    SavedMatch match = Zoe.getRiotApi().getMatchById(leagueAccount.leagueAccount_server, MatchV5Util.convertMatchV4IdToMatchV5Id(gameOfTheChange.getGameId(), leagueAccount.leagueAccount_server));
 
     EmbedBuilder message = new EmbedBuilder();
 
@@ -287,19 +321,26 @@ public class MessageBuilderRequest {
 
     FullTier oldFullTier = new FullTier(oldEntry);
     try {
-      if(match.isGivenAccountWinner(leagueAccount.leagueAccount_summonerId)) {
-        message.setColor(Color.GREEN);
-        message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeBOProgressWinTitle"),
-            ZoeUserRankManagementUtil.getEmotesByDiscordId(user.getIdLong())
-            + leagueAccount.getSummoner().getName(), oldBo.getProgress().length(),
-            oldFullTier.getHeigerDivision().toStringWithoutLp(lang), gameType));
-      }else {
-        message.setColor(Color.RED);
-        message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeBOProgressLooseTitle"),
-            ZoeUserRankManagementUtil.getEmotesByDiscordId(user.getIdLong())
-            + leagueAccount.getSummoner().getName(), oldBo.getProgress().length(),
-            oldFullTier.getHeigerDivision().toStringWithoutLp(lang), gameType));
+      
+      for(SavedMatchPlayer participant : match.getPlayers()) {
+        if(participant.getSummonerId().equals(leagueAccount.leagueAccount_summonerId)) {
+          
+          if(participant.didWin(match)) {
+            message.setColor(Color.GREEN);
+            message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeBOProgressWinTitle"),
+                ZoeUserRankManagementUtil.getEmotesByDiscordId(user.getIdLong())
+                + leagueAccount.getSummoner(forceRefresh).getName(), oldBo.getProgress().length(),
+                oldFullTier.getHeigerDivision().toStringWithoutLp(lang), gameType));
+          }else {
+            message.setColor(Color.RED);
+            message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeBOProgressLooseTitle"),
+                ZoeUserRankManagementUtil.getEmotesByDiscordId(user.getIdLong())
+                + leagueAccount.getSummoner(forceRefresh).getName(), oldBo.getProgress().length(),
+                oldFullTier.getHeigerDivision().toStringWithoutLp(lang), gameType));
+          }
+        }
       }
+
     }catch(PlayerNotFoundException e) {
       logger.info("A game in rank channel generation message has been canceled");
       return null;
@@ -314,7 +355,7 @@ public class MessageBuilderRequest {
     Field field = new Field(LanguageManager.getText(lang, RESUME_OF_THE_GAME_STRING), statsGame, true);
 
     message.addField(field);
-    
+
     addSupportMessage(lang, message);
 
     message.setFooter(LanguageManager.getText(lang, GENERATED_AT_STRING));
@@ -324,9 +365,9 @@ public class MessageBuilderRequest {
   }
 
   public static MessageEmbed createRankChannelCardBoEnded(LeagueEntry oldEntry, LeagueEntry newEntry, 
-      CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang, JDA jda) throws RiotApiException {
+      SpectatorGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang, JDA jda, boolean forceRefresh) {
 
-    SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
+    SavedMatch match = Zoe.getRiotApi().getMatchById(leagueAccount.leagueAccount_server, MatchV5Util.convertMatchV4IdToMatchV5Id(gameOfTheChange.getGameId(), leagueAccount.leagueAccount_server));
 
     EmbedBuilder message = new EmbedBuilder();
 
@@ -351,12 +392,12 @@ public class MessageBuilderRequest {
       message.setColor(Color.RED);
       message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeBOEndedLooseTitle"),
           ZoeUserRankManagementUtil.getEmotesByDiscordId(user.getIdLong())
-          + leagueAccount.getSummoner().getName(), bo.getProgress().length(), oldFullTier.getHeigerDivision().toStringWithoutLp(lang), gameType));
+          + leagueAccount.getSummoner(forceRefresh).getName(), bo.getProgress().length(), oldFullTier.getHeigerDivision().toStringWithoutLp(lang), gameType));
     }else {
       message.setColor(Color.YELLOW);
       message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeBOEndedWinTitle"),
           ZoeUserRankManagementUtil.getEmotesByDiscordId(user.getIdLong())
-          + leagueAccount.getSummoner().getName(), bo.getProgress().length(), oldFullTier.getHeigerDivision().toStringWithoutLp(lang), gameType));
+          + leagueAccount.getSummoner(forceRefresh).getName(), bo.getProgress().length(), oldFullTier.getHeigerDivision().toStringWithoutLp(lang), gameType));
     }
 
     message.setDescription(oldFullTier.toString(lang) + " -> " + newFullTier.toString(lang) + "\n"
@@ -367,7 +408,7 @@ public class MessageBuilderRequest {
     Field field = new Field(LanguageManager.getText(lang, RESUME_OF_THE_GAME_STRING), statsGame, true);
 
     message.addField(field);
-    
+
     addSupportMessage(lang, message);
 
     message.setFooter(LanguageManager.getText(lang, GENERATED_AT_STRING));
@@ -377,9 +418,9 @@ public class MessageBuilderRequest {
   }
 
   public static MessageEmbed createRankChannelCardLeagueChange(LeagueEntry oldEntry, LeagueEntry newEntry, 
-      CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang, JDA jda) throws RiotApiException {
+      SpectatorGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang, JDA jda, boolean forceRefresh) {
 
-    SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
+    SavedMatch match = Zoe.getRiotApi().getMatchById(leagueAccount.leagueAccount_server, MatchV5Util.convertMatchV4IdToMatchV5Id(gameOfTheChange.getGameId(), leagueAccount.leagueAccount_server));
 
     EmbedBuilder message = new EmbedBuilder();
 
@@ -417,24 +458,24 @@ public class MessageBuilderRequest {
         message.setColor(Color.YELLOW);
         message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeRankChangeWinDivisionSkippedTitle"),
             ZoeUserRankManagementUtil.getEmotesByDiscordId(user.getIdLong())
-            + leagueAccount.getSummoner().getName(), gameType));
+            + leagueAccount.getSummoner(forceRefresh).getName(), gameType));
       }else {
         message.setColor(Color.GREEN);
         message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeWonDivision"),
             ZoeUserRankManagementUtil.getEmotesByDiscordId(user.getIdLong())
-            + leagueAccount.getSummoner().getName(), newFullTier.toString(lang), gameType));
+            + leagueAccount.getSummoner(forceRefresh).getName(), newFullTier.toString(lang), gameType));
       }
     }else {
       if(divisionJump) {
         message.setColor(Color.BLACK);
         message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeLooseDivisionDecayTitle"),
             ZoeUserRankManagementUtil.getEmotesByDiscordId(user.getIdLong())
-            + leagueAccount.getSummoner().getName(), gameType));
+            + leagueAccount.getSummoner(forceRefresh).getName(), gameType));
       }else {
         message.setColor(Color.RED);
         message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeLooseDivisionTitle"),
             ZoeUserRankManagementUtil.getEmotesByDiscordId(user.getIdLong())
-            + leagueAccount.getSummoner().getName(), gameType));
+            + leagueAccount.getSummoner(forceRefresh).getName(), gameType));
       }
     }
 
@@ -447,7 +488,7 @@ public class MessageBuilderRequest {
     message.addField(field);
 
     addSupportMessage(lang, message);
-    
+
     message.setFooter(LanguageManager.getText(lang, GENERATED_AT_STRING));
     message.setTimestamp(Instant.now());
 
@@ -466,9 +507,9 @@ public class MessageBuilderRequest {
   }
 
   public static MessageEmbed createRankChannelCardLeaguePointChangeOnly(LeagueEntry oldEntry, LeagueEntry newEntry, 
-      CurrentGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang, JDA jda) throws RiotApiException {
+      SpectatorGameInfo gameOfTheChange, Player player, LeagueAccount leagueAccount, String lang, JDA jda, boolean forceRefresh) {
 
-    SavedMatch match = Zoe.getRiotApi().getMatchWithRateLimit(leagueAccount.leagueAccount_server, gameOfTheChange.getGameId());
+    SavedMatch match = Zoe.getRiotApi().getMatchById(leagueAccount.leagueAccount_server, MatchV5Util.convertMatchV4IdToMatchV5Id(gameOfTheChange.getGameId(), leagueAccount.leagueAccount_server));
 
     EmbedBuilder message = new EmbedBuilder();
 
@@ -484,12 +525,12 @@ public class MessageBuilderRequest {
       message.setColor(Color.GREEN);
       message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangePointOnlyWinTitle"),
           ZoeUserRankManagementUtil.getEmotesByDiscordId(user.getIdLong())
-          + leagueAccount.getSummoner().getName(), lpReceived, gameType));
+          + leagueAccount.getSummoner(forceRefresh).getName(), lpReceived, gameType));
     }else {
       message.setColor(Color.RED);
       message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangePointOnlyLooseTitle"),
           ZoeUserRankManagementUtil.getEmotesByDiscordId(user.getIdLong())
-          + leagueAccount.getSummoner().getName(), lpReceived * -1, gameType));
+          + leagueAccount.getSummoner(forceRefresh).getName(), lpReceived * -1, gameType));
     }
 
     FullTier oldFullTier = new FullTier(oldEntry);
@@ -504,7 +545,7 @@ public class MessageBuilderRequest {
     message.addField(field);
 
     addSupportMessage(lang, message);
-    
+
     message.setFooter(LanguageManager.getText(lang, GENERATED_AT_STRING));
     message.setTimestamp(Instant.now());
 
@@ -512,7 +553,7 @@ public class MessageBuilderRequest {
   }
 
   public static MessageEmbed createRankChannelCardLeaguePointChangeOnlyTFT(LeagueEntry oldEntry, LeagueEntry newEntry, 
-      TFTMatch match, Player player, LeagueAccount leagueAccount, String lang, JDA jda) throws NoValueRankException, RiotApiException {
+      TFTMatch match, Player player, LeagueAccount leagueAccount, String lang, JDA jda, boolean forceRefresh) throws NoValueRankException {
 
     EmbedBuilder message = new EmbedBuilder();
 
@@ -532,17 +573,17 @@ public class MessageBuilderRequest {
         message.setColor(Color.YELLOW);
         message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangeRankChangeWinTierTFT"),
             ZoeUserRankManagementUtil.getEmotesByDiscordId(user.getIdLong())
-            + leagueAccount.getSummoner().getName(), lpReceived, LanguageManager.getText(lang, newFullTier.getTier().getTranslationTag()), gameType));
+            + leagueAccount.getSummoner(forceRefresh).getName(), lpReceived, LanguageManager.getText(lang, newFullTier.getTier().getTranslationTag()), gameType));
       }else {
         message.setColor(Color.GREEN);
         message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangePointOnlyWinTitle"),
             ZoeUserRankManagementUtil.getEmotesByDiscordId(user.getIdLong())
-            + leagueAccount.getSummoner().getName(), lpReceived, gameType));
+            + leagueAccount.getSummoner(forceRefresh).getName(), lpReceived, gameType));
       }
     }else {
       message.setColor(Color.RED);
       message.setTitle(String.format(LanguageManager.getText(lang, "rankChannelChangePointOnlyLooseTitle"),
-          leagueAccount.getSummoner().getName(), lpReceived * -1, gameType));
+          leagueAccount.getSummoner(forceRefresh).getName(), lpReceived * -1, gameType));
     }
 
     message.setDescription(oldFullTier.toString(lang) + " -> " + newFullTier.toString(lang));
@@ -555,32 +596,32 @@ public class MessageBuilderRequest {
     message.addField(field);
 
     addSupportMessage(lang, message);
-    
+
     message.setFooter(LanguageManager.getText(lang, GENERATED_AT_STRING));
     message.setTimestamp(Instant.now());
 
     return message.build();
   }
 
-  private static String getGameType(CurrentGameInfo gameOfTheChange, String lang) {
+  private static String getGameType(SpectatorGameInfo gameOfTheChange, String lang) {
     String gameType = "Unknown rank mode";
 
-    if(gameOfTheChange.getGameQueueConfigId() == GameQueueConfigId.SOLOQ.getId()) {
+    if(GameQueueConfigId.SOLOQ == GameQueueConfigId.getGameQueueIdWithQueueType(gameOfTheChange.getGameQueueConfig())) {
       gameType = LanguageManager.getText(lang, "soloq");
-    }else if(gameOfTheChange.getGameQueueConfigId() == GameQueueConfigId.FLEX.getId()){
+    }else if(GameQueueConfigId.FLEX == GameQueueConfigId.getGameQueueIdWithQueueType(gameOfTheChange.getGameQueueConfig())){
       gameType = LanguageManager.getText(lang, "flex");
     }
     return gameType;
   }
 
-  public static MessageEmbed createInfoCard(List<DTO.Player> players, CurrentGameInfo currentGameInfo,
-      Platform region, DTO.Server server, JDA jda) throws SQLException {
+  public static MessageEmbed createInfoCard(List<DTO.Player> players, SpectatorGameInfo currentGameInfo,
+      ZoePlatform region, DTO.Server server, JDA jda, boolean forceRefresh) throws SQLException {
 
     String blueTeamTranslated = LanguageManager.getText(server.getLanguage(), BLUE_TEAM_STRING);
     String redTeamTranslated = LanguageManager.getText(server.getLanguage(), RED_TEAM_STRING);
     String masteriesWRThisMonthTranslated = LanguageManager.getText(server.getLanguage(), MASTERIES_WR_THIS_MONTH_STRING);
     String rankTitleTranslated;
-    if(currentGameInfo.getGameQueueConfigId() == GameQueueConfigId.FLEX.getId()) {
+    if(GameQueueConfigId.FLEX.equals(GameQueueConfigId.getGameQueueIdWithQueueType(currentGameInfo.getGameQueueConfig()))) {
       rankTitleTranslated = LanguageManager.getText(server.getLanguage(), "flexTitleRespectSize");
     } else {
       rankTitleTranslated = LanguageManager.getText(server.getLanguage(), SOLO_Q_RANK_STRING);
@@ -601,8 +642,8 @@ public class MessageBuilderRequest {
     message.setTitle(title.toString());
 
     int blueTeamID = 100;
-    ArrayList<CurrentGameParticipant> blueTeam = new ArrayList<>();
-    ArrayList<CurrentGameParticipant> redTeam = new ArrayList<>();
+    ArrayList<SpectatorParticipant> blueTeam = new ArrayList<>();
+    ArrayList<SpectatorParticipant> redTeam = new ArrayList<>();
 
     MessageBuilderRequestUtil.getTeamPlayer(currentGameInfo, blueTeamID, blueTeam, redTeam);
 
@@ -614,8 +655,8 @@ public class MessageBuilderRequest {
 
     List<InfocardPlayerData> playersData = new ArrayList<>();
 
-    MessageBuilderRequestUtil.createTeamDataMultipleSummoner(blueTeam, listIdPlayers, region, server.getLanguage(), playersData, true, currentGameInfo.getGameQueueConfigId());
-    MessageBuilderRequestUtil.createTeamDataMultipleSummoner(redTeam, listIdPlayers, region, server.getLanguage(), playersData, false, currentGameInfo.getGameQueueConfigId());
+    MessageBuilderRequestUtil.createTeamDataMultipleSummoner(blueTeam, listIdPlayers, region, server.getLanguage(), playersData, true, currentGameInfo.getGameQueueConfig(), forceRefresh);
+    MessageBuilderRequestUtil.createTeamDataMultipleSummoner(redTeam, listIdPlayers, region, server.getLanguage(), playersData, false, currentGameInfo.getGameQueueConfig(), forceRefresh);
 
     SummonerDataWorker.awaitAll(playersData);
 
@@ -648,7 +689,7 @@ public class MessageBuilderRequest {
     message.addField(masteriesWRThisMonthTranslated, redTeamWinrateString.toString(), true);
 
     message.setFooter(LanguageManager.getText(server.getLanguage(), "infoCardsGameFooter") 
-        + " : " + MessageBuilderRequestUtil.getMatchTimeFromDuration(currentGameInfo.getGameLength()), null);
+        + " : " + MessageBuilderRequestUtil.getMatchTimeFromDurationInSeconds(currentGameInfo.getGameLength()), null);
 
     message.setColor(Color.GREEN);
 
@@ -656,21 +697,23 @@ public class MessageBuilderRequest {
   }
 
   public static MessageEmbed createProfileMessage(DTO.Player player, DTO.LeagueAccount leagueAccount,
-      SavedChampionsMastery masteries, String language, String url, JDA jda) throws RiotApiException {    
+      List<SavedSimpleMastery> masteries, String language, String url, JDA jda, boolean forceRefresh) {    
 
     String latestGameTranslated = LanguageManager.getText(language, "statsProfileLatestGames");
 
     EmbedBuilder message = new EmbedBuilder();
 
+    SavedSummoner summoner = leagueAccount.getSummoner(forceRefresh);
+
     if(player != null) {
       message.setTitle(String.format(LanguageManager.getText(language, "statsProfileTitle"),
           ZoeUserRankManagementUtil.getEmotesByDiscordId(player.player_discordId)
-          + player.retrieveUser(jda).getName(), leagueAccount.getSummoner().getName(),
-          leagueAccount.getSummoner().getLevel()));
+          + player.retrieveUser(jda).getName(), summoner.getName(),
+          summoner.getLevel()));
     }else {
       message.setTitle(String.format(LanguageManager.getText(language, "statsProfileTitle"),
-          leagueAccount.getSummoner().getName(), leagueAccount.getSummoner().getName(),
-          leagueAccount.getSummoner().getLevel()));
+          summoner.getName(), summoner.getName(),
+          summoner.getLevel()));
     }
 
     List<SavedSimpleMastery> threeBestchampionMasteries = StatsProfileCommandRunnable.getBestMasteries(masteries, 3);
@@ -680,7 +723,7 @@ public class MessageBuilderRequest {
     for(SavedSimpleMastery championMastery : threeBestchampionMasteries) {
       Champion champion = Ressources.getChampionDataById(championMastery.getChampionId());
       stringBuilder.append(champion.getDisplayName() + " " + champion.getName() + " - **" 
-          + MessageBuilderRequestUtil.getMasteryUnit(championMastery.getChampionPoints()) +"**\n");
+          + MessageBuilderRequestUtil.getMasteryUnit((long) championMastery.getChampionPoints()) +"**\n");
     }
 
     if(threeBestchampionMasteries.isEmpty()) {
@@ -695,7 +738,7 @@ public class MessageBuilderRequest {
     int nbrMastery5 = 0;
     long totalNbrMasteries = 0;
 
-    for(SavedSimpleMastery championMastery : masteries.getChampionMasteries()) {
+    for(SavedSimpleMastery championMastery : masteries) {
       switch(championMastery.getChampionLevel()) {
       case 5: nbrMastery5++; break;
       case 6: nbrMastery6++; break;
@@ -705,7 +748,7 @@ public class MessageBuilderRequest {
       totalNbrMasteries += championMastery.getChampionPoints();
     }
 
-    double moyennePoints = (double) totalNbrMasteries / masteries.getChampionMasteries().size();
+    double moyennePoints = (double) totalNbrMasteries / masteries.size();
 
     CustomEmote masteryEmote7 = Ressources.getMasteryEmote().get(Mastery.getEnum(7));
     CustomEmote masteryEmote6 = Ressources.getMasteryEmote().get(Mastery.getEnum(6));
@@ -726,68 +769,50 @@ public class MessageBuilderRequest {
     }
 
     boolean isRiotApiError = false;
-    MatchList matchList = null;
+    List<SavedMatch> matchs = new ArrayList<>();
 
     try {
-      matchList = Zoe.getRiotApi().getMatchListByAccountId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_accoundId, 
-          null, null, null, DateTime.now().minusWeeks(1).plusSeconds(10).getMillis(), DateTime.now().getMillis(), -1, -1);
-    } catch(RiotApiException e) {
-      if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
+      List<String> matchsIds = Zoe.getRiotApi().getMatchListByPuuid(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_puuid, 3);
+
+      for(String matchId : matchsIds) {
+        matchs.add(Zoe.getRiotApi().getMatchById(leagueAccount.leagueAccount_server, matchId));
+      }
+
+    } catch(APIResponseException e) {
+      if(e.getReason() == APIHTTPErrorReason.ERROR_429) {
         throw e;
-      }else if (e.getErrorCode() == RiotApiException.UNAVAILABLE || e.getErrorCode() == RiotApiException.SERVER_ERROR) {
+      }else if (e.getReason() == APIHTTPErrorReason.ERROR_500) {
         isRiotApiError = true;
       }
       logger.info("Impossible to get match history : {}", e.getMessage());
     }
 
-    if(matchList != null) {
-      List<MatchReference> matchsReference = matchList.getMatches();
+    StringBuilder recentMatchsString = new StringBuilder();
 
-      List<SavedMatch> threeMostRecentMatch = new ArrayList<>();
+    if(!matchs.isEmpty()) {
+      String unknownTranslated = LanguageManager.getText(language, "unknown");
+      for(SavedMatch match : matchs) {
+        LocalDateTime matchTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(match.getGameCreation()), ZoneId.ofOffset("UTC", ZoneOffset.UTC));
+        Champion champion = new Champion(-1, unknownTranslated, unknownTranslated, null);
+        try {
+          SavedMatchPlayer choosenParticipant = null;
 
-      if(matchsReference.size() < 3) {
-        for(MatchReference matchReference : matchsReference) {
-          try {
-            threeMostRecentMatch.add(Zoe.getRiotApi().getMatch(leagueAccount.leagueAccount_server,
-                matchReference.getGameId()));
-          } catch(RiotApiException e) {
-            if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
-              throw e;
+          for(SavedMatchPlayer participant : match.getPlayers()) {
+            if(participant.getSummonerId().equals(leagueAccount.leagueAccount_summonerId)) {
+              choosenParticipant = participant;
+              break;
             }
-            logger.info("Riot api got an error : {}", e);
           }
+          if(choosenParticipant != null) {
+            champion = Ressources.getChampionDataById(choosenParticipant.getChampionId());
+          }
+        }catch(NullPointerException e) {
+          logger.debug("Data errored, can't detect champion");
         }
-      }else {
-        for(int i = 0; i < 3; i++) {
-          MatchReference matchReference = matchsReference.get(i);
+        recentMatchsString.append(champion.getEmoteUsable() + " " + champion.getName() + " - **" + MessageBuilderRequestUtil.getPastMoment(matchTime, language) + "**\n");
 
-          try {
-            threeMostRecentMatch.add(Zoe.getRiotApi().getMatch(leagueAccount.leagueAccount_server, matchReference.getGameId()));
-          } catch(RiotApiException e) {
-            if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
-              throw e;
-            }
-            logger.info("Riot api got an error : {}", e);
-          }
-        }
+        field = new Field(latestGameTranslated, recentMatchsString.toString(), true);
       }
-
-      StringBuilder recentMatchsString = new StringBuilder();
-
-      if(!threeMostRecentMatch.isEmpty()) {
-        String unknownTranslated = LanguageManager.getText(language, "unknown");
-        for(SavedMatch match : threeMostRecentMatch) {
-          LocalDateTime matchTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(match.getGameCreation()), ZoneId.ofOffset("UTC", ZoneOffset.UTC));
-          Champion champion = new Champion(-1, unknownTranslated, unknownTranslated, null);
-          try {
-            champion = Ressources.getChampionDataById(match.getSavedMatchPlayerBySummonerId(leagueAccount.leagueAccount_summonerId).getChampionId());
-          }catch(NullPointerException e) {
-            logger.debug("Data errored, can't detect champion");
-          }
-          recentMatchsString.append(champion.getEmoteUsable() + " " + champion.getName() + " - **" + MessageBuilderRequestUtil.getPastMoment(matchTime, language) + "**\n");
-        }
-      }
-      field = new Field(latestGameTranslated, recentMatchsString.toString(), true);
     }else {
       if(isRiotApiError) {
         field = new Field(latestGameTranslated, LanguageManager.getText(language, "statsProfileRiotApiError"), true);
@@ -800,12 +825,11 @@ public class MessageBuilderRequest {
     message.addField(field);
 
 
-    Set<LeagueEntry> rankPosition = null;
+    List<LeagueEntry> rankPosition = null;
     try {
-      rankPosition = Zoe.getRiotApi().getLeagueEntriesBySummonerId(leagueAccount.leagueAccount_server,
-          leagueAccount.leagueAccount_summonerId);
-    }catch (RiotApiException e) {
-      if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
+      rankPosition = Zoe.getRiotApi().getLeagueEntryBySummonerId(leagueAccount.leagueAccount_server, summoner.getSummonerId());
+    }catch (APIResponseException e) {
+      if(e.getReason() == APIHTTPErrorReason.ERROR_429) {
         throw e;
       }
       logger.info("Error with the api : ", e);
@@ -829,10 +853,10 @@ public class MessageBuilderRequest {
 
         FullTier fullTier = new FullTier(tier, rank, leaguePosition.getLeaguePoints());
 
-        if(leaguePosition.getQueueType().equals(GameQueueConfigId.SOLOQ.getQueueType())) {
+        if(GameQueueConfigId.getGameQueueIdWithQueueType(leaguePosition.getQueueType()).equals(GameQueueConfigId.SOLOQ)) {
           soloqRank = String.format(LanguageManager.getText(language, "statsProfileQueueSoloq"), 
               Ressources.getTierEmote().get(tier).getUsableEmote() + " " + fullTier.toString(language));
-        } else if(leaguePosition.getQueueType().equals(GameQueueConfigId.FLEX.getQueueType())) {
+        } else if(GameQueueConfigId.getGameQueueIdWithQueueType(leaguePosition.getQueueType()).equals(GameQueueConfigId.FLEX)) {
           flexRank = String.format(LanguageManager.getText(language, "statsProfileQueueFlex"),
               Ressources.getTierEmote().get(tier).getUsableEmote() + " " + fullTier.toString(language));
         }
@@ -843,12 +867,12 @@ public class MessageBuilderRequest {
 
     }
 
-    Set<TFTLeagueEntry> tftRankPosition = null;
+    List<LeagueEntry> tftRankPosition = null;
     try {
-      tftRankPosition = Zoe.getRiotApi().getTFTLeagueEntries(leagueAccount.leagueAccount_server,
+      tftRankPosition = Zoe.getRiotApi().getTFTLeagueEntryConvertedByTFTSummonerId(leagueAccount.leagueAccount_server,
           leagueAccount.leagueAccount_tftSummonerId);
-    }catch (RiotApiException e) {
-      if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
+    }catch (APIResponseException e) {
+      if(e.getReason() == APIHTTPErrorReason.ERROR_429) {
         throw e;
       }
       logger.info("Error with the api : ", e);
@@ -856,7 +880,7 @@ public class MessageBuilderRequest {
 
     if(tftRankPosition != null) {
 
-      Iterator<TFTLeagueEntry> iteratorPosition = tftRankPosition.iterator();
+      Iterator<LeagueEntry> iteratorPosition = tftRankPosition.iterator();
 
       String tftRank = String.format(LanguageManager.getText(language, "statsProfileQueueTFT"), unrankedTranslated);
 
@@ -874,7 +898,7 @@ public class MessageBuilderRequest {
         }
         FullTier fullTier = new FullTier(tier, rank, leaguePosition.getLeaguePoints());
 
-        if(leaguePosition.getQueueType().equals(GameQueueConfigId.RANKED_TFT.getQueueType())) {
+        if(GameQueueConfigId.RANKED_TFT == GameQueueConfigId.getGameQueueIdWithQueueType(leaguePosition.getQueueType())) {
           tftRank = String.format(LanguageManager.getText(language, "statsProfileQueueTFT"), 
               Ressources.getTierEmote().get(tier).getUsableEmote() + " " + fullTier.toString(language));
         }
@@ -910,7 +934,7 @@ public class MessageBuilderRequest {
           player.retrieveUser(jda).getEffectiveAvatarUrl());
     }else {
       message.setFooter(String.format(LanguageManager.getText(language, "statsProfileFooterProfileOfPlayer"),
-          leagueAccount.getSummoner().getName(), leagueAccount.getSummoner().getName()));
+          summoner.getName(), summoner.getName()));
     }
     message.setTimestamp(Instant.now());
 

@@ -5,13 +5,14 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.DTO;
-import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
 import ch.kalunight.zoe.model.dto.DTO.Leaderboard;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Player;
 import ch.kalunight.zoe.model.dto.DTO.Server;
+import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
 import ch.kalunight.zoe.model.leaderboard.dataholder.PlayerPoints;
 import ch.kalunight.zoe.model.leaderboard.dataholder.SpecificChamp;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
@@ -21,7 +22,6 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
-import net.rithms.riot.api.RiotApiException;
 
 public class MasteryPointSpecificChampLeaderboardService extends LeaderboardBaseService {
   
@@ -30,11 +30,11 @@ public class MasteryPointSpecificChampLeaderboardService extends LeaderboardBase
   }
 
   @Override
-  protected void runLeaderboardRefresh(Server server, Guild guild, TextChannel channel, Leaderboard leaderboard, Message message, List<Player> players, boolean forceRefreshCache)
-      throws SQLException, RiotApiException {
+  protected void runLeaderboardRefresh(Server server, Guild guild, TextChannel channel, Leaderboard leaderboard, Message message, List<Player> players)
+      throws SQLException {
     
     SpecificChamp specificChamp = gson.fromJson(leaderboard.lead_data, SpecificChamp.class);
-    List<PlayerPoints> playersPoints = orderAndGetPlayers(guild, specificChamp.getChampion().getKey(), players, forceRefreshCache);
+    List<PlayerPoints> playersPoints = orderAndGetPlayers(guild, specificChamp.getChampion().getKey(), players);
     
     List<String> playersName = new ArrayList<>();
     List<String> dataList = new ArrayList<>();
@@ -57,7 +57,7 @@ public class MasteryPointSpecificChampLeaderboardService extends LeaderboardBase
         specificChamp.getChampion().getName())).setEmbeds(builder.build()).queue();
   }
   
-  private List<PlayerPoints> orderAndGetPlayers(Guild guild, int championId, List<Player> players, boolean forceRefreshCache) throws SQLException, RiotApiException {
+  private List<PlayerPoints> orderAndGetPlayers(Guild guild, int championId, List<Player> players) throws SQLException {
     List<PlayerPoints> playersPoints = new ArrayList<>();
     
     for(DTO.Player player : players) {
@@ -65,8 +65,16 @@ public class MasteryPointSpecificChampLeaderboardService extends LeaderboardBase
       
       long bestAccountPoints = 0;
       for(DTO.LeagueAccount leagueAccount : leaguesAccounts) {
-        SavedSimpleMastery mastery = Zoe.getRiotApi().getChampionMasteriesBySummonerByChampionWithRateLimit(leagueAccount.leagueAccount_server,
-            leagueAccount.leagueAccount_summonerId, championId, forceRefreshCache);
+        SavedSimpleMastery mastery = null;
+        
+        List<SavedSimpleMastery> championsMasteries = Zoe.getRiotApi().getChampionMasteryBySummonerId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId, forceRefresh);
+        
+        for(SavedSimpleMastery masteryToCheck : championsMasteries) {
+          if(masteryToCheck.getChampionId() == championId) {
+            mastery = masteryToCheck;
+            break;
+          }
+        }
         
         if(mastery == null) {
           continue;

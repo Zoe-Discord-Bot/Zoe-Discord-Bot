@@ -42,7 +42,7 @@ public class DataPerChampion implements Comparable<DataPerChampion> {
       for(SavedMatch match : matchs) {
         for(SavedMatchPlayer player : match.getPlayers()) {
           if(player.getChampionId() == championId) {
-            if(match.isGivenAccountWinner(player.getSummonerId())){
+            if(player.didWin(match)){
               nbrWin++;
             }else {
               nbrLose++;
@@ -68,7 +68,15 @@ public class DataPerChampion implements Comparable<DataPerChampion> {
       int assists = 0;
       
       for(SavedMatch match : matchs) {
-        SavedMatchPlayer matchPlayer = match.getSavedMatchPlayerByChampionId(championId);
+        SavedMatchPlayer matchPlayer = null;
+        
+        for(SavedMatchPlayer participant : match.getPlayers()) {
+          if(participant.getChampionId() == championId) {
+            matchPlayer = participant;
+            break;
+          }
+        }
+        
         if(matchPlayer != null) {
           kills += matchPlayer.getKills();
           deaths += matchPlayer.getDeaths();

@@ -2,21 +2,22 @@ package ch.kalunight.zoe.model.player_data;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import ch.kalunight.zoe.Zoe;
-import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
-import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
-import net.rithms.riot.constant.Platform;
+import ch.kalunight.zoe.model.dto.SavedSummoner;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
+import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
+import no.stelar7.api.r4j.pojo.lol.spectator.SpectatorGameInfo;
 
 public class LeagueAccount {
 
   private static final Logger logger = LoggerFactory.getLogger(LeagueAccount.class);
 
-  private Summoner summoner;
-  private Platform region;
-  private CurrentGameInfo currentGameInfo;
+  private SavedSummoner summoner;
+  private ZoePlatform region;
+  private SpectatorGameInfo currentGameInfo;
 
-  public LeagueAccount(Summoner summoner, Platform region) {
+  public LeagueAccount(SavedSummoner summoner, ZoePlatform region) {
     this.summoner = summoner;
     this.region = region;
     this.currentGameInfo = null;
@@ -24,8 +25,8 @@ public class LeagueAccount {
 
   public void refreshCurrentGameInfo() {
     try {
-      currentGameInfo = Zoe.getRiotApi().getActiveGameBySummoner(region, summoner.getId());
-    } catch(RiotApiException e) {
+      currentGameInfo = Zoe.getRiotApi().getSpectatorGameInfo(region, summoner.getSummonerId());
+    } catch(APIResponseException e) {
       logger.info(e.getMessage());
       currentGameInfo = null;
     }
@@ -45,7 +46,7 @@ public class LeagueAccount {
     if (summoner == null) {
       if (other.summoner != null)
         return false;
-    } else if (!summoner.getId().equals(other.getSummoner().getId())) {
+    } else if (!summoner.getSummonerId().equals(other.getSummoner().getSummonerId())) {
       return false;
     }
     return true;
@@ -60,32 +61,32 @@ public class LeagueAccount {
     return result;
   }
 
-  public Summoner getSummoner() {
+  public SavedSummoner getSummoner() {
     return summoner;
   }
 
-  public void setSummoner(Summoner summoner) {
+  public void setSummoner(SavedSummoner summoner) {
     this.summoner = summoner;
   }
 
-  public Platform getRegion() {
+  public ZoePlatform getRegion() {
     return region;
   }
 
-  public void setRegion(Platform region) {
+  public void setRegion(ZoePlatform region) {
     this.region = region;
   }
 
-  public CurrentGameInfo getCurrentGameInfo() {
+  public SpectatorGameInfo getCurrentGameInfo() {
     return currentGameInfo;
   }
 
-  public void setCurrentGameInfo(CurrentGameInfo currentGameInfo) {
+  public void setCurrentGameInfo(SpectatorGameInfo currentGameInfo) {
     this.currentGameInfo = currentGameInfo;
   }
 
   @Override
   public String toString() {
-    return "LeagueAccount [summonerName=" + summoner.getName() + ", region=" + region.getName() + "]";
+    return "LeagueAccount [summonerName=" + summoner.getName() + ", region=" + region.getShowableName() + "]";
   }
 }

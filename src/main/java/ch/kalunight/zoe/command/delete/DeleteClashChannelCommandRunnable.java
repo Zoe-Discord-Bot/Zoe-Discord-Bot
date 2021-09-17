@@ -16,16 +16,16 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.SelectionDialog;
 
 import ch.kalunight.zoe.Zoe;
+import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.model.dto.DTO.ClashChannel;
 import ch.kalunight.zoe.model.dto.DTO.Server;
-import ch.kalunight.zoe.model.dto.DTO.SummonerCache;
 import ch.kalunight.zoe.repositories.ClashChannelRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.interactions.InteractionHook;
-import net.rithms.riot.api.RiotApiException;
+import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
 
 public class DeleteClashChannelCommandRunnable {
 
@@ -69,15 +69,14 @@ public class DeleteClashChannelCommandRunnable {
         continue;
       }
 
-      SummonerCache summoner;
+      SavedSummoner summoner;
       String showableAccountOwner;
       try {
-        summoner = Zoe.getRiotApi().getSummonerWithRateLimit(clashChannel.clashChannel_data.getSelectedPlatform(), clashChannel.clashChannel_data.getSelectedSummonerId(), false);
-        showableAccountOwner = "*" + clashChannel.clashChannel_data.getSelectedPlatform().getName().toUpperCase() 
-            + "* " + summoner.getSumCacheData().getName();
-      } catch (RiotApiException e) {
+        summoner = Zoe.getRiotApi().getSummonerBySummonerId(clashChannel.clashChannel_data.getSelectedPlatform(), clashChannel.clashChannel_data.getSelectedSummonerId(), false);
+        showableAccountOwner = "*" + clashChannel.clashChannel_data.getSelectedPlatform().getShowableName() + "* " + summoner.getName();
+      } catch (APIResponseException e) {
         logger.warn("Riot exception in delete clash channel command.", e);
-        showableAccountOwner = "*" + clashChannel.clashChannel_data.getSelectedPlatform().getName().toUpperCase() + "* " + LanguageManager.getText(server.getLanguage(), "unknown");
+        showableAccountOwner = "*" + clashChannel.clashChannel_data.getSelectedPlatform().getShowableName() + "* " + LanguageManager.getText(server.getLanguage(), "unknown");
       }
       
       String showableString = channel.getName() + " : " + showableAccountOwner;

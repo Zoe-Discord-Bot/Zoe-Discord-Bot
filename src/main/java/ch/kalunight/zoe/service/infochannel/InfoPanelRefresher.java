@@ -19,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Stopwatch;
-import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.exception.NoValueRankException;
@@ -36,6 +35,7 @@ import ch.kalunight.zoe.model.dto.DTO.Player;
 import ch.kalunight.zoe.model.dto.DTO.RankHistoryChannel;
 import ch.kalunight.zoe.model.dto.DTO.ServerStatus;
 import ch.kalunight.zoe.model.dto.GameInfoCardStatus;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.model.player_data.Tier;
 import ch.kalunight.zoe.repositories.ConfigRepository;
@@ -54,6 +54,7 @@ import ch.kalunight.zoe.service.ServerChecker;
 import ch.kalunight.zoe.service.rankchannel.RankedChannelLoLRefresher;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.InfoPanelRefresherUtil;
+import ch.kalunight.zoe.util.MessageUtil;
 import ch.kalunight.zoe.util.TreatedPlayer;
 import ch.kalunight.zoe.util.ZoeSupportMessageGeneratorUtil;
 import net.dv8tion.jda.api.entities.Guild;
@@ -67,8 +68,7 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.requests.ErrorResponse;
-import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
-import net.rithms.riot.constant.Platform;
+import no.stelar7.api.r4j.pojo.lol.spectator.SpectatorGameInfo;
 
 public class InfoPanelRefresher implements Runnable {
 
@@ -144,7 +144,7 @@ public class InfoPanelRefresher implements Runnable {
             ServerThreadsManager.getInfochannelHelperThread(leaguesAccounts.get(0).leagueAccount_server).execute(playerWorker);
           }else {
             // When there's no accounts, we go in a not really used threadpool
-            ServerThreadsManager.getInfochannelHelperThread(Platform.OCE).execute(playerWorker);
+            ServerThreadsManager.getInfochannelHelperThread(ZoePlatform.OCE).execute(playerWorker);
           }
         }
 
@@ -154,7 +154,7 @@ public class InfoPanelRefresher implements Runnable {
 
         executeServerOption(configuration, playersToTreat, guild);
 
-        Map<CurrentGameInfo, List<LeagueAccount>> leaguesAccountsPerGameWaitingCreation = Collections.synchronizedMap(new HashMap<CurrentGameInfo, List<LeagueAccount>>());
+        Map<SpectatorGameInfo, List<LeagueAccount>> leaguesAccountsPerGameWaitingCreation = Collections.synchronizedMap(new HashMap<SpectatorGameInfo, List<LeagueAccount>>());
 
         Map<DTO.CurrentGameInfo, List<LeagueAccount>> leaguesAccountsPerGameWaitingDeletion = Collections.synchronizedMap(new HashMap<DTO.CurrentGameInfo, List<LeagueAccount>>());
 
@@ -319,7 +319,7 @@ public class InfoPanelRefresher implements Runnable {
     }
   }
 
-  private void applyDBChange(Map<CurrentGameInfo, List<LeagueAccount>> leaguesAccountsPerGameWaitingCreation,
+  private void applyDBChange(Map<SpectatorGameInfo, List<LeagueAccount>> leaguesAccountsPerGameWaitingCreation,
       Map<DTO.CurrentGameInfo, List<LeagueAccount>> leaguesAccountsPerGameWaitingDeletion) throws SQLException {
     for(Entry<DTO.CurrentGameInfo, List<LeagueAccount>> gameToDelete : leaguesAccountsPerGameWaitingDeletion.entrySet()) {
       //Current game will be deleted in cleanUnlinkInfoCardAndCurrentGame()
@@ -328,7 +328,7 @@ public class InfoPanelRefresher implements Runnable {
       }
     }
 
-    for(Entry<CurrentGameInfo, List<LeagueAccount>> gameToCreate : leaguesAccountsPerGameWaitingCreation.entrySet()) {
+    for(Entry<SpectatorGameInfo, List<LeagueAccount>> gameToCreate : leaguesAccountsPerGameWaitingCreation.entrySet()) {
       Long currentGameId = null;
       for(LeagueAccount leagueAccount : gameToCreate.getValue()) {
         if(currentGameId == null) {
@@ -341,7 +341,7 @@ public class InfoPanelRefresher implements Runnable {
   }
 
   private void loadTreatedPlayers(List<TreatPlayerWorker> playersToTreat, List<TreatedPlayer> treatedPlayers,
-      Map<CurrentGameInfo, List<LeagueAccount>> leaguesAccountsPerGameWaitingCreation,
+      Map<SpectatorGameInfo, List<LeagueAccount>> leaguesAccountsPerGameWaitingCreation,
       Map<DTO.CurrentGameInfo, List<LeagueAccount>> leaguesAccountsPerGameWaitingDeletion) {
     for(TreatPlayerWorker treatPlayerWorker : playersToTreat) {
       TreatedPlayer treatedPlayer = treatPlayerWorker.getTreatedPlayer();
@@ -378,12 +378,12 @@ public class InfoPanelRefresher implements Runnable {
     }
   }
 
-  private void loadGameToCreate(Map<CurrentGameInfo, List<LeagueAccount>> leaguesAccountsPerGameWaitingCreation,
+  private void loadGameToCreate(Map<SpectatorGameInfo, List<LeagueAccount>> leaguesAccountsPerGameWaitingCreation,
       TreatedPlayer treatedPlayer) {
-    Set<Entry<CurrentGameInfo, LeagueAccount>> gameToCreatePerAccount = treatedPlayer.getGamesToCreate().entrySet();
-    for(Entry<CurrentGameInfo, LeagueAccount> gamePerAccount : gameToCreatePerAccount) {
+    Set<Entry<SpectatorGameInfo, LeagueAccount>> gameToCreatePerAccount = treatedPlayer.getGamesToCreate().entrySet();
+    for(Entry<SpectatorGameInfo, LeagueAccount> gamePerAccount : gameToCreatePerAccount) {
       boolean gameAlreadyAdded = false;
-      for(Entry<CurrentGameInfo, List<LeagueAccount>> gamesAlreadyWaitingForCreation : leaguesAccountsPerGameWaitingCreation.entrySet()) {
+      for(Entry<SpectatorGameInfo, List<LeagueAccount>> gamesAlreadyWaitingForCreation : leaguesAccountsPerGameWaitingCreation.entrySet()) {
         if(gamePerAccount.getKey().getGameId() == gamesAlreadyWaitingForCreation.getKey().getGameId()) {
           gameAlreadyAdded = true;
 
@@ -489,7 +489,7 @@ public class InfoPanelRefresher implements Runnable {
 
   private void refreshInfoPanel(DTO.InfoChannel infoChannelDTO, ServerConfiguration configuration, List<TreatedPlayer> treatedPlayers)
       throws SQLException {
-    ArrayList<String> infoPanels = CommandEvent.splitMessage(refreshPannel(configuration, treatedPlayers));
+    List<String> infoPanels = MessageUtil.splitMessageToBeSendable(refreshPannel(configuration, treatedPlayers));
 
     List<DTO.InfoPanelMessage> infoPanelMessages = InfoChannelRepository.getInfoPanelMessages(server.serv_guildId);
 

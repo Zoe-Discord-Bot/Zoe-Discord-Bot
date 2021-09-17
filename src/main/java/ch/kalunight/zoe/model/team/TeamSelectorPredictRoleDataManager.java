@@ -11,13 +11,13 @@ import net.dv8tion.jda.api.entities.TextChannel;
 
 public class TeamSelectorPredictRoleDataManager extends TeamSelectorDataManager {
 
-  public TeamSelectorPredictRoleDataManager(Server server, TextChannel channel) {
-    super(server, channel);
+  public TeamSelectorPredictRoleDataManager(Server server, TextChannel channel, boolean forceRefresh) {
+    super(server, channel, forceRefresh);
   }
 
   @Override
   public void treatData() {
-    List<TeamPlayerAnalysisDataCollector> playersData = TeamUtil.loadAllPlayersDataWithAccountData(accountsToTreat);
+    List<TeamPlayerAnalysisDataCollector> playersData = TeamUtil.loadAllPlayersDataWithAccountData(accountsToTreat, forceRefresh);
     
     TeamUtil.determineRole(playersData);
     
@@ -27,7 +27,7 @@ public class TeamSelectorPredictRoleDataManager extends TeamSelectorDataManager 
     builder.append(LanguageManager.getText(server.getLanguage(), "statsPredictRoleTitleDeterminedRole") + "\n");
     for(TeamPlayerAnalysisDataCollector playerToShow : playersData) {
       builder.append(LanguageManager.getText(server.getLanguage(), TeamUtil.getChampionRoleAbrID(playerToShow.getFinalDeterminedPosition())) + " : *" 
-          + playerToShow.getPlatform().getName().toUpperCase() + "* " + playerToShow.getSummoner().getSumCacheData().getName() + "\n");
+          + playerToShow.getPlatform().getShowableName() + "* " + playerToShow.getSummoner().getName() + "\n");
     }
 
     builder.append("*" + LanguageManager.getText(server.getLanguage(), "disclaimerAnalysis") + "*");

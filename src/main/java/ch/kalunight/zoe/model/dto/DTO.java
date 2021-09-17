@@ -11,7 +11,6 @@ import java.util.TimeZone;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.config.option.CleanChannelOption.CleanChannelOptionInfo;
@@ -20,13 +19,8 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
-import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.clash.dto.ClashTournament;
-import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
-import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
-import net.rithms.riot.api.endpoints.tft_league.dto.TFTLeagueEntry;
-import net.rithms.riot.api.endpoints.tft_summoner.dto.TFTSummoner;
-import net.rithms.riot.constant.Platform;
+import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
+import no.stelar7.api.r4j.pojo.lol.spectator.SpectatorGameInfo;
 
 public class DTO {
 
@@ -237,8 +231,7 @@ public class DTO {
     public final String leagueAccount_tftSummonerId;
     public final String leagueAccount_tftAccountId;
     public final String leagueAccount_tftPuuid;
-    public final Platform leagueAccount_server;
-    private SavedSummoner summoner = null;
+    public final ZoePlatform leagueAccount_server;
 
     public LeagueAccount(ResultSet baseData) throws SQLException {
       leagueAccount_id = baseData.getLong("leagueAccount_id");
@@ -252,40 +245,26 @@ public class DTO {
       leagueAccount_tftSummonerId = baseData.getString("leagueAccount_tftSummonerId");
       leagueAccount_tftAccountId = baseData.getString("leagueAccount_tftAccountId");
       leagueAccount_tftPuuid = baseData.getString("leagueAccount_tftPuuid");
-      leagueAccount_server = Platform.getPlatformByName(baseData.getString("leagueAccount_server"));
+      leagueAccount_server = ZoePlatform.getZoePlatformByName(baseData.getString("leagueAccount_server"));
     }
 
-    public LeagueAccount(Summoner summoner, TFTSummoner tftSummoner, Platform platform) {
+    public LeagueAccount(SavedSummoner summoner, SavedSummoner tftSummoner, ZoePlatform platform) {
       leagueAccount_name = summoner.getName();
-      leagueAccount_summonerId = summoner.getId();
+      leagueAccount_summonerId = summoner.getSummonerId();
       leagueAccount_accoundId = summoner.getAccountId();
       leagueAccount_puuid = summoner.getPuuid();
       leagueAccount_server = platform;
-      leagueAccount_tftSummonerId = tftSummoner.getId();
+      leagueAccount_tftSummonerId = tftSummoner.getSummonerId();
       leagueAccount_tftAccountId = tftSummoner.getAccountId();
       leagueAccount_tftPuuid = tftSummoner.getPuuid();
       leagueAccount_id = null;
       leagueAccount_fk_player = null;
       leagueAccount_fk_gamecard = null;
       leagueAccount_fk_currentgame = null;
-
-      this.summoner = new SavedSummoner(summoner);
     }
 
-    public SavedSummoner getSummoner() throws RiotApiException {
-      return getSummoner(false);
-    }
-
-    public SavedSummoner getSummoner(boolean forceRefreshCache) throws RiotApiException {
-      if(summoner != null && !forceRefreshCache) {
-        return summoner;
-      }
-
-      SummonerCache summonerDB = Zoe.getRiotApi().getSummonerWithRateLimit(leagueAccount_server, leagueAccount_summonerId, forceRefreshCache);
-      if(summonerDB != null) {
-        summoner = summonerDB.sumCache_data;
-      }
-      return summoner;
+    public SavedSummoner getSummoner(boolean forceRefresh) {
+      return Zoe.getRiotApi().getSummonerByPUUIDWithAccountTransferManagement(leagueAccount_server, this, forceRefresh);
     }
 
     @Override
@@ -296,27 +275,27 @@ public class DTO {
 
   public static class CurrentGameInfo {
     public final long currentgame_id;
-    public net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo currentgame_currentgame;
-    public final Platform currentgame_server;
+    public SpectatorGameInfo currentgame_currentgame;
+    public final ZoePlatform currentgame_server;
     public final Long currentgame_gameid;
 
     public CurrentGameInfo(ResultSet baseData) throws SQLException {
       currentgame_id = baseData.getLong("currentgame_id");
       if(baseData.getString("currentgame_currentgame") != null) {
-        currentgame_currentgame = gson.fromJson(baseData.getString("currentgame_currentgame"),
-            net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo.class);
+        currentgame_currentgame = gson.fromJson(baseData.getString("currentgame_currentgame"), SpectatorGameInfo.class);
       }else {
         currentgame_currentgame = null;
       }
 
       if(baseData.getString("currentgame_server") != null) {
-        currentgame_server = Platform.getPlatformByName(baseData.getString("currentgame_server"));
+        currentgame_server = ZoePlatform.getZoePlatformByName(baseData.getString("currentgame_server"));
       }else {
         currentgame_server = null;
       }
 
-      if(baseData.getString("currentgame_gameid") != null) {
-        currentgame_gameid = baseData.getLong("currentgame_gameid");
+      Long currentgame_gameid_temp = baseData.getLong("currentgame_gameid");
+      if(currentgame_gameid_temp != 0) {
+        currentgame_gameid = currentgame_gameid_temp;
       }else {
         currentgame_gameid = null;
       }
@@ -415,27 +394,11 @@ public class DTO {
       }
     }
   }
-
-  public static class MatchCache {
-    public final long mCatch_id;
-    public final String mCatch_gameId;
-    public final Platform mCatch_platform;
-    public final SavedMatch mCatch_savedMatch;
-    public final LocalDateTime mCatch_creationTime;
-
-    public MatchCache(ResultSet baseData) throws SQLException {
-      mCatch_id = baseData.getLong("mCatch_id");
-      mCatch_gameId = baseData.getString("mCatch_gameId");
-      mCatch_platform = Platform.getPlatformByName(baseData.getString("mCatch_platform"));
-      mCatch_savedMatch = gson.fromJson(baseData.getString("mCatch_savedMatch"), SavedMatch.class);
-      mCatch_creationTime = LocalDateTime.parse(baseData.getString("mCatch_creationTime"), DB_TIME_PATTERN);
-    }
-  }
-
+  
   public static class ServerRawSettings {
     public final Boolean selfoption_activate;
     public final Long roleoption_roleid;
-    public final Platform regionoption_region;
+    public final ZoePlatform regionoption_region;
     public final Boolean gamecardoption_activate;
     public final Long cleanoption_channelid;
     public final CleanChannelOptionInfo cleanoption_option;
@@ -446,7 +409,7 @@ public class DTO {
 
       String platformName = baseData.getString("regionoption_region");
       if(platformName != null && !platformName.equals("")) {
-        regionoption_region = Platform.getPlatformByName(platformName);
+        regionoption_region = ZoePlatform.getZoePlatformByName(platformName);
       }else {
         regionoption_region = null;
       }
@@ -631,69 +594,14 @@ public class DTO {
   public static class BannedAccount {
     public final long banAcc_id;
     public final String banAcc_summonerId;
-    public final Platform banAcc_server;
+    public final ZoePlatform banAcc_server;
 
     public BannedAccount(ResultSet baseData) throws SQLException {
       banAcc_id = baseData.getLong("banAcc_id");
       banAcc_summonerId = baseData.getString("banAcc_summonerId");
-      banAcc_server = Platform.getPlatformByName(baseData.getString("banAcc_server"));
+      banAcc_server = ZoePlatform.getZoePlatformByName(baseData.getString("banAcc_server"));
     }
 
-  }
-
-  public static class SummonerCache {
-    public final long sumCache_id;
-    public final String sumCache_summonerId;
-    public final Platform sumCache_server;
-    private SavedSummoner sumCache_data;
-    public final LocalDateTime sumCache_lastRefresh;
-
-    public SummonerCache(ResultSet baseData) throws SQLException {
-      sumCache_id = baseData.getLong("sumCache_id");
-      sumCache_summonerId = baseData.getString("sumCache_summonerId");
-      sumCache_server = Platform.getPlatformByName(baseData.getString("sumCache_server"));
-      this.sumCache_data = gson.fromJson(baseData.getString("sumCache_data"), SavedSummoner.class);
-      sumCache_lastRefresh = LocalDateTime.parse(baseData.getString("sumCache_lastRefresh"), DB_TIME_PATTERN);
-    }
-
-    public SavedSummoner getSumCacheData() {
-      return sumCache_data;
-    }
-
-    public void setSumCacheData(SavedSummoner sumCache_data) {
-      this.sumCache_data = sumCache_data;
-    }
-
-  }
-
-  public static class ChampionMasteryCache {
-    public final long champMasCache_id;
-    public final String champMasCache_summonerId;
-    public final Platform champMasCache_server;
-    public final SavedChampionsMastery champMasCache_data;
-    public final LocalDateTime champMasCache_lastRefresh;
-
-    public ChampionMasteryCache(ResultSet baseData) throws SQLException {
-      champMasCache_id = baseData.getLong("champMasCache_id");
-      champMasCache_summonerId = baseData.getString("champMasCache_summonerId");
-      champMasCache_server = Platform.getPlatformByName(baseData.getString("champMasCache_server"));
-      champMasCache_data = gson.fromJson(baseData.getString("champMasCache_data"), SavedChampionsMastery.class);
-      champMasCache_lastRefresh = LocalDateTime.parse(baseData.getString("champMasCache_lastRefresh"), DB_TIME_PATTERN);
-    }
-  }
-
-  public static class ClashTournamentCache {
-    public final long clashTourCache_id;
-    public final Platform clashTourCache_server;
-    public final List<ClashTournament> clashTourCache_data;
-    public final LocalDateTime clashTourCache_lastRefresh;
-
-    public ClashTournamentCache(ResultSet baseData) throws SQLException {
-      clashTourCache_id = baseData.getLong("clashTourCache_id");
-      clashTourCache_server = Platform.getPlatformByName(baseData.getString("clashTourCache_server"));
-      clashTourCache_data = gson.fromJson(baseData.getString("clashTourCache_data"), new TypeToken<List<ClashTournament>>(){}.getType());
-      clashTourCache_lastRefresh = LocalDateTime.parse(baseData.getString("clashTourCache_lastRefresh"), DB_TIME_PATTERN);
-    }
   }
 
   public static class LastRank {
@@ -705,8 +613,8 @@ public class DTO {
     private LeagueEntry lastRank_flex;
     private LeagueEntry lastRank_flexSecond;
     public final LocalDateTime lastRank_flexLastRefresh;
-    private TFTLeagueEntry lastRank_tft;
-    private TFTLeagueEntry lastRank_tftSecond;
+    private LeagueEntry lastRank_tft;
+    private LeagueEntry lastRank_tftSecond;
     public final LocalDateTime lastRank_tftLastRefresh;
     public final String lastRank_tftLastTreatedMatchId;
 
@@ -757,14 +665,14 @@ public class DTO {
 
       lastRank = baseData.getString("lastRank_tft");
       if(lastRank != null) {
-        lastRank_tft = gson.fromJson(lastRank, TFTLeagueEntry.class);
+        lastRank_tft = gson.fromJson(lastRank, LeagueEntry.class);
       }else {
         lastRank_tft = null;
       }
 
       lastRank = baseData.getString("lastRank_tftSecond");
       if(lastRank != null) {
-        lastRank_tftSecond = gson.fromJson(lastRank, TFTLeagueEntry.class);
+        lastRank_tftSecond = gson.fromJson(lastRank, LeagueEntry.class);
       }else {
         lastRank_tftSecond = null;
       }
@@ -816,19 +724,19 @@ public class DTO {
       this.lastRank_flexSecond = lastRank_flexSecond;
     }
 
-    public TFTLeagueEntry getLastRankTft() {
+    public LeagueEntry getLastRankTft() {
       return lastRank_tft;
     }
 
-    public void setLastRankTft(TFTLeagueEntry lastRank_tft) {
+    public void setLastRankTft(LeagueEntry lastRank_tft) {
       this.lastRank_tft = lastRank_tft;
     }
 
-    public TFTLeagueEntry getLastRankTftSecond() {
+    public LeagueEntry getLastRankTftSecond() {
       return lastRank_tftSecond;
     }
 
-    public void setLastRankTftSecond(TFTLeagueEntry lastRank_tftSecond) {
+    public void setLastRankTftSecond(LeagueEntry lastRank_tftSecond) {
       this.lastRank_tftSecond = lastRank_tftSecond;
     }
   }

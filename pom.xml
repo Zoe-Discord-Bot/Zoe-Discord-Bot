@@ -39,7 +39,7 @@
 		<dependency>
 			<groupId>net.dv8tion</groupId>
 			<artifactId>JDA</artifactId>
-			<version>4.3.0_298</version>
+			<version>4.3.0_307</version>
 		</dependency>
 
 		<dependency>
@@ -51,9 +51,15 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.github.KaluNight</groupId>
-			<artifactId>riot-api-java</artifactId>
-			<version>4.5.6-alpha2</version>
+			<groupId>com.github.stelar7</groupId>
+			<artifactId>R4J</artifactId>
+			<version>1.10.11</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.mongodb</groupId>
+			<artifactId>mongo-java-driver</artifactId>
+			<version>3.12.10</version>
 		</dependency>
 
 		<dependency>

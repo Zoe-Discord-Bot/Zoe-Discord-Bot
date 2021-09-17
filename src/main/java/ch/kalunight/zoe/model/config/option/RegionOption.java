@@ -14,27 +14,28 @@ import com.jagrosh.jdautilities.menu.SelectionDialog;
 
 import ch.kalunight.zoe.model.CommandGuildDiscordData;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.RepoRessources;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.entities.Message;
-import net.rithms.riot.constant.Platform;
 
 public class RegionOption extends ConfigurationOption {
 
-  private Platform region;
+  private ZoePlatform region;
 
   public RegionOption(long guildId) {
     super(guildId, "regionOptionName", "regionOptionDesc", OptionCategory.GENERAL, false);
     this.region = null;
   }
-
+  
+  
   @Override
   public String getBaseChoiceText(String langage) {
     String strRegion = LanguageManager.getText(langage, "optionRegionDisable");
 
     if(region != null) {
-      strRegion = this.region.getName().toUpperCase() + " (" + LanguageManager.getText(langage, "optionEnable") + ")";
+      strRegion = this.region.getShowableName() + " (" + LanguageManager.getText(langage, "optionEnable") + ")";
     }
 
     return LanguageManager.getText(langage, description) + " : " + strRegion;
@@ -53,7 +54,7 @@ public class RegionOption extends ConfigurationOption {
           message = LanguageManager.getText(server.getLanguage(), "regionOptionAnyRegionSelected");
         }else {
           message = String.format(LanguageManager.getText(server.getLanguage(), "regionOptionRegionSelected"),
-              region.getName().toUpperCase());
+              region.getShowableName());
         }
 
         event.getChannel().sendMessage(message).queue();
@@ -67,11 +68,11 @@ public class RegionOption extends ConfigurationOption {
             .setCanceled(getSelectionCancelAction(server.getLanguage()))
             .setTimeout(2, TimeUnit.MINUTES);
 
-        List<Platform> regionsList = new ArrayList<>();
+        List<ZoePlatform> regionsList = new ArrayList<>();
         List<String> regionChoices = new ArrayList<>();
-        for(Platform regionMember : Platform.values()) {
+        for(ZoePlatform regionMember : ZoePlatform.values()) {
           String actualChoice = String.format(LanguageManager.getText(server.getLanguage(), "regionOptionRegionChoice"),
-              regionMember.getName().toUpperCase());
+              regionMember.getShowableName());
           
           regionChoices.add(actualChoice);
           selectAccountBuilder.addChoices(actualChoice);
@@ -103,7 +104,7 @@ public class RegionOption extends ConfigurationOption {
     };
   }
 
-  private BiConsumer<Message, Integer> getSelectionDoneAction(String language, List<Platform> regionsList, DTO.Server server) {
+  private BiConsumer<Message, Integer> getSelectionDoneAction(String language, List<ZoePlatform> regionsList, DTO.Server server) {
     return new BiConsumer<Message, Integer>() {
       @Override
       public void accept(Message selectionMessage, Integer selectionOfRegion) {
@@ -115,7 +116,7 @@ public class RegionOption extends ConfigurationOption {
           strRegion = LanguageManager.getText(language, "regionOptionAnyRegion");
           region = null;
         }else {
-          strRegion = regionsList.get(selectionOfRegion - 1).getName().toUpperCase();
+          strRegion = regionsList.get(selectionOfRegion - 1).getShowableName();
           region = regionsList.get(selectionOfRegion - 1);
         }
         
@@ -142,11 +143,11 @@ public class RegionOption extends ConfigurationOption {
     };
   }
 
-  public Platform getRegion() {
+  public ZoePlatform getRegion() {
     return region;
   }
   
-  public void setRegion(Platform region) {
+  public void setRegion(ZoePlatform region) {
     this.region = region;
   }
 }

@@ -1,5 +1,8 @@
 package ch.kalunight.zoe.util;
 
+import no.stelar7.api.r4j.basic.constants.types.lol.GameQueueType;
+import no.stelar7.api.r4j.basic.constants.types.lol.GameType;
+
 public class NameConversion {
 
   private NameConversion() {}
@@ -11,36 +14,47 @@ public class NameConversion {
     return stringToConvert;
   }
 
-  public static String convertGameQueueIdToString(int id) {
-    switch(id) {
-      case 0:
+  public static String convertGameQueueIdToString(GameQueueType gameQueueType) {
+    switch(gameQueueType) {
+      case CUSTOM:
         return "gameTypeCustom";
-      case 400:
+      case NORMAL_5X5_DRAFT:
         return "gameType5v5DraftSR";
-      case 420:
+      case RANKED_SOLO_5X5:
+      case TEAM_BUILDER_RANKED_SOLO:
         return "gameType5v5RankSoloQSR";
-      case 430:
+      case NORMAL_5V5_BLIND_PICK:
         return "gameType5v5BlindSR";
-      case 440:
+      case RANKED_FLEX_SR:
+      case TEAM_BUILDER_DRAFT_RANKED_5X5:
         return "gameType5v5RankedFlexSR";
-      case 450:
+      case ARAM:
         return "gameTypeARAM";
-      case 460:
+      case NORMAL_3X3_BLIND_PICK:
         return "gameType3v3BlindTT";
-      case 470:
+      case RANKED_FLEX_TT:
         return "gameType3v3RankFlexTT";
-      case 700:
+      case CLASH:
         return "gameType5v5ClashSR";
-      case 800:
-      case 810:
-      case 820:
+      case BOT_3X3_INTERMEDIATE:
+      case BOT_3X3_INTRO:
+      case BOT_3X3_BEGINNER:
         return "gameTypeCoopVsIATT";
-      case 830:
-      case 840:
-      case 850:
+      case BOT_5X5_INTRO:
+      case BOT_5X5_BEGINNER:
+      case BOT_5X5_INTERMEDIATE:
         return "gameTypeCoopVsIASR";
-      case 900:
+      case ALL_RANDOM_URF:
         return "gameTypeClassicUrf";
+      default:
+        return "gameTypeUnknown";
+    }
+  }
+  
+  public static String convertGameTypeToString(GameType gameType) {
+    switch(gameType) {
+      case CUSTOM_GAME:
+        return "gameTypeCustom";
       default:
         return "gameTypeUnknown";
     }

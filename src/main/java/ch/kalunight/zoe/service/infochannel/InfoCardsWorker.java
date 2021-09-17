@@ -27,8 +27,8 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
-import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
+import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
+import no.stelar7.api.r4j.pojo.lol.spectator.SpectatorGameInfo;
 
 public class InfoCardsWorker implements Runnable {
 
@@ -47,24 +47,24 @@ public class InfoCardsWorker implements Runnable {
   private DTO.CurrentGameInfo currentGameInfo;
   
   private DTO.GameInfoCard gameInfoCard;
-  
-  private boolean forceRefreshCache;
 
+  private boolean forceRefresh;
+  
   public InfoCardsWorker(DTO.Server server, TextChannel controlPanel, DTO.LeagueAccount account, DTO.CurrentGameInfo currentGameInfo,
-      DTO.GameInfoCard gameInfoCard, boolean forceRefreshCache) {
+      DTO.GameInfoCard gameInfoCard, boolean forceRefresh) {
     this.server = server;
     this.controlPanel = controlPanel;
     this.account = account;
     this.currentGameInfo = currentGameInfo;
     this.gameInfoCard = gameInfoCard;
-    this.forceRefreshCache = forceRefreshCache;
+    this.forceRefresh = forceRefresh;
   }
 
   @Override
   public void run() {
     try {
       if(controlPanel.canTalk()) {
-        logger.info("Start generate infocards for the account {} ({})", account.getSummoner(forceRefreshCache).getName(),  account.leagueAccount_server.getName());
+        logger.info("Start generate infocards for the account {} ({})", account.getSummoner(forceRefresh).getName(),  account.leagueAccount_server.getShowableName());
 
         Stopwatch stopWatch = Stopwatch.createStarted();
         
@@ -128,8 +128,8 @@ public class InfoCardsWorker implements Runnable {
 
   private boolean theGameHaveToBeGenerate() {
     try {
-      CurrentGameInfo currentGameRefreshed = Zoe.getRiotApi().getActiveGameBySummonerWithRateLimit(account.leagueAccount_server, account.leagueAccount_summonerId);
-
+      SpectatorGameInfo currentGameRefreshed = Zoe.getRiotApi().getSpectatorGameInfo(account.leagueAccount_server, account.getSummoner(forceRefresh).getSummonerId());
+      
       if(currentGameRefreshed != null && currentGameRefreshed.getGameId() == currentGameInfo.currentgame_gameid) {
         
         if(ServerChecker.getServerRefreshService().getInfocardsToRefresh().size() <= ZOE_INFOCARDS_QUEUE_OVERLOAD 
@@ -142,7 +142,7 @@ public class InfoCardsWorker implements Runnable {
       }else {
         return false;
       }
-    }catch(RiotApiException e) {
+    }catch(APIResponseException e) {
       logger.warn("A riot exception has been throw! Game not generated.", e);
       return false;
     }
@@ -158,7 +158,7 @@ public class InfoCardsWorker implements Runnable {
     if(!listOfPlayerInTheGame.isEmpty()) {
       MessageEmbed messageCard =
           MessageBuilderRequest.createInfoCard(listOfPlayerInTheGame, currentGameInfo.currentgame_currentgame,
-              account.leagueAccount_server, server, jda);
+              account.leagueAccount_server, server, jda, forceRefresh);
 
       if(messageCard != null) {
         card = new InfoCard(listOfPlayerInTheGame, messageCard, currentGameInfo.currentgame_currentgame);

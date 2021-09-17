@@ -17,6 +17,7 @@ import com.jagrosh.jdautilities.menu.SelectionDialog;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.LanguageCommandRunnable;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.model.static_data.CustomEmote;
 import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.ServerRepository;
@@ -27,7 +28,6 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.RichPresence;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
-import net.rithms.riot.constant.Platform;
 
 public class EventListenerUtil {
 
@@ -135,11 +135,11 @@ public class EventListenerUtil {
             .setCanceled(getSelectionCancelAction())
             .setTimeout(15, TimeUnit.MINUTES);
 
-        List<Platform> regionsList = new ArrayList<>();
+        List<ZoePlatform> regionsList = new ArrayList<>();
         List<String> regionChoices = new ArrayList<>();
-        for(Platform regionMember : Platform.values()) {
+        for(ZoePlatform regionMember : ZoePlatform.values()) {
           String actualChoice = String.format(LanguageManager.getText(server.getLanguage(), "regionOptionRegionChoice"),
-              regionMember.getName().toUpperCase());
+              regionMember.getShowableName());
 
           regionChoices.add(actualChoice);
           selectAccountBuilder.addChoices(actualChoice);
@@ -172,7 +172,7 @@ public class EventListenerUtil {
     };
   }
 
-  private static BiConsumer<Message, Integer> getSelectionDoneActionRegionSelection(List<Platform> regionsList, DTO.Server server) {
+  private static BiConsumer<Message, Integer> getSelectionDoneActionRegionSelection(List<ZoePlatform> regionsList, DTO.Server server) {
     return new BiConsumer<Message, Integer>() {
       @Override
       public void accept(Message selectionMessage, Integer selectionOfRegion) {
@@ -190,7 +190,7 @@ public class EventListenerUtil {
             strRegion = LanguageManager.getText(server.getLanguage(), "regionOptionAnyRegion");
             ConfigRepository.updateRegionOption(server.serv_guildId, null, selectionMessage.getJDA());
           } else {
-            strRegion = regionsList.get(selectionOfRegion - 1).getName().toUpperCase();
+            strRegion = regionsList.get(selectionOfRegion - 1).getShowableName();
             ConfigRepository.updateRegionOption(server.serv_guildId, regionsList.get(selectionOfRegion - 1), selectionMessage.getJDA());
           }
 

@@ -16,9 +16,9 @@ import org.slf4j.LoggerFactory;
 
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.model.dto.DTO.Player;
 import net.dv8tion.jda.api.entities.Guild;
-import net.rithms.riot.constant.Platform;
 
 public class PlayerRepository {
 
@@ -256,12 +256,12 @@ public class PlayerRepository {
   }
 
   @Nullable
-  public static DTO.Player getPlayerByLeagueAccountAndGuild(long guildId, String summonerId, Platform server) throws SQLException {
+  public static DTO.Player getPlayerByLeagueAccountAndGuild(long guildId, String summonerId, ZoePlatform server) throws SQLException {
     ResultSet result = null;
     try (Connection conn = RepoRessources.getConnection();
         Statement query = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);) {
 
-      String finalQuery = String.format(SELECT_PLAYER_WITH_GUILD_ID_AND_LEAGUE_ACCOUNT, guildId, summonerId, server.getName());
+      String finalQuery = String.format(SELECT_PLAYER_WITH_GUILD_ID_AND_LEAGUE_ACCOUNT, guildId, summonerId, server.getDbName());
       result = query.executeQuery(finalQuery);
       int rowCount = result.last() ? result.getRow() : 0;
       if(rowCount == 0) {

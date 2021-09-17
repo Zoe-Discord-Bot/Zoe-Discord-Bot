@@ -10,17 +10,17 @@ import ch.kalunight.zoe.util.request.MessageBuilderRequest;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
-import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
-import net.rithms.riot.api.endpoints.tft_match.dto.TFTMatch;
+import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
+import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
+import no.stelar7.api.r4j.pojo.tft.TFTMatch;
 
 public class RankedChannelTFTRefresher extends RankedChannelBaseRefresher {
 
   private TFTMatch match;
   
   public RankedChannelTFTRefresher(RankHistoryChannel rankChannel, LeagueEntry oldEntry, LeagueEntry newEntry, Player player,
-      LeagueAccount leagueAccount, Server server, TFTMatch match, JDA jda) {
-    super(rankChannel, oldEntry, newEntry, player, leagueAccount, server, jda);
+      LeagueAccount leagueAccount, Server server, TFTMatch match, JDA jda, boolean forceRefresh) {
+    super(rankChannel, oldEntry, newEntry, player, leagueAccount, server, jda, forceRefresh);
     this.match = match;
   }
 
@@ -39,8 +39,8 @@ public class RankedChannelTFTRefresher extends RankedChannelBaseRefresher {
     MessageEmbed message;
     try {
       message = MessageBuilderRequest.createRankChannelCardLeaguePointChangeOnlyTFT
-      (oldEntry, newEntry, match, player, leagueAccount, server.getLanguage(), jda);
-    } catch (NoValueRankException | RiotApiException e) {
+      (oldEntry, newEntry, match, player, leagueAccount, server.getLanguage(), jda, forceRefresh);
+    } catch (NoValueRankException | APIResponseException e) {
       logger.warn("Error while generating a TFT rank message!", e);
       return;
     }

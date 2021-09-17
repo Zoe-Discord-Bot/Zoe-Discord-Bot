@@ -28,11 +28,11 @@ import ch.kalunight.zoe.command.create.CreatePlayerCommandRunnable;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.config.option.RegionOption;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
+import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.DTO.Server;
-import ch.kalunight.zoe.model.dto.DTO.SummonerCache;
-import ch.kalunight.zoe.model.dto.SavedChampionsMastery;
-import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
@@ -51,10 +51,8 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.InteractionHook;
-import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
-import net.rithms.riot.api.endpoints.tft_summoner.dto.TFTSummoner;
-import net.rithms.riot.constant.Platform;
+import no.stelar7.api.r4j.basic.exceptions.APIHTTPErrorReason;
+import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
 
 public class StatsProfileCommandRunnable {
 
@@ -98,19 +96,19 @@ public class StatsProfileCommandRunnable {
   }
   
   public static void executeCommand(Server server, TextChannel sourceChannel, String args, List<User> mentionnedMembers,
-      Message toEdit, InteractionHook hook, EventWaiter waiter, Member author) throws SQLException {
+      Message toEdit, InteractionHook hook, EventWaiter waiter, Member author, boolean forceRefresh) throws SQLException {
     
     DTO.LeagueAccount leagueAccount = getLeagueAccountWithParam(args, server, sourceChannel.getJDA());
 
     if(leagueAccount != null) {
       try {
-        leagueAccount.getSummoner();
-      } catch(RiotApiException e) {
+        leagueAccount.getSummoner(forceRefresh);
+      } catch(APIResponseException e) {
         CommandUtil.sendMessageWithClassicOrSlashCommand(RiotApiUtil.getTextHandlerRiotApiError(e, server.getLanguage()), toEdit, hook);
         return;
       }
 
-      generateStatsMessage(null, leagueAccount, server, toEdit, hook, sourceChannel);
+      generateStatsMessage(null, leagueAccount, server, toEdit, hook, sourceChannel, forceRefresh);
       return;
     }
 
@@ -129,9 +127,9 @@ public class StatsProfileCommandRunnable {
 
     List<DTO.LeagueAccount> accounts = LeagueAccountRepository.getLeaguesAccounts(server.serv_guildId, user.getIdLong());
     
-    SummonerCache summoner;
+    SavedSummoner summoner;
     if(accounts.size() == 1) {
-      generateStatsMessage(player, accounts.get(0), server, toEdit, hook, sourceChannel);
+      generateStatsMessage(player, accounts.get(0), server, toEdit, hook, sourceChannel, forceRefresh);
     }else if(accounts.isEmpty()) {
       CommandUtil.sendMessageWithClassicOrSlashCommand(LanguageManager.getText(server.getLanguage(), "statsProfileNeedARegisteredAccount"), toEdit, hook);
     }else {
@@ -146,24 +144,23 @@ public class StatsProfileCommandRunnable {
 
       selectAccountBuilder
       .addUsers(author.getUser())
-      .setSelectionConsumer(getSelectionDoneAction(player, server, accounts, toEdit, hook, sourceChannel));
+      .setSelectionConsumer(getSelectionDoneAction(player, server, accounts, toEdit, hook, sourceChannel, forceRefresh));
 
       List<String> accountsName = new ArrayList<>();
 
       for(DTO.LeagueAccount choiceAccount : accounts) {
         try {
-          summoner = Zoe.getRiotApi().getSummoner(choiceAccount.leagueAccount_server,
-              choiceAccount.leagueAccount_summonerId, false);
-        }catch(RiotApiException e) {
+          summoner = Zoe.getRiotApi().getSummonerBySummonerId(choiceAccount.leagueAccount_server, choiceAccount.leagueAccount_summonerId, forceRefresh);
+        }catch(APIResponseException e) {
           CommandUtil.sendMessageWithClassicOrSlashCommand(RiotApiUtil.getTextHandlerRiotApiError(e, server.getLanguage()), toEdit, hook);
           return;
         }
 
         selectAccountBuilder.addChoices(String.format(LanguageManager.getText(server.getLanguage(), "showPlayerAccount"),
-            summoner.getSumCacheData().getName(),
-            choiceAccount.leagueAccount_server.getName().toUpperCase(),
+            summoner.getName(),
+            choiceAccount.leagueAccount_server.getShowableName(),
             RiotRequest.getSoloqRank(choiceAccount.leagueAccount_summonerId, choiceAccount.leagueAccount_server).toString(server.getLanguage())));
-        accountsName.add(summoner.getSumCacheData().getName());
+        accountsName.add(summoner.getName());
       }
 
       selectAccountBuilder.setText(getUpdateMessageAfterChangeSelectAction(accountsName, server));
@@ -191,24 +188,24 @@ public class StatsProfileCommandRunnable {
       RegionOption regionOption = config.getDefaultRegion();
 
       if(regionOption.getRegion() != null) {
-        regionName = regionOption.getRegion().getName();
+        regionName = regionOption.getRegion().getShowableName();
       }
       summonerName = listArgs.get(0);
     }else {
       return null;
     }
 
-    Platform region = CreatePlayerCommandRunnable.getPlatform(regionName);
+    ZoePlatform region = CreatePlayerCommandRunnable.getPlatform(regionName);
     if(region == null) {
       return null;
     }
 
-    Summoner summoner;
-    TFTSummoner tftSummoner;
+    SavedSummoner summoner;
+    SavedSummoner tftSummoner;
     try {
-      summoner = Zoe.getRiotApi().getSummonerByNameWithRateLimit(region, summonerName);
-      tftSummoner = Zoe.getRiotApi().getTFTSummonerByNameWithRateLimit(region, summonerName);
-    }catch(RiotApiException e) {
+      summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);
+      tftSummoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);
+    }catch(APIResponseException e) {
       return null;
     }
     return new LeagueAccount(summoner, tftSummoner, region);
@@ -224,7 +221,7 @@ public class StatsProfileCommandRunnable {
   }
 
   private static BiConsumer<Message, Integer> getSelectionDoneAction(DTO.Player player,
-      DTO.Server server, List<DTO.LeagueAccount> lolAccounts, Message messageLoading, InteractionHook hook, TextChannel channel) {
+      DTO.Server server, List<DTO.LeagueAccount> lolAccounts, Message messageLoading, InteractionHook hook, TextChannel channel, boolean forceRefresh) {
     return new BiConsumer<Message, Integer>() {
       @Override
       public void accept(Message selectionMessage, Integer selectionOfUser) {
@@ -235,14 +232,14 @@ public class StatsProfileCommandRunnable {
         try {
           selectionMessage.getTextChannel().sendMessage(String.format(
               LanguageManager.getText(server.getLanguage(), "statsProfileSelectionDoneMessage"),
-              account.getSummoner().getName(), channel.getJDA().retrieveUserById(player.player_discordId).complete()
+              account.getSummoner(forceRefresh).getName(), channel.getJDA().retrieveUserById(player.player_discordId).complete()
               .getName())).queue();
-        } catch (RiotApiException e) {
+        } catch (APIResponseException e) {
           CommandUtil.sendMessageWithClassicOrSlashCommand(RiotApiUtil.getTextHandlerRiotApiError(e, server.getLanguage()), messageLoading, hook);
           return;
         }
 
-        generateStatsMessage(player, account, server, messageLoading, hook, channel);
+        generateStatsMessage(player, account, server, messageLoading, hook, channel, forceRefresh);
       }
 
     };
@@ -258,16 +255,16 @@ public class StatsProfileCommandRunnable {
     };
   }
 
-  private static void generateStatsMessage(DTO.Player player, DTO.LeagueAccount lolAccount, DTO.Server server, Message messageLoading, InteractionHook hook, TextChannel channel) {
+  private static void generateStatsMessage(DTO.Player player, DTO.LeagueAccount lolAccount, DTO.Server server, Message messageLoading,
+      InteractionHook hook, TextChannel channel, boolean forceRefresh) {
 
     String url = Integer.toString(random.nextInt(100000));
 
-    SavedChampionsMastery championsMasteries;
+    List<SavedSimpleMastery> championsMasteries;
     try {
-      championsMasteries = Zoe.getRiotApi().getChampionMasteriesBySummoner(lolAccount.leagueAccount_server,
-          lolAccount.leagueAccount_summonerId, true);
-    } catch(RiotApiException e) {
-      if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
+      championsMasteries = Zoe.getRiotApi().getChampionMasteryBySummonerId(lolAccount.leagueAccount_server, lolAccount.leagueAccount_summonerId, forceRefresh);
+    } catch(APIResponseException e) {
+      if(e.getReason() == APIHTTPErrorReason.ERROR_429) {
         CommandUtil.sendMessageWithClassicOrSlashCommand(LanguageManager.getText(server.getLanguage(), "statsProfileRateLimitError"), messageLoading, hook);
         return;
       }
@@ -278,10 +275,10 @@ public class StatsProfileCommandRunnable {
 
     byte[] imageBytes = null;
     try {
-      if(championsMasteries != null && !championsMasteries.getChampionMasteries().isEmpty()) {
-        imageBytes = generateMasteriesChart(player, championsMasteries, server, lolAccount, channel.getJDA());
+      if(championsMasteries != null && !championsMasteries.isEmpty()) {
+        imageBytes = generateMasteriesChart(player, championsMasteries, server, lolAccount, channel.getJDA(), forceRefresh);
       }
-    } catch(IOException | RiotApiException e) {
+    } catch(IOException | APIResponseException e) {
       logger.info("Got a error in encoding bytesMap image", e);
       CommandUtil.sendMessageWithClassicOrSlashCommand(LanguageManager.getText(server.getLanguage(), "statsProfileUnexpectedErrorGraph"), messageLoading, hook);
       return;
@@ -289,9 +286,9 @@ public class StatsProfileCommandRunnable {
 
     MessageEmbed embed;
     try {
-      embed = MessageBuilderRequest.createProfileMessage(player, lolAccount, championsMasteries, server.getLanguage(), url, channel.getJDA());
-    } catch(RiotApiException e) {
-      if(e.getErrorCode() == RiotApiException.RATE_LIMITED) {
+      embed = MessageBuilderRequest.createProfileMessage(player, lolAccount, championsMasteries, server.getLanguage(), url, channel.getJDA(), forceRefresh);
+    } catch(APIResponseException e) {
+      if(e.getReason() == APIHTTPErrorReason.ERROR_429) {
         logger.debug("Get rate limited", e);
         CommandUtil.sendMessageWithClassicOrSlashCommand(LanguageManager.getText(server.getLanguage(), "statsProfileRateLimitError"), messageLoading, hook);
         return;
@@ -316,8 +313,8 @@ public class StatsProfileCommandRunnable {
     }
   }
 
-  private static byte[] generateMasteriesChart(DTO.Player player, SavedChampionsMastery championsMasteries,
-      DTO.Server server, LeagueAccount leagueAccount, JDA jda) throws IOException, RiotApiException {
+  private static byte[] generateMasteriesChart(DTO.Player player, List<SavedSimpleMastery> championsMasteries,
+      DTO.Server server, LeagueAccount leagueAccount, JDA jda, boolean forceRefresh) throws IOException {
     List<SavedSimpleMastery> listHeigherChampion = getBestMasteries(championsMasteries, NUMBER_OF_CHAMPIONS_IN_GRAPH);
     CategoryChartBuilder masteriesGraphBuilder = new CategoryChartBuilder();
 
@@ -328,7 +325,7 @@ public class StatsProfileCommandRunnable {
           player.retrieveUser(jda).getName()));
     }else {
       masteriesGraphBuilder.title(String.format(LanguageManager.getText(server.getLanguage(), "statsProfileGraphTitle"),
-          leagueAccount.getSummoner().getName()));
+          leagueAccount.getSummoner(forceRefresh).getName()));
     }
 
     CategoryChart masteriesGraph = masteriesGraphBuilder.build();
@@ -381,14 +378,14 @@ public class StatsProfileCommandRunnable {
     return allMasteries / championsMasteries.size();
   }
 
-  public static List<SavedSimpleMastery> getBestMasteries(SavedChampionsMastery championsMasteries, int nbrTop) {
+  public static List<SavedSimpleMastery> getBestMasteries(List<SavedSimpleMastery> championsMasteries, int nbrTop) {
     List<SavedSimpleMastery> listHeigherChampion = new ArrayList<>();
 
     for(int i = 0; i < nbrTop; i++) {
 
       SavedSimpleMastery heigherActual = null;
 
-      for(SavedSimpleMastery championMastery : championsMasteries.getChampionMasteries()) {
+      for(SavedSimpleMastery championMastery : championsMasteries) {
 
         if(listHeigherChampion.contains(championMastery)) {
           continue;

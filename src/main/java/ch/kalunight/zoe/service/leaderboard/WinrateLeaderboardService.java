@@ -9,17 +9,16 @@ import ch.kalunight.zoe.model.dto.DTO.Server;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
-import net.rithms.riot.api.RiotApiException;
 
 public class WinrateLeaderboardService extends LeaderboardBaseService {
 
-  public WinrateLeaderboardService(long guildId, long channelId, long leaderboardId, boolean forceRefreshCache) {
-    super(guildId, channelId, leaderboardId, forceRefreshCache);
+  public WinrateLeaderboardService(long guildId, long channelId, long leaderboardId, boolean forceRefresh) {
+    super(guildId, channelId, leaderboardId, forceRefresh);
   }
 
   @Override
-  protected void runLeaderboardRefresh(Server server, Guild guild, TextChannel channel, Leaderboard leaderboard, Message message, List<Player> players, boolean forceRefreshCache)
-      throws SQLException, RiotApiException {
+  protected void runLeaderboardRefresh(Server server, Guild guild, TextChannel channel, Leaderboard leaderboard, Message message, List<Player> players)
+      throws SQLException {
     
     /*Objective objective = Objective.getObjectiveWithId(leaderboard.lead_type);
     SpecificChamp selectedChamp = null;

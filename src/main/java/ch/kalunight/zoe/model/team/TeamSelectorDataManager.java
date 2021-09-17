@@ -19,10 +19,13 @@ public abstract class TeamSelectorDataManager implements Runnable {
   
   protected TextChannel channel;
   
-  public TeamSelectorDataManager(Server server, TextChannel channel) {
+  protected boolean forceRefresh;
+  
+  public TeamSelectorDataManager(Server server, TextChannel channel, boolean forceRefresh) {
     this.accountsToTreat = null;
     this.server = server;
     this.channel = channel;
+    this.forceRefresh = forceRefresh;
   }
 
   @Override

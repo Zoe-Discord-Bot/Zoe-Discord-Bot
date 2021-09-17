@@ -3,11 +3,14 @@ package ch.kalunight.zoe.command.remove;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.regex.Pattern;
+
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.create.CreatePlayerCommandRunnable;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.model.dto.DTO.Server;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.repositories.ConfigRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
@@ -16,9 +19,7 @@ import ch.kalunight.zoe.util.RiotApiUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
-import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
-import net.rithms.riot.constant.Platform;
+import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
 
 public class RemoveAccountCommandRunnable {
 
@@ -61,22 +62,22 @@ public class RemoveAccountCommandRunnable {
     String regionName = listArgs.get(0);
     String summonerName = listArgs.get(1);
 
-    Platform region = CreatePlayerCommandRunnable.getPlatform(regionName);
+    ZoePlatform region = CreatePlayerCommandRunnable.getPlatform(regionName);
     if(region == null) {
       return LanguageManager.getText(server.getLanguage(), "regionTagInvalid");
     }
 
     DTO.LeagueAccount account;
     try {
-      Summoner summoner = Zoe.getRiotApi().getSummonerByNameWithRateLimit(region, summonerName);
+      SavedSummoner summoner = Zoe.getRiotApi().getSummonerByName(region, summonerName);
       
       account = LeagueAccountRepository
-          .getLeagueAccountWithSummonerId(server.serv_guildId, summoner.getId(), region);
-    } catch(RiotApiException e) {
+          .getLeagueAccountWithSummonerId(server.serv_guildId, summoner.getSummonerId(), region);
+    } catch(APIResponseException e) {
       return RiotApiUtil.getTextHandlerRiotApiError(e, server.getLanguage());
     }
 
-    if(account == null) {
+    if(account == null || account.leagueAccount_fk_player != player.player_id) {
       return LanguageManager.getText(server.getLanguage(), "removeAccountNotLinkedToPlayer");
     }
     

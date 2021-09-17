@@ -40,7 +40,7 @@ public class StatsProfileCommandClassicDefinition extends ZoeCommand {
     
     Message messageLoading = event.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "loadingSummoner")).complete();
     
-    StatsProfileCommandRunnable.executeCommand(server, event.getTextChannel(), event.getArgs(), event.getMessage().getMentionedUsers(), messageLoading, null, waiter, event.getMember());
+    StatsProfileCommandRunnable.executeCommand(server, event.getTextChannel(), event.getArgs(), event.getMessage().getMentionedUsers(), messageLoading, null, waiter, event.getMember(), false);
   }
   
   public void executeCommandExternal(CommandEvent event) throws SQLException {

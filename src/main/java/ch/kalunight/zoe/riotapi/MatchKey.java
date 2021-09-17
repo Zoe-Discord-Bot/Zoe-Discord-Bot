@@ -1,15 +1,14 @@
 package ch.kalunight.zoe.riotapi;
 
-import net.rithms.riot.constant.Platform;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 
 public final class MatchKey {
-  private final Platform platform;
+  private final ZoePlatform platform;
   private final long matchId;
 
-  public MatchKey(Platform platform, long matchId) {
+  public MatchKey(ZoePlatform platform, long matchId) {
     this.platform = platform;
     this.matchId = matchId;
-    
   }
 
   @Override

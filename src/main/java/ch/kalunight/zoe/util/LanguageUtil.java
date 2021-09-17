@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
 import ch.kalunight.zoe.command.LanguageCommandRunnable;
+import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.model.static_data.Mastery;
 import ch.kalunight.zoe.translation.LanguageManager;

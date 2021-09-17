@@ -48,7 +48,7 @@ public class CreateClashChannelCommandSlashDefinition extends ZoeSlashCommand {
   @Override
   protected void executeCommand(SlashCommandEvent event) throws SQLException {
     CreateClashChannelRunnable.executeCommand(ZoeCommand.getServer(event.getGuild().getIdLong()), event.getOption("clashchannel-name").getAsString(),
-        waiter, event.getMember(), null, event.getTextChannel(), event.getHook());
+        waiter, event.getMember(), null, event.getTextChannel(), event.getHook(), true);
   }
   
 }

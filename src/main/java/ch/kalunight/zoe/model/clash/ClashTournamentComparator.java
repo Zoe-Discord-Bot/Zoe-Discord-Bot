@@ -2,29 +2,29 @@ package ch.kalunight.zoe.model.clash;
 
 import java.util.Comparator;
 
-import net.rithms.riot.api.endpoints.clash.dto.ClashTournament;
-import net.rithms.riot.api.endpoints.clash.dto.ClashTournamentPhase;
+import ch.kalunight.zoe.model.dto.SavedClashTournament;
+import ch.kalunight.zoe.model.dto.SavedClashTournamentPhase;
 
-public class ClashTournamentComparator implements Comparator<ClashTournament> {
+public class ClashTournamentComparator implements Comparator<SavedClashTournament> {
 
   @Override
-  public int compare(ClashTournament o1, ClashTournament o2) {
+  public int compare(SavedClashTournament o1, SavedClashTournament o2) {
     
     //We compare the first phase with the other first phase of each.
     
-    ClashTournamentPhase firstPhaseO1 = o1.getSchedule().get(0);
+    SavedClashTournamentPhase firstPhaseO1 = o1.getSchedule().get(0);
     
-    ClashTournamentPhase firstPhase02 = o2.getSchedule().get(0);
+    SavedClashTournamentPhase firstPhase02 = o2.getSchedule().get(0);
     
-    if(firstPhaseO1.getRegistrationTimeTimestamp() == firstPhase02.getRegistrationTimeTimestamp()) {
+    if(firstPhaseO1.getRegistrationTime() == firstPhase02.getRegistrationTime()) {
       return 0;
     }
     
-    if(firstPhaseO1.getRegistrationTimeTimestamp() < firstPhase02.getRegistrationTimeTimestamp()) {
+    if(firstPhaseO1.getRegistrationTime() < firstPhase02.getRegistrationTime()) {
       return -1;
     }
     
-    if(firstPhaseO1.getRegistrationTimeTimestamp() > firstPhase02.getRegistrationTimeTimestamp()) {
+    if(firstPhaseO1.getRegistrationTime() > firstPhase02.getRegistrationTime()) {
       return 1;
     }
     

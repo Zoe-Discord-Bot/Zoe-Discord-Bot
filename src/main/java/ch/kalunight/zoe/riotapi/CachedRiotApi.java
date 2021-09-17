@@ -3,6 +3,7 @@ package ch.kalunight.zoe.riotapi;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -35,6 +36,7 @@ import ch.kalunight.zoe.model.dto.SavedMatch;
 import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
 import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.model.dto.ZoePlatform;
+import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import no.stelar7.api.r4j.basic.constants.types.lol.GameQueueType;
 import no.stelar7.api.r4j.basic.exceptions.APIHTTPErrorReason;
 import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
@@ -308,13 +310,37 @@ public class CachedRiotApi {
     Summoner summonerOriginal = riotApi.getLoLAPI().getSummonerAPI().getSummonerByPUUID(platform.getLeagueShard(), leagueaccount.leagueAccount_puuid);
 
     if(summonerOriginal == null) {
-      throw new APIResponseException(APIHTTPErrorReason.ERROR_404, "Not found");
+      try {
+        summonerOriginal = searchForAccountTransfer(leagueaccount);
+      } catch (SQLException e) {
+        logger.error("SQL Error while trying to check for account transfer", e);
+      }
+      
+      if(summonerOriginal == null) {
+        throw new APIResponseException(APIHTTPErrorReason.ERROR_404, "Not found");
+      }
     }
 
     summoner = new SavedSummoner(summonerOriginal, platform);
 
     insertOrReplaceSummoner(summoner, getSearchBsonForSummoner(platform, summoner.getSummonerId()));
 
+    return summoner;
+  }
+
+  private Summoner searchForAccountTransfer(LeagueAccount account) throws SQLException {
+    
+    Summoner summoner = null;
+    for(ZoePlatform platformToCheck : ZoePlatform.values()) {
+      summoner = riotApi.getLoLAPI().getSummonerAPI().getSummonerByPUUID(platformToCheck.getLeagueShard(), account.leagueAccount_puuid);
+      if(summoner != null) {
+        if(summoner.getPlatform() != account.leagueAccount_server.getLeagueShard()) {
+          LeagueAccountRepository.updateAccountDataWithId(account.leagueAccount_id, summoner);
+        }
+        break;
+      }
+    }
+    
     return summoner;
   }
 

@@ -264,7 +264,7 @@ public class DTO {
     }
 
     public SavedSummoner getSummoner(boolean forceRefresh) {
-      return Zoe.getRiotApi().getSummonerBySummonerId(leagueAccount_server, leagueAccount_summonerId, leagueAccount_puuid, forceRefresh);
+      return Zoe.getRiotApi().getSummonerByPUUIDWithAccountTransferManagement(leagueAccount_server, this, forceRefresh);
     }
 
     @Override

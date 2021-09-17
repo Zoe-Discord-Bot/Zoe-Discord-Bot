@@ -186,6 +186,9 @@ public class LeagueAccountRepository {
 
   private static final String COUNT_LEAGUE_ACCOUNTS = "SELECT COUNT(*) FROM league_account";
 
+  private static final String UPDATE_LEAGUE_ACCOUNT_DATA_WITH_ID =
+      "UPDATE league_account SET leagueAccount_summonerId = '%s', leagueAccount_accountId = '%s', leagueAccount_puuid = '%s', leagueaccount_server = '%s' WHERE leagueaccount_id = %d";
+
   private LeagueAccountRepository() {
     //hide default public constructor
   }
@@ -505,6 +508,16 @@ public class LeagueAccountRepository {
       }
 
       String finalQuery = String.format(DELETE_LEAGUE_ACCOUNT_WITH_ID, leagueAccountId);
+      query.executeUpdate(finalQuery);
+    }
+  }
+
+  public static void updateAccountDataWithId(long leagueAccountId, Summoner summoner) throws SQLException {
+    try (Connection conn = RepoRessources.getConnection();
+        Statement query = conn.createStatement();) {
+
+      String finalQuery = String.format(UPDATE_LEAGUE_ACCOUNT_DATA_WITH_ID, summoner.getSummonerId(), summoner.getAccountId(),
+          summoner.getPUUID(), ZoePlatform.getZoePlatformByLeagueShard(summoner.getPlatform()).getDbName(), leagueAccountId);
       query.executeUpdate(finalQuery);
     }
   }

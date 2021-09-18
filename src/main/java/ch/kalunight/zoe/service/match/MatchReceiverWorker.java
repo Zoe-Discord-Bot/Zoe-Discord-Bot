@@ -49,7 +49,7 @@ public abstract class MatchReceiverWorker implements Runnable {
         runMatchReceveirWorker(match);
       }
     }catch(Exception e){
-      logger.error("Unexpected error in match receiver worker", e);
+      logger.error("Unexpected error in match receiver worker! GameID : {} Platform : {}", matchReference.getMatchId(), matchReference.getPlatform().getShowableName(), e);
     }finally {
       matchsInWork.remove(matchReference);
     }

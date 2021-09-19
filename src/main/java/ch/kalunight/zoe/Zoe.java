@@ -390,7 +390,6 @@ public class Zoe {
     //DataCall.setGlobalTimeout(1);
     DataCall.setCredentials(creds);
     DataCall.setCacheProvider(null);
-    DataCall.setDefaultMaxSleep(20000);
     
     riotApi = new CachedRiotApi(baseRiotApi, "zoe");
   }

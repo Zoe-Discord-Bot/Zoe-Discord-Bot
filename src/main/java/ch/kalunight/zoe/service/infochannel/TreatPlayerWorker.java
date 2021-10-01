@@ -45,6 +45,7 @@ import ch.kalunight.zoe.util.TreatedPlayer;
 import ch.kalunight.zoe.util.ZoeUserRankManagementUtil;
 import net.dv8tion.jda.api.JDA;
 import no.stelar7.api.r4j.basic.exceptions.APIHTTPErrorReason;
+import no.stelar7.api.r4j.basic.exceptions.APINoValidResponseException;
 import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
 import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
 import no.stelar7.api.r4j.pojo.lol.spectator.SpectatorGameInfo;
@@ -55,13 +56,13 @@ public class TreatPlayerWorker implements Runnable {
   protected static final List<TreatPlayerWorker> playersInWork = Collections.synchronizedList(new ArrayList<>());
 
   protected static final Logger logger = LoggerFactory.getLogger(TreatPlayerWorker.class);
-  
+
   private Player player;
 
   private List<LeagueAccount> leaguesAccounts;
 
   private JDA jda;
-  
+
   private DTO.Team team;
 
   private Server server;
@@ -81,7 +82,7 @@ public class TreatPlayerWorker implements Runnable {
   private List<RankedChannelLoLRefresher> rankChannelsToProcess = Collections.synchronizedList(new ArrayList<>());
 
   private TreatedPlayer treatedPlayer = null;
-  
+
   private boolean forceRefreshCache;
 
   private class LastRankQueue {
@@ -116,11 +117,12 @@ public class TreatPlayerWorker implements Runnable {
     try {
       Map<LeagueAccount, SpectatorGameInfo> accountsInGame = Collections.synchronizedMap(new HashMap<>());
       List<LeagueAccount> accountNotInGame = new ArrayList<>();
+      Map<LeagueAccount, String> accountsWithErrors = Collections.synchronizedMap(new HashMap<>());
 
       cleanUnreachableSummoner();
 
-      refreshPlayer(accountsInGame, accountNotInGame);
-      generateText(accountsInGame, accountNotInGame);
+      refreshPlayer(accountsInGame, accountNotInGame, accountsWithErrors);
+      generateText(accountsInGame, accountNotInGame, accountsWithErrors);
       createOutputObject();
     }catch(SQLException e) {
       logger.error("Unexpected SQLException when threathing text. Server ID : {}", server.serv_guildId, e);
@@ -156,22 +158,29 @@ public class TreatPlayerWorker implements Runnable {
     treatedPlayer = new TreatedPlayer(player, team, infochannelMessage.toString(), soloqRank, gamesToDelete, gamesToCreate, rankChannelsToProcess);
   }
 
-  private void refreshPlayer(Map<LeagueAccount, SpectatorGameInfo> accountsInGame, List<LeagueAccount> accountNotInGame) throws SQLException {
+  private void refreshPlayer(Map<LeagueAccount, SpectatorGameInfo> accountsInGame, List<LeagueAccount> accountNotInGame, Map<LeagueAccount, String> accountsWithErrors) throws SQLException {
     team = TeamRepository.getTeamByPlayerAndGuild(server.serv_guildId, player.player_discordId);
 
     for(LeagueAccount leagueAccount : leaguesAccounts) {
-      LastRank lastRank = getLastRank(leagueAccount);
+      try {
+        LastRank lastRank = getLastRank(leagueAccount);
 
-      if(lastRank != null) {
-        refreshLoL(leagueAccount, lastRank, accountsInGame, accountNotInGame);
-        refreshTFT(leagueAccount, lastRank);
-        
-        if(forceRefreshCache) {
-          forceRefreshAllRank(leagueAccount, lastRank);
+        if(lastRank != null) {
+          refreshLoL(leagueAccount, lastRank, accountsInGame, accountNotInGame, accountsWithErrors);
+          refreshTFT(leagueAccount, lastRank);
+
+          if(forceRefreshCache) {
+            forceRefreshAllRank(leagueAccount, lastRank);
+          }
+
+        }else {
+          logger.warn("Error while refreshing a player ! last rank == null. Guild Id {}", server.serv_guildId);
         }
         
-      }else {
-        logger.warn("Error while refreshing a player ! last rank == null. Guild Id {}", server.serv_guildId);
+      }catch(APINoValidResponseException e) {
+        logger.info("Riot servers are having trouble ! (503 errors)");
+
+        accountsWithErrors.put(leagueAccount, LanguageManager.getText(server.getLanguage(), "leagueAccountDataUnavailableError503"));
       }
     }
   }
@@ -181,12 +190,12 @@ public class TreatPlayerWorker implements Runnable {
     List<LeagueEntry> leagueEntries;
     try {
       leagueEntries = Zoe.getRiotApi().getLeagueEntryBySummonerId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId);
-      
+
       LastRankUtil.updateLoLLastRankIfRankDifference(lastRank, leagueEntries);
     } catch(APIResponseException e) {
       logger.info("Error while refreshing rank in updateLoLLastRank. Server Id : {}", server.serv_guildId, e);
     }
-    
+
     List<LeagueEntry> tftLeagueEntries = Zoe.getRiotApi().getTFTLeagueEntryConvertedByTFTSummonerId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_tftSummonerId);
 
     LastRankUtil.updateTFTLastRank(lastRank, tftLeagueEntries);
@@ -225,7 +234,7 @@ public class TreatPlayerWorker implements Runnable {
   }
 
   private void refreshLoL(LeagueAccount leagueAccount, LastRank lastRank,
-      Map<LeagueAccount, SpectatorGameInfo> accountsInGame, List<LeagueAccount> accountNotInGame) throws SQLException {
+      Map<LeagueAccount, SpectatorGameInfo> accountsInGame, List<LeagueAccount> accountNotInGame, Map<LeagueAccount, String> accountsWithErrors) throws SQLException {
     DTO.CurrentGameInfo currentGameDb = CurrentGameInfoRepository.getCurrentGameWithLeagueAccountID(leagueAccount.leagueAccount_id);
 
     SpectatorGameInfo currentGame;
@@ -327,7 +336,7 @@ public class TreatPlayerWorker implements Runnable {
         participant = participantToCheck;
       }
     }
-    
+
     if(participant != null) {
       Player playerToUpdate = PlayerRepository.getPlayerByLeagueAccountAndGuild(server.serv_guildId,
           leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server);
@@ -361,10 +370,10 @@ public class TreatPlayerWorker implements Runnable {
 
       rankChannelsToProcess.add(rankedRefresher);
     }
-
   }
 
-  private void generateText(Map<DTO.LeagueAccount, SpectatorGameInfo> accountsWithGame, List<DTO.LeagueAccount> accountNotInGame) throws SQLException {
+  private void generateText(Map<DTO.LeagueAccount, SpectatorGameInfo> accountsWithGame, List<DTO.LeagueAccount> accountNotInGame,
+      Map<DTO.LeagueAccount, String> accountsWithErrors) throws SQLException {
 
     if(accountsWithGame.isEmpty()) {
 
@@ -376,13 +385,34 @@ public class TreatPlayerWorker implements Runnable {
 
           getTextInformationPanelRankOption(infochannelMessage, player, leagueAccount, false);
         }else if (accountNotInGame.size() > 1){
-          
+
           infochannelMessage.append(String.format(LanguageManager.getText(server.getLanguage(), "infoPanelRankedTitleMultipleAccount"),
               ZoeUserRankManagementUtil.getEmotesByDiscordId(player.player_discordId) + player.retrieveUser(jda).getAsMention()) + "\n");
 
           for(DTO.LeagueAccount leagueAccount : accountNotInGame) {
 
             getTextInformationPanelRankOption(infochannelMessage, player, leagueAccount, true);
+          }
+        }
+        
+        if(!accountNotInGame.isEmpty()) {
+          Iterator<Entry<LeagueAccount, String>> allAccountsInErrors = accountsWithErrors.entrySet().iterator();
+          
+          while(allAccountsInErrors.hasNext()) {
+            Entry<LeagueAccount, String> entry = allAccountsInErrors.next();
+            
+            String accountName = LanguageManager.getText(server.getLanguage(), "unknown");
+            try {
+              SavedSummoner summoner = entry.getKey().getSummoner(false);
+
+              if(summoner != null) {
+                accountName = summoner.getName();
+              }
+            } catch (Exception e1) {
+              //summoner not accessible
+            }
+            
+            infochannelMessage.append("- " + accountName + " : " + entry.getValue() + "\n");
           }
         }
 
@@ -527,5 +557,5 @@ public class TreatPlayerWorker implements Runnable {
   public List<LeagueAccount> getLeaguesAccounts() {
     return leaguesAccounts;
   }
-  
+
 }

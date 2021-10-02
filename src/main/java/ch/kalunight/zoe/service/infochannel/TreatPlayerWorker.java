@@ -176,7 +176,7 @@ public class TreatPlayerWorker implements Runnable {
         }else {
           logger.warn("Error while refreshing a player ! last rank == null. Guild Id {}", server.serv_guildId);
         }
-        
+
       }catch(APINoValidResponseException e) {
         logger.info("Riot servers are having trouble ! (503 errors)");
 
@@ -379,28 +379,32 @@ public class TreatPlayerWorker implements Runnable {
 
       if(serverConfig.getInfopanelRankedOption().isOptionActivated()) {
 
-        if(accountNotInGame.size() == 1) {
+        if(accountNotInGame.size() + accountsWithErrors.size() == 1) {
 
-          LeagueAccount leagueAccount = accountNotInGame.get(0);
+          if(!accountNotInGame.isEmpty()) {
+            LeagueAccount leagueAccount = accountNotInGame.get(0);
 
-          getTextInformationPanelRankOption(infochannelMessage, player, leagueAccount, false);
-        }else if (accountNotInGame.size() > 1){
+            getTextInformationPanelRankOption(infochannelMessage, player, leagueAccount, false);
+          }else {
+            Entry<LeagueAccount, String> entry = accountsWithErrors.entrySet().iterator().next();
+
+            infochannelMessage.append(ZoeUserRankManagementUtil.getEmotesByDiscordId(player.player_discordId) + player.retrieveUser(jda).getAsMention() + " : " 
+                + entry.getValue() + " \n");
+          }
+        }else if (accountNotInGame.size() + accountsWithErrors.size() > 1) {
 
           infochannelMessage.append(String.format(LanguageManager.getText(server.getLanguage(), "infoPanelRankedTitleMultipleAccount"),
               ZoeUserRankManagementUtil.getEmotesByDiscordId(player.player_discordId) + player.retrieveUser(jda).getAsMention()) + "\n");
 
           for(DTO.LeagueAccount leagueAccount : accountNotInGame) {
-
             getTextInformationPanelRankOption(infochannelMessage, player, leagueAccount, true);
           }
-        }
-        
-        if(!accountNotInGame.isEmpty()) {
+
           Iterator<Entry<LeagueAccount, String>> allAccountsInErrors = accountsWithErrors.entrySet().iterator();
-          
+
           while(allAccountsInErrors.hasNext()) {
             Entry<LeagueAccount, String> entry = allAccountsInErrors.next();
-            
+
             String accountName = LanguageManager.getText(server.getLanguage(), "unknown");
             try {
               SavedSummoner summoner = entry.getKey().getSummoner(false);
@@ -411,7 +415,7 @@ public class TreatPlayerWorker implements Runnable {
             } catch (Exception e1) {
               //summoner not accessible
             }
-            
+
             infochannelMessage.append("- " + accountName + " : " + entry.getValue() + "\n");
           }
         }

@@ -46,7 +46,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 public class EventListener extends ListenerAdapter {
 
-  private static final int NUMBER_PLAYERS_REGISTERED_NOT_SMART_REFRESH = 100;
+  private static final int NUMBER_PLAYERS_REGISTERED_NOT_SMART_REFRESH = 1000;
 
   //Useless to translate
   private static final String WELCOME_MESSAGE = "Hello ! Thank you for adding me to your server ! "

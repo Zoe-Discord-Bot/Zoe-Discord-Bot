@@ -69,10 +69,10 @@ public class CommandUtil {
   public static void sendTypingInFonctionOfChannelType(CommandEvent event) {
     switch(event.getChannelType()) {
     case PRIVATE:
-      event.getPrivateChannel().sendTyping().complete();
+      event.getPrivateChannel().sendTyping().queue();
       break;
     case TEXT:
-      event.getTextChannel().sendTyping().complete();
+      event.getTextChannel().sendTyping().queue();
       break;
     default:
       logger.warn("event.getChannelType() return a unexpected type : {}", event.getChannelType());

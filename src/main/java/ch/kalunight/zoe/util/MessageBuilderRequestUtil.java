@@ -242,7 +242,7 @@ public class MessageBuilderRequestUtil {
       statsGame.append("Unknown");
     }
 
-    String gameDuration = MessageBuilderRequestUtil.getMatchTimeFromDurationInMillis(match.getGameDurations());
+    String gameDuration = MessageBuilderRequestUtil.getMatchTimeFromDurationInSeconds(match.getGameDurations());
     
     String showableResult = getParticipantMatchResult(lang, participant, match);
 

@@ -527,39 +527,39 @@ public class RankRoleOption extends ConfigurationOption {
     List<Role> rankRoleList = new ArrayList<>();
     
     for(Role role : rolesToCheck) {
-      if(role.getId().equals(iron.getId())) {
+      if(iron != null && role.getId().equals(iron.getId())) {
         rankRoleList.add(role);
       }
       
-      if(role.getId().equals(bronze.getId())) {
+      if(bronze != null && role.getId().equals(bronze.getId())) {
         rankRoleList.add(role);
       }
       
-      if(role.getId().equals(silver.getId())) {
+      if(silver != null && role.getId().equals(silver.getId())) {
         rankRoleList.add(role);
       }
       
-      if(role.getId().equals(gold.getId())) {
+      if(gold != null && role.getId().equals(gold.getId())) {
         rankRoleList.add(role);
       }
       
-      if(role.getId().equals(platinum.getId())) {
+      if(platinum != null && role.getId().equals(platinum.getId())) {
         rankRoleList.add(role);
       }
       
-      if(role.getId().equals(diamond.getId())) {
+      if(diamond != null && role.getId().equals(diamond.getId())) {
         rankRoleList.add(role);
       }
       
-      if(role.getId().equals(master.getId())) {
+      if(master != null && role.getId().equals(master.getId())) {
         rankRoleList.add(role);
       }
       
-      if(role.getId().equals(grandMaster.getId())) {
+      if(grandMaster != null && role.getId().equals(grandMaster.getId())) {
         rankRoleList.add(role);
       }
       
-      if(role.getId().equals(challenger.getId())) {
+      if(challenger != null && role.getId().equals(challenger.getId())) {
         rankRoleList.add(role);
       }
     }

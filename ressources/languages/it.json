@@ -686,5 +686,7 @@
     "supportMessageZoeLoss": "Zoe non è attualmente redditizio. Se vuoi che continui a funzionare, per favore aiutami qui: <https://bit.ly/support-zoe>",
     "showPlayersCommandMentionPlayerShow": "Elenco degli account registrati per questo giocatore:",
     "showPlayersCommandNeedToMentionAPlayer": "Questo giocatore non è registrato. Per favore, menziona un giocatore registrato.",
-    "supportMessageZoeSupPriceReduced": "Dopo il vostro feedback, i prezzi degli abbonamenti sono stati abbassati! Maggiori informazioni: <https://bit.ly/support-zoe>"
+    "supportMessageZoeSupPriceReduced": "Dopo il vostro feedback, i prezzi degli abbonamenti sono stati abbassati! Maggiori informazioni: <https://bit.ly/support-zoe>",
+    "leagueAccountDataUnavailableError503": "I server di Riot non hanno potuto rispondere correttamente in tempo (errore 503)",
+    "winrateTemporaryDisable": "Stats tmp. disabilitate"
 }

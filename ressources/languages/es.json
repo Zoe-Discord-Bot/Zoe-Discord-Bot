@@ -686,5 +686,7 @@
     "subscriptionCommandUserNotSupport": "Entra en [mi Ko-fi](https://bit.ly/support-zoe) y selecciona un nivel. ¡Todas las donaciones cuentan!\n¿Ya eres simpatizante pero no tienes beneficios? Únete al [servidor oficial de Zoe Discord](https://discord.gg/zGyrJ9GvRt) y [vincula tu cuenta de Ko-fi con tu cuenta de Discord](https://ko-fi.com/Discord/Settings)",
     "supportMessageZoeSupPriceReduced": "Tras vuestros comentarios, ¡los precios de las suscripciones han sido rebajados! Más información: <https://bit.ly/support-zoe>",
     "showPlayersCommandNeedToMentionAPlayer": "Este jugador no está registrado. Por favor, mencione un jugador registrado.",
-    "showPlayersCommandMentionPlayerShow": "Lista de cuentas registradas para este jugador:"
+    "showPlayersCommandMentionPlayerShow": "Lista de cuentas registradas para este jugador:",
+    "winrateTemporaryDisable": "Estadísticas tmp. desactivadas",
+    "leagueAccountDataUnavailableError503": "Los servidores de Riot no han podido responder correctamente a tiempo (Error 503)"
 }

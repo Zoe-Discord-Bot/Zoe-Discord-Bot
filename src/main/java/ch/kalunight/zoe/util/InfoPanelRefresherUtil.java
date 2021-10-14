@@ -15,9 +15,8 @@ import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.requests.ErrorResponse;
-import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameInfo;
-import net.rithms.riot.api.endpoints.spectator.dto.CurrentGameParticipant;
+import no.stelar7.api.r4j.pojo.lol.spectator.SpectatorGameInfo;
+import no.stelar7.api.r4j.pojo.lol.spectator.SpectatorParticipant;
 
 public class InfoPanelRefresherUtil {
   
@@ -26,12 +25,19 @@ public class InfoPanelRefresherUtil {
   }
 
   public static String getCurrentGameInfoStringForOneAccount(DTO.LeagueAccount account,
-      CurrentGameInfo currentGameInfo, String language) throws RiotApiException {
+      SpectatorGameInfo currentGameInfo, String language, boolean forceRefresh)  {
     Preconditions.checkNotNull(account);
     
-    String gameStatus = LanguageManager.getText(language, 
-        NameConversion.convertGameQueueIdToString(currentGameInfo.getGameQueueConfigId())) 
-        + " " + LanguageManager.getText(language, "withTheAccount") + " **" + account.getSummoner().getName() + "**";
+    String gameStatus;
+    if(currentGameInfo.getGameQueueConfig() != null) {
+      gameStatus = LanguageManager.getText(language, 
+          NameConversion.convertGameQueueIdToString(currentGameInfo.getGameQueueConfig())) 
+          + " " + LanguageManager.getText(language, "withTheAccount") + " **" + account.getSummoner(forceRefresh).getName() + "**";
+    }else {
+      gameStatus = LanguageManager.getText(language, 
+          NameConversion.convertGameTypeToString(currentGameInfo.getGameType())) 
+          + " " + LanguageManager.getText(language, "withTheAccount") + " **" + account.getSummoner(forceRefresh).getName() + "**";
+    }
 
     double minutesOfGames = 0.0;
 
@@ -50,18 +56,23 @@ public class InfoPanelRefresherUtil {
   }
 
   public static String getCurrentGameInfoStringForMultipleAccounts(Map<DTO.LeagueAccount, 
-      CurrentGameInfo> accountsWithCurrentGame, String language) throws RiotApiException {
+      SpectatorGameInfo> accountsWithCurrentGame, String language, boolean forceRefresh) {
     Preconditions.checkNotNull(accountsWithCurrentGame);
 
     StringBuilder stringBuilder = new StringBuilder();
 
-    for(Entry<LeagueAccount, CurrentGameInfo> currentGamePerLeagueAccount : accountsWithCurrentGame.entrySet()) {
+    for(Entry<LeagueAccount, SpectatorGameInfo> currentGamePerLeagueAccount : accountsWithCurrentGame.entrySet()) {
       
       stringBuilder.append("-" + LanguageManager.getText(language, "account") 
-      + " **" + currentGamePerLeagueAccount.getKey().getSummoner().getName() + "** : ");
+      + " **" + currentGamePerLeagueAccount.getKey().getSummoner(forceRefresh).getName() + "** : ");
 
-      stringBuilder.append(LanguageManager.getText(language,
-          NameConversion.convertGameQueueIdToString(currentGamePerLeagueAccount.getValue().getGameQueueConfigId())));
+      if(currentGamePerLeagueAccount.getValue().getGameQueueConfig() != null) {
+        stringBuilder.append(LanguageManager.getText(language,
+            NameConversion.convertGameQueueIdToString(currentGamePerLeagueAccount.getValue().getGameQueueConfig())));
+      }else {
+        stringBuilder.append(LanguageManager.getText(language,
+            NameConversion.convertGameTypeToString(currentGamePerLeagueAccount.getValue().getGameType())));
+      }
 
       double minutesOfGames = 0.0;
 
@@ -114,7 +125,7 @@ public class InfoPanelRefresherUtil {
     ArrayList<DTO.LeagueAccount> listOfAccounts = new ArrayList<>();
 
     for(DTO.LeagueAccount leagueAccount : allLeaguesAccounts) {
-      for(CurrentGameParticipant participant : currentGameInfo.currentgame_currentgame.getParticipants()) {
+      for(SpectatorParticipant participant : currentGameInfo.currentgame_currentgame.getParticipants()) {
         if(participant.getSummonerId().equals(leagueAccount.leagueAccount_summonerId) && !listOfAccounts.contains(leagueAccount)) {
           listOfAccounts.add(leagueAccount);
         }

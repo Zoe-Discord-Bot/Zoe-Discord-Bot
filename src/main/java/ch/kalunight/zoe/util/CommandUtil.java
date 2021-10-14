@@ -14,6 +14,7 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeSlashCommand;
 import ch.kalunight.zoe.model.config.ServerConfiguration;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.repositories.ServerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
 import net.dv8tion.jda.api.Permission;
@@ -30,7 +31,6 @@ import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.rithms.riot.constant.Platform;
 
 public class CommandUtil {
 
@@ -52,8 +52,8 @@ public class CommandUtil {
     OptionData regionOption = new OptionData(OptionType.STRING, ZoeSlashCommand.REGION_OPTION_ID, "The region of the account");
     regionOption.setRequired(required);
     
-    for(Platform platform : Platform.values()) {
-      regionOption.addChoice(platform.getName().toUpperCase(), platform.getName().toUpperCase());
+    for(ZoePlatform platform : ZoePlatform.values()) {
+      regionOption.addChoice(platform.getShowableName(), platform.getShowableName());
     }
 
     return regionOption;
@@ -69,10 +69,10 @@ public class CommandUtil {
   public static void sendTypingInFonctionOfChannelType(CommandEvent event) {
     switch(event.getChannelType()) {
     case PRIVATE:
-      event.getPrivateChannel().sendTyping().complete();
+      event.getPrivateChannel().sendTyping().queue();
       break;
     case TEXT:
-      event.getTextChannel().sendTyping().complete();
+      event.getTextChannel().sendTyping().queue();
       break;
     default:
       logger.warn("event.getChannelType() return a unexpected type : {}", event.getChannelType());
@@ -298,7 +298,7 @@ public class CommandUtil {
   
         PrivateChannel privateChannel = event.getAuthor().openPrivateChannel().complete();
   
-        List<String> helpMessages = CommandEvent.splitMessage(stringBuilder.toString());
+        List<String> helpMessages = MessageUtil.splitMessageToBeSendable(stringBuilder.toString());
   
         for(String helpMessage : helpMessages) {
           privateChannel.sendMessage(helpMessage).queue();

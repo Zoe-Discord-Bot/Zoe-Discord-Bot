@@ -1,19 +1,10 @@
 package ch.kalunight.zoe.service;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 import org.joda.time.DateTime;
-import org.knowm.xchart.BitmapEncoder;
-import org.knowm.xchart.BitmapEncoder.BitmapFormat;
-import org.knowm.xchart.PieChart;
-import org.knowm.xchart.PieChartBuilder;
-import org.knowm.xchart.style.PieStyler;
-import org.knowm.xchart.style.PieStyler.AnnotationType;
-import org.knowm.xchart.style.Styler.ChartTheme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,17 +12,15 @@ import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.ZoeCommand;
 import ch.kalunight.zoe.command.ZoeSlashCommand;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.repositories.LeaderboardRepository;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
-import ch.kalunight.zoe.riotapi.CachedRiotApi;
 import ch.kalunight.zoe.service.infochannel.InfoPanelRefresher;
-import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
-import net.rithms.riot.constant.Platform;
 
 public class RiotApiUsageChannelRefresh implements Runnable {
 
@@ -100,10 +89,10 @@ public class RiotApiUsageChannelRefresh implements Runnable {
         StringBuilder serverHelperStats = new StringBuilder();
         serverHelperStats.append("**Server Helper Threads Stats**\n");
 
-        for(Platform platform : Platform.values()) {
+        for(ZoePlatform platform : ZoePlatform.values()) {
           ThreadPoolExecutor threadsPool = ServerThreadsManager.getInfochannelHelperThread(platform);
 
-          serverHelperStats.append(platform.getName().toUpperCase() + " queue : " + threadsPool.getQueue().size() + "\n");
+          serverHelperStats.append(platform.getShowableName() + " queue : " + threadsPool.getQueue().size() + "\n");
         }
 
         rapiInfoChannel.sendMessage(serverHelperStats.toString()).queue();
@@ -114,11 +103,8 @@ public class RiotApiUsageChannelRefresh implements Runnable {
             + "\nTotal number of Leaderboards : " + LeaderboardRepository.countLeaderboards()).queue();
 
         InfoPanelRefresher.getNbrServerSefreshedLast2Minutes().set(0);
-
-        rapiInfoChannel.sendMessage("**Riot Request Stats**"
-            + "\nTotal of requests with Riot api : " + Zoe.getRiotApi().getTotalRequestCount()
-            + "\nNumber of request for match with RiotAPI : " + Zoe.getRiotApi().getApiMatchRequestCount()
-            + "\nNumber of request for match with DB : " + (Zoe.getRiotApi().getAllMatchRequestCount() - Zoe.getRiotApi().getApiMatchRequestCount())).queue();
+        setInfocardCanceledCount(0);
+        setInfocardCreatedCount(0);
 
         rapiInfoChannel.sendMessage("**Discord Command Stats**"
             + "\nTotal discord command executed : " + ZoeCommand.getCommandExecuted().get() 
@@ -132,84 +118,6 @@ public class RiotApiUsageChannelRefresh implements Runnable {
           lastRapiCountReset = DateTime.now();
           ZoeCommand.clearStats();
           ZoeSlashCommand.clearStats();
-        }
-
-        setInfocardCreatedCount(0);
-        setInfocardCanceledCount(0);
-
-        ArrayList<byte[]> graphs = new ArrayList<>();
-        List<Platform> platformOrder = new ArrayList<>();
-        List<Message> descriptions = new ArrayList<>();
-        for(Platform platform : Platform.values()) {
-          long numberOfRequestRemaining = Zoe.getRiotApi().getApiCallRemainingPerRegion(platform);
-
-          PieChart pieChart = new PieChartBuilder()
-              .title("Request data for " + platform.getName())
-              .theme(ChartTheme.GGPlot2)
-              .build();
-
-          PieStyler styler = pieChart.getStyler();
-          styler.setAntiAlias(true);
-          styler.setAnnotationType(AnnotationType.LabelAndValue);
-          styler.setAnnotationDistance(1.1);
-          styler.setHasAnnotations(true);
-
-          pieChart.addSeries("Calls Used", CachedRiotApi.RIOT_API_HUGE_LIMIT - numberOfRequestRemaining);
-          pieChart.addSeries("Calls avaible", numberOfRequestRemaining);
-
-          try {
-            graphs.add(BitmapEncoder.getBitmapBytes(pieChart, BitmapFormat.PNG));
-            platformOrder.add(platform);
-
-            MessageBuilder description = new MessageBuilder();
-            description.append("Status of Api for " + platform.getName() + ". Max Calls : " 
-                + CachedRiotApi.RIOT_API_HUGE_LIMIT + " Calls Used : " 
-                + (CachedRiotApi.RIOT_API_HUGE_LIMIT - numberOfRequestRemaining));
-
-            descriptions.add(description.build());
-          } catch(IOException e) {
-            rapiInfoChannel.sendMessage("Got an error when generating graph for " + platform.getName()).queue();
-          }
-        }
-
-        for(Platform platform : Platform.values()) {
-          long numberOfRequestRemaining = Zoe.getRiotApi().getApiCallRemainingPerRegionTFT(platform);
-
-          PieChart pieChart = new PieChartBuilder()
-              .title("Request data for " + platform.getName() + " (TFT)")
-              .theme(ChartTheme.GGPlot2)
-              .build();
-
-          PieStyler styler = pieChart.getStyler();
-          styler.setAntiAlias(true);
-          styler.setAnnotationType(AnnotationType.LabelAndValue);
-          styler.setAnnotationDistance(1.1);
-          styler.setHasAnnotations(true);
-
-          pieChart.addSeries("Calls Used", CachedRiotApi.RIOT_API_TFT_HUGE_LIMIT - numberOfRequestRemaining);
-          pieChart.addSeries("Calls avaible", numberOfRequestRemaining);
-
-          try {
-            graphs.add(BitmapEncoder.getBitmapBytes(pieChart, BitmapFormat.PNG));
-            platformOrder.add(platform);
-
-            MessageBuilder description = new MessageBuilder();
-            description.append("Status of Api for " + platform.getName() + " (TFT). Max Calls : " 
-                + CachedRiotApi.RIOT_API_TFT_HUGE_LIMIT + " Calls Used : " 
-                + (CachedRiotApi.RIOT_API_TFT_HUGE_LIMIT - numberOfRequestRemaining));
-
-            descriptions.add(description.build());
-          } catch(IOException e) {
-            rapiInfoChannel.sendMessage("Got an error when generating graph for " + platform.getName()).queue();
-          }
-        }
-
-        for(int i = 0; i < graphs.size(); i++) {
-          rapiInfoChannel.sendMessage(descriptions.get(i)).addFile(graphs.get(i), "graphFor" + platformOrder.get(i).getName() + ".png").queue();
-        }
-
-        if(Zoe.getRiotApi().isApiCallPerPlatformNeedToBeReset()) {
-          Zoe.getRiotApi().resetApiCallPerPlatform();
         }
       }
     }catch(Exception e) {

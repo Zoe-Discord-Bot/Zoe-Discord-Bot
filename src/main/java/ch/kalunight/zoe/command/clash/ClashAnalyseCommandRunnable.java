@@ -5,6 +5,8 @@ import java.util.List;
 import ch.kalunight.zoe.ServerThreadsManager;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.command.create.CreatePlayerCommandRunnable;
+import ch.kalunight.zoe.model.dto.SavedSummoner;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.model.dto.DTO.ClashChannel;
 import ch.kalunight.zoe.model.dto.DTO.Server;
 import ch.kalunight.zoe.repositories.ClashChannelRepository;
@@ -15,9 +17,7 @@ import ch.kalunight.zoe.util.RiotApiUtil;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.interactions.InteractionHook;
-import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.summoner.dto.Summoner;
-import net.rithms.riot.constant.Platform;
+import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
 
 public class ClashAnalyseCommandRunnable {
   
@@ -58,27 +58,25 @@ public class ClashAnalyseCommandRunnable {
         summonerName = listArgs.get(1);
       }else if (listArgs.size() == 1){
         summonerName = listArgs.get(0);
-        regionName = channelToTreat.clashChannel_data.getSelectedPlatform().getName();
+        regionName = channelToTreat.clashChannel_data.getSelectedPlatform().getDbName();
       }else {
         CommandUtil.sendMessageWithClassicOrSlashCommand(String.format(LanguageManager.getText(server.getLanguage(), "clashAnalyzeMalformedFormatInsideClashChannel"), 
-            channelToTreat.clashChannel_data.getSelectedPlatform().getName().toUpperCase()), loadingMessage, hook);
+            channelToTreat.clashChannel_data.getSelectedPlatform().getShowableName()), loadingMessage, hook);
         return;
       }
-      
     }
     
-    
-    Platform platorm = CreatePlayerCommandRunnable.getPlatform(regionName);
-    Summoner summoner;
+    ZoePlatform platorm = CreatePlayerCommandRunnable.getPlatform(regionName);
+    SavedSummoner summoner;
     try {
-      summoner = Zoe.getRiotApi().getSummonerByNameWithRateLimit(platorm, summonerName);
-    }catch(RiotApiException e) {
+      summoner = Zoe.getRiotApi().getSummonerByName(platorm, summonerName);
+    }catch(APIResponseException e) {
       RiotApiUtil.handleRiotApi(loadingMessage, e, server.getLanguage());
       return;
     }
     
     if(summoner != null) {
-      LoadClashTeamAndStartBanAnalyseWorker loadClashTeamWorker = new LoadClashTeamAndStartBanAnalyseWorker(server, summoner.getId(), platorm, channel, channelToTreat);
+      LoadClashTeamAndStartBanAnalyseWorker loadClashTeamWorker = new LoadClashTeamAndStartBanAnalyseWorker(server, summoner.getSummonerId(), platorm, channel, channelToTreat, true);
       CommandUtil.sendMessageWithClassicOrSlashCommand(("*" + LanguageManager.getText(server.getLanguage(), "clashAnalyzeLoadStarted") + "*"), loadingMessage, hook);
       ServerThreadsManager.getClashChannelExecutor().execute(loadClashTeamWorker);
     }

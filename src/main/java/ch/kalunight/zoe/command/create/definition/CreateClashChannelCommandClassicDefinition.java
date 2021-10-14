@@ -40,7 +40,7 @@ public class CreateClashChannelCommandClassicDefinition extends ZoeCommand{
     
     Message message = event.getTextChannel().sendMessage(LanguageManager.getText(server.getLanguage(), "loadingData")).complete();
     
-    CreateClashChannelRunnable.executeCommand(server, event.getArgs(), waiter, event.getMember(), message, event.getTextChannel(), null);
+    CreateClashChannelRunnable.executeCommand(server, event.getArgs(), waiter, event.getMember(), message, event.getTextChannel(), null, true);
   }
 
   @Override

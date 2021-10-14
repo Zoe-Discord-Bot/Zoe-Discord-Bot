@@ -23,17 +23,16 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
-import net.rithms.riot.api.RiotApiException;
 
 public class KDALeaderboardService extends LeaderboardBaseService {
 
-  public KDALeaderboardService(long guildId, long channelId, long leaderboardId, boolean forceRefreshCache) {
-    super(guildId, channelId, leaderboardId, forceRefreshCache);
+  public KDALeaderboardService(long guildId, long channelId, long leaderboardId, boolean forceRefresh) {
+    super(guildId, channelId, leaderboardId, forceRefresh);
   }
 
   @Override
-  protected void runLeaderboardRefresh(Server server, Guild guild, TextChannel channel, Leaderboard leaderboard, Message message, List<Player> players, boolean forceRefreshCache)
-      throws SQLException, RiotApiException {
+  protected void runLeaderboardRefresh(Server server, Guild guild, TextChannel channel, Leaderboard leaderboard, Message message, List<Player> players)
+      throws SQLException {
 
     Objective objective = Objective.getObjectiveWithId(leaderboard.lead_type);
     SpecificChamp specificChamp = null;
@@ -41,7 +40,7 @@ public class KDALeaderboardService extends LeaderboardBaseService {
       specificChamp = gson.fromJson(leaderboard.lead_data, SpecificChamp.class);
     }
 
-    List<PlayerKDA> playersKDA = orderAndGetPlayers(guild, specificChamp, players, forceRefreshCache);
+    List<PlayerKDA> playersKDA = orderAndGetPlayers(guild, specificChamp, players);
 
     List<String> playersName = new ArrayList<>();
     List<String> dataList = new ArrayList<>();
@@ -82,7 +81,7 @@ public class KDALeaderboardService extends LeaderboardBaseService {
     message.editMessage(leaderboardTitle).setEmbeds(builder.build()).queue();
   }
 
-  private List<PlayerKDA> orderAndGetPlayers(Guild guild, SpecificChamp champ, List<Player> players, boolean forceRefreshCache) throws SQLException {
+  private List<PlayerKDA> orderAndGetPlayers(Guild guild, SpecificChamp champ, List<Player> players) throws SQLException {
     List<PlayerKDA> playersKDA = new ArrayList<>();
 
     for(DTO.Player player : players) {
@@ -94,9 +93,12 @@ public class KDALeaderboardService extends LeaderboardBaseService {
         KDAReceiver kdaReceiver;
 
         if(champ == null) {
-          kdaReceiver = RiotRequest.getKDALastMonth(leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server, forceRefreshCache);
+          kdaReceiver = RiotRequest.getKDALastMonth(leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server, null, forceRefresh);
         }else {
-          kdaReceiver = RiotRequest.getKDALastMonthOneChampionOnly(leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server, champ.getChampion().getKey(), forceRefreshCache);
+          List<Integer> championId = new ArrayList<>();
+          championId.add(champ.getChampion().getKey());
+          
+          kdaReceiver = RiotRequest.getKDALastMonth(leagueAccount.leagueAccount_summonerId, leagueAccount.leagueAccount_server, championId, forceRefresh);
         }
 
         if(kdaReceiver == null) {
@@ -108,7 +110,7 @@ public class KDALeaderboardService extends LeaderboardBaseService {
         }
       }
 
-      if(bestAccountKDA != null) {
+      if(bestAccountKDA != null && bestAccountKDA.numberOfMatchs.get() != 0) {
         playersKDA.add(new PlayerKDA(player, bestAccountKDA));
       }
     }

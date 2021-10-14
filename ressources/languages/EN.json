@@ -686,5 +686,7 @@
     "supportMessageZoeNeededTLDR": "Zoe needs %d€ per month to survive! Current Status: %d€/%d€\nTo help: <https://bit.ly/support-zoe>",
     "showPlayersCommandNeedToMentionAPlayer": "This player is not registered. Please mention a registered player.",
     "showPlayersCommandMentionPlayerShow": "List of registered accounts for this player:",
-    "supportMessageZoeSupPriceReduced": "After your feedback, the subscription prices have been lowered! More info: <https://bit.ly/support-zoe>"
+    "supportMessageZoeSupPriceReduced": "After your feedback, the subscription prices have been lowered! More info: <https://bit.ly/support-zoe>",
+	"winrateTemporaryDisable": "Stats tmp. disable",
+	"leagueAccountDataUnavailableError503": "Riot's servers could not respond correctly in time (Error 503)"
 }

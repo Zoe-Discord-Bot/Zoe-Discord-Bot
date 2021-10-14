@@ -4,12 +4,14 @@ import java.awt.Color;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.Paginator;
+
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.DTO.Server;
-import ch.kalunight.zoe.model.dto.DTO.SummonerCache;
+import ch.kalunight.zoe.model.dto.SavedSummoner;
 import ch.kalunight.zoe.repositories.LeagueAccountRepository;
 import ch.kalunight.zoe.repositories.PlayerRepository;
 import ch.kalunight.zoe.translation.LanguageManager;
@@ -22,7 +24,7 @@ import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.dv8tion.jda.api.interactions.InteractionHook;
-import net.rithms.riot.api.RiotApiException;
+import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
 
 public class ShowPlayerCommandRunnable {
 
@@ -32,7 +34,8 @@ public class ShowPlayerCommandRunnable {
     // hide default public command
   }
 
-  public static void executeCommand(Server server, EventWaiter waiter, Member member, TextChannel channel, Message messageToEdit, InteractionHook hook, Member mentionnedUser) throws SQLException {
+  public static void executeCommand(Server server, EventWaiter waiter, Member member, TextChannel channel,
+      Message messageToEdit, InteractionHook hook, Member mentionnedUser, boolean forceRefresh) throws SQLException {
 
     Paginator.Builder pbuilder = new Paginator.Builder()
         .setColumns(1)
@@ -63,23 +66,22 @@ public class ShowPlayerCommandRunnable {
       try {
         int accountsNmb = 0;
         for(DTO.Player player : players) {
-          accountsNmb = addPlayerToEmbed(server, member, messageToEdit, hook, pbuilder, accountsNmb, player);
+          accountsNmb = addPlayerToEmbed(server, member, messageToEdit, hook, pbuilder, accountsNmb, player, forceRefresh);
         }
 
         CommandUtil.sendMessageWithClassicOrSlashCommand(String.format(LanguageManager.getText(server.getLanguage(), "showPlayerEmbedTitle"), players.size(), accountsNmb), messageToEdit, hook);
-      }catch (RiotApiException e) {
+      }catch (APIResponseException e) {
         CommandUtil.sendMessageWithClassicOrSlashCommand(RiotApiUtil.getTextHandlerRiotApiError(e, server.getLanguage()), messageToEdit, hook);
         return;
       }
     }else {
-      
       boolean playerDetected = false;
       for(DTO.Player player : players) {
         if(player.player_discordId == mentionnedUser.getIdLong()) {
           try {
-            addPlayerToEmbed(server, member, messageToEdit, hook, pbuilder, 0, player);
+            addPlayerToEmbed(server, member, messageToEdit, hook, pbuilder, 0, player, forceRefresh);
             playerDetected = true;
-          } catch (RiotApiException e) {
+          } catch (APIResponseException e) {
             CommandUtil.sendMessageWithClassicOrSlashCommand(RiotApiUtil.getTextHandlerRiotApiError(e, server.getLanguage()), messageToEdit, hook);
             return;
           }
@@ -102,7 +104,7 @@ public class ShowPlayerCommandRunnable {
   }
 
   private static int addPlayerToEmbed(Server server, Member member, Message messageToEdit, InteractionHook hook,
-      Paginator.Builder pbuilder, int accountsNmb, DTO.Player player) throws SQLException, RiotApiException {
+      Paginator.Builder pbuilder, int accountsNmb, DTO.Player player, boolean forceRefresh) throws SQLException {
     StringBuilder playerInfo = new StringBuilder();
     User user = member.getGuild().retrieveMemberById(player.player_discordId).complete().getUser();
     playerInfo.append(String.format(LanguageManager.getText(server.getLanguage(), "showPlayerName"),
@@ -115,10 +117,10 @@ public class ShowPlayerCommandRunnable {
     }
     accountsNmb += leagueAccounts.size();
     for(DTO.LeagueAccount leagueAccount : leagueAccounts) {
-      SummonerCache summoner = Zoe.getRiotApi().getSummoner(leagueAccount.leagueAccount_server,
-          leagueAccount.leagueAccount_summonerId, false);
+      SavedSummoner summoner = Zoe.getRiotApi().getSummonerBySummonerId(leagueAccount.leagueAccount_server, leagueAccount.leagueAccount_summonerId, forceRefresh);
+      
       playerInfo.append(String.format(LanguageManager.getText(server.getLanguage(), "showPlayerAccount"),
-          summoner.getSumCacheData().getName(), leagueAccount.leagueAccount_server.getName().toUpperCase(),
+          summoner.getName(), leagueAccount.leagueAccount_server.getShowableName(),
           RiotRequest.getSoloqRank(leagueAccount.leagueAccount_summonerId,
               leagueAccount.leagueAccount_server).toString(server.getLanguage())) + "\n");
     }

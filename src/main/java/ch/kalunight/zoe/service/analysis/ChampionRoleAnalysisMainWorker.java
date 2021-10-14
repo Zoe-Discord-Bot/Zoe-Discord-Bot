@@ -11,14 +11,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.kalunight.zoe.ServerThreadsManager;
-import ch.kalunight.zoe.model.GameQueueConfigId;
+import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.model.dangerosityreport.DangerosityReportKDA;
 import ch.kalunight.zoe.model.dto.DTO;
 import ch.kalunight.zoe.model.dto.SavedMatch;
 import ch.kalunight.zoe.model.static_data.Champion;
 import ch.kalunight.zoe.repositories.ChampionRoleAnalysisRepository;
-import ch.kalunight.zoe.repositories.SavedMatchCacheRepository;
 import ch.kalunight.zoe.util.Ressources;
+import no.stelar7.api.r4j.basic.constants.types.lol.GameQueueType;
 
 public class ChampionRoleAnalysisMainWorker implements Runnable {
 
@@ -27,8 +27,6 @@ public class ChampionRoleAnalysisMainWorker implements Runnable {
   private static final DecimalFormat STATS_FORMAT = new DecimalFormat("###.##");
 
   private static final int MINIMUM_NUMBER_OF_MATCHS = 100;
-
-  private static final int NORMAL_DRAFT_QUEUE_ID = 400;
 
   private static final double MINIMUM_POURCENTAGE_ROLE_COMMON = 5.0;
 
@@ -60,13 +58,13 @@ public class ChampionRoleAnalysisMainWorker implements Runnable {
     try {
       champion = Ressources.getChampionDataById(championId);
 
-      String version = SavedMatchCacheRepository.getCurrentLoLVersion();
+      String version = Zoe.getRiotApi().getLastPatchVersion();
 
       if(version == null) {
         return;
       }
-
-      List<SavedMatch> matchsToAnalyse = SavedMatchCacheRepository.getMatchsByChampion(championId, GameQueueConfigId.SOLOQ.getId(), NORMAL_DRAFT_QUEUE_ID, version);
+      
+      List<SavedMatch> matchsToAnalyse = Zoe.getRiotApi().getMatchsByChampionId(championId, GameQueueType.TEAM_BUILDER_RANKED_SOLO);
 
       int nbrMatchsToAnaylse = matchsToAnalyse.size();
 

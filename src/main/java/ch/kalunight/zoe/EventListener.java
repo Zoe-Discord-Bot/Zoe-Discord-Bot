@@ -46,6 +46,8 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 public class EventListener extends ListenerAdapter {
 
+  private static final int NUMBER_PLAYERS_REGISTERED_NOT_SMART_REFRESH = 1000;
+
   //Useless to translate
   private static final String WELCOME_MESSAGE = "Hello ! Thank you for adding me to your server ! "
       + "I'm here to help you to configurate your server with some "
@@ -217,10 +219,16 @@ public class EventListener extends ListenerAdapter {
             if(event == null || event.getNewActivity() == null) {
               return;
             }
-
+            
             Activity activity = event.getNewActivity();
 
             if(activity.isRich() && EventListenerUtil.checkIfIsGame(activity.asRichPresence()) && event.getGuild() != null) {
+              
+              if(event.getGuild().getMemberCount() > NUMBER_PLAYERS_REGISTERED_NOT_SMART_REFRESH) {
+                logger.warn("The server is huge ! We don't refresh the whole server for it. This should be fixed when smart refresh will only refresh one player instead of the whole server. "
+                    + "Server ID: {}", event.getGuild().getId());
+                return;
+              }
               DTO.Server server = ServerRepository.getServerWithGuildId(event.getGuild().getIdLong());
 
               if(server == null) {

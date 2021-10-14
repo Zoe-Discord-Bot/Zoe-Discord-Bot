@@ -10,13 +10,13 @@ import net.dv8tion.jda.api.entities.TextChannel;
 
 public class TeamSelectorAnalysisDataManager extends TeamSelectorDataManager {
 
-  public TeamSelectorAnalysisDataManager(Server server, TextChannel channel) {
-    super(server, channel);
+  public TeamSelectorAnalysisDataManager(Server server, TextChannel channel, boolean forceRefresh) {
+    super(server, channel, forceRefresh);
   }
 
   @Override
   public void treatData() {
-    List<TeamPlayerAnalysisDataCollector> playersData = TeamUtil.getTeamPlayersDataWithAnalysisDoneWithAccountData(accountsToTreat);
+    List<TeamPlayerAnalysisDataCollector> playersData = TeamUtil.getTeamPlayersDataWithAnalysisDoneWithAccountData(accountsToTreat, forceRefresh);
     
     TeamBanAnalysisWorker banAnalysisWorker = new TeamBanAnalysisWorker(server, null, null, channel, playersData);
     banAnalysisWorker.run();

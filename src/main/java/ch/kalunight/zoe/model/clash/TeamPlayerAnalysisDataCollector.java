@@ -2,9 +2,7 @@ package ch.kalunight.zoe.model.clash;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -14,31 +12,28 @@ import org.slf4j.LoggerFactory;
 import ch.kalunight.zoe.Zoe;
 import ch.kalunight.zoe.exception.NoValueRankException;
 import ch.kalunight.zoe.model.GameQueueConfigId;
-import ch.kalunight.zoe.model.MatchReceiver;
 import ch.kalunight.zoe.model.TeamPositionRated;
 import ch.kalunight.zoe.model.dangerosityreport.DangerosityReport;
 import ch.kalunight.zoe.model.dangerosityreport.PickData;
-import ch.kalunight.zoe.model.dto.DTO;
-import ch.kalunight.zoe.model.dto.SavedChampionsMastery;
 import ch.kalunight.zoe.model.dto.SavedMatch;
 import ch.kalunight.zoe.model.dto.SavedMatchPlayer;
 import ch.kalunight.zoe.model.dto.SavedSimpleMastery;
-import ch.kalunight.zoe.model.dto.DTO.SummonerCache;
+import ch.kalunight.zoe.model.dto.SavedSummoner;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
 import ch.kalunight.zoe.model.player_data.FullTier;
 import ch.kalunight.zoe.model.player_data.Tier;
 import ch.kalunight.zoe.service.analysis.ChampionRole;
 import ch.kalunight.zoe.translation.LanguageManager;
 import ch.kalunight.zoe.util.TeamUtil;
-import ch.kalunight.zoe.util.LoLQueueIdUtil;
 import ch.kalunight.zoe.util.request.RiotRequest;
-import net.rithms.riot.api.RiotApiException;
-import net.rithms.riot.api.endpoints.clash.constant.TeamPosition;
-import net.rithms.riot.api.endpoints.league.dto.LeagueEntry;
-import net.rithms.riot.constant.Platform;
+import no.stelar7.api.r4j.basic.constants.types.lol.GameQueueType;
+import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
+import no.stelar7.api.r4j.pojo.lol.clash.ClashPosition;
+import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
 
 public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<TeamPlayerAnalysisDataCollector>{
 
-  private static final Set<Integer> selectedQueuesId = Collections.synchronizedSet(new HashSet<>());
+  private static final List<GameQueueType> selectedQueuesId = Collections.synchronizedList(new ArrayList<>());
 
   private static final Logger logger = LoggerFactory.getLogger(TeamPlayerAnalysisDataCollector.class);
 
@@ -46,9 +41,9 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
 
   private String summonerId;
 
-  private DTO.SummonerCache summoner;
+  private SavedSummoner summoner;
 
-  private Platform platform;
+  private ZoePlatform platform;
 
   private ChampionRole clashSelectedPosition;
 
@@ -58,7 +53,7 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
 
   private List<DataPerChampion> dataPerChampions;
 
-  private Set<LeagueEntry> eloOfThePlayer;
+  private List<LeagueEntry> eloOfThePlayer;
 
   private List<DangerosityReport> dangerosityReports;
 
@@ -72,15 +67,17 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
 
   private AtomicInteger nbrMatch = new AtomicInteger();
 
+  private boolean forceRefresh;
+  
   static {
-    selectedQueuesId.add(LoLQueueIdUtil.NORMAL_DRAFT_QUEUE_ID);
-    selectedQueuesId.add(LoLQueueIdUtil.RANKED_SOLO_QUEUE_ID);
-    selectedQueuesId.add(LoLQueueIdUtil.NORMAL_BLIND_QUEUE_ID);
-    selectedQueuesId.add(LoLQueueIdUtil.RANKED_FLEX_QUEUE_ID);
-    selectedQueuesId.add(LoLQueueIdUtil.CLASH_GAME_QUEUE_ID);
+    selectedQueuesId.add(GameQueueType.TEAM_BUILDER_DRAFT_UNRANKED_5X5);
+    selectedQueuesId.add(GameQueueType.NORMAL_5V5_BLIND_PICK);
+    selectedQueuesId.add(GameQueueType.TEAM_BUILDER_RANKED_SOLO);
+    selectedQueuesId.add(GameQueueType.TEAM_BUILDER_DRAFT_RANKED_5X5);
+    selectedQueuesId.add(GameQueueType.CLASH);
   }
 
-  public TeamPlayerAnalysisDataCollector(String summonerId, Platform platform, TeamPosition position) {
+  public TeamPlayerAnalysisDataCollector(String summonerId, ZoePlatform platform, ClashPosition position, boolean forceRefresh) {
     this.summonerId = summonerId;
     this.platform = platform;
     this.dataPerChampions = new ArrayList<>();
@@ -92,8 +89,8 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
     summonerIdInWork.add(this);
   }
 
-  public TeamPlayerAnalysisDataCollector(String summonerId, SummonerCache summoner,
-      Platform platform, TeamPosition position) {
+  public TeamPlayerAnalysisDataCollector(String summonerId, SavedSummoner summoner,
+      ZoePlatform platform, ClashPosition position, boolean forceRefresh) {
     this.summonerId = summonerId;
     this.summoner = summoner;
     this.platform = platform;
@@ -110,7 +107,7 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
   public void run() {
     try {
       loadAllData();
-    } catch (RiotApiException e) {
+    } catch (APIResponseException e) {
       logger.error("Riot api exception in the collection of clash member data", e);
     } catch (Exception e) {
       logger.error("Unexpected exception in the collection of clash member data", e);
@@ -119,30 +116,43 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
     }
   }
 
-  public void loadAllData() throws RiotApiException {
+  public void loadAllData() throws APIResponseException {
 
-    summoner = Zoe.getRiotApi().getSummonerWithRateLimit(platform, summonerId, false);
+    summoner = Zoe.getRiotApi().getSummonerBySummonerId(platform, summonerId, forceRefresh);
 
-    MatchReceiver matchReceiver = RiotRequest.getAllMatchsByQueue(summonerId, platform, false, selectedQueuesId);
+    List<SavedMatch> matchs = RiotRequest.getMatchHistoryOfLastMonth(platform, summoner, selectedQueuesId, new ArrayList<>());
 
-    for(SavedMatch match : matchReceiver.matchs) {
-      SavedMatchPlayer playerInMatch = match.getSavedMatchPlayerBySummonerId(summoner.sumCache_summonerId);
+    for(SavedMatch match : matchs) {
+      SavedMatchPlayer playerInMatch = null;
+      
+      for(SavedMatchPlayer participantToCheck : match.getPlayers()) {
+        if(participantToCheck.getSummonerId().equals(summoner.getSummonerId())) {
+          playerInMatch = participantToCheck;
+          break;
+        }
+      }
+      
+      if(playerInMatch == null) {
+        logger.error("Summoner not detected inside a game where he should be! LeagueShard {} GameId {} SummonerName {}"
+            + " | Skipping...", platform.getShowableName(), match.getGameId(), summoner.getSummonerId());
+        continue;
+      }
 
       collectRoleData(playerInMatch);
 
       collectWinrateData(playerInMatch, match);
     }
 
-    SavedChampionsMastery masteryPerChampions = Zoe.getRiotApi().getChampionMasteriesBySummonerWithRateLimit(platform, summonerId, false);
-
-    for(SavedSimpleMastery mastery : masteryPerChampions.getChampionMasteries()) {
+    List<SavedSimpleMastery> masteryPerChampions = Zoe.getRiotApi().getChampionMasteryBySummonerId(platform, summonerId, forceRefresh);
+    
+    for(SavedSimpleMastery mastery : masteryPerChampions) {
       DataPerChampion dataOfChampion = getDataByChampion(mastery.getChampionId());
       if(dataOfChampion != null) {
         dataOfChampion.setMastery(mastery);
       }
     }
 
-    eloOfThePlayer = Zoe.getRiotApi().getLeagueEntriesBySummonerIdWithRateLimit(platform, summonerId);
+    eloOfThePlayer = Zoe.getRiotApi().getLeagueEntryBySummonerId(platform, summoner.getSummonerId());
 
     treatPosition();
   }
@@ -186,7 +196,7 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
 
   private void collectRoleData(SavedMatchPlayer playerInMatch) {
     ChampionRole role = ChampionRole.getChampionRoleWithLaneAndRole(playerInMatch.getLane(), playerInMatch.getRole());
-
+    
     if(role != null) {
       switch(role) {
       case ADC:
@@ -267,7 +277,7 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
     return summonerId;
   }
 
-  public Platform getPlatform() {
+  public ZoePlatform getPlatform() {
     return platform;
   }
 
@@ -281,7 +291,7 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
         return determinedPosition;
       }
     }
-    logger.debug("No game detected with the role {} for the player {}", role, summoner.getSumCacheData().getName());
+    logger.debug("No game detected with the role {} for the player {}", role, summoner.getName());
     return new TeamPositionRated(role, 0);
   }
 
@@ -375,14 +385,14 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
       return null;
     }
     
-    if(heighestEntry.getQueueType().equals(GameQueueConfigId.SOLOQ.getQueueType())) {
+    if(GameQueueConfigId.getGameQueueIdWithQueueType(heighestEntry.getQueueType()).equals(GameQueueConfigId.SOLOQ)) {
       return LanguageManager.getText(lang, GameQueueConfigId.SOLOQ.getNameId());
     }else {
       return LanguageManager.getText(lang, GameQueueConfigId.FLEX.getNameId());
     }
   }
 
-  public Set<LeagueEntry> getEloOfThePlayer() {
+  public List<LeagueEntry> getEloOfThePlayer() {
     return eloOfThePlayer;
   }
 
@@ -398,7 +408,7 @@ public class TeamPlayerAnalysisDataCollector implements Runnable, Comparable<Tea
     this.finalDeterminedPosition = finalDeterminedPosition;
   }
 
-  public SummonerCache getSummoner() {
+  public SavedSummoner getSummoner() {
     return summoner;
   }
 

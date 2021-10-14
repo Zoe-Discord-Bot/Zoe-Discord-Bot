@@ -2,6 +2,9 @@ package ch.kalunight.zoe.service.analysis;
 
 import javax.annotation.Nullable;
 
+import no.stelar7.api.r4j.basic.constants.types.lol.LaneType;
+import no.stelar7.api.r4j.basic.constants.types.lol.RoleType;
+
 public enum ChampionRole {
   TOP("TOP", "SOLO", 1),
   JUNGLE("JUNGLE", "NONE", 2),
@@ -20,25 +23,25 @@ public enum ChampionRole {
   }
 
   @Nullable
-  public static ChampionRole getChampionRoleWithLaneAndRole(String lane, String role) {
-    if(lane.equals(TOP.lane) && role.equals(TOP.role)){
+  public static ChampionRole getChampionRoleWithLaneAndRole(LaneType lane, RoleType role) {
+    if(lane.equals(LaneType.TOP)){
       return TOP;
     }
     
-    if(lane.equals(MID.lane) && role.equals(MID.role)) {
+    if(lane.equals(LaneType.MID)) {
       return MID;
     }
     
-    if(lane.equals(JUNGLE.lane) || role.equals(JUNGLE.role)) {
+    if(lane.equals(LaneType.JUNGLE)) {
       return JUNGLE;
     }
     
-    if(lane.equals(ADC.lane)) {
-      if(role.equals(ADC.role)) {
+    if(lane.equals(LaneType.BOT)) {
+      if(role.equals(RoleType.DUO_CARRY) || role.equals(RoleType.CARRY)) {
         return ADC;
       }
       
-      if(role.equals(SUPPORT.role)) {
+      if(role.equals(RoleType.DUO_SUPPORT) || role.equals(RoleType.SUPPORT)) {
         return SUPPORT;
       }
     }

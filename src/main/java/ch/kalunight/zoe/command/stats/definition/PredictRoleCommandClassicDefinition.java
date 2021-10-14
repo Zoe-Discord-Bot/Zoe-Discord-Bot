@@ -32,7 +32,7 @@ public class PredictRoleCommandClassicDefinition extends ZoeCommand {
   protected void executeCommand(CommandEvent event) throws SQLException {
     Server server = getServer(event.getGuild().getIdLong());
     
-    PredictRoleCommandRunnable.executeCommand(server, waiter, event.getTextChannel(), event.getMember());
+    PredictRoleCommandRunnable.executeCommand(server, waiter, event.getTextChannel(), event.getMember(), false);
   }
 
   @Override

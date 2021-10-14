@@ -17,9 +17,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import ch.kalunight.zoe.model.dto.DTO;
+import ch.kalunight.zoe.model.dto.ZoePlatform;
+import ch.kalunight.zoe.model.dto.ZoeRegion;
 import ch.kalunight.zoe.repositories.ServerStatusRepository;
 import net.dv8tion.jda.api.entities.TextChannel;
-import net.rithms.riot.constant.Platform;
 
 public class ServerThreadsManager {
 
@@ -47,17 +48,17 @@ public class ServerThreadsManager {
   private static final ThreadPoolExecutor SERVER_EXECUTOR =
       new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
 
-  private static final Map<Platform, ThreadPoolExecutor> INFOCHANNEL_HELPER_THREAD =
-      Collections.synchronizedMap(new EnumMap<Platform, ThreadPoolExecutor>(Platform.class));
+  private static final Map<ZoePlatform, ThreadPoolExecutor> INFOCHANNEL_HELPER_THREAD =
+      Collections.synchronizedMap(new EnumMap<ZoePlatform, ThreadPoolExecutor>(ZoePlatform.class));
   
   private static final ThreadPoolExecutor RANKED_MESSAGE_GENERATOR =
       new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
 
-  private static final Map<Platform, ThreadPoolExecutor> PLAYERS_DATA_EXECUTORS =
-      Collections.synchronizedMap(new EnumMap<Platform, ThreadPoolExecutor>(Platform.class));
+  private static final Map<ZoePlatform, ThreadPoolExecutor> PLAYERS_DATA_EXECUTORS =
+      Collections.synchronizedMap(new EnumMap<ZoePlatform, ThreadPoolExecutor>(ZoePlatform.class));
   
-  private static final Map<Platform, ThreadPoolExecutor> MATCH_THREAD_EXECUTORS =
-      Collections.synchronizedMap(new EnumMap<Platform, ThreadPoolExecutor>(Platform.class));
+  private static final Map<ZoeRegion, ThreadPoolExecutor> MATCH_THREAD_EXECUTORS =
+      Collections.synchronizedMap(new EnumMap<ZoeRegion, ThreadPoolExecutor>(ZoeRegion.class));
   
   private static final ThreadPoolExecutor LEADERBOARD_EXECUTOR =
       new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
@@ -95,21 +96,23 @@ public class ServerThreadsManager {
     MONITORING_DATA_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Data-Monitoring-Thread %d").build());
     EVENTS_EXECUTOR.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("Zoe Event-Executor-Thread %d").build());
     
-    for(Platform platform : Platform.values()) {
+    for(ZoePlatform platform : ZoePlatform.values()) {
       ThreadPoolExecutor executor = new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
-      String nameOfThread = String.format("Zoe Infochannel-Helper-%s-Worker", platform.getName().toUpperCase());
+      String nameOfThread = String.format("Zoe Infochannel-Helper-%s-Worker", platform.getShowableName());
       executor.setThreadFactory(new ThreadFactoryBuilder().setNameFormat(nameOfThread + " %d").build());
       INFOCHANNEL_HELPER_THREAD.put(platform, executor);
       
       executor = new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
-      nameOfThread = String.format("Zoe Match-%s-Worker", platform.getName().toUpperCase());
-      executor.setThreadFactory(new ThreadFactoryBuilder().setNameFormat(nameOfThread + " %d").build());
-      MATCH_THREAD_EXECUTORS.put(platform, executor);
-      
-      executor = new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
-      nameOfThread = String.format("Zoe Player-Data-%s-Worker", platform.getName().toUpperCase());
+      nameOfThread = String.format("Zoe Player-Data-%s-Worker", platform.getShowableName());
       executor.setThreadFactory(new ThreadFactoryBuilder().setNameFormat(nameOfThread + " %d").build());
       PLAYERS_DATA_EXECUTORS.put(platform, executor);
+    }
+    
+    for(ZoeRegion region : ZoeRegion.values()) {
+      ThreadPoolExecutor executor = new ThreadPoolExecutor(NBR_PROC, NBR_PROC, 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
+      String nameOfThread = String.format("Zoe Match-%s-Worker", region.getShowableName());
+      executor.setThreadFactory(new ThreadFactoryBuilder().setNameFormat(nameOfThread + " %d").build());
+      MATCH_THREAD_EXECUTORS.put(region, executor);
     }
   }
 
@@ -140,18 +143,18 @@ public class ServerThreadsManager {
     LEADERBOARD_EXECUTOR.getQueue().clear();
     COMMANDS_EXECUTOR.getQueue().clear();
     
-    for(Platform platform : Platform.values()) {
+    for(ZoePlatform platform : ZoePlatform.values()) {
       ThreadPoolExecutor playerWorker = INFOCHANNEL_HELPER_THREAD.get(platform);
       playerWorker.getQueue().clear();
     }
     
-    for(Platform platform : Platform.values()) {
-      ThreadPoolExecutor playerWorker = MATCH_THREAD_EXECUTORS.get(platform);
+    for(ZoePlatform platform : ZoePlatform.values()) {
+      ThreadPoolExecutor playerWorker = PLAYERS_DATA_EXECUTORS.get(platform);
       playerWorker.getQueue().clear();
     }
     
-    for(Platform platform : Platform.values()) {
-      ThreadPoolExecutor matchWorker = MATCH_THREAD_EXECUTORS.get(platform);
+    for(ZoeRegion region : ZoeRegion.values()) {
+      ThreadPoolExecutor matchWorker = MATCH_THREAD_EXECUTORS.get(region);
       matchWorker.getQueue().clear();
     }
     logger.info("All queue cleared !");
@@ -223,10 +226,10 @@ public class ServerThreadsManager {
     logger.info("Start to shutdown Infochannel Helper Threads, this can take 1 minutes max...");
     channel.sendMessage("Start to shutdown Infochannel Helper Threads, this can take 1 minutes max...").complete();
     
-    for(Platform platform : Platform.values()) {
+    for(ZoePlatform platform : ZoePlatform.values()) {
       ThreadPoolExecutor matchWorker = INFOCHANNEL_HELPER_THREAD.get(platform);
       matchWorker.shutdown();
-      logger.info("Start to shutdown Infochannel Helper {}, this can take 1 minutes max...", platform.getName());
+      logger.info("Start to shutdown Infochannel Helper {}, this can take 1 minutes max...", platform.getShowableName());
 
       matchWorker.awaitTermination(1, TimeUnit.MINUTES);
       if(!matchWorker.isTerminated()) {
@@ -249,32 +252,32 @@ public class ServerThreadsManager {
 
     logger.info("Start to shutdown Players Data Worker...");
     channel.sendMessage("Start to shutdown Players Data Worker ...").complete();
-    for(Platform platform : Platform.values()) {
+    for(ZoePlatform platform : ZoePlatform.values()) {
       ThreadPoolExecutor playerWorker = PLAYERS_DATA_EXECUTORS.get(platform);
       playerWorker.shutdown();
-      logger.info("Start to shutdown Players Worker {}, this can take 1 minutes max...", platform.getName());
+      logger.info("Start to shutdown Players Worker {}, this can take 1 minutes max...", platform.getShowableName());
       
       playerWorker.awaitTermination(1, TimeUnit.MINUTES);
       if(!playerWorker.isTerminated()) {
         playerWorker.shutdownNow();
       }
-      logger.info("Shutdown of Player Workers {} has been completed !", platform.getName());
+      logger.info("Shutdown of Player Workers {} has been completed !", platform.getShowableName());
     }
 
     logger.info("Shutdown of Players Data Worker has been completed !");
     channel.sendMessage("Shutdown of Players Data Worker has been completed !").complete();
 
     channel.sendMessage("Start to shutdown Matchs Worker...").complete();
-    for(Platform platform : Platform.values()) {
+    for(ZoeRegion platform : ZoeRegion.values()) {
       ThreadPoolExecutor matchWorker = MATCH_THREAD_EXECUTORS.get(platform);
       matchWorker.shutdown();
-      logger.info("Start to shutdown Match Worker {}, this can take 1 minutes max...", platform.getName());
+      logger.info("Start to shutdown Match Worker {}, this can take 1 minutes max...", platform.getShowableName());
 
       matchWorker.awaitTermination(1, TimeUnit.MINUTES);
       if(!matchWorker.isTerminated()) {
         matchWorker.shutdownNow();
       }
-      logger.info("Shutdown of Match Worker {} has been completed !", platform.getName());
+      logger.info("Shutdown of Match Worker {} has been completed !", platform.getShowableName());
     }
 
     channel.sendMessage("Shutdown of Matchs Worker has been completed !").complete();
@@ -331,7 +334,7 @@ public class ServerThreadsManager {
   
   public static int getPlayersDataQueue() {
     int queueTotal = 0;
-    for(Platform platform : Platform.values()) {
+    for(ZoeRegion platform : ZoeRegion.values()) {
       queueTotal += MATCH_THREAD_EXECUTORS.get(platform).getQueue().size();
     }
     
@@ -358,11 +361,11 @@ public class ServerThreadsManager {
     return SERVER_EXECUTOR;
   }
   
-  public static ThreadPoolExecutor getInfochannelHelperThread(Platform platform) {
+  public static ThreadPoolExecutor getInfochannelHelperThread(ZoePlatform platform) {
     return INFOCHANNEL_HELPER_THREAD.get(platform);
   }
 
-  public static ThreadPoolExecutor getPlayersDataWorker(Platform platform) {
+  public static ThreadPoolExecutor getPlayersDataWorker(ZoePlatform platform) {
     return PLAYERS_DATA_EXECUTORS.get(platform);
   }
 
@@ -370,8 +373,8 @@ public class ServerThreadsManager {
     return RESPONSE_WAITER;
   }
 
-  public static ThreadPoolExecutor getMatchsWorker(Platform platform) {
-    return MATCH_THREAD_EXECUTORS.get(platform);
+  public static ThreadPoolExecutor getMatchsWorker(ZoePlatform platform) {
+    return MATCH_THREAD_EXECUTORS.get(ZoeRegion.getZoeRegionByPlatform(platform));
   }
 
   public static Timer getServerCheckerThreadTimer() {

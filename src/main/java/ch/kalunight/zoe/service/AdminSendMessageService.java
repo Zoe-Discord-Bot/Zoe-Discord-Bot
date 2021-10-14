@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import ch.kalunight.zoe.Zoe;
+import ch.kalunight.zoe.util.MessageUtil;
 import ch.kalunight.zoe.util.Ressources;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
@@ -30,7 +31,7 @@ public class AdminSendMessageService implements Runnable {
         try {
           if(!Ressources.isBlackListed(guild.getId()) && !userAlreadySendedId.contains(guild.getOwnerId())) {
             PrivateChannel privateChannel = jdaClient.retrieveUserById(guild.getOwnerIdLong()).complete().openPrivateChannel().complete();
-            List<String> messagesToSend = CommandEvent.splitMessage(event.getArgs());
+            List<String> messagesToSend = MessageUtil.splitMessageToBeSendable(event.getArgs());
             for(String message : messagesToSend) {
               privateChannel.sendMessage(message).queue();
             }

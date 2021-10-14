@@ -686,5 +686,7 @@
     "statsTeamAnalysisHelpMessageSlashCommand": "Commence une analyse de l'équipe avec des recommandations de bannissement.",
     "showPlayersCommandNeedToMentionAPlayer": "Ce joueur n'est pas enregistré. Veuillez mentionner un joueur enregistré.",
     "showPlayersCommandMentionPlayerShow": "Liste des comptes enregistrés pour ce joueur :",
-    "supportMessageZoeSupPriceReduced": "Suite à vos commentaires, les prix des abonnements ont été revus à la baisse ! Plus d'informations : <https://bit.ly/support-zoe>"
+    "supportMessageZoeSupPriceReduced": "Suite à vos commentaires, les prix des abonnements ont été revus à la baisse ! Plus d'informations : <https://bit.ly/support-zoe>",
+    "winrateTemporaryDisable": "Stats tmp. désactivées",
+    "leagueAccountDataUnavailableError503": "Les serveurs de Riot n'ont pas pu répondre correctement à temps (Erreur 503)"
 }

@@ -31,7 +31,7 @@ public class SavedMatchPlayer implements Serializable {
     this.deaths = participantStats.getDeaths();
     this.assists = participantStats.getAssists();
     this.creepScores = participantStats.getTotalMinionsKilled() + participantStats.getNeutralMinionsKilled();
-    this.level = participantStats.getChampLevel();
+    this.level = participantStats.getChampionLevel();
     this.role = participantStats.getRole();
     this.lane = participantStats.getLane();
   }

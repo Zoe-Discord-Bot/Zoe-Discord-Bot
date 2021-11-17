@@ -45,7 +45,7 @@ public class SavedMatch implements Serializable {
   public SavedMatch(LOLMatch match, String gameId, ZoePlatform platform) {
     this.platform = platform;
     this.gameId = gameId;
-    queueId = match.getQueueId();
+    queueId = match.getQueue();
     gameVersion = match.getGameVersion();
     gameDurations = match.getGameDuration();
     gameCreation = match.getGameCreation();
@@ -77,7 +77,7 @@ public class SavedMatch implements Serializable {
     if(participant != null) {
 
       boolean blueSide;
-      if(participant.getTeamId().getValue() == BLUE_TEAM_ID) {
+      if(participant.getTeam().getValue() == BLUE_TEAM_ID) {
         blueSide = true;
       }else {
         blueSide = false;

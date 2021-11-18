@@ -44,6 +44,7 @@ import ch.kalunight.zoe.util.TFTMatchUtil;
 import ch.kalunight.zoe.util.TreatedPlayer;
 import ch.kalunight.zoe.util.ZoeUserRankManagementUtil;
 import net.dv8tion.jda.api.JDA;
+import no.stelar7.api.r4j.basic.constants.types.lol.GameQueueType;
 import no.stelar7.api.r4j.basic.exceptions.APIHTTPErrorReason;
 import no.stelar7.api.r4j.basic.exceptions.APINoValidResponseException;
 import no.stelar7.api.r4j.basic.exceptions.APIResponseException;
@@ -487,10 +488,12 @@ public class TreatPlayerWorker implements Runnable {
     }
 
 
-    if(rankQueueToShow != null) {
+    if(rankQueueToShow != null 
+        && rankQueueToShow.leagueEntry.getQueueType() != GameQueueType.TEAMFIGHT_TACTICS_DOUBLE_UP
+        && rankQueueToShow.leagueEntrySecond.getQueueType() != GameQueueType.TEAMFIGHT_TACTICS_DOUBLE_UP) {
 
       FullTier lastRankFullTier = new FullTier(rankQueueToShow.leagueEntry);
-
+      
       stringMessage.append(getDetailledRank(rankQueueToShow.leagueEntry, rankQueueToShow.leagueEntrySecond, lastRankFullTier, accountString, baseText, rankQueueToShow.queue));
 
     } else {

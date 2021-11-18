@@ -5,6 +5,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.dto.DTO.LastRank;
 import ch.kalunight.zoe.model.player_data.FullTier;
@@ -12,6 +15,8 @@ import ch.kalunight.zoe.repositories.LastRankRepository;
 import no.stelar7.api.r4j.pojo.lol.league.LeagueEntry;
 
 public class LastRankUtil {
+  
+  private static Logger logger = LoggerFactory.getLogger(LastRankUtil.class);
 
   private LastRankUtil() {
     // hide default public constructor
@@ -88,7 +93,15 @@ public class LastRankUtil {
 
     List<Integer> updatedRank = new ArrayList<>();
     for(LeagueEntry checkLeagueEntry : leagueEntries) {
-      FullTier newRank = new FullTier(checkLeagueEntry);
+      
+      FullTier newRank;
+      try {
+        newRank = new FullTier(checkLeagueEntry);
+      }catch(Exception e) {
+        logger.error("Error while converting league entry to FullTier : {}", checkLeagueEntry);
+        continue;
+      }
+      
       if(GameQueueConfigId.getGameQueueIdWithQueueType(checkLeagueEntry.getQueueType()).equals(GameQueueConfigId.SOLOQ)) {
         if(lastRank.getLastRankSoloq() == null) {
           updateSoloQRankWithoutOldData(lastRank, checkLeagueEntry);

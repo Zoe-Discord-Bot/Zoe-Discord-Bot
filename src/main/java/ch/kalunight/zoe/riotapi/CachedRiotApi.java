@@ -30,6 +30,7 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.Projections;
 
+import ch.kalunight.zoe.model.GameQueueConfigId;
 import ch.kalunight.zoe.model.dto.DTO.LeagueAccount;
 import ch.kalunight.zoe.model.dto.SavedClashTournament;
 import ch.kalunight.zoe.model.dto.SavedMatch;
@@ -509,7 +510,17 @@ public class CachedRiotApi {
   }
 
   public List<LeagueEntry> getLeagueEntryBySummonerId(ZoePlatform platform, String summonerId) {
-    return new LeagueBuilder().withPlatform(platform.getLeagueShard()).withSummonerId(summonerId).getLeagueEntries();
+    List<LeagueEntry> entries = new LeagueBuilder().withPlatform(platform.getLeagueShard()).withSummonerId(summonerId).getLeagueEntries();
+ 
+    List<LeagueEntry> entriesToReturn = new ArrayList<>();
+    
+    for(LeagueEntry entry : entries) {
+      if(GameQueueConfigId.SOLOQ.getGameQueueType().contains(entry.getQueueType()) || GameQueueConfigId.FLEX.getGameQueueType().contains(entry.getQueueType())) {
+        entriesToReturn.add(entry);
+      }
+    }
+    
+    return entriesToReturn;
   }
 
   public List<TFTLeagueEntry> getTFTLeagueEntryByTFTSummonerId(ZoePlatform platform, String summonerId) {

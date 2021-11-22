@@ -463,17 +463,17 @@ public class TreatPlayerWorker implements Runnable {
 
     List<LastRankQueue> lastRanksByQueue = new ArrayList<>();
 
-    if(lastRank.lastRank_soloqLastRefresh != null) {
+    if(lastRank.lastRank_soloqLastRefresh != null && lastRank.getLastRankSoloq() != null) {
       lastRanksByQueue.add(new LastRankQueue(lastRank.getLastRankSoloq(), lastRank.getLastRankSoloqSecond(),
           lastRank.lastRank_soloqLastRefresh, GameQueueConfigId.SOLOQ));
     }
 
-    if(lastRank.lastRank_flexLastRefresh != null) {
+    if(lastRank.lastRank_flexLastRefresh != null && lastRank.getLastRankFlex() != null) {
       lastRanksByQueue.add(new LastRankQueue(lastRank.getLastRankFlex(), lastRank.getLastRankFlexSecond(),
           lastRank.lastRank_flexLastRefresh, GameQueueConfigId.FLEX));
     }
 
-    if(lastRank.lastRank_tftLastRefresh != null) {
+    if(lastRank.lastRank_tftLastRefresh != null && lastRank.getLastRankTft() != null) {
       lastRanksByQueue.add(new LastRankQueue(lastRank.getLastRankTft(), lastRank.getLastRankTftSecond(),
           lastRank.lastRank_tftLastRefresh, GameQueueConfigId.RANKED_TFT));
     }
